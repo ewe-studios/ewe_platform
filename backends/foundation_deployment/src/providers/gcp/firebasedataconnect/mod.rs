@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebasedataconnect_connectors")]
-pub mod connectors;
-#[cfg(feature = "gcp_firebasedataconnect_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_firebasedataconnect_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_firebasedataconnect_schemas")]
-pub mod schemas;
-#[cfg(feature = "gcp_firebasedataconnect_services")]
-pub mod services;
+#[cfg(feature = "gcp_firebasedataconnect_firebasedataconnect")]
+pub mod firebasedataconnect;

@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_slides_pages")]
-pub mod pages;
-#[cfg(feature = "gcp_slides_presentations")]
-pub mod presentations;
-#[cfg(feature = "gcp_slides_thumbnail")]
-pub mod thumbnail;
+#[cfg(feature = "gcp_slides_slides")]
+pub mod slides;

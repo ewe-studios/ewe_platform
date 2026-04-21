@@ -6,15 +6,17 @@
 //!
 //! WHAT: A trait with associated types for output, error, state store, and DNS resolver.
 //!       Implementors provide `deploy()` and `destroy()` methods that return
-//!       valtron `StreamIterator`/`TaskIterator` types.
+//!       valtron `TaskIterator` types. Users decide how to orchestrate execution.
 //!
 //! HOW: Users implement `Deployable` on their structs. The trait methods receive
 //!      `ProviderClient<Store, Resolver>` which provides access to state persistence
 //!      and HTTP client for API calls.
 
-use foundation_core::valtron::{BoxedSendExecutionAction, StreamIterator, TaskIterator};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::client::DnsResolver;
+use foundation_db::state::namespaced::NamespacedStore;
 use foundation_db::state::traits::StateStore;
+use serde::Serialize;
 
 use crate::provider_client::ProviderClient;
 
@@ -44,8 +46,8 @@ pub enum Deploying {
 ///      No YAML, TOML, or custom configuration formats needed.
 ///
 /// WHAT: Trait with associated types for deploy output, destroy output, error,
-///       state store, and DNS resolver. Provides `deploy()`/`deploy_task()` and
-///       `destroy()`/`destroy_task()` methods.
+///       state store, and DNS resolver. Provides `deploy()` and `destroy()` methods
+///       that return `TaskIterator` — users orchestrate execution themselves.
 ///
 /// HOW: Implement on user structs. Methods receive `ProviderClient<Store, Resolver>`
 ///      providing state persistence and HTTP client access.
@@ -65,67 +67,54 @@ pub enum Deploying {
 /// use foundation_deployment::provider_client::ProviderClient;
 /// use foundation_db::state::FileStateStore;
 /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+/// use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 ///
 /// struct MyWorker {
 ///     name: String,
-///     script: String,
 /// }
 ///
 /// impl Deployable for MyWorker {
-///     type DeployOutput = WorkerDeployment;
+///     const NAMESPACE: &'static str = "cloudflare/workers/script";
+///
+///     type DeployOutput = String;
 ///     type DestroyOutput = ();
-///     type Error = DeploymentError;
+///     type Error = std::io::Error;
 ///     type Store = FileStateStore;
 ///     type Resolver = SystemDnsResolver;
 ///
 ///     fn deploy(
 ///         &self,
-///         client: ProviderClient<Self::Store, Self::Resolver>,
-///     ) -> Result<
-///         impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
-///         Self::Error,
-///     > {
-///         self.deploy_task(client)
-///             .and_then(|task| execute(task, None))
-///             .map_err(|e| DeploymentError::ExecutorFailed(e.to_string()))
-///     }
-///
-///     fn deploy_task(
-///         &self,
+///         instance_id: usize,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
 ///         impl TaskIterator<Ready = Result<Self::DeployOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
 ///         Self::Error,
 ///     > {
-///         // Implementation here
+///         // Return a TaskIterator — users call execute() or compose it
 ///         todo!()
 ///     }
 ///
 ///     fn destroy(
 ///         &self,
-///         client: ProviderClient<Self::Store, Self::Resolver>,
-///     ) -> Result<
-///         impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
-///         Self::Error,
-///     > {
-///         self.destroy_task(client)
-///             .and_then(|task| execute(task, None))
-///             .map_err(|e| DeploymentError::ExecutorFailed(e.to_string()))
-///     }
-///
-///     fn destroy_task(
-///         &self,
+///         instance_id: usize,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
 ///         impl TaskIterator<Ready = Result<Self::DestroyOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
 ///         Self::Error,
 ///     > {
-///         // Implementation here
 ///         todo!()
 ///     }
 /// }
 /// ```
 pub trait Deployable {
+    /// Namespace for this deployable's state store keys.
+    ///
+    /// Convention: `"provider/group/resource"` — e.g., `"cloudflare/workers/script"`.
+    /// All state store operations via `self.store(client)` are automatically
+    /// prefixed with this value, isolating resources per-deployable.
+    /// Must be a compile-time constant so it cannot drift between deploys.
+    const NAMESPACE: &'static str;
+
     /// Deployment output type — contains URLs, IDs, and other artifacts.
     type DeployOutput: Send + Sync;
 
@@ -141,46 +130,18 @@ pub trait Deployable {
     /// DNS resolver type for HTTP calls.
     type Resolver: DnsResolver + Clone + 'static;
 
-    /// Deploy the resource and return a StreamIterator with the result.
+    /// Deploy a specific instance, returning a TaskIterator for composition.
     ///
-    /// WHY: Convenience method for immediate execution via valtron.
-    ///
-    /// WHAT: Calls `deploy_task()` and executes it via `execute()`.
-    ///
-    /// HOW: Users call this for simple deployments, or `deploy_task()` for composition.
+    /// Users decide how to execute it — valtron combinators, sequential iteration,
+    /// parallel spawning, etc.
     ///
     /// # Arguments
     ///
+    /// * `instance_id` - Which instance of this resource to deploy (supports multiple instances)
     /// * `client` - ProviderClient with access to state store and HTTP client
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(StreamIterator)` which yields `Result<DeployOutput, Error>` when iterated.
     fn deploy(
         &self,
-        client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
-        Self::Error,
-    >;
-
-    /// Deploy the resource and return a TaskIterator for customization.
-    ///
-    /// WHY: Users may want to compose tasks with valtron combinators before execution.
-    ///
-    /// WHAT: Core method containing actual deployment logic.
-    ///
-    /// HOW: Returns `TaskIterator` that can be executed via `execute()` or composed.
-    ///
-    /// # Arguments
-    ///
-    /// * `client` - ProviderClient with access to state store and HTTP client
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(TaskIterator)` which can be executed via `execute()`.
-    fn deploy_task(
-        &self,
+        instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
@@ -192,47 +153,18 @@ pub trait Deployable {
         Self::Error,
     >;
 
-    /// Destroy the resource and return a StreamIterator with the result.
+    /// Destroy a specific instance, returning a TaskIterator for composition.
     ///
-    /// WHY: Convenience method for immediate execution via valtron.
-    ///
-    /// WHAT: Calls `destroy_task()` and executes it via `execute()`.
-    ///
-    /// HOW: Uses state store to read deployment output for resource identification.
+    /// Users decide how to execute it — valtron combinators, sequential iteration,
+    /// parallel spawning, etc.
     ///
     /// # Arguments
     ///
+    /// * `instance_id` - Which instance of this resource to destroy
     /// * `client` - ProviderClient with access to state store and HTTP client
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(StreamIterator)` which yields `Result<DestroyOutput, Error>` when iterated.
     fn destroy(
         &self,
-        client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
-        Self::Error,
-    >;
-
-    /// Destroy the resource and return a TaskIterator for customization.
-    ///
-    /// WHY: Users may want to compose tasks with valtron combinators before execution.
-    ///
-    /// WHAT: Core method containing actual destroy logic.
-    ///
-    /// HOW: Reads state store to get deployment output, then calls provider delete API.
-    ///      Returns idempotent success if no state exists (resource never deployed).
-    ///
-    /// # Arguments
-    ///
-    /// * `client` - ProviderClient with access to state store and HTTP client
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(TaskIterator)` which can be executed via `execute()`.
-    fn destroy_task(
-        &self,
+        instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
@@ -243,4 +175,90 @@ pub trait Deployable {
             + 'static,
         Self::Error,
     >;
+
+    // -- Default methods --
+
+    /// Returns a `NamespacedStore` scoped to `Self::NAMESPACE`.
+    ///
+    /// All `get()`, `list()`, `delete()` operations on the returned wrapper
+    /// are automatically prefixed with `NAMESPACE`.
+    fn store(&self, client: &ProviderClient<Self::Store, Self::Resolver>) -> NamespacedStore<Self::Store> {
+        NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
+    }
+
+    /// Wraps a valtron task to persist the result under `"{NAMESPACE}/{instance_id}"`.
+    ///
+    /// On task success, stores the result in the state store. The deploy
+    /// path calls this to record what was deployed; the destroy path reads it back
+    /// via `self.store(client).get_typed(instance_id)` to know what to tear down.
+    fn update<T, V, E, I>(
+        &self,
+        client: &ProviderClient<Self::Store, Self::Resolver>,
+        instance_id: usize,
+        input: I,
+        task: T,
+    ) -> UpdateTask<T, Self::Store>
+    where
+        T: TaskIterator<Ready = Result<V, E>> + Send + 'static,
+        V: Serialize + Clone + Send + 'static,
+        E: Send + 'static,
+        T::Pending: Send + 'static,
+        T::Spawner: Send + 'static,
+        I: Serialize,
+    {
+        UpdateTask {
+            store: NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE),
+            instance_id,
+            input: serde_json::to_value(&input).unwrap_or(serde_json::json!(null)),
+            task,
+        }
+    }
+}
+
+/// Internal task wrapper that persists results after the inner task completes.
+pub struct UpdateTask<T, S>
+where
+    S: StateStore,
+    T: TaskIterator,
+{
+    pub(crate) store: NamespacedStore<S>,
+    pub(crate) instance_id: usize,
+    pub(crate) input: serde_json::Value,
+    pub(crate) task: T,
+}
+
+impl<T, S, V, E> TaskIterator for UpdateTask<T, S>
+where
+    S: StateStore + Send + Sync + 'static,
+    T: TaskIterator<Ready = Result<V, E>>,
+    T::Pending: Send + 'static,
+    T::Spawner: Send + 'static,
+    V: Serialize + Send + 'static,
+    E: Send + 'static,
+{
+    type Ready = Result<V, E>;
+    type Pending = T::Pending;
+    type Spawner = T::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        match self.task.next_status()? {
+            TaskStatus::Ready(Ok(value)) => {
+                let key = self.instance_id.to_string();
+                let stored = (
+                    &self.input,
+                    serde_json::to_value(&value).unwrap_or(serde_json::json!(null)),
+                );
+                if let Err(e) = self.store.store_typed(&key, &stored) {
+                    tracing::warn!(
+                        "Failed to store deployment state for {}/{}: {e:?}",
+                        self.store.prefix(),
+                        key
+                    );
+                }
+                Some(TaskStatus::Ready(Ok(value)))
+            }
+            TaskStatus::Ready(Err(e)) => Some(TaskStatus::Ready(Err(e))),
+            other => Some(other),
+        }
+    }
 }

@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_adsense_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_adsense_ad_blocking_recovery_tag")]
-pub mod ad_blocking_recovery_tag;
-#[cfg(feature = "gcp_adsense_adclients")]
-pub mod adclients;
-#[cfg(feature = "gcp_adsense_adcode")]
-pub mod adcode;
-#[cfg(feature = "gcp_adsense_adunits")]
-pub mod adunits;
-#[cfg(feature = "gcp_adsense_alerts")]
-pub mod alerts;
-#[cfg(feature = "gcp_adsense_customchannels")]
-pub mod customchannels;
-#[cfg(feature = "gcp_adsense_payments")]
-pub mod payments;
-#[cfg(feature = "gcp_adsense_policy_issues")]
-pub mod policy_issues;
-#[cfg(feature = "gcp_adsense_reports_generate")]
-pub mod reports_generate;
-#[cfg(feature = "gcp_adsense_reports_generate_csv")]
-pub mod reports_generate_csv;
-#[cfg(feature = "gcp_adsense_saved")]
-pub mod saved;
-#[cfg(feature = "gcp_adsense_saved_generate")]
-pub mod saved_generate;
-#[cfg(feature = "gcp_adsense_saved_generate_csv")]
-pub mod saved_generate_csv;
-#[cfg(feature = "gcp_adsense_sites")]
-pub mod sites;
-#[cfg(feature = "gcp_adsense_urlchannels")]
-pub mod urlchannels;
+#[cfg(feature = "gcp_adsense_adsense")]
+pub mod adsense;

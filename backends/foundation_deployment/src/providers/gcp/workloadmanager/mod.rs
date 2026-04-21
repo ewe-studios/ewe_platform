@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_workloadmanager_actuations")]
-pub mod actuations;
-#[cfg(feature = "gcp_workloadmanager_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_workloadmanager_discoveredprofiles")]
-pub mod discoveredprofiles;
-#[cfg(feature = "gcp_workloadmanager_evaluations")]
-pub mod evaluations;
-#[cfg(feature = "gcp_workloadmanager_executions")]
-pub mod executions;
-#[cfg(feature = "gcp_workloadmanager_executions_run")]
-pub mod executions_run;
-#[cfg(feature = "gcp_workloadmanager_health")]
-pub mod health;
-#[cfg(feature = "gcp_workloadmanager_insights")]
-pub mod insights;
-#[cfg(feature = "gcp_workloadmanager_insights_write_insight")]
-pub mod insights_write_insight;
-#[cfg(feature = "gcp_workloadmanager_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_workloadmanager_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_workloadmanager_results")]
-pub mod results;
-#[cfg(feature = "gcp_workloadmanager_rules")]
-pub mod rules;
-#[cfg(feature = "gcp_workloadmanager_scanned_resources")]
-pub mod scanned_resources;
+#[cfg(feature = "gcp_workloadmanager_workloadmanager")]
+pub mod workloadmanager;

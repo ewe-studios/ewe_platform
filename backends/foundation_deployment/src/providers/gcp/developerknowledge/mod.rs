@@ -10,3 +10,5 @@
 
 pub mod shared;
 
+#[cfg(feature = "gcp_developerknowledge_developerknowledge")]
+pub mod developerknowledge;

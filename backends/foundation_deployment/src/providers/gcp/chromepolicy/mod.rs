@@ -10,29 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_chromepolicy_files_upload_policy_file")]
-pub mod files_upload_policy_file;
-#[cfg(feature = "gcp_chromepolicy_groups_batch_delete")]
-pub mod groups_batch_delete;
-#[cfg(feature = "gcp_chromepolicy_groups_batch_modify")]
-pub mod groups_batch_modify;
-#[cfg(feature = "gcp_chromepolicy_groups_list_group_priority_ordering")]
-pub mod groups_list_group_priority_ordering;
-#[cfg(feature = "gcp_chromepolicy_groups_update_group_priority_ordering")]
-pub mod groups_update_group_priority_ordering;
-#[cfg(feature = "gcp_chromepolicy_networks_define_certificate")]
-pub mod networks_define_certificate;
-#[cfg(feature = "gcp_chromepolicy_networks_define_network")]
-pub mod networks_define_network;
-#[cfg(feature = "gcp_chromepolicy_networks_remove_certificate")]
-pub mod networks_remove_certificate;
-#[cfg(feature = "gcp_chromepolicy_networks_remove_network")]
-pub mod networks_remove_network;
-#[cfg(feature = "gcp_chromepolicy_orgunits_batch_inherit")]
-pub mod orgunits_batch_inherit;
-#[cfg(feature = "gcp_chromepolicy_orgunits_batch_modify")]
-pub mod orgunits_batch_modify;
-#[cfg(feature = "gcp_chromepolicy_policies_resolve")]
-pub mod policies_resolve;
-#[cfg(feature = "gcp_chromepolicy_policy_schemas")]
-pub mod policy_schemas;
+#[cfg(feature = "gcp_chromepolicy_chromepolicy")]
+pub mod chromepolicy;

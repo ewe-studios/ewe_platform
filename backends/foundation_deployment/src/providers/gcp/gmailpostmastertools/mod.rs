@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_gmailpostmastertools_compliance_status")]
-pub mod compliance_status;
-#[cfg(feature = "gcp_gmailpostmastertools_domain_stats_batch_query")]
-pub mod domain_stats_batch_query;
-#[cfg(feature = "gcp_gmailpostmastertools_domain_stats_query")]
-pub mod domain_stats_query;
-#[cfg(feature = "gcp_gmailpostmastertools_domains")]
-pub mod domains;
+#[cfg(feature = "gcp_gmailpostmastertools_gmailpostmastertools")]
+pub mod gmailpostmastertools;

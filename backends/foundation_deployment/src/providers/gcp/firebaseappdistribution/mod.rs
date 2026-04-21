@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebaseappdistribution_aab_info")]
-pub mod aab_info;
-#[cfg(feature = "gcp_firebaseappdistribution_feedback_reports")]
-pub mod feedback_reports;
-#[cfg(feature = "gcp_firebaseappdistribution_groups")]
-pub mod groups;
-#[cfg(feature = "gcp_firebaseappdistribution_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_firebaseappdistribution_releases")]
-pub mod releases;
-#[cfg(feature = "gcp_firebaseappdistribution_releases_batch_delete")]
-pub mod releases_batch_delete;
-#[cfg(feature = "gcp_firebaseappdistribution_releases_upload")]
-pub mod releases_upload;
-#[cfg(feature = "gcp_firebaseappdistribution_testers")]
-pub mod testers;
-#[cfg(feature = "gcp_firebaseappdistribution_testers_batch_add")]
-pub mod testers_batch_add;
-#[cfg(feature = "gcp_firebaseappdistribution_testers_batch_remove")]
-pub mod testers_batch_remove;
+#[cfg(feature = "gcp_firebaseappdistribution_firebaseappdistribution")]
+pub mod firebaseappdistribution;

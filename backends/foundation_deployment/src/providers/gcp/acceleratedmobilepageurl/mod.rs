@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_acceleratedmobilepageurl_amp_urls_batch_get")]
-pub mod amp_urls_batch_get;
+#[cfg(feature = "gcp_acceleratedmobilepageurl_acceleratedmobilepageurl")]
+pub mod acceleratedmobilepageurl;

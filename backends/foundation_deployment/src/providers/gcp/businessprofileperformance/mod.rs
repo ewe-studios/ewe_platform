@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_businessprofileperformance_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_businessprofileperformance_monthly")]
-pub mod monthly;
+#[cfg(feature = "gcp_businessprofileperformance_businessprofileperformance")]
+pub mod businessprofileperformance;

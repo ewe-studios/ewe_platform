@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_sheets_developer_metadata")]
-pub mod developer_metadata;
-#[cfg(feature = "gcp_sheets_developer_metadata_search")]
-pub mod developer_metadata_search;
 #[cfg(feature = "gcp_sheets_sheets")]
 pub mod sheets;
-#[cfg(feature = "gcp_sheets_spreadsheets")]
-pub mod spreadsheets;
-#[cfg(feature = "gcp_sheets_values")]
-pub mod values;
-#[cfg(feature = "gcp_sheets_values_batch_clear")]
-pub mod values_batch_clear;
-#[cfg(feature = "gcp_sheets_values_batch_clear_by_data_filter")]
-pub mod values_batch_clear_by_data_filter;
-#[cfg(feature = "gcp_sheets_values_batch_get")]
-pub mod values_batch_get;
-#[cfg(feature = "gcp_sheets_values_batch_get_by_data_filter")]
-pub mod values_batch_get_by_data_filter;
-#[cfg(feature = "gcp_sheets_values_batch_update")]
-pub mod values_batch_update;
-#[cfg(feature = "gcp_sheets_values_batch_update_by_data_filter")]
-pub mod values_batch_update_by_data_filter;

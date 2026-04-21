@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_metastore_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_metastore_databases")]
-pub mod databases;
-#[cfg(feature = "gcp_metastore_federations")]
-pub mod federations;
-#[cfg(feature = "gcp_metastore_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_metastore_metadata_imports")]
-pub mod metadata_imports;
-#[cfg(feature = "gcp_metastore_migration_executions")]
-pub mod migration_executions;
-#[cfg(feature = "gcp_metastore_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_metastore_services")]
-pub mod services;
-#[cfg(feature = "gcp_metastore_tables")]
-pub mod tables;
+#[cfg(feature = "gcp_metastore_metastore")]
+pub mod metastore;

@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `Person`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Person {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `SearchResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

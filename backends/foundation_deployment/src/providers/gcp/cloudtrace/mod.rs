@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudtrace_spans")]
-pub mod spans;
-#[cfg(feature = "gcp_cloudtrace_traces_batch_write")]
-pub mod traces_batch_write;
+#[cfg(feature = "gcp_cloudtrace_cloudtrace")]
+pub mod cloudtrace;

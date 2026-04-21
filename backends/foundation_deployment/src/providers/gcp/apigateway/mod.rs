@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_apigateway_apis")]
-pub mod apis;
-#[cfg(feature = "gcp_apigateway_configs")]
-pub mod configs;
-#[cfg(feature = "gcp_apigateway_gateways")]
-pub mod gateways;
-#[cfg(feature = "gcp_apigateway_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_apigateway_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_apigateway_apigateway")]
+pub mod apigateway;

@@ -10,29 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_securesourcemanager_branch_rules")]
-pub mod branch_rules;
-#[cfg(feature = "gcp_securesourcemanager_hooks")]
-pub mod hooks;
-#[cfg(feature = "gcp_securesourcemanager_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_securesourcemanager_issue_comments")]
-pub mod issue_comments;
-#[cfg(feature = "gcp_securesourcemanager_issues")]
-pub mod issues;
-#[cfg(feature = "gcp_securesourcemanager_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_securesourcemanager_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_securesourcemanager_pull_request_comments")]
-pub mod pull_request_comments;
-#[cfg(feature = "gcp_securesourcemanager_pull_request_comments_batch_create")]
-pub mod pull_request_comments_batch_create;
-#[cfg(feature = "gcp_securesourcemanager_pull_request_comments_resolve")]
-pub mod pull_request_comments_resolve;
-#[cfg(feature = "gcp_securesourcemanager_pull_request_comments_unresolve")]
-pub mod pull_request_comments_unresolve;
-#[cfg(feature = "gcp_securesourcemanager_pull_requests")]
-pub mod pull_requests;
-#[cfg(feature = "gcp_securesourcemanager_repositories")]
-pub mod repositories;
+#[cfg(feature = "gcp_securesourcemanager_securesourcemanager")]
+pub mod securesourcemanager;

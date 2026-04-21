@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebasestorage_buckets")]
-pub mod buckets;
-#[cfg(feature = "gcp_firebasestorage_default_bucket")]
-pub mod default_bucket;
+#[cfg(feature = "gcp_firebasestorage_firebasestorage")]
+pub mod firebasestorage;

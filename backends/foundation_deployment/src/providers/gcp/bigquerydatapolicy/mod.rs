@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigquerydatapolicy_data_policies")]
-pub mod data_policies;
+#[cfg(feature = "gcp_bigquerydatapolicy_bigquerydatapolicy")]
+pub mod bigquerydatapolicy;

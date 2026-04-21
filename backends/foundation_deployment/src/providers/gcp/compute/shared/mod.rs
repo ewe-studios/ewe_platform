@@ -14,31 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `FirewallPolicyRule`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPolicyRule {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Image`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Policy`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Project`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Project {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

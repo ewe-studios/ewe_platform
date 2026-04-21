@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_realtimebidding_bidders")]
-pub mod bidders;
-#[cfg(feature = "gcp_realtimebidding_buyers")]
-pub mod buyers;
-#[cfg(feature = "gcp_realtimebidding_creatives")]
-pub mod creatives;
-#[cfg(feature = "gcp_realtimebidding_creatives_watch")]
-pub mod creatives_watch;
-#[cfg(feature = "gcp_realtimebidding_endpoints")]
-pub mod endpoints;
-#[cfg(feature = "gcp_realtimebidding_pretargeting_configs")]
-pub mod pretargeting_configs;
-#[cfg(feature = "gcp_realtimebidding_publisher_connections")]
-pub mod publisher_connections;
-#[cfg(feature = "gcp_realtimebidding_publisher_connections_batch_approve")]
-pub mod publisher_connections_batch_approve;
-#[cfg(feature = "gcp_realtimebidding_publisher_connections_batch_reject")]
-pub mod publisher_connections_batch_reject;
-#[cfg(feature = "gcp_realtimebidding_user_lists")]
-pub mod user_lists;
+#[cfg(feature = "gcp_realtimebidding_realtimebidding")]
+pub mod realtimebidding;

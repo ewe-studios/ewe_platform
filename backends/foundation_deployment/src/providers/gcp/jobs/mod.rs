@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_jobs_client_events")]
-pub mod client_events;
-#[cfg(feature = "gcp_jobs_companies")]
-pub mod companies;
 #[cfg(feature = "gcp_jobs_jobs")]
 pub mod jobs;
-#[cfg(feature = "gcp_jobs_jobs_batch_create")]
-pub mod jobs_batch_create;
-#[cfg(feature = "gcp_jobs_jobs_batch_delete")]
-pub mod jobs_batch_delete;
-#[cfg(feature = "gcp_jobs_jobs_batch_update")]
-pub mod jobs_batch_update;
-#[cfg(feature = "gcp_jobs_jobs_search")]
-pub mod jobs_search;
-#[cfg(feature = "gcp_jobs_jobs_search_alert")]
-pub mod jobs_search_alert;
-#[cfg(feature = "gcp_jobs_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_jobs_tenants")]
-pub mod tenants;

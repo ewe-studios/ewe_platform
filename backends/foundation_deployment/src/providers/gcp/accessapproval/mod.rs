@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_accessapproval_access_approval_settings")]
-pub mod access_approval_settings;
-#[cfg(feature = "gcp_accessapproval_approval_requests")]
-pub mod approval_requests;
-#[cfg(feature = "gcp_accessapproval_service_account")]
-pub mod service_account;
+#[cfg(feature = "gcp_accessapproval_accessapproval")]
+pub mod accessapproval;

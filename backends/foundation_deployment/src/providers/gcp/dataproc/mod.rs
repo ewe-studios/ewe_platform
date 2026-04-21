@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_dataproc_autoscaling_policies")]
-pub mod autoscaling_policies;
-#[cfg(feature = "gcp_dataproc_batches")]
-pub mod batches;
-#[cfg(feature = "gcp_dataproc_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_dataproc_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_dataproc_jobs_submit")]
-pub mod jobs_submit;
-#[cfg(feature = "gcp_dataproc_jobs_submit_as_operation")]
-pub mod jobs_submit_as_operation;
-#[cfg(feature = "gcp_dataproc_node_groups")]
-pub mod node_groups;
-#[cfg(feature = "gcp_dataproc_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_dataproc_session_templates")]
-pub mod session_templates;
-#[cfg(feature = "gcp_dataproc_sessions")]
-pub mod sessions;
-#[cfg(feature = "gcp_dataproc_spark_applications")]
-pub mod spark_applications;
-#[cfg(feature = "gcp_dataproc_spark_applications_search")]
-pub mod spark_applications_search;
-#[cfg(feature = "gcp_dataproc_workflow_templates")]
-pub mod workflow_templates;
-#[cfg(feature = "gcp_dataproc_workflow_templates_instantiate_inline")]
-pub mod workflow_templates_instantiate_inline;
+#[cfg(feature = "gcp_dataproc_dataproc")]
+pub mod dataproc;

@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudtasks_cmek_config")]
-pub mod cmek_config;
-#[cfg(feature = "gcp_cloudtasks_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_cloudtasks_queues")]
-pub mod queues;
-#[cfg(feature = "gcp_cloudtasks_tasks")]
-pub mod tasks;
+#[cfg(feature = "gcp_cloudtasks_cloudtasks")]
+pub mod cloudtasks;

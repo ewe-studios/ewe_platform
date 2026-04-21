@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_verifiedaccess_challenge_generate")]
-pub mod challenge_generate;
-#[cfg(feature = "gcp_verifiedaccess_challenge_verify")]
-pub mod challenge_verify;
+#[cfg(feature = "gcp_verifiedaccess_verifiedaccess")]
+pub mod verifiedaccess;

@@ -109,7 +109,7 @@ impl HttpResponse {
     }
 
     /// Render response to HTTP/1.1 format.
-    fn render(&self) -> Vec<u8> {
+    pub(crate) fn render(&self) -> Vec<u8> {
         let mut response = format!("HTTP/1.1 {} {}\r\n", self.status, self.status_text);
 
         for (key, value) in &self.headers {

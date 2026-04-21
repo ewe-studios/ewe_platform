@@ -10,33 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_prod_tt_sasportal_customers")]
-pub mod customers;
-#[cfg(feature = "gcp_prod_tt_sasportal_customers_list_gcp_project_deployments")]
-pub mod customers_list_gcp_project_deployments;
-#[cfg(feature = "gcp_prod_tt_sasportal_customers_list_legacy_organizations")]
-pub mod customers_list_legacy_organizations;
-#[cfg(feature = "gcp_prod_tt_sasportal_customers_migrate_organization")]
-pub mod customers_migrate_organization;
-#[cfg(feature = "gcp_prod_tt_sasportal_customers_provision_deployment")]
-pub mod customers_provision_deployment;
-#[cfg(feature = "gcp_prod_tt_sasportal_customers_setup_sas_analytics")]
-pub mod customers_setup_sas_analytics;
-#[cfg(feature = "gcp_prod_tt_sasportal_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_prod_tt_sasportal_devices")]
-pub mod devices;
-#[cfg(feature = "gcp_prod_tt_sasportal_devices_create_signed")]
-pub mod devices_create_signed;
-#[cfg(feature = "gcp_prod_tt_sasportal_installer_generate_secret")]
-pub mod installer_generate_secret;
-#[cfg(feature = "gcp_prod_tt_sasportal_installer_validate")]
-pub mod installer_validate;
-#[cfg(feature = "gcp_prod_tt_sasportal_nodes")]
-pub mod nodes;
-#[cfg(feature = "gcp_prod_tt_sasportal_policies_get")]
-pub mod policies_get;
-#[cfg(feature = "gcp_prod_tt_sasportal_policies_set")]
-pub mod policies_set;
-#[cfg(feature = "gcp_prod_tt_sasportal_policies_test")]
-pub mod policies_test;
+#[cfg(feature = "gcp_prod_tt_sasportal_prod_tt_sasportal")]
+pub mod prod_tt_sasportal;

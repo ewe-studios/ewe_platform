@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_playintegrity_device_recall_write")]
-pub mod device_recall_write;
-#[cfg(feature = "gcp_playintegrity_group")]
-pub mod group;
+#[cfg(feature = "gcp_playintegrity_playintegrity")]
+pub mod playintegrity;

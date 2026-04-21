@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `Drive`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Drive {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `File`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

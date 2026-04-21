@@ -14,10 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `SecretVersion`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

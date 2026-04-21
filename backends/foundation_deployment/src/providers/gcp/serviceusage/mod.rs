@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_serviceusage_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_serviceusage_services")]
-pub mod services;
-#[cfg(feature = "gcp_serviceusage_services_batch_enable")]
-pub mod services_batch_enable;
-#[cfg(feature = "gcp_serviceusage_services_batch_get")]
-pub mod services_batch_get;
+#[cfg(feature = "gcp_serviceusage_serviceusage")]
+pub mod serviceusage;

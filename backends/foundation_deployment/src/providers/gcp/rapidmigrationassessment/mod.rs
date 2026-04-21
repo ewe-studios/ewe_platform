@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_rapidmigrationassessment_annotations")]
-pub mod annotations;
-#[cfg(feature = "gcp_rapidmigrationassessment_collectors")]
-pub mod collectors;
-#[cfg(feature = "gcp_rapidmigrationassessment_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_rapidmigrationassessment_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_rapidmigrationassessment_rapidmigrationassessment")]
+pub mod rapidmigrationassessment;

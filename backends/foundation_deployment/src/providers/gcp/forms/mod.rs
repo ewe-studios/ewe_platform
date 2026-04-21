@@ -12,7 +12,3 @@ pub mod shared;
 
 #[cfg(feature = "gcp_forms_forms")]
 pub mod forms;
-#[cfg(feature = "gcp_forms_responses")]
-pub mod responses;
-#[cfg(feature = "gcp_forms_watches")]
-pub mod watches;

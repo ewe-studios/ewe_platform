@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_beyondcorp_app_connections")]
-pub mod app_connections;
-#[cfg(feature = "gcp_beyondcorp_app_connections_resolve")]
-pub mod app_connections_resolve;
-#[cfg(feature = "gcp_beyondcorp_app_connectors")]
-pub mod app_connectors;
-#[cfg(feature = "gcp_beyondcorp_app_gateways")]
-pub mod app_gateways;
-#[cfg(feature = "gcp_beyondcorp_applications")]
-pub mod applications;
-#[cfg(feature = "gcp_beyondcorp_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_beyondcorp_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_beyondcorp_security_gateways")]
-pub mod security_gateways;
+#[cfg(feature = "gcp_beyondcorp_beyondcorp")]
+pub mod beyondcorp;

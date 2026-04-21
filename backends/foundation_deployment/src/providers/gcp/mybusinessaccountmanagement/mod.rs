@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessaccountmanagement_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_mybusinessaccountmanagement_admins")]
-pub mod admins;
-#[cfg(feature = "gcp_mybusinessaccountmanagement_invitations")]
-pub mod invitations;
-#[cfg(feature = "gcp_mybusinessaccountmanagement_locations")]
-pub mod locations;
+#[cfg(feature = "gcp_mybusinessaccountmanagement_mybusinessaccountmanagement")]
+pub mod mybusinessaccountmanagement;

@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_versionhistory_channels")]
-pub mod channels;
-#[cfg(feature = "gcp_versionhistory_platforms")]
-pub mod platforms;
-#[cfg(feature = "gcp_versionhistory_releases")]
-pub mod releases;
-#[cfg(feature = "gcp_versionhistory_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_versionhistory_versionhistory")]
+pub mod versionhistory;

@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_licensing_user")]
-pub mod user;
-#[cfg(feature = "gcp_licensing_users")]
-pub mod users;
+#[cfg(feature = "gcp_licensing_licensing")]
+pub mod licensing;

@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `DetectLanguageResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetectLanguageResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `RomanizeTextResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RomanizeTextResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `TranslateTextResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TranslateTextResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

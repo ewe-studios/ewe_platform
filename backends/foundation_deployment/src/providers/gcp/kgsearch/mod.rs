@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_kgsearch_entities_search")]
-pub mod entities_search;
+#[cfg(feature = "gcp_kgsearch_kgsearch")]
+pub mod kgsearch;

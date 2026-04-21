@@ -21,8 +21,6 @@ use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Operation;
-use super::shared::Policy;
-use super::shared::TestIamPermissionsResponse;
 
 use super::shared::ApiResponse;
 
@@ -30,28 +28,39 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+/// `RuntimeHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeHost {
+    /// gceInstanceHost property.
+    pub gce_instance_host: Option<GceInstanceHost>,
 }
 
-/// `ListWorkstationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkstationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workstations property.
-    pub workstations: Option<Vec<Workstation>>,
+/// `Location` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// description property.
     pub description: Option<String>,
@@ -63,17 +72,143 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `GenerateAccessTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateAccessTokenResponse {
-    /// accessToken property.
-    pub access_token: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
+/// `PortRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PortRange {
+    /// first property.
+    pub first: Option<i64>,
+    /// last property.
+    pub last: Option<i64>,
+}
+
+/// `ListUsableWorkstationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListUsableWorkstationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstations property.
+    pub workstations: Option<Vec<Workstation>>,
+}
+
+/// `ListLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListLocationsResponse {
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+}
+
+/// `Accelerator` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Accelerator {
+    /// count property.
+    pub count: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GceShieldedInstanceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GceShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
+}
+
+/// `GceRegionalPersistentDisk` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GceRegionalPersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// fsType property.
+    pub fs_type: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
+/// `GceConfidentialInstanceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GceConfidentialInstanceConfig {
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+}
+
+/// `StopWorkstationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StopWorkstationRequest {
+    /// etag property.
+    pub etag: Option<String>,
+    /// validateOnly property.
+    pub validate_only: Option<bool>,
+}
+
+/// `CancelOperationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CancelOperationRequest {}
+
+/// `TestIamPermissionsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsRequest {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `DomainConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DomainConfig {
+    /// domain property.
+    pub domain: Option<String>,
+}
+
+/// `ListUsableWorkstationConfigsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListUsableWorkstationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstationConfigs property.
+    pub workstation_configs: Option<Vec<WorkstationConfig>>,
+}
+
+/// `BoostConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BoostConfig {
+    /// accelerators property.
+    pub accelerators: Option<Vec<Accelerator>>,
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// enableNestedVirtualization property.
+    pub enable_nested_virtualization: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// poolSize property.
+    pub pool_size: Option<i64>,
 }
 
 /// `Workstation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Workstation {
     /// annotations property.
     pub annotations: Option<serde_json::Value>,
@@ -111,17 +246,190 @@ pub struct Workstation {
     pub update_time: Option<String>,
 }
 
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+/// `EphemeralDirectory` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EphemeralDirectory {
+    /// gcePd property.
+    pub gce_pd: Option<GcePersistentDisk>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+}
+
+/// `PersistentDirectory` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PersistentDirectory {
+    /// gceHd property.
+    pub gce_hd: Option<GceHyperdiskBalancedHighAvailability>,
+    /// gcePd property.
+    pub gce_pd: Option<GceRegionalPersistentDisk>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `Container` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Container {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<serde_json::Value>,
+    /// image property.
+    pub image: Option<String>,
+    /// runAsUser property.
+    pub run_as_user: Option<i64>,
+    /// workingDir property.
+    pub working_dir: Option<String>,
+}
+
+/// `Host` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Host {
+    /// gceInstance property.
+    pub gce_instance: Option<GceInstance>,
+}
+
+/// `GcePersistentDisk` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GcePersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// sourceImage property.
+    pub source_image: Option<String>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
+/// `StartWorkstationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StartWorkstationRequest {
+    /// boostConfig property.
+    pub boost_config: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// validateOnly property.
+    pub validate_only: Option<bool>,
+}
+
+/// `ListOperationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListOperationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// operations property.
+    pub operations: Option<Vec<Operation>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleProtobufEmpty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {}
+
+/// `ReadinessCheck` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ReadinessCheck {
+    /// path property.
+    pub path: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `WorkstationConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkstationConfig {
+    /// allowedPorts property.
+    pub allowed_ports: Option<Vec<PortRange>>,
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// conditions property.
+    pub conditions: Option<Vec<Status>>,
+    /// container property.
+    pub container: Option<Container>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// degraded property.
+    pub degraded: Option<bool>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// disableTcpConnections property.
+    pub disable_tcp_connections: Option<bool>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// enableAuditAgent property.
+    pub enable_audit_agent: Option<bool>,
+    /// encryptionKey property.
+    pub encryption_key: Option<CustomerEncryptionKey>,
+    /// ephemeralDirectories property.
+    pub ephemeral_directories: Option<Vec<EphemeralDirectory>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// grantWorkstationAdminRoleOnCreate property.
+    pub grant_workstation_admin_role_on_create: Option<bool>,
+    /// host property.
+    pub host: Option<Host>,
+    /// idleTimeout property.
+    pub idle_timeout: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// maxUsableWorkstations property.
+    pub max_usable_workstations: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// persistentDirectories property.
+    pub persistent_directories: Option<Vec<PersistentDirectory>>,
+    /// readinessChecks property.
+    pub readiness_checks: Option<Vec<ReadinessCheck>>,
+    /// reconciling property.
+    pub reconciling: Option<bool>,
+    /// replicaZones property.
+    pub replica_zones: Option<Vec<String>>,
+    /// runningTimeout property.
+    pub running_timeout: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ListWorkstationConfigsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkstationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstationConfigs property.
+    pub workstation_configs: Option<Vec<WorkstationConfig>>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
 /// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// condition property.
     pub condition: Option<Expr>,
@@ -131,19 +439,47 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+/// `GceInstance` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GceInstance {
+    /// accelerators property.
+    pub accelerators: Option<Vec<Accelerator>>,
+    /// boostConfigs property.
+    pub boost_configs: Option<Vec<BoostConfig>>,
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// confidentialInstanceConfig property.
+    pub confidential_instance_config: Option<GceConfidentialInstanceConfig>,
+    /// disablePublicIpAddresses property.
+    pub disable_public_ip_addresses: Option<bool>,
+    /// disableSsh property.
+    pub disable_ssh: Option<bool>,
+    /// enableNestedVirtualization property.
+    pub enable_nested_virtualization: Option<bool>,
+    /// instanceMetadata property.
+    pub instance_metadata: Option<serde_json::Value>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// poolSize property.
+    pub pool_size: Option<i64>,
+    /// pooledInstances property.
+    pub pooled_instances: Option<i64>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// serviceAccountScopes property.
+    pub service_account_scopes: Option<Vec<String>>,
+    /// shieldedInstanceConfig property.
+    pub shielded_instance_config: Option<GceShieldedInstanceConfig>,
+    /// startupScriptUri property.
+    pub startup_script_uri: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+    /// vmTags property.
+    pub vm_tags: Option<serde_json::Value>,
 }
 
 /// `GceInstanceHost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GceInstanceHost {
     /// id property.
     pub id: Option<String>,
@@ -153,19 +489,378 @@ pub struct GceInstanceHost {
     pub zone: Option<String>,
 }
 
-/// `RuntimeHost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeHost {
-    /// gceInstanceHost property.
-    pub gce_instance_host: Option<GceInstanceHost>,
+/// `GceHyperdiskBalancedHighAvailability` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GceHyperdiskBalancedHighAvailability {
+    /// archiveTimeout property.
+    pub archive_timeout: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
+/// `PrivateClusterConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PrivateClusterConfig {
+    /// allowedProjects property.
+    pub allowed_projects: Option<Vec<String>>,
+    /// clusterHostname property.
+    pub cluster_hostname: Option<String>,
+    /// enablePrivateEndpoint property.
+    pub enable_private_endpoint: Option<bool>,
+    /// serviceAttachmentUri property.
+    pub service_attachment_uri: Option<String>,
+}
+
+/// `WorkstationCluster` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkstationCluster {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// conditions property.
+    pub conditions: Option<Vec<Status>>,
+    /// controlPlaneIp property.
+    pub control_plane_ip: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// degraded property.
+    pub degraded: Option<bool>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// domainConfig property.
+    pub domain_config: Option<DomainConfig>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// gatewayConfig property.
+    pub gateway_config: Option<GatewayConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// privateClusterConfig property.
+    pub private_cluster_config: Option<PrivateClusterConfig>,
+    /// reconciling property.
+    pub reconciling: Option<bool>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `SetIamPolicyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SetIamPolicyRequest {
+    /// policy property.
+    pub policy: Option<Policy>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `ListWorkstationClustersResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkstationClustersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstationClusters property.
+    pub workstation_clusters: Option<Vec<WorkstationCluster>>,
+}
+
+/// `GenerateAccessTokenResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GenerateAccessTokenResponse {
+    /// accessToken property.
+    pub access_token: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+}
+
+/// `GenerateAccessTokenRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GenerateAccessTokenRequest {
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `ListWorkstationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkstationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstations property.
+    pub workstations: Option<Vec<Workstation>>,
+}
+
+/// `GatewayConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GatewayConfig {
+    /// http2Enabled property.
+    pub http2_enabled: Option<bool>,
 }
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`workstations.projects.locations.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workstations.projects.locations.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsListArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `extraLocationTypes`.
+    pub extra_location_types: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.operations.cancel_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
+/// Arguments for [`workstations.projects.locations.operations.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workstations.projects.locations.operations.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workstations.projects.locations.operations.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsListArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `returnPartialSuccess`.
+    pub return_partial_success: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+    /// Query parameter: `workstationClusterId`.
+    pub workstation_cluster_id: Option<String>,
+    /// Request body.
+    pub body: WorkstationCluster,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `etag`.
+    pub etag: Option<String>,
+    /// Query parameter: `force`.
+    pub force: Option<String>,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `allowMissing`.
+    pub allow_missing: Option<String>,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+    /// Request body.
+    pub body: WorkstationCluster,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+    /// Query parameter: `workstationConfigId`.
+    pub workstation_config_id: Option<String>,
+    /// Request body.
+    pub body: WorkstationConfig,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `etag`.
+    pub etag: Option<String>,
+    /// Query parameter: `force`.
+    pub force: Option<String>,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.getIamPolicy_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetIamPolicyArgs {
+    /// Path parameter: `resource`.
+    pub resource: String,
+    /// Query parameter: `options.requestedPolicyVersion`.
+    pub options_requested_policy_version: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.listUsable_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListUsableArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `allowMissing`.
+    pub allow_missing: Option<String>,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Query parameter: `validateOnly`.
+    pub validate_only: Option<String>,
+    /// Request body.
+    pub body: WorkstationConfig,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.setIamPolicy_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsSetIamPolicyArgs {
+    /// Path parameter: `resource`.
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.testIamPermissions_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsTestIamPermissionsArgs
+{
+    /// Path parameter: `resource`.
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.create_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsCreateArgs
 {
     /// Path parameter: `parent`.
@@ -174,10 +869,12 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     pub validate_only: Option<String>,
     /// Query parameter: `workstationId`.
     pub workstation_id: Option<String>,
+    /// Request body.
+    pub body: Workstation,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsDeleteArgs
 {
     /// Path parameter: `name`.
@@ -189,22 +886,24 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.generateAccessToken_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGenerateAccessTokenArgs
 {
     /// Path parameter: `workstation`.
     pub workstation: String,
+    /// Request body.
+    pub body: GenerateAccessTokenRequest,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.getIamPolicy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetIamPolicyArgs
 {
     /// Path parameter: `resource`.
@@ -214,7 +913,7 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListArgs {
     /// Path parameter: `parent`.
     pub parent: String,
@@ -226,8 +925,20 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     pub page_token: Option<String>,
 }
 
+/// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.listUsable_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListUsableArgs
+{
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.patch_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsPatchArgs {
     /// Path parameter: `name`.
     pub name: String,
@@ -237,36 +948,46 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     pub update_mask: Option<String>,
     /// Query parameter: `validateOnly`.
     pub validate_only: Option<String>,
+    /// Request body.
+    pub body: Workstation,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.setIamPolicy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsSetIamPolicyArgs
 {
     /// Path parameter: `resource`.
     pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.start_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStartArgs {
     /// Path parameter: `name`.
     pub name: String,
+    /// Request body.
+    pub body: StartWorkstationRequest,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.stop_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStopArgs {
     /// Path parameter: `name`.
     pub name: String,
+    /// Request body.
+    pub body: StopWorkstationRequest,
 }
 
 /// Arguments for [`workstations.projects.locations.workstationClusters.workstationConfigs.workstations.testIamPermissions_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsTestIamPermissionsArgs
 {
     /// Path parameter: `resource`.
     pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
 }
 
 // =============================================================================
@@ -274,10 +995,10 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -285,21 +1006,432 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_request(&client, &args, Some(|b| {
+/// let task = workstations_projects_locations_get_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_request<
-    R,
-    F,
->(
+pub fn workstations_projects_locations_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Location =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}/locations
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}/locations.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/locations",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.extra_location_types {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("extraLocationTypes=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListLocationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:cancel
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:cancel.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_operations_cancel_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_operations_cancel_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsOperationsCancelArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}:cancel",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_operations_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_operations_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsOperationsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_operations_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_operations_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsOperationsGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -314,12 +1446,10 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations",
-    );
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
 
     let mut builder = client
-        .post(&endpoint_url)
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -366,10 +1496,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// DELETE v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
+// GET v1/{+name}/operations
 // -----------------------------------------------------------------------------
 
-/// DELETE v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}.
+/// GET v1/{+name}/operations.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -377,21 +1507,158 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_request(&client, &args, Some(|b| {
+/// let task = workstations_projects_locations_operations_list_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_request<
-    R,
-    F,
->(
+pub fn workstations_projects_locations_operations_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsOperationsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/operations",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.return_partial_success {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("returnPartialSuccess=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/workstationClusters
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/workstationClusters.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersCreateArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -407,8 +1674,164 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}",
+        "https://workstations.googleapis.com/v1/{}/workstationClusters",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.workstation_cluster_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("workstationClusterId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.etag {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("etag=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.force {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("force=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -458,10 +1881,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:generateAccessToken
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:generateAccessToken.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -469,6 +1892,1631 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkstationCluster>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: WorkstationCluster =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/workstationClusters
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/workstationClusters.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWorkstationClustersResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstationClusters",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListWorkstationClustersResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.allow_missing {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("allowMissing=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/workstationConfigs
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/workstationConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_create_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstationConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.workstation_config_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("workstationConfigId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_delete_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.etag {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("etag=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.force {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("force=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkstationConfig>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: WorkstationConfig =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+resource}:getIamPolicy
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+resource}:getIamPolicy.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetIamPolicyArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}:getIamPolicy",
+        args.resource,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.options_requested_policy_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("options_requestedPolicyVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Policy =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/workstationConfigs
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/workstationConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWorkstationConfigsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstationConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListWorkstationConfigsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/workstationConfigs:listUsable
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/workstationConfigs:listUsable.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListUsableArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<ListUsableWorkstationConfigsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstationConfigs:listUsable",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListUsableWorkstationConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_patch_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.allow_missing {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("allowMissing=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+resource}:setIamPolicy
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+resource}:setIamPolicy.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsSetIamPolicyArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}:setIamPolicy",
+        args.resource,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Policy =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+resource}:testIamPermissions
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+resource}:testIamPermissions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsTestIamPermissionsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}:testIamPermissions",
+        args.resource,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/workstations
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/workstations.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstations",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.workstation_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("workstationId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.etag {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("etag=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+workstation}:generateAccessToken
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+workstation}:generateAccessToken.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -484,6 +3532,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGenerateAccessTokenArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -499,11 +3548,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:generateAccessToken",
+        "https://workstations.googleapis.com/v1/{}:generateAccessToken",
+        args.workstation,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -550,10 +3604,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -561,6 +3615,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -576,6 +3631,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -590,9 +3646,7 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}",
-    );
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
 
     let mut builder = client
         .get(&endpoint_url)
@@ -642,10 +3696,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:getIamPolicy
+// GET v1/{+resource}:getIamPolicy
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:getIamPolicy.
+/// GET v1/{+resource}:getIamPolicy.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -653,6 +3707,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -668,6 +3723,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetIamPolicyArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -683,8 +3739,25 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:getIamPolicy",
+        "https://workstations.googleapis.com/v1/{}:getIamPolicy",
+        args.resource,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.options_requested_policy_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("options_requestedPolicyVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -734,10 +3807,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
+// GET v1/{+parent}/workstations
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations.
+/// GET v1/{+parent}/workstations.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -745,6 +3818,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -760,6 +3834,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -775,8 +3850,45 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations",
+        "https://workstations.googleapis.com/v1/{}/workstations",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -826,10 +3938,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// PATCH v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
+// GET v1/{+parent}/workstations:listUsable
 // -----------------------------------------------------------------------------
 
-/// PATCH v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}.
+/// GET v1/{+parent}/workstations:listUsable.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -837,6 +3949,128 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListUsableArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUsableWorkstationsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workstations.googleapis.com/v1/{}/workstations:listUsable",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListUsableWorkstationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -852,6 +4086,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsPatchArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -866,12 +4101,50 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}",
-    );
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.allow_missing {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("allowMissing=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validate_only {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validateOnly=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -918,10 +4191,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:setIamPolicy
+// POST v1/{+resource}:setIamPolicy
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:setIamPolicy.
+/// POST v1/{+resource}:setIamPolicy.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -929,6 +4202,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -944,6 +4218,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsSetIamPolicyArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -959,11 +4234,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:setIamPolicy",
+        "https://workstations.googleapis.com/v1/{}:setIamPolicy",
+        args.resource,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1010,10 +4290,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:start
+// POST v1/{+name}:start
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:start.
+/// POST v1/{+name}:start.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1021,6 +4301,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1036,6 +4317,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStartArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1050,12 +4332,14 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:start",
-    );
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}:start", args.name,);
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1102,10 +4386,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:stop
+// POST v1/{+name}:stop
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:stop.
+/// POST v1/{+name}:stop.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1113,6 +4397,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1128,6 +4413,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStopArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1142,12 +4428,14 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:stop",
-    );
+    let endpoint_url = format!("https://workstations.googleapis.com/v1/{}:stop", args.name,);
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1194,10 +4482,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:testIamPermissions
+// POST v1/{+resource}:testIamPermissions
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:testIamPermissions.
+/// POST v1/{+resource}:testIamPermissions.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1205,6 +4493,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1220,6 +4509,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     F,
 >(
     client: &SimpleHttpClient<R>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsTestIamPermissionsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1235,11 +4525,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workstations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workstationClusters/{{workstationClustersId}}/workstationConfigs/{{workstationConfigsId}}/workstations/{{workstationsId}}:testIamPermissions",
+        "https://workstations.googleapis.com/v1/{}:testIamPermissions",
+        args.resource,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

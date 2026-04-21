@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `ApigatewayOperation`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayOperation {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ApigatewayPolicy`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayPolicy {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ApigatewayTestIamPermissionsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayTestIamPermissionsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

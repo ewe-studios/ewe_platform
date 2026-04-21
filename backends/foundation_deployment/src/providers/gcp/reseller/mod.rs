@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_reseller_activate")]
-pub mod activate;
-#[cfg(feature = "gcp_reseller_change_plan")]
-pub mod change_plan;
-#[cfg(feature = "gcp_reseller_change_renewal_settings")]
-pub mod change_renewal_settings;
-#[cfg(feature = "gcp_reseller_change_seats")]
-pub mod change_seats;
-#[cfg(feature = "gcp_reseller_customers")]
-pub mod customers;
-#[cfg(feature = "gcp_reseller_getwatchdetails")]
-pub mod getwatchdetails;
-#[cfg(feature = "gcp_reseller_register")]
-pub mod register;
-#[cfg(feature = "gcp_reseller_start_paid_service")]
-pub mod start_paid_service;
-#[cfg(feature = "gcp_reseller_subscriptions")]
-pub mod subscriptions;
-#[cfg(feature = "gcp_reseller_suspend")]
-pub mod suspend;
-#[cfg(feature = "gcp_reseller_unregister")]
-pub mod unregister;
+#[cfg(feature = "gcp_reseller_reseller")]
+pub mod reseller;

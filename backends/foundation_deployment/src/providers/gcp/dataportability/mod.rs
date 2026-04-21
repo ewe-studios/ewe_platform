@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_dataportability_access_type_check")]
-pub mod access_type_check;
-#[cfg(feature = "gcp_dataportability_archive_jobs")]
-pub mod archive_jobs;
-#[cfg(feature = "gcp_dataportability_authorization_reset")]
-pub mod authorization_reset;
-#[cfg(feature = "gcp_dataportability_portability_archive_initiate")]
-pub mod portability_archive_initiate;
-#[cfg(feature = "gcp_dataportability_portability_archive_state")]
-pub mod portability_archive_state;
+#[cfg(feature = "gcp_dataportability_dataportability")]
+pub mod dataportability;

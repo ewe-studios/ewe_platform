@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_ondemandscanning_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_ondemandscanning_scans_analyze_packages")]
-pub mod scans_analyze_packages;
-#[cfg(feature = "gcp_ondemandscanning_vulnerabilities")]
-pub mod vulnerabilities;
+#[cfg(feature = "gcp_ondemandscanning_ondemandscanning")]
+pub mod ondemandscanning;

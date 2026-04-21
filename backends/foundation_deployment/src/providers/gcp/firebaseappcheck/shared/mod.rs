@@ -14,31 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `GoogleFirebaseAppcheckV1AppCheckToken`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1AppCheckToken {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleProtobufEmpty`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

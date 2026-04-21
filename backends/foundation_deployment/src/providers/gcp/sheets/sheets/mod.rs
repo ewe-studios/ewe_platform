@@ -25,8 +25,1447 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `DeleteDuplicatesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDuplicatesRequest {
+    /// comparisonColumns property.
+    pub comparison_columns: Option<Vec<DimensionRange>>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `UpdateEmbeddedObjectPositionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateEmbeddedObjectPositionRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// newPosition property.
+    pub new_position: Option<EmbeddedObjectPosition>,
+    /// objectId property.
+    pub object_id: Option<i64>,
+}
+
+/// `BigQueryDataSourceSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryDataSourceSpec {
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// querySpec property.
+    pub query_spec: Option<BigQueryQuerySpec>,
+    /// tableSpec property.
+    pub table_spec: Option<BigQueryTableSpec>,
+}
+
+/// `UpdateEmbeddedObjectBorderRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateEmbeddedObjectBorderRequest {
+    /// border property.
+    pub border: Option<EmbeddedObjectBorder>,
+    /// fields property.
+    pub fields: Option<String>,
+    /// objectId property.
+    pub object_id: Option<i64>,
+}
+
+/// `GetSpreadsheetByDataFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetSpreadsheetByDataFilterRequest {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// excludeTablesInBandedRanges property.
+    pub exclude_tables_in_banded_ranges: Option<bool>,
+    /// includeGridData property.
+    pub include_grid_data: Option<bool>,
+}
+
+/// `NamedRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NamedRange {
+    /// name property.
+    pub name: Option<String>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `WaterfallChartColumnStyle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartColumnStyle {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// label property.
+    pub label: Option<String>,
+}
+
+/// `PasteDataRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PasteDataRequest {
+    /// coordinate property.
+    pub coordinate: Option<GridCoordinate>,
+    /// data property.
+    pub data: Option<String>,
+    /// delimiter property.
+    pub delimiter: Option<String>,
+    /// html property.
+    pub html: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AddDimensionGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddDimensionGroupResponse {
+    /// dimensionGroups property.
+    pub dimension_groups: Option<Vec<DimensionGroup>>,
+}
+
+/// `DataSourceRefreshDailySchedule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshDailySchedule {
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `BatchUpdateSpreadsheetRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateSpreadsheetRequest {
+    /// includeSpreadsheetInResponse property.
+    pub include_spreadsheet_in_response: Option<bool>,
+    /// requests property.
+    pub requests: Option<Vec<Request>>,
+    /// responseIncludeGridData property.
+    pub response_include_grid_data: Option<bool>,
+    /// responseRanges property.
+    pub response_ranges: Option<Vec<String>>,
+}
+
+/// `ConditionalFormatRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConditionalFormatRule {
+    /// booleanRule property.
+    pub boolean_rule: Option<BooleanRule>,
+    /// gradientRule property.
+    pub gradient_rule: Option<GradientRule>,
+    /// ranges property.
+    pub ranges: Option<Vec<GridRange>>,
+}
+
+/// `BooleanRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BooleanRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// format property.
+    pub format: Option<CellFormat>,
+}
+
+/// `TableColumnDataValidationRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TableColumnDataValidationRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+}
+
+/// `Padding` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Padding {
+    /// bottom property.
+    pub bottom: Option<i64>,
+    /// left property.
+    pub left: Option<i64>,
+    /// right property.
+    pub right: Option<i64>,
+    /// top property.
+    pub top: Option<i64>,
+}
+
+/// `CutPasteRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CutPasteRequest {
+    /// destination property.
+    pub destination: Option<GridCoordinate>,
+    /// pasteType property.
+    pub paste_type: Option<String>,
+    /// source property.
+    pub source: Option<GridRange>,
+}
+
+/// `SortSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SortSpec {
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// dimensionIndex property.
+    pub dimension_index: Option<i64>,
+    /// foregroundColor property.
+    pub foreground_color: Option<Color>,
+    /// foregroundColorStyle property.
+    pub foreground_color_style: Option<ColorStyle>,
+    /// sortOrder property.
+    pub sort_order: Option<String>,
+}
+
+/// `PivotFilterCriteria` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotFilterCriteria {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// visibleByDefault property.
+    pub visible_by_default: Option<bool>,
+    /// visibleValues property.
+    pub visible_values: Option<Vec<String>>,
+}
+
+/// `SpreadsheetTheme` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SpreadsheetTheme {
+    /// primaryFontFamily property.
+    pub primary_font_family: Option<String>,
+    /// themeColors property.
+    pub theme_colors: Option<Vec<ThemeColorPair>>,
+}
+
+/// `UpdateValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateValuesResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// updatedCells property.
+    pub updated_cells: Option<i64>,
+    /// updatedColumns property.
+    pub updated_columns: Option<i64>,
+    /// updatedData property.
+    pub updated_data: Option<ValueRange>,
+    /// updatedRange property.
+    pub updated_range: Option<String>,
+    /// updatedRows property.
+    pub updated_rows: Option<i64>,
+}
+
+/// `BasicFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicFilter {
+    /// criteria property.
+    pub criteria: Option<serde_json::Value>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `BatchClearValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchClearValuesByDataFilterResponse {
+    /// clearedRanges property.
+    pub cleared_ranges: Option<Vec<String>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+}
+
+/// `InterpolationPoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct InterpolationPoint {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `BasicChartSeries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartSeries {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// dataLabel property.
+    pub data_label: Option<DataLabel>,
+    /// lineStyle property.
+    pub line_style: Option<LineStyle>,
+    /// pointStyle property.
+    pub point_style: Option<PointStyle>,
+    /// series property.
+    pub series: Option<ChartData>,
+    /// styleOverrides property.
+    pub style_overrides: Option<Vec<BasicSeriesDataPointStyleOverride>>,
+    /// targetAxis property.
+    pub target_axis: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `UpdateFilterViewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateFilterViewRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `ScorecardChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ScorecardChartSpec {
+    /// aggregateType property.
+    pub aggregate_type: Option<String>,
+    /// baselineValueData property.
+    pub baseline_value_data: Option<ChartData>,
+    /// baselineValueFormat property.
+    pub baseline_value_format: Option<BaselineValueFormat>,
+    /// customFormatOptions property.
+    pub custom_format_options: Option<ChartCustomNumberFormatOptions>,
+    /// keyValueData property.
+    pub key_value_data: Option<ChartData>,
+    /// keyValueFormat property.
+    pub key_value_format: Option<KeyValueFormat>,
+    /// numberFormatSource property.
+    pub number_format_source: Option<String>,
+    /// scaleFactor property.
+    pub scale_factor: Option<f64>,
+}
+
+/// `HistogramChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HistogramChartSpec {
+    /// bucketSize property.
+    pub bucket_size: Option<f64>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// outlierPercentile property.
+    pub outlier_percentile: Option<f64>,
+    /// series property.
+    pub series: Option<Vec<HistogramSeries>>,
+    /// showItemDividers property.
+    pub show_item_dividers: Option<bool>,
+}
+
+/// `UpdateDeveloperMetadataRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDeveloperMetadataRequest {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
+    /// fields property.
+    pub fields: Option<String>,
+}
+
+/// `HistogramSeries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HistogramSeries {
+    /// barColor property.
+    pub bar_color: Option<Color>,
+    /// barColorStyle property.
+    pub bar_color_style: Option<ColorStyle>,
+    /// data property.
+    pub data: Option<ChartData>,
+}
+
+/// `CandlestickSeries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickSeries {
+    /// data property.
+    pub data: Option<ChartData>,
+}
+
+/// `PivotGroup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroup {
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// groupLimit property.
+    pub group_limit: Option<PivotGroupLimit>,
+    /// groupRule property.
+    pub group_rule: Option<PivotGroupRule>,
+    /// label property.
+    pub label: Option<String>,
+    /// repeatHeadings property.
+    pub repeat_headings: Option<bool>,
+    /// showTotals property.
+    pub show_totals: Option<bool>,
+    /// sortOrder property.
+    pub sort_order: Option<String>,
+    /// sourceColumnOffset property.
+    pub source_column_offset: Option<i64>,
+    /// valueBucket property.
+    pub value_bucket: Option<PivotGroupSortValueBucket>,
+    /// valueMetadata property.
+    pub value_metadata: Option<Vec<PivotGroupValueMetadata>>,
+}
+
+/// `WaterfallChartSeries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartSeries {
+    /// customSubtotals property.
+    pub custom_subtotals: Option<Vec<WaterfallChartCustomSubtotal>>,
+    /// data property.
+    pub data: Option<ChartData>,
+    /// dataLabel property.
+    pub data_label: Option<DataLabel>,
+    /// hideTrailingSubtotal property.
+    pub hide_trailing_subtotal: Option<bool>,
+    /// negativeColumnsStyle property.
+    pub negative_columns_style: Option<WaterfallChartColumnStyle>,
+    /// positiveColumnsStyle property.
+    pub positive_columns_style: Option<WaterfallChartColumnStyle>,
+    /// subtotalColumnsStyle property.
+    pub subtotal_columns_style: Option<WaterfallChartColumnStyle>,
+}
+
+/// `AddNamedRangeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddNamedRangeResponse {
+    /// namedRange property.
+    pub named_range: Option<NamedRange>,
+}
+
+/// `UpdateNamedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateNamedRangeRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// namedRange property.
+    pub named_range: Option<NamedRange>,
+}
+
+/// `BooleanCondition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BooleanCondition {
+    /// type property.
+    pub r#type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<ConditionValue>>,
+}
+
+/// `RefreshDataSourceObjectExecutionStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RefreshDataSourceObjectExecutionStatus {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// reference property.
+    pub reference: Option<DataSourceObjectReference>,
+}
+
+/// `DuplicateSheetRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateSheetRequest {
+    /// insertSheetIndex property.
+    pub insert_sheet_index: Option<i64>,
+    /// newSheetId property.
+    pub new_sheet_id: Option<i64>,
+    /// newSheetName property.
+    pub new_sheet_name: Option<String>,
+    /// sourceSheetId property.
+    pub source_sheet_id: Option<i64>,
+}
+
+/// `WaterfallChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartSpec {
+    /// connectorLineStyle property.
+    pub connector_line_style: Option<LineStyle>,
+    /// domain property.
+    pub domain: Option<WaterfallChartDomain>,
+    /// firstValueIsTotal property.
+    pub first_value_is_total: Option<bool>,
+    /// hideConnectorLines property.
+    pub hide_connector_lines: Option<bool>,
+    /// series property.
+    pub series: Option<Vec<WaterfallChartSeries>>,
+    /// stackedType property.
+    pub stacked_type: Option<String>,
+    /// totalDataLabel property.
+    pub total_data_label: Option<DataLabel>,
+}
+
+/// `RowData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RowData {
+    /// values property.
+    pub values: Option<Vec<CellData>>,
+}
+
+/// `SpreadsheetProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SpreadsheetProperties {
+    /// autoRecalc property.
+    pub auto_recalc: Option<String>,
+    /// defaultFormat property.
+    pub default_format: Option<CellFormat>,
+    /// importFunctionsExternalUrlAccessAllowed property.
+    pub import_functions_external_url_access_allowed: Option<bool>,
+    /// iterativeCalculationSettings property.
+    pub iterative_calculation_settings: Option<IterativeCalculationSettings>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// spreadsheetTheme property.
+    pub spreadsheet_theme: Option<SpreadsheetTheme>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BatchUpdateValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateValuesResponse {
+    /// responses property.
+    pub responses: Option<Vec<UpdateValuesResponse>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// totalUpdatedCells property.
+    pub total_updated_cells: Option<i64>,
+    /// totalUpdatedColumns property.
+    pub total_updated_columns: Option<i64>,
+    /// totalUpdatedRows property.
+    pub total_updated_rows: Option<i64>,
+    /// totalUpdatedSheets property.
+    pub total_updated_sheets: Option<i64>,
+}
+
+/// `GridRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GridRange {
+    /// endColumnIndex property.
+    pub end_column_index: Option<i64>,
+    /// endRowIndex property.
+    pub end_row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startColumnIndex property.
+    pub start_column_index: Option<i64>,
+    /// startRowIndex property.
+    pub start_row_index: Option<i64>,
+}
+
+/// `PivotTable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotTable {
+    /// columns property.
+    pub columns: Option<Vec<PivotGroup>>,
+    /// criteria property.
+    pub criteria: Option<serde_json::Value>,
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<PivotFilterSpec>>,
+    /// rows property.
+    pub rows: Option<Vec<PivotGroup>>,
+    /// source property.
+    pub source: Option<GridRange>,
+    /// valueLayout property.
+    pub value_layout: Option<String>,
+    /// values property.
+    pub values: Option<Vec<PivotValue>>,
+}
+
+/// `BatchGetValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetValuesResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// valueRanges property.
+    pub value_ranges: Option<Vec<ValueRange>>,
+}
+
+/// `MatchedDeveloperMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MatchedDeveloperMetadata {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
+}
+
+/// `AddProtectedRangeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddProtectedRangeResponse {
+    /// protectedRange property.
+    pub protected_range: Option<ProtectedRange>,
+}
+
+/// `ChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartSpec {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// basicChart property.
+    pub basic_chart: Option<BasicChartSpec>,
+    /// bubbleChart property.
+    pub bubble_chart: Option<BubbleChartSpec>,
+    /// candlestickChart property.
+    pub candlestick_chart: Option<CandlestickChartSpec>,
+    /// dataSourceChartProperties property.
+    pub data_source_chart_properties: Option<DataSourceChartProperties>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// fontName property.
+    pub font_name: Option<String>,
+    /// hiddenDimensionStrategy property.
+    pub hidden_dimension_strategy: Option<String>,
+    /// histogramChart property.
+    pub histogram_chart: Option<HistogramChartSpec>,
+    /// maximized property.
+    pub maximized: Option<bool>,
+    /// orgChart property.
+    pub org_chart: Option<OrgChartSpec>,
+    /// pieChart property.
+    pub pie_chart: Option<PieChartSpec>,
+    /// scorecardChart property.
+    pub scorecard_chart: Option<ScorecardChartSpec>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+    /// subtitle property.
+    pub subtitle: Option<String>,
+    /// subtitleTextFormat property.
+    pub subtitle_text_format: Option<TextFormat>,
+    /// subtitleTextPosition property.
+    pub subtitle_text_position: Option<TextPosition>,
+    /// title property.
+    pub title: Option<String>,
+    /// titleTextFormat property.
+    pub title_text_format: Option<TextFormat>,
+    /// titleTextPosition property.
+    pub title_text_position: Option<TextPosition>,
+    /// treemapChart property.
+    pub treemap_chart: Option<TreemapChartSpec>,
+    /// waterfallChart property.
+    pub waterfall_chart: Option<WaterfallChartSpec>,
+}
+
+/// `DateTimeRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DateTimeRule {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `CancelDataSourceRefreshStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CancelDataSourceRefreshStatus {
+    /// reference property.
+    pub reference: Option<DataSourceObjectReference>,
+    /// refreshCancellationStatus property.
+    pub refresh_cancellation_status: Option<RefreshCancellationStatus>,
+}
+
+/// `CancelDataSourceRefreshResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CancelDataSourceRefreshResponse {
+    /// statuses property.
+    pub statuses: Option<Vec<CancelDataSourceRefreshStatus>>,
+}
+
+/// `ConditionValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConditionValue {
+    /// relativeDate property.
+    pub relative_date: Option<String>,
+    /// userEnteredValue property.
+    pub user_entered_value: Option<String>,
+}
+
+/// `BasicChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartSpec {
+    /// axis property.
+    pub axis: Option<Vec<BasicChartAxis>>,
+    /// chartType property.
+    pub chart_type: Option<String>,
+    /// compareMode property.
+    pub compare_mode: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<BasicChartDomain>>,
+    /// headerCount property.
+    pub header_count: Option<i64>,
+    /// interpolateNulls property.
+    pub interpolate_nulls: Option<bool>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// lineSmoothing property.
+    pub line_smoothing: Option<bool>,
+    /// series property.
+    pub series: Option<Vec<BasicChartSeries>>,
+    /// stackedType property.
+    pub stacked_type: Option<String>,
+    /// threeDimensional property.
+    pub three_dimensional: Option<bool>,
+    /// totalDataLabel property.
+    pub total_data_label: Option<DataLabel>,
+}
+
+/// `GridProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GridProperties {
+    /// columnCount property.
+    pub column_count: Option<i64>,
+    /// columnGroupControlAfter property.
+    pub column_group_control_after: Option<bool>,
+    /// frozenColumnCount property.
+    pub frozen_column_count: Option<i64>,
+    /// frozenRowCount property.
+    pub frozen_row_count: Option<i64>,
+    /// hideGridlines property.
+    pub hide_gridlines: Option<bool>,
+    /// rowCount property.
+    pub row_count: Option<i64>,
+    /// rowGroupControlAfter property.
+    pub row_group_control_after: Option<bool>,
+}
+
+/// `BatchUpdateValuesByDataFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateValuesByDataFilterRequest {
+    /// data property.
+    pub data: Option<Vec<DataFilterValueRange>>,
+    /// includeValuesInResponse property.
+    pub include_values_in_response: Option<bool>,
+    /// responseDateTimeRenderOption property.
+    pub response_date_time_render_option: Option<String>,
+    /// responseValueRenderOption property.
+    pub response_value_render_option: Option<String>,
+    /// valueInputOption property.
+    pub value_input_option: Option<String>,
+}
+
+/// `DataSourceSheetDimensionRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceSheetDimensionRange {
+    /// columnReferences property.
+    pub column_references: Option<Vec<DataSourceColumnReference>>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `SetBasicFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SetBasicFilterRequest {
+    /// filter property.
+    pub filter: Option<BasicFilter>,
+}
+
+/// `LookerDataSourceSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LookerDataSourceSpec {
+    /// explore property.
+    pub explore: Option<String>,
+    /// instanceUri property.
+    pub instance_uri: Option<String>,
+    /// model property.
+    pub model: Option<String>,
+}
+
+/// `DataSourceObjectReferences` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceObjectReferences {
+    /// references property.
+    pub references: Option<Vec<DataSourceObjectReference>>,
+}
+
+/// `DataValidationRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataValidationRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// inputMessage property.
+    pub input_message: Option<String>,
+    /// showCustomUi property.
+    pub show_custom_ui: Option<bool>,
+    /// strict property.
+    pub strict: Option<bool>,
+}
+
+/// `MergeCellsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MergeCellsRequest {
+    /// mergeType property.
+    pub merge_type: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `PivotValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotValue {
+    /// calculatedDisplayType property.
+    pub calculated_display_type: Option<String>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// formula property.
+    pub formula: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sourceColumnOffset property.
+    pub source_column_offset: Option<i64>,
+    /// summarizeFunction property.
+    pub summarize_function: Option<String>,
+}
+
+/// `DataSourceRefreshSchedule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshSchedule {
+    /// dailySchedule property.
+    pub daily_schedule: Option<DataSourceRefreshDailySchedule>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// monthlySchedule property.
+    pub monthly_schedule: Option<DataSourceRefreshMonthlySchedule>,
+    /// nextRun property.
+    pub next_run: Option<Interval>,
+    /// refreshScope property.
+    pub refresh_scope: Option<String>,
+    /// weeklySchedule property.
+    pub weekly_schedule: Option<DataSourceRefreshWeeklySchedule>,
+}
+
+/// `BubbleChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BubbleChartSpec {
+    /// bubbleBorderColor property.
+    pub bubble_border_color: Option<Color>,
+    /// bubbleBorderColorStyle property.
+    pub bubble_border_color_style: Option<ColorStyle>,
+    /// bubbleLabels property.
+    pub bubble_labels: Option<ChartData>,
+    /// bubbleMaxRadiusSize property.
+    pub bubble_max_radius_size: Option<i64>,
+    /// bubbleMinRadiusSize property.
+    pub bubble_min_radius_size: Option<i64>,
+    /// bubbleOpacity property.
+    pub bubble_opacity: Option<f64>,
+    /// bubbleSizes property.
+    pub bubble_sizes: Option<ChartData>,
+    /// bubbleTextStyle property.
+    pub bubble_text_style: Option<TextFormat>,
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// groupIds property.
+    pub group_ids: Option<ChartData>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// series property.
+    pub series: Option<ChartData>,
+}
+
+/// `DataSourceFormula` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceFormula {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `SetDataValidationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SetDataValidationRequest {
+    /// filteredRowsIncluded property.
+    pub filtered_rows_included: Option<bool>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rule property.
+    pub rule: Option<DataValidationRule>,
+}
+
+/// `CandlestickDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickDomain {
+    /// data property.
+    pub data: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `DeleteDataSourceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDataSourceRequest {
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `DeleteProtectedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteProtectedRangeRequest {
+    /// protectedRangeId property.
+    pub protected_range_id: Option<i64>,
+}
+
+/// `ClearValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClearValuesResponse {
+    /// clearedRange property.
+    pub cleared_range: Option<String>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+}
+
+/// `DimensionGroup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DimensionGroup {
+    /// collapsed property.
+    pub collapsed: Option<bool>,
+    /// depth property.
+    pub depth: Option<i64>,
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `DataFilterValueRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataFilterValueRange {
+    /// dataFilter property.
+    pub data_filter: Option<DataFilter>,
+    /// majorDimension property.
+    pub major_dimension: Option<String>,
+    /// values property.
+    pub values: Option<Vec<Vec<serde_json::Value>>>,
+}
+
+/// `Interval` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Interval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ChartAxisViewWindowOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartAxisViewWindowOptions {
+    /// viewWindowMax property.
+    pub view_window_max: Option<f64>,
+    /// viewWindowMin property.
+    pub view_window_min: Option<f64>,
+    /// viewWindowMode property.
+    pub view_window_mode: Option<String>,
+}
+
+/// `BandedRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BandedRange {
+    /// bandedRangeId property.
+    pub banded_range_id: Option<i64>,
+    /// bandedRangeReference property.
+    pub banded_range_reference: Option<String>,
+    /// columnProperties property.
+    pub column_properties: Option<BandingProperties>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rowProperties property.
+    pub row_properties: Option<BandingProperties>,
+}
+
+/// `BandingProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BandingProperties {
+    /// firstBandColor property.
+    pub first_band_color: Option<Color>,
+    /// firstBandColorStyle property.
+    pub first_band_color_style: Option<ColorStyle>,
+    /// footerColor property.
+    pub footer_color: Option<Color>,
+    /// footerColorStyle property.
+    pub footer_color_style: Option<ColorStyle>,
+    /// headerColor property.
+    pub header_color: Option<Color>,
+    /// headerColorStyle property.
+    pub header_color_style: Option<ColorStyle>,
+    /// secondBandColor property.
+    pub second_band_color: Option<Color>,
+    /// secondBandColorStyle property.
+    pub second_band_color_style: Option<ColorStyle>,
+}
+
+/// `UpdateValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateValuesByDataFilterResponse {
+    /// dataFilter property.
+    pub data_filter: Option<DataFilter>,
+    /// updatedCells property.
+    pub updated_cells: Option<i64>,
+    /// updatedColumns property.
+    pub updated_columns: Option<i64>,
+    /// updatedData property.
+    pub updated_data: Option<ValueRange>,
+    /// updatedRange property.
+    pub updated_range: Option<String>,
+    /// updatedRows property.
+    pub updated_rows: Option<i64>,
+}
+
+/// `DeleteConditionalFormatRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteConditionalFormatRuleResponse {
+    /// rule property.
+    pub rule: Option<ConditionalFormatRule>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `GradientRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GradientRule {
+    /// maxpoint property.
+    pub maxpoint: Option<InterpolationPoint>,
+    /// midpoint property.
+    pub midpoint: Option<InterpolationPoint>,
+    /// minpoint property.
+    pub minpoint: Option<InterpolationPoint>,
+}
+
+/// `CopyPasteRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CopyPasteRequest {
+    /// destination property.
+    pub destination: Option<GridRange>,
+    /// pasteOrientation property.
+    pub paste_orientation: Option<String>,
+    /// pasteType property.
+    pub paste_type: Option<String>,
+    /// source property.
+    pub source: Option<GridRange>,
+}
+
+/// `AddSlicerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddSlicerResponse {
+    /// slicer property.
+    pub slicer: Option<Slicer>,
+}
+
+/// `UpdateEmbeddedObjectPositionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateEmbeddedObjectPositionResponse {
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
+}
+
+/// `AddChartResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddChartResponse {
+    /// chart property.
+    pub chart: Option<EmbeddedChart>,
+}
+
+/// `CopySheetToAnotherSpreadsheetRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CopySheetToAnotherSpreadsheetRequest {
+    /// destinationSpreadsheetId property.
+    pub destination_spreadsheet_id: Option<String>,
+}
+
+/// `DeleteDuplicatesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDuplicatesResponse {
+    /// duplicatesRemovedCount property.
+    pub duplicates_removed_count: Option<i64>,
+}
+
+/// `Table` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Table {
+    /// columnProperties property.
+    pub column_properties: Option<Vec<TableColumnProperties>>,
+    /// name property.
+    pub name: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rowsProperties property.
+    pub rows_properties: Option<TableRowsProperties>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `FilterView` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FilterView {
+    /// criteria property.
+    pub criteria: Option<serde_json::Value>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// filterViewId property.
+    pub filter_view_id: Option<i64>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+    /// tableId property.
+    pub table_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `IterativeCalculationSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IterativeCalculationSettings {
+    /// convergenceThreshold property.
+    pub convergence_threshold: Option<f64>,
+    /// maxIterations property.
+    pub max_iterations: Option<i64>,
+}
+
+/// `Response` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Response {
+    /// addBanding property.
+    pub add_banding: Option<AddBandingResponse>,
+    /// addChart property.
+    pub add_chart: Option<AddChartResponse>,
+    /// addDataSource property.
+    pub add_data_source: Option<AddDataSourceResponse>,
+    /// addDimensionGroup property.
+    pub add_dimension_group: Option<AddDimensionGroupResponse>,
+    /// addFilterView property.
+    pub add_filter_view: Option<AddFilterViewResponse>,
+    /// addNamedRange property.
+    pub add_named_range: Option<AddNamedRangeResponse>,
+    /// addProtectedRange property.
+    pub add_protected_range: Option<AddProtectedRangeResponse>,
+    /// addSheet property.
+    pub add_sheet: Option<AddSheetResponse>,
+    /// addSlicer property.
+    pub add_slicer: Option<AddSlicerResponse>,
+    /// addTable property.
+    pub add_table: Option<AddTableResponse>,
+    /// cancelDataSourceRefresh property.
+    pub cancel_data_source_refresh: Option<CancelDataSourceRefreshResponse>,
+    /// createDeveloperMetadata property.
+    pub create_developer_metadata: Option<CreateDeveloperMetadataResponse>,
+    /// deleteConditionalFormatRule property.
+    pub delete_conditional_format_rule: Option<DeleteConditionalFormatRuleResponse>,
+    /// deleteDeveloperMetadata property.
+    pub delete_developer_metadata: Option<DeleteDeveloperMetadataResponse>,
+    /// deleteDimensionGroup property.
+    pub delete_dimension_group: Option<DeleteDimensionGroupResponse>,
+    /// deleteDuplicates property.
+    pub delete_duplicates: Option<DeleteDuplicatesResponse>,
+    /// duplicateFilterView property.
+    pub duplicate_filter_view: Option<DuplicateFilterViewResponse>,
+    /// duplicateSheet property.
+    pub duplicate_sheet: Option<DuplicateSheetResponse>,
+    /// findReplace property.
+    pub find_replace: Option<FindReplaceResponse>,
+    /// refreshDataSource property.
+    pub refresh_data_source: Option<RefreshDataSourceResponse>,
+    /// trimWhitespace property.
+    pub trim_whitespace: Option<TrimWhitespaceResponse>,
+    /// updateConditionalFormatRule property.
+    pub update_conditional_format_rule: Option<UpdateConditionalFormatRuleResponse>,
+    /// updateDataSource property.
+    pub update_data_source: Option<UpdateDataSourceResponse>,
+    /// updateDeveloperMetadata property.
+    pub update_developer_metadata: Option<UpdateDeveloperMetadataResponse>,
+    /// updateEmbeddedObjectPosition property.
+    pub update_embedded_object_position: Option<UpdateEmbeddedObjectPositionResponse>,
+}
+
+/// `InsertDimensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct InsertDimensionRequest {
+    /// inheritFromBefore property.
+    pub inherit_from_before: Option<bool>,
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `AddDataSourceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddDataSourceResponse {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+}
+
+/// `ClearValuesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClearValuesRequest {}
+
+/// `TableRowsProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TableRowsProperties {
+    /// firstBandColorStyle property.
+    pub first_band_color_style: Option<ColorStyle>,
+    /// footerColorStyle property.
+    pub footer_color_style: Option<ColorStyle>,
+    /// headerColorStyle property.
+    pub header_color_style: Option<ColorStyle>,
+    /// secondBandColorStyle property.
+    pub second_band_color_style: Option<ColorStyle>,
+}
+
+/// `RepeatCellRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RepeatCellRequest {
+    /// cell property.
+    pub cell: Option<CellData>,
+    /// fields property.
+    pub fields: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `TrimWhitespaceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TrimWhitespaceResponse {
+    /// cellsChangedCount property.
+    pub cells_changed_count: Option<i64>,
+}
+
+/// `SortRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SortRangeRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+}
+
+/// `KeyValueFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeyValueFormat {
+    /// position property.
+    pub position: Option<TextPosition>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `NumberFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NumberFormat {
+    /// pattern property.
+    pub pattern: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DataSourceObjectReference` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceObjectReference {
+    /// chartId property.
+    pub chart_id: Option<i64>,
+    /// dataSourceFormulaCell property.
+    pub data_source_formula_cell: Option<GridCoordinate>,
+    /// dataSourcePivotTableAnchorCell property.
+    pub data_source_pivot_table_anchor_cell: Option<GridCoordinate>,
+    /// dataSourceTableAnchorCell property.
+    pub data_source_table_anchor_cell: Option<GridCoordinate>,
+    /// sheetId property.
+    pub sheet_id: Option<String>,
+}
+
+/// `SearchDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchDeveloperMetadataResponse {
+    /// matchedDeveloperMetadata property.
+    pub matched_developer_metadata: Option<Vec<MatchedDeveloperMetadata>>,
+}
+
+/// `ValueRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ValueRange {
+    /// majorDimension property.
+    pub major_dimension: Option<String>,
+    /// range property.
+    pub range: Option<String>,
+    /// values property.
+    pub values: Option<Vec<Vec<serde_json::Value>>>,
+}
+
+/// `CancelDataSourceRefreshRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CancelDataSourceRefreshRequest {
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// isAll property.
+    pub is_all: Option<bool>,
+    /// references property.
+    pub references: Option<DataSourceObjectReferences>,
+}
+
+/// `TextPosition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextPosition {
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+}
+
+/// `DuplicateSheetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateSheetResponse {
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+}
+
+/// `DeveloperMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperMetadata {
+    /// location property.
+    pub location: Option<DeveloperMetadataLocation>,
+    /// metadataId property.
+    pub metadata_id: Option<i64>,
+    /// metadataKey property.
+    pub metadata_key: Option<String>,
+    /// metadataValue property.
+    pub metadata_value: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `UpdateDimensionGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDimensionGroupRequest {
+    /// dimensionGroup property.
+    pub dimension_group: Option<DimensionGroup>,
+    /// fields property.
+    pub fields: Option<String>,
+}
+
+/// `DeleteDeveloperMetadataRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDeveloperMetadataRequest {
+    /// dataFilter property.
+    pub data_filter: Option<DataFilter>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ManualRuleGroup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ManualRuleGroup {
+    /// groupName property.
+    pub group_name: Option<ExtendedValue>,
+    /// items property.
+    pub items: Option<Vec<ExtendedValue>>,
+}
+
+/// `ChartHistogramRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartHistogramRule {
+    /// intervalSize property.
+    pub interval_size: Option<f64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+}
+
+/// `TextRotation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextRotation {
+    /// angle property.
+    pub angle: Option<i64>,
+    /// vertical property.
+    pub vertical: Option<bool>,
+}
+
+/// `AppendDimensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AppendDimensionRequest {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// length property.
+    pub length: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `DataSourceTable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceTable {
+    /// columnSelectionType property.
+    pub column_selection_type: Option<String>,
+    /// columns property.
+    pub columns: Option<Vec<DataSourceColumnReference>>,
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// rowLimit property.
+    pub row_limit: Option<i64>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+}
+
+/// `InsertRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct InsertRangeRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+    /// shiftDimension property.
+    pub shift_dimension: Option<String>,
+}
+
+/// `DeveloperMetadataLookup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperMetadataLookup {
+    /// locationMatchingStrategy property.
+    pub location_matching_strategy: Option<String>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// metadataId property.
+    pub metadata_id: Option<i64>,
+    /// metadataKey property.
+    pub metadata_key: Option<String>,
+    /// metadataLocation property.
+    pub metadata_location: Option<DeveloperMetadataLocation>,
+    /// metadataValue property.
+    pub metadata_value: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `ChartSourceRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartSourceRange {
+    /// sources property.
+    pub sources: Option<Vec<GridRange>>,
+}
+
 /// `ColorStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ColorStyle {
     /// rgbColor property.
     pub rgb_color: Option<Color>,
@@ -34,8 +1473,150 @@ pub struct ColorStyle {
     pub theme_color: Option<String>,
 }
 
+/// `ProtectedRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ProtectedRange {
+    /// description property.
+    pub description: Option<String>,
+    /// editors property.
+    pub editors: Option<Editors>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// protectedRangeId property.
+    pub protected_range_id: Option<i64>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// requestingUserCanEdit property.
+    pub requesting_user_can_edit: Option<bool>,
+    /// tableId property.
+    pub table_id: Option<String>,
+    /// unprotectedRanges property.
+    pub unprotected_ranges: Option<Vec<GridRange>>,
+    /// warningOnly property.
+    pub warning_only: Option<bool>,
+}
+
+/// `DataSourceColumn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceColumn {
+    /// formula property.
+    pub formula: Option<String>,
+    /// reference property.
+    pub reference: Option<DataSourceColumnReference>,
+}
+
+/// `DataSourceChartProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceChartProperties {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `DataFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataFilter {
+    /// a1Range property.
+    pub a1_range: Option<String>,
+    /// developerMetadataLookup property.
+    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
+    /// gridRange property.
+    pub grid_range: Option<GridRange>,
+}
+
+/// `UpdateDimensionPropertiesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDimensionPropertiesRequest {
+    /// dataSourceSheetRange property.
+    pub data_source_sheet_range: Option<DataSourceSheetDimensionRange>,
+    /// fields property.
+    pub fields: Option<String>,
+    /// properties property.
+    pub properties: Option<DimensionProperties>,
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `DeleteDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDeveloperMetadataResponse {
+    /// deletedDeveloperMetadata property.
+    pub deleted_developer_metadata: Option<Vec<DeveloperMetadata>>,
+}
+
+/// `Editors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Editors {
+    /// domainUsersCanEdit property.
+    pub domain_users_can_edit: Option<bool>,
+    /// groups property.
+    pub groups: Option<Vec<String>>,
+    /// users property.
+    pub users: Option<Vec<String>>,
+}
+
+/// `EmbeddedObjectBorder` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedObjectBorder {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+}
+
+/// `PointStyle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PointStyle {
+    /// shape property.
+    pub shape: Option<String>,
+    /// size property.
+    pub size: Option<f64>,
+}
+
+/// `OrgChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrgChartSpec {
+    /// labels property.
+    pub labels: Option<ChartData>,
+    /// nodeColor property.
+    pub node_color: Option<Color>,
+    /// nodeColorStyle property.
+    pub node_color_style: Option<ColorStyle>,
+    /// nodeSize property.
+    pub node_size: Option<String>,
+    /// parentLabels property.
+    pub parent_labels: Option<ChartData>,
+    /// selectedNodeColor property.
+    pub selected_node_color: Option<Color>,
+    /// selectedNodeColorStyle property.
+    pub selected_node_color_style: Option<ColorStyle>,
+    /// tooltips property.
+    pub tooltips: Option<ChartData>,
+}
+
+/// `RefreshDataSourceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RefreshDataSourceRequest {
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// force property.
+    pub force: Option<bool>,
+    /// isAll property.
+    pub is_all: Option<bool>,
+    /// references property.
+    pub references: Option<DataSourceObjectReferences>,
+}
+
+/// `AddProtectedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddProtectedRangeRequest {
+    /// protectedRange property.
+    pub protected_range: Option<ProtectedRange>,
+}
+
 /// `SheetProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SheetProperties {
     /// dataSourceSheetProperties property.
     pub data_source_sheet_properties: Option<DataSourceSheetProperties>,
@@ -59,21 +1640,123 @@ pub struct SheetProperties {
     pub title: Option<String>,
 }
 
-/// `Color` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+/// `PivotGroupSortValueBucket` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupSortValueBucket {
+    /// buckets property.
+    pub buckets: Option<Vec<ExtendedValue>>,
+    /// valuesIndex property.
+    pub values_index: Option<i64>,
+}
+
+/// `BatchGetValuesByDataFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetValuesByDataFilterRequest {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// dateTimeRenderOption property.
+    pub date_time_render_option: Option<String>,
+    /// majorDimension property.
+    pub major_dimension: Option<String>,
+    /// valueRenderOption property.
+    pub value_render_option: Option<String>,
+}
+
+/// `UpdateTableRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateTableRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// table property.
+    pub table: Option<Table>,
+}
+
+/// `BigQueryQuerySpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryQuerySpec {
+    /// rawQuery property.
+    pub raw_query: Option<String>,
+}
+
+/// `HistogramRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HistogramRule {
+    /// end property.
+    pub end: Option<f64>,
+    /// interval property.
+    pub interval: Option<f64>,
+    /// start property.
+    pub start: Option<f64>,
+}
+
+/// `Slicer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Slicer {
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
+    /// slicerId property.
+    pub slicer_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<SlicerSpec>,
+}
+
+/// `AddBandingRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddBandingRequest {
+    /// bandedRange property.
+    pub banded_range: Option<BandedRange>,
+}
+
+/// `TextFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextFormat {
+    /// bold property.
+    pub bold: Option<bool>,
+    /// fontFamily property.
+    pub font_family: Option<String>,
+    /// fontSize property.
+    pub font_size: Option<i64>,
+    /// foregroundColor property.
+    pub foreground_color: Option<Color>,
+    /// foregroundColorStyle property.
+    pub foreground_color_style: Option<ColorStyle>,
+    /// italic property.
+    pub italic: Option<bool>,
+    /// link property.
+    pub link: Option<Link>,
+    /// strikethrough property.
+    pub strikethrough: Option<bool>,
+    /// underline property.
+    pub underline: Option<bool>,
+}
+
+/// `DataSourceSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceSpec {
+    /// bigQuery property.
+    pub big_query: Option<BigQueryDataSourceSpec>,
+    /// looker property.
+    pub looker: Option<LookerDataSourceSpec>,
+    /// parameters property.
+    pub parameters: Option<Vec<DataSourceParameter>>,
+}
+
+/// `AddDataSourceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddDataSourceRequest {
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+}
+
+/// `AddTableRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddTableRequest {
+    /// table property.
+    pub table: Option<Table>,
 }
 
 /// `DataExecutionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DataExecutionStatus {
     /// errorCode property.
     pub error_code: Option<String>,
@@ -85,43 +1768,787 @@ pub struct DataExecutionStatus {
     pub state: Option<String>,
 }
 
-/// `GridProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridProperties {
-    /// columnCount property.
-    pub column_count: Option<i64>,
-    /// columnGroupControlAfter property.
-    pub column_group_control_after: Option<bool>,
-    /// frozenColumnCount property.
-    pub frozen_column_count: Option<i64>,
-    /// frozenRowCount property.
-    pub frozen_row_count: Option<i64>,
-    /// hideGridlines property.
-    pub hide_gridlines: Option<bool>,
-    /// rowCount property.
-    pub row_count: Option<i64>,
-    /// rowGroupControlAfter property.
-    pub row_group_control_after: Option<bool>,
+/// `UpdateConditionalFormatRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateConditionalFormatRuleRequest {
+    /// index property.
+    pub index: Option<i64>,
+    /// newIndex property.
+    pub new_index: Option<i64>,
+    /// rule property.
+    pub rule: Option<ConditionalFormatRule>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `FilterSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FilterSpec {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<FilterCriteria>,
+}
+
+/// `AddSheetRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddSheetRequest {
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+}
+
+/// `TextFormatRun` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextFormatRun {
+    /// format property.
+    pub format: Option<TextFormat>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `UnmergeCellsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UnmergeCellsRequest {
+    /// range property.
+    pub range: Option<GridRange>,
 }
 
 /// `DataSourceColumnReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceColumnReference {
     /// name property.
     pub name: Option<String>,
 }
 
-/// `DataSourceColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceColumn {
-    /// formula property.
-    pub formula: Option<String>,
-    /// reference property.
-    pub reference: Option<DataSourceColumnReference>,
+/// `AppendCellsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AppendCellsRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// rows property.
+    pub rows: Option<Vec<RowData>>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `ClearBasicFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClearBasicFilterRequest {
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `DeleteNamedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteNamedRangeRequest {
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+}
+
+/// `BatchUpdateSpreadsheetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateSpreadsheetResponse {
+    /// replies property.
+    pub replies: Option<Vec<Response>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// updatedSpreadsheet property.
+    pub updated_spreadsheet: Option<Spreadsheet>,
+}
+
+/// `UpdateBandingRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateBandingRequest {
+    /// bandedRange property.
+    pub banded_range: Option<BandedRange>,
+    /// fields property.
+    pub fields: Option<String>,
+}
+
+/// `ChartGroupRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartGroupRule {
+    /// dateTimeRule property.
+    pub date_time_rule: Option<ChartDateTimeRule>,
+    /// histogramRule property.
+    pub histogram_rule: Option<ChartHistogramRule>,
+}
+
+/// `DuplicateFilterViewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateFilterViewRequest {
+    /// filterId property.
+    pub filter_id: Option<i64>,
+}
+
+/// `EmbeddedObjectPosition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedObjectPosition {
+    /// newSheet property.
+    pub new_sheet: Option<bool>,
+    /// overlayPosition property.
+    pub overlay_position: Option<OverlayPosition>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `BigQueryTableSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryTableSpec {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+    /// tableProjectId property.
+    pub table_project_id: Option<String>,
+}
+
+/// `BaselineValueFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BaselineValueFormat {
+    /// comparisonType property.
+    pub comparison_type: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// negativeColor property.
+    pub negative_color: Option<Color>,
+    /// negativeColorStyle property.
+    pub negative_color_style: Option<ColorStyle>,
+    /// position property.
+    pub position: Option<TextPosition>,
+    /// positiveColor property.
+    pub positive_color: Option<Color>,
+    /// positiveColorStyle property.
+    pub positive_color_style: Option<ColorStyle>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `PivotFilterSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotFilterSpec {
+    /// columnOffsetIndex property.
+    pub column_offset_index: Option<i64>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<PivotFilterCriteria>,
+}
+
+/// `FindReplaceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FindReplaceResponse {
+    /// formulasChanged property.
+    pub formulas_changed: Option<i64>,
+    /// occurrencesChanged property.
+    pub occurrences_changed: Option<i64>,
+    /// rowsChanged property.
+    pub rows_changed: Option<i64>,
+    /// sheetsChanged property.
+    pub sheets_changed: Option<i64>,
+    /// valuesChanged property.
+    pub values_changed: Option<i64>,
+}
+
+/// `AddNamedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddNamedRangeRequest {
+    /// namedRange property.
+    pub named_range: Option<NamedRange>,
+}
+
+/// `ThemeColorPair` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ThemeColorPair {
+    /// color property.
+    pub color: Option<ColorStyle>,
+    /// colorType property.
+    pub color_type: Option<String>,
+}
+
+/// `PivotGroupRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupRule {
+    /// dateTimeRule property.
+    pub date_time_rule: Option<DateTimeRule>,
+    /// histogramRule property.
+    pub histogram_rule: Option<HistogramRule>,
+    /// manualRule property.
+    pub manual_rule: Option<ManualRule>,
+}
+
+/// `PivotGroupValueMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupValueMetadata {
+    /// collapsed property.
+    pub collapsed: Option<bool>,
+    /// value property.
+    pub value: Option<ExtendedValue>,
+}
+
+/// `DeleteConditionalFormatRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteConditionalFormatRuleRequest {
+    /// index property.
+    pub index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `BasicChartAxis` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartAxis {
+    /// format property.
+    pub format: Option<TextFormat>,
+    /// position property.
+    pub position: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// titleTextPosition property.
+    pub title_text_position: Option<TextPosition>,
+    /// viewWindowOptions property.
+    pub view_window_options: Option<ChartAxisViewWindowOptions>,
+}
+
+/// `Request` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Request {
+    /// addBanding property.
+    pub add_banding: Option<AddBandingRequest>,
+    /// addChart property.
+    pub add_chart: Option<AddChartRequest>,
+    /// addConditionalFormatRule property.
+    pub add_conditional_format_rule: Option<AddConditionalFormatRuleRequest>,
+    /// addDataSource property.
+    pub add_data_source: Option<AddDataSourceRequest>,
+    /// addDimensionGroup property.
+    pub add_dimension_group: Option<AddDimensionGroupRequest>,
+    /// addFilterView property.
+    pub add_filter_view: Option<AddFilterViewRequest>,
+    /// addNamedRange property.
+    pub add_named_range: Option<AddNamedRangeRequest>,
+    /// addProtectedRange property.
+    pub add_protected_range: Option<AddProtectedRangeRequest>,
+    /// addSheet property.
+    pub add_sheet: Option<AddSheetRequest>,
+    /// addSlicer property.
+    pub add_slicer: Option<AddSlicerRequest>,
+    /// addTable property.
+    pub add_table: Option<AddTableRequest>,
+    /// appendCells property.
+    pub append_cells: Option<AppendCellsRequest>,
+    /// appendDimension property.
+    pub append_dimension: Option<AppendDimensionRequest>,
+    /// autoFill property.
+    pub auto_fill: Option<AutoFillRequest>,
+    /// autoResizeDimensions property.
+    pub auto_resize_dimensions: Option<AutoResizeDimensionsRequest>,
+    /// cancelDataSourceRefresh property.
+    pub cancel_data_source_refresh: Option<CancelDataSourceRefreshRequest>,
+    /// clearBasicFilter property.
+    pub clear_basic_filter: Option<ClearBasicFilterRequest>,
+    /// copyPaste property.
+    pub copy_paste: Option<CopyPasteRequest>,
+    /// createDeveloperMetadata property.
+    pub create_developer_metadata: Option<CreateDeveloperMetadataRequest>,
+    /// cutPaste property.
+    pub cut_paste: Option<CutPasteRequest>,
+    /// deleteBanding property.
+    pub delete_banding: Option<DeleteBandingRequest>,
+    /// deleteConditionalFormatRule property.
+    pub delete_conditional_format_rule: Option<DeleteConditionalFormatRuleRequest>,
+    /// deleteDataSource property.
+    pub delete_data_source: Option<DeleteDataSourceRequest>,
+    /// deleteDeveloperMetadata property.
+    pub delete_developer_metadata: Option<DeleteDeveloperMetadataRequest>,
+    /// deleteDimension property.
+    pub delete_dimension: Option<DeleteDimensionRequest>,
+    /// deleteDimensionGroup property.
+    pub delete_dimension_group: Option<DeleteDimensionGroupRequest>,
+    /// deleteDuplicates property.
+    pub delete_duplicates: Option<DeleteDuplicatesRequest>,
+    /// deleteEmbeddedObject property.
+    pub delete_embedded_object: Option<DeleteEmbeddedObjectRequest>,
+    /// deleteFilterView property.
+    pub delete_filter_view: Option<DeleteFilterViewRequest>,
+    /// deleteNamedRange property.
+    pub delete_named_range: Option<DeleteNamedRangeRequest>,
+    /// deleteProtectedRange property.
+    pub delete_protected_range: Option<DeleteProtectedRangeRequest>,
+    /// deleteRange property.
+    pub delete_range: Option<DeleteRangeRequest>,
+    /// deleteSheet property.
+    pub delete_sheet: Option<DeleteSheetRequest>,
+    /// deleteTable property.
+    pub delete_table: Option<DeleteTableRequest>,
+    /// duplicateFilterView property.
+    pub duplicate_filter_view: Option<DuplicateFilterViewRequest>,
+    /// duplicateSheet property.
+    pub duplicate_sheet: Option<DuplicateSheetRequest>,
+    /// findReplace property.
+    pub find_replace: Option<FindReplaceRequest>,
+    /// insertDimension property.
+    pub insert_dimension: Option<InsertDimensionRequest>,
+    /// insertRange property.
+    pub insert_range: Option<InsertRangeRequest>,
+    /// mergeCells property.
+    pub merge_cells: Option<MergeCellsRequest>,
+    /// moveDimension property.
+    pub move_dimension: Option<MoveDimensionRequest>,
+    /// pasteData property.
+    pub paste_data: Option<PasteDataRequest>,
+    /// randomizeRange property.
+    pub randomize_range: Option<RandomizeRangeRequest>,
+    /// refreshDataSource property.
+    pub refresh_data_source: Option<RefreshDataSourceRequest>,
+    /// repeatCell property.
+    pub repeat_cell: Option<RepeatCellRequest>,
+    /// setBasicFilter property.
+    pub set_basic_filter: Option<SetBasicFilterRequest>,
+    /// setDataValidation property.
+    pub set_data_validation: Option<SetDataValidationRequest>,
+    /// sortRange property.
+    pub sort_range: Option<SortRangeRequest>,
+    /// textToColumns property.
+    pub text_to_columns: Option<TextToColumnsRequest>,
+    /// trimWhitespace property.
+    pub trim_whitespace: Option<TrimWhitespaceRequest>,
+    /// unmergeCells property.
+    pub unmerge_cells: Option<UnmergeCellsRequest>,
+    /// updateBanding property.
+    pub update_banding: Option<UpdateBandingRequest>,
+    /// updateBorders property.
+    pub update_borders: Option<UpdateBordersRequest>,
+    /// updateCells property.
+    pub update_cells: Option<UpdateCellsRequest>,
+    /// updateChartSpec property.
+    pub update_chart_spec: Option<UpdateChartSpecRequest>,
+    /// updateConditionalFormatRule property.
+    pub update_conditional_format_rule: Option<UpdateConditionalFormatRuleRequest>,
+    /// updateDataSource property.
+    pub update_data_source: Option<UpdateDataSourceRequest>,
+    /// updateDeveloperMetadata property.
+    pub update_developer_metadata: Option<UpdateDeveloperMetadataRequest>,
+    /// updateDimensionGroup property.
+    pub update_dimension_group: Option<UpdateDimensionGroupRequest>,
+    /// updateDimensionProperties property.
+    pub update_dimension_properties: Option<UpdateDimensionPropertiesRequest>,
+    /// updateEmbeddedObjectBorder property.
+    pub update_embedded_object_border: Option<UpdateEmbeddedObjectBorderRequest>,
+    /// updateEmbeddedObjectPosition property.
+    pub update_embedded_object_position: Option<UpdateEmbeddedObjectPositionRequest>,
+    /// updateFilterView property.
+    pub update_filter_view: Option<UpdateFilterViewRequest>,
+    /// updateNamedRange property.
+    pub update_named_range: Option<UpdateNamedRangeRequest>,
+    /// updateProtectedRange property.
+    pub update_protected_range: Option<UpdateProtectedRangeRequest>,
+    /// updateSheetProperties property.
+    pub update_sheet_properties: Option<UpdateSheetPropertiesRequest>,
+    /// updateSlicerSpec property.
+    pub update_slicer_spec: Option<UpdateSlicerSpecRequest>,
+    /// updateSpreadsheetProperties property.
+    pub update_spreadsheet_properties: Option<UpdateSpreadsheetPropertiesRequest>,
+    /// updateTable property.
+    pub update_table: Option<UpdateTableRequest>,
+}
+
+/// `Sheet` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Sheet {
+    /// bandedRanges property.
+    pub banded_ranges: Option<Vec<BandedRange>>,
+    /// basicFilter property.
+    pub basic_filter: Option<BasicFilter>,
+    /// charts property.
+    pub charts: Option<Vec<EmbeddedChart>>,
+    /// columnGroups property.
+    pub column_groups: Option<Vec<DimensionGroup>>,
+    /// conditionalFormats property.
+    pub conditional_formats: Option<Vec<ConditionalFormatRule>>,
+    /// data property.
+    pub data: Option<Vec<GridData>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    /// filterViews property.
+    pub filter_views: Option<Vec<FilterView>>,
+    /// merges property.
+    pub merges: Option<Vec<GridRange>>,
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+    /// protectedRanges property.
+    pub protected_ranges: Option<Vec<ProtectedRange>>,
+    /// rowGroups property.
+    pub row_groups: Option<Vec<DimensionGroup>>,
+    /// slicers property.
+    pub slicers: Option<Vec<Slicer>>,
+    /// tables property.
+    pub tables: Option<Vec<Table>>,
+}
+
+/// `WaterfallChartCustomSubtotal` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartCustomSubtotal {
+    /// dataIsSubtotal property.
+    pub data_is_subtotal: Option<bool>,
+    /// label property.
+    pub label: Option<String>,
+    /// subtotalIndex property.
+    pub subtotal_index: Option<i64>,
+}
+
+/// `WaterfallChartDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartDomain {
+    /// data property.
+    pub data: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `PersonProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PersonProperties {
+    /// displayFormat property.
+    pub display_format: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `AddSheetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddSheetResponse {
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+}
+
+/// `TrimWhitespaceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TrimWhitespaceRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `DataSourceRefreshMonthlySchedule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshMonthlySchedule {
+    /// daysOfMonth property.
+    pub days_of_month: Option<Vec<i64>>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `TreemapChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TreemapChartSpec {
+    /// colorData property.
+    pub color_data: Option<ChartData>,
+    /// colorScale property.
+    pub color_scale: Option<TreemapChartColorScale>,
+    /// headerColor property.
+    pub header_color: Option<Color>,
+    /// headerColorStyle property.
+    pub header_color_style: Option<ColorStyle>,
+    /// hideTooltips property.
+    pub hide_tooltips: Option<bool>,
+    /// hintedLevels property.
+    pub hinted_levels: Option<i64>,
+    /// labels property.
+    pub labels: Option<ChartData>,
+    /// levels property.
+    pub levels: Option<i64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+    /// parentLabels property.
+    pub parent_labels: Option<ChartData>,
+    /// sizeData property.
+    pub size_data: Option<ChartData>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `DeleteFilterViewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteFilterViewRequest {
+    /// filterId property.
+    pub filter_id: Option<i64>,
+}
+
+/// `SlicerSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlicerSpec {
+    /// applyToPivotTables property.
+    pub apply_to_pivot_tables: Option<bool>,
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// dataRange property.
+    pub data_range: Option<GridRange>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<FilterCriteria>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BatchGetValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetValuesByDataFilterResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// valueRanges property.
+    pub value_ranges: Option<Vec<MatchedValueRange>>,
+}
+
+/// `Border` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Border {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// style property.
+    pub style: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `Chip` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Chip {
+    /// personProperties property.
+    pub person_properties: Option<PersonProperties>,
+    /// richLinkProperties property.
+    pub rich_link_properties: Option<RichLinkProperties>,
+}
+
+/// `UpdateDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDeveloperMetadataResponse {
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+}
+
+/// `ErrorValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ErrorValue {
+    /// message property.
+    pub message: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BatchUpdateValuesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateValuesRequest {
+    /// data property.
+    pub data: Option<Vec<ValueRange>>,
+    /// includeValuesInResponse property.
+    pub include_values_in_response: Option<bool>,
+    /// responseDateTimeRenderOption property.
+    pub response_date_time_render_option: Option<String>,
+    /// responseValueRenderOption property.
+    pub response_value_render_option: Option<String>,
+    /// valueInputOption property.
+    pub value_input_option: Option<String>,
+}
+
+/// `GridData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GridData {
+    /// columnMetadata property.
+    pub column_metadata: Option<Vec<DimensionProperties>>,
+    /// rowData property.
+    pub row_data: Option<Vec<RowData>>,
+    /// rowMetadata property.
+    pub row_metadata: Option<Vec<DimensionProperties>>,
+    /// startColumn property.
+    pub start_column: Option<i64>,
+    /// startRow property.
+    pub start_row: Option<i64>,
+}
+
+/// `DeveloperMetadataLocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperMetadataLocation {
+    /// dimensionRange property.
+    pub dimension_range: Option<DimensionRange>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// spreadsheet property.
+    pub spreadsheet: Option<bool>,
+}
+
+/// `SearchDeveloperMetadataRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchDeveloperMetadataRequest {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+}
+
+/// `DeleteBandingRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteBandingRequest {
+    /// bandedRangeId property.
+    pub banded_range_id: Option<i64>,
+}
+
+/// `UpdateProtectedRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateProtectedRangeRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// protectedRange property.
+    pub protected_range: Option<ProtectedRange>,
+}
+
+/// `BatchClearValuesByDataFilterRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchClearValuesByDataFilterRequest {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+}
+
+/// `CreateDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateDeveloperMetadataResponse {
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
+}
+
+/// `DataSource` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSource {
+    /// calculatedColumns property.
+    pub calculated_columns: Option<Vec<DataSourceColumn>>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<DataSourceSpec>,
+}
+
+/// `UpdateDataSourceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDataSourceResponse {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+}
+
+/// `MoveDimensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MoveDimensionRequest {
+    /// destinationIndex property.
+    pub destination_index: Option<i64>,
+    /// source property.
+    pub source: Option<DimensionRange>,
+}
+
+/// `UpdateBordersRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateBordersRequest {
+    /// bottom property.
+    pub bottom: Option<Border>,
+    /// innerHorizontal property.
+    pub inner_horizontal: Option<Border>,
+    /// innerVertical property.
+    pub inner_vertical: Option<Border>,
+    /// left property.
+    pub left: Option<Border>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// right property.
+    pub right: Option<Border>,
+    /// top property.
+    pub top: Option<Border>,
+}
+
+/// `BatchClearValuesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchClearValuesRequest {
+    /// ranges property.
+    pub ranges: Option<Vec<String>>,
+}
+
+/// `SourceAndDestination` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SourceAndDestination {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// fillLength property.
+    pub fill_length: Option<i64>,
+    /// source property.
+    pub source: Option<GridRange>,
+}
+
+/// `DeleteSheetRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteSheetRequest {
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `CandlestickChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickChartSpec {
+    /// data property.
+    pub data: Option<Vec<CandlestickData>>,
+    /// domain property.
+    pub domain: Option<CandlestickDomain>,
+}
+
+/// `ExtendedValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ExtendedValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// errorValue property.
+    pub error_value: Option<ErrorValue>,
+    /// formulaValue property.
+    pub formula_value: Option<String>,
+    /// numberValue property.
+    pub number_value: Option<f64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `PivotGroupLimit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupLimit {
+    /// applyOrder property.
+    pub apply_order: Option<i64>,
+    /// countLimit property.
+    pub count_limit: Option<i64>,
+}
+
+/// `DeleteRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteRangeRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+    /// shiftDimension property.
+    pub shift_dimension: Option<String>,
 }
 
 /// `DataSourceSheetProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceSheetProperties {
     /// columns property.
     pub columns: Option<Vec<DataSourceColumn>>,
@@ -131,22 +2558,1481 @@ pub struct DataSourceSheetProperties {
     pub data_source_id: Option<String>,
 }
 
+/// `ChipRun` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChipRun {
+    /// chip property.
+    pub chip: Option<Chip>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `DataLabel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataLabel {
+    /// customLabelData property.
+    pub custom_label_data: Option<ChartData>,
+    /// placement property.
+    pub placement: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `RandomizeRangeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RandomizeRangeRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `AddTableResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddTableResponse {
+    /// table property.
+    pub table: Option<Table>,
+}
+
+/// `TableColumnProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TableColumnProperties {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// columnName property.
+    pub column_name: Option<String>,
+    /// columnType property.
+    pub column_type: Option<String>,
+    /// dataValidationRule property.
+    pub data_validation_rule: Option<TableColumnDataValidationRule>,
+}
+
+/// `UpdateCellsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateCellsRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rows property.
+    pub rows: Option<Vec<RowData>>,
+    /// start property.
+    pub start: Option<GridCoordinate>,
+}
+
+/// `EmbeddedChart` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedChart {
+    /// border property.
+    pub border: Option<EmbeddedObjectBorder>,
+    /// chartId property.
+    pub chart_id: Option<i64>,
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
+    /// spec property.
+    pub spec: Option<ChartSpec>,
+}
+
+/// `DeleteDimensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDimensionRequest {
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `PieChartSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PieChartSpec {
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// pieHole property.
+    pub pie_hole: Option<f64>,
+    /// series property.
+    pub series: Option<ChartData>,
+    /// threeDimensional property.
+    pub three_dimensional: Option<bool>,
+}
+
+/// `ChartData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartData {
+    /// aggregateType property.
+    pub aggregate_type: Option<String>,
+    /// columnReference property.
+    pub column_reference: Option<DataSourceColumnReference>,
+    /// groupRule property.
+    pub group_rule: Option<ChartGroupRule>,
+    /// sourceRange property.
+    pub source_range: Option<ChartSourceRange>,
+}
+
+/// `UpdateSheetPropertiesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateSheetPropertiesRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+}
+
+/// `DimensionRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DimensionRange {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `DataSourceParameter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceParameter {
+    /// name property.
+    pub name: Option<String>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `ChartDateTimeRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartDateTimeRule {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `CellFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CellFormat {
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// borders property.
+    pub borders: Option<Borders>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// hyperlinkDisplayType property.
+    pub hyperlink_display_type: Option<String>,
+    /// numberFormat property.
+    pub number_format: Option<NumberFormat>,
+    /// padding property.
+    pub padding: Option<Padding>,
+    /// textDirection property.
+    pub text_direction: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// textRotation property.
+    pub text_rotation: Option<TextRotation>,
+    /// verticalAlignment property.
+    pub vertical_alignment: Option<String>,
+    /// wrapStrategy property.
+    pub wrap_strategy: Option<String>,
+}
+
+/// `TreemapChartColorScale` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TreemapChartColorScale {
+    /// maxValueColor property.
+    pub max_value_color: Option<Color>,
+    /// maxValueColorStyle property.
+    pub max_value_color_style: Option<ColorStyle>,
+    /// midValueColor property.
+    pub mid_value_color: Option<Color>,
+    /// midValueColorStyle property.
+    pub mid_value_color_style: Option<ColorStyle>,
+    /// minValueColor property.
+    pub min_value_color: Option<Color>,
+    /// minValueColorStyle property.
+    pub min_value_color_style: Option<ColorStyle>,
+    /// noDataColor property.
+    pub no_data_color: Option<Color>,
+    /// noDataColorStyle property.
+    pub no_data_color_style: Option<ColorStyle>,
+}
+
+/// `MatchedValueRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MatchedValueRange {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// valueRange property.
+    pub value_range: Option<ValueRange>,
+}
+
+/// `AddDimensionGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddDimensionGroupRequest {
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `UpdateSpreadsheetPropertiesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateSpreadsheetPropertiesRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// properties property.
+    pub properties: Option<SpreadsheetProperties>,
+}
+
+/// `LineStyle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LineStyle {
+    /// type property.
+    pub r#type: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `DataSourceRefreshWeeklySchedule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshWeeklySchedule {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `CandlestickData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickData {
+    /// closeSeries property.
+    pub close_series: Option<CandlestickSeries>,
+    /// highSeries property.
+    pub high_series: Option<CandlestickSeries>,
+    /// lowSeries property.
+    pub low_series: Option<CandlestickSeries>,
+    /// openSeries property.
+    pub open_series: Option<CandlestickSeries>,
+}
+
+/// `CellData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CellData {
+    /// chipRuns property.
+    pub chip_runs: Option<Vec<ChipRun>>,
+    /// dataSourceFormula property.
+    pub data_source_formula: Option<DataSourceFormula>,
+    /// dataSourceTable property.
+    pub data_source_table: Option<DataSourceTable>,
+    /// dataValidation property.
+    pub data_validation: Option<DataValidationRule>,
+    /// effectiveFormat property.
+    pub effective_format: Option<CellFormat>,
+    /// effectiveValue property.
+    pub effective_value: Option<ExtendedValue>,
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
+    /// hyperlink property.
+    pub hyperlink: Option<String>,
+    /// note property.
+    pub note: Option<String>,
+    /// pivotTable property.
+    pub pivot_table: Option<PivotTable>,
+    /// textFormatRuns property.
+    pub text_format_runs: Option<Vec<TextFormatRun>>,
+    /// userEnteredFormat property.
+    pub user_entered_format: Option<CellFormat>,
+    /// userEnteredValue property.
+    pub user_entered_value: Option<ExtendedValue>,
+}
+
+/// `BatchClearValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchClearValuesResponse {
+    /// clearedRanges property.
+    pub cleared_ranges: Option<Vec<String>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+}
+
+/// `AddChartRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddChartRequest {
+    /// chart property.
+    pub chart: Option<EmbeddedChart>,
+}
+
+/// `OverlayPosition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OverlayPosition {
+    /// anchorCell property.
+    pub anchor_cell: Option<GridCoordinate>,
+    /// heightPixels property.
+    pub height_pixels: Option<i64>,
+    /// offsetXPixels property.
+    pub offset_x_pixels: Option<i64>,
+    /// offsetYPixels property.
+    pub offset_y_pixels: Option<i64>,
+    /// widthPixels property.
+    pub width_pixels: Option<i64>,
+}
+
+/// `AddConditionalFormatRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddConditionalFormatRuleRequest {
+    /// index property.
+    pub index: Option<i64>,
+    /// rule property.
+    pub rule: Option<ConditionalFormatRule>,
+}
+
+/// `DuplicateFilterViewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateFilterViewResponse {
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `AddBandingResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddBandingResponse {
+    /// bandedRange property.
+    pub banded_range: Option<BandedRange>,
+}
+
+/// `CreateDeveloperMetadataRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateDeveloperMetadataRequest {
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
+}
+
+/// `Borders` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Borders {
+    /// bottom property.
+    pub bottom: Option<Border>,
+    /// left property.
+    pub left: Option<Border>,
+    /// right property.
+    pub right: Option<Border>,
+    /// top property.
+    pub top: Option<Border>,
+}
+
+/// `RichLinkProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RichLinkProperties {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `Spreadsheet` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Spreadsheet {
+    /// dataSourceSchedules property.
+    pub data_source_schedules: Option<Vec<DataSourceRefreshSchedule>>,
+    /// dataSources property.
+    pub data_sources: Option<Vec<DataSource>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    /// namedRanges property.
+    pub named_ranges: Option<Vec<NamedRange>>,
+    /// properties property.
+    pub properties: Option<SpreadsheetProperties>,
+    /// sheets property.
+    pub sheets: Option<Vec<Sheet>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// spreadsheetUrl property.
+    pub spreadsheet_url: Option<String>,
+}
+
+/// `UpdateConditionalFormatRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateConditionalFormatRuleResponse {
+    /// newIndex property.
+    pub new_index: Option<i64>,
+    /// newRule property.
+    pub new_rule: Option<ConditionalFormatRule>,
+    /// oldIndex property.
+    pub old_index: Option<i64>,
+    /// oldRule property.
+    pub old_rule: Option<ConditionalFormatRule>,
+}
+
+/// `Color` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `AddFilterViewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddFilterViewResponse {
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `BatchUpdateValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateValuesByDataFilterResponse {
+    /// responses property.
+    pub responses: Option<Vec<UpdateValuesByDataFilterResponse>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// totalUpdatedCells property.
+    pub total_updated_cells: Option<i64>,
+    /// totalUpdatedColumns property.
+    pub total_updated_columns: Option<i64>,
+    /// totalUpdatedRows property.
+    pub total_updated_rows: Option<i64>,
+    /// totalUpdatedSheets property.
+    pub total_updated_sheets: Option<i64>,
+}
+
+/// `FilterCriteria` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FilterCriteria {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// hiddenValues property.
+    pub hidden_values: Option<Vec<String>>,
+    /// visibleBackgroundColor property.
+    pub visible_background_color: Option<Color>,
+    /// visibleBackgroundColorStyle property.
+    pub visible_background_color_style: Option<ColorStyle>,
+    /// visibleForegroundColor property.
+    pub visible_foreground_color: Option<Color>,
+    /// visibleForegroundColorStyle property.
+    pub visible_foreground_color_style: Option<ColorStyle>,
+}
+
+/// `BasicChartDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartDomain {
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `RefreshCancellationStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RefreshCancellationStatus {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `AddFilterViewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddFilterViewRequest {
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `UpdateDataSourceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDataSourceRequest {
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+    /// fields property.
+    pub fields: Option<String>,
+}
+
+/// `DeleteTableRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteTableRequest {
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `AppendValuesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AppendValuesResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// tableRange property.
+    pub table_range: Option<String>,
+    /// updates property.
+    pub updates: Option<UpdateValuesResponse>,
+}
+
+/// `DimensionProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DimensionProperties {
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    /// hiddenByFilter property.
+    pub hidden_by_filter: Option<bool>,
+    /// hiddenByUser property.
+    pub hidden_by_user: Option<bool>,
+    /// pixelSize property.
+    pub pixel_size: Option<i64>,
+}
+
+/// `TextToColumnsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextToColumnsRequest {
+    /// delimiter property.
+    pub delimiter: Option<String>,
+    /// delimiterType property.
+    pub delimiter_type: Option<String>,
+    /// source property.
+    pub source: Option<GridRange>,
+}
+
+/// `AutoResizeDimensionsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AutoResizeDimensionsRequest {
+    /// dataSourceSheetDimensions property.
+    pub data_source_sheet_dimensions: Option<DataSourceSheetDimensionRange>,
+    /// dimensions property.
+    pub dimensions: Option<DimensionRange>,
+}
+
+/// `UpdateChartSpecRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateChartSpecRequest {
+    /// chartId property.
+    pub chart_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<ChartSpec>,
+}
+
+/// `BasicSeriesDataPointStyleOverride` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BasicSeriesDataPointStyleOverride {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// index property.
+    pub index: Option<i64>,
+    /// pointStyle property.
+    pub point_style: Option<PointStyle>,
+}
+
+/// `ChartCustomNumberFormatOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChartCustomNumberFormatOptions {
+    /// prefix property.
+    pub prefix: Option<String>,
+    /// suffix property.
+    pub suffix: Option<String>,
+}
+
+/// `RefreshDataSourceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RefreshDataSourceResponse {
+    /// statuses property.
+    pub statuses: Option<Vec<RefreshDataSourceObjectExecutionStatus>>,
+}
+
+/// `ManualRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ManualRule {
+    /// groups property.
+    pub groups: Option<Vec<ManualRuleGroup>>,
+}
+
+/// `UpdateSlicerSpecRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateSlicerSpecRequest {
+    /// fields property.
+    pub fields: Option<String>,
+    /// slicerId property.
+    pub slicer_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<SlicerSpec>,
+}
+
+/// `AddSlicerRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddSlicerRequest {
+    /// slicer property.
+    pub slicer: Option<Slicer>,
+}
+
+/// `DeleteEmbeddedObjectRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteEmbeddedObjectRequest {
+    /// objectId property.
+    pub object_id: Option<i64>,
+}
+
+/// `DeleteDimensionGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDimensionGroupRequest {
+    /// range property.
+    pub range: Option<DimensionRange>,
+}
+
+/// `DeleteDimensionGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDimensionGroupResponse {
+    /// dimensionGroups property.
+    pub dimension_groups: Option<Vec<DimensionGroup>>,
+}
+
+/// `FindReplaceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FindReplaceRequest {
+    /// allSheets property.
+    pub all_sheets: Option<bool>,
+    /// find property.
+    pub find: Option<String>,
+    /// includeFormulas property.
+    pub include_formulas: Option<bool>,
+    /// matchCase property.
+    pub match_case: Option<bool>,
+    /// matchEntireCell property.
+    pub match_entire_cell: Option<bool>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// replacement property.
+    pub replacement: Option<String>,
+    /// searchByRegex property.
+    pub search_by_regex: Option<bool>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `AutoFillRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AutoFillRequest {
+    /// range property.
+    pub range: Option<GridRange>,
+    /// sourceAndDestination property.
+    pub source_and_destination: Option<SourceAndDestination>,
+    /// useAlternateSeries property.
+    pub use_alternate_series: Option<bool>,
+}
+
+/// `GridCoordinate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GridCoordinate {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// rowIndex property.
+    pub row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`sheets.spreadsheets.batchUpdate_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsBatchUpdateArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchUpdateSpreadsheetRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsCreateArgs {
+    /// Request body.
+    pub body: Spreadsheet,
+}
+
+/// Arguments for [`sheets.spreadsheets.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsGetArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Query parameter: `excludeTablesInBandedRanges`.
+    pub exclude_tables_in_banded_ranges: Option<String>,
+    /// Query parameter: `includeGridData`.
+    pub include_grid_data: Option<String>,
+    /// Query parameter: `ranges`.
+    pub ranges: Option<String>,
+}
+
+/// Arguments for [`sheets.spreadsheets.getByDataFilter_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsGetByDataFilterArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: GetSpreadsheetByDataFilterRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.developerMetadata.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsDeveloperMetadataGetArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Path parameter: `metadataId`.
+    pub metadata_id: String,
+}
+
+/// Arguments for [`sheets.spreadsheets.developerMetadata.search_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsDeveloperMetadataSearchArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: SearchDeveloperMetadataRequest,
+}
+
 /// Arguments for [`sheets.spreadsheets.sheets.copyTo_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SheetsSpreadsheetsSheetsCopyToArgs {
     /// Path parameter: `spreadsheetId`.
     pub spreadsheet_id: String,
     /// Path parameter: `sheetId`.
     pub sheet_id: String,
+    /// Request body.
+    pub body: CopySheetToAnotherSpreadsheetRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.append_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesAppendArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Path parameter: `range`.
+    pub range: String,
+    /// Query parameter: `includeValuesInResponse`.
+    pub include_values_in_response: Option<String>,
+    /// Query parameter: `insertDataOption`.
+    pub insert_data_option: Option<String>,
+    /// Query parameter: `responseDateTimeRenderOption`.
+    pub response_date_time_render_option: Option<String>,
+    /// Query parameter: `responseValueRenderOption`.
+    pub response_value_render_option: Option<String>,
+    /// Query parameter: `valueInputOption`.
+    pub value_input_option: Option<String>,
+    /// Request body.
+    pub body: ValueRange,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchClear_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchClearArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchClearValuesRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchClearByDataFilter_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchClearByDataFilterArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchClearValuesByDataFilterRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchGet_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchGetArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Query parameter: `dateTimeRenderOption`.
+    pub date_time_render_option: Option<String>,
+    /// Query parameter: `majorDimension`.
+    pub major_dimension: Option<String>,
+    /// Query parameter: `ranges`.
+    pub ranges: Option<String>,
+    /// Query parameter: `valueRenderOption`.
+    pub value_render_option: Option<String>,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchGetByDataFilter_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchGetByDataFilterArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchGetValuesByDataFilterRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchUpdate_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchUpdateArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchUpdateValuesRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.batchUpdateByDataFilter_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Request body.
+    pub body: BatchUpdateValuesByDataFilterRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.clear_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesClearArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Path parameter: `range`.
+    pub range: String,
+    /// Request body.
+    pub body: ClearValuesRequest,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesGetArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Path parameter: `range`.
+    pub range: String,
+    /// Query parameter: `dateTimeRenderOption`.
+    pub date_time_render_option: Option<String>,
+    /// Query parameter: `majorDimension`.
+    pub major_dimension: Option<String>,
+    /// Query parameter: `valueRenderOption`.
+    pub value_render_option: Option<String>,
+}
+
+/// Arguments for [`sheets.spreadsheets.values.update_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesUpdateArgs {
+    /// Path parameter: `spreadsheetId`.
+    pub spreadsheet_id: String,
+    /// Path parameter: `range`.
+    pub range: String,
+    /// Query parameter: `includeValuesInResponse`.
+    pub include_values_in_response: Option<String>,
+    /// Query parameter: `responseDateTimeRenderOption`.
+    pub response_date_time_render_option: Option<String>,
+    /// Query parameter: `responseValueRenderOption`.
+    pub response_value_render_option: Option<String>,
+    /// Query parameter: `valueInputOption`.
+    pub value_input_option: Option<String>,
+    /// Request body.
+    pub body: ValueRange,
 }
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
 // =============================================================================
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}:batchUpdate
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}:batchUpdate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_batch_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_batch_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsBatchUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateSpreadsheetResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}:batchUpdate",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchUpdateSpreadsheetResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://sheets.googleapis.com/v4/spreadsheets",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Spreadsheet =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/spreadsheets/{spreadsheetId}
+// -----------------------------------------------------------------------------
+
+/// GET v4/spreadsheets/{spreadsheetId}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}",
+        args.spreadsheet_id,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.exclude_tables_in_banded_ranges {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("excludeTablesInBandedRanges=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.include_grid_data {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("includeGridData=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ranges {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ranges=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Spreadsheet =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_get_by_data_filter_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_get_by_data_filter_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsGetByDataFilterArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}:getByDataFilter",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Spreadsheet =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
+// -----------------------------------------------------------------------------
+
+/// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_developer_metadata_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_developer_metadata_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsDeveloperMetadataGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeveloperMetadata>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata/{}",
+        args.spreadsheet_id, args.metadata_id,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: DeveloperMetadata =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_developer_metadata_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_developer_metadata_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsDeveloperMetadataSearchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchDeveloperMetadataResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata:search",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchDeveloperMetadataResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
 
 // -----------------------------------------------------------------------------
 // POST v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
@@ -197,6 +4083,10 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -224,6 +4114,1151 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: SheetProperties =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_append_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_append_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesAppendArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppendValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:append",
+        args.spreadsheet_id, args.range,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.include_values_in_response {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("includeValuesInResponse=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.insert_data_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("insertDataOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_date_time_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseDateTimeRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_value_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseValueRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.value_input_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("valueInputOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: AppendValuesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values:batchClear
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClear.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_clear_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_clear_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchClearArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchClearValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClear",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchClearValuesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_clear_by_data_filter_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchClearByDataFilterArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<BatchClearValuesByDataFilterResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClearByDataFilter",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchClearValuesByDataFilterResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/spreadsheets/{spreadsheetId}/values:batchGet
+// -----------------------------------------------------------------------------
+
+/// GET v4/spreadsheets/{spreadsheetId}/values:batchGet.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGet",
+        args.spreadsheet_id,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.date_time_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateTimeRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.major_dimension {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("majorDimension=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ranges {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ranges=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.value_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("valueRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchGetValuesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_get_by_data_filter_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_get_by_data_filter_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchGetByDataFilterArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<BatchGetValuesByDataFilterResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGetByDataFilter",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchGetValuesByDataFilterResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdate",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchUpdateValuesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_batch_update_by_data_filter_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_batch_update_by_data_filter_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<BatchUpdateValuesByDataFilterResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdateByDataFilter",
+        args.spreadsheet_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchUpdateValuesByDataFilterResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+// -----------------------------------------------------------------------------
+
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_clear_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_clear_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesClearArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClearValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:clear",
+        args.spreadsheet_id, args.range,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ClearValuesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/spreadsheets/{spreadsheetId}/values/{range}
+// -----------------------------------------------------------------------------
+
+/// GET v4/spreadsheets/{spreadsheetId}/values/{range}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ValueRange>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
+        args.spreadsheet_id, args.range,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.date_time_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateTimeRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.major_dimension {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("majorDimension=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.value_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("valueRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ValueRange =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
+// -----------------------------------------------------------------------------
+
+/// PUT v4/spreadsheets/{spreadsheetId}/values/{range}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = sheets_spreadsheets_values_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn sheets_spreadsheets_values_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SheetsSpreadsheetsValuesUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpdateValuesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
+        args.spreadsheet_id, args.range,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.include_values_in_response {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("includeValuesInResponse=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_date_time_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseDateTimeRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_value_render_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseValueRenderOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.value_input_option {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("valueInputOption=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: UpdateValuesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;

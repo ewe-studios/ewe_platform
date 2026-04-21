@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_runtimeconfig_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_runtimeconfig_runtimeconfig")]
+pub mod runtimeconfig;

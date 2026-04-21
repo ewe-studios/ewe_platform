@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_networkmanagement_connectivity_tests")]
-pub mod connectivity_tests;
-#[cfg(feature = "gcp_networkmanagement_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_networkmanagement_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_networkmanagement_vpc_flow_logs_configs")]
-pub mod vpc_flow_logs_configs;
-#[cfg(feature = "gcp_networkmanagement_vpc_flow_logs_configs_query_org_vpc_flow_53")]
-pub mod vpc_flow_logs_configs_query_org_vpc_flow_53;
-#[cfg(feature = "gcp_networkmanagement_vpc_flow_logs_configs_show_effective_flo_54")]
-pub mod vpc_flow_logs_configs_show_effective_flo_54;
+#[cfg(feature = "gcp_networkmanagement_networkmanagement")]
+pub mod networkmanagement;

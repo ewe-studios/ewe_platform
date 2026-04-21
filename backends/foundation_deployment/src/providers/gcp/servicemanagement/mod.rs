@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_servicemanagement_config")]
-pub mod config;
-#[cfg(feature = "gcp_servicemanagement_configs")]
-pub mod configs;
-#[cfg(feature = "gcp_servicemanagement_configs_submit")]
-pub mod configs_submit;
-#[cfg(feature = "gcp_servicemanagement_consumers")]
-pub mod consumers;
-#[cfg(feature = "gcp_servicemanagement_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_servicemanagement_rollouts")]
-pub mod rollouts;
-#[cfg(feature = "gcp_servicemanagement_services")]
-pub mod services;
-#[cfg(feature = "gcp_servicemanagement_services_generate_config_report")]
-pub mod services_generate_config_report;
+#[cfg(feature = "gcp_servicemanagement_servicemanagement")]
+pub mod servicemanagement;

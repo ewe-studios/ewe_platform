@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_apikeys_key_string")]
-pub mod key_string;
-#[cfg(feature = "gcp_apikeys_keys")]
-pub mod keys;
-#[cfg(feature = "gcp_apikeys_keys_lookup_key")]
-pub mod keys_lookup_key;
-#[cfg(feature = "gcp_apikeys_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_apikeys_apikeys")]
+pub mod apikeys;

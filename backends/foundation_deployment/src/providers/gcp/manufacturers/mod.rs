@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_manufacturers_product_certifications")]
-pub mod product_certifications;
-#[cfg(feature = "gcp_manufacturers_products")]
-pub mod products;
+#[cfg(feature = "gcp_manufacturers_manufacturers")]
+pub mod manufacturers;

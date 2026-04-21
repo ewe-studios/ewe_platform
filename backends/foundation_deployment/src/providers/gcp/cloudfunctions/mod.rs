@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudfunctions_functions")]
-pub mod functions;
-#[cfg(feature = "gcp_cloudfunctions_functions_generate_upload_url")]
-pub mod functions_generate_upload_url;
-#[cfg(feature = "gcp_cloudfunctions_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_cloudfunctions_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_cloudfunctions_runtimes")]
-pub mod runtimes;
+#[cfg(feature = "gcp_cloudfunctions_cloudfunctions")]
+pub mod cloudfunctions;

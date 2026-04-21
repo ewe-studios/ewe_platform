@@ -19,12 +19,12 @@
 //! use foundation_core::wire::simple_http::client::SimpleHttpClient;
 //!
 //! // Deploy a Cloudflare Worker
-//! let worker = CloudflareWorker::new("my-worker", "./worker.js", "account-id");
+//! let worker: CloudflareWorker = CloudflareWorker::new("my-worker", "./worker.js", "account-id");
 //! // let client = ProviderClient::new("my-project", "dev", state_store, http_client);
 //! // let stream = worker.deploy(client)?;
 //!
 //! // Deploy a GCP Cloud Run service
-//! let service = CloudRunService::new("my-service", "gcr.io/project/image:latest", "us-central1", "project-id");
+//! let service: CloudRunService = CloudRunService::new("my-service", "gcr.io/project/image:latest", "us-central1", "project-id");
 //! // let stream = service.deploy(client)?;
 //! ```
 //!
@@ -34,9 +34,9 @@
 //! - `gcp` - GCP Cloud Run and Cloud Run Jobs deployables
 //! - `common` - Common types re-exported from `foundation_deployment`
 
-// pub mod cloudflare;
+pub mod cloudflare;
 pub mod common;
-// pub mod gcp;
+pub mod gcp;
 
 // Re-export common types
 pub use common::types::*;

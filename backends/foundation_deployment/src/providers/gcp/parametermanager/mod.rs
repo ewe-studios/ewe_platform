@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_parametermanager_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_parametermanager_parameters")]
-pub mod parameters;
-#[cfg(feature = "gcp_parametermanager_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_parametermanager_parametermanager")]
+pub mod parametermanager;

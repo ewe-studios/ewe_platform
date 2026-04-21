@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_blogger_approve")]
-pub mod approve;
-#[cfg(feature = "gcp_blogger_blogs")]
-pub mod blogs;
-#[cfg(feature = "gcp_blogger_bypath")]
-pub mod bypath;
-#[cfg(feature = "gcp_blogger_byurl")]
-pub mod byurl;
-#[cfg(feature = "gcp_blogger_comments")]
-pub mod comments;
-#[cfg(feature = "gcp_blogger_pages")]
-pub mod pages;
-#[cfg(feature = "gcp_blogger_pageviews")]
-pub mod pageviews;
-#[cfg(feature = "gcp_blogger_posts")]
-pub mod posts;
-#[cfg(feature = "gcp_blogger_publish")]
-pub mod publish;
-#[cfg(feature = "gcp_blogger_removecontent")]
-pub mod removecontent;
-#[cfg(feature = "gcp_blogger_revert")]
-pub mod revert;
-#[cfg(feature = "gcp_blogger_search")]
-pub mod search;
-#[cfg(feature = "gcp_blogger_spam")]
-pub mod spam;
-#[cfg(feature = "gcp_blogger_users")]
-pub mod users;
+#[cfg(feature = "gcp_blogger_blogger")]
+pub mod blogger;

@@ -152,7 +152,7 @@ pub struct Operation {
     pub description: Option<String>,
     #[serde(default)]
     pub parameters: Option<Vec<Parameter>>,
-    #[serde(default, rename = "requestBody")]
+    #[serde(default, rename = "request")]
     pub request_body: Option<RequestBody>,
     #[serde(default)]
     pub responses: BTreeMap<String, Response>,
@@ -241,7 +241,7 @@ pub struct GcpMethod {
     pub parameters: Option<BTreeMap<String, GcpParameter>>,
     #[serde(default, rename = "parameterOrder")]
     pub parameter_order: Option<Vec<String>>,
-    #[serde(default, rename = "requestBody")]
+    #[serde(default, rename = "request")]
     pub request_body: Option<GcpRequestBodyRef>,
     #[serde(default)]
     pub response: Option<GcpResponseRef>,

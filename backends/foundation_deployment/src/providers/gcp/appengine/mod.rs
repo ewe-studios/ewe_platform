@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_appengine_applications")]
-pub mod applications;
-#[cfg(feature = "gcp_appengine_apps")]
-pub mod apps;
-#[cfg(feature = "gcp_appengine_authorized_certificates")]
-pub mod authorized_certificates;
-#[cfg(feature = "gcp_appengine_authorized_domains")]
-pub mod authorized_domains;
-#[cfg(feature = "gcp_appengine_domain_mappings")]
-pub mod domain_mappings;
-#[cfg(feature = "gcp_appengine_ingress_rules")]
-pub mod ingress_rules;
-#[cfg(feature = "gcp_appengine_ingress_rules_batch_update")]
-pub mod ingress_rules_batch_update;
-#[cfg(feature = "gcp_appengine_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_appengine_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_appengine_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_appengine_services")]
-pub mod services;
-#[cfg(feature = "gcp_appengine_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_appengine_appengine")]
+pub mod appengine;

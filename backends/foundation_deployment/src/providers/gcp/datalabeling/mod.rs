@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datalabeling_annotated_datasets")]
-pub mod annotated_datasets;
-#[cfg(feature = "gcp_datalabeling_annotation_spec_sets")]
-pub mod annotation_spec_sets;
-#[cfg(feature = "gcp_datalabeling_data_items")]
-pub mod data_items;
-#[cfg(feature = "gcp_datalabeling_datasets")]
-pub mod datasets;
-#[cfg(feature = "gcp_datalabeling_evaluation_jobs")]
-pub mod evaluation_jobs;
-#[cfg(feature = "gcp_datalabeling_evaluations")]
-pub mod evaluations;
-#[cfg(feature = "gcp_datalabeling_evaluations_search")]
-pub mod evaluations_search;
-#[cfg(feature = "gcp_datalabeling_example_comparisons_search")]
-pub mod example_comparisons_search;
-#[cfg(feature = "gcp_datalabeling_examples")]
-pub mod examples;
-#[cfg(feature = "gcp_datalabeling_feedback_messages")]
-pub mod feedback_messages;
-#[cfg(feature = "gcp_datalabeling_feedback_threads")]
-pub mod feedback_threads;
-#[cfg(feature = "gcp_datalabeling_image_label")]
-pub mod image_label;
-#[cfg(feature = "gcp_datalabeling_instructions")]
-pub mod instructions;
-#[cfg(feature = "gcp_datalabeling_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datalabeling_text_label")]
-pub mod text_label;
-#[cfg(feature = "gcp_datalabeling_video_label")]
-pub mod video_label;
+#[cfg(feature = "gcp_datalabeling_datalabeling")]
+pub mod datalabeling;

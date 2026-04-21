@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datafusion_dns_peerings")]
-pub mod dns_peerings;
-#[cfg(feature = "gcp_datafusion_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_datafusion_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_datafusion_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datafusion_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_datafusion_datafusion")]
+pub mod datafusion;

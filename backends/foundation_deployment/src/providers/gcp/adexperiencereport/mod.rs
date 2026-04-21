@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_adexperiencereport_sites")]
-pub mod sites;
-#[cfg(feature = "gcp_adexperiencereport_violating_sites")]
-pub mod violating_sites;
+#[cfg(feature = "gcp_adexperiencereport_adexperiencereport")]
+pub mod adexperiencereport;

@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `BillingAccount`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingAccount {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ListBillingAccountsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBillingAccountsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

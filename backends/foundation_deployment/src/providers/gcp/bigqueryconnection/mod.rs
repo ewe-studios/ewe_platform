@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigqueryconnection_connections")]
-pub mod connections;
+#[cfg(feature = "gcp_bigqueryconnection_bigqueryconnection")]
+pub mod bigqueryconnection;

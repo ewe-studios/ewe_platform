@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_workflowexecutions_callbacks")]
-pub mod callbacks;
-#[cfg(feature = "gcp_workflowexecutions_executions")]
-pub mod executions;
-#[cfg(feature = "gcp_workflowexecutions_step_entries")]
-pub mod step_entries;
-#[cfg(feature = "gcp_workflowexecutions_workflows")]
-pub mod workflows;
+#[cfg(feature = "gcp_workflowexecutions_workflowexecutions")]
+pub mod workflowexecutions;

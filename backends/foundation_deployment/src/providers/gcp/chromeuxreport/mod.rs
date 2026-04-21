@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_chromeuxreport_records_query_history_record")]
-pub mod records_query_history_record;
-#[cfg(feature = "gcp_chromeuxreport_records_query_record")]
-pub mod records_query_record;
+#[cfg(feature = "gcp_chromeuxreport_chromeuxreport")]
+pub mod chromeuxreport;

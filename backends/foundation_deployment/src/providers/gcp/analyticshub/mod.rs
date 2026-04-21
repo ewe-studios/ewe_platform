@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_analyticshub_data_exchanges")]
-pub mod data_exchanges;
-#[cfg(feature = "gcp_analyticshub_listings")]
-pub mod listings;
-#[cfg(feature = "gcp_analyticshub_query_templates")]
-pub mod query_templates;
-#[cfg(feature = "gcp_analyticshub_subscriptions")]
-pub mod subscriptions;
+#[cfg(feature = "gcp_analyticshub_analyticshub")]
+pub mod analyticshub;

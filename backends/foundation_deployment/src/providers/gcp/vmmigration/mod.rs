@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_vmmigration_clone_jobs")]
-pub mod clone_jobs;
-#[cfg(feature = "gcp_vmmigration_cutover_jobs")]
-pub mod cutover_jobs;
-#[cfg(feature = "gcp_vmmigration_datacenter_connectors")]
-pub mod datacenter_connectors;
-#[cfg(feature = "gcp_vmmigration_disk_migration_jobs")]
-pub mod disk_migration_jobs;
-#[cfg(feature = "gcp_vmmigration_groups")]
-pub mod groups;
-#[cfg(feature = "gcp_vmmigration_image_import_jobs")]
-pub mod image_import_jobs;
-#[cfg(feature = "gcp_vmmigration_image_imports")]
-pub mod image_imports;
-#[cfg(feature = "gcp_vmmigration_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_vmmigration_migrating_vms")]
-pub mod migrating_vms;
-#[cfg(feature = "gcp_vmmigration_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_vmmigration_replication_cycles")]
-pub mod replication_cycles;
-#[cfg(feature = "gcp_vmmigration_sources")]
-pub mod sources;
-#[cfg(feature = "gcp_vmmigration_target_projects")]
-pub mod target_projects;
-#[cfg(feature = "gcp_vmmigration_utilization_reports")]
-pub mod utilization_reports;
+#[cfg(feature = "gcp_vmmigration_vmmigration")]
+pub mod vmmigration;

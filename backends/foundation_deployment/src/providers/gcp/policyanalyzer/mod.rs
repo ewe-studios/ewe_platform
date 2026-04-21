@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_policyanalyzer_activities_query")]
-pub mod activities_query;
+#[cfg(feature = "gcp_policyanalyzer_policyanalyzer")]
+pub mod policyanalyzer;

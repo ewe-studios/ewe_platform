@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_health_data_points")]
-pub mod data_points;
-#[cfg(feature = "gcp_health_data_points_batch_delete")]
-pub mod data_points_batch_delete;
-#[cfg(feature = "gcp_health_data_points_daily_roll_up")]
-pub mod data_points_daily_roll_up;
-#[cfg(feature = "gcp_health_data_points_reconcile")]
-pub mod data_points_reconcile;
-#[cfg(feature = "gcp_health_data_points_roll_up")]
-pub mod data_points_roll_up;
-#[cfg(feature = "gcp_health_identity")]
-pub mod identity;
-#[cfg(feature = "gcp_health_profile")]
-pub mod profile;
-#[cfg(feature = "gcp_health_settings")]
-pub mod settings;
+#[cfg(feature = "gcp_health_health")]
+pub mod health;

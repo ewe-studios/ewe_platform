@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_libraryagent_books")]
-pub mod books;
-#[cfg(feature = "gcp_libraryagent_shelves")]
-pub mod shelves;
+#[cfg(feature = "gcp_libraryagent_libraryagent")]
+pub mod libraryagent;

@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_homegraph_agent_users")]
-pub mod agent_users;
-#[cfg(feature = "gcp_homegraph_devices_query")]
-pub mod devices_query;
-#[cfg(feature = "gcp_homegraph_devices_report_state_notification")]
-pub mod devices_report_state_notification;
-#[cfg(feature = "gcp_homegraph_devices_request_sync")]
-pub mod devices_request_sync;
-#[cfg(feature = "gcp_homegraph_devices_sync")]
-pub mod devices_sync;
+#[cfg(feature = "gcp_homegraph_homegraph")]
+pub mod homegraph;

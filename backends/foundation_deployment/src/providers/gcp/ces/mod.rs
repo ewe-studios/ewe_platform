@@ -10,33 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_ces_agents")]
-pub mod agents;
-#[cfg(feature = "gcp_ces_apps")]
-pub mod apps;
-#[cfg(feature = "gcp_ces_apps_import_app")]
-pub mod apps_import_app;
-#[cfg(feature = "gcp_ces_changelogs")]
-pub mod changelogs;
-#[cfg(feature = "gcp_ces_conversations")]
-pub mod conversations;
-#[cfg(feature = "gcp_ces_conversations_batch_delete")]
-pub mod conversations_batch_delete;
-#[cfg(feature = "gcp_ces_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_ces_examples")]
-pub mod examples;
-#[cfg(feature = "gcp_ces_guardrails")]
-pub mod guardrails;
-#[cfg(feature = "gcp_ces_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_ces_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_ces_sessions")]
-pub mod sessions;
-#[cfg(feature = "gcp_ces_tools")]
-pub mod tools;
-#[cfg(feature = "gcp_ces_toolsets")]
-pub mod toolsets;
-#[cfg(feature = "gcp_ces_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_ces_ces")]
+pub mod ces;

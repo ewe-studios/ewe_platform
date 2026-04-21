@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudbuild_connections")]
-pub mod connections;
-#[cfg(feature = "gcp_cloudbuild_connections_process_webhook")]
-pub mod connections_process_webhook;
-#[cfg(feature = "gcp_cloudbuild_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_cloudbuild_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_cloudbuild_repositories")]
-pub mod repositories;
-#[cfg(feature = "gcp_cloudbuild_repositories_batch_create")]
-pub mod repositories_batch_create;
+#[cfg(feature = "gcp_cloudbuild_cloudbuild")]
+pub mod cloudbuild;

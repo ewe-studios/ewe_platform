@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_digitalassetlinks_assetlinks_bulk_check")]
-pub mod assetlinks_bulk_check;
-#[cfg(feature = "gcp_digitalassetlinks_assetlinks_check")]
-pub mod assetlinks_check;
-#[cfg(feature = "gcp_digitalassetlinks_statements_list")]
-pub mod statements_list;
+#[cfg(feature = "gcp_digitalassetlinks_digitalassetlinks")]
+pub mod digitalassetlinks;

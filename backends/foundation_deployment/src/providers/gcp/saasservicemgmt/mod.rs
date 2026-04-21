@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_saasservicemgmt_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_saasservicemgmt_releases")]
-pub mod releases;
-#[cfg(feature = "gcp_saasservicemgmt_rollout_kinds")]
-pub mod rollout_kinds;
-#[cfg(feature = "gcp_saasservicemgmt_rollouts")]
-pub mod rollouts;
-#[cfg(feature = "gcp_saasservicemgmt_saas")]
-pub mod saas;
-#[cfg(feature = "gcp_saasservicemgmt_tenants")]
-pub mod tenants;
-#[cfg(feature = "gcp_saasservicemgmt_unit_kinds")]
-pub mod unit_kinds;
-#[cfg(feature = "gcp_saasservicemgmt_unit_operations")]
-pub mod unit_operations;
-#[cfg(feature = "gcp_saasservicemgmt_units")]
-pub mod units;
+#[cfg(feature = "gcp_saasservicemgmt_saasservicemgmt")]
+pub mod saasservicemgmt;

@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_videointelligence_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_videointelligence_videos_annotate")]
-pub mod videos_annotate;
+#[cfg(feature = "gcp_videointelligence_videointelligence")]
+pub mod videointelligence;

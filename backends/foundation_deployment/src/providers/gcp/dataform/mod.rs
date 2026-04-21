@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_dataform_compilation_results")]
-pub mod compilation_results;
-#[cfg(feature = "gcp_dataform_config")]
-pub mod config;
-#[cfg(feature = "gcp_dataform_folders")]
-pub mod folders;
-#[cfg(feature = "gcp_dataform_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_dataform_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_dataform_release_configs")]
-pub mod release_configs;
-#[cfg(feature = "gcp_dataform_repositories")]
-pub mod repositories;
-#[cfg(feature = "gcp_dataform_team_folders")]
-pub mod team_folders;
-#[cfg(feature = "gcp_dataform_team_folders_search")]
-pub mod team_folders_search;
-#[cfg(feature = "gcp_dataform_workflow_configs")]
-pub mod workflow_configs;
-#[cfg(feature = "gcp_dataform_workflow_invocations")]
-pub mod workflow_invocations;
-#[cfg(feature = "gcp_dataform_workspaces")]
-pub mod workspaces;
+#[cfg(feature = "gcp_dataform_dataform")]
+pub mod dataform;

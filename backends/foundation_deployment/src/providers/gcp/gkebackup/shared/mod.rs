@@ -14,38 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `GetTagsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetTagsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleLongrunningOperation`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningOperation {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Policy`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `SetTagsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetTagsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `TestIamPermissionsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_recommender_config")]
-pub mod config;
-#[cfg(feature = "gcp_recommender_insights")]
-pub mod insights;
-#[cfg(feature = "gcp_recommender_recommendations")]
-pub mod recommendations;
+#[cfg(feature = "gcp_recommender_recommender")]
+pub mod recommender;

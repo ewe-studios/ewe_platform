@@ -14,38 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `Blog`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Blog {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Comment`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Comment {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Page`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Page {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Post`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Post {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `PostList`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostList {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

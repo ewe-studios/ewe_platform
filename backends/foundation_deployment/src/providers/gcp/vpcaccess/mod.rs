@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_vpcaccess_connectors")]
-pub mod connectors;
-#[cfg(feature = "gcp_vpcaccess_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_vpcaccess_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_vpcaccess_vpcaccess")]
+pub mod vpcaccess;

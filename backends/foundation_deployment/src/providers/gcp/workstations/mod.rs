@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_workstations_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_workstations_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_workstations_workstation_clusters")]
-pub mod workstation_clusters;
-#[cfg(feature = "gcp_workstations_workstation_configs")]
-pub mod workstation_configs;
-#[cfg(feature = "gcp_workstations_workstation_configs_list_usable")]
-pub mod workstation_configs_list_usable;
 #[cfg(feature = "gcp_workstations_workstations")]
 pub mod workstations;
-#[cfg(feature = "gcp_workstations_workstations_list_usable")]
-pub mod workstations_list_usable;

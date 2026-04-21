@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_run_builds_submit")]
-pub mod builds_submit;
-#[cfg(feature = "gcp_run_executions")]
-pub mod executions;
-#[cfg(feature = "gcp_run_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_run_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_run_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_run_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_run_revisions")]
-pub mod revisions;
-#[cfg(feature = "gcp_run_services")]
-pub mod services;
-#[cfg(feature = "gcp_run_tasks")]
-pub mod tasks;
-#[cfg(feature = "gcp_run_worker_pools")]
-pub mod worker_pools;
+#[cfg(feature = "gcp_run_run")]
+pub mod run;

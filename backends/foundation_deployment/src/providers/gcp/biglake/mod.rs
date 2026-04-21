@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_biglake_catalogs")]
-pub mod catalogs;
-#[cfg(feature = "gcp_biglake_databases")]
-pub mod databases;
-#[cfg(feature = "gcp_biglake_namespaces")]
-pub mod namespaces;
-#[cfg(feature = "gcp_biglake_tables")]
-pub mod tables;
+#[cfg(feature = "gcp_biglake_biglake")]
+pub mod biglake;

@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datamanager_audience_members_ingest")]
-pub mod audience_members_ingest;
-#[cfg(feature = "gcp_datamanager_audience_members_remove")]
-pub mod audience_members_remove;
-#[cfg(feature = "gcp_datamanager_events_ingest")]
-pub mod events_ingest;
-#[cfg(feature = "gcp_datamanager_insights_retrieve")]
-pub mod insights_retrieve;
-#[cfg(feature = "gcp_datamanager_partner_links")]
-pub mod partner_links;
-#[cfg(feature = "gcp_datamanager_partner_links_search")]
-pub mod partner_links_search;
-#[cfg(feature = "gcp_datamanager_request_status_retrieve")]
-pub mod request_status_retrieve;
-#[cfg(feature = "gcp_datamanager_user_list_direct_licenses")]
-pub mod user_list_direct_licenses;
-#[cfg(feature = "gcp_datamanager_user_list_global_license_customer_infos")]
-pub mod user_list_global_license_customer_infos;
-#[cfg(feature = "gcp_datamanager_user_list_global_licenses")]
-pub mod user_list_global_licenses;
-#[cfg(feature = "gcp_datamanager_user_lists")]
-pub mod user_lists;
+#[cfg(feature = "gcp_datamanager_datamanager")]
+pub mod datamanager;

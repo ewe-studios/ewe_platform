@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_eventarc_channel_connections")]
-pub mod channel_connections;
-#[cfg(feature = "gcp_eventarc_channels")]
-pub mod channels;
-#[cfg(feature = "gcp_eventarc_enrollments")]
-pub mod enrollments;
-#[cfg(feature = "gcp_eventarc_google_sources")]
-pub mod google_sources;
-#[cfg(feature = "gcp_eventarc_google_channel_config")]
-pub mod google_channel_config;
-#[cfg(feature = "gcp_eventarc_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_eventarc_message_buses")]
-pub mod message_buses;
-#[cfg(feature = "gcp_eventarc_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_eventarc_pipelines")]
-pub mod pipelines;
-#[cfg(feature = "gcp_eventarc_providers")]
-pub mod providers;
-#[cfg(feature = "gcp_eventarc_triggers")]
-pub mod triggers;
+#[cfg(feature = "gcp_eventarc_eventarc")]
+pub mod eventarc;

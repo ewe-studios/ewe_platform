@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datastore_indexes")]
-pub mod indexes;
-#[cfg(feature = "gcp_datastore_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datastore_projects")]
-pub mod projects;
+#[cfg(feature = "gcp_datastore_datastore")]
+pub mod datastore;

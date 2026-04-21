@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_playgrouping_tags_create_or_update")]
-pub mod tags_create_or_update;
-#[cfg(feature = "gcp_playgrouping_tokens")]
-pub mod tokens;
+#[cfg(feature = "gcp_playgrouping_playgrouping")]
+pub mod playgrouping;

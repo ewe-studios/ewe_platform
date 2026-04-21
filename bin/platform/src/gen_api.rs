@@ -124,8 +124,14 @@ fn camel_to_snake(name: &str) -> String {
 ///   - `gcp_all_<group> = ["gcp_<group>_<api>", ...]`
 ///   - `gcp_all = ["gcp_all_<group>", ...]`
 ///
-/// IMPORTANT: This is additive only — it never removes existing features.
-fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), BoxedError> {
+/// When `regenerated` is provided, only clears/rebuilds features for those
+/// sub-providers. When None, clears ALL provider features and rebuilds from
+/// the current directory structure.
+fn fix_hierarchical_features(
+    provider: &str,
+    output_dir: &Path,
+    regenerated: &BTreeSet<String>,
+) -> Result<(), BoxedError> {
     let provider_dir = output_dir.join(provider);
     if !provider_dir.exists() {
         return Ok(());
@@ -180,18 +186,66 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
 
     let provider_snake = provider.replace('-', "_");
     let all_feature = format!("{}_all", provider_snake);
+    let prefix = format!("{}_", provider_snake);
 
-    // 1. Ensure base provider feature is empty (e.g., cloudflare = [])
-    //    This enables the provider module without any specific API.
-    match features.get(&provider_snake) {
-        Some(v) if v.as_array().map_or(false, |a| a.is_empty()) => {}
-        _ => {
-            features.insert(provider_snake.clone(), toml::Value::Array(vec![]));
-            println!("Set '{} = []' (empty base feature)", provider_snake);
+    // Step 0: Clear provider features.
+    // If `regenerated` is non-empty (partial regen via --spec), only clear
+    // features for those sub-providers. Otherwise clear ALL provider features.
+    let full_regeneration = regenerated.is_empty();
+    let old_features: Vec<String> = features.keys()
+        .filter(|k| {
+            if *k == &provider_snake {
+                return full_regeneration;
+            }
+            if !k.starts_with(&prefix) {
+                return false;
+            }
+            if full_regeneration {
+                return true; // Clear everything for full regeneration
+            }
+            // For partial regen, only clear features belonging to regenerated sub-providers
+            let without_prefix = k.strip_prefix(&prefix).unwrap_or("");
+            regenerated.iter().any(|sub| {
+                without_prefix == *sub // bare sub-provider feature
+                    || without_prefix.starts_with(&format!("{sub}_")) // nested feature
+                    || without_prefix.starts_with(&format!("{sub}/"))
+            })
+        })
+        .cloned()
+        .collect();
+    for old in &old_features {
+        features.remove(old);
+    }
+    if !old_features.is_empty() {
+        println!("Removed {} stale feature(s) for regenerated sub-providers", old_features.len());
+    }
+
+    // Also clean up references to cleared features from the base provider feature
+    // and the *_all feature, since they still reference removed sub-features.
+    if !full_regeneration && !old_features.is_empty() {
+        let removed_set: BTreeSet<String> = old_features.iter().cloned().collect();
+
+        // Clean base provider feature (e.g., gcp = [...])
+        if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&provider_snake) {
+            arr.retain(|v| {
+                v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true)
+            });
+        }
+
+        // Clean *_all feature (e.g., gcp_all = [...])
+        if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&all_feature) {
+            arr.retain(|v| {
+                v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true)
+            });
         }
     }
 
-    // 2. Detect if this is a hierarchical provider (nested sub-providers).
+    // Step 1: Ensure base provider feature exists (e.g., cloudflare = [])
+    //    This enables the provider module without any specific API.
+    features.entry(provider_snake.clone())
+        .or_insert(toml::Value::Array(vec![]));
+
+    // Step 2: Detect if this is a hierarchical provider (nested sub-providers).
     //    Check if any sub-provider directory itself contains mod.rs files
     //    that declare further sub-modules.
     let is_hierarchical = sub_providers.iter().any(|sub| {
@@ -208,10 +262,15 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
 
     if is_hierarchical {
         // Hierarchical: gcp_all = ["gcp_all_admin", ...], gcp_all_admin = ["gcp_admin_applications", ...]
-        fix_hierarchical_features_recursive(&provider_snake, &all_feature, &sub_providers, features);
+        fix_hierarchical_features_recursive(&provider_snake, &all_feature, &sub_providers, features, regenerated);
     } else {
         // Flat: cloudflare_all = ["cloudflare_access", "cloudflare_workers", ...]
-        fix_flat_features(&provider_snake, &all_feature, &sub_providers, features);
+        fix_flat_features(&provider_snake, &all_feature, &sub_providers, features, regenerated);
+    }
+
+    // Debug: show gcp_run feature
+    if let Some(run_feat) = features.get("gcp_run") {
+        println!("  gcp_run feature after fix: {:?}", run_feat);
     }
 
     let output = toml::to_string_pretty(&doc)
@@ -224,91 +283,155 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
 }
 
 /// Fix features for hierarchical providers (e.g., gcp with nested groups).
+/// Only rebuilds features for sub-providers in `regenerated` (if non-empty).
 fn fix_hierarchical_features_recursive(
     provider_snake: &str,
     all_feature: &str,
     sub_providers: &BTreeSet<String>,
-    features: &mut toml::value::Table,
+    features: &mut toml::Table,
+    regenerated: &BTreeSet<String>,
 ) {
-    // Add group-level features: gcp_all_admin, gcp_all_cloudkms, etc.
-    for sub in sub_providers {
-        let group_feature = format!("{}_{}", all_feature, sub);
-        if !features.contains_key(&group_feature) {
-            // Find all API features belonging to this group
-            let group_apis: Vec<String> = features.keys()
-                .filter(|k| k.starts_with(&format!("{}_", provider_snake)) && !k.contains("_all_"))
-                .filter(|k| {
-                    let api_part = k.strip_prefix(&format!("{}_", provider_snake)).unwrap_or("");
-                    api_part.starts_with(&format!("{}/", sub)) || api_part.starts_with(&format!("{}_", sub))
-                })
-                .map(|k| k.clone())
-                .collect();
+    let full_regeneration = regenerated.is_empty();
 
-            if group_apis.is_empty() {
-                features.insert(group_feature.clone(), toml::Value::Array(vec![]));
-            } else {
-                features.insert(group_feature.clone(), toml::Value::Array(
-                    group_apis.iter().map(|f| toml::Value::String(f.clone())).collect()
-                ));
+    let output_dir = PathBuf::from("backends/foundation_deployment/src/providers");
+    let provider_dir = output_dir.join(provider_snake);
+
+    let mut all_group_features: BTreeSet<String> = BTreeSet::new();
+
+    for sub in sub_providers {
+        let safe_sub = camel_to_snake(sub);
+        if !full_regeneration && !regenerated.contains(&safe_sub) {
+            // Still collect existing features for partial regen
+            for key in features.keys() {
+                if key.starts_with(&format!("{}_{safe_sub}_", provider_snake))
+                    || key.starts_with(&format!("{all_feature}_{safe_sub}"))
+                {
+                    // Keep existing features
+                }
+            }
+            // Collect existing group feature for this sub
+            let group_feature = format!("{all_feature}_{safe_sub}");
+            if features.contains_key(&group_feature) {
+                all_group_features.insert(group_feature);
+            }
+            continue;
+        }
+
+        // Scan the sub-provider directory for nested group directories
+        let sub_dir = provider_dir.join(&safe_sub);
+        let mut group_names: Vec<String> = Vec::new();
+        if let Ok(entries) = std::fs::read_dir(&sub_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() && path.join("mod.rs").exists() {
+                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                        // Skip shared/clients/resources meta-directories
+                        // Also skip self-named directories (e.g., gcp/admin/admin/)
+                        if name != "shared" && name != "clients" && name != "resources"
+                            && name != &safe_sub
+                        {
+                            group_names.push(camel_to_snake(name));
+                        }
+                    }
+                }
             }
         }
+        group_names.sort();
+        group_names.dedup();
+
+        // Always include the self-named group feature since the generator creates
+        // a module at {sub}/{sub}/mod.rs guarded by gcp_{sub}_{sub}.
+        let self_group_feature = format!("{provider_snake}_{safe_sub}_{safe_sub}");
+        let mut group_apis: Vec<String> = vec![self_group_feature.clone()];
+        features.entry(self_group_feature.clone())
+            .or_insert(toml::Value::Array(vec![]));
+
+        // Generate individual group features: gcp_{sub}_{group} = []
+        for group in &group_names {
+            let feature_name = format!("{provider_snake}_{safe_sub}_{group}");
+            features.entry(feature_name.clone())
+                .or_insert(toml::Value::Array(vec![]));
+            group_apis.push(feature_name);
+        }
+
+        // Generate group-level feature: gcp_all_{sub} = [gcp_{sub}_{group1}, ...]
+        let group_feature = format!("{all_feature}_{safe_sub}");
+        if group_apis.is_empty() {
+            features.insert(group_feature.clone(), toml::Value::Array(vec![]));
+        } else {
+            features.insert(group_feature.clone(), toml::Value::Array(
+                group_apis.iter().map(|f| toml::Value::String(f.clone())).collect()
+            ));
+        }
+        all_group_features.insert(group_feature.clone());
+
+        // Generate sub-provider base feature: gcp_{sub} = ["gcp", gcp_{sub}_{sub}]
+        // This allows depending on a whole sub-provider (e.g., gcp_run)
+        // and transitively enables the provider module and all its endpoints.
+        let sub_base_feature = format!("{provider_snake}_{safe_sub}");
+        features.insert(sub_base_feature, toml::Value::Array(vec![
+            toml::Value::String(provider_snake.to_string()),
+            toml::Value::String(self_group_feature),
+        ]));
     }
 
     // Ensure *_all feature includes all group-level features
-    let existing_all = features
-        .get(all_feature)
-        .and_then(|v| v.as_array())
-        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
-        .unwrap_or_default();
+    let existing_all = if full_regeneration {
+        BTreeSet::new()
+    } else {
+        features.get(all_feature)
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+            .unwrap_or_default()
+    };
 
-    let group_features: BTreeSet<String> = sub_providers
-        .iter()
-        .map(|name| format!("{}_{}", all_feature, name))
-        .collect();
-
-    let merged: Vec<String> = existing_all.union(&group_features).cloned().collect();
+    let merged: Vec<String> = existing_all.union(&all_group_features).cloned().collect();
     features.insert(all_feature.to_string(), toml::Value::Array(
-        merged.iter().map(|f| toml::Value::String(f.clone())).collect()
+        merged.into_iter().map(|f| toml::Value::String(f)).collect()
     ));
-
-    println!("Updated '{}_all' feature to include {} group(s)", provider_snake, merged.len());
 }
 
 /// Fix features for flat providers (e.g., cloudflare, stripe, supabase).
+/// Only rebuilds features for sub-providers in `regenerated` (if non-empty).
 fn fix_flat_features(
     provider_snake: &str,
     all_feature: &str,
     sub_providers: &BTreeSet<String>,
-    features: &mut toml::value::Table,
+    features: &mut toml::Table,
+    regenerated: &BTreeSet<String>,
 ) {
+    let full_regeneration = regenerated.is_empty();
+
     // Ensure individual API features exist
     for sub in sub_providers {
-        let feature_name = format!("{}_{}", provider_snake, sub);
-        if !features.contains_key(&feature_name) {
-            features.insert(feature_name.clone(), toml::Value::Array(vec![]));
+        let feature_name = format!("{}_{}", provider_snake, camel_to_snake(sub));
+        if !full_regeneration && !regenerated.contains(&camel_to_snake(sub)) {
+            continue;
         }
+        features.entry(feature_name).or_insert(toml::Value::Array(vec![]));
     }
 
     // Collect all individual API features for this provider
     let prefix = format!("{}_", provider_snake);
-    let all_api_features: BTreeSet<String> = features.keys()
+    let existing_apis: BTreeSet<String> = features.keys()
         .filter(|k| k.starts_with(&prefix) && !k.contains("_all"))
         .map(|k| k.clone())
         .collect();
 
     // Merge into *_all
-    let existing_all = features
-        .get(all_feature)
-        .and_then(|v| v.as_array())
-        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
-        .unwrap_or_default();
+    let existing_all = if full_regeneration {
+        BTreeSet::new()
+    } else {
+        features.get(all_feature)
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+            .unwrap_or_default()
+    };
 
-    let merged: Vec<String> = existing_all.union(&all_api_features).cloned().collect();
+    let merged: Vec<String> = existing_all.union(&existing_apis).cloned().collect();
     features.insert(all_feature.to_string(), toml::Value::Array(
-        merged.iter().map(|f| toml::Value::String(f.clone())).collect()
+        merged.into_iter().map(|f| toml::Value::String(f)).collect()
     ));
-
-    println!("Updated '{}_all' feature to include {} API(s)", provider_snake, merged.len());
 }
 
 // ---------------------------------------------------------------------------
@@ -561,6 +684,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             println!("Found {} spec(s) to generate", specs.len());
 
+            // Track which sub-providers were regenerated in this run
+            let mut regenerated: BTreeSet<String> = BTreeSet::new();
+
             for (api_name, spec_path) in &specs {
                 println!("\n  Processing {} ({})", api_name, spec_path.display());
 
@@ -587,6 +713,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 let generator = UnifiedGenerator::new(output_dir.clone());
                 generator.generate(&gen_provider, &spec_content, &options)?;
                 println!("    Generated: {}", gen_provider);
+
+                // Track which sub-provider was regenerated
+                regenerated.insert(safe_api_name);
             }
 
             if dry_run {
@@ -600,7 +729,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             if is_multi_spec_provider {
                 generate_parent_mod_rs(&provider, &output_dir)?;
             }
-            fix_hierarchical_features(&provider, &output_dir)?;
+            fix_hierarchical_features(&provider, &output_dir, &regenerated)?;
 
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", output_dir.display());

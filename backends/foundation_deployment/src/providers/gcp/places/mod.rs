@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_places_media")]
-pub mod media;
 #[cfg(feature = "gcp_places_places")]
 pub mod places;
-#[cfg(feature = "gcp_places_places_autocomplete")]
-pub mod places_autocomplete;
-#[cfg(feature = "gcp_places_places_search_nearby")]
-pub mod places_search_nearby;
-#[cfg(feature = "gcp_places_places_search_text")]
-pub mod places_search_text;

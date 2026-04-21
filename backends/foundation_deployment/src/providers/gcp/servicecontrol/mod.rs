@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_servicecontrol_services")]
-pub mod services;
+#[cfg(feature = "gcp_servicecontrol_servicecontrol")]
+pub mod servicecontrol;

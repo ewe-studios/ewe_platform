@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessqanda_answers")]
-pub mod answers;
-#[cfg(feature = "gcp_mybusinessqanda_answers_delete")]
-pub mod answers_delete;
-#[cfg(feature = "gcp_mybusinessqanda_answers_upsert")]
-pub mod answers_upsert;
-#[cfg(feature = "gcp_mybusinessqanda_questions")]
-pub mod questions;
+#[cfg(feature = "gcp_mybusinessqanda_mybusinessqanda")]
+pub mod mybusinessqanda;

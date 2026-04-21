@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinesslodging_lodging")]
-pub mod lodging;
-#[cfg(feature = "gcp_mybusinesslodging_lodging_get_google_updated")]
-pub mod lodging_get_google_updated;
+#[cfg(feature = "gcp_mybusinesslodging_mybusinesslodging")]
+pub mod mybusinesslodging;

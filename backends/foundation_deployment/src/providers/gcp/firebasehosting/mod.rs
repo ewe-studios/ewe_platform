@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebasehosting_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_firebasehosting_firebasehosting")]
+pub mod firebasehosting;

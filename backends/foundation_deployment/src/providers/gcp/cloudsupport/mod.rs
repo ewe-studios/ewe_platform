@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudsupport_attachments")]
-pub mod attachments;
-#[cfg(feature = "gcp_cloudsupport_case_classifications_search")]
-pub mod case_classifications_search;
-#[cfg(feature = "gcp_cloudsupport_cases")]
-pub mod cases;
-#[cfg(feature = "gcp_cloudsupport_cases_search")]
-pub mod cases_search;
-#[cfg(feature = "gcp_cloudsupport_comments")]
-pub mod comments;
+#[cfg(feature = "gcp_cloudsupport_cloudsupport")]
+pub mod cloudsupport;

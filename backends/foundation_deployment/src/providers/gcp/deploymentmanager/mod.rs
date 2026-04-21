@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_deploymentmanager_cancel_preview")]
-pub mod cancel_preview;
-#[cfg(feature = "gcp_deploymentmanager_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_deploymentmanager_get_iam_policy")]
-pub mod get_iam_policy;
-#[cfg(feature = "gcp_deploymentmanager_manifests")]
-pub mod manifests;
-#[cfg(feature = "gcp_deploymentmanager_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_deploymentmanager_resources")]
-pub mod resources;
-#[cfg(feature = "gcp_deploymentmanager_set_iam_policy")]
-pub mod set_iam_policy;
-#[cfg(feature = "gcp_deploymentmanager_stop")]
-pub mod stop;
-#[cfg(feature = "gcp_deploymentmanager_test_iam_permissions")]
-pub mod test_iam_permissions;
-#[cfg(feature = "gcp_deploymentmanager_types")]
-pub mod types;
+#[cfg(feature = "gcp_deploymentmanager_deploymentmanager")]
+pub mod deploymentmanager;

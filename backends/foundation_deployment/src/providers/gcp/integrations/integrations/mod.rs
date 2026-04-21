@@ -19,38 +19,187 @@ use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHtt
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-// Import shared types used by this module
-use super::shared::GoogleCloudIntegrationsV1alphaTestIntegrationsResponse;
-use super::shared::GoogleProtobufEmpty;
-
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `EnterpriseCrmFrontendsEventbusProtoParameterEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// masked property.
-    pub masked: Option<bool>,
-    /// value property.
-    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+/// `EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
+    /// fullName property.
+    pub full_name: Option<String>,
+    /// path property.
+    pub path: Option<String>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
-    /// objectValue property.
-    pub object_value: Option<String>,
+/// `GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
+    /// workflows property.
+    pub workflows: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
+    /// descriptivePhrase property.
+    pub descriptive_phrase: Option<String>,
+    /// helpText property.
+    pub help_text: Option<String>,
+    /// hideDefaultValue property.
+    pub hide_default_value: Option<bool>,
+    /// inputDisplayOption property.
+    pub input_display_option: Option<String>,
+    /// isHidden property.
+    pub is_hidden: Option<bool>,
+    /// label property.
+    pub label: Option<String>,
+    /// parameterNameOption property.
+    pub parameter_name_option: Option<String>,
+    /// subSectionLabel property.
+    pub sub_section_label: Option<String>,
+    /// uiPlaceholderText property.
+    pub ui_placeholder_text: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTriggerConfigVariables` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTriggerConfigVariables {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskAlertConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
+    /// aggregationPeriod property.
+    pub aggregation_period: Option<String>,
+    /// alertDisabled property.
+    pub alert_disabled: Option<bool>,
+    /// alertName property.
+    pub alert_name: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// durationThresholdMs property.
+    pub duration_threshold_ms: Option<String>,
+    /// errorEnumList property.
+    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    /// metricType property.
+    pub metric_type: Option<String>,
+    /// numAggregationPeriods property.
+    pub num_aggregation_periods: Option<i64>,
+    /// onlyFinalAttempt property.
+    pub only_final_attempt: Option<bool>,
+    /// playbookUrl property.
+    pub playbook_url: Option<String>,
+    /// thresholdType property.
+    pub threshold_type: Option<String>,
+    /// thresholdValue property.
+    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    /// warningEnumList property.
+    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+}
+
+/// `EnterpriseCrmEventbusProtoPropertyEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoPropertyEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaParameterMapField` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaParameterMapField {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTaskConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
+    /// alertConfigs property.
+    pub alert_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskAlertConfig>>,
+    /// conditionalFailurePolicies property.
+    pub conditional_failure_policies: Option<EnterpriseCrmEventbusProtoConditionalFailurePolicies>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorEmail property.
+    pub creator_email: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// disableStrictTypeValidation property.
+    pub disable_strict_type_validation: Option<bool>,
+    /// errorCatcherId property.
+    pub error_catcher_id: Option<String>,
+    /// externalTaskType property.
+    pub external_task_type: Option<String>,
+    /// failurePolicy property.
+    pub failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    /// incomingEdgeCount property.
+    pub incoming_edge_count: Option<i64>,
+    /// jsonValidationOption property.
+    pub json_validation_option: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// lastModifiedTime property.
+    pub last_modified_time: Option<String>,
+    /// nextTasks property.
+    pub next_tasks: Option<Vec<EnterpriseCrmEventbusProtoNextTask>>,
+    /// nextTasksExecutionPolicy property.
+    pub next_tasks_execution_policy: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// position property.
+    pub position: Option<EnterpriseCrmEventbusProtoCoordinate>,
+    /// precondition property.
+    pub precondition: Option<String>,
+    /// preconditionLabel property.
+    pub precondition_label: Option<String>,
+    /// rollbackStrategy property.
+    pub rollback_strategy: Option<EnterpriseCrmFrontendsEventbusProtoRollbackStrategy>,
+    /// successPolicy property.
+    pub success_policy: Option<EnterpriseCrmEventbusProtoSuccessPolicy>,
+    /// synchronousCallFailurePolicy property.
+    pub synchronous_call_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    /// taskEntity property.
+    pub task_entity: Option<EnterpriseCrmFrontendsEventbusProtoTaskEntity>,
+    /// taskExecutionStrategy property.
+    pub task_execution_strategy: Option<String>,
+    /// taskName property.
+    pub task_name: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+    /// taskSpec property.
+    pub task_spec: Option<String>,
+    /// taskTemplateName property.
+    pub task_template_name: Option<String>,
+    /// taskType property.
+    pub task_type: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDownloadTemplateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDownloadTemplateResponse {
+    /// content property.
+    pub content: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaNextTask` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaNextTask {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleCloudIntegrationsV1alphaListIntegrationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
     /// integrations property.
     pub integrations: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegration>>,
@@ -58,8 +207,436 @@ pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `GoogleCloudIntegrationsV1AlphaIntParameterArray` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1Destination` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1Destination {
+    /// host property.
+    pub host: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTriggerConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
+    /// alertConfig property.
+    pub alert_config: Option<Vec<EnterpriseCrmEventbusProtoWorkflowAlertConfig>>,
+    /// cloudSchedulerConfig property.
+    pub cloud_scheduler_config: Option<EnterpriseCrmEventbusProtoCloudSchedulerConfig>,
+    /// description property.
+    pub description: Option<String>,
+    /// enabledClients property.
+    pub enabled_clients: Option<Vec<String>>,
+    /// errorCatcherId property.
+    pub error_catcher_id: Option<String>,
+    /// inputVariables property.
+    pub input_variables: Option<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    /// label property.
+    pub label: Option<String>,
+    /// nextTasksExecutionPolicy property.
+    pub next_tasks_execution_policy: Option<String>,
+    /// outputVariables property.
+    pub output_variables: Option<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    /// pauseWorkflowExecutions property.
+    pub pause_workflow_executions: Option<bool>,
+    /// position property.
+    pub position: Option<EnterpriseCrmEventbusProtoCoordinate>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// startTasks property.
+    pub start_tasks: Option<Vec<EnterpriseCrmEventbusProtoNextTask>>,
+    /// triggerCriteria property.
+    pub trigger_criteria: Option<EnterpriseCrmEventbusProtoTriggerCriteria>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// triggerName property.
+    pub trigger_name: Option<String>,
+    /// triggerNumber property.
+    pub trigger_number: Option<String>,
+    /// triggerType property.
+    pub trigger_type: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationVersion` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersion {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoExecutionTraceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoExecutionTraceInfo {
+    /// parentEventExecutionInfoId property.
+    pub parent_event_execution_info_id: Option<String>,
+    /// traceId property.
+    pub trace_id: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EventingRuntimeData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingRuntimeData {
+    /// eventsListenerEndpoint property.
+    pub events_listener_endpoint: Option<String>,
+    /// eventsListenerPscSa property.
+    pub events_listener_psc_sa: Option<String>,
+    /// status property.
+    pub status: Option<GoogleCloudConnectorsV1EventingStatus>,
+    /// webhookData property.
+    pub webhook_data: Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>,
+    /// webhookSubscriptions property.
+    pub webhook_subscriptions:
+        Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions>,
+}
+
+/// `EnterpriseCrmEventbusProtoTriggerCriteria` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
+    /// condition property.
+    pub condition: Option<String>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// triggerCriteriaTaskImplementationClassName property.
+    pub trigger_criteria_task_implementation_class_name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCancelExecutionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCancelExecutionRequest {
+    /// cancelReason property.
+    pub cancel_reason: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
+    /// doubleRange property.
+    pub double_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange>,
+    /// intRange property.
+    pub int_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange>,
+    /// stringRegex property.
+    pub string_regex: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecutionSnapshotExecutionSnapshotMetadata` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecutionSnapshotExecutionSnapshotMetadata {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaUsernameAndPassword` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaUsernameAndPassword {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaProjectProperties` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaProjectProperties {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskMetadata {
+    /// activeTaskName property.
+    pub active_task_name: Option<String>,
+    /// admins property.
+    pub admins: Option<Vec<EnterpriseCrmEventbusProtoTaskMetadataAdmin>>,
+    /// category property.
+    pub category: Option<String>,
+    /// codeSearchLink property.
+    pub code_search_link: Option<String>,
+    /// defaultJsonValidationOption property.
+    pub default_json_validation_option: Option<String>,
+    /// defaultSpec property.
+    pub default_spec: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// descriptiveName property.
+    pub descriptive_name: Option<String>,
+    /// docMarkdown property.
+    pub doc_markdown: Option<String>,
+    /// externalCategory property.
+    pub external_category: Option<String>,
+    /// externalCategorySequence property.
+    pub external_category_sequence: Option<i64>,
+    /// externalDocHtml property.
+    pub external_doc_html: Option<String>,
+    /// externalDocLink property.
+    pub external_doc_link: Option<String>,
+    /// externalDocMarkdown property.
+    pub external_doc_markdown: Option<String>,
+    /// g3DocLink property.
+    pub g3_doc_link: Option<String>,
+    /// iconLink property.
+    pub icon_link: Option<String>,
+    /// isDeprecated property.
+    pub is_deprecated: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// standaloneExternalDocHtml property.
+    pub standalone_external_doc_html: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// system property.
+    pub system: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspensionAudit` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspensionAudit {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaEventParameter` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaEventParameter {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
+    /// booleanValues property.
+    pub boolean_values: Option<Vec<bool>>,
+}
+
+/// `EnterpriseCrmEventbusProtoCoordinate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCoordinate {
+    /// x property.
+    pub x: Option<i64>,
+    /// y property.
+    pub y: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCredential` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCredential {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CrmlogErrorCode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CrmlogErrorCode {
+    /// commonErrorCode property.
+    pub common_error_code: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadTemplateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadTemplateResponse {
+    /// template property.
+    pub template: Option<GoogleCloudIntegrationsV1AlphaTemplate>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata {
+    /// ancestorIterationNumbers property.
+    pub ancestor_iteration_numbers: Option<Vec<String>>,
+    /// ancestorTaskNumbers property.
+    pub ancestor_task_numbers: Option<Vec<String>>,
+    /// eventAttemptNum property.
+    pub event_attempt_num: Option<i64>,
+    /// integrationName property.
+    pub integration_name: Option<String>,
+    /// taskAttemptNum property.
+    pub task_attempt_num: Option<i64>,
+    /// taskLabel property.
+    pub task_label: Option<String>,
+    /// taskName property.
+    pub task_name: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1DestinationConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1DestinationConfig {
+    /// destinations property.
+    pub destinations: Option<Vec<GoogleCloudConnectorsV1Destination>>,
+    /// key property.
+    pub key: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoStringArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoStringArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCancelExecutionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCancelExecutionResponse {
+    /// isCanceled property.
+    pub is_canceled: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaResolveSuspensionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskExecutionDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskExecutionDetails {
+    /// skippedOnFailure property.
+    pub skipped_on_failure: Option<bool>,
+    /// taskAttemptStats property.
+    pub task_attempt_stats:
+        Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats>>,
+    /// taskExecutionState property.
+    pub task_execution_state: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParamSpecEntry>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUseTemplateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
+    /// integrationVersion property.
+    pub integration_version: Option<GoogleCloudIntegrationsV1AlphaIntegrationVersion>,
+    /// subIntegrationVersions property.
+    pub sub_integration_versions: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationVersion>>,
+}
+
+/// `EnterpriseCrmEventbusProtoSerializedObjectParameter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
+    /// objectValue property.
+    pub object_value: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTaskConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTaskConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoLogSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoLogSettings {
+    /// logFieldName property.
+    pub log_field_name: Option<String>,
+    /// seedPeriod property.
+    pub seed_period: Option<String>,
+    /// seedScope property.
+    pub seed_scope: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadTemplateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadTemplateRequest {
+    /// content property.
+    pub content: Option<String>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplate` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1NodeConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1NodeConfig {
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegration` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegration {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSfdcChannel` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSfdcChannel {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `EnterpriseCrmFrontendsEventbusProtoParameterValueType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
     /// booleanArray property.
     pub boolean_array: Option<EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray>,
@@ -88,8 +665,2305 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
     pub string_value: Option<String>,
 }
 
+/// `GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
+    /// executionInfoIds property.
+    pub execution_info_ids: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecution` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecution {
+    /// cloudKmsKey property.
+    pub cloud_kms_key: Option<String>,
+    /// cloudLoggingDetails property.
+    pub cloud_logging_details: Option<GoogleCloudIntegrationsV1AlphaCloudLoggingDetails>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// directSubExecutions property.
+    pub direct_sub_executions: Option<Vec<Box<GoogleCloudIntegrationsV1AlphaExecution>>>,
+    /// eventExecutionDetails property.
+    pub event_execution_details: Option<EnterpriseCrmEventbusProtoEventExecutionDetails>,
+    /// executionDetails property.
+    pub execution_details: Option<GoogleCloudIntegrationsV1AlphaExecutionDetails>,
+    /// executionMethod property.
+    pub execution_method: Option<String>,
+    /// integrationVersionState property.
+    pub integration_version_state: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// replayInfo property.
+    pub replay_info: Option<GoogleCloudIntegrationsV1AlphaExecutionReplayInfo>,
+    /// requestParameters property.
+    pub request_parameters: Option<serde_json::Value>,
+    /// requestParams property.
+    pub request_params: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    /// responseParameters property.
+    pub response_parameters: Option<serde_json::Value>,
+    /// responseParams property.
+    pub response_params: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    /// snapshotNumber property.
+    pub snapshot_number: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest {
+    /// apiTriggerResources property.
+    pub api_trigger_resources: Option<Vec<GoogleCloudIntegrationsV1AlphaApiTriggerResource>>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse {
+    /// assertionResults property.
+    pub assertion_results: Option<Vec<GoogleCloudIntegrationsV1AlphaAssertionResult>>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// outputParameters property.
+    pub output_parameters: Option<serde_json::Value>,
+    /// testExecutionState property.
+    pub test_execution_state: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecuteTestCaseResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecuteTestCaseResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaFile` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaFile {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest {
+    /// doNotPropagateError property.
+    pub do_not_propagate_error: Option<bool>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+    /// parameterEntries property.
+    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCloudKmsConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCloudKmsConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoWorkflowAlertConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
+    /// aggregationPeriod property.
+    pub aggregation_period: Option<String>,
+    /// alertDisabled property.
+    pub alert_disabled: Option<bool>,
+    /// alertName property.
+    pub alert_name: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// durationThresholdMs property.
+    pub duration_threshold_ms: Option<String>,
+    /// errorEnumList property.
+    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    /// metricType property.
+    pub metric_type: Option<String>,
+    /// numAggregationPeriods property.
+    pub num_aggregation_periods: Option<i64>,
+    /// onlyFinalAttempt property.
+    pub only_final_attempt: Option<bool>,
+    /// playbookUrl property.
+    pub playbook_url: Option<String>,
+    /// thresholdType property.
+    pub threshold_type: Option<String>,
+    /// thresholdValue property.
+    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    /// warningEnumList property.
+    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaReplayExecutionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaReplayExecutionRequest {
+    /// modifiedParameters property.
+    pub modified_parameters: Option<serde_json::Value>,
+    /// replayMode property.
+    pub replay_mode: Option<String>,
+    /// replayReason property.
+    pub replay_reason: Option<String>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoAttributes` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoAttributes {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<EnterpriseCrmEventbusProtoValueType>,
+    /// isRequired property.
+    pub is_required: Option<bool>,
+    /// isSearchable property.
+    pub is_searchable: Option<bool>,
+    /// logSettings property.
+    pub log_settings: Option<EnterpriseCrmEventbusProtoLogSettings>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// searchable property.
+    pub searchable: Option<String>,
+    /// taskVisibility property.
+    pub task_visibility: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1BillingConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1BillingConfig {
+    /// billingCategory property.
+    pub billing_category: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaAuthConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
+    /// certificateId property.
+    pub certificate_id: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorEmail property.
+    pub creator_email: Option<String>,
+    /// credentialType property.
+    pub credential_type: Option<String>,
+    /// decryptedCredential property.
+    pub decrypted_credential: Option<GoogleCloudIntegrationsV1AlphaCredential>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// encryptedCredential property.
+    pub encrypted_credential: Option<String>,
+    /// expiryNotificationDuration property.
+    pub expiry_notification_duration: Option<Vec<String>>,
+    /// lastModifierEmail property.
+    pub last_modifier_email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// overrideValidTime property.
+    pub override_valid_time: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// validTime property.
+    pub valid_time: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
+    /// protoValues property.
+    pub proto_values: Option<Vec<serde_json::Value>>,
+}
+
+/// `GoogleCloudConnectorsV1EventingConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingConfig {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// allowedEventTypes property.
+    pub allowed_event_types: Option<Vec<String>>,
+    /// authConfig property.
+    pub auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    /// deadLetterConfig property.
+    pub dead_letter_config: Option<GoogleCloudConnectorsV1EventingConfigDeadLetterConfig>,
+    /// enrichmentConfig property.
+    pub enrichment_config: Option<GoogleCloudConnectorsV1EnrichmentConfig>,
+    /// enrichmentEnabled property.
+    pub enrichment_enabled: Option<bool>,
+    /// eventsListenerIngressEndpoint property.
+    pub events_listener_ingress_endpoint: Option<String>,
+    /// listenerAuthConfig property.
+    pub listener_auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    /// privateConnectivityAllowlistedProjects property.
+    pub private_connectivity_allowlisted_projects: Option<Vec<String>>,
+    /// privateConnectivityEnabled property.
+    pub private_connectivity_enabled: Option<bool>,
+    /// proxyDestinationConfig property.
+    pub proxy_destination_config: Option<GoogleCloudConnectorsV1DestinationConfig>,
+    /// registrationDestinationConfig property.
+    pub registration_destination_config: Option<GoogleCloudConnectorsV1DestinationConfig>,
+    /// sslConfig property.
+    pub ssl_config: Option<GoogleCloudConnectorsV1SslConfig>,
+}
+
+/// `GoogleCloudConnectorsV1ConnectionStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ConnectionStatus {
+    /// description property.
+    pub description: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
+    /// executeTestCaseResponses property.
+    pub execute_test_case_responses:
+        Option<Vec<GoogleCloudIntegrationsV1AlphaExecuteTestCaseResponse>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaProvisionClientRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
+    /// cloudKmsConfig property.
+    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1AlphaCloudKmsConfig>,
+    /// createSampleWorkflows property.
+    pub create_sample_workflows: Option<bool>,
+    /// enableHttpCall property.
+    pub enable_http_call: Option<bool>,
+    /// enableManagedAiFeatures property.
+    pub enable_managed_ai_features: Option<bool>,
+    /// provisionGmek property.
+    pub provision_gmek: Option<bool>,
+    /// runAsServiceAccount property.
+    pub run_as_service_account: Option<String>,
+    /// skipCpProvision property.
+    pub skip_cp_provision: Option<bool>,
+}
+
+/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nextRefreshTime property.
+    pub next_refresh_time: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
+    /// attributes property.
+    pub attributes: Option<EnterpriseCrmEventbusProtoAttributes>,
+    /// children property.
+    pub children: Option<Vec<Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>>,
+    /// containsLargeData property.
+    pub contains_large_data: Option<bool>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    /// description property.
+    pub description: Option<String>,
+    /// inOutType property.
+    pub in_out_type: Option<String>,
+    /// isTransient property.
+    pub is_transient: Option<bool>,
+    /// jsonSchema property.
+    pub json_schema: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// producedBy property.
+    pub produced_by: Option<EnterpriseCrmEventbusProtoNodeIdentifier>,
+    /// producer property.
+    pub producer: Option<String>,
+    /// protoDefName property.
+    pub proto_def_name: Option<String>,
+    /// protoDefPath property.
+    pub proto_def_path: Option<String>,
+    /// required property.
+    pub required: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecutionSnapshot` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecutionSnapshot {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDownloadExecutionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
+    /// content property.
+    pub content: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
+    /// configParameters property.
+    pub config_parameters: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationParameter` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationParameter {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoBooleanParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
+    /// booleanValues property.
+    pub boolean_values: Option<Vec<bool>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sfdcChannels property.
+    pub sfdc_channels: Option<Vec<GoogleCloudIntegrationsV1AlphaSfdcChannel>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskMetadataAdmin` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
+    /// googleGroupEmail property.
+    pub google_group_email: Option<String>,
+    /// userEmail property.
+    pub user_email: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoNodeIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
+    /// elementIdentifier property.
+    pub element_identifier: Option<String>,
+    /// elementType property.
+    pub element_type: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoFailurePolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoFailurePolicy {
+    /// intervalInSeconds property.
+    pub interval_in_seconds: Option<String>,
+    /// maxNumRetries property.
+    pub max_num_retries: Option<i64>,
+    /// retryCondition property.
+    pub retry_condition: Option<String>,
+    /// retryStrategy property.
+    pub retry_strategy: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
+    /// enableVariableMasking property.
+    pub enable_variable_masking: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSearchTemplatesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// templates property.
+    pub templates: Option<Vec<GoogleCloudIntegrationsV1AlphaTemplate>>,
+}
+
+/// `GoogleCloudConnectorsV1EncryptionKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaShareTemplateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaShareTemplateRequest {
+    /// resourceNames property.
+    pub resource_names: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaErrorCatcherConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaErrorCatcherConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCoordinate` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCoordinate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
+    /// names property.
+    pub names: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest {
+    /// appsScriptProject property.
+    pub apps_script_project: Option<String>,
+    /// authConfigId property.
+    pub auth_config_id: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
+    /// exclusive property.
+    pub exclusive: Option<bool>,
+    /// regex property.
+    pub regex: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspension` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspension {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfig {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// authKey property.
+    pub auth_key: Option<String>,
+    /// authType property.
+    pub auth_type: Option<String>,
+    /// oauth2AuthCodeFlow property.
+    pub oauth2_auth_code_flow: Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow>,
+    /// oauth2AuthCodeFlowGoogleManaged property.
+    pub oauth2_auth_code_flow_google_managed:
+        Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged>,
+    /// oauth2ClientCredentials property.
+    pub oauth2_client_credentials: Option<GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials>,
+    /// oauth2JwtBearer property.
+    pub oauth2_jwt_bearer: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer>,
+    /// sshPublicKey property.
+    pub ssh_public_key: Option<GoogleCloudConnectorsV1AuthConfigSshPublicKey>,
+    /// userPassword property.
+    pub user_password: Option<GoogleCloudConnectorsV1AuthConfigUserPassword>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaClientCertificate` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaClientCertificate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoParamSpecEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecEntry {
+    /// className property.
+    pub class_name: Option<String>,
+    /// collectionElementClassName property.
+    pub collection_element_class_name: Option<String>,
+    /// config property.
+    pub config: Option<EnterpriseCrmEventbusProtoParamSpecEntryConfig>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    /// isDeprecated property.
+    pub is_deprecated: Option<bool>,
+    /// isOutput property.
+    pub is_output: Option<bool>,
+    /// jsonSchema property.
+    pub json_schema: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// protoDef property.
+    pub proto_def: Option<EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition>,
+    /// required property.
+    pub required: Option<bool>,
+    /// validationRule property.
+    pub validation_rule: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRule>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListTestCasesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListTestCasesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// testCases property.
+    pub test_cases: Option<Vec<GoogleCloudIntegrationsV1AlphaTestCase>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUnshareTemplateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUnshareTemplateRequest {
+    /// resourceNames property.
+    pub resource_names: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
+    /// integrationVersion property.
+    pub integration_version: Option<GoogleCloudIntegrationsV1AlphaIntegrationVersion>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCertificate` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCertificate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest {
+    /// content property.
+    pub content: Option<String>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaToggleHttpRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
+    /// enableHttpCall property.
+    pub enable_http_call: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecutionDetails` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecutionDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo {
+    /// originalExecutionInfoId property.
+    pub original_execution_info_id: Option<String>,
+    /// replayMode property.
+    pub replay_mode: Option<String>,
+    /// replayReason property.
+    pub replay_reason: Option<String>,
+    /// replayedExecutionInfoIds property.
+    pub replayed_execution_info_ids: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmEventbusProtoToken` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoToken {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoCombinedCondition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCombinedCondition {
+    /// conditions property.
+    pub conditions: Option<Vec<EnterpriseCrmEventbusProtoCondition>>,
+}
+
+/// `GoogleCloudConnectorsV1Secret` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1Secret {
+    /// secretVersion property.
+    pub secret_version: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationAlertConfigThresholdValue` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationAlertConfigThresholdValue {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadTestCaseResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseResponse {
+    /// testCase property.
+    pub test_case: Option<GoogleCloudIntegrationsV1AlphaTestCase>,
+}
+
+/// `EnterpriseCrmEventbusProtoNextTeardownTask` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUseTemplateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequest {
+    /// integrationDetails property.
+    pub integration_details:
+        Option<GoogleCloudIntegrationsV1AlphaUseTemplateRequestIntegrationDetails>,
+    /// integrationRegion property.
+    pub integration_region: Option<String>,
+    /// subIntegrations property.
+    pub sub_integrations: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSfdcInstance` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSfdcInstance {
+    /// authConfigId property.
+    pub auth_config_id: Option<Vec<String>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// serviceAuthority property.
+    pub service_authority: Option<String>,
+    /// sfdcOrgId property.
+    pub sfdc_org_id: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaGetClientResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaGetClientResponse {
+    /// client property.
+    pub client: Option<GoogleCloudIntegrationsV1AlphaClientConfig>,
+}
+
+/// `EnterpriseCrmEventbusStatsDimensions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusStatsDimensions {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// enumFilterType property.
+    pub enum_filter_type: Option<String>,
+    /// errorEnumString property.
+    pub error_enum_string: Option<String>,
+    /// retryAttempt property.
+    pub retry_attempt: Option<String>,
+    /// taskName property.
+    pub task_name: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// warningEnumString property.
+    pub warning_enum_string: Option<String>,
+    /// workflowId property.
+    pub workflow_id: Option<String>,
+    /// workflowName property.
+    pub workflow_name: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoProtoParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
+    /// protoValues property.
+    pub proto_values: Option<Vec<serde_json::Value>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecutionReplayInfo` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecutionReplayInfo {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
+    /// triggerUrl property.
+    pub trigger_url: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTaskEntity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
+    /// disabledForVpcSc property.
+    pub disabled_for_vpc_sc: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<EnterpriseCrmEventbusProtoTaskMetadata>,
+    /// paramSpecs property.
+    pub param_specs: Option<EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage>,
+    /// stats property.
+    pub stats: Option<EnterpriseCrmEventbusStats>,
+    /// taskType property.
+    pub task_type: Option<String>,
+    /// uiConfig property.
+    pub ui_config: Option<EnterpriseCrmEventbusProtoTaskUiConfig>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails {
+    /// cancelReason property.
+    pub cancel_reason: Option<String>,
+    /// eventAttemptStats property.
+    pub event_attempt_stats:
+        Option<Vec<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>>,
+    /// eventExecutionSnapshot property.
+    pub event_execution_snapshot:
+        Option<Vec<EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot>>,
+    /// eventExecutionSnapshotsSize property.
+    pub event_execution_snapshots_size: Option<String>,
+    /// eventExecutionState property.
+    pub event_execution_state: Option<String>,
+    /// eventRetriesFromBeginningCount property.
+    pub event_retries_from_beginning_count: Option<i64>,
+    /// logFilePath property.
+    pub log_file_path: Option<String>,
+    /// networkAddress property.
+    pub network_address: Option<String>,
+    /// nextExecutionTime property.
+    pub next_execution_time: Option<String>,
+    /// ryeLockUnheldCount property.
+    pub rye_lock_unheld_count: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse {
+    /// files property.
+    pub files: Option<Vec<GoogleCloudIntegrationsV1AlphaFile>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaRuntimeActionSchema` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaRuntimeActionSchema {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1SslConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1SslConfig {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// clientCertType property.
+    pub client_cert_type: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    /// clientPrivateKey property.
+    pub client_private_key: Option<GoogleCloudConnectorsV1Secret>,
+    /// clientPrivateKeyPass property.
+    pub client_private_key_pass: Option<GoogleCloudConnectorsV1Secret>,
+    /// privateServerCertificate property.
+    pub private_server_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    /// serverCertType property.
+    pub server_cert_type: Option<String>,
+    /// trustModel property.
+    pub trust_model: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// useSsl property.
+    pub use_ssl: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
+    /// customerConfig property.
+    pub customer_config: Option<GoogleCloudIntegrationsV1AlphaCustomerConfig>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigUserPassword` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
+    /// password property.
+    pub password: Option<GoogleCloudConnectorsV1Secret>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// entities property.
+    pub entities: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1HPAConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1HPAConfig {
+    /// cpuUtilizationThreshold property.
+    pub cpu_utilization_threshold: Option<String>,
+    /// memoryUtilizationThreshold property.
+    pub memory_utilization_threshold: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaReplayExecutionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaReplayExecutionResponse {
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// outputParameters property.
+    pub output_parameters: Option<serde_json::Value>,
+    /// replayedExecutionId property.
+    pub replayed_execution_id: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigSshPublicKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
+    /// certType property.
+    pub cert_type: Option<String>,
+    /// sshClientCert property.
+    pub ssh_client_cert: Option<GoogleCloudConnectorsV1Secret>,
+    /// sshClientCertPass property.
+    pub ssh_client_cert_pass: Option<GoogleCloudConnectorsV1Secret>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListTemplatesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListTemplatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// templates property.
+    pub templates: Option<Vec<GoogleCloudIntegrationsV1AlphaTemplate>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspensionApprovalExpiration` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalExpiration {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaAuthConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAuthConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListAuthConfigsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
+    /// authConfigs property.
+    pub auth_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaAuthConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// ignoreErrorIfNoActiveWorkflow property.
+    pub ignore_error_if_no_active_workflow: Option<bool>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// priority property.
+    pub priority: Option<String>,
+    /// quotaRetryCount property.
+    pub quota_retry_count: Option<i64>,
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+    /// scheduledTime property.
+    pub scheduled_time: Option<String>,
+    /// testMode property.
+    pub test_mode: Option<bool>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// userGeneratedExecutionId property.
+    pub user_generated_execution_id: Option<String>,
+    /// workflowName property.
+    pub workflow_name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSerializedFile` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSerializedFile {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionExpiration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionExpiration {
+    /// expireAfterMs property.
+    pub expire_after_ms: Option<i64>,
+    /// liftWhenExpired property.
+    pub lift_when_expired: Option<bool>,
+    /// remindAfterMs property.
+    pub remind_after_ms: Option<i64>,
+}
+
+/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
+    /// webhookData property.
+    pub webhook_data: Option<Vec<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest {
+    /// functionName property.
+    pub function_name: Option<String>,
+    /// functionRegion property.
+    pub function_region: Option<String>,
+    /// gcfApiVersion property.
+    pub gcf_api_version: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
+    /// enumStrings property.
+    pub enum_strings: Option<Vec<String>>,
+    /// filterType property.
+    pub filter_type: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaImportTemplateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaImportTemplateResponse {
+    /// integrationVersion property.
+    pub integration_version: Option<GoogleCloudIntegrationsV1AlphaIntegrationVersion>,
+    /// subIntegrationVersions property.
+    pub sub_integration_versions: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationVersion>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaIntegrationVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaIntegrationVersion {
+    /// cloudKmsKey property.
+    pub cloud_kms_key: Option<String>,
+    /// cloudLoggingDetails property.
+    pub cloud_logging_details: Option<GoogleCloudIntegrationsV1AlphaCloudLoggingDetails>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// createdFromTemplate property.
+    pub created_from_template: Option<String>,
+    /// databasePersistencePolicy property.
+    pub database_persistence_policy: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// enableVariableMasking property.
+    pub enable_variable_masking: Option<bool>,
+    /// errorCatcherConfigs property.
+    pub error_catcher_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaErrorCatcherConfig>>,
+    /// integrationConfigParameters property.
+    pub integration_config_parameters:
+        Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter>>,
+    /// integrationParameters property.
+    pub integration_parameters: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationParameter>>,
+    /// integrationParametersInternal property.
+    pub integration_parameters_internal:
+        Option<EnterpriseCrmFrontendsEventbusProtoWorkflowParameters>,
+    /// lastModifierEmail property.
+    pub last_modifier_email: Option<String>,
+    /// lockHolder property.
+    pub lock_holder: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// origin property.
+    pub origin: Option<String>,
+    /// parentTemplateId property.
+    pub parent_template_id: Option<String>,
+    /// runAsServiceAccount property.
+    pub run_as_service_account: Option<String>,
+    /// snapshotNumber property.
+    pub snapshot_number: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// taskConfigs property.
+    pub task_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaTaskConfig>>,
+    /// taskConfigsInternal property.
+    pub task_configs_internal: Option<Vec<EnterpriseCrmFrontendsEventbusProtoTaskConfig>>,
+    /// teardown property.
+    pub teardown: Option<EnterpriseCrmEventbusProtoTeardown>,
+    /// triggerConfigs property.
+    pub trigger_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaTriggerConfig>>,
+    /// triggerConfigsInternal property.
+    pub trigger_configs_internal: Option<Vec<EnterpriseCrmFrontendsEventbusProtoTriggerConfig>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// userLabel property.
+    pub user_label: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest {
+    /// customerConfig property.
+    pub customer_config: Option<GoogleCloudIntegrationsV1AlphaCustomerConfig>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
+    /// objectValue property.
+    pub object_value: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTriggerConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTriggerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaGetClientMetadataResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaGetClientMetadataResponse {
+    /// properties property.
+    pub properties: Option<GoogleCloudIntegrationsV1AlphaProjectProperties>,
+}
+
+/// `GoogleCloudConnectorsV1LogConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1LogConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// level property.
+    pub level: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaGenerateTokenResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaGenerateTokenResponse {
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleProtobufEmpty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {}
+
+/// `GoogleCloudIntegrationsV1alphaListCertificatesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListCertificatesResponse {
+    /// certificates property.
+    pub certificates: Option<Vec<GoogleCloudIntegrationsV1AlphaCertificate>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EventingConfigDeadLetterConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
+    /// authCode property.
+    pub auth_code: Option<String>,
+    /// authUri property.
+    pub auth_uri: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+    /// enablePkce property.
+    pub enable_pkce: Option<bool>,
+    /// pkceVerifier property.
+    pub pkce_verifier: Option<String>,
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListSuspensionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// suspensions property.
+    pub suspensions: Option<Vec<GoogleCloudIntegrationsV1AlphaSuspension>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadTestCaseRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseRequest {
+    /// content property.
+    pub content: Option<String>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventExecutionSnapshot` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshot {
+    /// checkpointTaskNumber property.
+    pub checkpoint_task_number: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// conditionResults property.
+    pub condition_results: Option<Vec<EnterpriseCrmEventbusProtoConditionResult>>,
+    /// diffParams property.
+    pub diff_params: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// eventExecutionInfoId property.
+    pub event_execution_info_id: Option<String>,
+    /// eventExecutionSnapshotId property.
+    pub event_execution_snapshot_id: Option<String>,
+    /// eventExecutionSnapshotMetadata property.
+    pub event_execution_snapshot_metadata:
+        Option<EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata>,
+    /// eventParams property.
+    pub event_params: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// exceedMaxSize property.
+    pub exceed_max_size: Option<bool>,
+    /// snapshotTime property.
+    pub snapshot_time: Option<String>,
+    /// taskExecutionDetails property.
+    pub task_execution_details: Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    /// taskName property.
+    pub task_name: Option<String>,
+    /// workflowName property.
+    pub workflow_name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest {}
+
+/// `GoogleCloudIntegrationsV1alphaTemplate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTemplate {
+    /// author property.
+    pub author: Option<String>,
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// components property.
+    pub components: Option<Vec<GoogleCloudIntegrationsV1AlphaTemplateComponent>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// docLink property.
+    pub doc_link: Option<String>,
+    /// lastUsedTime property.
+    pub last_used_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sharedWith property.
+    pub shared_with: Option<Vec<String>>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+    /// templateBundle property.
+    pub template_bundle: Option<GoogleCloudIntegrationsV1AlphaTemplateBundle>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// usageCount property.
+    pub usage_count: Option<String>,
+    /// usageInfo property.
+    pub usage_info: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
+    /// max property.
+    pub max: Option<String>,
+    /// min property.
+    pub min: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoDoubleArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoDoubleArray {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionAuthPermissions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
+    /// gaiaIdentity property.
+    pub gaia_identity: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    /// googleGroup property.
+    pub google_group: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    /// loasRole property.
+    pub loas_role: Option<String>,
+    /// mdbGroup property.
+    pub mdb_group: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// gaiaId property.
+    pub gaia_id: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EnrichmentConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EnrichmentConfig {
+    /// appendAcl property.
+    pub append_acl: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse {
+    /// content property.
+    pub content: Option<String>,
+    /// files property.
+    pub files: Option<Vec<GoogleCloudIntegrationsV1AlphaSerializedFile>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>>,
+}
+
+/// `EnterpriseCrmEventbusProtoStringParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuccessPolicy` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuccessPolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoNotification` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNotification {
+    /// buganizerNotification property.
+    pub buganizer_notification: Option<EnterpriseCrmEventbusProtoBuganizerNotification>,
+    /// emailAddress property.
+    pub email_address: Option<EnterpriseCrmEventbusProtoAddress>,
+    /// escalatorQueue property.
+    pub escalator_queue: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// request property.
+    pub request: Option<EnterpriseCrmEventbusProtoCustomSuspensionRequest>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplateComponent` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplateComponent {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse {
+    /// scriptId property.
+    pub script_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse {
+    /// integrationVersion property.
+    pub integration_version: Option<GoogleCloudIntegrationsV1AlphaIntegrationVersion>,
+}
+
+/// `EnterpriseCrmEventbusProtoConditionResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoConditionResult {
+    /// currentTaskNumber property.
+    pub current_task_number: Option<String>,
+    /// nextTaskNumber property.
+    pub next_task_number: Option<String>,
+    /// result property.
+    pub result: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse {
+    /// integrationVersions property.
+    pub integration_versions: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationVersion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// noPermission property.
+    pub no_permission: Option<bool>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoValueType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoValueType {
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// doubleArray property.
+    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// intArray property.
+    pub int_array: Option<EnterpriseCrmEventbusProtoIntArray>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// protoValue property.
+    pub proto_value: Option<serde_json::Value>,
+    /// stringArray property.
+    pub string_array: Option<EnterpriseCrmEventbusProtoStringArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDeprovisionClientRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDeprovisionClientRequest {}
+
+/// `GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse {}
+
+/// `EnterpriseCrmEventbusProtoConditionalFailurePolicies` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
+    /// defaultFailurePolicy property.
+    pub default_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    /// failurePolicies property.
+    pub failure_policies: Option<Vec<EnterpriseCrmEventbusProtoFailurePolicy>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListConnectionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<GoogleCloudConnectorsV1Connection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaTestIntegrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsResponse {
+    /// eventParameters property.
+    pub event_parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// executionFailed property.
+    pub execution_failed: Option<bool>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// parameterEntries property.
+    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSfdcChannel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSfdcChannel {
+    /// channelTopic property.
+    pub channel_topic: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// isActive property.
+    pub is_active: Option<bool>,
+    /// lastReplayId property.
+    pub last_replay_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoParameterEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// value property.
+    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskUiModuleConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
+    /// moduleId property.
+    pub module_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaAccessToken` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAccessToken {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaResolveSuspensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
+    /// suspension property.
+    pub suspension: Option<GoogleCloudIntegrationsV1AlphaSuspension>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplateBundle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplateBundle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusStats {
+    /// dimensions property.
+    pub dimensions: Option<EnterpriseCrmEventbusStatsDimensions>,
+    /// durationInSeconds property.
+    pub duration_in_seconds: Option<f64>,
+    /// errorRate property.
+    pub error_rate: Option<f64>,
+    /// qps property.
+    pub qps: Option<f64>,
+    /// warningRate property.
+    pub warning_rate: Option<f64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaDoubleParameterArray` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaDoubleParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoCustomSuspensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCustomSuspensionRequest {
+    /// postToQueueWithTriggerIdRequest property.
+    pub post_to_queue_with_trigger_id_request:
+        Option<GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest>,
+    /// suspensionInfoEventParameterKey property.
+    pub suspension_info_event_parameter_key: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1LockConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1LockConfig {
+    /// locked property.
+    pub locked: Option<bool>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// runtimeActionSchemas property.
+    pub runtime_action_schemas: Option<Vec<GoogleCloudIntegrationsV1AlphaRuntimeActionSchema>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
+    /// intValues property.
+    pub int_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest {}
+
+/// `EnterpriseCrmEventbusProtoEventBusProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventBusProperties {
+    /// properties property.
+    pub properties: Option<Vec<EnterpriseCrmEventbusProtoPropertyEntry>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaExecution` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaExecution {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoDoubleParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse {
+    /// integrations property.
+    pub integrations: Option<
+        Vec<GoogleCloudIntegrationsV1AlphaSearchIntegrationsResponseIntegrationSearchResult>,
+    >,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest {
+    /// cloudKmsConfig property.
+    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1AlphaCloudKmsConfig>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoRollbackStrategy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// rollbackTaskImplementationClassName property.
+    pub rollback_task_implementation_class_name: Option<String>,
+    /// taskNumbersToRollback property.
+    pub task_numbers_to_rollback: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+}
+
+/// `GoogleCloudConnectorsV1Connection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1Connection {
+    /// asyncOperationsEnabled property.
+    pub async_operations_enabled: Option<bool>,
+    /// authConfig property.
+    pub auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    /// authOverrideEnabled property.
+    pub auth_override_enabled: Option<bool>,
+    /// billingConfig property.
+    pub billing_config: Option<GoogleCloudConnectorsV1BillingConfig>,
+    /// configVariables property.
+    pub config_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// connectionRevision property.
+    pub connection_revision: Option<String>,
+    /// connectorVersion property.
+    pub connector_version: Option<String>,
+    /// connectorVersionInfraConfig property.
+    pub connector_version_infra_config: Option<GoogleCloudConnectorsV1ConnectorVersionInfraConfig>,
+    /// connectorVersionLaunchStage property.
+    pub connector_version_launch_stage: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// destinationConfigs property.
+    pub destination_configs: Option<Vec<GoogleCloudConnectorsV1DestinationConfig>>,
+    /// envoyImageLocation property.
+    pub envoy_image_location: Option<String>,
+    /// euaOauthAuthConfig property.
+    pub eua_oauth_auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    /// eventingConfig property.
+    pub eventing_config: Option<GoogleCloudConnectorsV1EventingConfig>,
+    /// eventingEnablementType property.
+    pub eventing_enablement_type: Option<String>,
+    /// eventingRuntimeData property.
+    pub eventing_runtime_data: Option<GoogleCloudConnectorsV1EventingRuntimeData>,
+    /// fallbackOnAdminCredentials property.
+    pub fallback_on_admin_credentials: Option<bool>,
+    /// host property.
+    pub host: Option<String>,
+    /// imageLocation property.
+    pub image_location: Option<String>,
+    /// isTrustedTester property.
+    pub is_trusted_tester: Option<bool>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// lockConfig property.
+    pub lock_config: Option<GoogleCloudConnectorsV1LockConfig>,
+    /// logConfig property.
+    pub log_config: Option<GoogleCloudConnectorsV1LogConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeConfig property.
+    pub node_config: Option<GoogleCloudConnectorsV1NodeConfig>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// serviceDirectory property.
+    pub service_directory: Option<String>,
+    /// sslConfig property.
+    pub ssl_config: Option<GoogleCloudConnectorsV1SslConfig>,
+    /// status property.
+    pub status: Option<GoogleCloudConnectorsV1ConnectionStatus>,
+    /// subscriptionType property.
+    pub subscription_type: Option<String>,
+    /// suspended property.
+    pub suspended: Option<bool>,
+    /// tlsServiceDirectory property.
+    pub tls_service_directory: Option<String>,
+    /// trafficShapingConfigs property.
+    pub traffic_shaping_configs: Option<Vec<GoogleCloudConnectorsV1TrafficShapingConfig>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaRuntimeEntitySchema` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaRuntimeEntitySchema {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListExecutionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
+    /// executionInfos property.
+    pub execution_infos: Option<Vec<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo>>,
+    /// executions property.
+    pub executions: Option<Vec<Box<GoogleCloudIntegrationsV1AlphaExecution>>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaTestIntegrationsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsRequest {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// configParameters property.
+    pub config_parameters: Option<serde_json::Value>,
+    /// deadlineSecondsTime property.
+    pub deadline_seconds_time: Option<String>,
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+    /// integrationVersion property.
+    pub integration_version: Option<GoogleCloudIntegrationsV1AlphaIntegrationVersion>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// testMode property.
+    pub test_mode: Option<bool>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sfdcInstances property.
+    pub sfdc_instances: Option<Vec<GoogleCloudIntegrationsV1AlphaSfdcInstance>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest {
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+    /// parameterEntries property.
+    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// scheduleTime property.
+    pub schedule_time: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// userGeneratedExecutionId property.
+    pub user_generated_execution_id: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// cloudLoggingDetails property.
+    pub cloud_logging_details: Option<EnterpriseCrmEventbusProtoCloudLoggingDetails>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// errorCode property.
+    pub error_code: Option<CrmlogErrorCode>,
+    /// errors property.
+    pub errors: Option<Vec<EnterpriseCrmEventbusProtoErrorDetail>>,
+    /// eventExecutionDetails property.
+    pub event_execution_details: Option<EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails>,
+    /// eventExecutionInfoId property.
+    pub event_execution_info_id: Option<String>,
+    /// executionTraceInfo property.
+    pub execution_trace_info: Option<EnterpriseCrmEventbusProtoExecutionTraceInfo>,
+    /// integrationVersionUserLabel property.
+    pub integration_version_user_label: Option<String>,
+    /// lastModifiedTime property.
+    pub last_modified_time: Option<String>,
+    /// postMethod property.
+    pub post_method: Option<String>,
+    /// product property.
+    pub product: Option<String>,
+    /// replayInfo property.
+    pub replay_info: Option<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo>,
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// requestParams property.
+    pub request_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// responseParams property.
+    pub response_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// snapshotNumber property.
+    pub snapshot_number: Option<String>,
+    /// tenant property.
+    pub tenant: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// workflowId property.
+    pub workflow_id: Option<String>,
+    /// workflowName property.
+    pub workflow_name: Option<String>,
+    /// workflowRetryBackoffIntervalSeconds property.
+    pub workflow_retry_backoff_interval_seconds: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1TrafficShapingConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
+    /// duration property.
+    pub duration: Option<String>,
+    /// quotaLimit property.
+    pub quota_limit: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot {
+    /// checkpointTaskNumber property.
+    pub checkpoint_task_number: Option<String>,
+    /// conditionResults property.
+    pub condition_results: Option<Vec<EnterpriseCrmEventbusProtoConditionResult>>,
+    /// diffParams property.
+    pub diff_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// eventExecutionInfoId property.
+    pub event_execution_info_id: Option<String>,
+    /// eventExecutionSnapshotId property.
+    pub event_execution_snapshot_id: Option<String>,
+    /// eventExecutionSnapshotMetadata property.
+    pub event_execution_snapshot_metadata:
+        Option<EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata>,
+    /// eventParams property.
+    pub event_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// snapshotTime property.
+    pub snapshot_time: Option<String>,
+    /// taskExecutionDetails property.
+    pub task_execution_details: Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    /// taskName property.
+    pub task_name: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1ConfigVariable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ConfigVariable {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// encryptionKeyValue property.
+    pub encryption_key_value: Option<GoogleCloudConnectorsV1EncryptionKey>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// secretValue property.
+    pub secret_value: Option<GoogleCloudConnectorsV1Secret>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoErrorDetail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoErrorDetail {
+    /// errorCode property.
+    pub error_code: Option<CrmlogErrorCode>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCustomerConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCustomerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuccessPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
+    /// finalState property.
+    pub final_state: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse {
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaAssertion` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAssertion {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSearchIntegrationsResponseIntegrationSearchResult` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSearchIntegrationsResponseIntegrationSearchResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
+    /// audience property.
+    pub audience: Option<String>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse {
+    /// openApiSpec property.
+    pub open_api_spec: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaApiTriggerResource` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaApiTriggerResource {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// runtimeEntitySchemas property.
+    pub runtime_entity_schemas: Option<Vec<GoogleCloudIntegrationsV1AlphaRuntimeEntitySchema>>,
+}
+
+/// `GoogleCloudConnectorsV1ResourceLimits` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ResourceLimits {
+    /// cpu property.
+    pub cpu: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse {
+    /// content property.
+    pub content: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoCloudSchedulerConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
+    /// cronTab property.
+    pub cron_tab: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaUseTemplateRequestIntegrationDetails` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaUseTemplateRequestIntegrationDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest {
+    /// scriptId property.
+    pub script_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaLiftSuspensionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
+    /// eventExecutionInfoId property.
+    pub event_execution_info_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteEventResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
+    /// executionId property.
+    pub execution_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCloudLoggingDetails` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCloudLoggingDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
+    /// clientKey property.
+    pub client_key: Option<GoogleCloudConnectorsV1Secret>,
+    /// jwtClaims property.
+    pub jwt_claims: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaJwt` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaJwt {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaParameterMap` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaParameterMap {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoNextTask` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNextTask {
+    /// combinedConditions property.
+    pub combined_conditions: Option<Vec<EnterpriseCrmEventbusProtoCombinedCondition>>,
+    /// condition property.
+    pub condition: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// taskConfigId property.
+    pub task_config_id: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParameterEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParameterEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaAttemptStats` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAttemptStats {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaLiftSuspensionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionRequest {
+    /// suspensionResult property.
+    pub suspension_result: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTaskExecutionDetails` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTaskExecutionDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaCertificate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCertificate {
+    /// certificateStatus property.
+    pub certificate_status: Option<String>,
+    /// credentialId property.
+    pub credential_id: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rawCertificate property.
+    pub raw_certificate: Option<GoogleCloudIntegrationsV1AlphaClientCertificate>,
+    /// requestorId property.
+    pub requestor_id: Option<String>,
+    /// validEndTime property.
+    pub valid_end_time: Option<String>,
+    /// validStartTime property.
+    pub valid_start_time: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaAuthToken` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAuthToken {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTestCase` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTestCase {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOidcToken` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOidcToken {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoCloudLoggingDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCloudLoggingDetails {
+    /// cloudLoggingSeverity property.
+    pub cloud_logging_severity: Option<String>,
+    /// enableCloudLogging property.
+    pub enable_cloud_logging: Option<bool>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTestTaskConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTestTaskConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoAddress {
+    /// email property.
+    pub email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// tokens property.
+    pub tokens: Option<Vec<EnterpriseCrmEventbusProtoToken>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     /// eventParameters property.
     pub event_parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
@@ -105,90 +2979,684 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     pub parameters: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaExecuteEventResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
-    /// executionId property.
-    pub execution_id: Option<String>,
+/// `EnterpriseCrmEventbusProtoIntArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoIntArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaIntegration` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegration {
+/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
+    /// authCode property.
+    pub auth_code: Option<String>,
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest {
+    /// runAsServiceAccount property.
+    pub run_as_service_account: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoBuganizerNotification` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
+    /// assigneeEmailAddress property.
+    pub assignee_email_address: Option<String>,
+    /// componentId property.
+    pub component_id: Option<String>,
+    /// templateId property.
+    pub template_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse {}
+
+/// `GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse {
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaStringParameterArray` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaStringParameterArray {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+/// `GoogleCloudIntegrationsV1alphaImportTemplateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaImportTemplateRequest {
+    /// integration property.
+    pub integration: Option<String>,
+    /// subIntegrations property.
+    pub sub_integrations: Option<serde_json::Value>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
+/// `GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest {}
+
+/// `EnterpriseCrmEventbusProtoCondition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCondition {
+    /// eventPropertyKey property.
+    pub event_property_key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+}
+
+/// `EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
+    /// absolute property.
+    pub absolute: Option<String>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaClientConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaClientConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest {}
+
+/// `GoogleCloudIntegrationsV1alphaTestCase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaTestCase {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorEmail property.
+    pub creator_email: Option<String>,
+    /// databasePersistencePolicy property.
+    pub database_persistence_policy: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// lastModifierEmail property.
+    pub last_modifier_email: Option<String>,
+    /// lockHolderEmail property.
+    pub lock_holder_email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// testInputParameters property.
+    pub test_input_parameters: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegrationParameter>>,
+    /// testTaskConfigs property.
+    pub test_task_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaTestTaskConfig>>,
+    /// triggerConfig property.
+    pub trigger_config: Option<GoogleCloudIntegrationsV1AlphaTriggerConfig>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaBooleanParameterArray` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaBooleanParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSfdcInstance` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSfdcInstance {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaServiceAccountCredentials` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaServiceAccountCredentials {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1ConnectorVersionInfraConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
+    /// connectionRatelimitWindowSeconds property.
+    pub connection_ratelimit_window_seconds: Option<String>,
+    /// deploymentModel property.
+    pub deployment_model: Option<String>,
+    /// deploymentModelMigrationState property.
+    pub deployment_model_migration_state: Option<String>,
+    /// hpaConfig property.
+    pub hpa_config: Option<GoogleCloudConnectorsV1HPAConfig>,
+    /// internalclientRatelimitThreshold property.
+    pub internalclient_ratelimit_threshold: Option<String>,
+    /// maxInstanceRequestConcurrency property.
+    pub max_instance_request_concurrency: Option<i64>,
+    /// ratelimitThreshold property.
+    pub ratelimit_threshold: Option<String>,
+    /// resourceLimits property.
+    pub resource_limits: Option<GoogleCloudConnectorsV1ResourceLimits>,
+    /// resourceRequests property.
+    pub resource_requests: Option<GoogleCloudConnectorsV1ResourceRequests>,
+    /// sharedDeployment property.
+    pub shared_deployment: Option<String>,
+    /// tlsMigrationState property.
+    pub tls_migration_state: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaValueType` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaValueType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaMockConfig` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaMockConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1EventingStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingStatus {
+    /// description property.
+    pub description: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaParameterMapEntry` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaParameterMapEntry {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudConnectorsV1ResourceRequests` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ResourceRequests {
+    /// cpu property.
+    pub cpu: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskUiConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
+    /// taskUiModuleConfigs property.
+    pub task_ui_module_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskUiModuleConfig>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTeardownTaskConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
+    /// creatorEmail property.
+    pub creator_email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nextTeardownTask property.
+    pub next_teardown_task: Option<EnterpriseCrmEventbusProtoNextTeardownTask>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// properties property.
+    pub properties: Option<EnterpriseCrmEventbusProtoEventBusProperties>,
+    /// teardownTaskImplementationClassName property.
+    pub teardown_task_implementation_class_name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
+    /// customMessage property.
+    pub custom_message: Option<String>,
+    /// notifications property.
+    pub notifications: Option<Vec<EnterpriseCrmEventbusProtoNotification>>,
+    /// suspensionExpiration property.
+    pub suspension_expiration: Option<EnterpriseCrmEventbusProtoSuspensionExpiration>,
+    /// whoMayResolve property.
+    pub who_may_resolve: Option<Vec<EnterpriseCrmEventbusProtoSuspensionAuthPermissions>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTeardown` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTeardown {
+    /// teardownTaskConfigs property.
+    pub teardown_task_configs: Option<Vec<EnterpriseCrmEventbusProtoTeardownTaskConfig>>,
+}
+
+/// `EnterpriseCrmEventbusProtoParameterValueType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParameterValueType {
+    /// booleanArray property.
+    pub boolean_array: Option<EnterpriseCrmEventbusProtoBooleanParameterArray>,
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// doubleArray property.
+    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleParameterArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// intArray property.
+    pub int_array: Option<EnterpriseCrmEventbusProtoIntParameterArray>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// protoArray property.
+    pub proto_array: Option<EnterpriseCrmEventbusProtoProtoParameterArray>,
+    /// protoValue property.
+    pub proto_value: Option<serde_json::Value>,
+    /// serializedObjectValue property.
+    pub serialized_object_value: Option<EnterpriseCrmEventbusProtoSerializedObjectParameter>,
+    /// stringArray property.
+    pub string_array: Option<EnterpriseCrmEventbusProtoStringParameterArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventExecutionDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventExecutionDetails {
+    /// cancelReason property.
+    pub cancel_reason: Option<String>,
+    /// eventAttemptStats property.
+    pub event_attempt_stats:
+        Option<Vec<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>>,
+    /// eventExecutionSnapshot property.
+    pub event_execution_snapshot: Option<Vec<EnterpriseCrmEventbusProtoEventExecutionSnapshot>>,
+    /// eventExecutionSnapshotsSize property.
+    pub event_execution_snapshots_size: Option<String>,
+    /// eventExecutionState property.
+    pub event_execution_state: Option<String>,
+    /// eventRetriesFromBeginningCount property.
+    pub event_retries_from_beginning_count: Option<i64>,
+    /// logFilePath property.
+    pub log_file_path: Option<String>,
+    /// networkAddress property.
+    pub network_address: Option<String>,
+    /// nextExecutionTime property.
+    pub next_execution_time: Option<String>,
+    /// ryeLockUnheldCount property.
+    pub rye_lock_unheld_count: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaFailurePolicy` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaFailurePolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoIntParameterArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoIntParameterArray {
     /// intValues property.
     pub int_values: Option<Vec<String>>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
-    /// executionInfoIds property.
-    pub execution_info_ids: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
-    /// doubleValues property.
-    pub double_values: Option<Vec<f64>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
-    /// booleanValues property.
-    pub boolean_values: Option<Vec<bool>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
-    /// protoValues property.
-    pub proto_values: Option<Vec<serde_json::Value>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
-    /// stringValues property.
-    pub string_values: Option<Vec<String>>,
+/// `GoogleCloudIntegrationsV1AlphaAssertionResult` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaAssertionResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`integrations.callback.generateToken_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsCallbackGenerateTokenArgs {
+    /// Query parameter: `code`.
+    pub code: Option<String>,
+    /// Query parameter: `gcpProjectId`.
+    pub gcp_project_id: Option<String>,
+    /// Query parameter: `product`.
+    pub product: Option<String>,
+    /// Query parameter: `redirectUri`.
+    pub redirect_uri: Option<String>,
+    /// Query parameter: `state`.
+    pub state: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.getClientmetadata_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsGetClientmetadataArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+}
+
+/// Arguments for [`integrations.projects.locations.generateOpenApiSpec_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsGenerateOpenApiSpecArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.getClients_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsGetClientsArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+}
+
+/// Arguments for [`integrations.projects.locations.appsScriptProjects.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.appsScriptProjects.link_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.authConfigs.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `clientCertificate.encryptedPrivateKey`.
+    pub client_certificate_encrypted_private_key: Option<String>,
+    /// Query parameter: `clientCertificate.passphrase`.
+    pub client_certificate_passphrase: Option<String>,
+    /// Query parameter: `clientCertificate.sslCertificate`.
+    pub client_certificate_ssl_certificate: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
+/// Arguments for [`integrations.projects.locations.authConfigs.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.authConfigs.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.authConfigs.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.authConfigs.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `clientCertificate.encryptedPrivateKey`.
+    pub client_certificate_encrypted_private_key: Option<String>,
+    /// Query parameter: `clientCertificate.passphrase`.
+    pub client_certificate_passphrase: Option<String>,
+    /// Query parameter: `clientCertificate.sslCertificate`.
+    pub client_certificate_ssl_certificate: Option<String>,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
+/// Arguments for [`integrations.projects.locations.certificates.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
+/// Arguments for [`integrations.projects.locations.certificates.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.certificates.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.certificates.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.certificates.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.changeConfig_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsChangeConfigArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.deprovision_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsDeprovisionArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaDeprovisionClientRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.provision_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsProvisionArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaProvisionClientRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.provisionClientPostProcessor_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.replace_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsReplaceArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.switch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsSwitchArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.switchVariableMasking_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsSwitchVariableMaskingArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.clients.toggleHttp_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsToggleHttpArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaToggleHttpRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.cloudFunctions.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCloudFunctionsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.connections.getConnectionSchemaMetadata_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.connections.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.connections.runtimeActionSchemas.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.connections.runtimeEntitySchemas.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
 /// Arguments for [`integrations.projects.locations.integrations.delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsDeleteArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`integrations.projects.locations.integrations.execute_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsExecuteArgs {
     /// Path parameter: `name`.
     pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
 }
 
 /// Arguments for [`integrations.projects.locations.integrations.executeEvent_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsExecuteEventArgs {
     /// Path parameter: `name`.
     pub name: String,
@@ -197,7 +3665,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsExecuteEventArgs {
 }
 
 /// Arguments for [`integrations.projects.locations.integrations.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsListArgs {
     /// Path parameter: `parent`.
     pub parent: String,
@@ -212,28 +3680,491 @@ pub struct IntegrationsProjectsLocationsIntegrationsListArgs {
 }
 
 /// Arguments for [`integrations.projects.locations.integrations.schedule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsScheduleArgs {
     /// Path parameter: `name`.
     pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.search_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsSearchArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `enableNaturalLanguageQueryUnderstanding`.
+    pub enable_natural_language_query_understanding: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
 }
 
 /// Arguments for [`integrations.projects.locations.integrations.test_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsIntegrationsTestArgs {
     /// Path parameter: `name`.
     pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
 }
 
-/// Arguments for [`integrations.projects.locations.products.integrations.execute_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs {
+/// Arguments for [`integrations.projects.locations.integrations.executions.cancel_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCancelExecutionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
+/// Arguments for [`integrations.projects.locations.integrations.executions.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `filterParams.customFilter`.
+    pub filter_params_custom_filter: Option<String>,
+    /// Query parameter: `filterParams.endTime`.
+    pub filter_params_end_time: Option<String>,
+    /// Query parameter: `filterParams.eventStatuses`.
+    pub filter_params_event_statuses: Option<String>,
+    /// Query parameter: `filterParams.executionId`.
+    pub filter_params_execution_id: Option<String>,
+    /// Query parameter: `filterParams.parameterKey`.
+    pub filter_params_parameter_key: Option<String>,
+    /// Query parameter: `filterParams.parameterPairKey`.
+    pub filter_params_parameter_pair_key: Option<String>,
+    /// Query parameter: `filterParams.parameterPairValue`.
+    pub filter_params_parameter_pair_value: Option<String>,
+    /// Query parameter: `filterParams.parameterType`.
+    pub filter_params_parameter_type: Option<String>,
+    /// Query parameter: `filterParams.parameterValue`.
+    pub filter_params_parameter_value: Option<String>,
+    /// Query parameter: `filterParams.startTime`.
+    pub filter_params_start_time: Option<String>,
+    /// Query parameter: `filterParams.taskStatuses`.
+    pub filter_params_task_statuses: Option<String>,
+    /// Query parameter: `filterParams.workflowName`.
+    pub filter_params_workflow_name: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `refreshAcl`.
+    pub refresh_acl: Option<String>,
+    /// Query parameter: `snapshotMetadataWithoutParams`.
+    pub snapshot_metadata_without_params: Option<String>,
+    /// Query parameter: `truncateParams`.
+    pub truncate_params: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.replay_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaReplayExecutionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.suspensions.lift_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.suspensions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.executions.suspensions.resolve_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `createSampleIntegrations`.
+    pub create_sample_integrations: Option<String>,
+    /// Query parameter: `newIntegration`.
+    pub new_integration: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `fileFormat`.
+    pub file_format: Option<String>,
+    /// Query parameter: `files`.
+    pub files: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.downloadJsonPackage_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `files`.
+    pub files: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `fieldMask`.
+    pub field_mask: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.publish_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.test_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.unpublish_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsUnpublishArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.upload_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `testCaseId`.
+    pub test_case_id: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestCase,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `fileFormat`.
+    pub file_format: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.execute_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.executeTest_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs {
+    /// Path parameter: `testCaseName`.
+    pub test_case_name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestCase,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.takeoverEditLock_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.integrations.versions.testCases.upload_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadTestCaseRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.authConfigs.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `clientCertificate.encryptedPrivateKey`.
+    pub client_certificate_encrypted_private_key: Option<String>,
+    /// Query parameter: `clientCertificate.passphrase`.
+    pub client_certificate_passphrase: Option<String>,
+    /// Query parameter: `clientCertificate.sslCertificate`.
+    pub client_certificate_ssl_certificate: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
+/// Arguments for [`integrations.projects.locations.products.authConfigs.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.authConfigs.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.authConfigs.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.authConfigs.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `clientCertificate.encryptedPrivateKey`.
+    pub client_certificate_encrypted_private_key: Option<String>,
+    /// Query parameter: `clientCertificate.passphrase`.
+    pub client_certificate_passphrase: Option<String>,
+    /// Query parameter: `clientCertificate.sslCertificate`.
+    pub client_certificate_ssl_certificate: Option<String>,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
+/// Arguments for [`integrations.projects.locations.products.certificates.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
+/// Arguments for [`integrations.projects.locations.products.certificates.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.certificates.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.certificates.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.certificates.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
+/// Arguments for [`integrations.projects.locations.products.cloudFunctions.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCloudFunctionsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.execute_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
+}
+
 /// Arguments for [`integrations.projects.locations.products.integrations.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsProductsIntegrationsListArgs {
     /// Path parameter: `parent`.
     pub parent: String,
@@ -248,17 +4179,539 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsListArgs {
 }
 
 /// Arguments for [`integrations.projects.locations.products.integrations.schedule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IntegrationsProjectsLocationsProductsIntegrationsScheduleArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.test_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsTestArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
-/// Arguments for [`integrations.projects.locations.products.integrations.test_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IntegrationsProjectsLocationsProductsIntegrationsTestArgs {
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs {
     /// Path parameter: `name`.
     pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `filterParams.customFilter`.
+    pub filter_params_custom_filter: Option<String>,
+    /// Query parameter: `filterParams.endTime`.
+    pub filter_params_end_time: Option<String>,
+    /// Query parameter: `filterParams.eventStatuses`.
+    pub filter_params_event_statuses: Option<String>,
+    /// Query parameter: `filterParams.executionId`.
+    pub filter_params_execution_id: Option<String>,
+    /// Query parameter: `filterParams.parameterKey`.
+    pub filter_params_parameter_key: Option<String>,
+    /// Query parameter: `filterParams.parameterPairKey`.
+    pub filter_params_parameter_pair_key: Option<String>,
+    /// Query parameter: `filterParams.parameterPairValue`.
+    pub filter_params_parameter_pair_value: Option<String>,
+    /// Query parameter: `filterParams.parameterType`.
+    pub filter_params_parameter_type: Option<String>,
+    /// Query parameter: `filterParams.parameterValue`.
+    pub filter_params_parameter_value: Option<String>,
+    /// Query parameter: `filterParams.startTime`.
+    pub filter_params_start_time: Option<String>,
+    /// Query parameter: `filterParams.taskStatuses`.
+    pub filter_params_task_statuses: Option<String>,
+    /// Query parameter: `filterParams.workflowName`.
+    pub filter_params_workflow_name: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `refreshAcl`.
+    pub refresh_acl: Option<String>,
+    /// Query parameter: `snapshotMetadataWithoutParams`.
+    pub snapshot_metadata_without_params: Option<String>,
+    /// Query parameter: `truncateParams`.
+    pub truncate_params: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.suspensions.lift_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsLiftArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.suspensions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.executions.suspensions.resolve_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsResolveArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `createSampleIntegrations`.
+    pub create_sample_integrations: Option<String>,
+    /// Query parameter: `newIntegration`.
+    pub new_integration: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `fileFormat`.
+    pub file_format: Option<String>,
+    /// Query parameter: `files`.
+    pub files: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `fieldMask`.
+    pub field_mask: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.publish_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsPublishArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.takeoverEditLock_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs {
+    /// Path parameter: `integrationVersion`.
+    pub integration_version: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.unpublish_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsUnpublishArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.integrations.versions.upload_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsUploadArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.sfdcChannels.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.sfdcChannels.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.sfdcChannels.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.sfdcChannels.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.products.sfdcInstances.sfdcChannels.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.sfdcChannels.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.sfdcChannels.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.sfdcChannels.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.sfdcChannels.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.sfdcInstances.sfdcChannels.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTemplate,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.download_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesDownloadArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `fileFormat`.
+    pub file_format: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.import_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesImportArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaImportTemplateRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTemplate,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.search_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesSearchArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `enableNaturalLanguageQueryUnderstanding`.
+    pub enable_natural_language_query_understanding: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.share_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesShareArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaShareTemplateRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.unshare_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUnshareArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnshareTemplateRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.upload_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUploadArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadTemplateRequest,
+}
+
+/// Arguments for [`integrations.projects.locations.templates.use_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUseArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUseTemplateRequest,
 }
 
 // =============================================================================
@@ -266,10 +4719,10 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsTestArgs {
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// DELETE v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}
+// GET v1/callback:generateToken
 // -----------------------------------------------------------------------------
 
-/// DELETE v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}.
+/// GET v1/callback:generateToken.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -277,18 +4730,866 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsTestArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = integrations_projects_locations_integrations_delete_request(&client, &args, Some(|b| {
+/// let task = integrations_callback_generate_token_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn integrations_projects_locations_integrations_delete_request<R, F>(
+pub fn integrations_callback_generate_token_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsCallbackGenerateTokenArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaGenerateTokenResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/callback:generateToken",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("code=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.gcp_project_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("gcpProjectId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.redirect_uri {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("redirectUri=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.state {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("state=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaGenerateTokenResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/connectorPlatformRegions:enumerate
+// -----------------------------------------------------------------------------
+
+/// GET v1/connectorPlatformRegions:enumerate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_connector_platform_regions_enumerate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_connector_platform_regions_enumerate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsConnectorPlatformRegionsEnumerateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<
+                    GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse,
+                >,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url =
+        format!("https://integrations.googleapis.com/v1/connectorPlatformRegions:enumerate",);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(
+        builder
+            .build_send_request()
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+            .map_ready(|intro| match intro {
+                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
+                    let status: usize = intro.0.into();
+                    if status < 200 || status >= 300 {
+                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
+                    }
+                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    let parsed: GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+                }
+                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
+            })
+            .map_pending(|_| super::shared::ApiPending::Sending)
+    )
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/clientmetadata
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/clientmetadata.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_get_clientmetadata_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_get_clientmetadata_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsGetClientmetadataArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaGetClientMetadataResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clientmetadata",
+        args.parent,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaGetClientMetadataResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:generateOpenApiSpec
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:generateOpenApiSpec.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_generate_open_api_spec_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_generate_open_api_spec_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsGenerateOpenApiSpecArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:generateOpenApiSpec",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/clients
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/clients.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_get_clients_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_get_clients_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsGetClientsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaGetClientResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients",
+        args.parent,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaGetClientResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/appsScriptProjects
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/appsScriptProjects.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_apps_script_projects_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_apps_script_projects_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/appsScriptProjects",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/appsScriptProjects:link
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/appsScriptProjects:link.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_apps_script_projects_link_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_apps_script_projects_link_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/appsScriptProjects:link",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/authConfigs
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/authConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_auth_configs_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_auth_configs_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAuthConfigsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/authConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.client_certificate_encrypted_private_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_encryptedPrivateKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_passphrase {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_passphrase=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_ssl_certificate {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_sslCertificate=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_auth_configs_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_auth_configs_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAuthConfigsDeleteArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -303,9 +5604,7 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations/{{integrationsId}}",
-    );
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -355,10 +5654,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:execute
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:execute.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -366,6 +5665,2372 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_auth_configs_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_auth_configs_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAuthConfigsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/authConfigs
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/authConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_auth_configs_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_auth_configs_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAuthConfigsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListAuthConfigsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/authConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListAuthConfigsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_auth_configs_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_auth_configs_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsAuthConfigsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.client_certificate_encrypted_private_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_encryptedPrivateKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_passphrase {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_passphrase=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_ssl_certificate {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_sslCertificate=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/certificates
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/certificates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_certificates_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_certificates_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCertificatesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/certificates",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_certificates_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_certificates_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCertificatesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_certificates_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_certificates_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCertificatesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/certificates
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/certificates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_certificates_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_certificates_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCertificatesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListCertificatesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/certificates",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListCertificatesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_certificates_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_certificates_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCertificatesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:changeConfig
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:changeConfig.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_change_config_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_change_config_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsChangeConfigArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:changeConfig",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:deprovision
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:deprovision.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_deprovision_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_deprovision_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsDeprovisionArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:deprovision",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:provision
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:provision.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_provision_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_provision_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsProvisionArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:provision",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:provisionClientPostProcessor
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:provisionClientPostProcessor.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_provision_client_post_processor_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_provision_client_post_processor_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:provisionClientPostProcessor",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:replace
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:replace.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_replace_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_replace_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsReplaceArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:replace",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:switch
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:switch.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_switch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_switch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsSwitchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:switch",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:switchVariableMasking
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:switchVariableMasking.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_switch_variable_masking_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_switch_variable_masking_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsSwitchVariableMaskingArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:switchVariableMasking",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/clients:toggleHttp
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/clients:toggleHttp.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_clients_toggle_http_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_clients_toggle_http_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsClientsToggleHttpArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/clients:toggleHttp",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/cloudFunctions
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/cloudFunctions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_cloud_functions_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_cloud_functions_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsCloudFunctionsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/cloudFunctions",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_connections_get_connection_schema_metadata_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_connections_get_connection_schema_metadata_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/connections
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/connections.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_connections_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_connections_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsConnectionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListConnectionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/connections",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListConnectionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/runtimeActionSchemas
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/runtimeActionSchemas.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_connections_runtime_action_schemas_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_connections_runtime_action_schemas_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/runtimeActionSchemas",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/runtimeEntitySchemas
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/runtimeEntitySchemas.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_connections_runtime_entity_schemas_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/runtimeEntitySchemas",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:execute
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:execute.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -378,6 +8043,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_integrations_execute_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecuteArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -396,11 +8062,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations/{{integrationsId}}:execute",
+        "https://integrations.googleapis.com/v1/{}:execute",
+        args.name,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -447,10 +8118,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:executeEvent
+// POST v1/{+name}:executeEvent
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:executeEvent.
+/// POST v1/{+name}:executeEvent.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -458,6 +8129,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -470,6 +8142,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_integrations_execute_event_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecuteEventArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -488,8 +8161,25 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations/{{integrationsId}}:executeEvent",
+        "https://integrations.googleapis.com/v1/{}:executeEvent",
+        args.name,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.trigger_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("triggerId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .post(&endpoint_url)
@@ -539,10 +8229,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/integrations
+// GET v1/{+parent}/integrations
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/integrations.
+/// GET v1/{+parent}/integrations.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -550,6 +8240,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -562,6 +8253,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_integrations_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -580,8 +8272,55 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations",
+        "https://integrations.googleapis.com/v1/{}/integrations",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -631,10 +8370,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:schedule
+// POST v1/{+name}:schedule
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:schedule.
+/// POST v1/{+name}:schedule.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -642,6 +8381,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -654,6 +8394,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_integrations_schedule_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsScheduleArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -672,11 +8413,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations/{{integrationsId}}:schedule",
+        "https://integrations.googleapis.com/v1/{}:schedule",
+        args.name,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -723,10 +8469,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:test
+// GET v1/{+parent}/integrations:search
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:test.
+/// GET v1/{+parent}/integrations:search.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -734,6 +8480,158 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsSearchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/integrations:search",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.enable_natural_language_query_understanding {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("enableNaturalLanguageQueryUnderstanding=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:test
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:test.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -746,6 +8644,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_integrations_test_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsTestArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -763,12 +8662,14 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/integrations/{{integrationsId}}:test",
-    );
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:test", args.name,);
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -815,10 +8716,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:execute
+// POST v1/{+name}:cancel
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:execute.
+/// POST v1/{+name}:cancel.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -826,6 +8727,4520 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_cancel_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_cancel_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCancelExecutionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:cancel",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCancelExecutionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadExecutionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadExecutionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaExecution>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaExecution = serde_json::from_str(&body)
+                    .map_err(
+                    |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),
+                )?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/executions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/executions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListExecutionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/executions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_custom_filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_customFilter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_end_time {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_endTime=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_event_statuses {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_eventStatuses=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_execution_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_executionId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_pair_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterPairKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_pair_value {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterPairValue=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_value {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterValue=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_start_time {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_startTime=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_task_statuses {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_taskStatuses=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_workflow_name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_workflowName=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.refresh_acl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("refreshAcl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.snapshot_metadata_without_params {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("snapshotMetadataWithoutParams=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.truncate_params {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("truncateParams=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListExecutionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:replay
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:replay.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_replay_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_replay_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaReplayExecutionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:replay",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaReplayExecutionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:lift
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:lift.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_suspensions_lift_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_suspensions_lift_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaLiftSuspensionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:lift", args.name,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaLiftSuspensionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/suspensions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/suspensions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_suspensions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_suspensions_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSuspensionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/suspensions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSuspensionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:resolve
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:resolve.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_executions_suspensions_resolve_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_executions_suspensions_resolve_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaResolveSuspensionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:resolve",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaResolveSuspensionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/versions
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/versions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.create_sample_integrations {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("createSampleIntegrations=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.new_integration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("newIntegration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.file_format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fileFormat=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.files {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("files=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:downloadJsonPackage
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:downloadJsonPackage.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_download_json_package_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_download_json_package_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:downloadJsonPackage",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.files {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("files=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/versions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/versions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.field_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fieldMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:publish
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:publish.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_publish_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_publish_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:publish",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:test
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:test.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTestIntegrationsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:test", args.name,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTestIntegrationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:unpublish
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:unpublish.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_unpublish_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_unpublish_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsUnpublishArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:unpublish",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/versions:upload
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/versions:upload.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_upload_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_upload_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions:upload",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/testCases
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/testCases.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/testCases",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.test_case_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("testCaseId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTestCase = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.file_format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fileFormat=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/testCases:execute
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/testCases:execute.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_execute_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_execute_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/testCases:execute",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+testCaseName}:executeTest
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+testCaseName}:executeTest.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_execute_test_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_execute_test_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:executeTest",
+        args.test_case_name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTestCase = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/testCases
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/testCases.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListTestCasesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/testCases",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListTestCasesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTestCase = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:takeoverEditLock
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:takeoverEditLock.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:takeoverEditLock",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTestCase = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/testCases:upload
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/testCases:upload.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_integrations_versions_test_cases_upload_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_integrations_versions_test_cases_upload_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaUploadTestCaseResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/testCases:upload",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaUploadTestCaseResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/authConfigs
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/authConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_auth_configs_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_auth_configs_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/authConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.client_certificate_encrypted_private_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_encryptedPrivateKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_passphrase {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_passphrase=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_ssl_certificate {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_sslCertificate=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_auth_configs_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_auth_configs_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_auth_configs_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_auth_configs_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/authConfigs
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/authConfigs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_auth_configs_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_auth_configs_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListAuthConfigsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/authConfigs",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListAuthConfigsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_auth_configs_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_auth_configs_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.client_certificate_encrypted_private_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_encryptedPrivateKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_passphrase {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_passphrase=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.client_certificate_ssl_certificate {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("clientCertificate_sslCertificate=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaAuthConfig = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/certificates
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/certificates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_certificates_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_certificates_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/certificates",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_certificates_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_certificates_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_certificates_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_certificates_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/certificates
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/certificates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_certificates_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_certificates_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListCertificatesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/certificates",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListCertificatesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_certificates_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_certificates_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCertificate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/cloudFunctions
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/cloudFunctions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_cloud_functions_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_cloud_functions_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsCloudFunctionsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/cloudFunctions",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:execute
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:execute.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -838,6 +13253,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_products_integrations_execute_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -856,11 +13272,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/products/{{productsId}}/integrations/{{integrationsId}}:execute",
+        "https://integrations.googleapis.com/v1/{}:execute",
+        args.name,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -907,10 +13328,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations
+// GET v1/{+parent}/integrations
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations.
+/// GET v1/{+parent}/integrations.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -918,6 +13339,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -930,6 +13352,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_products_integrations_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -948,8 +13371,55 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/products/{{productsId}}/integrations",
+        "https://integrations.googleapis.com/v1/{}/integrations",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -999,10 +13469,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:schedule
+// POST v1/{+name}:schedule
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:schedule.
+/// POST v1/{+name}:schedule.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1010,6 +13480,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1022,6 +13493,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_products_integrations_schedule_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsScheduleArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1040,11 +13512,16 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/products/{{productsId}}/integrations/{{integrationsId}}:schedule",
+        "https://integrations.googleapis.com/v1/{}:schedule",
+        args.name,
     );
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1091,10 +13568,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:test
+// POST v1/{+name}:test
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:test.
+/// POST v1/{+name}:test.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1102,6 +13579,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1114,6 +13592,7 @@ where
 #[inline]
 pub fn integrations_projects_locations_products_integrations_test_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsTestArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1131,12 +13610,14 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://integrations.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/products/{{productsId}}/integrations/{{integrationsId}}:test",
-    );
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:test", args.name,);
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1166,6 +13647,5365 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: GoogleCloudIntegrationsV1alphaTestIntegrationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadExecutionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadExecutionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaExecution>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaExecution = serde_json::from_str(&body)
+                    .map_err(
+                    |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),
+                )?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/executions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/executions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListExecutionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/executions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_custom_filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_customFilter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_end_time {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_endTime=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_event_statuses {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_eventStatuses=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_execution_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_executionId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_pair_key {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterPairKey=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_pair_value {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterPairValue=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_parameter_value {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_parameterValue=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_start_time {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_startTime=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_task_statuses {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_taskStatuses=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter_params_workflow_name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filterParams_workflowName=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.refresh_acl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("refreshAcl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.snapshot_metadata_without_params {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("snapshotMetadataWithoutParams=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.truncate_params {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("truncateParams=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListExecutionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:lift
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:lift.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_suspensions_lift_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_lift_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsLiftArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaLiftSuspensionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:lift", args.name,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaLiftSuspensionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/suspensions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/suspensions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_suspensions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_list_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSuspensionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/suspensions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSuspensionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:resolve
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:resolve.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_executions_suspensions_resolve_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_resolve_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsResolveArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaResolveSuspensionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:resolve",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaResolveSuspensionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/versions
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/versions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.create_sample_integrations {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("createSampleIntegrations=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.new_integration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("newIntegration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.file_format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fileFormat=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.files {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("files=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/versions
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/versions.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.field_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fieldMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaIntegrationVersion =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:publish
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:publish.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_publish_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_publish_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsPublishArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:publish",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+integrationVersion}:takeoverEditLock
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+integrationVersion}:takeoverEditLock.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_takeover_edit_lock_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_takeover_edit_lock_request<
+    R,
+    F,
+>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:takeoverEditLock",
+        args.integration_version,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:unpublish
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:unpublish.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_unpublish_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_unpublish_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsUnpublishArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:unpublish",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/versions:upload
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/versions:upload.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_integrations_versions_upload_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_integrations_versions_upload_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsUploadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/versions:upload",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/sfdcInstances
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/sfdcInstances.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcInstances",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/sfdcInstances
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/sfdcInstances.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcInstances",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/sfdcChannels
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/sfdcChannels.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcChannels",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/sfdcChannels
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/sfdcChannels.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcChannels",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/sfdcInstances
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/sfdcInstances.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcInstances",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/sfdcInstances
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/sfdcInstances.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcInstances",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcInstance =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/sfdcChannels
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/sfdcChannels.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_sfdc_channels_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcChannels",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_sfdc_channels_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_sfdc_channels_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/sfdcChannels
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/sfdcChannels.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_sfdc_channels_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/sfdcChannels",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_sfdc_instances_sfdc_channels_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSfdcChannel = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/templates
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/templates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/templates",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTemplate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}:download
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}:download.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_download_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_download_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesDownloadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaDownloadTemplateResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:download",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.file_format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("fileFormat=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaDownloadTemplateResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTemplate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:import
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:import.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_import_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_import_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesImportArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaImportTemplateResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:import",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaImportTemplateResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/templates
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/templates.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaListTemplatesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/templates",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaListTemplatesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaTemplate = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+parent}/templates:search
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+parent}/templates:search.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesSearchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaSearchTemplatesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/templates:search",
+        args.parent,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.enable_natural_language_query_understanding {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("enableNaturalLanguageQueryUnderstanding=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaSearchTemplatesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:share
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:share.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_share_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_share_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesShareArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:share", args.name,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:unshare
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:unshare.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_unshare_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_unshare_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesUnshareArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}:unshare",
+        args.name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/templates:upload
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/templates:upload.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_upload_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_upload_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesUploadArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaUploadTemplateResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://integrations.googleapis.com/v1/{}/templates:upload",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaUploadTemplateResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+name}:use
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+name}:use.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = integrations_projects_locations_templates_use_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn integrations_projects_locations_templates_use_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &IntegrationsProjectsLocationsTemplatesUseArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudIntegrationsV1alphaUseTemplateResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://integrations.googleapis.com/v1/{}:use", args.name,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleCloudIntegrationsV1alphaUseTemplateResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;

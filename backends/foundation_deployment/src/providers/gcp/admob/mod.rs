@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_admob_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_admob_ad_units")]
-pub mod ad_units;
-#[cfg(feature = "gcp_admob_apps")]
-pub mod apps;
-#[cfg(feature = "gcp_admob_mediation_report_generate")]
-pub mod mediation_report_generate;
-#[cfg(feature = "gcp_admob_network_report_generate")]
-pub mod network_report_generate;
+#[cfg(feature = "gcp_admob_admob")]
+pub mod admob;

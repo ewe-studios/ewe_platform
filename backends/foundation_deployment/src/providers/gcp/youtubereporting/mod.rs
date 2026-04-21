@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_youtubereporting_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_youtubereporting_media")]
-pub mod media;
-#[cfg(feature = "gcp_youtubereporting_report_types")]
-pub mod report_types;
-#[cfg(feature = "gcp_youtubereporting_reports")]
-pub mod reports;
+#[cfg(feature = "gcp_youtubereporting_youtubereporting")]
+pub mod youtubereporting;

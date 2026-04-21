@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_serviceconsumermanagement_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_serviceconsumermanagement_services")]
-pub mod services;
-#[cfg(feature = "gcp_serviceconsumermanagement_tenancy_units")]
-pub mod tenancy_units;
+#[cfg(feature = "gcp_serviceconsumermanagement_serviceconsumermanagement")]
+pub mod serviceconsumermanagement;

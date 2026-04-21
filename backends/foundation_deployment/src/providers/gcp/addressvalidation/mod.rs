@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_addressvalidation_provide_validation_feedback")]
-pub mod provide_validation_feedback;
-#[cfg(feature = "gcp_addressvalidation_validate_address")]
-pub mod validate_address;
+#[cfg(feature = "gcp_addressvalidation_addressvalidation")]
+pub mod addressvalidation;

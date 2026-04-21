@@ -14,31 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `GoogleIamV1Policy`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Policy {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleIamV1TestIamPermissionsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1TestIamPermissionsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleLongrunningOperation`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningOperation {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleProtobufEmpty`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

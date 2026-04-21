@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_contactcenteraiplatform_contact_centers")]
-pub mod contact_centers;
-#[cfg(feature = "gcp_contactcenteraiplatform_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_contactcenteraiplatform_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_contactcenteraiplatform_contactcenteraiplatform")]
+pub mod contactcenteraiplatform;

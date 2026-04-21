@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `BooksCloudloadingResource`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooksCloudloadingResource {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Usersettings`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Usersettings {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Volumes`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volumes {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

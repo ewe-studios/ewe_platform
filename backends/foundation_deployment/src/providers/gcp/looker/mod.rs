@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_looker_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_looker_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_looker_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_looker_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_looker_looker")]
+pub mod looker;

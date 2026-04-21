@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_config_auto_migration_config")]
-pub mod auto_migration_config;
-#[cfg(feature = "gcp_config_deployment_groups")]
-pub mod deployment_groups;
-#[cfg(feature = "gcp_config_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_config_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_config_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_config_previews")]
-pub mod previews;
-#[cfg(feature = "gcp_config_resource_changes")]
-pub mod resource_changes;
-#[cfg(feature = "gcp_config_resource_drifts")]
-pub mod resource_drifts;
-#[cfg(feature = "gcp_config_resources")]
-pub mod resources;
-#[cfg(feature = "gcp_config_revisions")]
-pub mod revisions;
-#[cfg(feature = "gcp_config_terraform_versions")]
-pub mod terraform_versions;
+#[cfg(feature = "gcp_config_config")]
+pub mod config;

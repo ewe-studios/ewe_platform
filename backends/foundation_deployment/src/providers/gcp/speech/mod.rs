@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_speech_custom_classes")]
-pub mod custom_classes;
-#[cfg(feature = "gcp_speech_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_speech_phrase_sets")]
-pub mod phrase_sets;
-#[cfg(feature = "gcp_speech_speech_longrunningrecognize")]
-pub mod speech_longrunningrecognize;
-#[cfg(feature = "gcp_speech_speech_recognize")]
-pub mod speech_recognize;
+#[cfg(feature = "gcp_speech_speech")]
+pub mod speech;

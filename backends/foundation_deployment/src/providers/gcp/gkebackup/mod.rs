@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_gkebackup_backup_channels")]
-pub mod backup_channels;
-#[cfg(feature = "gcp_gkebackup_backup_plan_bindings")]
-pub mod backup_plan_bindings;
-#[cfg(feature = "gcp_gkebackup_backup_plans")]
-pub mod backup_plans;
-#[cfg(feature = "gcp_gkebackup_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_gkebackup_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_gkebackup_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_gkebackup_restore_channels")]
-pub mod restore_channels;
-#[cfg(feature = "gcp_gkebackup_restore_plan_bindings")]
-pub mod restore_plan_bindings;
-#[cfg(feature = "gcp_gkebackup_restore_plans")]
-pub mod restore_plans;
-#[cfg(feature = "gcp_gkebackup_restores")]
-pub mod restores;
-#[cfg(feature = "gcp_gkebackup_volume_backups")]
-pub mod volume_backups;
-#[cfg(feature = "gcp_gkebackup_volume_restores")]
-pub mod volume_restores;
+#[cfg(feature = "gcp_gkebackup_gkebackup")]
+pub mod gkebackup;

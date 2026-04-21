@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebaserules_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_firebaserules_releases")]
-pub mod releases;
-#[cfg(feature = "gcp_firebaserules_rulesets")]
-pub mod rulesets;
+#[cfg(feature = "gcp_firebaserules_firebaserules")]
+pub mod firebaserules;

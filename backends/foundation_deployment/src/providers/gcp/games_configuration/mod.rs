@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_games_configuration_achievements")]
-pub mod achievements;
-#[cfg(feature = "gcp_games_configuration_leaderboards")]
-pub mod leaderboards;
+#[cfg(feature = "gcp_games_configuration_games_configuration")]
+pub mod games_configuration;

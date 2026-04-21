@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_billingbudgets_budgets")]
-pub mod budgets;
+#[cfg(feature = "gcp_billingbudgets_billingbudgets")]
+pub mod billingbudgets;

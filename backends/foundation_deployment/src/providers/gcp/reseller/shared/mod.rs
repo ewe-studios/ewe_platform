@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `ResellernotifyResource`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResellernotifyResource {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Subscription`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subscription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

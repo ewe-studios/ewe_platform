@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudshell_environments")]
-pub mod environments;
-#[cfg(feature = "gcp_cloudshell_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_cloudshell_cloudshell")]
+pub mod cloudshell;

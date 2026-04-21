@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_transcoder_job_templates")]
-pub mod job_templates;
-#[cfg(feature = "gcp_transcoder_jobs")]
-pub mod jobs;
+#[cfg(feature = "gcp_transcoder_transcoder")]
+pub mod transcoder;

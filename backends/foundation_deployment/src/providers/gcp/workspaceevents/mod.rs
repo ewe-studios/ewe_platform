@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_workspaceevents_message_stream")]
-pub mod message_stream;
-#[cfg(feature = "gcp_workspaceevents_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_workspaceevents_push_notification_configs")]
-pub mod push_notification_configs;
-#[cfg(feature = "gcp_workspaceevents_subscriptions")]
-pub mod subscriptions;
-#[cfg(feature = "gcp_workspaceevents_tasks")]
-pub mod tasks;
+#[cfg(feature = "gcp_workspaceevents_workspaceevents")]
+pub mod workspaceevents;

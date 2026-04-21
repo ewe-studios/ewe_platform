@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_checks_aisafety_classify_content")]
-pub mod aisafety_classify_content;
-#[cfg(feature = "gcp_checks_apps")]
-pub mod apps;
-#[cfg(feature = "gcp_checks_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_checks_reports")]
-pub mod reports;
-#[cfg(feature = "gcp_checks_reports_analyze_upload")]
-pub mod reports_analyze_upload;
-#[cfg(feature = "gcp_checks_scans")]
-pub mod scans;
-#[cfg(feature = "gcp_checks_scans_generate")]
-pub mod scans_generate;
+#[cfg(feature = "gcp_checks_checks")]
+pub mod checks;

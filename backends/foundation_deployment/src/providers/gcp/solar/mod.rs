@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_solar_building_insights_find_closest")]
-pub mod building_insights_find_closest;
-#[cfg(feature = "gcp_solar_data_layers_get")]
-pub mod data_layers_get;
-#[cfg(feature = "gcp_solar_geo_tiff_get")]
-pub mod geo_tiff_get;
+#[cfg(feature = "gcp_solar_solar")]
+pub mod solar;

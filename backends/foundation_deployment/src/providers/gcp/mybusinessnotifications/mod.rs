@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessnotifications_notification_setting")]
-pub mod notification_setting;
+#[cfg(feature = "gcp_mybusinessnotifications_mybusinessnotifications")]
+pub mod mybusinessnotifications;

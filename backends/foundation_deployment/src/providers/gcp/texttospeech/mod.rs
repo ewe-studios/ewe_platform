@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_texttospeech_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_texttospeech_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_texttospeech_text_synthesize")]
-pub mod text_synthesize;
-#[cfg(feature = "gcp_texttospeech_voices")]
-pub mod voices;
+#[cfg(feature = "gcp_texttospeech_texttospeech")]
+pub mod texttospeech;

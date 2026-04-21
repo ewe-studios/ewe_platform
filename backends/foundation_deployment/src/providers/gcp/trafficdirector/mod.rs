@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_trafficdirector_discovery_client_status")]
-pub mod discovery_client_status;
+#[cfg(feature = "gcp_trafficdirector_trafficdirector")]
+pub mod trafficdirector;

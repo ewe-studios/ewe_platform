@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudprofiler_profiles")]
-pub mod profiles;
-#[cfg(feature = "gcp_cloudprofiler_profiles_create_offline")]
-pub mod profiles_create_offline;
+#[cfg(feature = "gcp_cloudprofiler_cloudprofiler")]
+pub mod cloudprofiler;

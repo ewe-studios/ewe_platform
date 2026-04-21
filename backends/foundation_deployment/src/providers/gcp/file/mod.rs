@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_file_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_file_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_file_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_file_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_file_snapshots")]
-pub mod snapshots;
+#[cfg(feature = "gcp_file_file")]
+pub mod file;

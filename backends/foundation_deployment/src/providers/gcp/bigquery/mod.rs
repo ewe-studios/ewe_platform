@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigquery_cancel")]
-pub mod cancel;
-#[cfg(feature = "gcp_bigquery_data")]
-pub mod data;
-#[cfg(feature = "gcp_bigquery_datasets")]
-pub mod datasets;
-#[cfg(feature = "gcp_bigquery_delete")]
-pub mod delete;
-#[cfg(feature = "gcp_bigquery_insert_all")]
-pub mod insert_all;
-#[cfg(feature = "gcp_bigquery_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_bigquery_models")]
-pub mod models;
-#[cfg(feature = "gcp_bigquery_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_bigquery_queries")]
-pub mod queries;
-#[cfg(feature = "gcp_bigquery_routines")]
-pub mod routines;
-#[cfg(feature = "gcp_bigquery_row_access_policies")]
-pub mod row_access_policies;
-#[cfg(feature = "gcp_bigquery_row_access_policies_batch_delete")]
-pub mod row_access_policies_batch_delete;
-#[cfg(feature = "gcp_bigquery_service_account")]
-pub mod service_account;
-#[cfg(feature = "gcp_bigquery_tables")]
-pub mod tables;
+#[cfg(feature = "gcp_bigquery_bigquery")]
+pub mod bigquery;

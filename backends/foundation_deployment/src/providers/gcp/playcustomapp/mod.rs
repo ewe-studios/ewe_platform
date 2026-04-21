@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_playcustomapp_custom_apps")]
-pub mod custom_apps;
+#[cfg(feature = "gcp_playcustomapp_playcustomapp")]
+pub mod playcustomapp;

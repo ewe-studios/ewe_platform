@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebaseml_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_firebaseml_firebaseml")]
+pub mod firebaseml;

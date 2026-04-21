@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_baremetalsolution_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_baremetalsolution_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_baremetalsolution_luns")]
-pub mod luns;
-#[cfg(feature = "gcp_baremetalsolution_networks")]
-pub mod networks;
-#[cfg(feature = "gcp_baremetalsolution_networks_list_network_usage")]
-pub mod networks_list_network_usage;
-#[cfg(feature = "gcp_baremetalsolution_nfs_shares")]
-pub mod nfs_shares;
-#[cfg(feature = "gcp_baremetalsolution_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_baremetalsolution_os_images")]
-pub mod os_images;
-#[cfg(feature = "gcp_baremetalsolution_provisioning_configs")]
-pub mod provisioning_configs;
-#[cfg(feature = "gcp_baremetalsolution_provisioning_configs_submit")]
-pub mod provisioning_configs_submit;
-#[cfg(feature = "gcp_baremetalsolution_provisioning_quotas")]
-pub mod provisioning_quotas;
-#[cfg(feature = "gcp_baremetalsolution_snapshots")]
-pub mod snapshots;
-#[cfg(feature = "gcp_baremetalsolution_ssh_keys")]
-pub mod ssh_keys;
-#[cfg(feature = "gcp_baremetalsolution_volumes")]
-pub mod volumes;
+#[cfg(feature = "gcp_baremetalsolution_baremetalsolution")]
+pub mod baremetalsolution;

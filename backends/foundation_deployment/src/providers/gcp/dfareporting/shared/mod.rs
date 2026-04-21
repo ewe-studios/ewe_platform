@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `DynamicFeed`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicFeed {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `File`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

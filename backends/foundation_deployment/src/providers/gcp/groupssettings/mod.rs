@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_groupssettings_default")]
-pub mod default;
+#[cfg(feature = "gcp_groupssettings_groupssettings")]
+pub mod groupssettings;

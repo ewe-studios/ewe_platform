@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_searchconsole_index_inspect")]
-pub mod index_inspect;
-#[cfg(feature = "gcp_searchconsole_mobile_friendly_test_run")]
-pub mod mobile_friendly_test_run;
-#[cfg(feature = "gcp_searchconsole_query")]
-pub mod query;
-#[cfg(feature = "gcp_searchconsole_sitemaps")]
-pub mod sitemaps;
-#[cfg(feature = "gcp_searchconsole_sites")]
-pub mod sites;
+#[cfg(feature = "gcp_searchconsole_searchconsole")]
+pub mod searchconsole;

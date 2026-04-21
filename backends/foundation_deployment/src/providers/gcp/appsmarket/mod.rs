@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_appsmarket_customer_license")]
-pub mod customer_license;
-#[cfg(feature = "gcp_appsmarket_user_license")]
-pub mod user_license;
+#[cfg(feature = "gcp_appsmarket_appsmarket")]
+pub mod appsmarket;

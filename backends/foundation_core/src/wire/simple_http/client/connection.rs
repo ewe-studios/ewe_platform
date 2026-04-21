@@ -105,6 +105,15 @@ impl HttpClientConnection {
         resolver: &R,
         timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
+        Self::connect_with_tls_config(url, resolver, timeout, None)
+    }
+
+    pub fn connect_with_tls_config<R: DnsResolver>(
+        url: &ParsedUrl,
+        resolver: &R,
+        timeout: Option<Duration>,
+        tls_connector: Option<&SSLConnector>,
+    ) -> Result<Self, HttpClientError> {
         // Get host as string (required for DNS resolution)
         let host = url
             .host_str()
@@ -136,7 +145,7 @@ impl HttpClientConnection {
                 Ok(connection) => {
                     // Step 3: Upgrade to TLS if HTTPS or WSS, or create plain RawStream
                     if url.scheme().is_https() || url.scheme().is_wss() {
-                        return Self::upgrade_to_tls(connection, &host, port);
+                        return Self::upgrade_to_tls_with_config(connection, &host, port, tls_connector);
                     }
                     // Create plain RawStream from Connection (for http:// and ws://)
                     let stream = SharedByteBufferStream::rwrite(
@@ -176,7 +185,28 @@ impl HttpClientConnection {
         host: &str,
         port: u16,
     ) -> Result<Self, HttpClientError> {
-        let connector = SSLConnector::new();
+        Self::upgrade_to_tls_with_config(connection, host, port, None)
+    }
+
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
+    fn upgrade_to_tls_with_config(
+        connection: Connection,
+        host: &str,
+        port: u16,
+        tls_connector: Option<&SSLConnector>,
+    ) -> Result<Self, HttpClientError> {
+        let default_connector;
+        let connector = match tls_connector {
+            Some(c) => c,
+            None => {
+                default_connector = SSLConnector::new();
+                &default_connector
+            }
+        };
         let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
@@ -202,6 +232,20 @@ impl HttpClientConnection {
         feature = "ssl-native-tls"
     )))]
     fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+        Err(HttpClientError::NotSupported)
+    }
+
+    #[cfg(not(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    )))]
+    fn upgrade_to_tls_with_config(
+        _connection: Connection,
+        _host: &str,
+        _port: u16,
+        _tls_connector: Option<&SSLConnector>,
+    ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
 
@@ -426,10 +470,20 @@ impl HttpClientConnection {
 /// Wraps the shared `ConnectionPool` and will attempt to reuse an existing
 /// `RawStream` from the pool for the target host/port before creating a new
 /// connection via `HttpClientConnection::connect`.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct HttpConnectionPool<R: DnsResolver> {
     pool: Arc<ConnectionPool>,
     resolver: Arc<R>,
+    tls_connector: Option<Arc<SSLConnector>>,
+}
+
+impl<R: DnsResolver> std::fmt::Debug for HttpConnectionPool<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HttpConnectionPool")
+            .field("pool", &self.pool)
+            .field("tls_connector", &self.tls_connector.as_ref().map(|_| "SSLConnector(...)"))
+            .finish()
+    }
 }
 
 impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
@@ -437,6 +491,7 @@ impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
         Self {
             pool: Arc::new(ConnectionPool::default()),
             resolver: Arc::new(R::default()),
+            tls_connector: None,
         }
     }
 }
@@ -447,6 +502,7 @@ impl HttpConnectionPool<SystemDnsResolver> {
         Self {
             pool: Arc::new(ConnectionPool::default()),
             resolver: Arc::new(SystemDnsResolver::new()),
+            tls_connector: None,
         }
     }
 }
@@ -458,13 +514,27 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         Self {
             pool: Arc::new(pool),
             resolver: Arc::new(resolver),
+            tls_connector: None,
         }
+    }
+
+    /// Create a new `HttpConnectionPool` with a custom TLS connector.
+    #[must_use]
+    pub fn with_tls_connector(mut self, connector: SSLConnector) -> Self {
+        self.tls_connector = Some(Arc::new(connector));
+        self
+    }
+
+    /// Returns the TLS connector if one is configured.
+    #[must_use]
+    pub fn tls_connector(&self) -> Option<&Arc<SSLConnector>> {
+        self.tls_connector.as_ref()
     }
 
     /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
     #[must_use]
     pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
-        Self { pool, resolver }
+        Self { pool, resolver, tls_connector: None }
     }
 
     /// Acquire a `HttpClientConnection` for the given URL.
@@ -506,7 +576,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // No pooled connection available, create a fresh one.
-        HttpClientConnection::connect(url, &*self.resolver, timeout)
+        HttpClientConnection::connect_with_tls_config(url, &*self.resolver, timeout, self.tls_connector.as_deref())
     }
 
     /// Return a `RawStream` back into the pool for reuse.
@@ -923,10 +993,11 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
                     // If target is HTTPS, upgrade the tunnel Connection to TLS
                     if url.scheme().is_https() {
-                        return HttpClientConnection::upgrade_to_tls(
+                        return HttpClientConnection::upgrade_to_tls_with_config(
                             tunnel_connection,
                             &target_host,
                             target_port,
+                            self.tls_connector.as_deref(),
                         );
                     }
 

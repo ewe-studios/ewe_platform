@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_streetviewpublish_photo")]
-pub mod photo;
-#[cfg(feature = "gcp_streetviewpublish_photo_start_upload")]
-pub mod photo_start_upload;
-#[cfg(feature = "gcp_streetviewpublish_photo_sequence")]
-pub mod photo_sequence;
-#[cfg(feature = "gcp_streetviewpublish_photo_sequence_start_upload")]
-pub mod photo_sequence_start_upload;
-#[cfg(feature = "gcp_streetviewpublish_photo_sequences")]
-pub mod photo_sequences;
-#[cfg(feature = "gcp_streetviewpublish_photos")]
-pub mod photos;
-#[cfg(feature = "gcp_streetviewpublish_photos_batch_delete")]
-pub mod photos_batch_delete;
-#[cfg(feature = "gcp_streetviewpublish_photos_batch_get")]
-pub mod photos_batch_get;
-#[cfg(feature = "gcp_streetviewpublish_photos_batch_update")]
-pub mod photos_batch_update;
+#[cfg(feature = "gcp_streetviewpublish_streetviewpublish")]
+pub mod streetviewpublish;

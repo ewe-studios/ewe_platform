@@ -25,26 +25,56 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleMapsPlacesV1AuthorAttribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AuthorAttribution {
+/// `GoogleMapsPlacesV1AddressDescriptorArea` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AddressDescriptorArea {
+    /// containment property.
+    pub containment: Option<String>,
     /// displayName property.
-    pub display_name: Option<String>,
-    /// photoUri property.
-    pub photo_uri: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+    pub display_name: Option<GoogleTypeLocalizedText>,
+    /// name property.
+    pub name: Option<String>,
+    /// placeId property.
+    pub place_id: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1FuelOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1FuelOptions {
-    /// fuelPrices property.
-    pub fuel_prices: Option<Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
+/// `GoogleMapsPlacesV1ContextualContentJustificationReviewJustification` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustification {
+    /// highlightedText property.
+    pub highlighted_text:
+        Option<GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText>,
+    /// review property.
+    pub review: Option<GoogleMapsPlacesV1Review>,
+}
+
+/// `GoogleMapsPlacesV1ContentBlock` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContentBlock {
+    /// content property.
+    pub content: Option<GoogleTypeLocalizedText>,
+    /// referencedPlaces property.
+    pub referenced_places: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1Polyline` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1Polyline {
+    /// encodedPolyline property.
+    pub encoded_polyline: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1RoutingSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1RoutingSummary {
+    /// directionsUri property.
+    pub directions_uri: Option<String>,
+    /// legs property.
+    pub legs: Option<Vec<GoogleMapsPlacesV1RoutingSummaryLeg>>,
 }
 
 /// `GoogleTypeLocalizedText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLocalizedText {
     /// languageCode property.
     pub language_code: Option<String>,
@@ -53,7 +83,7 @@ pub struct GoogleTypeLocalizedText {
 }
 
 /// `GoogleTypePostalAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// addressLines property.
     pub address_lines: Option<Vec<String>>,
@@ -79,24 +109,49 @@ pub struct GoogleTypePostalAddress {
     pub sublocality: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1PlaceSubDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceSubDestination {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+/// `GoogleMapsPlacesV1AutocompletePlacesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesRequest {
+    /// includeFutureOpeningBusinesses property.
+    pub include_future_opening_businesses: Option<bool>,
+    /// includePureServiceAreaBusinesses property.
+    pub include_pure_service_area_businesses: Option<bool>,
+    /// includeQueryPredictions property.
+    pub include_query_predictions: Option<bool>,
+    /// includedPrimaryTypes property.
+    pub included_primary_types: Option<Vec<String>>,
+    /// includedRegionCodes property.
+    pub included_region_codes: Option<Vec<String>>,
+    /// input property.
+    pub input: Option<String>,
+    /// inputOffset property.
+    pub input_offset: Option<i64>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locationBias property.
+    pub location_bias: Option<GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias>,
+    /// locationRestriction property.
+    pub location_restriction:
+        Option<GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction>,
+    /// origin property.
+    pub origin: Option<GoogleTypeLatLng>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// sessionToken property.
+    pub session_token: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
-    /// date property.
-    pub date: Option<GoogleTypeDate>,
+/// `GoogleMapsPlacesV1PriceRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PriceRange {
+    /// endPrice property.
+    pub end_price: Option<GoogleTypeMoney>,
+    /// startPrice property.
+    pub start_price: Option<GoogleTypeMoney>,
 }
 
 /// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// id property.
     pub id: Option<String>,
@@ -104,8 +159,58 @@ pub struct GoogleTypeTimeZone {
     pub version: Option<String>,
 }
 
+/// `GoogleMapsPlacesV1RoutingParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1RoutingParameters {
+    /// origin property.
+    pub origin: Option<GoogleTypeLatLng>,
+    /// routeModifiers property.
+    pub route_modifiers: Option<GoogleMapsPlacesV1RouteModifiers>,
+    /// routingPreference property.
+    pub routing_preference: Option<String>,
+    /// travelMode property.
+    pub travel_mode: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceAttribution` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceAttribution {
+    /// provider property.
+    pub provider: Option<String>,
+    /// providerUri property.
+    pub provider_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlertDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
+    /// aboutLink property.
+    pub about_link: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation {
+    /// availabilityLastUpdateTime property.
+    pub availability_last_update_time: Option<String>,
+    /// availableCount property.
+    pub available_count: Option<i64>,
+    /// count property.
+    pub count: Option<i64>,
+    /// maxChargeRateKw property.
+    pub max_charge_rate_kw: Option<f64>,
+    /// outOfServiceCount property.
+    pub out_of_service_count: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 /// `GoogleGeoTypeViewport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleGeoTypeViewport {
     /// high property.
     pub high: Option<GoogleTypeLatLng>,
@@ -113,21 +218,86 @@ pub struct GoogleGeoTypeViewport {
     pub low: Option<GoogleTypeLatLng>,
 }
 
-/// `GoogleMapsPlacesV1PlaceNeighborhoodSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
-    /// description property.
-    pub description: Option<GoogleMapsPlacesV1ContentBlock>,
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1FuelOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1FuelOptions {
+    /// fuelPrices property.
+    pub fuel_prices: Option<Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
+    /// matches property.
+    pub matches: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
+    /// endOffset property.
+    pub end_offset: Option<i64>,
+    /// startOffset property.
+    pub start_offset: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextRequestLocationBias` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextRequestLocationBias {
+    /// circle property.
+    pub circle: Option<GoogleMapsPlacesV1Circle>,
+    /// rectangle property.
+    pub rectangle: Option<GoogleGeoTypeViewport>,
+}
+
+/// `GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction {
+    /// circle property.
+    pub circle: Option<GoogleMapsPlacesV1Circle>,
+}
+
+/// `GoogleMapsPlacesV1PlaceEvChargeAmenitySummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
+    /// coffee property.
+    pub coffee: Option<GoogleMapsPlacesV1ContentBlock>,
     /// disclosureText property.
     pub disclosure_text: Option<GoogleTypeLocalizedText>,
     /// flagContentUri property.
     pub flag_content_uri: Option<String>,
     /// overview property.
     pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// restaurant property.
+    pub restaurant: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// store property.
+    pub store: Option<GoogleMapsPlacesV1ContentBlock>,
 }
 
 /// `GoogleMapsPlacesV1AddressDescriptorLandmark` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
     /// displayName property.
     pub display_name: Option<GoogleTypeLocalizedText>,
@@ -145,52 +315,76 @@ pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
     pub types: Option<Vec<String>>,
 }
 
-/// `GoogleMapsPlacesV1PlaceGoogleMapsLinks` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
-    /// directionsUri property.
-    pub directions_uri: Option<String>,
-    /// photosUri property.
-    pub photos_uri: Option<String>,
-    /// placeUri property.
-    pub place_uri: Option<String>,
-    /// reviewsUri property.
-    pub reviews_uri: Option<String>,
-    /// writeAReviewUri property.
-    pub write_a_review_uri: Option<String>,
+/// `GoogleMapsPlacesV1Circle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1Circle {
+    /// center property.
+    pub center: Option<GoogleTypeLatLng>,
+    /// radius property.
+    pub radius: Option<f64>,
 }
 
-/// `GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+/// `GoogleMapsPlacesV1RouteModifiers` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1RouteModifiers {
+    /// avoidFerries property.
+    pub avoid_ferries: Option<bool>,
+    /// avoidHighways property.
+    pub avoid_highways: Option<bool>,
+    /// avoidIndoor property.
+    pub avoid_indoor: Option<bool>,
+    /// avoidTolls property.
+    pub avoid_tolls: Option<bool>,
 }
 
-/// `GoogleMapsPlacesV1PlaceConsumerAlertDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
-    /// aboutLink property.
-    pub about_link: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+/// `GoogleMapsPlacesV1PlaceOpeningHours` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHours {
+    /// nextCloseTime property.
+    pub next_close_time: Option<String>,
+    /// nextOpenTime property.
+    pub next_open_time: Option<String>,
+    /// openNow property.
+    pub open_now: Option<bool>,
+    /// periods property.
+    pub periods: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
+    /// secondaryHoursType property.
+    pub secondary_hours_type: Option<String>,
+    /// specialDays property.
+    pub special_days: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
+    /// weekdayDescriptions property.
+    pub weekday_descriptions: Option<Vec<String>>,
 }
 
-/// `GoogleMapsPlacesV1AddressDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AddressDescriptor {
-    /// areas property.
-    pub areas: Option<Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
-    /// landmarks property.
-    pub landmarks: Option<Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextRequestEVOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextRequestEVOptions {
+    /// connectorTypes property.
+    pub connector_types: Option<Vec<String>>,
+    /// minimumChargingRateKw property.
+    pub minimum_charging_rate_kw: Option<f64>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters {
+    /// polyline property.
+    pub polyline: Option<GoogleMapsPlacesV1Polyline>,
 }
 
 /// `GoogleMapsPlacesV1PlaceParkingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceParkingOptions {
     /// freeGarageParking property.
     pub free_garage_parking: Option<bool>,
@@ -208,8 +402,257 @@ pub struct GoogleMapsPlacesV1PlaceParkingOptions {
     pub valet_parking: Option<bool>,
 }
 
+/// `GoogleMapsPlacesV1PlaceGenerativeSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceGenerativeSummary {
+    /// disclosureText property.
+    pub disclosure_text: Option<GoogleTypeLocalizedText>,
+    /// overview property.
+    pub overview: Option<GoogleTypeLocalizedText>,
+    /// overviewFlagContentUri property.
+    pub overview_flag_content_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextResponse {
+    /// contextualContents property.
+    pub contextual_contents: Option<Vec<GoogleMapsPlacesV1ContextualContent>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// places property.
+    pub places: Option<Vec<GoogleMapsPlacesV1Place>>,
+    /// routingSummaries property.
+    pub routing_summaries: Option<Vec<GoogleMapsPlacesV1RoutingSummary>>,
+    /// searchUri property.
+    pub search_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
+    /// date property.
+    pub date: Option<GoogleTypeDate>,
+}
+
+/// `GoogleMapsPlacesV1SearchNearbyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchNearbyRequest {
+    /// excludedPrimaryTypes property.
+    pub excluded_primary_types: Option<Vec<String>>,
+    /// excludedTypes property.
+    pub excluded_types: Option<Vec<String>>,
+    /// includeFutureOpeningBusinesses property.
+    pub include_future_opening_businesses: Option<bool>,
+    /// includedPrimaryTypes property.
+    pub included_primary_types: Option<Vec<String>>,
+    /// includedTypes property.
+    pub included_types: Option<Vec<String>>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locationRestriction property.
+    pub location_restriction: Option<GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction>,
+    /// maxResultCount property.
+    pub max_result_count: Option<i64>,
+    /// rankPreference property.
+    pub rank_preference: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// routingParameters property.
+    pub routing_parameters: Option<GoogleMapsPlacesV1RoutingParameters>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextRequest {
+    /// evOptions property.
+    pub ev_options: Option<GoogleMapsPlacesV1SearchTextRequestEVOptions>,
+    /// includeFutureOpeningBusinesses property.
+    pub include_future_opening_businesses: Option<bool>,
+    /// includePureServiceAreaBusinesses property.
+    pub include_pure_service_area_businesses: Option<bool>,
+    /// includedType property.
+    pub included_type: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locationBias property.
+    pub location_bias: Option<GoogleMapsPlacesV1SearchTextRequestLocationBias>,
+    /// locationRestriction property.
+    pub location_restriction: Option<GoogleMapsPlacesV1SearchTextRequestLocationRestriction>,
+    /// maxResultCount property.
+    pub max_result_count: Option<i64>,
+    /// minRating property.
+    pub min_rating: Option<f64>,
+    /// openNow property.
+    pub open_now: Option<bool>,
+    /// pageSize property.
+    pub page_size: Option<i64>,
+    /// pageToken property.
+    pub page_token: Option<String>,
+    /// priceLevels property.
+    pub price_levels: Option<Vec<String>>,
+    /// rankPreference property.
+    pub rank_preference: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// routingParameters property.
+    pub routing_parameters: Option<GoogleMapsPlacesV1RoutingParameters>,
+    /// searchAlongRouteParameters property.
+    pub search_along_route_parameters:
+        Option<GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters>,
+    /// strictTypeFiltering property.
+    pub strict_type_filtering: Option<bool>,
+    /// textQuery property.
+    pub text_query: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
+    /// suggestions property.
+    pub suggestions: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion>>,
+}
+
+/// `GoogleMapsPlacesV1Photo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1Photo {
+    /// authorAttributions property.
+    pub author_attributions: Option<Vec<GoogleMapsPlacesV1AuthorAttribution>>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// googleMapsUri property.
+    pub google_maps_uri: Option<String>,
+    /// heightPx property.
+    pub height_px: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// widthPx property.
+    pub width_px: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1PlaceNeighborhoodSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
+    /// description property.
+    pub description: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// disclosureText property.
+    pub disclosure_text: Option<GoogleTypeLocalizedText>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// overview property.
+    pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias {
+    /// circle property.
+    pub circle: Option<GoogleMapsPlacesV1Circle>,
+    /// rectangle property.
+    pub rectangle: Option<GoogleGeoTypeViewport>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
+    /// placePrediction property.
+    pub place_prediction:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction>,
+    /// queryPrediction property.
+    pub query_prediction:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction>,
+}
+
+/// `GoogleMapsPlacesV1PlaceAddressComponent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceAddressComponent {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// longText property.
+    pub long_text: Option<String>,
+    /// shortText property.
+    pub short_text: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1PlaceSubDestination` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceSubDestination {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PhotoMedia` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PhotoMedia {
+    /// name property.
+    pub name: Option<String>,
+    /// photoUri property.
+    pub photo_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange
+{
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1SearchNearbyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchNearbyResponse {
+    /// places property.
+    pub places: Option<Vec<GoogleMapsPlacesV1Place>>,
+    /// routingSummaries property.
+    pub routing_summaries: Option<Vec<GoogleMapsPlacesV1RoutingSummary>>,
+}
+
+/// `GoogleMapsPlacesV1RoutingSummaryLeg` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1RoutingSummaryLeg {
+    /// distanceMeters property.
+    pub distance_meters: Option<i64>,
+    /// duration property.
+    pub duration: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1AuthorAttribution` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AuthorAttribution {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// photoUri property.
+    pub photo_uri: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1AddressDescriptor` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AddressDescriptor {
+    /// areas property.
+    pub areas: Option<Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
+    /// landmarks property.
+    pub landmarks: Option<Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
+}
+
+/// `GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText {
+    /// highlightedTextRanges property.
+    pub highlighted_text_ranges: Option<Vec<GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
 /// `GoogleTypeLatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLatLng {
     /// latitude property.
     pub latitude: Option<f64>,
@@ -217,17 +660,153 @@ pub struct GoogleTypeLatLng {
     pub longitude: Option<f64>,
 }
 
-/// `GoogleMapsPlacesV1PlaceAttribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceAttribution {
-    /// provider property.
-    pub provider: Option<String>,
-    /// providerUri property.
-    pub provider_uri: Option<String>,
+/// `GoogleMapsPlacesV1EVChargeOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1EVChargeOptions {
+    /// connectorAggregation property.
+    pub connector_aggregation: Option<Vec<GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation>>,
+    /// connectorCount property.
+    pub connector_count: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction {
+    /// circle property.
+    pub circle: Option<GoogleMapsPlacesV1Circle>,
+    /// rectangle property.
+    pub rectangle: Option<GoogleGeoTypeViewport>,
+}
+
+/// `GoogleMapsPlacesV1PlacePlusCode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlacePlusCode {
+    /// compoundCode property.
+    pub compound_code: Option<String>,
+    /// globalCode property.
+    pub global_code: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlert` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
+    /// details property.
+    pub details: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetails>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// overview property.
+    pub overview: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceReviewSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceReviewSummary {
+    /// disclosureText property.
+    pub disclosure_text: Option<GoogleTypeLocalizedText>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// reviewsUri property.
+    pub reviews_uri: Option<String>,
+    /// text property.
+    pub text: Option<GoogleTypeLocalizedText>,
+}
+
+/// `GoogleMapsPlacesV1SearchTextRequestLocationRestriction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1SearchTextRequestLocationRestriction {
+    /// rectangle property.
+    pub rectangle: Option<GoogleGeoTypeViewport>,
+}
+
+/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
+    /// date property.
+    pub date: Option<GoogleTypeDate>,
+    /// day property.
+    pub day: Option<i64>,
+    /// hour property.
+    pub hour: Option<i64>,
+    /// minute property.
+    pub minute: Option<i64>,
+    /// truncated property.
+    pub truncated: Option<bool>,
+}
+
+/// `GoogleMapsPlacesV1ContextualContentJustification` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContentJustification {
+    /// businessAvailabilityAttributesJustification property.
+    pub business_availability_attributes_justification: Option<
+        GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification,
+    >,
+    /// reviewJustification property.
+    pub review_justification:
+        Option<GoogleMapsPlacesV1ContextualContentJustificationReviewJustification>,
+}
+
+/// `GoogleMapsPlacesV1PlaceGoogleMapsLinks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
+    /// directionsUri property.
+    pub directions_uri: Option<String>,
+    /// photosUri property.
+    pub photos_uri: Option<String>,
+    /// placeUri property.
+    pub place_uri: Option<String>,
+    /// reviewsUri property.
+    pub reviews_uri: Option<String>,
+    /// writeAReviewUri property.
+    pub write_a_review_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceContainingPlace` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceContainingPlace {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlacePaymentOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlacePaymentOptions {
+    /// acceptsCashOnly property.
+    pub accepts_cash_only: Option<bool>,
+    /// acceptsCreditCards property.
+    pub accepts_credit_cards: Option<bool>,
+    /// acceptsDebitCards property.
+    pub accepts_debit_cards: Option<bool>,
+    /// acceptsNfc property.
+    pub accepts_nfc: Option<bool>,
+}
+
+/// `GoogleMapsPlacesV1ContextualContent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContent {
+    /// justifications property.
+    pub justifications: Option<Vec<GoogleMapsPlacesV1ContextualContentJustification>>,
+    /// photos property.
+    pub photos: Option<Vec<GoogleMapsPlacesV1Photo>>,
+    /// reviews property.
+    pub reviews: Option<Vec<GoogleMapsPlacesV1Review>>,
+}
+
+/// `GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification
+{
+    /// delivery property.
+    pub delivery: Option<bool>,
+    /// dineIn property.
+    pub dine_in: Option<bool>,
+    /// takeout property.
+    pub takeout: Option<bool>,
 }
 
 /// `GoogleMapsPlacesV1Place` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Place {
     /// accessibilityOptions property.
     pub accessibility_options: Option<GoogleMapsPlacesV1PlaceAccessibilityOptions>,
@@ -385,36 +964,8 @@ pub struct GoogleMapsPlacesV1Place {
     pub website_uri: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1PlaceEvChargeAmenitySummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
-    /// coffee property.
-    pub coffee: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// disclosureText property.
-    pub disclosure_text: Option<GoogleTypeLocalizedText>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// overview property.
-    pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// restaurant property.
-    pub restaurant: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// store property.
-    pub store: Option<GoogleMapsPlacesV1ContentBlock>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
 /// `GoogleMapsPlacesV1PlaceAccessibilityOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
     /// wheelchairAccessibleEntrance property.
     pub wheelchair_accessible_entrance: Option<bool>,
@@ -426,8 +977,26 @@ pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
     pub wheelchair_accessible_seating: Option<bool>,
 }
 
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction {
+    /// distanceMeters property.
+    pub distance_meters: Option<i64>,
+    /// place property.
+    pub place: Option<String>,
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// structuredFormat property.
+    pub structured_format:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat>,
+    /// text property.
+    pub text: Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
 /// `GoogleMapsPlacesV1Review` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Review {
     /// authorAttribution property.
     pub author_attribution: Option<GoogleMapsPlacesV1AuthorAttribution>,
@@ -451,8 +1020,27 @@ pub struct GoogleMapsPlacesV1Review {
     pub visit_date: Option<GoogleTypeDate>,
 }
 
+/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriod` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
+    /// close property.
+    pub close: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
+    /// open property.
+    pub open: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
+}
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
+    /// structuredFormat property.
+    pub structured_format:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat>,
+    /// text property.
+    pub text: Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
+}
+
 /// `GoogleMapsPlacesV1FuelOptionsFuelPrice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
     /// price property.
     pub price: Option<GoogleTypeMoney>,
@@ -462,219 +1050,29 @@ pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
     pub update_time: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation {
-    /// availabilityLastUpdateTime property.
-    pub availability_last_update_time: Option<String>,
-    /// availableCount property.
-    pub available_count: Option<i64>,
-    /// count property.
-    pub count: Option<i64>,
-    /// maxChargeRateKw property.
-    pub max_charge_rate_kw: Option<f64>,
-    /// outOfServiceCount property.
-    pub out_of_service_count: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
-    /// close property.
-    pub close: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-    /// open property.
-    pub open: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
-    /// date property.
-    pub date: Option<GoogleTypeDate>,
-    /// day property.
-    pub day: Option<i64>,
-    /// hour property.
-    pub hour: Option<i64>,
-    /// minute property.
-    pub minute: Option<i64>,
-    /// truncated property.
-    pub truncated: Option<bool>,
-}
-
-/// `GoogleMapsPlacesV1PlaceGenerativeSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceGenerativeSummary {
-    /// disclosureText property.
-    pub disclosure_text: Option<GoogleTypeLocalizedText>,
-    /// overview property.
-    pub overview: Option<GoogleTypeLocalizedText>,
-    /// overviewFlagContentUri property.
-    pub overview_flag_content_uri: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlacePaymentOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlacePaymentOptions {
-    /// acceptsCashOnly property.
-    pub accepts_cash_only: Option<bool>,
-    /// acceptsCreditCards property.
-    pub accepts_credit_cards: Option<bool>,
-    /// acceptsDebitCards property.
-    pub accepts_debit_cards: Option<bool>,
-    /// acceptsNfc property.
-    pub accepts_nfc: Option<bool>,
-}
-
-/// `GoogleMapsPlacesV1PlacePlusCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlacePlusCode {
-    /// compoundCode property.
-    pub compound_code: Option<String>,
-    /// globalCode property.
-    pub global_code: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1ContentBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1ContentBlock {
-    /// content property.
-    pub content: Option<GoogleTypeLocalizedText>,
-    /// referencedPlaces property.
-    pub referenced_places: Option<Vec<String>>,
-}
-
-/// `GoogleMapsPlacesV1AddressDescriptorArea` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AddressDescriptorArea {
-    /// containment property.
-    pub containment: Option<String>,
-    /// displayName property.
-    pub display_name: Option<GoogleTypeLocalizedText>,
-    /// name property.
-    pub name: Option<String>,
-    /// placeId property.
-    pub place_id: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceConsumerAlert` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
-    /// details property.
-    pub details: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetails>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// overview property.
-    pub overview: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PriceRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PriceRange {
-    /// endPrice property.
-    pub end_price: Option<GoogleTypeMoney>,
-    /// startPrice property.
-    pub start_price: Option<GoogleTypeMoney>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHours` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHours {
-    /// nextCloseTime property.
-    pub next_close_time: Option<String>,
-    /// nextOpenTime property.
-    pub next_open_time: Option<String>,
-    /// openNow property.
-    pub open_now: Option<bool>,
-    /// periods property.
-    pub periods: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
-    /// secondaryHoursType property.
-    pub secondary_hours_type: Option<String>,
-    /// specialDays property.
-    pub special_days: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
-    /// weekdayDescriptions property.
-    pub weekday_descriptions: Option<Vec<String>>,
-}
-
-/// `GoogleMapsPlacesV1EVChargeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1EVChargeOptions {
-    /// connectorAggregation property.
-    pub connector_aggregation: Option<Vec<GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation>>,
-    /// connectorCount property.
-    pub connector_count: Option<i64>,
-}
-
-/// `GoogleTypeMoney` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceContainingPlace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceContainingPlace {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceAddressComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceAddressComponent {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// longText property.
-    pub long_text: Option<String>,
-    /// shortText property.
-    pub short_text: Option<String>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GoogleMapsPlacesV1Photo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1Photo {
-    /// authorAttributions property.
-    pub author_attributions: Option<Vec<GoogleMapsPlacesV1AuthorAttribution>>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// googleMapsUri property.
-    pub google_maps_uri: Option<String>,
-    /// heightPx property.
-    pub height_px: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// widthPx property.
-    pub width_px: Option<i64>,
-}
-
-/// `GoogleMapsPlacesV1PlaceReviewSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceReviewSummary {
-    /// disclosureText property.
-    pub disclosure_text: Option<GoogleTypeLocalizedText>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// reviewsUri property.
-    pub reviews_uri: Option<String>,
-    /// text property.
-    pub text: Option<GoogleTypeLocalizedText>,
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat {
+    /// mainText property.
+    pub main_text: Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
+    /// secondaryText property.
+    pub secondary_text:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
 }
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`places.places.autocomplete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PlacesPlacesAutocompleteArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1AutocompletePlacesRequest,
+}
+
 /// Arguments for [`places.places.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PlacesPlacesGetArgs {
     /// Path parameter: `name`.
     pub name: String,
@@ -686,15 +1084,42 @@ pub struct PlacesPlacesGetArgs {
     pub session_token: Option<String>,
 }
 
+/// Arguments for [`places.places.searchNearby_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PlacesPlacesSearchNearbyArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1SearchNearbyRequest,
+}
+
+/// Arguments for [`places.places.searchText_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PlacesPlacesSearchTextArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1SearchTextRequest,
+}
+
+/// Arguments for [`places.places.photos.getMedia_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PlacesPlacesPhotosGetMediaArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `maxHeightPx`.
+    pub max_height_px: Option<String>,
+    /// Query parameter: `maxWidthPx`.
+    pub max_width_px: Option<String>,
+    /// Query parameter: `skipHttpRedirect`.
+    pub skip_http_redirect: Option<String>,
+}
+
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// GET v1/places/{placesId}
+// POST v1/places:autocomplete
 // -----------------------------------------------------------------------------
 
-/// GET v1/places/{placesId}.
+/// POST v1/places:autocomplete.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -702,6 +1127,103 @@ pub struct PlacesPlacesGetArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = places_places_autocomplete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn places_places_autocomplete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PlacesPlacesAutocompleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleMapsPlacesV1AutocompletePlacesResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:autocomplete",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleMapsPlacesV1AutocompletePlacesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -714,6 +1236,7 @@ pub struct PlacesPlacesGetArgs {
 #[inline]
 pub fn places_places_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PlacesPlacesGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -728,7 +1251,43 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!("https://places.googleapis.com/v1/places/{{placesId}}",);
+    let endpoint_url = format!("https://places.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.language_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("languageCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.region_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("regionCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.session_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sessionToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -761,6 +1320,323 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: GoogleMapsPlacesV1Place =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/places:searchNearby
+// -----------------------------------------------------------------------------
+
+/// POST v1/places:searchNearby.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = places_places_search_nearby_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn places_places_search_nearby_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PlacesPlacesSearchNearbyArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleMapsPlacesV1SearchNearbyResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:searchNearby",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleMapsPlacesV1SearchNearbyResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/places:searchText
+// -----------------------------------------------------------------------------
+
+/// POST v1/places:searchText.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = places_places_search_text_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn places_places_search_text_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PlacesPlacesSearchTextArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleMapsPlacesV1SearchTextResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:searchText",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleMapsPlacesV1SearchTextResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = places_places_photos_get_media_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn places_places_photos_get_media_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PlacesPlacesPhotosGetMediaArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://places.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.max_height_px {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxHeightPx=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_width_px {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxWidthPx=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.skip_http_redirect {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("skipHttpRedirect=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GoogleMapsPlacesV1PhotoMedia =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;

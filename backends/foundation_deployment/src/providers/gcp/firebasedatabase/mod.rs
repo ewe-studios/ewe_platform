@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebasedatabase_instances")]
-pub mod instances;
+#[cfg(feature = "gcp_firebasedatabase_firebasedatabase")]
+pub mod firebasedatabase;

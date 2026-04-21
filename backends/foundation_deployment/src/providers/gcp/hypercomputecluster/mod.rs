@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_hypercomputecluster_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_hypercomputecluster_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_hypercomputecluster_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_hypercomputecluster_hypercomputecluster")]
+pub mod hypercomputecluster;

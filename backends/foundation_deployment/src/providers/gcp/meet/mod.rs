@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_meet_conference_records")]
-pub mod conference_records;
-#[cfg(feature = "gcp_meet_entries")]
-pub mod entries;
-#[cfg(feature = "gcp_meet_participant_sessions")]
-pub mod participant_sessions;
-#[cfg(feature = "gcp_meet_participants")]
-pub mod participants;
-#[cfg(feature = "gcp_meet_recordings")]
-pub mod recordings;
-#[cfg(feature = "gcp_meet_smart_notes")]
-pub mod smart_notes;
-#[cfg(feature = "gcp_meet_spaces")]
-pub mod spaces;
-#[cfg(feature = "gcp_meet_transcripts")]
-pub mod transcripts;
+#[cfg(feature = "gcp_meet_meet")]
+pub mod meet;

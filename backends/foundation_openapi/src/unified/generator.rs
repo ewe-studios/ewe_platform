@@ -361,10 +361,12 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                 while let Some(&next_c) = chars.peek() {
                     if next_c == '}' {
                         chars.next(); // consume the closing brace
-                        // Check if this param is in our path_params list
+                        // Check if this param is in our path_params list.
+                        // Strip GCP resource expansion prefix (+) from param_content.
+                        let normalized = param_content.strip_prefix('+').unwrap_or(&param_content);
                         if let Some(matching_param) = path_params.iter().find(|p| {
                             let sanitized = sanitize_identifier(p);
-                            sanitized == param_content || **p == param_content
+                            sanitized == normalized || **p == param_content || **p == normalized
                         }) {
                             // This is a known path parameter - replace with {}
                             result.push_str("{}");
@@ -841,7 +843,7 @@ impl UnifiedGenerator {
             } else {
                 // No schema found - generate placeholder struct
                 writeln!(out, "/// `{}` response type.", safe_type_name)?;
-                writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
+                writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
                 writeln!(out, "pub struct {} {{", safe_type_name)?;
                 writeln!(out, "    /// Raw JSON value - full schema generated from `OpenAPI`")?;
                 writeln!(out, "    #[serde(flatten)]")?;
@@ -869,7 +871,7 @@ impl UnifiedGenerator {
 
             if has_params {
                 writeln!(out, "/// Arguments for [`{}_builder`].", ep.operation_id)?;
-                writeln!(out, "#[derive(Debug, Clone, Serialize, JsonHash)]")?;
+                writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
                 writeln!(out, "pub struct {} {{", args_name)?;
 
                 for param in &ep.path_params {
@@ -925,7 +927,7 @@ impl UnifiedGenerator {
         use std::collections::BTreeMap;
 
         writeln!(out, "/// `{}` type.", type_name)?;
-        writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
+        writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
         writeln!(out, "pub struct {} {{", type_name)?;
 
         // Handle allOf - merge properties from all members
@@ -1056,11 +1058,6 @@ impl UnifiedGenerator {
             .map(|rt| rt.as_rust_type().to_string())
             .unwrap_or_else(|| "()".to_string());
 
-        // Check if args is actually used in the function body
-        // (path params in URL or request body)
-        let (_, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        let args_is_used = !params_in_url_order.is_empty() || ep.request_type.is_some();
-
         let args_name = format!("{}Args", to_pascal_case(&sanitize_identifier(&ep.operation_id)));
 
         // Header comment for this endpoint
@@ -1078,9 +1075,7 @@ impl UnifiedGenerator {
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
         writeln!(out, "/// * `client` - HTTP client for making the request")?;
-        if args_is_used {
-            writeln!(out, "/// * `args` - Request arguments (path params, query params, body)")?;
-        }
+        writeln!(out, "/// * `args` - Request arguments (path params, query params, body)")?;
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Example")?;
@@ -1093,9 +1088,7 @@ impl UnifiedGenerator {
         writeln!(out, "#[inline]")?;
         writeln!(out, "pub fn {}_request<R, F>(", fn_prefix)?;
         writeln!(out, "    client: &SimpleHttpClient<R>,")?;
-        if args_is_used {
-            writeln!(out, "    args: &{},", args_name)?;
-        }
+        writeln!(out, "    args: &{},", args_name)?;
         writeln!(out, "    builder_mod: Option<F>,")?;
         writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
@@ -1103,17 +1096,36 @@ impl UnifiedGenerator {
         writeln!(out, "    F: FnOnce(&mut ClientRequestBuilder<R>),")?;
         writeln!(out, "{{")?;
 
-        // Build URL
+        // Build URL with path params, then append query params if any
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
         let (escaped_base, _) = escape_url_for_format(ep.base_url.as_deref().unwrap_or("https://api.example.com"), &[]);
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
         for param_name in &params_in_url_order {
             let safe_param = escape_rust_keyword(param_name);
-            writeln!(out, "        args.{},", safe_param)?;
+            writeln!(out, "        args.{safe_param},")?;
         }
         writeln!(out, "    );")?;
         writeln!(out)?;
+
+        // Append query params from args if any
+        if !ep.query_params.is_empty() {
+            writeln!(out, "    let endpoint_url = {{")?;
+            writeln!(out, "        let mut url = endpoint_url;")?;
+            writeln!(out, "        let mut first = true;")?;
+            for qp in &ep.query_params {
+                let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
+                let url_qp_name = sanitize_identifier(qp);
+                writeln!(out, "        if let Some(ref v) = args.{safe_qp} {{")?;
+                writeln!(out, "            if first {{ url.push('?'); first = false; }} else {{ url.push('&'); }}")?;
+                writeln!(out, "            url.push_str(\"{url_qp_name}=\");")?;
+                writeln!(out, "            url.push_str(&urlencoding::encode(v));")?;
+                writeln!(out, "        }}")?;
+            }
+            writeln!(out, "        url")?;
+            writeln!(out, "    }};")?;
+            writeln!(out)?;
+        }
 
         // Build request
         let method_lower = ep.method.to_lowercase();
@@ -1216,7 +1228,7 @@ impl UnifiedGenerator {
             let safe_name = rename_std_type_conflict(type_name);
 
             writeln!(out, "/// Shared type: `{}`.", safe_name)?;
-            writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
+            writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
             writeln!(out, "pub struct {} {{", safe_name)?;
             writeln!(out, "    #[serde(flatten)]")?;
             writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;

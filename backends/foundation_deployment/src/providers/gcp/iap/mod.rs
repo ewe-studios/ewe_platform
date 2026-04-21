@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_iap_brands")]
-pub mod brands;
-#[cfg(feature = "gcp_iap_dest_groups")]
-pub mod dest_groups;
-#[cfg(feature = "gcp_iap_identity_aware_proxy_clients")]
-pub mod identity_aware_proxy_clients;
-#[cfg(feature = "gcp_iap_group")]
-pub mod group;
+#[cfg(feature = "gcp_iap_iap")]
+pub mod iap;

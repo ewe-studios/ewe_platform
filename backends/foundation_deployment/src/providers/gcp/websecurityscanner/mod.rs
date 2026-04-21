@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_websecurityscanner_crawled_urls")]
-pub mod crawled_urls;
-#[cfg(feature = "gcp_websecurityscanner_finding_type_stats")]
-pub mod finding_type_stats;
-#[cfg(feature = "gcp_websecurityscanner_findings")]
-pub mod findings;
-#[cfg(feature = "gcp_websecurityscanner_scan_configs")]
-pub mod scan_configs;
-#[cfg(feature = "gcp_websecurityscanner_scan_runs")]
-pub mod scan_runs;
+#[cfg(feature = "gcp_websecurityscanner_websecurityscanner")]
+pub mod websecurityscanner;

@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_osconfig_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_osconfig_policy_orchestrators")]
-pub mod policy_orchestrators;
+#[cfg(feature = "gcp_osconfig_osconfig")]
+pub mod osconfig;

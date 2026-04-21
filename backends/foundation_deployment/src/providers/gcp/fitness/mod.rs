@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_fitness_data_point_changes")]
-pub mod data_point_changes;
-#[cfg(feature = "gcp_fitness_data_sources")]
-pub mod data_sources;
-#[cfg(feature = "gcp_fitness_dataset_aggregate")]
-pub mod dataset_aggregate;
-#[cfg(feature = "gcp_fitness_datasets")]
-pub mod datasets;
-#[cfg(feature = "gcp_fitness_sessions")]
-pub mod sessions;
+#[cfg(feature = "gcp_fitness_fitness")]
+pub mod fitness;

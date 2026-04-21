@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_abusiveexperiencereport_sites")]
-pub mod sites;
-#[cfg(feature = "gcp_abusiveexperiencereport_violating_sites")]
-pub mod violating_sites;
+#[cfg(feature = "gcp_abusiveexperiencereport_abusiveexperiencereport")]
+pub mod abusiveexperiencereport;

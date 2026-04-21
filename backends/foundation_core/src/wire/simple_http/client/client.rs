@@ -436,6 +436,21 @@ impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {
 }
 
 impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
+    /// Sets a custom TLS connector for this client.
+    ///
+    /// Useful for testing with self-signed certificates: create a
+    /// `SSLConnector` that trusts the test CA and pass it here.
+    #[must_use]
+    pub fn with_tls_connector(mut self, connector: crate::netcap::ssl::SSLConnector) -> Self {
+        if let Some(pool) = self.pool.take() {
+            let pool_inner = Arc::try_unwrap(pool).unwrap_or_else(|arc| (*arc).clone());
+            self.pool = Some(Arc::new(pool_inner.with_tls_connector(connector)));
+        }
+        self
+    }
+}
+
+impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     // Convenience methods for common HTTP verbs that return prepared ClientRequest
     // which wraps the task machinery and can be executed by the caller.
 

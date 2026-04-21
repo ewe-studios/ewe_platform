@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleLongrunningOperation`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningOperation {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `GoogleProtobufEmpty`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

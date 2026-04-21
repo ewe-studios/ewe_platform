@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_connectors_actions")]
-pub mod actions;
-#[cfg(feature = "gcp_connectors_connections")]
-pub mod connections;
-#[cfg(feature = "gcp_connectors_entities")]
-pub mod entities;
-#[cfg(feature = "gcp_connectors_entities_delete_entities_conditions")]
-pub mod entities_delete_entities_conditions;
-#[cfg(feature = "gcp_connectors_entities_update_entities_conditions")]
-pub mod entities_update_entities_conditions;
-#[cfg(feature = "gcp_connectors_entity_types")]
-pub mod entity_types;
-#[cfg(feature = "gcp_connectors_resources")]
-pub mod resources;
-#[cfg(feature = "gcp_connectors_tools")]
-pub mod tools;
+#[cfg(feature = "gcp_connectors_connectors")]
+pub mod connectors;

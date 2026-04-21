@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_agentregistry_agents")]
-pub mod agents;
-#[cfg(feature = "gcp_agentregistry_agents_search")]
-pub mod agents_search;
-#[cfg(feature = "gcp_agentregistry_bindings")]
-pub mod bindings;
-#[cfg(feature = "gcp_agentregistry_bindings_fetch_available")]
-pub mod bindings_fetch_available;
-#[cfg(feature = "gcp_agentregistry_endpoints")]
-pub mod endpoints;
-#[cfg(feature = "gcp_agentregistry_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_agentregistry_mcp_servers")]
-pub mod mcp_servers;
-#[cfg(feature = "gcp_agentregistry_mcp_servers_search")]
-pub mod mcp_servers_search;
-#[cfg(feature = "gcp_agentregistry_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_agentregistry_services")]
-pub mod services;
+#[cfg(feature = "gcp_agentregistry_agentregistry")]
+pub mod agentregistry;

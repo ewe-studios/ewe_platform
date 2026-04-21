@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_pollen_forecast_lookup")]
-pub mod forecast_lookup;
-#[cfg(feature = "gcp_pollen_heatmap_tiles")]
-pub mod heatmap_tiles;
+#[cfg(feature = "gcp_pollen_pollen")]
+pub mod pollen;

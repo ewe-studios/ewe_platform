@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_certificatemanager_certificate_issuance_configs")]
-pub mod certificate_issuance_configs;
-#[cfg(feature = "gcp_certificatemanager_certificate_map_entries")]
-pub mod certificate_map_entries;
-#[cfg(feature = "gcp_certificatemanager_certificate_maps")]
-pub mod certificate_maps;
-#[cfg(feature = "gcp_certificatemanager_certificates")]
-pub mod certificates;
-#[cfg(feature = "gcp_certificatemanager_dns_authorizations")]
-pub mod dns_authorizations;
-#[cfg(feature = "gcp_certificatemanager_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_certificatemanager_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_certificatemanager_trust_configs")]
-pub mod trust_configs;
+#[cfg(feature = "gcp_certificatemanager_certificatemanager")]
+pub mod certificatemanager;

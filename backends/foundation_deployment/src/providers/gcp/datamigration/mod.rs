@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datamigration_connection_profiles")]
-pub mod connection_profiles;
-#[cfg(feature = "gcp_datamigration_conversion_workspaces")]
-pub mod conversion_workspaces;
-#[cfg(feature = "gcp_datamigration_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_datamigration_mapping_rules")]
-pub mod mapping_rules;
-#[cfg(feature = "gcp_datamigration_mapping_rules_import")]
-pub mod mapping_rules_import;
-#[cfg(feature = "gcp_datamigration_migration_jobs")]
-pub mod migration_jobs;
-#[cfg(feature = "gcp_datamigration_objects")]
-pub mod objects;
-#[cfg(feature = "gcp_datamigration_objects_lookup")]
-pub mod objects_lookup;
-#[cfg(feature = "gcp_datamigration_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datamigration_private_connections")]
-pub mod private_connections;
+#[cfg(feature = "gcp_datamigration_datamigration")]
+pub mod datamigration;

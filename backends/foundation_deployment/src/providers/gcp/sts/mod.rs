@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_sts_token")]
-pub mod token;
+#[cfg(feature = "gcp_sts_sts")]
+pub mod sts;

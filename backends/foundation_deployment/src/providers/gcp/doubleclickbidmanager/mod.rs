@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_doubleclickbidmanager_queries")]
-pub mod queries;
-#[cfg(feature = "gcp_doubleclickbidmanager_reports")]
-pub mod reports;
+#[cfg(feature = "gcp_doubleclickbidmanager_doubleclickbidmanager")]
+pub mod doubleclickbidmanager;

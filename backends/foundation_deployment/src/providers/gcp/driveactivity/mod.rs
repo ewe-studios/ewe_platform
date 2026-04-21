@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_driveactivity_activity_query")]
-pub mod activity_query;
+#[cfg(feature = "gcp_driveactivity_driveactivity")]
+pub mod driveactivity;

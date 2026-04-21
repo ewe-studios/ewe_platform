@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_merchantapi_merchant_reviews")]
-pub mod merchant_reviews;
-#[cfg(feature = "gcp_merchantapi_merchant_reviews_insert")]
-pub mod merchant_reviews_insert;
-#[cfg(feature = "gcp_merchantapi_product_reviews")]
-pub mod product_reviews;
-#[cfg(feature = "gcp_merchantapi_product_reviews_insert")]
-pub mod product_reviews_insert;
+#[cfg(feature = "gcp_merchantapi_merchantapi")]
+pub mod merchantapi;
