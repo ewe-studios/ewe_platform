@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_apigeeregistry_apis")]
-pub mod apis;
-#[cfg(feature = "gcp_apigeeregistry_artifacts")]
-pub mod artifacts;
-#[cfg(feature = "gcp_apigeeregistry_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_apigeeregistry_documents_get_iam_policy")]
-pub mod documents_get_iam_policy;
-#[cfg(feature = "gcp_apigeeregistry_documents_set_iam_policy")]
-pub mod documents_set_iam_policy;
-#[cfg(feature = "gcp_apigeeregistry_documents_test_iam_permissions")]
-pub mod documents_test_iam_permissions;
-#[cfg(feature = "gcp_apigeeregistry_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_apigeeregistry_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_apigeeregistry_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_apigeeregistry_runtime_get_iam_policy")]
-pub mod runtime_get_iam_policy;
-#[cfg(feature = "gcp_apigeeregistry_runtime_set_iam_policy")]
-pub mod runtime_set_iam_policy;
-#[cfg(feature = "gcp_apigeeregistry_runtime_test_iam_permissions")]
-pub mod runtime_test_iam_permissions;
-#[cfg(feature = "gcp_apigeeregistry_specs")]
-pub mod specs;
-#[cfg(feature = "gcp_apigeeregistry_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_apigeeregistry_apigeeregistry")]
+pub mod apigeeregistry;

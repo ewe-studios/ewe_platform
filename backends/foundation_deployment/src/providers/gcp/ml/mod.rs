@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_ml_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_ml_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_ml_models")]
-pub mod models;
-#[cfg(feature = "gcp_ml_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_ml_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_ml_studies")]
-pub mod studies;
-#[cfg(feature = "gcp_ml_trials")]
-pub mod trials;
-#[cfg(feature = "gcp_ml_trials_list_optimal_trials")]
-pub mod trials_list_optimal_trials;
-#[cfg(feature = "gcp_ml_trials_suggest")]
-pub mod trials_suggest;
-#[cfg(feature = "gcp_ml_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_ml_ml")]
+pub mod ml;

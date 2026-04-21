@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_advisorynotifications_notifications")]
-pub mod notifications;
-#[cfg(feature = "gcp_advisorynotifications_settings")]
-pub mod settings;
+#[cfg(feature = "gcp_advisorynotifications_advisorynotifications")]
+pub mod advisorynotifications;

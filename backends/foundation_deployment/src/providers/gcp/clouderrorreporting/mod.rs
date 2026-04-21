@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_clouderrorreporting_events")]
-pub mod events;
-#[cfg(feature = "gcp_clouderrorreporting_events_report")]
-pub mod events_report;
-#[cfg(feature = "gcp_clouderrorreporting_group_stats")]
-pub mod group_stats;
-#[cfg(feature = "gcp_clouderrorreporting_groups")]
-pub mod groups;
+#[cfg(feature = "gcp_clouderrorreporting_clouderrorreporting")]
+pub mod clouderrorreporting;

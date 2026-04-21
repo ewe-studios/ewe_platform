@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_oauth2_me")]
-pub mod me;
-#[cfg(feature = "gcp_oauth2_userinfo")]
-pub mod userinfo;
+#[cfg(feature = "gcp_oauth2_oauth2")]
+pub mod oauth2;

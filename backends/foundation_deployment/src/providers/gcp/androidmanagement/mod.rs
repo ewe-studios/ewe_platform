@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_androidmanagement_applications")]
-pub mod applications;
-#[cfg(feature = "gcp_androidmanagement_devices")]
-pub mod devices;
-#[cfg(feature = "gcp_androidmanagement_enrollment_tokens")]
-pub mod enrollment_tokens;
-#[cfg(feature = "gcp_androidmanagement_enterprises")]
-pub mod enterprises;
-#[cfg(feature = "gcp_androidmanagement_migration_tokens")]
-pub mod migration_tokens;
-#[cfg(feature = "gcp_androidmanagement_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_androidmanagement_policies")]
-pub mod policies;
-#[cfg(feature = "gcp_androidmanagement_provisioning_info")]
-pub mod provisioning_info;
-#[cfg(feature = "gcp_androidmanagement_signup_urls")]
-pub mod signup_urls;
-#[cfg(feature = "gcp_androidmanagement_web_apps")]
-pub mod web_apps;
-#[cfg(feature = "gcp_androidmanagement_web_tokens")]
-pub mod web_tokens;
+#[cfg(feature = "gcp_androidmanagement_androidmanagement")]
+pub mod androidmanagement;

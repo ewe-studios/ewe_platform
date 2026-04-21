@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebase_admin_sdk_config")]
-pub mod admin_sdk_config;
-#[cfg(feature = "gcp_firebase_analytics_details")]
-pub mod analytics_details;
-#[cfg(feature = "gcp_firebase_android_apps")]
-pub mod android_apps;
-#[cfg(feature = "gcp_firebase_available_locations")]
-pub mod available_locations;
-#[cfg(feature = "gcp_firebase_available_projects")]
-pub mod available_projects;
-#[cfg(feature = "gcp_firebase_config")]
-pub mod config;
-#[cfg(feature = "gcp_firebase_default_location_finalize")]
-pub mod default_location_finalize;
-#[cfg(feature = "gcp_firebase_ios_apps")]
-pub mod ios_apps;
-#[cfg(feature = "gcp_firebase_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_firebase_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_firebase_sha")]
-pub mod sha;
-#[cfg(feature = "gcp_firebase_web_apps")]
-pub mod web_apps;
+#[cfg(feature = "gcp_firebase_firebase")]
+pub mod firebase;

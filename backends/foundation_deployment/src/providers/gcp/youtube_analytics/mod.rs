@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_youtube_analytics_group_items")]
-pub mod group_items;
-#[cfg(feature = "gcp_youtube_analytics_groups")]
-pub mod groups;
-#[cfg(feature = "gcp_youtube_analytics_reports")]
-pub mod reports;
+#[cfg(feature = "gcp_youtube_analytics_youtube_analytics")]
+pub mod youtube_analytics;

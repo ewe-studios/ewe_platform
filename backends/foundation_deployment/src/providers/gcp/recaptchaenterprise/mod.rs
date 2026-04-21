@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_recaptchaenterprise_assessments")]
-pub mod assessments;
-#[cfg(feature = "gcp_recaptchaenterprise_firewallpolicies")]
-pub mod firewallpolicies;
-#[cfg(feature = "gcp_recaptchaenterprise_firewallpolicies_reorder")]
-pub mod firewallpolicies_reorder;
-#[cfg(feature = "gcp_recaptchaenterprise_keys")]
-pub mod keys;
-#[cfg(feature = "gcp_recaptchaenterprise_memberships")]
-pub mod memberships;
-#[cfg(feature = "gcp_recaptchaenterprise_metrics")]
-pub mod metrics;
-#[cfg(feature = "gcp_recaptchaenterprise_relatedaccountgroupmemberships_search")]
-pub mod relatedaccountgroupmemberships_search;
-#[cfg(feature = "gcp_recaptchaenterprise_relatedaccountgroups")]
-pub mod relatedaccountgroups;
+#[cfg(feature = "gcp_recaptchaenterprise_recaptchaenterprise")]
+pub mod recaptchaenterprise;

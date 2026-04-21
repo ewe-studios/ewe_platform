@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_privateca_ca_pools")]
-pub mod ca_pools;
-#[cfg(feature = "gcp_privateca_certificate_authorities")]
-pub mod certificate_authorities;
-#[cfg(feature = "gcp_privateca_certificate_revocation_lists")]
-pub mod certificate_revocation_lists;
-#[cfg(feature = "gcp_privateca_certificate_templates")]
-pub mod certificate_templates;
-#[cfg(feature = "gcp_privateca_certificates")]
-pub mod certificates;
-#[cfg(feature = "gcp_privateca_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_privateca_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_privateca_privateca")]
+pub mod privateca;

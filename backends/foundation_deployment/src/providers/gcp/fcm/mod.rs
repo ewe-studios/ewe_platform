@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_fcm_messages_send")]
-pub mod messages_send;
+#[cfg(feature = "gcp_fcm_fcm")]
+pub mod fcm;

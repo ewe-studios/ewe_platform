@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_alloydb_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_alloydb_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_alloydb_clusters_createsecondary")]
-pub mod clusters_createsecondary;
-#[cfg(feature = "gcp_alloydb_clusters_restore")]
-pub mod clusters_restore;
-#[cfg(feature = "gcp_alloydb_clusters_restore_from_cloud_sql")]
-pub mod clusters_restore_from_cloud_sql;
-#[cfg(feature = "gcp_alloydb_connection_info")]
-pub mod connection_info;
-#[cfg(feature = "gcp_alloydb_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_alloydb_instances_createsecondary")]
-pub mod instances_createsecondary;
-#[cfg(feature = "gcp_alloydb_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_alloydb_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_alloydb_supported_database_flags")]
-pub mod supported_database_flags;
-#[cfg(feature = "gcp_alloydb_users")]
-pub mod users;
+#[cfg(feature = "gcp_alloydb_alloydb")]
+pub mod alloydb;

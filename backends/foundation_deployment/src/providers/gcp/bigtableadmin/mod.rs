@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigtableadmin_app_profiles")]
-pub mod app_profiles;
-#[cfg(feature = "gcp_bigtableadmin_authorized_views")]
-pub mod authorized_views;
-#[cfg(feature = "gcp_bigtableadmin_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_bigtableadmin_backups_copy")]
-pub mod backups_copy;
-#[cfg(feature = "gcp_bigtableadmin_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_bigtableadmin_hot_tablets")]
-pub mod hot_tablets;
-#[cfg(feature = "gcp_bigtableadmin_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_bigtableadmin_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_bigtableadmin_logical_views")]
-pub mod logical_views;
-#[cfg(feature = "gcp_bigtableadmin_materialized_views")]
-pub mod materialized_views;
-#[cfg(feature = "gcp_bigtableadmin_memory_layer")]
-pub mod memory_layer;
-#[cfg(feature = "gcp_bigtableadmin_memory_layers")]
-pub mod memory_layers;
-#[cfg(feature = "gcp_bigtableadmin_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_bigtableadmin_schema_bundles")]
-pub mod schema_bundles;
-#[cfg(feature = "gcp_bigtableadmin_tables")]
-pub mod tables;
-#[cfg(feature = "gcp_bigtableadmin_tables_restore")]
-pub mod tables_restore;
+#[cfg(feature = "gcp_bigtableadmin_bigtableadmin")]
+pub mod bigtableadmin;

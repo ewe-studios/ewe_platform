@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_civicinfo_divisions")]
-pub mod divisions;
-#[cfg(feature = "gcp_civicinfo_divisions_by_address")]
-pub mod divisions_by_address;
-#[cfg(feature = "gcp_civicinfo_elections")]
-pub mod elections;
-#[cfg(feature = "gcp_civicinfo_voterinfo")]
-pub mod voterinfo;
+#[cfg(feature = "gcp_civicinfo_civicinfo")]
+pub mod civicinfo;

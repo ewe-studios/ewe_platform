@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_analyticsadmin_account_summaries")]
-pub mod account_summaries;
-#[cfg(feature = "gcp_analyticsadmin_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_analyticsadmin_accounts_provision_account_ticket")]
-pub mod accounts_provision_account_ticket;
-#[cfg(feature = "gcp_analyticsadmin_conversion_events")]
-pub mod conversion_events;
-#[cfg(feature = "gcp_analyticsadmin_custom_dimensions")]
-pub mod custom_dimensions;
-#[cfg(feature = "gcp_analyticsadmin_custom_metrics")]
-pub mod custom_metrics;
-#[cfg(feature = "gcp_analyticsadmin_data_retention_settings")]
-pub mod data_retention_settings;
-#[cfg(feature = "gcp_analyticsadmin_data_sharing_settings")]
-pub mod data_sharing_settings;
-#[cfg(feature = "gcp_analyticsadmin_data_streams")]
-pub mod data_streams;
-#[cfg(feature = "gcp_analyticsadmin_firebase_links")]
-pub mod firebase_links;
-#[cfg(feature = "gcp_analyticsadmin_google_ads_links")]
-pub mod google_ads_links;
-#[cfg(feature = "gcp_analyticsadmin_key_events")]
-pub mod key_events;
-#[cfg(feature = "gcp_analyticsadmin_measurement_protocol_secrets")]
-pub mod measurement_protocol_secrets;
-#[cfg(feature = "gcp_analyticsadmin_properties")]
-pub mod properties;
+#[cfg(feature = "gcp_analyticsadmin_analyticsadmin")]
+pub mod analyticsadmin;

@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datalineage_config")]
-pub mod config;
-#[cfg(feature = "gcp_datalineage_lineage_events")]
-pub mod lineage_events;
-#[cfg(feature = "gcp_datalineage_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_datalineage_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datalineage_processes")]
-pub mod processes;
-#[cfg(feature = "gcp_datalineage_runs")]
-pub mod runs;
+#[cfg(feature = "gcp_datalineage_datalineage")]
+pub mod datalineage;

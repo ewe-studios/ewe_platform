@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_securityposture_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_securityposture_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_securityposture_posture_deployments")]
-pub mod posture_deployments;
-#[cfg(feature = "gcp_securityposture_posture_templates")]
-pub mod posture_templates;
-#[cfg(feature = "gcp_securityposture_postures")]
-pub mod postures;
-#[cfg(feature = "gcp_securityposture_postures_extract")]
-pub mod postures_extract;
-#[cfg(feature = "gcp_securityposture_reports")]
-pub mod reports;
-#[cfg(feature = "gcp_securityposture_reports_create_ia_cvalidation_report")]
-pub mod reports_create_ia_cvalidation_report;
+#[cfg(feature = "gcp_securityposture_securityposture")]
+pub mod securityposture;

@@ -14,31 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `Container`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Container {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ContainerVersion`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `CustomTemplate`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomTemplate {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Destination`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Destination {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

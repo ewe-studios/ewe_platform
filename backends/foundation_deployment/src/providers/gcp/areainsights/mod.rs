@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_areainsights_compute_insights")]
-pub mod compute_insights;
+#[cfg(feature = "gcp_areainsights_areainsights")]
+pub mod areainsights;

@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_translate_adaptive_mt_datasets")]
-pub mod adaptive_mt_datasets;
-#[cfg(feature = "gcp_translate_adaptive_mt_files")]
-pub mod adaptive_mt_files;
-#[cfg(feature = "gcp_translate_adaptive_mt_sentences")]
-pub mod adaptive_mt_sentences;
-#[cfg(feature = "gcp_translate_datasets")]
-pub mod datasets;
-#[cfg(feature = "gcp_translate_examples")]
-pub mod examples;
-#[cfg(feature = "gcp_translate_glossaries")]
-pub mod glossaries;
-#[cfg(feature = "gcp_translate_glossary_entries")]
-pub mod glossary_entries;
-#[cfg(feature = "gcp_translate_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_translate_models")]
-pub mod models;
-#[cfg(feature = "gcp_translate_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_translate_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_translate_supported_languages")]
-pub mod supported_languages;
+#[cfg(feature = "gcp_translate_translate")]
+pub mod translate;

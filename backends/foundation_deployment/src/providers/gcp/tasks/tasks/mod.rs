@@ -19,17 +19,99 @@ use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHtt
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-// Import shared types used by this module
-use super::shared::Task;
-
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `Task` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Task {
+    /// assignmentInfo property.
+    pub assignment_info: Option<AssignmentInfo>,
+    /// completed property.
+    pub completed: Option<String>,
+    /// deleted property.
+    pub deleted: Option<bool>,
+    /// due property.
+    pub due: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// hidden property.
+    pub hidden: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// links property.
+    pub links: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// notes property.
+    pub notes: Option<String>,
+    /// parent property.
+    pub parent: Option<String>,
+    /// position property.
+    pub position: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
+    /// webViewLink property.
+    pub web_view_link: Option<String>,
+}
+
+/// `DriveResourceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DriveResourceInfo {
+    /// driveFileId property.
+    pub drive_file_id: Option<String>,
+    /// resourceKey property.
+    pub resource_key: Option<String>,
+}
+
+/// `SpaceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SpaceInfo {
+    /// space property.
+    pub space: Option<String>,
+}
+
+/// `TaskList` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TaskList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
+}
+
+/// `TaskLists` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TaskLists {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<TaskList>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `Tasks` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Tasks {
     /// etag property.
     pub etag: Option<String>,
@@ -41,24 +123,8 @@ pub struct Tasks {
     pub next_page_token: Option<String>,
 }
 
-/// `DriveResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveResourceInfo {
-    /// driveFileId property.
-    pub drive_file_id: Option<String>,
-    /// resourceKey property.
-    pub resource_key: Option<String>,
-}
-
-/// `SpaceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceInfo {
-    /// space property.
-    pub space: Option<String>,
-}
-
 /// `AssignmentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AssignmentInfo {
     /// driveResourceInfo property.
     pub drive_resource_info: Option<DriveResourceInfo>,
@@ -74,8 +140,63 @@ pub struct AssignmentInfo {
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`tasks.tasklists.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsDeleteArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+}
+
+/// Arguments for [`tasks.tasklists.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsGetArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+}
+
+/// Arguments for [`tasks.tasklists.insert_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsInsertArgs {
+    /// Request body.
+    pub body: TaskList,
+}
+
+/// Arguments for [`tasks.tasklists.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsListArgs {
+    /// Query parameter: `maxResults`.
+    pub max_results: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`tasks.tasklists.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsPatchArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+    /// Request body.
+    pub body: TaskList,
+}
+
+/// Arguments for [`tasks.tasklists.update_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasklistsUpdateArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+    /// Request body.
+    pub body: TaskList,
+}
+
+/// Arguments for [`tasks.tasks.clear_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasksClearArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+}
+
 /// Arguments for [`tasks.tasks.delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksDeleteArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
@@ -84,7 +205,7 @@ pub struct TasksTasksDeleteArgs {
 }
 
 /// Arguments for [`tasks.tasks.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksGetArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
@@ -93,7 +214,7 @@ pub struct TasksTasksGetArgs {
 }
 
 /// Arguments for [`tasks.tasks.insert_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksInsertArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
@@ -101,10 +222,12 @@ pub struct TasksTasksInsertArgs {
     pub parent: Option<String>,
     /// Query parameter: `previous`.
     pub previous: Option<String>,
+    /// Request body.
+    pub body: Task,
 }
 
 /// Arguments for [`tasks.tasks.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksListArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
@@ -132,27 +255,710 @@ pub struct TasksTasksListArgs {
     pub updated_min: Option<String>,
 }
 
+/// Arguments for [`tasks.tasks.move_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TasksTasksMoveArgs {
+    /// Path parameter: `tasklist`.
+    pub tasklist: String,
+    /// Path parameter: `task`.
+    pub task: String,
+    /// Query parameter: `destinationTasklist`.
+    pub destination_tasklist: Option<String>,
+    /// Query parameter: `parent`.
+    pub parent: Option<String>,
+    /// Query parameter: `previous`.
+    pub previous: Option<String>,
+}
+
 /// Arguments for [`tasks.tasks.patch_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksPatchArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
     /// Path parameter: `task`.
     pub task: String,
+    /// Request body.
+    pub body: Task,
 }
 
 /// Arguments for [`tasks.tasks.update_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TasksTasksUpdateArgs {
     /// Path parameter: `tasklist`.
     pub tasklist: String,
     /// Path parameter: `task`.
     pub task: String,
+    /// Request body.
+    pub body: Task,
 }
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
 // =============================================================================
+
+// -----------------------------------------------------------------------------
+// DELETE tasks/v1/users/@me/lists/{tasklist}
+// -----------------------------------------------------------------------------
+
+/// DELETE tasks/v1/users/@me/lists/{tasklist}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
+        args.tasklist,
+    );
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream: _,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET tasks/v1/users/@me/lists/{tasklist}
+// -----------------------------------------------------------------------------
+
+/// GET tasks/v1/users/@me/lists/{tasklist}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskList>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
+        args.tasklist,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TaskList =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST tasks/v1/users/@me/lists
+// -----------------------------------------------------------------------------
+
+/// POST tasks/v1/users/@me/lists.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_insert_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_insert_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsInsertArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskList>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TaskList =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET tasks/v1/users/@me/lists
+// -----------------------------------------------------------------------------
+
+/// GET tasks/v1/users/@me/lists.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskLists>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.max_results {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxResults=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TaskLists =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH tasks/v1/users/@me/lists/{tasklist}
+// -----------------------------------------------------------------------------
+
+/// PATCH tasks/v1/users/@me/lists/{tasklist}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskList>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
+        args.tasklist,
+    );
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TaskList =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PUT tasks/v1/users/@me/lists/{tasklist}
+// -----------------------------------------------------------------------------
+
+/// PUT tasks/v1/users/@me/lists/{tasklist}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasklists_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasklists_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasklistsUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskList>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
+        args.tasklist,
+    );
+
+    let mut builder = client
+        .put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TaskList =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST tasks/v1/lists/{tasklist}/clear
+// -----------------------------------------------------------------------------
+
+/// POST tasks/v1/lists/{tasklist}/clear.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasks_clear_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasks_clear_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasksClearArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/lists/{}/clear",
+        args.tasklist,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream: _,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
 
 // -----------------------------------------------------------------------------
 // DELETE tasks/v1/lists/{tasklist}/tasks/{task}
@@ -377,8 +1183,38 @@ where
         args.tasklist,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.parent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("parent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.previous {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("previous=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -469,6 +1305,122 @@ where
         args.tasklist,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.completed_max {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("completedMax=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.completed_min {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("completedMin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.due_max {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dueMax=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.due_min {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dueMin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_results {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxResults=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.show_assigned {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("showAssigned=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.show_completed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("showCompleted=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.show_deleted {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("showDeleted=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.show_hidden {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("showHidden=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.updated_min {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updatedMin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -500,6 +1452,134 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Tasks =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST tasks/v1/lists/{tasklist}/tasks/{task}/move
+// -----------------------------------------------------------------------------
+
+/// POST tasks/v1/lists/{tasklist}/tasks/{task}/move.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = tasks_tasks_move_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn tasks_tasks_move_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &TasksTasksMoveArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}/move",
+        args.tasklist, args.task,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.destination_tasklist {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("destinationTasklist=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.parent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("parent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.previous {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("previous=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Task =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;
@@ -563,6 +1643,10 @@ where
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -655,6 +1739,10 @@ where
 
     let mut builder = client
         .put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

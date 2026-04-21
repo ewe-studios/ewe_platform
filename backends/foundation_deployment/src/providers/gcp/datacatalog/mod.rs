@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datacatalog_catalog_search")]
-pub mod catalog_search;
-#[cfg(feature = "gcp_datacatalog_entries")]
-pub mod entries;
-#[cfg(feature = "gcp_datacatalog_entries_import")]
-pub mod entries_import;
-#[cfg(feature = "gcp_datacatalog_entries_lookup")]
-pub mod entries_lookup;
-#[cfg(feature = "gcp_datacatalog_entry_groups")]
-pub mod entry_groups;
-#[cfg(feature = "gcp_datacatalog_enum_values")]
-pub mod enum_values;
-#[cfg(feature = "gcp_datacatalog_fields")]
-pub mod fields;
-#[cfg(feature = "gcp_datacatalog_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_datacatalog_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datacatalog_policy_tags")]
-pub mod policy_tags;
-#[cfg(feature = "gcp_datacatalog_tag_templates")]
-pub mod tag_templates;
-#[cfg(feature = "gcp_datacatalog_tags")]
-pub mod tags;
-#[cfg(feature = "gcp_datacatalog_tags_reconcile")]
-pub mod tags_reconcile;
-#[cfg(feature = "gcp_datacatalog_taxonomies")]
-pub mod taxonomies;
-#[cfg(feature = "gcp_datacatalog_taxonomies_export")]
-pub mod taxonomies_export;
-#[cfg(feature = "gcp_datacatalog_taxonomies_import")]
-pub mod taxonomies_import;
+#[cfg(feature = "gcp_datacatalog_datacatalog")]
+pub mod datacatalog;

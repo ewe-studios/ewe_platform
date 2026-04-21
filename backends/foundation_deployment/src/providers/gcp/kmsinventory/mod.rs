@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_kmsinventory_crypto_keys")]
-pub mod crypto_keys;
-#[cfg(feature = "gcp_kmsinventory_protected_resources_search")]
-pub mod protected_resources_search;
-#[cfg(feature = "gcp_kmsinventory_protected_resources_summary")]
-pub mod protected_resources_summary;
+#[cfg(feature = "gcp_kmsinventory_kmsinventory")]
+pub mod kmsinventory;

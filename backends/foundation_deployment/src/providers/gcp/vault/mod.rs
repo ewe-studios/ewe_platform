@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_vault_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_vault_exports")]
-pub mod exports;
-#[cfg(feature = "gcp_vault_holds")]
-pub mod holds;
-#[cfg(feature = "gcp_vault_matters")]
-pub mod matters;
-#[cfg(feature = "gcp_vault_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_vault_saved_queries")]
-pub mod saved_queries;
+#[cfg(feature = "gcp_vault_vault")]
+pub mod vault;

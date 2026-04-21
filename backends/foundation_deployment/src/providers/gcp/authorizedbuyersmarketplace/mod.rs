@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_auction_packages")]
-pub mod auction_packages;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_clients")]
-pub mod clients;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_deals")]
-pub mod deals;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_deals_batch_update")]
-pub mod deals_batch_update;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_finalized_deals")]
-pub mod finalized_deals;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_proposals")]
-pub mod proposals;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_proposals_send_rfp")]
-pub mod proposals_send_rfp;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_publisher_profiles")]
-pub mod publisher_profiles;
-#[cfg(feature = "gcp_authorizedbuyersmarketplace_users")]
-pub mod users;
+#[cfg(feature = "gcp_authorizedbuyersmarketplace_authorizedbuyersmarketplace")]
+pub mod authorizedbuyersmarketplace;

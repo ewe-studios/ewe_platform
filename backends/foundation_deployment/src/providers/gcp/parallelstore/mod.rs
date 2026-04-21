@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_parallelstore_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_parallelstore_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_parallelstore_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_parallelstore_parallelstore")]
+pub mod parallelstore;

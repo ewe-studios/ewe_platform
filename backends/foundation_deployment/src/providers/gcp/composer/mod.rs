@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_composer_environments")]
-pub mod environments;
-#[cfg(feature = "gcp_composer_image_versions")]
-pub mod image_versions;
-#[cfg(feature = "gcp_composer_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_composer_user_workloads_config_maps")]
-pub mod user_workloads_config_maps;
-#[cfg(feature = "gcp_composer_user_workloads_secrets")]
-pub mod user_workloads_secrets;
-#[cfg(feature = "gcp_composer_workloads")]
-pub mod workloads;
+#[cfg(feature = "gcp_composer_composer")]
+pub mod composer;

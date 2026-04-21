@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudasset_assets")]
-pub mod assets;
-#[cfg(feature = "gcp_cloudasset_effective_iam_policies_batch_get")]
-pub mod effective_iam_policies_batch_get;
-#[cfg(feature = "gcp_cloudasset_feeds")]
-pub mod feeds;
-#[cfg(feature = "gcp_cloudasset_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_cloudasset_saved_queries")]
-pub mod saved_queries;
-#[cfg(feature = "gcp_cloudasset_group")]
-pub mod group;
+#[cfg(feature = "gcp_cloudasset_cloudasset")]
+pub mod cloudasset;

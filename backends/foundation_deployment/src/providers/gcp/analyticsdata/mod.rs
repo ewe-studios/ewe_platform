@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_analyticsdata_audience_exports")]
-pub mod audience_exports;
-#[cfg(feature = "gcp_analyticsdata_metadata")]
-pub mod metadata;
-#[cfg(feature = "gcp_analyticsdata_properties")]
-pub mod properties;
+#[cfg(feature = "gcp_analyticsdata_analyticsdata")]
+pub mod analyticsdata;

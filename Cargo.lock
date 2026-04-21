@@ -2137,10 +2137,12 @@ dependencies = [
  "foundation_core",
  "foundation_deployment",
  "foundation_nostd",
+ "rustls 0.23.38",
  "serial_test",
  "sha1",
  "tracing",
  "tracing-test",
+ "zeroize",
 ]
 
 [[package]]

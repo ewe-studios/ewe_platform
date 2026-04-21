@@ -10,31 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_calendar_acl")]
-pub mod acl;
-#[cfg(feature = "gcp_calendar_calendar_list")]
-pub mod calendar_list;
-#[cfg(feature = "gcp_calendar_calendars")]
-pub mod calendars;
-#[cfg(feature = "gcp_calendar_clear")]
-pub mod clear;
-#[cfg(feature = "gcp_calendar_colors")]
-pub mod colors;
-#[cfg(feature = "gcp_calendar_events")]
-pub mod events;
-#[cfg(feature = "gcp_calendar_free_busy")]
-pub mod free_busy;
-#[cfg(feature = "gcp_calendar_import")]
-pub mod import;
-#[cfg(feature = "gcp_calendar_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_calendar_move_mod")]
-pub mod move_mod;
-#[cfg(feature = "gcp_calendar_quick_add")]
-pub mod quick_add;
-#[cfg(feature = "gcp_calendar_settings")]
-pub mod settings;
-#[cfg(feature = "gcp_calendar_stop")]
-pub mod stop;
-#[cfg(feature = "gcp_calendar_watch")]
-pub mod watch;
+#[cfg(feature = "gcp_calendar_calendar")]
+pub mod calendar;

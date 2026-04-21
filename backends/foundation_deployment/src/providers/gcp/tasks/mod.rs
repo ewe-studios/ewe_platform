@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_tasks_clear")]
-pub mod clear;
-#[cfg(feature = "gcp_tasks_lists")]
-pub mod lists;
-#[cfg(feature = "gcp_tasks_move_mod")]
-pub mod move_mod;
 #[cfg(feature = "gcp_tasks_tasks")]
 pub mod tasks;

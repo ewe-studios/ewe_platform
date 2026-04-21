@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_chromewebstore_items")]
-pub mod items;
+#[cfg(feature = "gcp_chromewebstore_chromewebstore")]
+pub mod chromewebstore;

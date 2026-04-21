@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_observability_buckets")]
-pub mod buckets;
-#[cfg(feature = "gcp_observability_datasets")]
-pub mod datasets;
-#[cfg(feature = "gcp_observability_links")]
-pub mod links;
-#[cfg(feature = "gcp_observability_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_observability_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_observability_scopes")]
-pub mod scopes;
-#[cfg(feature = "gcp_observability_settings")]
-pub mod settings;
-#[cfg(feature = "gcp_observability_trace_scopes")]
-pub mod trace_scopes;
-#[cfg(feature = "gcp_observability_views")]
-pub mod views;
+#[cfg(feature = "gcp_observability_observability")]
+pub mod observability;

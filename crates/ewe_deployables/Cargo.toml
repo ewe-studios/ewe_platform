@@ -12,7 +12,7 @@ keywords.workspace = true
 [dependencies]
 # Foundation crates
 foundation_core = { workspace = true }
-foundation_deployment = { workspace = true, features = ["cloudflare", "gcp"] }
+foundation_deployment = { workspace = true, features = ["cloudflare", "cloudflare_workers", "gcp", "gcp_run"] }
 foundation_db = { workspace = true }
 
 # Serde for serialization
@@ -27,6 +27,10 @@ tracing = { workspace = true }
 
 # Thiserror for error types
 thiserror = { version = "1.0" }
+
+[dev-dependencies]
+foundation_testing = { workspace = true }
+tempfile = "3"
 
 [lints]
 workspace = true

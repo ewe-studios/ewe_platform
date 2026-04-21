@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_groupsmigration_archive")]
-pub mod archive;
+#[cfg(feature = "gcp_groupsmigration_groupsmigration")]
+pub mod groupsmigration;

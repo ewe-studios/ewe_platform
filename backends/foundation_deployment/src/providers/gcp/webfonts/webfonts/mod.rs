@@ -26,7 +26,7 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `WebfontList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WebfontList {
     /// items property.
     pub items: Option<Vec<Webfont>>,
@@ -34,8 +34,19 @@ pub struct WebfontList {
     pub kind: Option<String>,
 }
 
+/// `Axis` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Axis {
+    /// end property.
+    pub end: Option<f64>,
+    /// start property.
+    pub start: Option<f64>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
 /// `Webfont` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Webfont {
     /// axes property.
     pub axes: Option<Vec<Axis>>,
@@ -63,19 +74,8 @@ pub struct Webfont {
     pub version: Option<String>,
 }
 
-/// `Axis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Axis {
-    /// end property.
-    pub end: Option<f64>,
-    /// start property.
-    pub start: Option<f64>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
 /// `Tag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// name property.
     pub name: Option<String>,
@@ -88,7 +88,7 @@ pub struct Tag {
 // =============================================================================
 
 /// Arguments for [`webfonts.webfonts.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebfontsWebfontsListArgs {
     /// Query parameter: `capability`.
     pub capability: Option<String>,
@@ -118,6 +118,7 @@ pub struct WebfontsWebfontsListArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -130,6 +131,7 @@ pub struct WebfontsWebfontsListArgs {
 #[inline]
 pub fn webfonts_webfonts_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WebfontsWebfontsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -145,6 +147,62 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://webfonts.googleapis.com/v1/webfonts",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.capability {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("capability=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("category=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("family=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sort {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sort=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)

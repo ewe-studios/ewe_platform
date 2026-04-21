@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_vision_files_annotate")]
-pub mod files_annotate;
-#[cfg(feature = "gcp_vision_files_async_batch_annotate")]
-pub mod files_async_batch_annotate;
-#[cfg(feature = "gcp_vision_images_annotate")]
-pub mod images_annotate;
-#[cfg(feature = "gcp_vision_images_async_batch_annotate")]
-pub mod images_async_batch_annotate;
-#[cfg(feature = "gcp_vision_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_vision_product_sets")]
-pub mod product_sets;
-#[cfg(feature = "gcp_vision_product_sets_import")]
-pub mod product_sets_import;
-#[cfg(feature = "gcp_vision_products")]
-pub mod products;
-#[cfg(feature = "gcp_vision_products_purge")]
-pub mod products_purge;
-#[cfg(feature = "gcp_vision_reference_images")]
-pub mod reference_images;
+#[cfg(feature = "gcp_vision_vision")]
+pub mod vision;

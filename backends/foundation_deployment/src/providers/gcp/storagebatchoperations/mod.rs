@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_storagebatchoperations_bucket_operations")]
-pub mod bucket_operations;
-#[cfg(feature = "gcp_storagebatchoperations_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_storagebatchoperations_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_storagebatchoperations_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_storagebatchoperations_storagebatchoperations")]
+pub mod storagebatchoperations;

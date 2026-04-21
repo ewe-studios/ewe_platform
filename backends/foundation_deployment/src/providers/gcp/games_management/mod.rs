@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_games_management_hidden")]
-pub mod hidden;
-#[cfg(feature = "gcp_games_management_reset")]
-pub mod reset;
-#[cfg(feature = "gcp_games_management_reset_all_all_players")]
-pub mod reset_all_all_players;
-#[cfg(feature = "gcp_games_management_reset_all_players")]
-pub mod reset_all_players;
-#[cfg(feature = "gcp_games_management_reset_multiple_all_players")]
-pub mod reset_multiple_all_players;
+#[cfg(feature = "gcp_games_management_games_management")]
+pub mod games_management;

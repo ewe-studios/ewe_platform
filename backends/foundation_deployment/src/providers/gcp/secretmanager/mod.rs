@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_secretmanager_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_secretmanager_secrets")]
-pub mod secrets;
-#[cfg(feature = "gcp_secretmanager_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_secretmanager_secretmanager")]
+pub mod secretmanager;

@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_doubleclicksearch_conversion")]
-pub mod conversion;
-#[cfg(feature = "gcp_doubleclicksearch_files")]
-pub mod files;
-#[cfg(feature = "gcp_doubleclicksearch_generate")]
-pub mod generate;
-#[cfg(feature = "gcp_doubleclicksearch_idmapping")]
-pub mod idmapping;
-#[cfg(feature = "gcp_doubleclicksearch_reports")]
-pub mod reports;
-#[cfg(feature = "gcp_doubleclicksearch_savedcolumns")]
-pub mod savedcolumns;
-#[cfg(feature = "gcp_doubleclicksearch_update_availability")]
-pub mod update_availability;
+#[cfg(feature = "gcp_doubleclicksearch_doubleclicksearch")]
+pub mod doubleclicksearch;

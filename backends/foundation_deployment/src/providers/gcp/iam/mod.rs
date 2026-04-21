@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_iam_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_iam_policies")]
-pub mod policies;
+#[cfg(feature = "gcp_iam_iam")]
+pub mod iam;

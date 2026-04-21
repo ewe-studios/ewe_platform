@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_recommendationengine_catalog_items")]
-pub mod catalog_items;
-#[cfg(feature = "gcp_recommendationengine_catalog_items_import")]
-pub mod catalog_items_import;
-#[cfg(feature = "gcp_recommendationengine_catalogs")]
-pub mod catalogs;
-#[cfg(feature = "gcp_recommendationengine_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_recommendationengine_placements")]
-pub mod placements;
-#[cfg(feature = "gcp_recommendationengine_prediction_key_registrations")]
-pub mod prediction_key_registrations;
-#[cfg(feature = "gcp_recommendationengine_user_events")]
-pub mod user_events;
-#[cfg(feature = "gcp_recommendationengine_user_events_collect")]
-pub mod user_events_collect;
-#[cfg(feature = "gcp_recommendationengine_user_events_import")]
-pub mod user_events_import;
-#[cfg(feature = "gcp_recommendationengine_user_events_purge")]
-pub mod user_events_purge;
-#[cfg(feature = "gcp_recommendationengine_user_events_rejoin")]
-pub mod user_events_rejoin;
-#[cfg(feature = "gcp_recommendationengine_user_events_write")]
-pub mod user_events_write;
+#[cfg(feature = "gcp_recommendationengine_recommendationengine")]
+pub mod recommendationengine;

@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_discovery_apis")]
-pub mod apis;
-#[cfg(feature = "gcp_discovery_rest")]
-pub mod rest;
+#[cfg(feature = "gcp_discovery_discovery")]
+pub mod discovery;

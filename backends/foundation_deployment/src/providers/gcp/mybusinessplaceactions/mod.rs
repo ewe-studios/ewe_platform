@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessplaceactions_place_action_links")]
-pub mod place_action_links;
-#[cfg(feature = "gcp_mybusinessplaceactions_place_action_type_metadata")]
-pub mod place_action_type_metadata;
+#[cfg(feature = "gcp_mybusinessplaceactions_mybusinessplaceactions")]
+pub mod mybusinessplaceactions;

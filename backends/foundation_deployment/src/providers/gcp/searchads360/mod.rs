@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_searchads360_custom_columns")]
-pub mod custom_columns;
-#[cfg(feature = "gcp_searchads360_customers_list_accessible_customers")]
-pub mod customers_list_accessible_customers;
-#[cfg(feature = "gcp_searchads360_search_ads360_search")]
-pub mod search_ads360_search;
-#[cfg(feature = "gcp_searchads360_search_ads360fields")]
-pub mod search_ads360fields;
-#[cfg(feature = "gcp_searchads360_search_ads360fields_search")]
-pub mod search_ads360fields_search;
+#[cfg(feature = "gcp_searchads360_searchads360")]
+pub mod searchads360;

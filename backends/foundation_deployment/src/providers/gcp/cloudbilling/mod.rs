@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudbilling_billing_accounts")]
-pub mod billing_accounts;
-#[cfg(feature = "gcp_cloudbilling_billing_info")]
-pub mod billing_info;
-#[cfg(feature = "gcp_cloudbilling_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_cloudbilling_services")]
-pub mod services;
-#[cfg(feature = "gcp_cloudbilling_skus")]
-pub mod skus;
-#[cfg(feature = "gcp_cloudbilling_sub_accounts")]
-pub mod sub_accounts;
+#[cfg(feature = "gcp_cloudbilling_cloudbilling")]
+pub mod cloudbilling;

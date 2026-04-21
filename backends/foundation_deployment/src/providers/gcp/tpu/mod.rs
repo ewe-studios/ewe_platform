@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_tpu_accelerator_types")]
-pub mod accelerator_types;
-#[cfg(feature = "gcp_tpu_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_tpu_nodes")]
-pub mod nodes;
-#[cfg(feature = "gcp_tpu_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_tpu_queued_resources")]
-pub mod queued_resources;
-#[cfg(feature = "gcp_tpu_runtime_versions")]
-pub mod runtime_versions;
+#[cfg(feature = "gcp_tpu_tpu")]
+pub mod tpu;

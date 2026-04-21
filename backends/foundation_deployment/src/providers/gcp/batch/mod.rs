@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_batch_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_batch_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_batch_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_batch_state_report")]
-pub mod state_report;
-#[cfg(feature = "gcp_batch_tasks")]
-pub mod tasks;
+#[cfg(feature = "gcp_batch_batch")]
+pub mod batch;

@@ -21,7 +21,6 @@ use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Empty;
-use super::shared::Person;
 
 use super::shared::ApiResponse;
 
@@ -29,51 +28,38 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ProfileMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProfileMetadata {
-    /// objectType property.
-    pub object_type: Option<String>,
-    /// userTypes property.
-    pub user_types: Option<Vec<String>>,
+/// `SearchResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchResponse {
+    /// results property.
+    pub results: Option<Vec<SearchResult>>,
 }
 
-/// `DeleteContactPhotoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteContactPhotoResponse {
-    /// person property.
-    pub person: Option<Person>,
+/// `ModifyContactGroupMembersRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ModifyContactGroupMembersRequest {
+    /// resourceNamesToAdd property.
+    pub resource_names_to_add: Option<Vec<String>>,
+    /// resourceNamesToRemove property.
+    pub resource_names_to_remove: Option<Vec<String>>,
 }
 
-/// `CoverPhoto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CoverPhoto {
-    /// default property.
-    pub default: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// url property.
-    pub url: Option<String>,
+/// `FieldMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FieldMetadata {
+    /// primary property.
+    pub primary: Option<bool>,
+    /// source property.
+    pub source: Option<Source>,
+    /// sourcePrimary property.
+    pub source_primary: Option<bool>,
+    /// verified property.
+    pub verified: Option<bool>,
 }
 
-/// `Relation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Relation {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// person property.
-    pub person: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `EmailAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddress {
-    /// displayName property.
-    pub display_name: Option<String>,
+/// `MiscKeyword` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MiscKeyword {
     /// formattedType property.
     pub formatted_type: Option<String>,
     /// metadata property.
@@ -84,17 +70,254 @@ pub struct EmailAddress {
     pub value: Option<String>,
 }
 
-/// `AgeRangeType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgeRangeType {
-    /// ageRange property.
-    pub age_range: Option<String>,
+/// `BatchCreateContactsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchCreateContactsResponse {
+    /// createdPeople property.
+    pub created_people: Option<Vec<PersonResponse>>,
+}
+
+/// `BatchUpdateContactsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateContactsRequest {
+    /// contacts property.
+    pub contacts: Option<serde_json::Value>,
+    /// readMask property.
+    pub read_mask: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<String>>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `Nickname` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Nickname {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// buildingId property.
+    pub building_id: Option<String>,
+    /// current property.
+    pub current: Option<bool>,
+    /// deskCode property.
+    pub desk_code: Option<String>,
+    /// floor property.
+    pub floor: Option<String>,
+    /// floorSection property.
+    pub floor_section: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ListContactGroupsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListContactGroupsResponse {
+    /// contactGroups property.
+    pub contact_groups: Option<Vec<ContactGroup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
+    /// totalItems property.
+    pub total_items: Option<i64>,
+}
+
+/// `ClientData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientData {
+    /// key property.
+    pub key: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Gender` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Gender {
+    /// addressMeAs property.
+    pub address_me_as: Option<String>,
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Occupation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Occupation {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GetPeopleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetPeopleResponse {
+    /// responses property.
+    pub responses: Option<Vec<PersonResponse>>,
+}
+
+/// `UpdateContactGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateContactGroupRequest {
+    /// contactGroup property.
+    pub contact_group: Option<ContactGroup>,
+    /// readGroupFields property.
+    pub read_group_fields: Option<String>,
+    /// updateGroupFields property.
+    pub update_group_fields: Option<String>,
+}
+
+/// `CreateContactGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateContactGroupRequest {
+    /// contactGroup property.
+    pub contact_group: Option<ContactGroup>,
+    /// readGroupFields property.
+    pub read_group_fields: Option<String>,
+}
+
+/// `ProfileMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ProfileMetadata {
+    /// objectType property.
+    pub object_type: Option<String>,
+    /// userTypes property.
+    pub user_types: Option<Vec<String>>,
+}
+
+/// `ContactGroupMembership` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContactGroupMembership {
+    /// contactGroupId property.
+    pub contact_group_id: Option<String>,
+    /// contactGroupResourceName property.
+    pub contact_group_resource_name: Option<String>,
+}
+
+/// `ContactGroupMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContactGroupMetadata {
+    /// deleted property.
+    pub deleted: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `PhoneNumber` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PhoneNumber {
+    /// canonicalForm property.
+    pub canonical_form: Option<String>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ListOtherContactsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListOtherContactsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
+    /// otherContacts property.
+    pub other_contacts: Option<Vec<Person>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `ListConnectionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<Person>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
+    /// totalItems property.
+    pub total_items: Option<i64>,
+    /// totalPeople property.
+    pub total_people: Option<i64>,
+}
+
+/// `Interest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Interest {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PersonResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PersonResponse {
+    /// httpStatusCode property.
+    pub http_status_code: Option<i64>,
+    /// person property.
+    pub person: Option<Person>,
+    /// requestedResourceName property.
+    pub requested_resource_name: Option<String>,
+    /// status property.
+    pub status: Option<Status>,
+}
+
+/// `Membership` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Membership {
+    /// contactGroupMembership property.
+    pub contact_group_membership: Option<ContactGroupMembership>,
+    /// domainMembership property.
+    pub domain_membership: Option<DomainMembership>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
 }
 
+/// `DeleteContactPhotoResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteContactPhotoResponse {
+    /// person property.
+    pub person: Option<Person>,
+}
+
 /// `Address` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// city property.
     pub city: Option<String>,
@@ -122,29 +345,33 @@ pub struct Address {
     pub r#type: Option<String>,
 }
 
-/// `FileAs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileAs {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
+/// `SearchResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchResult {
+    /// person property.
+    pub person: Option<Person>,
 }
 
-/// `Membership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Membership {
-    /// contactGroupMembership property.
-    pub contact_group_membership: Option<ContactGroupMembership>,
-    /// domainMembership property.
-    pub domain_membership: Option<DomainMembership>,
+/// `ImClient` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImClient {
+    /// formattedProtocol property.
+    pub formatted_protocol: Option<String>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
-/// `ClientData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientData {
+/// `UserDefined` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UserDefined {
     /// key property.
     pub key: Option<String>,
     /// metadata property.
@@ -153,19 +380,8 @@ pub struct ClientData {
     pub value: Option<String>,
 }
 
-/// `RelationshipInterest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelationshipInterest {
-    /// formattedValue property.
-    pub formatted_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `Skill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Skill {
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
@@ -173,8 +389,137 @@ pub struct Skill {
     pub value: Option<String>,
 }
 
+/// `CopyOtherContactToMyContactsGroupRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CopyOtherContactToMyContactsGroupRequest {
+    /// copyMask property.
+    pub copy_mask: Option<String>,
+    /// readMask property.
+    pub read_mask: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<String>>,
+}
+
+/// `Person` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Person {
+    /// addresses property.
+    pub addresses: Option<Vec<Address>>,
+    /// ageRange property.
+    pub age_range: Option<String>,
+    /// ageRanges property.
+    pub age_ranges: Option<Vec<AgeRangeType>>,
+    /// biographies property.
+    pub biographies: Option<Vec<Biography>>,
+    /// birthdays property.
+    pub birthdays: Option<Vec<Birthday>>,
+    /// braggingRights property.
+    pub bragging_rights: Option<Vec<BraggingRights>>,
+    /// calendarUrls property.
+    pub calendar_urls: Option<Vec<CalendarUrl>>,
+    /// clientData property.
+    pub client_data: Option<Vec<ClientData>>,
+    /// coverPhotos property.
+    pub cover_photos: Option<Vec<CoverPhoto>>,
+    /// emailAddresses property.
+    pub email_addresses: Option<Vec<EmailAddress>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// events property.
+    pub events: Option<Vec<Event>>,
+    /// externalIds property.
+    pub external_ids: Option<Vec<ExternalId>>,
+    /// fileAses property.
+    pub file_ases: Option<Vec<FileAs>>,
+    /// genders property.
+    pub genders: Option<Vec<Gender>>,
+    /// imClients property.
+    pub im_clients: Option<Vec<ImClient>>,
+    /// interests property.
+    pub interests: Option<Vec<Interest>>,
+    /// locales property.
+    pub locales: Option<Vec<Locale>>,
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+    /// memberships property.
+    pub memberships: Option<Vec<Membership>>,
+    /// metadata property.
+    pub metadata: Option<PersonMetadata>,
+    /// miscKeywords property.
+    pub misc_keywords: Option<Vec<MiscKeyword>>,
+    /// names property.
+    pub names: Option<Vec<Name>>,
+    /// nicknames property.
+    pub nicknames: Option<Vec<Nickname>>,
+    /// occupations property.
+    pub occupations: Option<Vec<Occupation>>,
+    /// organizations property.
+    pub organizations: Option<Vec<Organization>>,
+    /// phoneNumbers property.
+    pub phone_numbers: Option<Vec<PhoneNumber>>,
+    /// photos property.
+    pub photos: Option<Vec<Photo>>,
+    /// relations property.
+    pub relations: Option<Vec<Relation>>,
+    /// relationshipInterests property.
+    pub relationship_interests: Option<Vec<RelationshipInterest>>,
+    /// relationshipStatuses property.
+    pub relationship_statuses: Option<Vec<RelationshipStatus>>,
+    /// residences property.
+    pub residences: Option<Vec<Residence>>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+    /// sipAddresses property.
+    pub sip_addresses: Option<Vec<SipAddress>>,
+    /// skills property.
+    pub skills: Option<Vec<Skill>>,
+    /// taglines property.
+    pub taglines: Option<Vec<Tagline>>,
+    /// urls property.
+    pub urls: Option<Vec<Url>>,
+    /// userDefined property.
+    pub user_defined: Option<Vec<UserDefined>>,
+}
+
+/// `SipAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SipAddress {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `FileAs` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FileAs {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `EmailAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailAddress {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
 /// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// etag property.
     pub etag: Option<String>,
@@ -188,20 +533,20 @@ pub struct Source {
     pub update_time: Option<String>,
 }
 
-/// `RelationshipStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelationshipStatus {
-    /// formattedValue property.
-    pub formatted_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
+/// `UpdateContactPhotoRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateContactPhotoRequest {
+    /// personFields property.
+    pub person_fields: Option<String>,
+    /// photoBytes property.
+    pub photo_bytes: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<String>>,
 }
 
-/// `SipAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SipAddress {
+/// `Url` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Url {
     /// formattedType property.
     pub formatted_type: Option<String>,
     /// metadata property.
@@ -212,21 +557,48 @@ pub struct SipAddress {
     pub value: Option<String>,
 }
 
-/// `ExternalId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalId {
+/// `GroupClientData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GroupClientData {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `UpdateContactPhotoResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateContactPhotoResponse {
+    /// person property.
+    pub person: Option<Person>,
+}
+
+/// `Relation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Relation {
     /// formattedType property.
     pub formatted_type: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
+    /// person property.
+    pub person: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+}
+
+/// `Birthday` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Birthday {
+    /// date property.
+    pub date: Option<Date>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `Name` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Name {
     /// displayName property.
     pub display_name: Option<String>,
@@ -260,70 +632,138 @@ pub struct Name {
     pub unstructured_name: Option<String>,
 }
 
-/// `Interest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interest {
+/// `RelationshipStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RelationshipStatus {
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `FieldMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldMetadata {
-    /// primary property.
-    pub primary: Option<bool>,
-    /// source property.
-    pub source: Option<Source>,
-    /// sourcePrimary property.
-    pub source_primary: Option<bool>,
-    /// verified property.
-    pub verified: Option<bool>,
+/// `ContactGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContactGroupResponse {
+    /// contactGroup property.
+    pub contact_group: Option<ContactGroup>,
+    /// requestedResourceName property.
+    pub requested_resource_name: Option<String>,
+    /// status property.
+    pub status: Option<Status>,
 }
 
-/// `Birthday` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Birthday {
-    /// date property.
-    pub date: Option<Date>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// text property.
-    pub text: Option<String>,
+/// `SearchDirectoryPeopleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchDirectoryPeopleResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// people property.
+    pub people: Option<Vec<Person>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
-/// `Occupation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Occupation {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `UserDefined` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserDefined {
-    /// key property.
-    pub key: Option<String>,
+/// `Locale` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Locale {
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `ContactGroupMembership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactGroupMembership {
-    /// contactGroupId property.
-    pub contact_group_id: Option<String>,
-    /// contactGroupResourceName property.
-    pub contact_group_resource_name: Option<String>,
+/// `BatchUpdateContactsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateContactsResponse {
+    /// updateResult property.
+    pub update_result: Option<serde_json::Value>,
+}
+
+/// `CalendarUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CalendarUrl {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `CoverPhoto` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CoverPhoto {
+    /// default property.
+    pub default: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `Residence` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Residence {
+    /// current property.
+    pub current: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `BatchCreateContactsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchCreateContactsRequest {
+    /// contacts property.
+    pub contacts: Option<Vec<ContactToCreate>>,
+    /// readMask property.
+    pub read_mask: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<String>>,
+}
+
+/// `ExternalId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ExternalId {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Biography` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Biography {
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `Tagline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Tagline {
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
@@ -332,7 +772,7 @@ pub struct Tagline {
 }
 
 /// `Organization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     /// costCenter property.
     pub cost_center: Option<String>,
@@ -368,152 +808,17 @@ pub struct Organization {
     pub r#type: Option<String>,
 }
 
-/// `MiscKeyword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MiscKeyword {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
+/// `AgeRangeType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AgeRangeType {
+    /// ageRange property.
+    pub age_range: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Event` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Event {
-    /// date property.
-    pub date: Option<Date>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BraggingRights` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BraggingRights {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Biography` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Biography {
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `UpdateContactPhotoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateContactPhotoResponse {
-    /// person property.
-    pub person: Option<Person>,
-}
-
-/// `ImClient` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImClient {
-    /// formattedProtocol property.
-    pub formatted_protocol: Option<String>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `PhoneNumber` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneNumber {
-    /// canonicalForm property.
-    pub canonical_form: Option<String>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Residence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Residence {
-    /// current property.
-    pub current: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Gender` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Gender {
-    /// addressMeAs property.
-    pub address_me_as: Option<String>,
-    /// formattedValue property.
-    pub formatted_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Locale` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Locale {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CalendarUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarUrl {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Url` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Url {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `Photo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Photo {
     /// default property.
     pub default: Option<bool>,
@@ -523,58 +828,56 @@ pub struct Photo {
     pub url: Option<String>,
 }
 
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+/// `ContactGroup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContactGroup {
+    /// clientData property.
+    pub client_data: Option<Vec<GroupClientData>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// formattedName property.
+    pub formatted_name: Option<String>,
+    /// groupType property.
+    pub group_type: Option<String>,
+    /// memberCount property.
+    pub member_count: Option<i64>,
+    /// memberResourceNames property.
+    pub member_resource_names: Option<Vec<String>>,
+    /// metadata property.
+    pub metadata: Option<ContactGroupMetadata>,
+    /// name property.
+    pub name: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
 }
 
-/// `Nickname` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Nickname {
+/// `BatchDeleteContactsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchDeleteContactsRequest {
+    /// resourceNames property.
+    pub resource_names: Option<Vec<String>>,
+}
+
+/// `ContactToCreate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContactToCreate {
+    /// contactPerson property.
+    pub contact_person: Option<Person>,
+}
+
+/// `RelationshipInterest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RelationshipInterest {
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `DomainMembership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainMembership {
-    /// inViewerDomain property.
-    pub in_viewer_domain: Option<bool>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// buildingId property.
-    pub building_id: Option<String>,
-    /// current property.
-    pub current: Option<bool>,
-    /// deskCode property.
-    pub desk_code: Option<String>,
-    /// floor property.
-    pub floor: Option<String>,
-    /// floorSection property.
-    pub floor_section: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
 }
 
 /// `PersonMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PersonMetadata {
     /// deleted property.
     pub deleted: Option<bool>,
@@ -588,19 +891,213 @@ pub struct PersonMetadata {
     pub sources: Option<Vec<Source>>,
 }
 
+/// `ModifyContactGroupMembersResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ModifyContactGroupMembersResponse {
+    /// canNotRemoveLastContactGroupResourceNames property.
+    pub can_not_remove_last_contact_group_resource_names: Option<Vec<String>>,
+    /// notFoundResourceNames property.
+    pub not_found_resource_names: Option<Vec<String>>,
+}
+
+/// `ListDirectoryPeopleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListDirectoryPeopleResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
+    /// people property.
+    pub people: Option<Vec<Person>>,
+}
+
+/// `DomainMembership` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DomainMembership {
+    /// inViewerDomain property.
+    pub in_viewer_domain: Option<bool>,
+}
+
+/// `BatchGetContactGroupsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetContactGroupsResponse {
+    /// responses property.
+    pub responses: Option<Vec<ContactGroupResponse>>,
+}
+
+/// `BraggingRights` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BraggingRights {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Event` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Event {
+    /// date property.
+    pub date: Option<Date>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`people.contactGroups.batchGet_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsBatchGetArgs {
+    /// Query parameter: `groupFields`.
+    pub group_fields: Option<String>,
+    /// Query parameter: `maxMembers`.
+    pub max_members: Option<String>,
+    /// Query parameter: `resourceNames`.
+    pub resource_names: Option<String>,
+}
+
+/// Arguments for [`people.contactGroups.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsCreateArgs {
+    /// Request body.
+    pub body: CreateContactGroupRequest,
+}
+
+/// Arguments for [`people.contactGroups.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsDeleteArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Query parameter: `deleteContacts`.
+    pub delete_contacts: Option<String>,
+}
+
+/// Arguments for [`people.contactGroups.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsGetArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Query parameter: `groupFields`.
+    pub group_fields: Option<String>,
+    /// Query parameter: `maxMembers`.
+    pub max_members: Option<String>,
+}
+
+/// Arguments for [`people.contactGroups.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsListArgs {
+    /// Query parameter: `groupFields`.
+    pub group_fields: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `syncToken`.
+    pub sync_token: Option<String>,
+}
+
+/// Arguments for [`people.contactGroups.update_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsUpdateArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Request body.
+    pub body: UpdateContactGroupRequest,
+}
+
+/// Arguments for [`people.contactGroups.members.modify_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleContactGroupsMembersModifyArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Request body.
+    pub body: ModifyContactGroupMembersRequest,
+}
+
+/// Arguments for [`people.otherContacts.copyOtherContactToMyContactsGroup_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Request body.
+    pub body: CopyOtherContactToMyContactsGroupRequest,
+}
+
+/// Arguments for [`people.otherContacts.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleOtherContactsListArgs {
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `requestSyncToken`.
+    pub request_sync_token: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+    /// Query parameter: `syncToken`.
+    pub sync_token: Option<String>,
+}
+
+/// Arguments for [`people.otherContacts.search_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeopleOtherContactsSearchArgs {
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+}
+
+/// Arguments for [`people.people.batchCreateContacts_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchCreateContactsArgs {
+    /// Request body.
+    pub body: BatchCreateContactsRequest,
+}
+
+/// Arguments for [`people.people.batchDeleteContacts_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchDeleteContactsArgs {
+    /// Request body.
+    pub body: BatchDeleteContactsRequest,
+}
+
+/// Arguments for [`people.people.batchUpdateContacts_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchUpdateContactsArgs {
+    /// Request body.
+    pub body: BatchUpdateContactsRequest,
+}
+
+/// Arguments for [`people.people.createContact_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleCreateContactArgs {
+    /// Query parameter: `personFields`.
+    pub person_fields: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+    /// Request body.
+    pub body: Person,
+}
+
 /// Arguments for [`people.people.deleteContact_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PeoplePeopleDeleteContactArgs {
     /// Path parameter: `resourceName`.
     pub resource_name: String,
 }
 
 /// Arguments for [`people.people.deleteContactPhoto_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PeoplePeopleDeleteContactPhotoArgs {
     /// Path parameter: `resourceName`.
     pub resource_name: String,
@@ -611,7 +1108,7 @@ pub struct PeoplePeopleDeleteContactPhotoArgs {
 }
 
 /// Arguments for [`people.people.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PeoplePeopleGetArgs {
     /// Path parameter: `resourceName`.
     pub resource_name: String,
@@ -623,8 +1120,70 @@ pub struct PeoplePeopleGetArgs {
     pub sources: Option<String>,
 }
 
+/// Arguments for [`people.people.getBatchGet_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleGetBatchGetArgs {
+    /// Query parameter: `personFields`.
+    pub person_fields: Option<String>,
+    /// Query parameter: `requestMask.includeField`.
+    pub request_mask_include_field: Option<String>,
+    /// Query parameter: `resourceNames`.
+    pub resource_names: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+}
+
+/// Arguments for [`people.people.listDirectoryPeople_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleListDirectoryPeopleArgs {
+    /// Query parameter: `mergeSources`.
+    pub merge_sources: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `requestSyncToken`.
+    pub request_sync_token: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+    /// Query parameter: `syncToken`.
+    pub sync_token: Option<String>,
+}
+
+/// Arguments for [`people.people.searchContacts_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleSearchContactsArgs {
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+}
+
+/// Arguments for [`people.people.searchDirectoryPeople_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleSearchDirectoryPeopleArgs {
+    /// Query parameter: `mergeSources`.
+    pub merge_sources: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
+    /// Query parameter: `readMask`.
+    pub read_mask: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+}
+
 /// Arguments for [`people.people.updateContact_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PeoplePeopleUpdateContactArgs {
     /// Path parameter: `resourceName`.
     pub resource_name: String,
@@ -634,13 +1193,40 @@ pub struct PeoplePeopleUpdateContactArgs {
     pub sources: Option<String>,
     /// Query parameter: `updatePersonFields`.
     pub update_person_fields: Option<String>,
+    /// Request body.
+    pub body: Person,
 }
 
 /// Arguments for [`people.people.updateContactPhoto_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct PeoplePeopleUpdateContactPhotoArgs {
     /// Path parameter: `resourceName`.
     pub resource_name: String,
+    /// Request body.
+    pub body: UpdateContactPhotoRequest,
+}
+
+/// Arguments for [`people.people.connections.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeoplePeopleConnectionsListArgs {
+    /// Path parameter: `resourceName`.
+    pub resource_name: String,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `personFields`.
+    pub person_fields: Option<String>,
+    /// Query parameter: `requestMask.includeField`.
+    pub request_mask_include_field: Option<String>,
+    /// Query parameter: `requestSyncToken`.
+    pub request_sync_token: Option<String>,
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `sources`.
+    pub sources: Option<String>,
+    /// Query parameter: `syncToken`.
+    pub sync_token: Option<String>,
 }
 
 // =============================================================================
@@ -648,10 +1234,10 @@ pub struct PeoplePeopleUpdateContactPhotoArgs {
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// DELETE v1/people/{peopleId}:deleteContact
+// GET v1/contactGroups:batchGet
 // -----------------------------------------------------------------------------
 
-/// DELETE v1/people/{peopleId}:deleteContact.
+/// GET v1/contactGroups:batchGet.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -659,18 +1245,238 @@ pub struct PeoplePeopleUpdateContactPhotoArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = people_people_delete_contact_request(&client, &args, Some(|b| {
+/// let task = people_contact_groups_batch_get_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn people_people_delete_contact_request<R, F>(
+pub fn people_contact_groups_batch_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsBatchGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetContactGroupsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.group_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("groupFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_members {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxMembers=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.resource_names {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("resourceNames=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchGetContactGroupsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/contactGroups
+// -----------------------------------------------------------------------------
+
+/// POST v1/contactGroups.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ContactGroup =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+resourceName}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+resourceName}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsDeleteArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -685,8 +1491,23 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url =
-        format!("https://people.googleapis.com/v1/people/{{peopleId}}:deleteContact",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/{}", args.resource_name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.delete_contacts {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deleteContacts=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -736,10 +1557,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// DELETE v1/people/{peopleId}:deleteContactPhoto
+// GET v1/{+resourceName}
 // -----------------------------------------------------------------------------
 
-/// DELETE v1/people/{peopleId}:deleteContactPhoto.
+/// GET v1/{+resourceName}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -747,6 +1568,1312 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/{}", args.resource_name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.group_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("groupFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_members {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("maxMembers=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ContactGroup =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/contactGroups
+// -----------------------------------------------------------------------------
+
+/// GET v1/contactGroups.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListContactGroupsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.group_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("groupFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("syncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListContactGroupsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PUT v1/{+resourceName}
+// -----------------------------------------------------------------------------
+
+/// PUT v1/{+resourceName}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/{}", args.resource_name,);
+
+    let mut builder = client
+        .put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ContactGroup =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+resourceName}/members:modify
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+resourceName}/members:modify.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_contact_groups_members_modify_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_contact_groups_members_modify_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleContactGroupsMembersModifyArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ModifyContactGroupMembersResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}/members:modify",
+        args.resource_name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ModifyContactGroupMembersResponse = serde_json::from_str(&body)
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+resourceName}:copyOtherContactToMyContactsGroup
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+resourceName}:copyOtherContactToMyContactsGroup.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_other_contacts_copy_other_contact_to_my_contacts_group_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}:copyOtherContactToMyContactsGroup",
+        args.resource_name,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Person =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/otherContacts
+// -----------------------------------------------------------------------------
+
+/// GET v1/otherContacts.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_other_contacts_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_other_contacts_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleOtherContactsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOtherContactsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestSyncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("syncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListOtherContactsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/otherContacts:search
+// -----------------------------------------------------------------------------
+
+/// GET v1/otherContacts:search.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_other_contacts_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_other_contacts_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeopleOtherContactsSearchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts:search",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/people:batchCreateContacts
+// -----------------------------------------------------------------------------
+
+/// POST v1/people:batchCreateContacts.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_batch_create_contacts_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_batch_create_contacts_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleBatchCreateContactsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchCreateContactsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchCreateContacts",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchCreateContactsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/people:batchDeleteContacts
+// -----------------------------------------------------------------------------
+
+/// POST v1/people:batchDeleteContacts.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_batch_delete_contacts_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_batch_delete_contacts_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleBatchDeleteContactsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchDeleteContacts",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/people:batchUpdateContacts
+// -----------------------------------------------------------------------------
+
+/// POST v1/people:batchUpdateContacts.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_batch_update_contacts_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_batch_update_contacts_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleBatchUpdateContactsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateContactsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchUpdateContacts",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BatchUpdateContactsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/people:createContact
+// -----------------------------------------------------------------------------
+
+/// POST v1/people:createContact.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_create_contact_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_create_contact_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleCreateContactArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:createContact",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Person =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+resourceName}:deleteContact
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+resourceName}:deleteContact.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_delete_contact_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_delete_contact_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleDeleteContactArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}:deleteContact",
+        args.resource_name,
+    );
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+resourceName}:deleteContactPhoto
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+resourceName}:deleteContactPhoto.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -759,6 +2886,7 @@ where
 #[inline]
 pub fn people_people_delete_contact_photo_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleDeleteContactPhotoArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -773,8 +2901,36 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url =
-        format!("https://people.googleapis.com/v1/people/{{peopleId}}:deleteContactPhoto",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}:deleteContactPhoto",
+        args.resource_name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -824,10 +2980,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/people/{peopleId}
+// GET v1/{+resourceName}
 // -----------------------------------------------------------------------------
 
-/// GET v1/people/{peopleId}.
+/// GET v1/{+resourceName}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -835,6 +2991,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -847,6 +3004,7 @@ where
 #[inline]
 pub fn people_people_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -861,7 +3019,43 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{{peopleId}}",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/{}", args.resource_name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_mask_include_field {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestMask_includeField=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -911,10 +3105,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// PATCH v1/people/{peopleId}:updateContact
+// GET v1/people:batchGet
 // -----------------------------------------------------------------------------
 
-/// PATCH v1/people/{peopleId}:updateContact.
+/// GET v1/people:batchGet.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -922,6 +3116,597 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_get_batch_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_get_batch_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleGetBatchGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetPeopleResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchGet",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_mask_include_field {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestMask_includeField=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.resource_names {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("resourceNames=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: GetPeopleResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/people:listDirectoryPeople
+// -----------------------------------------------------------------------------
+
+/// GET v1/people:listDirectoryPeople.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_list_directory_people_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_list_directory_people_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleListDirectoryPeopleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDirectoryPeopleResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.merge_sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("mergeSources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestSyncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("syncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListDirectoryPeopleResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/people:searchContacts
+// -----------------------------------------------------------------------------
+
+/// GET v1/people:searchContacts.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_search_contacts_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_search_contacts_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleSearchContactsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:searchContacts",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/people:searchDirectoryPeople
+// -----------------------------------------------------------------------------
+
+/// GET v1/people:searchDirectoryPeople.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_search_directory_people_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_search_directory_people_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleSearchDirectoryPeopleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchDirectoryPeopleResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.merge_sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("mergeSources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.read_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("readMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchDirectoryPeopleResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v1/{+resourceName}:updateContact
+// -----------------------------------------------------------------------------
+
+/// PATCH v1/{+resourceName}:updateContact.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -934,6 +3719,7 @@ where
 #[inline]
 pub fn people_people_update_contact_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleUpdateContactArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -948,11 +3734,53 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url =
-        format!("https://people.googleapis.com/v1/people/{{peopleId}}:updateContact",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}:updateContact",
+        args.resource_name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.update_person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updatePersonFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -999,10 +3827,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// PATCH v1/people/{peopleId}:updateContactPhoto
+// PATCH v1/{+resourceName}:updateContactPhoto
 // -----------------------------------------------------------------------------
 
-/// PATCH v1/people/{peopleId}:updateContactPhoto.
+/// PATCH v1/{+resourceName}:updateContactPhoto.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -1010,6 +3838,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1022,6 +3851,7 @@ where
 #[inline]
 pub fn people_people_update_contact_photo_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleUpdateContactPhotoArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -1036,11 +3866,17 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url =
-        format!("https://people.googleapis.com/v1/people/{{peopleId}}:updateContactPhoto",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}:updateContactPhoto",
+        args.resource_name,
+    );
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1070,6 +3906,184 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: UpdateContactPhotoResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+resourceName}/connections
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+resourceName}/connections.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = people_people_connections_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn people_people_connections_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PeoplePeopleConnectionsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConnectionsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/{}/connections",
+        args.resource_name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.person_fields {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("personFields=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_mask_include_field {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestMask_includeField=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requestSyncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sort_order {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sortOrder=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sources {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sources=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sync_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("syncToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListConnectionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;

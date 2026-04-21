@@ -838,10 +838,28 @@ pub fn analyze_spec(spec_content: &str, provider: &str, options: &AnalysisOption
 
     let mut groups_map = apply_provider_grouping(endpoints, provider);
 
+    // If provider grouping didn't match, decide based on whether this is a
+    // multi-spec sub-provider (e.g. "gcp/run") or a top-level provider.
+    // Multi-spec sub-providers come from separate openapi.json files — all
+    // endpoints from the same spec must stay in one group.
+    // Top-level single-spec providers (cloudflare, stripe, etc.) still get
+    // split by path segments via extract_group_name.
     if groups_map.is_empty() {
-        for endpoint in processor.endpoints() {
-            let group_name = extract_group_name(&endpoint.path);
-            groups_map.entry(group_name).or_default().push(endpoint);
+        if provider.contains('/') {
+            // Multi-spec sub-provider: one group per spec
+            let spec_group = provider
+                .split('/')
+                .last()
+                .unwrap_or(provider)
+                .to_string();
+            let mut all_endpoints = processor.endpoints();
+            groups_map.insert(spec_group, all_endpoints);
+        } else {
+            // Top-level single-spec provider: split by path segments as before
+            for endpoint in processor.endpoints() {
+                let group_name = extract_group_name(&endpoint.path);
+                groups_map.entry(group_name).or_default().push(endpoint);
+            }
         }
     }
 

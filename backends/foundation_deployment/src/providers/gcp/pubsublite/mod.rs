@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_pubsublite_cursors")]
-pub mod cursors;
-#[cfg(feature = "gcp_pubsublite_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_pubsublite_partitions")]
-pub mod partitions;
-#[cfg(feature = "gcp_pubsublite_reservations")]
-pub mod reservations;
-#[cfg(feature = "gcp_pubsublite_subscriptions")]
-pub mod subscriptions;
-#[cfg(feature = "gcp_pubsublite_topics")]
-pub mod topics;
+#[cfg(feature = "gcp_pubsublite_pubsublite")]
+pub mod pubsublite;

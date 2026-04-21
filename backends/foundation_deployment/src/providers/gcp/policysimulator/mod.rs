@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_policysimulator_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_policysimulator_org_policy_violations")]
-pub mod org_policy_violations;
-#[cfg(feature = "gcp_policysimulator_org_policy_violations_previews")]
-pub mod org_policy_violations_previews;
-#[cfg(feature = "gcp_policysimulator_replays")]
-pub mod replays;
-#[cfg(feature = "gcp_policysimulator_results")]
-pub mod results;
+#[cfg(feature = "gcp_policysimulator_policysimulator")]
+pub mod policysimulator;

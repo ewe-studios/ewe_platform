@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_smartdevicemanagement_devices")]
-pub mod devices;
-#[cfg(feature = "gcp_smartdevicemanagement_rooms")]
-pub mod rooms;
-#[cfg(feature = "gcp_smartdevicemanagement_structures")]
-pub mod structures;
+#[cfg(feature = "gcp_smartdevicemanagement_smartdevicemanagement")]
+pub mod smartdevicemanagement;

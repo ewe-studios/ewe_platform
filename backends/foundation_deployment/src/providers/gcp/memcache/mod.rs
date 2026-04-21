@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_memcache_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_memcache_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_memcache_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_memcache_memcache")]
+pub mod memcache;

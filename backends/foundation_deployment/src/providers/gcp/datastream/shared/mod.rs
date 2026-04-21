@@ -14,10 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `StreamObject`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamObject {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

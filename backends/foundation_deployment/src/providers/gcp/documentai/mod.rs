@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_documentai_evaluations")]
-pub mod evaluations;
-#[cfg(feature = "gcp_documentai_human_review_config_review_document")]
-pub mod human_review_config_review_document;
-#[cfg(feature = "gcp_documentai_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_documentai_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_documentai_processor_types")]
-pub mod processor_types;
-#[cfg(feature = "gcp_documentai_processor_versions")]
-pub mod processor_versions;
-#[cfg(feature = "gcp_documentai_processor_versions_train")]
-pub mod processor_versions_train;
-#[cfg(feature = "gcp_documentai_processors")]
-pub mod processors;
-#[cfg(feature = "gcp_documentai_schema_versions")]
-pub mod schema_versions;
-#[cfg(feature = "gcp_documentai_schema_versions_generate")]
-pub mod schema_versions_generate;
-#[cfg(feature = "gcp_documentai_schemas")]
-pub mod schemas;
+#[cfg(feature = "gcp_documentai_documentai")]
+pub mod documentai;

@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebasedynamiclinks_install_attribution")]
-pub mod install_attribution;
-#[cfg(feature = "gcp_firebasedynamiclinks_link_stats")]
-pub mod link_stats;
-#[cfg(feature = "gcp_firebasedynamiclinks_managed_short_links_create")]
-pub mod managed_short_links_create;
-#[cfg(feature = "gcp_firebasedynamiclinks_reopen_attribution")]
-pub mod reopen_attribution;
-#[cfg(feature = "gcp_firebasedynamiclinks_short_links")]
-pub mod short_links;
+#[cfg(feature = "gcp_firebasedynamiclinks_firebasedynamiclinks")]
+pub mod firebasedynamiclinks;

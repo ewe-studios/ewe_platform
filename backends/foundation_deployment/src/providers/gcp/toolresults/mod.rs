@@ -10,29 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_toolresults_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_toolresults_environments")]
-pub mod environments;
-#[cfg(feature = "gcp_toolresults_executions")]
-pub mod executions;
-#[cfg(feature = "gcp_toolresults_histories")]
-pub mod histories;
-#[cfg(feature = "gcp_toolresults_perf_metrics_summary")]
-pub mod perf_metrics_summary;
-#[cfg(feature = "gcp_toolresults_perf_sample_series")]
-pub mod perf_sample_series;
-#[cfg(feature = "gcp_toolresults_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_toolresults_samples")]
-pub mod samples;
-#[cfg(feature = "gcp_toolresults_samples_batch_create")]
-pub mod samples_batch_create;
-#[cfg(feature = "gcp_toolresults_settings")]
-pub mod settings;
-#[cfg(feature = "gcp_toolresults_steps")]
-pub mod steps;
-#[cfg(feature = "gcp_toolresults_test_cases")]
-pub mod test_cases;
-#[cfg(feature = "gcp_toolresults_thumbnails")]
-pub mod thumbnails;
+#[cfg(feature = "gcp_toolresults_toolresults")]
+pub mod toolresults;

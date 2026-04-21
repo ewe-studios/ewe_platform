@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_webrisk_hashes_search")]
-pub mod hashes_search;
-#[cfg(feature = "gcp_webrisk_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_webrisk_submissions")]
-pub mod submissions;
-#[cfg(feature = "gcp_webrisk_threat_lists_compute_diff")]
-pub mod threat_lists_compute_diff;
-#[cfg(feature = "gcp_webrisk_uris_search")]
-pub mod uris_search;
+#[cfg(feature = "gcp_webrisk_webrisk")]
+pub mod webrisk;

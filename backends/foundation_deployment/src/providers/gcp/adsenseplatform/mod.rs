@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_adsenseplatform_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_adsenseplatform_accounts_lookup")]
-pub mod accounts_lookup;
-#[cfg(feature = "gcp_adsenseplatform_events")]
-pub mod events;
-#[cfg(feature = "gcp_adsenseplatform_sites")]
-pub mod sites;
+#[cfg(feature = "gcp_adsenseplatform_adsenseplatform")]
+pub mod adsenseplatform;

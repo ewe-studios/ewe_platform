@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_containeranalysis_notes")]
-pub mod notes;
-#[cfg(feature = "gcp_containeranalysis_notes_batch_create")]
-pub mod notes_batch_create;
-#[cfg(feature = "gcp_containeranalysis_occurrences")]
-pub mod occurrences;
-#[cfg(feature = "gcp_containeranalysis_occurrences_batch_create")]
-pub mod occurrences_batch_create;
-#[cfg(feature = "gcp_containeranalysis_occurrences_vulnerability_summary")]
-pub mod occurrences_vulnerability_summary;
-#[cfg(feature = "gcp_containeranalysis_resources")]
-pub mod resources;
+#[cfg(feature = "gcp_containeranalysis_containeranalysis")]
+pub mod containeranalysis;

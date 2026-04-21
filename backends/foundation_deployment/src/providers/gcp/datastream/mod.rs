@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datastream_connection_profiles")]
-pub mod connection_profiles;
-#[cfg(feature = "gcp_datastream_connection_profiles_discover")]
-pub mod connection_profiles_discover;
-#[cfg(feature = "gcp_datastream_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_datastream_objects")]
-pub mod objects;
-#[cfg(feature = "gcp_datastream_objects_lookup")]
-pub mod objects_lookup;
-#[cfg(feature = "gcp_datastream_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_datastream_private_connections")]
-pub mod private_connections;
-#[cfg(feature = "gcp_datastream_routes")]
-pub mod routes;
-#[cfg(feature = "gcp_datastream_streams")]
-pub mod streams;
+#[cfg(feature = "gcp_datastream_datastream")]
+pub mod datastream;

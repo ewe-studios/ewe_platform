@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_redis_acl_policies")]
-pub mod acl_policies;
-#[cfg(feature = "gcp_redis_auth_string")]
-pub mod auth_string;
-#[cfg(feature = "gcp_redis_auth_tokens")]
-pub mod auth_tokens;
-#[cfg(feature = "gcp_redis_backup_collections")]
-pub mod backup_collections;
-#[cfg(feature = "gcp_redis_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_redis_certificate_authority")]
-pub mod certificate_authority;
-#[cfg(feature = "gcp_redis_clusters")]
-pub mod clusters;
-#[cfg(feature = "gcp_redis_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_redis_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_redis_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_redis_shared_regional_certificate_authority")]
-pub mod shared_regional_certificate_authority;
-#[cfg(feature = "gcp_redis_token_auth_users")]
-pub mod token_auth_users;
+#[cfg(feature = "gcp_redis_redis")]
+pub mod redis;

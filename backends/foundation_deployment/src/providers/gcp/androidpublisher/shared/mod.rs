@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `InternalAppSharingArtifact`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InternalAppSharingArtifact {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `OneTimeProduct`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProduct {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Subscription`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subscription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

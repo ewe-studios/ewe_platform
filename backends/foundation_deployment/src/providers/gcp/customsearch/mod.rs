@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_customsearch_siterestrict")]
-pub mod siterestrict;
-#[cfg(feature = "gcp_customsearch_group")]
-pub mod group;
+#[cfg(feature = "gcp_customsearch_customsearch")]
+pub mod customsearch;

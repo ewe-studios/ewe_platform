@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudcommerceprocurement_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_cloudcommerceprocurement_entitlements")]
-pub mod entitlements;
+#[cfg(feature = "gcp_cloudcommerceprocurement_cloudcommerceprocurement")]
+pub mod cloudcommerceprocurement;

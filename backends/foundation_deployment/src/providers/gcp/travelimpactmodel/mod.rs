@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_travelimpactmodel_flights_compute_flight_emissions")]
-pub mod flights_compute_flight_emissions;
-#[cfg(feature = "gcp_travelimpactmodel_flights_compute_scope3flight_emissions")]
-pub mod flights_compute_scope3flight_emissions;
-#[cfg(feature = "gcp_travelimpactmodel_flights_compute_typical_flight_emissions")]
-pub mod flights_compute_typical_flight_emissions;
+#[cfg(feature = "gcp_travelimpactmodel_travelimpactmodel")]
+pub mod travelimpactmodel;

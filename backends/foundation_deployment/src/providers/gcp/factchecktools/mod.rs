@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_factchecktools_claims_image_search")]
-pub mod claims_image_search;
-#[cfg(feature = "gcp_factchecktools_claims_search")]
-pub mod claims_search;
-#[cfg(feature = "gcp_factchecktools_pages")]
-pub mod pages;
+#[cfg(feature = "gcp_factchecktools_factchecktools")]
+pub mod factchecktools;

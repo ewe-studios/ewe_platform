@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_keep_attachments")]
-pub mod attachments;
-#[cfg(feature = "gcp_keep_notes")]
-pub mod notes;
-#[cfg(feature = "gcp_keep_permissions_batch_create")]
-pub mod permissions_batch_create;
-#[cfg(feature = "gcp_keep_permissions_batch_delete")]
-pub mod permissions_batch_delete;
+#[cfg(feature = "gcp_keep_keep")]
+pub mod keep;

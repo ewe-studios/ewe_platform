@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_firebaseapphosting_backends")]
-pub mod backends;
-#[cfg(feature = "gcp_firebaseapphosting_builds")]
-pub mod builds;
-#[cfg(feature = "gcp_firebaseapphosting_domains")]
-pub mod domains;
-#[cfg(feature = "gcp_firebaseapphosting_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_firebaseapphosting_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_firebaseapphosting_rollouts")]
-pub mod rollouts;
-#[cfg(feature = "gcp_firebaseapphosting_traffic")]
-pub mod traffic;
+#[cfg(feature = "gcp_firebaseapphosting_firebaseapphosting")]
+pub mod firebaseapphosting;

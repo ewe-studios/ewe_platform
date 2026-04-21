@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_essentialcontacts_contacts")]
-pub mod contacts;
-#[cfg(feature = "gcp_essentialcontacts_contacts_compute")]
-pub mod contacts_compute;
-#[cfg(feature = "gcp_essentialcontacts_contacts_send_test_message")]
-pub mod contacts_send_test_message;
+#[cfg(feature = "gcp_essentialcontacts_essentialcontacts")]
+pub mod essentialcontacts;

@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_dns_changes")]
-pub mod changes;
-#[cfg(feature = "gcp_dns_dns_keys")]
-pub mod dns_keys;
-#[cfg(feature = "gcp_dns_managed_zones")]
-pub mod managed_zones;
-#[cfg(feature = "gcp_dns_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_dns_policies")]
-pub mod policies;
-#[cfg(feature = "gcp_dns_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_dns_response_policies")]
-pub mod response_policies;
-#[cfg(feature = "gcp_dns_rrsets")]
-pub mod rrsets;
-#[cfg(feature = "gcp_dns_rules")]
-pub mod rules;
+#[cfg(feature = "gcp_dns_dns")]
+pub mod dns;

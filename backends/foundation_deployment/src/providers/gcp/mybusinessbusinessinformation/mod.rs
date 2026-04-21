@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessbusinessinformation_attributes")]
-pub mod attributes;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_attributes_get_google_updated")]
-pub mod attributes_get_google_updated;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_categories")]
-pub mod categories;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_categories_batch_get")]
-pub mod categories_batch_get;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_chains")]
-pub mod chains;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_chains_search")]
-pub mod chains_search;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_google_locations_search")]
-pub mod google_locations_search;
-#[cfg(feature = "gcp_mybusinessbusinessinformation_locations")]
-pub mod locations;
+#[cfg(feature = "gcp_mybusinessbusinessinformation_mybusinessbusinessinformation")]
+pub mod mybusinessbusinessinformation;

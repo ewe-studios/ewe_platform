@@ -14,17 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `Enterprise`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Enterprise {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ManagedConfiguration`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedConfiguration {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

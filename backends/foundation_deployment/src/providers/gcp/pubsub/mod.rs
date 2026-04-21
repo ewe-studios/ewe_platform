@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_pubsub_schemas")]
-pub mod schemas;
-#[cfg(feature = "gcp_pubsub_schemas_validate")]
-pub mod schemas_validate;
-#[cfg(feature = "gcp_pubsub_schemas_validate_message")]
-pub mod schemas_validate_message;
-#[cfg(feature = "gcp_pubsub_snapshots")]
-pub mod snapshots;
-#[cfg(feature = "gcp_pubsub_subscriptions")]
-pub mod subscriptions;
-#[cfg(feature = "gcp_pubsub_topics")]
-pub mod topics;
+#[cfg(feature = "gcp_pubsub_pubsub")]
+pub mod pubsub;

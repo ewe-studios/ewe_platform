@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_readerrevenuesubscriptionlinking_entitlements")]
-pub mod entitlements;
-#[cfg(feature = "gcp_readerrevenuesubscriptionlinking_readers")]
-pub mod readers;
+#[cfg(feature = "gcp_readerrevenuesubscriptionlinking_readerrevenuesubscriptionlinking")]
+pub mod readerrevenuesubscriptionlinking;

@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_assuredworkloads_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_assuredworkloads_updates")]
-pub mod updates;
-#[cfg(feature = "gcp_assuredworkloads_violations")]
-pub mod violations;
-#[cfg(feature = "gcp_assuredworkloads_workloads")]
-pub mod workloads;
+#[cfg(feature = "gcp_assuredworkloads_assuredworkloads")]
+pub mod assuredworkloads;

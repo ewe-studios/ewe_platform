@@ -20,6 +20,7 @@ use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Empty;
 use super::shared::Operation;
 
 use super::shared::ApiResponse;
@@ -29,7 +30,7 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `StateError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StateError {
     /// details property.
     pub details: Option<String>,
@@ -38,7 +39,7 @@ pub struct StateError {
 }
 
 /// `Workflow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Workflow {
     /// allKmsKeys property.
     pub all_kms_keys: Option<Vec<String>>,
@@ -81,7 +82,7 @@ pub struct Workflow {
 }
 
 /// `ListWorkflowRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkflowRevisionsResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
@@ -89,8 +90,43 @@ pub struct ListWorkflowRevisionsResponse {
     pub workflows: Option<Vec<Workflow>>,
 }
 
+/// `ListLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListLocationsResponse {
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ListOperationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListOperationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// operations property.
+    pub operations: Option<Vec<Operation>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
 /// `ListWorkflowsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkflowsResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
@@ -101,7 +137,7 @@ pub struct ListWorkflowsResponse {
 }
 
 /// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// code property.
     pub code: Option<i64>,
@@ -115,24 +151,77 @@ pub struct Status {
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`workflows.projects.locations.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workflows.projects.locations.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsListArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `extraLocationTypes`.
+    pub extra_location_types: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`workflows.projects.locations.operations.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workflows.projects.locations.operations.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`workflows.projects.locations.operations.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsListArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `returnPartialSuccess`.
+    pub return_partial_success: Option<String>,
+}
+
 /// Arguments for [`workflows.projects.locations.workflows.create_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsCreateArgs {
     /// Path parameter: `parent`.
     pub parent: String,
     /// Query parameter: `workflowId`.
     pub workflow_id: Option<String>,
+    /// Request body.
+    pub body: Workflow,
 }
 
 /// Arguments for [`workflows.projects.locations.workflows.delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsDeleteArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`workflows.projects.locations.workflows.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsGetArgs {
     /// Path parameter: `name`.
     pub name: String,
@@ -141,7 +230,7 @@ pub struct WorkflowsProjectsLocationsWorkflowsGetArgs {
 }
 
 /// Arguments for [`workflows.projects.locations.workflows.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsListArgs {
     /// Path parameter: `parent`.
     pub parent: String,
@@ -156,7 +245,7 @@ pub struct WorkflowsProjectsLocationsWorkflowsListArgs {
 }
 
 /// Arguments for [`workflows.projects.locations.workflows.listRevisions_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsListRevisionsArgs {
     /// Path parameter: `name`.
     pub name: String,
@@ -167,12 +256,14 @@ pub struct WorkflowsProjectsLocationsWorkflowsListRevisionsArgs {
 }
 
 /// Arguments for [`workflows.projects.locations.workflows.patch_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkflowsProjectsLocationsWorkflowsPatchArgs {
     /// Path parameter: `name`.
     pub name: String,
     /// Query parameter: `updateMask`.
     pub update_mask: Option<String>,
+    /// Request body.
+    pub body: Workflow,
 }
 
 // =============================================================================
@@ -180,10 +271,10 @@ pub struct WorkflowsProjectsLocationsWorkflowsPatchArgs {
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// POST v1/projects/{projectsId}/locations/{locationsId}/workflows
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// POST v1/projects/{projectsId}/locations/{locationsId}/workflows.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -191,18 +282,336 @@ pub struct WorkflowsProjectsLocationsWorkflowsPatchArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = workflows_projects_locations_workflows_create_request(&client, &args, Some(|b| {
+/// let task = workflows_projects_locations_get_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn workflows_projects_locations_workflows_create_request<R, F>(
+pub fn workflows_projects_locations_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Location =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}/locations
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}/locations.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workflows_projects_locations_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workflows_projects_locations_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workflows.googleapis.com/v1/{}/locations",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.extra_location_types {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("extraLocationTypes=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListLocationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workflows_projects_locations_operations_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workflows_projects_locations_operations_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsOperationsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workflows_projects_locations_operations_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workflows_projects_locations_operations_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsOperationsGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -217,12 +626,10 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows",
-    );
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
 
     let mut builder = client
-        .post(&endpoint_url)
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -269,10 +676,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// DELETE v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
+// GET v1/{+name}/operations
 // -----------------------------------------------------------------------------
 
-/// DELETE v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}.
+/// GET v1/{+name}/operations.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -280,18 +687,158 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = workflows_projects_locations_workflows_delete_request(&client, &args, Some(|b| {
+/// let task = workflows_projects_locations_operations_list_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn workflows_projects_locations_workflows_delete_request<R, F>(
+pub fn workflows_projects_locations_operations_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsOperationsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://workflows.googleapis.com/v1/{}/operations",
+        args.name,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.return_partial_success {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("returnPartialSuccess=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/{+parent}/workflows
+// -----------------------------------------------------------------------------
+
+/// POST v1/{+parent}/workflows.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workflows_projects_locations_workflows_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workflows_projects_locations_workflows_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsCreateArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -307,8 +854,118 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows/{{workflowsId}}",
+        "https://workflows.googleapis.com/v1/{}/workflows",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.workflow_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("workflowId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = workflows_projects_locations_workflows_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn workflows_projects_locations_workflows_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -358,10 +1015,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
+// GET v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}.
+/// GET v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -369,6 +1026,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -381,6 +1039,7 @@ where
 #[inline]
 pub fn workflows_projects_locations_workflows_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -395,9 +1054,23 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows/{{workflowsId}}",
-    );
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.revision_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("revisionId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -447,10 +1120,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workflows
+// GET v1/{+parent}/workflows
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workflows.
+/// GET v1/{+parent}/workflows.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -458,6 +1131,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -470,6 +1144,7 @@ where
 #[inline]
 pub fn workflows_projects_locations_workflows_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -485,8 +1160,55 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows",
+        "https://workflows.googleapis.com/v1/{}/workflows",
+        args.parent,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -536,10 +1258,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:listRevisions
+// GET v1/{+name}:listRevisions
 // -----------------------------------------------------------------------------
 
-/// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:listRevisions.
+/// GET v1/{+name}:listRevisions.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -547,6 +1269,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -559,6 +1282,7 @@ where
 #[inline]
 pub fn workflows_projects_locations_workflows_list_revisions_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsListRevisionsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -574,8 +1298,35 @@ where
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows/{{workflowsId}}:listRevisions",
+        "https://workflows.googleapis.com/v1/{}:listRevisions",
+        args.name,
     );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -625,10 +1376,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// PATCH v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
+// PATCH v1/{+name}
 // -----------------------------------------------------------------------------
 
-/// PATCH v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}.
+/// PATCH v1/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -636,6 +1387,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -648,6 +1400,7 @@ where
 #[inline]
 pub fn workflows_projects_locations_workflows_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &WorkflowsProjectsLocationsWorkflowsPatchArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -662,12 +1415,30 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://workflows.googleapis.com/v1/projects/{{projectsId}}/locations/{{locationsId}}/workflows/{{workflowsId}}",
-    );
+    let endpoint_url = format!("https://workflows.googleapis.com/v1/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

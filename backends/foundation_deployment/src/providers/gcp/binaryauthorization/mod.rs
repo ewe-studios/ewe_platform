@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_binaryauthorization_attestors")]
-pub mod attestors;
-#[cfg(feature = "gcp_binaryauthorization_policies")]
-pub mod policies;
-#[cfg(feature = "gcp_binaryauthorization_policy")]
-pub mod policy;
-#[cfg(feature = "gcp_binaryauthorization_policy_get_iam_policy")]
-pub mod policy_get_iam_policy;
-#[cfg(feature = "gcp_binaryauthorization_policy_set_iam_policy")]
-pub mod policy_set_iam_policy;
-#[cfg(feature = "gcp_binaryauthorization_policy_test_iam_permissions")]
-pub mod policy_test_iam_permissions;
+#[cfg(feature = "gcp_binaryauthorization_binaryauthorization")]
+pub mod binaryauthorization;

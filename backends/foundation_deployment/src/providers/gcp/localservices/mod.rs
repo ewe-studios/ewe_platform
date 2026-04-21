@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_localservices_account_reports_search")]
-pub mod account_reports_search;
-#[cfg(feature = "gcp_localservices_detailed_lead_reports_search")]
-pub mod detailed_lead_reports_search;
+#[cfg(feature = "gcp_localservices_localservices")]
+pub mod localservices;

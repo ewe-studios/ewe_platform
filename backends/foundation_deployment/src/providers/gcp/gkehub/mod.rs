@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_gkehub_features")]
-pub mod features;
-#[cfg(feature = "gcp_gkehub_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_gkehub_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_gkehub_gkehub")]
+pub mod gkehub;

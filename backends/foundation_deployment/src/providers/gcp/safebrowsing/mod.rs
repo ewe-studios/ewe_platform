@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_safebrowsing_hash_list")]
-pub mod hash_list;
-#[cfg(feature = "gcp_safebrowsing_hash_lists")]
-pub mod hash_lists;
-#[cfg(feature = "gcp_safebrowsing_hash_lists_batch_get")]
-pub mod hash_lists_batch_get;
-#[cfg(feature = "gcp_safebrowsing_hashes_search")]
-pub mod hashes_search;
-#[cfg(feature = "gcp_safebrowsing_urls_search")]
-pub mod urls_search;
+#[cfg(feature = "gcp_safebrowsing_safebrowsing")]
+pub mod safebrowsing;

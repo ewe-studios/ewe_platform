@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_ids_endpoints")]
-pub mod endpoints;
-#[cfg(feature = "gcp_ids_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_ids_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_ids_ids")]
+pub mod ids;

@@ -234,8 +234,15 @@ impl EndpointExtractor {
     ) -> Option<EndpointInfo> {
         let operation_id = method.id.clone()?;
 
-        // Use flatPath for actual URL pattern (not path which is a template)
-        let path = method.flat_path.as_deref().or(method.path.as_deref()).unwrap_or("");
+        // For GCP Discovery v2 APIs, `path` uses resource name expansion
+        // like {+parent} or {+name} where a single param holds the full
+        // resource path (e.g. "projects/foo/locations/us-central1").
+        // flatPath shows an expanded form with segment placeholders that
+        // often don't match parameterOrder at all.
+        // Always prefer `path` — it matches parameterOrder directly.
+        let path = method.path.as_deref().unwrap_or_else(|| {
+            method.flat_path.as_deref().unwrap_or("")
+        });
 
         // Extract parameters
         let params: BTreeMap<String, GcpParameter> = method.parameters.as_ref()
@@ -254,30 +261,46 @@ impl EndpointExtractor {
             })
             .unwrap_or_default();
 
-        // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder})
+        // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder}).
+        // GCP v2 uses resource expansion prefix {+name} — strip the `+`.
         let placeholder_re = regex::Regex::new(r"\{([^}]+)\}")
             .expect("hard-coded placeholder regex must compile");
         let path_placeholders: Vec<String> = placeholder_re
             .captures_iter(path)
-            .map(|cap| cap[1].to_string())
+            .map(|cap| {
+                let name = cap[1].to_string();
+                name.strip_prefix('+').unwrap_or(&name).to_string()
+            })
             .collect();
 
         // Get parameterOrder for path params
         let parameter_order: Vec<String> = method.parameter_order.clone().unwrap_or_default();
 
-        // Match placeholders with parameterOrder by position
-        // GCP Discovery docs often have different names: {folder} in path vs "foldersId" in parameterOrder
+        // Match placeholders with parameters. Priority:
+        //   1. Direct name match between placeholder and a param with location="path"
+        //   2. Positional match via parameterOrder (placeholder position = parameterOrder position)
         let mut path_params = Vec::new();
         let mut used_params = std::collections::HashSet::new();
 
-        // First, try to match by position (placeholder position = parameterOrder position)
-        for (i, _placeholder) in path_placeholders.iter().enumerate() {
-            if i < parameter_order.len() {
-                let param_name = &parameter_order[i];
-                if let Some(param) = params.get(param_name) {
-                    if param.location.as_deref() == Some("path") || param.location.is_none() {
-                        path_params.push(param_name.clone());
-                        used_params.insert(param_name);
+        // Strategy 1: direct name match — each placeholder whose name appears in `params`
+        // as a path-typed parameter gets matched directly.
+        for placeholder in &path_placeholders {
+            if let Some(param) = params.get(placeholder) {
+                if param.location.as_deref() == Some("path") || param.location.is_none() {
+                    path_params.push(placeholder.clone());
+                    used_params.insert(placeholder.clone());
+                    continue; // already matched
+                }
+            }
+            // Strategy 2: positional match via parameterOrder
+            if let Some(pos) = path_placeholders.iter().position(|p| p == placeholder) {
+                if pos < parameter_order.len() {
+                    let param_name = &parameter_order[pos];
+                    if let Some(param) = params.get(param_name) {
+                        if param.location.as_deref() == Some("path") || param.location.is_none() {
+                            path_params.push(param_name.clone());
+                            used_params.insert(param_name.clone());
+                        }
                     }
                 }
             }

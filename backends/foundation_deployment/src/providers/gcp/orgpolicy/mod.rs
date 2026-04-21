@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_orgpolicy_constraints")]
-pub mod constraints;
-#[cfg(feature = "gcp_orgpolicy_custom_constraints")]
-pub mod custom_constraints;
-#[cfg(feature = "gcp_orgpolicy_policies")]
-pub mod policies;
+#[cfg(feature = "gcp_orgpolicy_orgpolicy")]
+pub mod orgpolicy;

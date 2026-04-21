@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigqueryreservation_assignments")]
-pub mod assignments;
-#[cfg(feature = "gcp_bigqueryreservation_bi_reservation")]
-pub mod bi_reservation;
-#[cfg(feature = "gcp_bigqueryreservation_capacity_commitments")]
-pub mod capacity_commitments;
-#[cfg(feature = "gcp_bigqueryreservation_capacity_commitments_merge")]
-pub mod capacity_commitments_merge;
-#[cfg(feature = "gcp_bigqueryreservation_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_bigqueryreservation_reservation_groups")]
-pub mod reservation_groups;
-#[cfg(feature = "gcp_bigqueryreservation_reservations")]
-pub mod reservations;
+#[cfg(feature = "gcp_bigqueryreservation_bigqueryreservation")]
+pub mod bigqueryreservation;

@@ -14,24 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `LiveBroadcast`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcast {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `LiveChatMessage`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMessage {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `LiveChatMessageListResponse`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMessageListResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

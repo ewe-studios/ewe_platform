@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_css_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_css_css_product_inputs")]
-pub mod css_product_inputs;
-#[cfg(feature = "gcp_css_css_product_inputs_insert")]
-pub mod css_product_inputs_insert;
-#[cfg(feature = "gcp_css_css_products")]
-pub mod css_products;
-#[cfg(feature = "gcp_css_labels")]
-pub mod labels;
-#[cfg(feature = "gcp_css_quotas")]
-pub mod quotas;
+#[cfg(feature = "gcp_css_css")]
+pub mod css;

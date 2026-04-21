@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_paymentsresellersubscription_line_items")]
-pub mod line_items;
-#[cfg(feature = "gcp_paymentsresellersubscription_products")]
-pub mod products;
-#[cfg(feature = "gcp_paymentsresellersubscription_promotions")]
-pub mod promotions;
-#[cfg(feature = "gcp_paymentsresellersubscription_promotions_find_eligible")]
-pub mod promotions_find_eligible;
-#[cfg(feature = "gcp_paymentsresellersubscription_subscriptions")]
-pub mod subscriptions;
-#[cfg(feature = "gcp_paymentsresellersubscription_subscriptions_provision")]
-pub mod subscriptions_provision;
-#[cfg(feature = "gcp_paymentsresellersubscription_user_sessions_generate")]
-pub mod user_sessions_generate;
+#[cfg(feature = "gcp_paymentsresellersubscription_paymentsresellersubscription")]
+pub mod paymentsresellersubscription;

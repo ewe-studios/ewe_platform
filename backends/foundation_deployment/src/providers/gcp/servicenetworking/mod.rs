@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_servicenetworking_connections")]
-pub mod connections;
-#[cfg(feature = "gcp_servicenetworking_dns_record_sets_add")]
-pub mod dns_record_sets_add;
-#[cfg(feature = "gcp_servicenetworking_dns_record_sets_get")]
-pub mod dns_record_sets_get;
-#[cfg(feature = "gcp_servicenetworking_dns_record_sets_list")]
-pub mod dns_record_sets_list;
-#[cfg(feature = "gcp_servicenetworking_dns_record_sets_remove")]
-pub mod dns_record_sets_remove;
-#[cfg(feature = "gcp_servicenetworking_dns_record_sets_update")]
-pub mod dns_record_sets_update;
-#[cfg(feature = "gcp_servicenetworking_dns_zones")]
-pub mod dns_zones;
-#[cfg(feature = "gcp_servicenetworking_dns_zones_add")]
-pub mod dns_zones_add;
-#[cfg(feature = "gcp_servicenetworking_dns_zones_list")]
-pub mod dns_zones_list;
-#[cfg(feature = "gcp_servicenetworking_dns_zones_remove")]
-pub mod dns_zones_remove;
-#[cfg(feature = "gcp_servicenetworking_networks")]
-pub mod networks;
-#[cfg(feature = "gcp_servicenetworking_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_servicenetworking_peered_dns_domains")]
-pub mod peered_dns_domains;
-#[cfg(feature = "gcp_servicenetworking_roles_add")]
-pub mod roles_add;
-#[cfg(feature = "gcp_servicenetworking_services")]
-pub mod services;
-#[cfg(feature = "gcp_servicenetworking_vpc_service_controls")]
-pub mod vpc_service_controls;
+#[cfg(feature = "gcp_servicenetworking_servicenetworking")]
+pub mod servicenetworking;

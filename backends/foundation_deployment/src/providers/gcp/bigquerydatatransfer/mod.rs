@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_bigquerydatatransfer_data_sources")]
-pub mod data_sources;
-#[cfg(feature = "gcp_bigquerydatatransfer_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_bigquerydatatransfer_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_bigquerydatatransfer_runs")]
-pub mod runs;
-#[cfg(feature = "gcp_bigquerydatatransfer_transfer_configs")]
-pub mod transfer_configs;
-#[cfg(feature = "gcp_bigquerydatatransfer_transfer_logs")]
-pub mod transfer_logs;
-#[cfg(feature = "gcp_bigquerydatatransfer_transfer_resources")]
-pub mod transfer_resources;
+#[cfg(feature = "gcp_bigquerydatatransfer_bigquerydatatransfer")]
+pub mod bigquerydatatransfer;

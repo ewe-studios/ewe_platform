@@ -10,23 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_domains_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_domains_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_domains_registrations")]
-pub mod registrations;
-#[cfg(feature = "gcp_domains_registrations_import")]
-pub mod registrations_import;
-#[cfg(feature = "gcp_domains_registrations_register")]
-pub mod registrations_register;
-#[cfg(feature = "gcp_domains_registrations_retrieve_importable_domains")]
-pub mod registrations_retrieve_importable_domains;
-#[cfg(feature = "gcp_domains_registrations_retrieve_register_parameters")]
-pub mod registrations_retrieve_register_parameters;
-#[cfg(feature = "gcp_domains_registrations_retrieve_transfer_parameters")]
-pub mod registrations_retrieve_transfer_parameters;
-#[cfg(feature = "gcp_domains_registrations_search_domains")]
-pub mod registrations_search_domains;
-#[cfg(feature = "gcp_domains_registrations_transfer")]
-pub mod registrations_transfer;
+#[cfg(feature = "gcp_domains_domains")]
+pub mod domains;

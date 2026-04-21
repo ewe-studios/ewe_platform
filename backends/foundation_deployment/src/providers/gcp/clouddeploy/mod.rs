@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_clouddeploy_automation_runs")]
-pub mod automation_runs;
-#[cfg(feature = "gcp_clouddeploy_automations")]
-pub mod automations;
-#[cfg(feature = "gcp_clouddeploy_config")]
-pub mod config;
-#[cfg(feature = "gcp_clouddeploy_custom_target_types")]
-pub mod custom_target_types;
-#[cfg(feature = "gcp_clouddeploy_delivery_pipelines")]
-pub mod delivery_pipelines;
-#[cfg(feature = "gcp_clouddeploy_deploy_policies")]
-pub mod deploy_policies;
-#[cfg(feature = "gcp_clouddeploy_job_runs")]
-pub mod job_runs;
-#[cfg(feature = "gcp_clouddeploy_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_clouddeploy_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_clouddeploy_releases")]
-pub mod releases;
-#[cfg(feature = "gcp_clouddeploy_rollouts")]
-pub mod rollouts;
-#[cfg(feature = "gcp_clouddeploy_targets")]
-pub mod targets;
+#[cfg(feature = "gcp_clouddeploy_clouddeploy")]
+pub mod clouddeploy;

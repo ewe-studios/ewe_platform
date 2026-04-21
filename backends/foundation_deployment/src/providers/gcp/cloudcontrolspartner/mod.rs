@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudcontrolspartner_access_approval_requests")]
-pub mod access_approval_requests;
-#[cfg(feature = "gcp_cloudcontrolspartner_customers")]
-pub mod customers;
-#[cfg(feature = "gcp_cloudcontrolspartner_ekm_connections")]
-pub mod ekm_connections;
-#[cfg(feature = "gcp_cloudcontrolspartner_partner")]
-pub mod partner;
-#[cfg(feature = "gcp_cloudcontrolspartner_partner_permissions")]
-pub mod partner_permissions;
-#[cfg(feature = "gcp_cloudcontrolspartner_violations")]
-pub mod violations;
-#[cfg(feature = "gcp_cloudcontrolspartner_workloads")]
-pub mod workloads;
+#[cfg(feature = "gcp_cloudcontrolspartner_cloudcontrolspartner")]
+pub mod cloudcontrolspartner;

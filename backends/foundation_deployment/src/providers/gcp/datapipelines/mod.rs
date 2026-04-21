@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_datapipelines_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_datapipelines_pipelines")]
-pub mod pipelines;
+#[cfg(feature = "gcp_datapipelines_datapipelines")]
+pub mod datapipelines;

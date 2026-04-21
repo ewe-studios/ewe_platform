@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_policytroubleshooter_iam_troubleshoot")]
-pub mod iam_troubleshoot;
+#[cfg(feature = "gcp_policytroubleshooter_policytroubleshooter")]
+pub mod policytroubleshooter;

@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_marketingplatformadmin_analytics_account_links")]
-pub mod analytics_account_links;
-#[cfg(feature = "gcp_marketingplatformadmin_organizations")]
-pub mod organizations;
+#[cfg(feature = "gcp_marketingplatformadmin_marketingplatformadmin")]
+pub mod marketingplatformadmin;

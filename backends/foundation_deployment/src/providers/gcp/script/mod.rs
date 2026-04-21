@@ -10,19 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_script_content")]
-pub mod content;
-#[cfg(feature = "gcp_script_deployments")]
-pub mod deployments;
-#[cfg(feature = "gcp_script_metrics")]
-pub mod metrics;
-#[cfg(feature = "gcp_script_processes")]
-pub mod processes;
-#[cfg(feature = "gcp_script_processes_list_script_processes")]
-pub mod processes_list_script_processes;
-#[cfg(feature = "gcp_script_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_script_scripts")]
-pub mod scripts;
-#[cfg(feature = "gcp_script_versions")]
-pub mod versions;
+#[cfg(feature = "gcp_script_script")]
+pub mod script;

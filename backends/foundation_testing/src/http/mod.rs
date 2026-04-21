@@ -9,7 +9,9 @@
 //! Simple implementation suitable for basic HTTP client testing.
 
 mod server;
+mod tls_server;
 mod websocket_server;
 
 pub use server::{HttpRequest, HttpResponse, TestHttpServer};
+pub use tls_server::{test_tls_connector, TestHttpsServer};
 pub use websocket_server::WebSocketEchoServer;

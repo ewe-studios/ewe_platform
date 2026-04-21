@@ -10,15 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_alertcenter_alerts")]
-pub mod alerts;
-#[cfg(feature = "gcp_alertcenter_alerts_batch_delete")]
-pub mod alerts_batch_delete;
-#[cfg(feature = "gcp_alertcenter_alerts_batch_undelete")]
-pub mod alerts_batch_undelete;
-#[cfg(feature = "gcp_alertcenter_feedback")]
-pub mod feedback;
-#[cfg(feature = "gcp_alertcenter_metadata")]
-pub mod metadata;
-#[cfg(feature = "gcp_alertcenter_settings")]
-pub mod settings;
+#[cfg(feature = "gcp_alertcenter_alertcenter")]
+pub mod alertcenter;

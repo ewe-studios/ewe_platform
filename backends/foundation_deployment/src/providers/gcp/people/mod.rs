@@ -10,33 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_people_connections")]
-pub mod connections;
-#[cfg(feature = "gcp_people_contact_groups")]
-pub mod contact_groups;
-#[cfg(feature = "gcp_people_contact_groups_batch_get")]
-pub mod contact_groups_batch_get;
-#[cfg(feature = "gcp_people_members_modify")]
-pub mod members_modify;
-#[cfg(feature = "gcp_people_other_contacts")]
-pub mod other_contacts;
-#[cfg(feature = "gcp_people_other_contacts_search")]
-pub mod other_contacts_search;
 #[cfg(feature = "gcp_people_people")]
 pub mod people;
-#[cfg(feature = "gcp_people_people_batch_create_contacts")]
-pub mod people_batch_create_contacts;
-#[cfg(feature = "gcp_people_people_batch_delete_contacts")]
-pub mod people_batch_delete_contacts;
-#[cfg(feature = "gcp_people_people_batch_get")]
-pub mod people_batch_get;
-#[cfg(feature = "gcp_people_people_batch_update_contacts")]
-pub mod people_batch_update_contacts;
-#[cfg(feature = "gcp_people_people_create_contact")]
-pub mod people_create_contact;
-#[cfg(feature = "gcp_people_people_list_directory_people")]
-pub mod people_list_directory_people;
-#[cfg(feature = "gcp_people_people_search_contacts")]
-pub mod people_search_contacts;
-#[cfg(feature = "gcp_people_people_search_directory_people")]
-pub mod people_search_directory_people;

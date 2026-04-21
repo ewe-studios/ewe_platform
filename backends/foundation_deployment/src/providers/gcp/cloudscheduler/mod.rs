@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudscheduler_cmek_config")]
-pub mod cmek_config;
-#[cfg(feature = "gcp_cloudscheduler_jobs")]
-pub mod jobs;
-#[cfg(feature = "gcp_cloudscheduler_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_cloudscheduler_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_cloudscheduler_cloudscheduler")]
+pub mod cloudscheduler;

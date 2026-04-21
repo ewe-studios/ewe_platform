@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_indexing_metadata")]
-pub mod metadata;
-#[cfg(feature = "gcp_indexing_url_notifications_publish")]
-pub mod url_notifications_publish;
+#[cfg(feature = "gcp_indexing_indexing")]
+pub mod indexing;

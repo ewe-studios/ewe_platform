@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_testing_device_sessions")]
-pub mod device_sessions;
-#[cfg(feature = "gcp_testing_get_apk_details")]
-pub mod get_apk_details;
-#[cfg(feature = "gcp_testing_test_environment_catalog")]
-pub mod test_environment_catalog;
-#[cfg(feature = "gcp_testing_test_matrices")]
-pub mod test_matrices;
+#[cfg(feature = "gcp_testing_testing")]
+pub mod testing;

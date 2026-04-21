@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_site_verification_token")]
-pub mod token;
-#[cfg(feature = "gcp_site_verification_web_resource")]
-pub mod web_resource;
+#[cfg(feature = "gcp_site_verification_site_verification")]
+pub mod site_verification;

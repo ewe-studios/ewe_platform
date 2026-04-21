@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_contentwarehouse_document_links")]
-pub mod document_links;
-#[cfg(feature = "gcp_contentwarehouse_document_schemas")]
-pub mod document_schemas;
-#[cfg(feature = "gcp_contentwarehouse_documents")]
-pub mod documents;
-#[cfg(feature = "gcp_contentwarehouse_documents_search")]
-pub mod documents_search;
-#[cfg(feature = "gcp_contentwarehouse_linked_sources")]
-pub mod linked_sources;
-#[cfg(feature = "gcp_contentwarehouse_linked_targets")]
-pub mod linked_targets;
-#[cfg(feature = "gcp_contentwarehouse_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_contentwarehouse_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_contentwarehouse_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_contentwarehouse_reference_id")]
-pub mod reference_id;
-#[cfg(feature = "gcp_contentwarehouse_rule_sets")]
-pub mod rule_sets;
-#[cfg(feature = "gcp_contentwarehouse_synonym_sets")]
-pub mod synonym_sets;
+#[cfg(feature = "gcp_contentwarehouse_contentwarehouse")]
+pub mod contentwarehouse;

@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_docs_documents")]
-pub mod documents;
+#[cfg(feature = "gcp_docs_docs")]
+pub mod docs;

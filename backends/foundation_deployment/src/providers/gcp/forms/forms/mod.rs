@@ -19,50 +19,334 @@ use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHtt
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
+// Import shared types used by this module
+use super::shared::Empty;
+
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Info` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Info {
-    /// description property.
-    pub description: Option<String>,
-    /// documentTitle property.
-    pub document_title: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+/// `BatchUpdateFormResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateFormResponse {
+    /// form property.
+    pub form: Option<Form>,
+    /// replies property.
+    pub replies: Option<Vec<Response>>,
+    /// writeControl property.
+    pub write_control: Option<WriteControl>,
 }
 
-/// `VideoLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoLink {
-    /// displayText property.
-    pub display_text: Option<String>,
+/// `ListWatchesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListWatchesResponse {
+    /// watches property.
+    pub watches: Option<Vec<Watch>>,
+}
+
+/// `SetPublishSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SetPublishSettingsResponse {
+    /// formId property.
+    pub form_id: Option<String>,
+    /// publishSettings property.
+    pub publish_settings: Option<PublishSettings>,
+}
+
+/// `PageBreakItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PageBreakItem {}
+
+/// `QuestionGroupItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QuestionGroupItem {
+    /// grid property.
+    pub grid: Option<Grid>,
+    /// image property.
+    pub image: Option<Image>,
+    /// questions property.
+    pub questions: Option<Vec<Question>>,
+}
+
+/// `TimeQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimeQuestion {
+    /// duration property.
+    pub duration: Option<bool>,
+}
+
+/// `QuizSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QuizSettings {
+    /// isQuiz property.
+    pub is_quiz: Option<bool>,
+}
+
+/// `ScaleQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ScaleQuestion {
+    /// high property.
+    pub high: Option<i64>,
+    /// highLabel property.
+    pub high_label: Option<String>,
+    /// low property.
+    pub low: Option<i64>,
+    /// lowLabel property.
+    pub low_label: Option<String>,
+}
+
+/// `Watch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Watch {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// errorType property.
+    pub error_type: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// target property.
+    pub target: Option<WatchTarget>,
+}
+
+/// `FileUploadQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FileUploadQuestion {
+    /// folderId property.
+    pub folder_id: Option<String>,
+    /// maxFileSize property.
+    pub max_file_size: Option<String>,
+    /// maxFiles property.
+    pub max_files: Option<i64>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `UpdateFormInfoRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateFormInfoRequest {
+    /// info property.
+    pub info: Option<Info>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `PublishState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PublishState {
+    /// isAcceptingResponses property.
+    pub is_accepting_responses: Option<bool>,
+    /// isPublished property.
+    pub is_published: Option<bool>,
+}
+
+/// `CorrectAnswers` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CorrectAnswers {
+    /// answers property.
+    pub answers: Option<Vec<CorrectAnswer>>,
+}
+
+/// `CreateItemResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateItemResponse {
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// questionId property.
+    pub question_id: Option<Vec<String>>,
+}
+
+/// `Request` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Request {
+    /// createItem property.
+    pub create_item: Option<CreateItemRequest>,
+    /// deleteItem property.
+    pub delete_item: Option<DeleteItemRequest>,
+    /// moveItem property.
+    pub move_item: Option<MoveItemRequest>,
+    /// updateFormInfo property.
+    pub update_form_info: Option<UpdateFormInfoRequest>,
+    /// updateItem property.
+    pub update_item: Option<UpdateItemRequest>,
+    /// updateSettings property.
+    pub update_settings: Option<UpdateSettingsRequest>,
+}
+
+/// `DeleteItemRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteItemRequest {
+    /// location property.
+    pub location: Option<Location>,
+}
+
+/// `ImageItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageItem {
+    /// image property.
+    pub image: Option<Image>,
+}
+
+/// `RenewWatchRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RenewWatchRequest {}
+
+/// `ChoiceQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChoiceQuestion {
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// shuffle property.
+    pub shuffle: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TextQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextQuestion {
+    /// paragraph property.
+    pub paragraph: Option<bool>,
+}
+
+/// `Video` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Video {
+    /// properties property.
+    pub properties: Option<MediaProperties>,
     /// youtubeUri property.
     pub youtube_uri: Option<String>,
 }
 
-/// `VideoItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoItem {
-    /// caption property.
-    pub caption: Option<String>,
-    /// video property.
-    pub video: Option<Video>,
+/// `OptionType` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OptionType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SetPublishSettingsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SetPublishSettingsRequest {
+    /// publishSettings property.
+    pub publish_settings: Option<PublishSettings>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `MediaProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MediaProperties {
+    /// alignment property.
+    pub alignment: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `UpdateSettingsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateSettingsRequest {
+    /// settings property.
+    pub settings: Option<FormSettings>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `FormResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FormResponse {
+    /// answers property.
+    pub answers: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// formId property.
+    pub form_id: Option<String>,
+    /// lastSubmittedTime property.
+    pub last_submitted_time: Option<String>,
+    /// respondentEmail property.
+    pub respondent_email: Option<String>,
+    /// responseId property.
+    pub response_id: Option<String>,
+    /// totalScore property.
+    pub total_score: Option<f64>,
+}
+
+/// `UpdateItemRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateItemRequest {
+    /// item property.
+    pub item: Option<Item>,
+    /// location property.
+    pub location: Option<Location>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `RowQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RowQuestion {
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Feedback` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Feedback {
+    /// material property.
+    pub material: Option<Vec<ExtraMaterial>>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `CorrectAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CorrectAnswer {
     /// value property.
     pub value: Option<String>,
 }
 
+/// `Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Item {
+    /// description property.
+    pub description: Option<String>,
+    /// imageItem property.
+    pub image_item: Option<ImageItem>,
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// pageBreakItem property.
+    pub page_break_item: Option<PageBreakItem>,
+    /// questionGroupItem property.
+    pub question_group_item: Option<QuestionGroupItem>,
+    /// questionItem property.
+    pub question_item: Option<QuestionItem>,
+    /// textItem property.
+    pub text_item: Option<TextItem>,
+    /// title property.
+    pub title: Option<String>,
+    /// videoItem property.
+    pub video_item: Option<VideoItem>,
+}
+
+/// `Grid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Grid {
+    /// columns property.
+    pub columns: Option<ChoiceQuestion>,
+    /// shuffleQuestions property.
+    pub shuffle_questions: Option<bool>,
+}
+
 /// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// altText property.
     pub alt_text: Option<String>,
@@ -74,49 +358,98 @@ pub struct Image {
     pub source_uri: Option<String>,
 }
 
-/// `QuizSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuizSettings {
-    /// isQuiz property.
-    pub is_quiz: Option<bool>,
-}
-
-/// `PublishState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublishState {
-    /// isAcceptingResponses property.
-    pub is_accepting_responses: Option<bool>,
-    /// isPublished property.
-    pub is_published: Option<bool>,
-}
-
-/// `ImageItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageItem {
-    /// image property.
-    pub image: Option<Image>,
-}
-
-/// `TextLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextLink {
+/// `VideoLink` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct VideoLink {
     /// displayText property.
     pub display_text: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+    /// youtubeUri property.
+    pub youtube_uri: Option<String>,
 }
 
-/// `CreateItemResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateItemResponse {
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// questionId property.
-    pub question_id: Option<Vec<String>>,
+/// `Info` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Info {
+    /// description property.
+    pub description: Option<String>,
+    /// documentTitle property.
+    pub document_title: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `CloudPubsubTopic` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CloudPubsubTopic {
+    /// topicName property.
+    pub topic_name: Option<String>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// index property.
+    pub index: Option<i64>,
+}
+
+/// `ListFormResponsesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListFormResponsesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// responses property.
+    pub responses: Option<Vec<FormResponse>>,
+}
+
+/// `TextItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextItem {}
+
+/// `QuestionItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QuestionItem {
+    /// image property.
+    pub image: Option<Image>,
+    /// question property.
+    pub question: Option<Question>,
+}
+
+/// `VideoItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct VideoItem {
+    /// caption property.
+    pub caption: Option<String>,
+    /// video property.
+    pub video: Option<Video>,
+}
+
+/// `CreateWatchRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateWatchRequest {
+    /// watch property.
+    pub watch: Option<Watch>,
+    /// watchId property.
+    pub watch_id: Option<String>,
+}
+
+/// `WatchTarget` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WatchTarget {
+    /// topic property.
+    pub topic: Option<CloudPubsubTopic>,
+}
+
+/// `ExtraMaterial` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ExtraMaterial {
+    /// link property.
+    pub link: Option<TextLink>,
+    /// video property.
+    pub video: Option<VideoLink>,
 }
 
 /// `FormSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FormSettings {
     /// emailCollectionType property.
     pub email_collection_type: Option<String>,
@@ -124,12 +457,8 @@ pub struct FormSettings {
     pub quiz_settings: Option<QuizSettings>,
 }
 
-/// `PageBreakItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageBreakItem {}
-
 /// `RatingQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RatingQuestion {
     /// iconType property.
     pub icon_type: Option<String>,
@@ -137,35 +466,31 @@ pub struct RatingQuestion {
     pub rating_scale_level: Option<i64>,
 }
 
-/// `WriteControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteControl {
-    /// requiredRevisionId property.
-    pub required_revision_id: Option<String>,
-    /// targetRevisionId property.
-    pub target_revision_id: Option<String>,
+/// `MoveItemRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MoveItemRequest {
+    /// newLocation property.
+    pub new_location: Option<Location>,
+    /// originalLocation property.
+    pub original_location: Option<Location>,
 }
 
-/// `DateQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateQuestion {
-    /// includeTime property.
-    pub include_time: Option<bool>,
-    /// includeYear property.
-    pub include_year: Option<bool>,
+/// `Response` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Response {
+    /// createItem property.
+    pub create_item: Option<CreateItemResponse>,
 }
 
-/// `Grid` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Grid {
-    /// columns property.
-    pub columns: Option<ChoiceQuestion>,
-    /// shuffleQuestions property.
-    pub shuffle_questions: Option<bool>,
+/// `PublishSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PublishSettings {
+    /// publishState property.
+    pub publish_state: Option<PublishState>,
 }
 
 /// `Grading` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Grading {
     /// correctAnswers property.
     pub correct_answers: Option<CorrectAnswers>,
@@ -179,24 +504,17 @@ pub struct Grading {
     pub when_wrong: Option<Feedback>,
 }
 
-/// `ExtraMaterial` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtraMaterial {
-    /// link property.
-    pub link: Option<TextLink>,
-    /// video property.
-    pub video: Option<VideoLink>,
-}
-
-/// `PublishSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublishSettings {
-    /// publishState property.
-    pub publish_state: Option<PublishState>,
+/// `DateQuestion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DateQuestion {
+    /// includeTime property.
+    pub include_time: Option<bool>,
+    /// includeYear property.
+    pub include_year: Option<bool>,
 }
 
 /// `Question` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Question {
     /// choiceQuestion property.
     pub choice_question: Option<ChoiceQuestion>,
@@ -222,115 +540,46 @@ pub struct Question {
     pub time_question: Option<TimeQuestion>,
 }
 
-/// `Item` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Item {
-    /// description property.
-    pub description: Option<String>,
-    /// imageItem property.
-    pub image_item: Option<ImageItem>,
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// pageBreakItem property.
-    pub page_break_item: Option<PageBreakItem>,
-    /// questionGroupItem property.
-    pub question_group_item: Option<QuestionGroupItem>,
-    /// questionItem property.
-    pub question_item: Option<QuestionItem>,
-    /// textItem property.
-    pub text_item: Option<TextItem>,
-    /// title property.
-    pub title: Option<String>,
-    /// videoItem property.
-    pub video_item: Option<VideoItem>,
+/// `WriteControl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WriteControl {
+    /// requiredRevisionId property.
+    pub required_revision_id: Option<String>,
+    /// targetRevisionId property.
+    pub target_revision_id: Option<String>,
 }
 
-/// `TextItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextItem {}
-
-/// `MediaProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MediaProperties {
-    /// alignment property.
-    pub alignment: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+/// `TextLink` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextLink {
+    /// displayText property.
+    pub display_text: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `BatchUpdateFormResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateFormResponse {
-    /// form property.
-    pub form: Option<Form>,
-    /// replies property.
-    pub replies: Option<Vec<Response>>,
+/// `CreateItemRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateItemRequest {
+    /// item property.
+    pub item: Option<Item>,
+    /// location property.
+    pub location: Option<Location>,
+}
+
+/// `BatchUpdateFormRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateFormRequest {
+    /// includeFormInResponse property.
+    pub include_form_in_response: Option<bool>,
+    /// requests property.
+    pub requests: Option<Vec<Request>>,
     /// writeControl property.
     pub write_control: Option<WriteControl>,
 }
 
-/// `FileUploadQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileUploadQuestion {
-    /// folderId property.
-    pub folder_id: Option<String>,
-    /// maxFileSize property.
-    pub max_file_size: Option<String>,
-    /// maxFiles property.
-    pub max_files: Option<i64>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `OptionType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OptionType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CorrectAnswers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CorrectAnswers {
-    /// answers property.
-    pub answers: Option<Vec<CorrectAnswer>>,
-}
-
-/// `Feedback` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Feedback {
-    /// material property.
-    pub material: Option<Vec<ExtraMaterial>>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `QuestionItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuestionItem {
-    /// image property.
-    pub image: Option<Image>,
-    /// question property.
-    pub question: Option<Question>,
-}
-
-/// `RowQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowQuestion {
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Response` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Response {
-    /// createItem property.
-    pub create_item: Option<CreateItemResponse>,
-}
-
 /// `Form` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Form {
     /// formId property.
     pub form_id: Option<String>,
@@ -350,103 +599,100 @@ pub struct Form {
     pub settings: Option<FormSettings>,
 }
 
-/// `Video` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Video {
-    /// properties property.
-    pub properties: Option<MediaProperties>,
-    /// youtubeUri property.
-    pub youtube_uri: Option<String>,
-}
-
-/// `TimeQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeQuestion {
-    /// duration property.
-    pub duration: Option<bool>,
-}
-
-/// `ChoiceQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChoiceQuestion {
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// shuffle property.
-    pub shuffle: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `QuestionGroupItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuestionGroupItem {
-    /// grid property.
-    pub grid: Option<Grid>,
-    /// image property.
-    pub image: Option<Image>,
-    /// questions property.
-    pub questions: Option<Vec<Question>>,
-}
-
-/// `SetPublishSettingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetPublishSettingsResponse {
-    /// formId property.
-    pub form_id: Option<String>,
-    /// publishSettings property.
-    pub publish_settings: Option<PublishSettings>,
-}
-
-/// `TextQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextQuestion {
-    /// paragraph property.
-    pub paragraph: Option<bool>,
-}
-
-/// `ScaleQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScaleQuestion {
-    /// high property.
-    pub high: Option<i64>,
-    /// highLabel property.
-    pub high_label: Option<String>,
-    /// low property.
-    pub low: Option<i64>,
-    /// lowLabel property.
-    pub low_label: Option<String>,
-}
-
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`forms.forms.batchUpdate_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct FormsFormsBatchUpdateArgs {
     /// Path parameter: `formId`.
     pub form_id: String,
+    /// Request body.
+    pub body: BatchUpdateFormRequest,
 }
 
 /// Arguments for [`forms.forms.create_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct FormsFormsCreateArgs {
     /// Query parameter: `unpublished`.
     pub unpublished: Option<String>,
+    /// Request body.
+    pub body: Form,
 }
 
 /// Arguments for [`forms.forms.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct FormsFormsGetArgs {
     /// Path parameter: `formId`.
     pub form_id: String,
 }
 
 /// Arguments for [`forms.forms.setPublishSettings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct FormsFormsSetPublishSettingsArgs {
     /// Path parameter: `formId`.
     pub form_id: String,
+    /// Request body.
+    pub body: SetPublishSettingsRequest,
+}
+
+/// Arguments for [`forms.forms.responses.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsResponsesGetArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+    /// Path parameter: `responseId`.
+    pub response_id: String,
+}
+
+/// Arguments for [`forms.forms.responses.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsResponsesListArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`forms.forms.watches.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsWatchesCreateArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+    /// Request body.
+    pub body: CreateWatchRequest,
+}
+
+/// Arguments for [`forms.forms.watches.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsWatchesDeleteArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+    /// Path parameter: `watchId`.
+    pub watch_id: String,
+}
+
+/// Arguments for [`forms.forms.watches.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsWatchesListArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+}
+
+/// Arguments for [`forms.forms.watches.renew_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FormsFormsWatchesRenewArgs {
+    /// Path parameter: `formId`.
+    pub form_id: String,
+    /// Path parameter: `watchId`.
+    pub watch_id: String,
+    /// Request body.
+    pub body: RenewWatchRequest,
 }
 
 // =============================================================================
@@ -500,6 +746,10 @@ where
 
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -557,6 +807,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -569,6 +820,7 @@ where
 #[inline]
 pub fn forms_forms_create_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &FormsFormsCreateArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -585,8 +837,28 @@ where
 {
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.unpublished {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("unpublished=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -770,6 +1042,10 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -797,6 +1073,602 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: SetPublishSettingsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/forms/{formId}/responses/{responseId}
+// -----------------------------------------------------------------------------
+
+/// GET v1/forms/{formId}/responses/{responseId}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_responses_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_responses_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsResponsesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FormResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/responses/{}",
+        args.form_id, args.response_id,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: FormResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/forms/{formId}/responses
+// -----------------------------------------------------------------------------
+
+/// GET v1/forms/{formId}/responses.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_responses_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_responses_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsResponsesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFormResponsesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/responses",
+        args.form_id,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListFormResponsesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/forms/{formId}/watches
+// -----------------------------------------------------------------------------
+
+/// POST v1/forms/{formId}/watches.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_watches_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_watches_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsWatchesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Watch>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/watches",
+        args.form_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Watch =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v1/forms/{formId}/watches/{watchId}
+// -----------------------------------------------------------------------------
+
+/// DELETE v1/forms/{formId}/watches/{watchId}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_watches_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_watches_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsWatchesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/watches/{}",
+        args.form_id, args.watch_id,
+    );
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v1/forms/{formId}/watches
+// -----------------------------------------------------------------------------
+
+/// GET v1/forms/{formId}/watches.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_watches_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_watches_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsWatchesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWatchesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/watches",
+        args.form_id,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListWatchesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v1/forms/{formId}/watches/{watchId}:renew
+// -----------------------------------------------------------------------------
+
+/// POST v1/forms/{formId}/watches/{watchId}:renew.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = forms_forms_watches_renew_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn forms_forms_watches_renew_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &FormsFormsWatchesRenewArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Watch>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/watches/{}:renew",
+        args.form_id, args.watch_id,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Watch =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
                     })?;

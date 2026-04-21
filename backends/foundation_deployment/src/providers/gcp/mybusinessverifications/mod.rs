@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_mybusinessverifications_voice_of_merchant_state")]
-pub mod voice_of_merchant_state;
-#[cfg(feature = "gcp_mybusinessverifications_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_mybusinessverifications_verification_tokens_generate")]
-pub mod verification_tokens_generate;
-#[cfg(feature = "gcp_mybusinessverifications_verifications")]
-pub mod verifications;
+#[cfg(feature = "gcp_mybusinessverifications_mybusinessverifications")]
+pub mod mybusinessverifications;

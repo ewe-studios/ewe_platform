@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_managedidentities_backups")]
-pub mod backups;
-#[cfg(feature = "gcp_managedidentities_domains")]
-pub mod domains;
-#[cfg(feature = "gcp_managedidentities_ldapssettings")]
-pub mod ldapssettings;
-#[cfg(feature = "gcp_managedidentities_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_managedidentities_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_managedidentities_peerings")]
-pub mod peerings;
-#[cfg(feature = "gcp_managedidentities_sql_integrations")]
-pub mod sql_integrations;
+#[cfg(feature = "gcp_managedidentities_managedidentities")]
+pub mod managedidentities;

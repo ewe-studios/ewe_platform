@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_language_documents_analyze_entities")]
-pub mod documents_analyze_entities;
-#[cfg(feature = "gcp_language_documents_analyze_sentiment")]
-pub mod documents_analyze_sentiment;
-#[cfg(feature = "gcp_language_documents_annotate_text")]
-pub mod documents_annotate_text;
-#[cfg(feature = "gcp_language_documents_classify_text")]
-pub mod documents_classify_text;
-#[cfg(feature = "gcp_language_documents_moderate_text")]
-pub mod documents_moderate_text;
+#[cfg(feature = "gcp_language_language")]
+pub mod language;

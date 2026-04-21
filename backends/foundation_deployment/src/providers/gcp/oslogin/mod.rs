@@ -10,13 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_oslogin_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_oslogin_login_profile")]
-pub mod login_profile;
-#[cfg(feature = "gcp_oslogin_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_oslogin_ssh_public_keys")]
-pub mod ssh_public_keys;
-#[cfg(feature = "gcp_oslogin_users")]
-pub mod users;
+#[cfg(feature = "gcp_oslogin_oslogin")]
+pub mod oslogin;

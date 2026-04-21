@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_notebooks_instances")]
-pub mod instances;
-#[cfg(feature = "gcp_notebooks_instances_get_config")]
-pub mod instances_get_config;
-#[cfg(feature = "gcp_notebooks_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_notebooks_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_notebooks_notebooks")]
+pub mod notebooks;

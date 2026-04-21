@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_storagetransfer_agent_pools")]
-pub mod agent_pools;
-#[cfg(feature = "gcp_storagetransfer_google_service_accounts")]
-pub mod google_service_accounts;
-#[cfg(feature = "gcp_storagetransfer_transfer_jobs")]
-pub mod transfer_jobs;
-#[cfg(feature = "gcp_storagetransfer_transfer_operations")]
-pub mod transfer_operations;
+#[cfg(feature = "gcp_storagetransfer_storagetransfer")]
+pub mod storagetransfer;

@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_publicca_external_account_keys")]
-pub mod external_account_keys;
+#[cfg(feature = "gcp_publicca_publicca")]
+pub mod publicca;

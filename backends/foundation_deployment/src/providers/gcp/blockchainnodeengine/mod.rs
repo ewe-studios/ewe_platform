@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_blockchainnodeengine_blockchain_nodes")]
-pub mod blockchain_nodes;
-#[cfg(feature = "gcp_blockchainnodeengine_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_blockchainnodeengine_operations")]
-pub mod operations;
+#[cfg(feature = "gcp_blockchainnodeengine_blockchainnodeengine")]
+pub mod blockchainnodeengine;

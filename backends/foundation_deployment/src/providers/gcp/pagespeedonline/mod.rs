@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_pagespeedonline_run_pagespeed")]
-pub mod run_pagespeed;
+#[cfg(feature = "gcp_pagespeedonline_pagespeedonline")]
+pub mod pagespeedonline;

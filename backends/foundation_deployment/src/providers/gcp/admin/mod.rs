@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_admin_applications")]
-pub mod applications;
-#[cfg(feature = "gcp_admin_dates")]
-pub mod dates;
-#[cfg(feature = "gcp_admin_stop")]
-pub mod stop;
-#[cfg(feature = "gcp_admin_watch")]
-pub mod watch;
+#[cfg(feature = "gcp_admin_admin")]
+pub mod admin;

@@ -14,10 +14,3 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
-/// Shared type: `ScanRun`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScanRun {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-

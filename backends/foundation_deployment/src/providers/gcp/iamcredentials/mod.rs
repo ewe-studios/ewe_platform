@@ -10,7 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_iamcredentials_allowed_locations")]
-pub mod allowed_locations;
-#[cfg(feature = "gcp_iamcredentials_service_accounts")]
-pub mod service_accounts;
+#[cfg(feature = "gcp_iamcredentials_iamcredentials")]
+pub mod iamcredentials;

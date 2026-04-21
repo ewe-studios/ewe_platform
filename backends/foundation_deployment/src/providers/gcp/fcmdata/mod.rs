@@ -10,5 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_fcmdata_delivery_data")]
-pub mod delivery_data;
+#[cfg(feature = "gcp_fcmdata_fcmdata")]
+pub mod fcmdata;

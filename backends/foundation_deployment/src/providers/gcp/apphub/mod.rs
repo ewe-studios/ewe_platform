@@ -10,27 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_apphub_applications")]
-pub mod applications;
-#[cfg(feature = "gcp_apphub_boundary")]
-pub mod boundary;
-#[cfg(feature = "gcp_apphub_discovered_services")]
-pub mod discovered_services;
-#[cfg(feature = "gcp_apphub_discovered_services_lookup")]
-pub mod discovered_services_lookup;
-#[cfg(feature = "gcp_apphub_discovered_workloads")]
-pub mod discovered_workloads;
-#[cfg(feature = "gcp_apphub_discovered_workloads_lookup")]
-pub mod discovered_workloads_lookup;
-#[cfg(feature = "gcp_apphub_extended_metadata_schemas")]
-pub mod extended_metadata_schemas;
-#[cfg(feature = "gcp_apphub_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_apphub_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_apphub_service_project_attachments")]
-pub mod service_project_attachments;
-#[cfg(feature = "gcp_apphub_services")]
-pub mod services;
-#[cfg(feature = "gcp_apphub_workloads")]
-pub mod workloads;
+#[cfg(feature = "gcp_apphub_apphub")]
+pub mod apphub;

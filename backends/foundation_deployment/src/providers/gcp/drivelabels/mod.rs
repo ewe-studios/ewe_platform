@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_drivelabels_capabilities")]
-pub mod capabilities;
-#[cfg(feature = "gcp_drivelabels_label")]
-pub mod label;
-#[cfg(feature = "gcp_drivelabels_labels")]
-pub mod labels;
-#[cfg(feature = "gcp_drivelabels_locks")]
-pub mod locks;
-#[cfg(feature = "gcp_drivelabels_permissions")]
-pub mod permissions;
-#[cfg(feature = "gcp_drivelabels_permissions_batch_delete")]
-pub mod permissions_batch_delete;
-#[cfg(feature = "gcp_drivelabels_permissions_batch_update")]
-pub mod permissions_batch_update;
+#[cfg(feature = "gcp_drivelabels_drivelabels")]
+pub mod drivelabels;

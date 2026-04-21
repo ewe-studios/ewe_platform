@@ -10,17 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_apim_observations")]
-pub mod observations;
-#[cfg(feature = "gcp_apim_observations_batch_edit_tags")]
-pub mod observations_batch_edit_tags;
-#[cfg(feature = "gcp_apim_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_apim_entitlement")]
-pub mod entitlement;
-#[cfg(feature = "gcp_apim_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_apim_observation_jobs")]
-pub mod observation_jobs;
-#[cfg(feature = "gcp_apim_observation_sources")]
-pub mod observation_sources;
+#[cfg(feature = "gcp_apim_apim")]
+pub mod apim;

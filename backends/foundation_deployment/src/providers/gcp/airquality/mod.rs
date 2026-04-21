@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_airquality_current_conditions_lookup")]
-pub mod current_conditions_lookup;
-#[cfg(feature = "gcp_airquality_forecast_lookup")]
-pub mod forecast_lookup;
-#[cfg(feature = "gcp_airquality_heatmap_tiles")]
-pub mod heatmap_tiles;
-#[cfg(feature = "gcp_airquality_history_lookup")]
-pub mod history_lookup;
+#[cfg(feature = "gcp_airquality_airquality")]
+pub mod airquality;

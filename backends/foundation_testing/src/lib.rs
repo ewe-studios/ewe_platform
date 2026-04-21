@@ -79,7 +79,7 @@ pub mod stress;
 pub mod huggingface;
 
 // Re-export commonly used items
-pub use http::TestHttpServer;
+pub use http::{TestHttpServer, TestHttpsServer};
 pub use io::{SharedBuffer, SharedBufferReader, SharedBufferWriter};
 pub use metrics::{Metrics, PerformanceReport};
 pub use netcap::ResourcesHttpServer;

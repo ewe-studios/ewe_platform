@@ -10,9 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudlocationfinder_cloud_locations")]
-pub mod cloud_locations;
-#[cfg(feature = "gcp_cloudlocationfinder_cloud_locations_search")]
-pub mod cloud_locations_search;
-#[cfg(feature = "gcp_cloudlocationfinder_locations")]
-pub mod locations;
+#[cfg(feature = "gcp_cloudlocationfinder_cloudlocationfinder")]
+pub mod cloudlocationfinder;

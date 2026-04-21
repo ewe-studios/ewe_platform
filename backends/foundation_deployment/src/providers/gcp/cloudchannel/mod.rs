@@ -10,35 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_cloudchannel_accounts")]
-pub mod accounts;
-#[cfg(feature = "gcp_cloudchannel_billable_skus")]
-pub mod billable_skus;
-#[cfg(feature = "gcp_cloudchannel_channel_partner_links")]
-pub mod channel_partner_links;
-#[cfg(feature = "gcp_cloudchannel_channel_partner_repricing_configs")]
-pub mod channel_partner_repricing_configs;
-#[cfg(feature = "gcp_cloudchannel_customer_repricing_configs")]
-pub mod customer_repricing_configs;
-#[cfg(feature = "gcp_cloudchannel_customers")]
-pub mod customers;
-#[cfg(feature = "gcp_cloudchannel_customers_import")]
-pub mod customers_import;
-#[cfg(feature = "gcp_cloudchannel_entitlements")]
-pub mod entitlements;
-#[cfg(feature = "gcp_cloudchannel_integrators")]
-pub mod integrators;
-#[cfg(feature = "gcp_cloudchannel_offers")]
-pub mod offers;
-#[cfg(feature = "gcp_cloudchannel_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_cloudchannel_products")]
-pub mod products;
-#[cfg(feature = "gcp_cloudchannel_report_jobs")]
-pub mod report_jobs;
-#[cfg(feature = "gcp_cloudchannel_reports")]
-pub mod reports;
-#[cfg(feature = "gcp_cloudchannel_sku_groups")]
-pub mod sku_groups;
-#[cfg(feature = "gcp_cloudchannel_skus")]
-pub mod skus;
+#[cfg(feature = "gcp_cloudchannel_cloudchannel")]
+pub mod cloudchannel;

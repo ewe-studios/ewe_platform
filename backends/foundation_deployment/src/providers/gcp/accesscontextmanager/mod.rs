@@ -10,25 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_accesscontextmanager_access_levels")]
-pub mod access_levels;
-#[cfg(feature = "gcp_accesscontextmanager_access_levels_replace_all")]
-pub mod access_levels_replace_all;
-#[cfg(feature = "gcp_accesscontextmanager_access_policies")]
-pub mod access_policies;
-#[cfg(feature = "gcp_accesscontextmanager_authorized_orgs_descs")]
-pub mod authorized_orgs_descs;
-#[cfg(feature = "gcp_accesscontextmanager_gcp_user_access_bindings")]
-pub mod gcp_user_access_bindings;
-#[cfg(feature = "gcp_accesscontextmanager_operations")]
-pub mod operations;
-#[cfg(feature = "gcp_accesscontextmanager_permissions")]
-pub mod permissions;
-#[cfg(feature = "gcp_accesscontextmanager_service_perimeters")]
-pub mod service_perimeters;
-#[cfg(feature = "gcp_accesscontextmanager_service_perimeters_commit")]
-pub mod service_perimeters_commit;
-#[cfg(feature = "gcp_accesscontextmanager_service_perimeters_replace_all")]
-pub mod service_perimeters_replace_all;
-#[cfg(feature = "gcp_accesscontextmanager_services")]
-pub mod services;
+#[cfg(feature = "gcp_accesscontextmanager_accesscontextmanager")]
+pub mod accesscontextmanager;

@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Empty;
+use super::shared::Operation;
 
 use super::shared::ApiResponse;
 
@@ -28,70 +29,35 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// latLng property.
-    pub lat_lng: Option<LatLng>,
-    /// locationType property.
-    pub location_type: Option<String>,
-    /// postalAddress property.
-    pub postal_address: Option<PostalAddress>,
-    /// radiusMiles property.
-    pub radius_miles: Option<f64>,
+/// `CompanyDerivedInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompanyDerivedInfo {
+    /// headquartersLocation property.
+    pub headquarters_location: Option<Location>,
 }
 
-/// `ListJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<Job>>,
+/// `Status` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CompleteQueryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompleteQueryResponse {
+    /// completionResults property.
+    pub completion_results: Option<Vec<CompletionResult>>,
     /// metadata property.
     pub metadata: Option<ResponseMetadata>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ProcessingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProcessingOptions {
-    /// disableStreetAddressResolution property.
-    pub disable_street_address_resolution: Option<bool>,
-    /// htmlSanitization property.
-    pub html_sanitization: Option<String>,
-}
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `CompensationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompensationInfo {
-    /// annualizedBaseCompensationRange property.
-    pub annualized_base_compensation_range: Option<CompensationRange>,
-    /// annualizedTotalCompensationRange property.
-    pub annualized_total_compensation_range: Option<CompensationRange>,
-    /// entries property.
-    pub entries: Option<Vec<CompensationEntry>>,
-}
-
-/// `JobDerivedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobDerivedInfo {
-    /// jobCategories property.
-    pub job_categories: Option<Vec<String>>,
-    /// locations property.
-    pub locations: Option<Vec<Location>>,
 }
 
 /// `PostalAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// addressLines property.
     pub address_lines: Option<Vec<String>>,
@@ -117,19 +83,23 @@ pub struct PostalAddress {
     pub sublocality: Option<String>,
 }
 
-/// `ApplicationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationInfo {
-    /// emails property.
-    pub emails: Option<Vec<String>>,
-    /// instruction property.
-    pub instruction: Option<String>,
-    /// uris property.
-    pub uris: Option<Vec<String>>,
+/// `LocationFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LocationFilter {
+    /// address property.
+    pub address: Option<String>,
+    /// distanceInMiles property.
+    pub distance_in_miles: Option<f64>,
+    /// latLng property.
+    pub lat_lng: Option<LatLng>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// telecommutePreference property.
+    pub telecommute_preference: Option<String>,
 }
 
 /// `CompensationEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CompensationEntry {
     /// amount property.
     pub amount: Option<Money>,
@@ -145,35 +115,26 @@ pub struct CompensationEntry {
     pub unit: Option<String>,
 }
 
-/// `CompensationRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompensationRange {
-    /// maxCompensation property.
-    pub max_compensation: Option<Money>,
-    /// minCompensation property.
-    pub min_compensation: Option<Money>,
+/// `SpellingCorrection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SpellingCorrection {
+    /// corrected property.
+    pub corrected: Option<bool>,
+    /// correctedHtml property.
+    pub corrected_html: Option<String>,
+    /// correctedText property.
+    pub corrected_text: Option<String>,
 }
 
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `ResponseMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseMetadata {
-    /// requestId property.
-    pub request_id: Option<String>,
+/// `BatchDeleteJobsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchDeleteJobsRequest {
+    /// names property.
+    pub names: Option<Vec<String>>,
 }
 
 /// `Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// addresses property.
     pub addresses: Option<Vec<String>>,
@@ -237,33 +198,616 @@ pub struct Job {
     pub visibility: Option<String>,
 }
 
+/// `ClientEvent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientEvent {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// eventNotes property.
+    pub event_notes: Option<String>,
+    /// jobEvent property.
+    pub job_event: Option<JobEvent>,
+    /// requestId property.
+    pub request_id: Option<String>,
+}
+
+/// `CompensationRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompensationRange {
+    /// maxCompensation property.
+    pub max_compensation: Option<Money>,
+    /// minCompensation property.
+    pub min_compensation: Option<Money>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `ListJobsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ResponseMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResponseMetadata {
+    /// requestId property.
+    pub request_id: Option<String>,
+}
+
+/// `JobEvent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct JobEvent {
+    /// jobs property.
+    pub jobs: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `JobQuery` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct JobQuery {
+    /// commuteFilter property.
+    pub commute_filter: Option<CommuteFilter>,
+    /// companies property.
+    pub companies: Option<Vec<String>>,
+    /// companyDisplayNames property.
+    pub company_display_names: Option<Vec<String>>,
+    /// compensationFilter property.
+    pub compensation_filter: Option<CompensationFilter>,
+    /// customAttributeFilter property.
+    pub custom_attribute_filter: Option<String>,
+    /// disableSpellCheck property.
+    pub disable_spell_check: Option<bool>,
+    /// employmentTypes property.
+    pub employment_types: Option<Vec<String>>,
+    /// excludedJobs property.
+    pub excluded_jobs: Option<Vec<String>>,
+    /// jobCategories property.
+    pub job_categories: Option<Vec<String>>,
+    /// languageCodes property.
+    pub language_codes: Option<Vec<String>>,
+    /// locationFilters property.
+    pub location_filters: Option<Vec<LocationFilter>>,
+    /// publishTimeRange property.
+    pub publish_time_range: Option<TimestampRange>,
+    /// query property.
+    pub query: Option<String>,
+    /// queryLanguageCode property.
+    pub query_language_code: Option<String>,
+}
+
+/// `ApplicationInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationInfo {
+    /// emails property.
+    pub emails: Option<Vec<String>>,
+    /// instruction property.
+    pub instruction: Option<String>,
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `DeviceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceInfo {
+    /// deviceType property.
+    pub device_type: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `BatchUpdateJobsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateJobsRequest {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// updateMask property.
+    pub update_mask: Option<String>,
+}
+
+/// `TimestampRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimestampRange {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ListTenantsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListTenantsResponse {
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tenants property.
+    pub tenants: Option<Vec<Tenant>>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// latLng property.
+    pub lat_lng: Option<LatLng>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// postalAddress property.
+    pub postal_address: Option<PostalAddress>,
+    /// radiusMiles property.
+    pub radius_miles: Option<f64>,
+}
+
+/// `HistogramQueryResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HistogramQueryResult {
+    /// histogram property.
+    pub histogram: Option<serde_json::Value>,
+    /// histogramQuery property.
+    pub histogram_query: Option<String>,
+}
+
+/// `CompensationInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompensationInfo {
+    /// annualizedBaseCompensationRange property.
+    pub annualized_base_compensation_range: Option<CompensationRange>,
+    /// annualizedTotalCompensationRange property.
+    pub annualized_total_compensation_range: Option<CompensationRange>,
+    /// entries property.
+    pub entries: Option<Vec<CompensationEntry>>,
+}
+
+/// `SearchJobsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchJobsResponse {
+    /// broadenedQueryJobsCount property.
+    pub broadened_query_jobs_count: Option<i64>,
+    /// histogramQueryResults property.
+    pub histogram_query_results: Option<Vec<HistogramQueryResult>>,
+    /// locationFilters property.
+    pub location_filters: Option<Vec<Location>>,
+    /// matchingJobs property.
+    pub matching_jobs: Option<Vec<MatchingJob>>,
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// spellCorrection property.
+    pub spell_correction: Option<SpellingCorrection>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `CompletionResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompletionResult {
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// suggestion property.
+    pub suggestion: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListCompaniesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListCompaniesResponse {
+    /// companies property.
+    pub companies: Option<Vec<Company>>,
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Tenant` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Tenant {
+    /// externalId property.
+    pub external_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `CommuteInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommuteInfo {
+    /// jobLocation property.
+    pub job_location: Option<Location>,
+    /// travelDuration property.
+    pub travel_duration: Option<String>,
+}
+
+/// `RequestMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RequestMetadata {
+    /// allowMissingIds property.
+    pub allow_missing_ids: Option<bool>,
+    /// deviceInfo property.
+    pub device_info: Option<DeviceInfo>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// sessionId property.
+    pub session_id: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `CompensationFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CompensationFilter {
+    /// includeJobsWithUnspecifiedCompensationRange property.
+    pub include_jobs_with_unspecified_compensation_range: Option<bool>,
+    /// range property.
+    pub range: Option<CompensationRange>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// units property.
+    pub units: Option<Vec<String>>,
+}
+
+/// `JobDerivedInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct JobDerivedInfo {
+    /// jobCategories property.
+    pub job_categories: Option<Vec<String>>,
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+}
+
+/// `Company` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Company {
+    /// careerSiteUri property.
+    pub career_site_uri: Option<String>,
+    /// derivedInfo property.
+    pub derived_info: Option<CompanyDerivedInfo>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// eeoText property.
+    pub eeo_text: Option<String>,
+    /// externalId property.
+    pub external_id: Option<String>,
+    /// headquartersAddress property.
+    pub headquarters_address: Option<String>,
+    /// hiringAgency property.
+    pub hiring_agency: Option<bool>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// keywordSearchableJobCustomAttributes property.
+    pub keyword_searchable_job_custom_attributes: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// size property.
+    pub size: Option<String>,
+    /// suspended property.
+    pub suspended: Option<bool>,
+    /// websiteUri property.
+    pub website_uri: Option<String>,
+}
+
+/// `ProcessingOptions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ProcessingOptions {
+    /// disableStreetAddressResolution property.
+    pub disable_street_address_resolution: Option<bool>,
+    /// htmlSanitization property.
+    pub html_sanitization: Option<String>,
+}
+
+/// `BatchCreateJobsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BatchCreateJobsRequest {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `CommuteFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommuteFilter {
+    /// allowImpreciseAddresses property.
+    pub allow_imprecise_addresses: Option<bool>,
+    /// commuteMethod property.
+    pub commute_method: Option<String>,
+    /// departureTime property.
+    pub departure_time: Option<TimeOfDay>,
+    /// roadTraffic property.
+    pub road_traffic: Option<String>,
+    /// startCoordinates property.
+    pub start_coordinates: Option<LatLng>,
+    /// travelDuration property.
+    pub travel_duration: Option<String>,
+}
+
+/// `HistogramQuery` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HistogramQuery {
+    /// histogramQuery property.
+    pub histogram_query: Option<String>,
+}
+
+/// `MatchingJob` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MatchingJob {
+    /// commuteInfo property.
+    pub commute_info: Option<CommuteInfo>,
+    /// job property.
+    pub job: Option<Job>,
+    /// jobSummary property.
+    pub job_summary: Option<String>,
+    /// jobTitleSnippet property.
+    pub job_title_snippet: Option<String>,
+    /// searchTextSnippet property.
+    pub search_text_snippet: Option<String>,
+}
+
+/// `SearchJobsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SearchJobsRequest {
+    /// customRankingInfo property.
+    pub custom_ranking_info: Option<CustomRankingInfo>,
+    /// disableKeywordMatch property.
+    pub disable_keyword_match: Option<bool>,
+    /// diversificationLevel property.
+    pub diversification_level: Option<String>,
+    /// enableBroadening property.
+    pub enable_broadening: Option<bool>,
+    /// histogramQueries property.
+    pub histogram_queries: Option<Vec<HistogramQuery>>,
+    /// jobQuery property.
+    pub job_query: Option<JobQuery>,
+    /// jobView property.
+    pub job_view: Option<String>,
+    /// keywordMatchMode property.
+    pub keyword_match_mode: Option<String>,
+    /// maxPageSize property.
+    pub max_page_size: Option<i64>,
+    /// offset property.
+    pub offset: Option<i64>,
+    /// orderBy property.
+    pub order_by: Option<String>,
+    /// pageToken property.
+    pub page_token: Option<String>,
+    /// relevanceThreshold property.
+    pub relevance_threshold: Option<String>,
+    /// requestMetadata property.
+    pub request_metadata: Option<RequestMetadata>,
+    /// searchMode property.
+    pub search_mode: Option<String>,
+}
+
+/// `CustomRankingInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CustomRankingInfo {
+    /// importanceLevel property.
+    pub importance_level: Option<String>,
+    /// rankingExpression property.
+    pub ranking_expression: Option<String>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
+/// Arguments for [`jobs.projects.operations.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsOperationsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`jobs.projects.tenants.completeQuery_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompleteQueryArgs {
+    /// Path parameter: `tenant`.
+    pub tenant: String,
+    /// Query parameter: `company`.
+    pub company: Option<String>,
+    /// Query parameter: `languageCodes`.
+    pub language_codes: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
+    /// Query parameter: `scope`.
+    pub scope: Option<String>,
+    /// Query parameter: `type`.
+    pub r#type: Option<String>,
+}
+
+/// Arguments for [`jobs.projects.tenants.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: Tenant,
+}
+
+/// Arguments for [`jobs.projects.tenants.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`jobs.projects.tenants.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`jobs.projects.tenants.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+}
+
+/// Arguments for [`jobs.projects.tenants.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: Tenant,
+}
+
+/// Arguments for [`jobs.projects.tenants.clientEvents.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsClientEventsCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: ClientEvent,
+}
+
+/// Arguments for [`jobs.projects.tenants.companies.create_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: Company,
+}
+
+/// Arguments for [`jobs.projects.tenants.companies.delete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesDeleteArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`jobs.projects.tenants.companies.get_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesGetArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// Arguments for [`jobs.projects.tenants.companies.list_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesListArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `pageToken`.
+    pub page_token: Option<String>,
+    /// Query parameter: `requireOpenJobs`.
+    pub require_open_jobs: Option<String>,
+}
+
+/// Arguments for [`jobs.projects.tenants.companies.patch_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesPatchArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `updateMask`.
+    pub update_mask: Option<String>,
+    /// Request body.
+    pub body: Company,
+}
+
+/// Arguments for [`jobs.projects.tenants.jobs.batchCreate_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchCreateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateJobsRequest,
+}
+
+/// Arguments for [`jobs.projects.tenants.jobs.batchDelete_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchDeleteArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteJobsRequest,
+}
+
+/// Arguments for [`jobs.projects.tenants.jobs.batchUpdate_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchUpdateArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: BatchUpdateJobsRequest,
+}
+
 /// Arguments for [`jobs.projects.tenants.jobs.create_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct JobsProjectsTenantsJobsCreateArgs {
     /// Path parameter: `parent`.
     pub parent: String,
+    /// Request body.
+    pub body: Job,
 }
 
 /// Arguments for [`jobs.projects.tenants.jobs.delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct JobsProjectsTenantsJobsDeleteArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`jobs.projects.tenants.jobs.get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct JobsProjectsTenantsJobsGetArgs {
     /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`jobs.projects.tenants.jobs.list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct JobsProjectsTenantsJobsListArgs {
     /// Path parameter: `parent`.
     pub parent: String,
@@ -278,12 +822,32 @@ pub struct JobsProjectsTenantsJobsListArgs {
 }
 
 /// Arguments for [`jobs.projects.tenants.jobs.patch_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct JobsProjectsTenantsJobsPatchArgs {
     /// Path parameter: `name`.
     pub name: String,
     /// Query parameter: `updateMask`.
     pub update_mask: Option<String>,
+    /// Request body.
+    pub body: Job,
+}
+
+/// Arguments for [`jobs.projects.tenants.jobs.search_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: SearchJobsRequest,
+}
+
+/// Arguments for [`jobs.projects.tenants.jobs.searchForAlert_builder`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchForAlertArgs {
+    /// Path parameter: `parent`.
+    pub parent: String,
+    /// Request body.
+    pub body: SearchJobsRequest,
 }
 
 // =============================================================================
@@ -291,10 +855,10 @@ pub struct JobsProjectsTenantsJobsPatchArgs {
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+// GET v4/{+name}
 // -----------------------------------------------------------------------------
 
-/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs.
+/// GET v4/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -302,22 +866,24 @@ pub struct JobsProjectsTenantsJobsPatchArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = jobs_projects_tenants_jobs_create_request(&client, &args, Some(|b| {
+/// let task = jobs_projects_operations_get_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn jobs_projects_tenants_jobs_create_request<R, F>(
+pub fn jobs_projects_operations_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &JobsProjectsOperationsGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<Job>, super::shared::ApiError>,
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
             Pending = super::shared::ApiPending,
             Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
@@ -328,12 +894,10 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://jobs.googleapis.com/v4/projects/{{projectsId}}/tenants/{{tenantsId}}/jobs",
-    );
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
 
     let mut builder = client
-        .post(&endpoint_url)
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -362,9 +926,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Job = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
-                    super::shared::ApiError::ParseFailed(e.to_string())
-                })?;
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -379,10 +944,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+// GET v4/{+tenant}:completeQuery
 // -----------------------------------------------------------------------------
 
-/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}.
+/// GET v4/{+tenant}:completeQuery.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -390,18 +955,271 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = jobs_projects_tenants_jobs_delete_request(&client, &args, Some(|b| {
+/// let task = jobs_projects_tenants_complete_query_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn jobs_projects_tenants_jobs_delete_request<R, F>(
+pub fn jobs_projects_tenants_complete_query_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompleteQueryArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CompleteQueryResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}:completeQuery",
+        args.tenant,
+    );
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.company {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("company=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.language_codes {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("languageCodes=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.scope {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("scope=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.r#type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: CompleteQueryResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/tenants
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/tenants.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/tenants", args.parent,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Tenant =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsDeleteArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -416,9 +1234,7 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://jobs.googleapis.com/v4/projects/{{projectsId}}/tenants/{{tenantsId}}/jobs/{{jobsId}}",
-    );
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
 
     let mut builder = client
         .delete(&endpoint_url)
@@ -468,10 +1284,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+// GET v4/{+name}
 // -----------------------------------------------------------------------------
 
-/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}.
+/// GET v4/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -479,18 +1295,1222 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
 ///
 /// ```ignore
-/// let task = jobs_projects_tenants_jobs_get_request(&client, &args, Some(|b| {
+/// let task = jobs_projects_tenants_get_request(&client, &args, Some(|b| {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
 #[inline]
-pub fn jobs_projects_tenants_jobs_get_request<R, F>(
+pub fn jobs_projects_tenants_get_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Tenant =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/{+parent}/tenants
+// -----------------------------------------------------------------------------
+
+/// GET v4/{+parent}/tenants.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTenantsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/tenants", args.parent,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListTenantsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Tenant =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/clientEvents
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/clientEvents.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_client_events_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_client_events_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsClientEventsCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClientEvent>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}/clientEvents",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ClientEvent =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/companies
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/companies.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_companies_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_companies_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompaniesCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/companies", args.parent,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Company =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_companies_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_companies_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompaniesDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_companies_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_companies_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompaniesGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Company =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/{+parent}/companies
+// -----------------------------------------------------------------------------
+
+/// GET v4/{+parent}/companies.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_companies_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_companies_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompaniesListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCompaniesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/companies", args.parent,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.require_open_jobs {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("requireOpenJobs=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: ListCompaniesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// PATCH v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// PATCH v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_companies_patch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_companies_patch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsCompaniesPatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
+    let mut builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Company =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs:batchCreate
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs:batchCreate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_batch_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_batch_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsBatchCreateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}/jobs:batchCreate",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs:batchDelete
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs:batchDelete.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_batch_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_batch_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsBatchDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}/jobs:batchDelete",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs:batchUpdate
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs:batchUpdate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_batch_update_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_batch_update_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsBatchUpdateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}/jobs:batchUpdate",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Operation =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_create_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_create_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsCreateArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -505,9 +2525,188 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://jobs.googleapis.com/v4/projects/{{projectsId}}/tenants/{{tenantsId}}/jobs/{{jobsId}}",
-    );
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/jobs", args.parent,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                    super::shared::ApiError::ParseFailed(e.to_string())
+                })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// DELETE v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// DELETE v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Empty =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET v4/{+name}
+// -----------------------------------------------------------------------------
+
+/// GET v4/{+name}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
 
     let mut builder = client
         .get(&endpoint_url)
@@ -556,10 +2755,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+// GET v4/{+parent}/jobs
 // -----------------------------------------------------------------------------
 
-/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs.
+/// GET v4/{+parent}/jobs.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -567,6 +2766,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -579,6 +2779,7 @@ where
 #[inline]
 pub fn jobs_projects_tenants_jobs_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -593,9 +2794,53 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://jobs.googleapis.com/v4/projects/{{projectsId}}/tenants/{{tenantsId}}/jobs",
-    );
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/jobs", args.parent,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.filter {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filter=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.job_view {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("jobView=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page_token {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pageToken=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .get(&endpoint_url)
@@ -645,10 +2890,10 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+// PATCH v4/{+name}
 // -----------------------------------------------------------------------------
 
-/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}.
+/// PATCH v4/{+name}.
 ///
 /// Takes client and args, builds the request, optionally applies modifications,
 /// and returns a `TaskIterator` for execution.
@@ -656,6 +2901,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -668,6 +2914,7 @@ where
 #[inline]
 pub fn jobs_projects_tenants_jobs_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsPatchArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -682,12 +2929,30 @@ where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://jobs.googleapis.com/v4/projects/{{projectsId}}/tenants/{{tenantsId}}/jobs/{{jobsId}}",
-    );
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}", args.name,);
+
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.update_mask {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("updateMask=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
 
     let mut builder = client
         .patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -719,6 +2984,195 @@ where
                 let parsed: Job = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                     super::shared::ApiError::ParseFailed(e.to_string())
                 })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs:search
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs:search.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsSearchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchJobsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/{}/jobs:search", args.parent,);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchJobsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST v4/{+parent}/jobs:searchForAlert
+// -----------------------------------------------------------------------------
+
+/// POST v4/{+parent}/jobs:searchForAlert.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = jobs_projects_tenants_jobs_search_for_alert_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn jobs_projects_tenants_jobs_search_for_alert_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &JobsProjectsTenantsJobsSearchForAlertArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchJobsResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/{}/jobs:searchForAlert",
+        args.parent,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SearchJobsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),

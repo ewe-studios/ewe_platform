@@ -10,21 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_threatintelligence_alerts")]
-pub mod alerts;
-#[cfg(feature = "gcp_threatintelligence_alerts_enumerate_facets")]
-pub mod alerts_enumerate_facets;
-#[cfg(feature = "gcp_threatintelligence_configurations")]
-pub mod configurations;
-#[cfg(feature = "gcp_threatintelligence_configurations_upsert")]
-pub mod configurations_upsert;
-#[cfg(feature = "gcp_threatintelligence_documents")]
-pub mod documents;
-#[cfg(feature = "gcp_threatintelligence_findings")]
-pub mod findings;
-#[cfg(feature = "gcp_threatintelligence_findings_search")]
-pub mod findings_search;
-#[cfg(feature = "gcp_threatintelligence_projects")]
-pub mod projects;
-#[cfg(feature = "gcp_threatintelligence_revisions")]
-pub mod revisions;
+#[cfg(feature = "gcp_threatintelligence_threatintelligence")]
+pub mod threatintelligence;

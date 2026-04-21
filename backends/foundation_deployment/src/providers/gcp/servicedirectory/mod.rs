@@ -10,11 +10,5 @@
 
 pub mod shared;
 
-#[cfg(feature = "gcp_servicedirectory_endpoints")]
-pub mod endpoints;
-#[cfg(feature = "gcp_servicedirectory_locations")]
-pub mod locations;
-#[cfg(feature = "gcp_servicedirectory_namespaces")]
-pub mod namespaces;
-#[cfg(feature = "gcp_servicedirectory_services")]
-pub mod services;
+#[cfg(feature = "gcp_servicedirectory_servicedirectory")]
+pub mod servicedirectory;
