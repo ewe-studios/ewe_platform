@@ -382,10 +382,8 @@ mod tests {
         init_valtron();
         let dir = tempfile::tempdir().expect("tempdir");
         let db_path = dir.path().join("auth.sqlite");
-        let store = CredentialStorage::turso(
-            db_path.to_str().expect("non-utf8 tempdir path"),
-        )
-        .expect("init turso credential storage");
+        let store = CredentialStorage::turso(db_path.to_str().expect("non-utf8 tempdir path"))
+            .expect("init turso credential storage");
         (store, dir)
     }
 
