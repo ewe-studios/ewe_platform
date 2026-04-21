@@ -1256,14 +1256,45 @@ fn parse_chat_response(
             },
         });
 
+    let output = if let Some(tool_calls) = &message.tool_calls {
+        if let Some(tc) = tool_calls.first() {
+            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                serde_json::from_str(&tc.function.arguments)
+                    .ok()
+                    .map(|v: serde_json::Value| {
+                        v.as_object()
+                            .map(|obj| {
+                                obj.iter()
+                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                                    .collect()
+                            })
+                            .unwrap_or_default()
+                    });
+
+            ModelOutput::ToolCall {
+                id: tc.id.clone(),
+                name: tc.function.name.clone(),
+                arguments,
+                signature: None,
+            }
+        } else {
+            ModelOutput::Text(TextContent {
+                content,
+                signature: None,
+            })
+        }
+    } else {
+        ModelOutput::Text(TextContent {
+            content,
+            signature: None,
+        })
+    };
+
     Ok(Messages::Assistant {
         model: model_id.clone(),
         timestamp: SystemTime::now(),
         usage: usage_report,
-        content: ModelOutput::Text(TextContent {
-            content,
-            signature: None,
-        }),
+        content: output,
         stop_reason,
         provider: ModelProviders::OPENAI,
         error_detail: None,
@@ -1520,5 +1551,111 @@ mod tests {
 
         let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
         assert!(matches!(obj, crate::types::ArgType::JSON(_)));
+    }
+
+    #[test]
+    fn test_parse_chat_response_tool_calls() {
+        let response = ChatCompletionResponse {
+            id: "chatcmpl-123".into(),
+            object: "chat.completion".into(),
+            created: 0,
+            model: "gpt-4".into(),
+            choices: vec![OpenAIChoice {
+                index: 0,
+                message: Some(OpenAIMessage {
+                    role: "assistant".into(),
+                    content: None,
+                    tool_calls: Some(vec![OpenAIToolCall {
+                        id: "call_abc".into(),
+                        tool_type: "function".into(),
+                        function: OpenAIFunctionCall {
+                            name: "get_weather".into(),
+                            arguments: r#"{"location":"Paris"}"#.into(),
+                        },
+                    }]),
+                    tool_call_id: None,
+                }),
+                finish_reason: Some("tool_calls".into()),
+            }],
+            usage: Some(OpenAIUsage {
+                prompt_tokens: 10,
+                completion_tokens: 5,
+                total_tokens: 15,
+            }),
+        };
+
+        let model_id = ModelId::Name("gpt-4".into(), None);
+        let result = parse_chat_response(&response, &model_id).unwrap();
+
+        if let Messages::Assistant {
+            content,
+            stop_reason,
+            ..
+        } = &result
+        {
+            assert_eq!(*stop_reason, StopReason::ToolUse);
+            if let ModelOutput::ToolCall {
+                id,
+                name,
+                arguments,
+                ..
+            } = content
+            {
+                assert_eq!(id, "call_abc");
+                assert_eq!(name, "get_weather");
+                let args = arguments.as_ref().expect("Should have arguments");
+                assert!(args.contains_key("location"));
+            } else {
+                panic!("Expected ToolCall output");
+            }
+        } else {
+            panic!("Expected Assistant message");
+        }
+    }
+
+    #[test]
+    fn test_parse_chat_response_text() {
+        let response = ChatCompletionResponse {
+            id: "chatcmpl-456".into(),
+            object: "chat.completion".into(),
+            created: 0,
+            model: "gpt-4".into(),
+            choices: vec![OpenAIChoice {
+                index: 0,
+                message: Some(OpenAIMessage {
+                    role: "assistant".into(),
+                    content: Some("Hello!".into()),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }),
+                finish_reason: Some("stop".into()),
+            }],
+            usage: Some(OpenAIUsage {
+                prompt_tokens: 5,
+                completion_tokens: 2,
+                total_tokens: 7,
+            }),
+        };
+
+        let model_id = ModelId::Name("gpt-4".into(), None);
+        let result = parse_chat_response(&response, &model_id).unwrap();
+
+        if let Messages::Assistant {
+            content,
+            stop_reason,
+            usage,
+            ..
+        } = &result
+        {
+            assert_eq!(*stop_reason, StopReason::Stop);
+            if let ModelOutput::Text(tc) = content {
+                assert_eq!(tc.content, "Hello!");
+            } else {
+                panic!("Expected Text output");
+            }
+            assert!((usage.total_tokens - 7.0).abs() < f64::EPSILON);
+        } else {
+            panic!("Expected Assistant message");
+        }
     }
 }
