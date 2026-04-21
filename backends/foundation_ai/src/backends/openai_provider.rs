@@ -222,9 +222,7 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         };
 
         if !(200..=299).contains(&status_code) {
-            return Err(GenerationError::Backend(format!(
-                "HTTP {status_code}: {body_text}"
-            )));
+            return Err(map_http_error(status_code, &body_text));
         }
 
         serde_json::from_str(&body_text)
@@ -461,9 +459,7 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
         };
 
         if !(200..=299).contains(&status_code) {
-            return Err(GenerationError::Backend(format!(
-                "HTTP {status_code}: {body_text}"
-            )));
+            return Err(map_http_error(status_code, &body_text));
         }
 
         serde_json::from_str(&body_text)
@@ -892,6 +888,35 @@ pub struct OpenAIUsage {
     pub completion_tokens: u64,
     #[serde(rename = "total_tokens")]
     pub total_tokens: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OpenAIErrorResponse {
+    error: OpenAIErrorDetail,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OpenAIErrorDetail {
+    message: String,
+    #[serde(rename = "type")]
+    error_type: Option<String>,
+    code: Option<String>,
+}
+
+fn map_http_error(status_code: usize, body_text: &str) -> GenerationError {
+    let detail = serde_json::from_str::<OpenAIErrorResponse>(body_text)
+        .map_or_else(|_| body_text.to_string(), |e| e.error.message);
+
+    match status_code {
+        401 => GenerationError::Backend(format!("Authentication failed: {detail}")),
+        403 => GenerationError::Backend(format!("Permission denied: {detail}")),
+        404 => GenerationError::Backend(format!("Not found: {detail}")),
+        429 => GenerationError::Backend(format!("Rate limit exceeded: {detail}")),
+        500..=503 => {
+            GenerationError::Backend(format!("Server error (HTTP {status_code}): {detail}"))
+        }
+        _ => GenerationError::Backend(format!("HTTP {status_code}: {detail}")),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1657,5 +1682,31 @@ mod tests {
         } else {
             panic!("Expected Assistant message");
         }
+    }
+
+    #[test]
+    fn test_map_http_error_parses_openai_format() {
+        let body = r#"{"error":{"message":"Invalid API key","type":"invalid_request_error","code":"invalid_api_key"}}"#;
+        let err = map_http_error(401, body);
+        let msg = err.to_string();
+        assert!(msg.contains("Authentication failed"), "got: {msg}");
+        assert!(msg.contains("Invalid API key"), "got: {msg}");
+    }
+
+    #[test]
+    fn test_map_http_error_rate_limit() {
+        let body =
+            r#"{"error":{"message":"Rate limit reached","type":"rate_limit_error","code":null}}"#;
+        let err = map_http_error(429, body);
+        let msg = err.to_string();
+        assert!(msg.contains("Rate limit exceeded"), "got: {msg}");
+    }
+
+    #[test]
+    fn test_map_http_error_plain_text_fallback() {
+        let err = map_http_error(500, "Internal Server Error");
+        let msg = err.to_string();
+        assert!(msg.contains("Server error"), "got: {msg}");
+        assert!(msg.contains("Internal Server Error"), "got: {msg}");
     }
 }
