@@ -5,9 +5,9 @@
 
 use foundation_core::extensions::result_ext::BoxedError;
 use infrastructure_llama_cpp::{
-    ChatTemplateError, DecodeError, EmbeddingsError, EncodeError,
+    ApplyChatTemplateError, ChatTemplateError, DecodeError, EmbeddingsError, EncodeError,
     LlamaContextLoadError, LlamaCppError, LlamaModelLoadError, StringToTokenError,
-    ApplyChatTemplateError, TokenToStringError,
+    TokenToStringError,
 };
 
 // ==================================

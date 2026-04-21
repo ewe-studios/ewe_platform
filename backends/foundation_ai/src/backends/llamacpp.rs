@@ -13,10 +13,12 @@
 use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
 use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-use infrastructure_llama_cpp::model::params::LlamaModelParams;
-use infrastructure_llama_cpp::model::{AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special};
-use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
+use infrastructure_llama_cpp::model::params::LlamaModelParams;
+use infrastructure_llama_cpp::model::{
+    AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special,
+};
+use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::token::LlamaToken;
 
 use std::cell::RefCell;
@@ -27,11 +29,13 @@ use std::time::SystemTime;
 use foundation_core::valtron::{Stream, StreamIterator};
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
-use crate::errors::{GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult};
+use crate::errors::{
+    GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
+};
 use crate::types::{
-    KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, ModelSpec, ModelProviders, ModelState, SplitMode, StopReason,
-    TextContent, UsageCosting, UsageReport, UserModelContent,
+    KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviders, ModelSpec, ModelState, SplitMode, StopReason, TextContent,
+    UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -94,8 +98,7 @@ impl Default for LlamaBackendConfig {
 /// Get the number of CPUs available (cross-platform).
 #[must_use]
 fn num_cpus() -> usize {
-    std::thread::available_parallelism()
-        .map_or(4, std::num::NonZeroUsize::get)
+    std::thread::available_parallelism().map_or(4, std::num::NonZeroUsize::get)
 }
 
 impl LlamaBackendConfig {
@@ -122,7 +125,11 @@ impl LlamaBackendConfig {
 
     /// Convert this config into llama.cpp context parameters.
     #[must_use]
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        clippy::cast_possible_wrap
+    )]
     pub fn to_context_params(&self) -> LlamaModelContextParams {
         let mut params = LlamaModelContextParams::default();
         params = params.with_n_ctx(NonZeroU32::new(self.context_length as u32));
@@ -256,11 +263,7 @@ impl Clone for LlamaModels {
 
 impl LlamaModels {
     /// Create a new `LlamaModels` instance.
-    fn new(
-        model: LlamaModel,
-        context: LlamaModelContextParams,
-        spec: ModelSpec,
-    ) -> Self {
+    fn new(model: LlamaModel, context: LlamaModelContextParams, spec: ModelSpec) -> Self {
         Self {
             inner: Rc::new(RefCell::new(LlamaModelsInner {
                 model: Rc::new(model),
@@ -314,11 +317,17 @@ impl Model for LlamaModels {
         // Get model, spec, and context params
         let (model, spec, ctx_params) = {
             let inner = self.inner.borrow();
-            (Rc::clone(&inner.model), inner.spec.clone(), inner.context.clone())
+            (
+                Rc::clone(&inner.model),
+                inner.spec.clone(),
+                inner.context.clone(),
+            )
         };
 
         // Create context
-        let mut ctx = model.new_context(&backend, ctx_params).map_err(GenerationError::LlamaContextLoad)?;
+        let mut ctx = model
+            .new_context(&backend, ctx_params)
+            .map_err(GenerationError::LlamaContextLoad)?;
 
         // Build sampler chain from params
         let params = specs.unwrap_or_default();
@@ -400,8 +409,9 @@ impl LlamaCppStream {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Self> {
         // Initialize backend upfront - this is where we can properly report errors
-        let backend = LlamaBackend::init()
-            .map_err(|e| GenerationError::Generic(format!("Failed to initialize llama.cpp backend: {e}")))?;
+        let backend = LlamaBackend::init().map_err(|e| {
+            GenerationError::Generic(format!("Failed to initialize llama.cpp backend: {e}"))
+        })?;
 
         // Build sampler from params
         let params = specs.unwrap_or_default();
@@ -482,7 +492,9 @@ impl Iterator for LlamaCppStream {
                     // 2. Both are dropped together when the stream is dropped
                     // 3. The context only references the model which outlives the stream
                     unsafe {
-                        std::mem::transmute::<LlamaModelContext<'_>, LlamaModelContext<'static>>(ctx)
+                        std::mem::transmute::<LlamaModelContext<'_>, LlamaModelContext<'static>>(
+                            ctx,
+                        )
                     }
                 }
                 Err(_) => {
@@ -638,10 +650,14 @@ fn apply_chat_template(
                 Messages::Assistant { content, .. } => {
                     let text = match content {
                         ModelOutput::Text(TextContent { content, .. }) => content.clone(),
-                        ModelOutput::ToolCall { name, arguments, .. } => {
+                        ModelOutput::ToolCall {
+                            name, arguments, ..
+                        } => {
                             let args_str = arguments
                                 .as_ref()
-                                .map(|a| serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string()))
+                                .map(|a| {
+                                    serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string())
+                                })
                                 .unwrap_or_default();
                             format!("[Tool call: {name}({args_str})]")
                         }
@@ -685,7 +701,11 @@ fn apply_chat_template(
 }
 
 /// Generate embeddings from the input prompt.
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss
+)]
 fn generate_embeddings(
     model: &LlamaModel,
     ctx: &mut LlamaModelContext,
@@ -704,8 +724,7 @@ fn generate_embeddings(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Encode to get embeddings
-    ctx.encode(&mut batch)
-        .map_err(GenerationError::Encode)?;
+    ctx.encode(&mut batch).map_err(GenerationError::Encode)?;
 
     // Get embeddings for the first sequence
     let embeddings = ctx
@@ -751,7 +770,12 @@ fn generate_embeddings(
 /// 3. Sample tokens using the provided sampler
 /// 4. Detokenize and accumulate the output
 /// 5. Check for stop conditions
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap, clippy::cast_precision_loss)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss
+)]
 fn generate_text(
     model: &LlamaModel,
     ctx: &mut LlamaModelContext,
@@ -772,8 +796,7 @@ fn generate_text(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Decode the prompt
-    ctx.decode(&mut batch)
-        .map_err(GenerationError::Decode)?;
+    ctx.decode(&mut batch).map_err(GenerationError::Decode)?;
 
     // Generate tokens up to max_tokens or until stop token
     let max_tokens = params.max_tokens;
@@ -798,7 +821,11 @@ fn generate_text(
         output_text.push_str(&token_str);
 
         // Check for stop tokens
-        if params.stop_tokens.iter().any(|seq| output_text.contains(seq)) {
+        if params
+            .stop_tokens
+            .iter()
+            .any(|seq| output_text.contains(seq))
+        {
             break;
         }
 
@@ -808,8 +835,7 @@ fn generate_text(
             .add(next_token, current_pos, &[0], true)
             .map_err(|e| GenerationError::Generic(format!("Failed to add token to batch: {e}")))?;
 
-        ctx.decode(&mut batch)
-            .map_err(GenerationError::Decode)?;
+        ctx.decode(&mut batch).map_err(GenerationError::Decode)?;
     }
 
     // Calculate token counts
@@ -874,9 +900,8 @@ impl ModelProvider for LlamaBackends {
         Self: Sized,
     {
         // Initialize the llama.cpp backend
-        let _backend = LlamaBackend::init().map_err(|e| {
-            crate::errors::ModelProviderErrors::FailedFetching(Box::new(e))
-        })?;
+        let _backend = LlamaBackend::init()
+            .map_err(|e| crate::errors::ModelProviderErrors::FailedFetching(Box::new(e)))?;
 
         Ok(self)
     }
@@ -918,25 +943,20 @@ impl ModelProvider for LlamaBackends {
 
     fn get_model_by_spec(&self, model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {
         // Get model location
-        let model_path = model_spec.model_location.as_ref()
-            .ok_or_else(|| {
-                ModelProviderErrors::ModelErrors(
-                    ModelErrors::NotFound("No model location specified".to_string())
-                )
-            })?;
+        let model_path = model_spec.model_location.as_ref().ok_or_else(|| {
+            ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
+                "No model location specified".to_string(),
+            ))
+        })?;
 
         // Load model
         let backend = LlamaBackend::init().map_err(|e| {
-            ModelProviderErrors::ModelErrors(
-                ModelErrors::FailedLoading(Box::new(e))
-            )
+            ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
         })?;
 
         let model_params = LlamaModelParams::default();
         let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
-            .map_err(|e| {
-                ModelProviderErrors::ModelErrors(ModelErrors::LlamaModelLoad(e))
-            })?;
+            .map_err(|e| ModelProviderErrors::ModelErrors(ModelErrors::LlamaModelLoad(e)))?;
 
         let context_params = LlamaModelContextParams::default();
 
@@ -944,14 +964,14 @@ impl ModelProvider for LlamaBackends {
     }
 
     fn get_one(&self, model_id: ModelId) -> ModelProviderResult<crate::types::ModelSpec> {
-        Err(ModelProviderErrors::NotFound(
-            format!("Model {model_id:?} not found in registry")
-        ))
+        Err(ModelProviderErrors::NotFound(format!(
+            "Model {model_id:?} not found in registry"
+        )))
     }
 
-    fn get_all(&self, _model_id: ModelId) -> ModelProviderResult<crate::types::ModelSpec> {
+    fn get_all(&self, _model_id: ModelId) -> ModelProviderResult<Vec<crate::types::ModelSpec>> {
         Err(ModelProviderErrors::NotFound(
-            "Model registry not implemented".to_string()
+            "Model registry not implemented".to_string(),
         ))
     }
 }

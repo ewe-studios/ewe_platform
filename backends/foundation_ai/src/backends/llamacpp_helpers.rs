@@ -54,10 +54,10 @@ pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
     if (params.repeat_penalty - 1.0).abs() > f32::EPSILON {
         // penalty_last_n of 64 means we look at last 64 tokens for repetition
         samplers.push(LlamaSampler::penalties(
-            64,                     // penalty_last_n
-            params.repeat_penalty,  // penalty_repeat
-            0.0,                    // penalty_freq (not exposed in ModelParams)
-            0.0,                    // penalty_present (not exposed in ModelParams)
+            64,                    // penalty_last_n
+            params.repeat_penalty, // penalty_repeat
+            0.0,                   // penalty_freq (not exposed in ModelParams)
+            0.0,                   // penalty_present (not exposed in ModelParams)
         ));
     }
 
@@ -90,14 +90,20 @@ mod tests {
 
     #[test]
     fn test_build_sampler_chain_with_temperature() {
-        let params = ModelParams { temperature: 0.7, ..Default::default() };
+        let params = ModelParams {
+            temperature: 0.7,
+            ..Default::default()
+        };
         let sampler = build_sampler_chain(&params);
         assert!(!sampler.sampler.is_null());
     }
 
     #[test]
     fn test_build_sampler_chain_greedy() {
-        let params = ModelParams { temperature: 0.0, ..Default::default() };
+        let params = ModelParams {
+            temperature: 0.0,
+            ..Default::default()
+        };
         let sampler = build_sampler_chain(&params);
         assert!(!sampler.sampler.is_null());
     }
