@@ -12,7 +12,9 @@ use crate::storage_provider::{
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::{run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue};
+use foundation_core::valtron::{
+    run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue,
+};
 use libsql::Builder;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -46,7 +48,10 @@ impl LibsqlStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub fn with_encryption(url: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
+    pub fn with_encryption(
+        url: &str,
+        encryption_key: Option<EncryptionKey>,
+    ) -> StorageResult<Self> {
         let url = url.to_string();
         let db = exec_future(async move { Builder::new_local(&url).build().await })?;
         let conn = db
@@ -215,16 +220,14 @@ impl KeyValueStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to short-circuit on error, yielding error in stream
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         // Decrypt and deserialize in map_done
@@ -235,12 +238,14 @@ impl KeyValueStore for LibsqlStorage {
                         // Decrypt the value using the cloned encryption_key
                         let json_str = match &encryption_key {
                             Some(key) => {
-                                let encrypted = STANDARD
-                                    .decode(&stored_value)
-                                    .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
+                                let encrypted = STANDARD.decode(&stored_value).map_err(|e| {
+                                    StorageError::Encryption(format!("Base64 decode failed: {e}"))
+                                })?;
                                 let decrypted = decrypt(key, &encrypted)?;
                                 String::from_utf8(decrypted).map_err(|e| {
-                                    StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                                    StorageError::Encryption(format!(
+                                        "Invalid UTF-8 in decrypted data: {e}"
+                                    ))
                                 })?
                             }
                             None => stored_value,
@@ -274,16 +279,14 @@ impl KeyValueStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(
@@ -301,16 +304,14 @@ impl KeyValueStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(
@@ -331,16 +332,14 @@ impl KeyValueStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield errors in stream
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))
@@ -360,7 +359,7 @@ impl KeyValueStore for LibsqlStorage {
         let iter = run_future_iter(
             move || async move {
                 let mut stmt = conn
-                    .prepare(&sql)
+                    .prepare(sql)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
                 let rows = if param.is_empty() {
@@ -438,16 +437,14 @@ impl QueryStore for LibsqlStorage {
         let stream = schedule_future(async move { conn.execute(&sql, libsql_params).await })?;
 
         // Use map_circuit to yield errors in stream
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))
@@ -463,16 +460,14 @@ impl QueryStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield Ok(()) or Err(e)
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))
@@ -526,16 +521,14 @@ impl RateLimiterStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield errors in stream
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))
@@ -575,16 +568,14 @@ impl RateLimiterStore for LibsqlStorage {
         })?;
 
         // Use map_circuit to yield errors in stream
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(count) => ShortCircuit::Continue(Stream::Next(Ok(count))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(count) => ShortCircuit::Continue(Stream::Next(Ok(count))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))
@@ -600,14 +591,12 @@ impl RateLimiterStore for LibsqlStorage {
         })?;
 
         // Use map_circuit for error propagation, then map_done to transform u64 -> ()
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                    StorageError::Backend(e.to_string()),
-                ))),
-                _ => ShortCircuit::Continue(Stream::Ignore),
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+            Stream::Next(Err(e)) => {
+                ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string()))))
             }
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(
@@ -645,16 +634,14 @@ impl BlobStore for LibsqlStorage {
             .await
         })?;
 
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(
@@ -667,9 +654,7 @@ impl BlobStore for LibsqlStorage {
         let conn = Arc::clone(&self.conn);
 
         let stream = schedule_future(async move {
-            let mut stmt = conn
-                .prepare("SELECT data FROM blobs WHERE key = ?")
-                .await?;
+            let mut stmt = conn.prepare("SELECT data FROM blobs WHERE key = ?").await?;
             let mut rows = stmt.query([key]).await?;
             match rows.next().await? {
                 Some(row) => {
@@ -680,25 +665,22 @@ impl BlobStore for LibsqlStorage {
             }
         })?;
 
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream.map_done(|opt_result| {
             match opt_result {
-                Ok(Some(encoded)) => {
-                    STANDARD.decode(&encoded)
-                        .map(Some)
-                        .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))
-                }
+                Ok(Some(encoded)) => STANDARD
+                    .decode(&encoded)
+                    .map(Some)
+                    .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}"))),
                 Ok(None) => Ok(None),
                 Err(e) => Err(e),
             }
@@ -710,20 +692,17 @@ impl BlobStore for LibsqlStorage {
         let conn = Arc::clone(&self.conn);
 
         let stream = schedule_future(async move {
-            conn.execute("DELETE FROM blobs WHERE key = ?", [key])
-                .await
+            conn.execute("DELETE FROM blobs WHERE key = ?", [key]).await
         })?;
 
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(
@@ -743,16 +722,14 @@ impl BlobStore for LibsqlStorage {
             Ok::<bool, libsql::Error>(rows.next().await?.is_some())
         })?;
 
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let circuit_stream = stream.map_circuit(|stream_item| match stream_item {
+            Stream::Next(result) => match result {
+                Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(
+                    e.to_string(),
+                )))),
+            },
+            _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
         Ok(Box::new(circuit_stream))

@@ -268,6 +268,7 @@ mod tests {
     /// WHY: Workers must survive panicking jobs
     /// WHAT: Submit a panicking job, then a normal job — both should be handled
     #[test]
+    #[cfg_attr(cranelift_backend, ignore = "cranelift does not support panic unwinding")]
     fn test_panic_recovery() {
         let kill_signal = Arc::new(OnSignal::new());
         let registry =

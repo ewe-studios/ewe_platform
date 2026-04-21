@@ -95,8 +95,7 @@ impl Default for LlamaBackendConfig {
 #[must_use]
 fn num_cpus() -> usize {
     std::thread::available_parallelism()
-        .map(std::num::NonZeroUsize::get)
-        .unwrap_or(4)
+        .map_or(4, std::num::NonZeroUsize::get)
 }
 
 impl LlamaBackendConfig {
@@ -780,9 +779,9 @@ fn generate_text(
     let max_tokens = params.max_tokens;
     let mut generated_tokens: Vec<LlamaToken> = Vec::new();
     let mut output_text = String::new();
-    let mut current_pos = tokens.len() as i32;
+    let start_pos = tokens.len() as i32;
 
-    for _ in 0..max_tokens {
+    for current_pos in (start_pos..).take(max_tokens) {
         // Sample the next token (idx=0 for single sequence)
         let next_token = sampler.sample(ctx, 0);
         generated_tokens.push(next_token);
@@ -811,8 +810,6 @@ fn generate_text(
 
         ctx.decode(&mut batch)
             .map_err(GenerationError::Decode)?;
-
-        current_pos += 1;
     }
 
     // Calculate token counts

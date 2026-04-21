@@ -33,6 +33,19 @@ fn upsert_sql(table_name: &str) -> String {
     )
 }
 
+fn create_indexes_sql(table_name: &str) -> String {
+    format!(
+        "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_provider ON {table_name}(provider);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_environment ON {table_name}(environment);"
+    )
+}
+
+fn escape_like(s: &str) -> String {
+    s.replace('%', "\\%").replace('_', "\\_")
+}
+
 /// Cloudflare D1 edge `SQLite` state store.
 ///
 /// Executes SQL over HTTP via the Cloudflare D1 API.
@@ -43,7 +56,7 @@ pub struct D1StateStore {
     api_token: ZeroizingString,
     account_id: String,
     database_id: String,
-    table_name: String,  // "{project}_{stage}_resources"
+    table_name: String, // "{project}_{stage}_resources"
     client: SimpleHttpClient,
 }
 
@@ -52,8 +65,15 @@ impl D1StateStore {
     ///
     /// Table name will be `{project}_{stage}_resources` for namespacing.
     #[must_use]
-    pub fn new(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
-        let table_name = format!("{}_{}_resources",
+    pub fn new(
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
+        let table_name = format!(
+            "{}_{}_resources",
             project.replace(['-', ' '], "_"),
             stage.replace(['-', ' '], "_")
         );
@@ -240,7 +260,9 @@ impl D1StateStore {
 
 impl StateStore for D1StateStore {
     fn init(&self) -> Result<(), StorageError> {
-        let sql = create_table_sql(&self.table_name);
+        let table_sql = create_table_sql(&self.table_name);
+        let index_sql = create_indexes_sql(&self.table_name);
+        let sql = format!("{table_sql}\n{index_sql}");
         self.execute_sql(&sql, &[])?;
         Ok(())
     }
@@ -255,9 +277,7 @@ impl StateStore for D1StateStore {
                 row.get("id")
                     .and_then(serde_json::Value::as_str)
                     .map(String::from)
-                    .ok_or_else(|| {
-                        StorageError::SqlConversion("missing id field".to_string())
-                    })
+                    .ok_or_else(|| StorageError::SqlConversion("missing id field".to_string()))
             })
             .collect();
         Ok(Self::wrap_vec(ids?))
@@ -284,10 +304,8 @@ impl StateStore for D1StateStore {
             "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
             self.table_name
         );
-        let response = self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(resource_id.to_string())],
-        )?;
+        let response =
+            self.execute_sql(&sql, &[serde_json::Value::String(resource_id.to_string())])?;
         let rows = Self::extract_rows(&response);
         match rows.first() {
             Some(row) => {
@@ -304,11 +322,7 @@ impl StateStore for D1StateStore {
         }
 
         // Build IN clause placeholders
-        let placeholders = ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<_>>()
-            .join(",");
+        let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!(
             "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({placeholders})",
             self.table_name
@@ -320,10 +334,7 @@ impl StateStore for D1StateStore {
 
         let response = self.execute_sql(&sql, &params)?;
         let rows = Self::extract_rows(&response);
-        let results: Result<Vec<_>, _> = rows
-            .iter()
-            .map(Self::parse_row)
-            .collect();
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
         Ok(Self::wrap_vec(results?))
     }
 
@@ -334,10 +345,7 @@ impl StateStore for D1StateStore {
         );
         let response = self.execute_sql(&sql, &[])?;
         let rows = Self::extract_rows(&response);
-        let results: Result<Vec<_>, _> = rows
-            .iter()
-            .map(Self::parse_row)
-            .collect();
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
         Ok(Self::wrap_vec(results?))
     }
 
@@ -354,10 +362,116 @@ impl StateStore for D1StateStore {
 
     fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
         let sql = format!("DELETE FROM {} WHERE id = ?", self.table_name);
-        self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(resource_id.to_string())],
-        )?;
+        self.execute_sql(&sql, &[serde_json::Value::String(resource_id.to_string())])?;
         Ok(Self::wrap_value(()))
+    }
+
+    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
+        let prefix = escape_like(prefix);
+        let sql = format!(
+            "SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
+        let rows = Self::extract_rows(&response);
+        let ids: Result<Vec<String>, StorageError> = rows
+            .iter()
+            .map(|row| {
+                row.get("id")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| StorageError::SqlConversion("missing id field".to_string()))
+            })
+            .collect();
+        Ok(Self::wrap_vec(ids?))
+    }
+
+    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let sql = format!(
+            "SELECT COUNT(*) as cnt FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
+        let rows = Self::extract_rows(&response);
+        let count = rows
+            .first()
+            .and_then(|r| r.get("cnt"))
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|cnt| usize::try_from(cnt).ok())
+            .unwrap_or(0);
+        Ok(Self::wrap_value(count))
+    }
+
+    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let prefix = escape_like(prefix);
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+             FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
+        let rows = Self::extract_rows(&response);
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
+        Ok(Self::wrap_vec(results?))
+    }
+
+    fn find_by_kind(&self, kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+             FROM {} WHERE kind = ? ORDER BY id",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(kind.to_string())])?;
+        let rows = Self::extract_rows(&response);
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
+        Ok(Self::wrap_vec(results?))
+    }
+
+    fn find_by_status(
+        &self,
+        status: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+             FROM {} WHERE status = ? ORDER BY id",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(status.to_string())])?;
+        let rows = Self::extract_rows(&response);
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
+        Ok(Self::wrap_vec(results?))
+    }
+
+    fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+             FROM {} WHERE provider = ? ORDER BY id",
+            self.table_name
+        );
+        let response =
+            self.execute_sql(&sql, &[serde_json::Value::String(provider.to_string())])?;
+        let rows = Self::extract_rows(&response);
+        let results: Result<Vec<_>, _> = rows.iter().map(Self::parse_row).collect();
+        Ok(Self::wrap_vec(results?))
+    }
+
+    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let sql = format!(
+            "DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
+        // D1 returns rows_affected in the response
+        let count = response
+            .pointer("/result/0/meta/rows_written")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|n| usize::try_from(n).ok())
+            .unwrap_or(0);
+        Ok(Self::wrap_value(count))
     }
 }

@@ -32,11 +32,8 @@ impl EventBuilder {
 
     fn process_field(&mut self, field: &str, value: &str) {
         match field {
-            "id" => {
-                // Ignore if value contains null byte
-                if !value.contains('\0') {
-                    self.id = Some(value.to_string());
-                }
+            "id" if !value.contains('\0') => {
+                self.id = Some(value.to_string());
             }
             "event" => {
                 self.event_type = Some(value.to_string());

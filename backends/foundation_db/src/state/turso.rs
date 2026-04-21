@@ -1,7 +1,7 @@
 //! Remote-first Turso state store via libsql.
 //!
 //! WHY: Teams and CI/CD systems need shared state across machines.
-//! Turso provides a remote SQLite database with optional embedded replicas.
+//! Turso provides a remote `SQLite` database with optional embedded replicas.
 //!
 //! WHAT: `TursoStateStore` connects to a remote Turso database via libsql's
 //! `new_remote` or `new_remote_replica` builder.
@@ -28,7 +28,7 @@ fn create_table_sql(table_name: &str) -> String {
     format!(
         r"
         PRAGMA journal_mode=WAL;
-        CREATE TABLE IF NOT EXISTS {} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
             id TEXT PRIMARY KEY,
             kind TEXT NOT NULL,
             provider TEXT NOT NULL,
@@ -40,8 +40,7 @@ fn create_table_sql(table_name: &str) -> String {
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )
-        ",
-        table_name
+        "
     )
 }
 
@@ -49,7 +48,7 @@ fn create_table_sql(table_name: &str) -> String {
 fn upsert_sql(table_name: &str) -> String {
     format!(
         r"
-        INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
+        INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             kind = excluded.kind,
@@ -60,9 +59,23 @@ fn upsert_sql(table_name: &str) -> String {
             output = excluded.output,
             config_snapshot = excluded.config_snapshot,
             updated_at = excluded.updated_at
-        ",
-        table_name
+        "
     )
+}
+
+/// Generate CREATE INDEX statements for a given table name.
+fn create_indexes_sql(table_name: &str) -> String {
+    format!(
+        "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_provider ON {table_name}(provider);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_environment ON {table_name}(environment);"
+    )
+}
+
+/// Escape `%` and `_` characters in a prefix for safe LIKE queries.
+fn escape_like(s: &str) -> String {
+    s.replace('%', "\\%").replace('_', "\\_")
 }
 
 /// Remote-first Turso state store via libsql.
@@ -74,7 +87,7 @@ fn upsert_sql(table_name: &str) -> String {
 pub struct TursoStateStore {
     conn: Arc<libsql::Connection>,
     db: Arc<libsql::Database>,
-    table_name: String,  // "{project}_{stage}_resources"
+    table_name: String, // "{project}_{stage}_resources"
 }
 
 impl TursoStateStore {
@@ -85,12 +98,18 @@ impl TursoStateStore {
     /// # Errors
     ///
     /// Returns an error if the remote connection fails.
-    pub fn remote(turso_url: &str, auth_token: &str, project: &str, stage: &str) -> Result<Self, StorageError> {
+    pub fn remote(
+        turso_url: &str,
+        auth_token: &str,
+        project: &str,
+        stage: &str,
+    ) -> Result<Self, StorageError> {
         let url = turso_url.to_string();
         let token = auth_token.to_string();
-        let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+        let table_name = format!(
+            "{}_{}_resources",
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         let db = exec_future(async move { libsql::Builder::new_remote(url, token).build().await })?;
         let conn = db
@@ -103,7 +122,7 @@ impl TursoStateStore {
         })
     }
 
-    /// Embedded replica mode: local SQLite file syncs with Turso.
+    /// Embedded replica mode: local `SQLite` file syncs with Turso.
     ///
     /// Table name will be `{project}_{stage}_resources` for namespacing.
     ///
@@ -123,9 +142,10 @@ impl TursoStateStore {
         let path_str = local_path.to_string_lossy().to_string();
         let url = turso_url.to_string();
         let token = auth_token.to_string();
-        let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+        let table_name = format!(
+            "{}_{}_resources",
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         let db = exec_future(async move {
             libsql::Builder::new_remote_replica(path_str, url, token)
@@ -166,7 +186,9 @@ impl TursoStateStore {
 impl StateStore for TursoStateStore {
     fn init(&self) -> Result<(), StorageError> {
         let conn = Arc::clone(&self.conn);
-        let sql = create_table_sql(&self.table_name);
+        let table_sql = create_table_sql(&self.table_name);
+        let index_sql = create_indexes_sql(&self.table_name);
+        let sql = format!("{table_sql}\n{index_sql}");
         exec_future(async move { conn.execute_batch(&sql).await })?;
         Ok(())
     }
@@ -177,7 +199,7 @@ impl StateStore for TursoStateStore {
 
         let iter = run_future_iter(
             move || async move {
-                let sql = format!("SELECT id FROM {} ORDER BY id", table);
+                let sql = format!("SELECT id FROM {table} ORDER BY id");
                 let mut stmt = conn
                     .prepare(&sql)
                     .await
@@ -203,18 +225,13 @@ impl StateStore for TursoStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("SELECT COUNT(*) FROM {}", table);
-            let mut stmt = conn
-                .prepare(&sql)
-                .await?;
+            let sql = format!("SELECT COUNT(*) FROM {table}");
+            let mut stmt = conn.prepare(&sql).await?;
             let mut rows = stmt.query([libsql::Value::Null; 0]).await?;
-            match rows.next().await? {
-                Some(row) => {
-                    let count: i64 = row.get(0)?;
-                    Ok::<_, libsql::Error>(usize::try_from(count).unwrap_or(0))
-                }
-                None => Ok::<_, libsql::Error>(0),
-            }
+            let count = rows.next().await?.map_or(Ok(0), |row| {
+                row.get::<i64>(0).map(|c| usize::try_from(c).unwrap_or(0))
+            })?;
+            Ok::<_, libsql::Error>(count)
         })?;
         Ok(to_state_stream(stream))
     }
@@ -228,8 +245,7 @@ impl StateStore for TursoStateStore {
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
             let sql = format!(
-                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
-                table
+                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id = ?"
             );
             let mut stmt = conn
                 .prepare(&sql)
@@ -270,8 +286,7 @@ impl StateStore for TursoStateStore {
                     .collect::<Vec<_>>()
                     .join(",");
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({})",
-                    table, placeholders
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id IN ({placeholders})"
                 );
                 let params: Vec<libsql::Value> = owned_ids
                     .iter()
@@ -303,8 +318,7 @@ impl StateStore for TursoStateStore {
         let iter = run_future_iter(
             move || async move {
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id",
-                    table
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} ORDER BY id"
                 );
                 let mut stmt = conn
                     .prepare(&sql)
@@ -346,11 +360,207 @@ impl StateStore for TursoStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("DELETE FROM {} WHERE id = ?", table);
+            let sql = format!("DELETE FROM {table} WHERE id = ?");
             conn.execute(&sql, [id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             Ok::<_, StorageError>(())
+        })?;
+        Ok(to_state_stream(stream))
+    }
+
+    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql =
+                    format!("SELECT id FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id");
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(prefix)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
+                    row.get::<String>(0)
+                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
+                }))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+        let stream = schedule_future(async move {
+            let sql = format!("SELECT COUNT(*) FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\'");
+            let mut stmt = conn
+                .prepare(&sql)
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt
+                .query([libsql::Value::Text(prefix)])
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let count = rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+                .map_or(Ok::<usize, StorageError>(0), |row| {
+                    let count: i64 = row
+                        .get(0)
+                        .map_err(|e| StorageError::Backend(e.to_string()))?;
+                    Ok(usize::try_from(count).unwrap_or(0))
+                })?;
+            Ok::<_, StorageError>(count)
+        })?;
+        Ok(to_state_stream(stream))
+    }
+
+    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(prefix)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_kind(&self, kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let kind = kind.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE kind = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(kind)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_status(
+        &self,
+        status: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let status = status.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE status = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(status)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let provider = provider.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE provider = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(provider)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+        let stream = schedule_future(async move {
+            let sql = format!("DELETE FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\'");
+            let result = conn
+                .execute(&sql, [libsql::Value::Text(prefix)])
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(usize::try_from(result).unwrap_or(0))
         })?;
         Ok(to_state_stream(stream))
     }

@@ -29,7 +29,7 @@ pub struct R2StateStore {
     api_token: String,
     account_id: String,
     bucket_name: String,
-    prefix: String,  // "{project}/{stage}/"
+    prefix: String, // "{project}/{stage}/"
     client: SimpleHttpClient,
 }
 
@@ -38,7 +38,13 @@ impl R2StateStore {
     ///
     /// Object keys will be prefixed with `{project}/{stage}/` for namespacing.
     #[must_use]
-    pub fn new(api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str) -> Self {
+    pub fn new(
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),

@@ -550,9 +550,9 @@ where
         }
 
         // Otherwise, poll the future
-        let mut future = match self.future.take() {
-            Some(f) => Box::pin((f)()),
-            None => return None,
+        let mut future = {
+            let f = self.future.take()?;
+            Box::pin((f)())
         };
 
         loop {

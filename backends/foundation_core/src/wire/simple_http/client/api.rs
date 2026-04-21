@@ -314,13 +314,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
         for body_element in body_stream {
             if let Stream::Next(value) = body_element {
-                match value {
-                    Ok(res) => {
-                        response_body = Some(res);
-                        break;
-                    }
-                    Err(err) => return Err(err),
-                }
+                let res = value?;
+                response_body = Some(res);
+                break;
             }
         }
 

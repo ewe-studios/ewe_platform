@@ -35,10 +35,10 @@ related_specs:
   - "specifications/04-wasm-entrypoint-toolchain"
 features:
   completed: 0
-  uncompleted: 5
+  uncompleted: 6
   in_progress: 2
-  total: 7
-  completion_percentage: 14%
+  total: 8
+  completion_percentage: 13%
 ---
 
 # Foundation AI - Unified AI Inference Backend
@@ -249,6 +249,7 @@ Features are listed in dependency order. Each feature contains detailed requirem
 | 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage via foundation_db, auth state machine, 2FA) | 00a-foundation-db | ⬜ Pending (0%) |
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00b-auth-infrastructure | ⬜ Pending (0%) |
 | 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | Fix all state stores (D1, R2, SQLite) to use run_future_iter for proper row streaming | 00a-foundation-db | ⬜ Pending (0%) |
+| 0e | [state-store-query-filtering](./features/00e-state-store-query-filtering/feature.md) | SQL-level query filtering for StateStore — prefix queries, column indexes, NamespacedStore optimization | 00a-foundation-db | ⬜ Pending (0%) |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | 🔄 In Progress (67%) |
 | 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | HuggingFace Hub model discovery, download, and GGUF serving via `hf-hub` | 01-llamacpp-integration | ⬜ Pending (0%) |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration | ⬜ Pending (0%) |

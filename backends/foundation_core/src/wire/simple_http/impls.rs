@@ -414,13 +414,9 @@ pub trait RenderHttp {
 
         let mut total_bytes = 0;
         for next_bytes in render_bytes {
-            match next_bytes {
-                Ok(mut bytes) => {
-                    writer.write_all(&bytes)?;
-                    total_bytes += bytes.len();
-                }
-                Err(err) => return Err(err),
-            }
+            let bytes = next_bytes?;
+            writer.write_all(&bytes)?;
+            total_bytes += bytes.len();
         }
         Ok(total_bytes)
     }
@@ -446,13 +442,9 @@ pub trait RenderHttp {
 
         let mut total_bytes = 0;
         for next_bytes in transformed {
-            match next_bytes {
-                Ok(mut bytes) => {
-                    writer.write_all(&bytes)?;
-                    total_bytes += bytes.len();
-                }
-                Err(err) => return Err(err),
-            }
+            let bytes = next_bytes?;
+            writer.write_all(&bytes)?;
+            total_bytes += bytes.len();
         }
         Ok(total_bytes)
     }
@@ -503,12 +495,8 @@ pub trait RenderHttp {
     {
         let mut encoded_content = String::new();
         for part in self.http_render_utf8_string()? {
-            match part {
-                Ok(inner) => {
-                    encoded_content.push_str(&inner);
-                }
-                Err(err) => return Err(err),
-            }
+            let inner = part?;
+            encoded_content.push_str(&inner);
         }
         Ok(encoded_content)
     }
@@ -4518,13 +4506,13 @@ impl ChunkState {
         }
 
         let (chunk_size, chunk_string): (u64, String) = match chunk_size_octet.take() {
-            Some(value) => match Self::parse_chunk_octet(&value) {
-                Ok(converted) => match String::from_utf8(value.clone()) {
+            Some(value) => {
+                let converted = Self::parse_chunk_octet(&value)?;
+                match String::from_utf8(value.clone()) {
                     Ok(converted_string) => (converted, converted_string),
                     Err(err) => return Err(ChunkStateError::InvalidOctetBytes(err)),
-                },
-                Err(err) => return Err(err),
-            },
+                }
+            }
             None => return Err(ChunkStateError::ChunkSizeNotFound),
         };
 

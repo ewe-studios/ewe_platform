@@ -12,11 +12,11 @@
 //! HOW: Uses explicit `state` enum to track progress through inner task
 //!      reception, state creation, and state store stream polling.
 
-use foundation_core::valtron::{TaskIterator, TaskStatus, ThreadedValue};
+use crate::errors::StorageError;
+use crate::state::resource_identifier::ResourceIdentifier;
 use crate::state::traits::{StateStore, StateStoreStream};
 use crate::state::{config_hash, ResourceState, StateStatus};
-use crate::state::resource_identifier::ResourceIdentifier;
-use crate::errors::StorageError;
+use foundation_core::valtron::{TaskIterator, TaskStatus, ThreadedValue};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -258,21 +258,20 @@ where
                         let config_snapshot = match serde_json::to_value(&input) {
                             Ok(v) => v,
                             Err(e) => {
-                                return Some(TaskStatus::Ready(Err(ProviderError::SerializeFailed(
-                                    e.to_string(),
-                                ))))
+                                return Some(TaskStatus::Ready(Err(
+                                    ProviderError::SerializeFailed(e.to_string()),
+                                )))
                             }
                         };
 
-                        let output_value: serde_json::Value =
-                            match serde_json::to_value(&output) {
-                                Ok(v) => v,
-                                Err(e) => {
-                                    return Some(TaskStatus::Ready(Err(
-                                        ProviderError::SerializeFailed(e.to_string()),
-                                    )))
-                                }
-                            };
+                        let output_value: serde_json::Value = match serde_json::to_value(&output) {
+                            Ok(v) => v,
+                            Err(e) => {
+                                return Some(TaskStatus::Ready(Err(
+                                    ProviderError::SerializeFailed(e.to_string()),
+                                )))
+                            }
+                        };
 
                         let config_hash_value = match config_hash(&config_snapshot) {
                             Ok(h) => h,
@@ -300,7 +299,8 @@ where
 
                         match state_store.set(&resource_id, &state) {
                             Ok(stream) => {
-                                self.state = Some(StoreStatePrecomputed::Storing { output, stream });
+                                self.state =
+                                    Some(StoreStatePrecomputed::Storing { output, stream });
                                 Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
                             }
                             Err(e) => {
@@ -311,7 +311,9 @@ where
                     }
                     TaskStatus::Ready(Err(e)) => {
                         self.state = Some(StoreStatePrecomputed::Done);
-                        Some(TaskStatus::Ready(Err(ProviderError::ExecuteFailed(e.to_string()))))
+                        Some(TaskStatus::Ready(Err(ProviderError::ExecuteFailed(
+                            e.to_string(),
+                        ))))
                     }
                     TaskStatus::Pending(p) => {
                         self.state = Some(StoreStatePrecomputed::Inner {
@@ -434,7 +436,9 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Inner { .. } => f.debug_struct("StoreStateIdentifierInner::Inner").finish(),
-            Self::Storing { .. } => f.debug_struct("StoreStateIdentifierInner::Storing").finish(),
+            Self::Storing { .. } => f
+                .debug_struct("StoreStateIdentifierInner::Storing")
+                .finish(),
             Self::Done => write!(f, "StoreStateIdentifierInner::Done"),
         }
     }
@@ -478,12 +482,7 @@ where
     /// * `state_store` - State store for persistence
     /// * `input` - Input configuration to store as snapshot
     /// * `environment` - Optional environment name
-    pub fn new(
-        inner: Inner,
-        state_store: Arc<St>,
-        input: I,
-        environment: Option<String>,
-    ) -> Self {
+    pub fn new(inner: Inner, state_store: Arc<St>, input: I, environment: Option<String>) -> Self {
         Self {
             state: Some(StoreStateIdentifierInner::Inner {
                 inner,
@@ -527,18 +526,18 @@ where
                         let config_snapshot = match serde_json::to_value(&input) {
                             Ok(v) => v,
                             Err(e) => {
-                                return Some(TaskStatus::Ready(Err(ProviderError::SerializeFailed(
-                                    e.to_string(),
-                                ))))
+                                return Some(TaskStatus::Ready(Err(
+                                    ProviderError::SerializeFailed(e.to_string()),
+                                )))
                             }
                         };
 
                         let output_str = match serde_json::to_string(&output) {
                             Ok(s) => s,
                             Err(e) => {
-                                return Some(TaskStatus::Ready(Err(ProviderError::SerializeFailed(
-                                    e.to_string(),
-                                ))))
+                                return Some(TaskStatus::Ready(Err(
+                                    ProviderError::SerializeFailed(e.to_string()),
+                                )))
                             }
                         };
 
@@ -590,7 +589,9 @@ where
                     }
                     TaskStatus::Ready(Err(e)) => {
                         self.state = Some(StoreStateIdentifierInner::Done);
-                        Some(TaskStatus::Ready(Err(ProviderError::ExecuteFailed(e.to_string()))))
+                        Some(TaskStatus::Ready(Err(ProviderError::ExecuteFailed(
+                            e.to_string(),
+                        ))))
                     }
                     TaskStatus::Pending(p) => {
                         self.state = Some(StoreStateIdentifierInner::Inner {
