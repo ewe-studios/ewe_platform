@@ -1,6 +1,6 @@
 # Feature: HTTP Client Connection Pool Safety for No-Body Responses
 
-**Status:** ✅ Fixed — Implemented in `api.rs`, tests passing
+**Status:** ✅ Complete
 
 **Priority:** High — Blocks R2 integration test reliability
 

@@ -6,7 +6,7 @@ this_file: "specifications/07-foundation-ai/features/00d-state-store-streaming/f
 
 feature: "State Store Streaming - Proper Valtron Iterator Patterns"
 description: "Fix all state stores AND storage backends to use run_future_iter for streaming multi-row results instead of collecting to Vec"
-status: pending
+status: complete
 priority: high
 depends_on:
   - "00a-foundation-db"
@@ -16,10 +16,10 @@ created: 2026-04-06
 author: "Main Agent"
 
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # State Store Streaming - Proper Valtron Iterator Patterns
