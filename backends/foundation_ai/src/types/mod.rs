@@ -675,8 +675,9 @@ pub enum Messages {
     },
 }
 
-static OVERFLOW_SILENT_PATTERN: std::sync::LazyLock<Regex> =
-    std::sync::LazyLock::new(|| regex::Regex::new(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)").unwrap());
+static OVERFLOW_SILENT_PATTERN: std::sync::LazyLock<Regex> = std::sync::LazyLock::new(|| {
+    regex::Regex::new(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)").unwrap()
+});
 
 impl Messages {
     pub fn is_context_overflow(&self, context_window: u64) -> bool {
@@ -867,14 +868,14 @@ pub trait ModelProvider {
     ///
     fn get_one(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
 
-    /// [`get_all`] returns all Model type match the provided modeil id and.
+    /// [`get_all`] returns all models matching the provided model id
     /// from the target source.
     ///
     /// # Errors
     ///
-    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
+    /// Returns a [`ModelProviderErrors`] if the model list cannot be fetched.
     ///
-    fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
+    fn get_all(&self, model_id: ModelId) -> ModelProviderResult<Vec<ModelSpec>>;
 }
 
 // ==================================
@@ -986,12 +987,12 @@ pub struct LlamaConfig {
 impl Default for LlamaConfig {
     fn default() -> Self {
         Self {
-            n_gpu_layers: 0,      // CPU-only by default
-            main_gpu: 0,          // First GPU
+            n_gpu_layers: 0, // CPU-only by default
+            main_gpu: 0,     // First GPU
             split_mode: SplitMode::Layer,
             kv_cache_type: KVCacheType::F16,
-            use_mmap: true,       // Enable mmap by default
-            use_mlock: false,     // Don't mlock by default
+            use_mmap: true,   // Enable mmap by default
+            use_mlock: false, // Don't mlock by default
         }
     }
 }
