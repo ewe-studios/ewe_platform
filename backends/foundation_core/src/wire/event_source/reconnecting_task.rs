@@ -17,7 +17,7 @@ use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::SimpleHeader;
+use crate::wire::simple_http::{SendSafeBody, SimpleHeader};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -25,6 +25,7 @@ use tracing::{debug, error, info, instrument, trace, warn};
 pub struct ReconnectingConfig {
     url: String,
     headers: Vec<(SimpleHeader, String)>,
+    body: Option<SendSafeBody>,
     max_retries: u32,
     server_retry: Option<Duration>,
     max_reconnect_duration: Option<Duration>,
@@ -35,6 +36,7 @@ impl ReconnectingConfig {
         Self {
             url,
             headers: Vec::new(),
+            body: None,
             max_retries: 5,
             server_retry: None,
             max_reconnect_duration: None,
@@ -118,13 +120,12 @@ where
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
-        let inner = EventSourceTask::connect(resolver.clone(), &url_str)?;
         let config = ReconnectingConfig::new(url_str);
 
         info!("Reconnecting SSE client created");
 
         Ok(Self {
-            state: Some(ReconnectingState::Connected(Box::new(inner))),
+            state: Some(ReconnectingState::Reconnecting),
             config,
             resolver,
             last_event_id: None,
@@ -187,16 +188,35 @@ where
         self
     }
 
+    /// Set the request body (applied only on the first connection).
+    ///
+    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
+    /// WHAT: Returns Self with the body applied to the initial inner task.
+    /// On reconnect, the body is dropped — only the URL and headers are re-sent.
+    #[must_use]
+    pub fn with_body(mut self, body: SendSafeBody) -> Self {
+        debug!("Setting request body (first connection only)");
+        self.config.body = Some(body);
+        self
+    }
+
     /// Create a new inner [`EventSourceTask`] for (re)connection.
-    fn create_inner_task(&self) -> Option<EventSourceTask<R>> {
+    ///
+    /// NOTE: Body is taken via `take()` so it only applies on the first connection.
+    fn create_inner_task(&mut self) -> Option<EventSourceTask<R>> {
         let mut task = EventSourceTask::connect(self.resolver.clone(), &self.config.url).ok()?;
 
-        // Apply headers
+        // Apply headers (reapplied on reconnect)
         for (name, value) in &self.config.headers {
             task = task.with_header(name.clone(), value);
         }
 
-        // Apply Last-Event-ID if tracked
+        // Apply body only on first connection (taken so None on reconnect)
+        if let Some(body) = self.config.body.take() {
+            task = task.with_body(body);
+        }
+
+        // Apply Last-Event-ID if tracked (reapplied on reconnect)
         if let Some(ref last_id) = self.last_event_id {
             task = task.with_last_event_id(last_id);
         }

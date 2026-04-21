@@ -10,7 +10,8 @@ use std::time::SystemTime;
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{Stream, StreamIterator};
+use foundation_core::valtron::{execute, Stream, StreamIterator};
+use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -113,6 +114,7 @@ pub struct OpenAIProvider<R: DnsResolver = SystemDnsResolver> {
     config: OpenAIConfig,
     api_key: Option<ConfidentialText>,
     http_client: Option<SimpleHttpClient<R>>,
+    resolver: Option<R>,
     models_cache: Arc<std::sync::Mutex<HashMap<String, OpenAIModelInfo>>>,
 }
 
@@ -129,6 +131,7 @@ impl OpenAIProvider<SystemDnsResolver> {
             config: OpenAIConfig::default(),
             api_key: None,
             http_client: None,
+            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -139,6 +142,7 @@ impl OpenAIProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
+            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -151,7 +155,8 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver)),
+            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
+            resolver: Some(resolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -162,7 +167,8 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         Self {
             config,
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver)),
+            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
+            resolver: Some(resolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -309,6 +315,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
+                resolver: self.resolver.clone(),
                 info: info.clone(),
             });
         }
@@ -341,6 +348,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
+            resolver: self.resolver.clone(),
             info,
         })
     }
@@ -397,6 +405,7 @@ pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
     model_name: String,
     api_key: Option<ConfidentialText>,
     http_client: Option<SimpleHttpClient<R>>,
+    resolver: Option<R>,
     /// Cached model metadata from the provider.
     #[allow(dead_code)]
     info: OpenAIModelInfo,
@@ -507,55 +516,38 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
         let url = self.config.build_url("chat/completions");
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
 
-        let mut builder = client
-            .post(&url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("text/event-stream"));
-        builder = builder.body_text(body);
+        let resolver = self
+            .resolver
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
+            .clone();
 
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
+        let task = ReconnectingEventSourceTask::connect(resolver, &url)
+            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
+            .with_header(
+                SimpleHeader::AUTHORIZATION,
+                format!(
+                    "Bearer {}",
+                    self.api_key
+                        .as_ref()
+                        .map(ConfidentialText::get)
+                        .unwrap_or_default()
+                ),
+            )
+            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
+            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
+            .with_body(SendSafeBody::Text(body));
 
-        let response = request
-            .send()
-            .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
+        let driven = execute(task, None)
+            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
-
-        if !(200..=299).contains(&status_code) {
-            return Err(GenerationError::Backend(format!(
-                "HTTP {status_code}: {body_text}"
-            )));
-        }
-
-        let model_id = self.model_id.clone();
-        let messages = parse_sse_stream(&body_text, &model_id);
-
-        Ok(SingleMessageStream {
-            inner: messages
-                .into_iter()
-                .map(Ok)
-                .collect::<Vec<Result<Messages, OpenAIError>>>()
-                .into_iter(),
-            done: false,
+        Ok(OpenAIStream {
+            inner: driven,
+            model_id: self.model_id.clone(),
+            accumulated_text: String::new(),
+            finish_reason: None,
+            usage: None,
         })
     }
 }
@@ -564,126 +556,83 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
 // Streaming: SSE Parser
 // ============================================================================
 
-/// Parse SSE events from a raw response body string.
-fn parse_sse_stream(body: &str, model_id: &ModelId) -> Vec<Messages> {
-    let mut accumulated_text = String::new();
-    let mut usage: Option<OpenAIUsage> = None;
-    let mut finish_reason: Option<String> = None;
-
-    for line in body.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with(':') {
-            continue;
-        }
-
-        if let Some(data) = trimmed.strip_prefix("data: ") {
-            if data == "[DONE]" {
-                break;
-            }
-
-            if let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) {
-                if let Some(u) = chunk.usage {
-                    usage = Some(u);
-                }
-
-                for choice in &chunk.choices {
-                    if let Some(ref delta) = choice.delta {
-                        if let Some(ref content) = delta.content {
-                            accumulated_text.push_str(content);
-                        }
-                    }
-                    if let Some(ref reason) = choice.finish_reason {
-                        if reason != "null" {
-                            finish_reason = Some(reason.clone());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    let stop_reason = if accumulated_text.is_empty() {
-        StopReason::Error
-    } else {
-        match finish_reason.as_deref() {
-            Some("stop") | None => StopReason::Stop,
-            Some("length") => StopReason::Length,
-            Some("tool_calls") => StopReason::ToolUse,
-            Some(_) => StopReason::Error,
-        }
-    };
-
-    #[allow(clippy::cast_precision_loss)]
-    let usage_report = usage.map_or_else(empty_usage_report, |u| UsageReport {
-        input: u.prompt_tokens as f64,
-        output: u.completion_tokens as f64,
-        cache_read: 0.0,
-        cache_write: 0.0,
-        total_tokens: u.total_tokens as f64,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: u.total_tokens as f64,
-        },
-    });
-
-    vec![Messages::Assistant {
-        model: model_id.clone(),
-        timestamp: SystemTime::now(),
-        usage: usage_report,
-        content: ModelOutput::Text(TextContent {
-            content: accumulated_text,
-            signature: None,
-        }),
-        stop_reason,
-        provider: ModelProviders::OPENAI,
-        error_detail: None,
-        signature: None,
-    }]
+/// Streaming iterator that yields incremental `Messages` from an `OpenAI` SSE stream.
+///
+/// Wraps a `ReconnectingEventSourceTask` driven iterator. For each `Event::Message`
+/// containing a `ChatCompletionChunk`, yields incremental text as `Stream::Next`.
+/// On stream completion (`[DONE]`), yields the final accumulated message.
+struct OpenAIStream<R: DnsResolver + 'static> {
+    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+    model_id: ModelId,
+    accumulated_text: String,
+    finish_reason: Option<String>,
+    usage: Option<OpenAIUsage>,
 }
 
-/// Iterator that yields a single message from the accumulated SSE response.
-struct SingleMessageStream {
-    inner: std::vec::IntoIter<Result<Messages, OpenAIError>>,
-    done: bool,
-}
-
-impl Iterator for SingleMessageStream {
+impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.done {
-            return None;
-        }
+        loop {
+            let item = self.inner.next()?;
 
-        let result = self.inner.next();
-        match result {
-            Some(Ok(msg)) => {
-                self.done = true;
-                Some(Stream::Next(msg))
-            }
-            Some(Err(e)) => {
-                self.done = true;
-                Some(Stream::Next(Messages::Assistant {
-                    model: ModelId::Name(String::from("openai"), None),
-                    timestamp: SystemTime::now(),
-                    usage: empty_usage_report(),
-                    content: ModelOutput::Text(TextContent {
-                        content: format!("OpenAI streaming error: {e}"),
-                        signature: None,
-                    }),
-                    stop_reason: StopReason::Error,
-                    provider: ModelProviders::OPENAI,
-                    error_detail: Some(e.to_string()),
-                    signature: None,
-                }))
-            }
-            None => {
-                self.done = true;
-                Some(Stream::Init)
+            match item {
+                Stream::Next(parse_result) => {
+                    // Skip non-message events
+                    let Event::Message { data, .. } = &parse_result.event else {
+                        continue;
+                    };
+
+                    // Skip [DONE] sentinel
+                    if data.trim() == "[DONE]" {
+                        continue;
+                    }
+
+                    // Parse chunk
+                    let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
+                        continue;
+                    };
+
+                    if let Some(u) = chunk.usage {
+                        self.usage = Some(u);
+                    }
+
+                    let mut yielded = false;
+                    for choice in &chunk.choices {
+                        if let Some(ref delta) = choice.delta {
+                            if let Some(ref content) = delta.content {
+                                if !content.is_empty() {
+                                    self.accumulated_text.push_str(content);
+                                    yielded = true;
+                                }
+                            }
+                        }
+                        if let Some(ref reason) = choice.finish_reason {
+                            if reason != "null" {
+                                self.finish_reason = Some(reason.clone());
+                            }
+                        }
+                    }
+
+                    if yielded {
+                        return Some(Stream::Next(Messages::Assistant {
+                            model: self.model_id.clone(),
+                            timestamp: SystemTime::now(),
+                            usage: empty_usage_report(),
+                            content: ModelOutput::Text(TextContent {
+                                content: self.accumulated_text.clone(),
+                                signature: None,
+                            }),
+                            stop_reason: StopReason::Stop,
+                            provider: ModelProviders::OPENAI,
+                            error_detail: None,
+                            signature: None,
+                        }));
+                    }
+                }
+                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => {
+                    // Still working, no data yet
+                }
             }
         }
     }
@@ -1223,34 +1172,40 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_sse_stream() {
-        let body = r#"data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}
+    fn test_parse_sse_chunks() {
+        let chunks_raw = vec![
+            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}"#,
+            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"content":" world"},"finish_reason":null}]}"#,
+            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}"#,
+        ];
 
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"content":" world"},"finish_reason":null}]}
+        let mut accumulated_text = String::new();
+        let mut finish_reason: Option<String> = None;
 
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
-
-data: [DONE]
-"#;
-        let model_id = ModelId::Name("gpt-4".into(), None);
-        let messages = parse_sse_stream(body, &model_id);
-        assert_eq!(messages.len(), 1);
-
-        if let Messages::Assistant {
-            content,
-            stop_reason,
-            ..
-        } = &messages[0]
-        {
-            if let ModelOutput::Text(tc) = content {
-                assert_eq!(tc.content, "Hello world");
-            } else {
-                panic!("Expected Text output");
+        for raw in &chunks_raw {
+            let chunk: ChatCompletionChunk = serde_json::from_str(raw).unwrap();
+            for choice in &chunk.choices {
+                if let Some(ref delta) = choice.delta {
+                    if let Some(ref content) = delta.content {
+                        accumulated_text.push_str(content);
+                    }
+                }
+                if choice.finish_reason.is_some() {
+                    finish_reason = choice.finish_reason.clone();
+                }
             }
-            assert_eq!(*stop_reason, StopReason::Stop);
-        } else {
-            panic!("Expected Assistant message");
         }
+
+        assert_eq!(accumulated_text, "Hello world");
+        assert_eq!(finish_reason.as_deref(), Some("stop"));
+
+        let stop_reason = match finish_reason.as_deref() {
+            Some("stop") | None => StopReason::Stop,
+            Some("length") => StopReason::Length,
+            Some("tool_calls") => StopReason::ToolUse,
+            Some(_) => StopReason::Error,
+        };
+        assert_eq!(stop_reason, StopReason::Stop);
     }
 
     #[test]

@@ -23,8 +23,9 @@ use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::client::HttpClientConnection;
 use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::url::Uri;
-use crate::wire::simple_http::SimpleHeader;
-use std::fmt::Write as FmtWrite;
+use crate::wire::simple_http::{
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -53,7 +54,9 @@ pub enum EventSourceCloseReason {
 /// [`EventSourceConfig`] holds the configuration for an SSE connection.
 pub struct EventSourceConfig {
     pub url: String,
+    pub method: SimpleMethod,
     pub headers: Vec<(SimpleHeader, String)>,
+    pub body: Option<SendSafeBody>,
     pub last_event_id: Option<String>,
     pub idle_timeout: Option<Duration>,
 }
@@ -62,7 +65,7 @@ enum EventSourceState {
     Init(EventSourceConfig),
     Connecting {
         url: Uri,
-        request: String,
+        request: Box<SimpleIncomingRequest>,
     },
     Reading {
         conn: HttpClientConnection,
@@ -120,7 +123,9 @@ where
         Ok(Self {
             state: Some(EventSourceState::Init(EventSourceConfig {
                 url: url_str,
+                method: SimpleMethod::GET,
                 headers: Vec::new(),
+                body: None,
                 last_event_id: None,
                 idle_timeout: None,
             })),
@@ -164,7 +169,9 @@ where
         Ok(Self {
             state: Some(EventSourceState::Init(EventSourceConfig {
                 url: url_str,
+                method: SimpleMethod::GET,
                 headers: Vec::new(),
+                body: None,
                 last_event_id: None,
                 idle_timeout: None,
             })),
@@ -174,6 +181,7 @@ where
         })
     }
 
+    /// Add a custom header to the request.
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!("Adding custom header");
@@ -191,6 +199,20 @@ where
             config.last_event_id = Some(id_string.clone());
         }
         self.last_event_id = Some(id_string);
+        self
+    }
+
+    /// Set the request body.
+    ///
+    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
+    /// WHAT: Returns Self with the body configured. The method switches from GET to POST.
+    #[must_use]
+    pub fn with_body(mut self, body: SendSafeBody) -> Self {
+        debug!("Setting request body");
+        if let Some(EventSourceState::Init(ref mut config)) = self.state {
+            config.method = SimpleMethod::POST;
+            config.body = Some(body);
+        }
         self
     }
 
@@ -255,37 +277,34 @@ where
             EventSourceState::Init(config) => {
                 debug!(state = "Init", "Preparing HTTP request");
 
-                // Parse URL
                 let url = Uri::parse(&config.url).ok()?;
 
-                // Build request line and headers manually
-                let path = url.path();
-                let query = url.query();
-                let path_query = match query {
-                    Some(q) => format!("{path}?{q}"),
-                    None => path.to_string(),
-                };
+                // Build the full request using SimpleIncomingRequestBuilder
+                let mut builder = SimpleIncomingRequest::builder()
+                    .with_uri(url.clone())
+                    .with_parsed_url(&config.url);
 
-                let host = url.host_str().unwrap_or_default();
+                if let Some(body) = config.body {
+                    builder = builder.with_body(body);
+                }
 
-                // Build HTTP/1.1 GET request
-                let mut request = String::new();
-                write!(&mut request, "GET {path_query} HTTP/1.1\r\n").unwrap();
-                write!(&mut request, "Host: {host}\r\n").unwrap();
-                write!(&mut request, "Accept: text/event-stream\r\n").unwrap();
-                write!(&mut request, "Cache-Control: no-cache\r\n").unwrap();
+                builder = builder.with_method(config.method);
+
+                // Add Accept and Cache-Control headers
+                builder = builder.add_header_raw(SimpleHeader::ACCEPT, "text/event-stream");
+                builder = builder.add_header_raw(SimpleHeader::CACHE_CONTROL, "no-cache");
 
                 // Add custom headers
                 for (name, value) in &config.headers {
-                    write!(&mut request, "{name}: {value}\r\n").unwrap();
+                    builder = builder.add_header_raw(name.clone(), value);
                 }
 
                 // Add Last-Event-ID if present
-                if let Some(last_id) = &config.last_event_id {
-                    write!(&mut request, "Last-Event-ID: {last_id}\r\n").unwrap();
+                if let Some(ref last_id) = config.last_event_id {
+                    builder = builder.add_header_raw("Last-Event-ID".to_string(), last_id);
                 }
 
-                write!(&mut request, "\r\n").unwrap();
+                let request = builder.build().ok()?;
 
                 // Store last_event_id from config for initial connection
                 if let Some(id) = config.last_event_id {
@@ -298,7 +317,10 @@ where
                 }
 
                 // Transition to Connecting state
-                self.state = Some(EventSourceState::Connecting { url, request });
+                self.state = Some(EventSourceState::Connecting {
+                    url,
+                    request: Box::new(request),
+                });
                 Some(TaskStatus::Pending(EventSourceProgress::Connecting))
             }
 
@@ -322,9 +344,9 @@ where
                 // Clone the stream for the parser (keeps connection handle for pool return)
                 let stream = connection.clone_stream();
 
-                // Write HTTP request through the cloned stream
+                // Render full HTTP request (headers + body) and write to socket
                 let mut stream_writer = stream.clone();
-                let _ = stream_writer.write_all(request.as_bytes());
+                let _ = Http11::Request(*request).http_render_to_writer(&mut stream_writer);
                 let _ = stream_writer.flush();
 
                 debug!(state = "Reading", "Request sent, streaming events");
