@@ -150,9 +150,7 @@ impl<R: DnsResolver + Clone + Default + 'static> Deployable for CloudflareWorker
         let store = self.store(&client);
         let state: WorkerDeployment = store
             .get_typed(&instance_id.to_string())
-            .map_err(|e| {
-                CloudflareWorkerError::ApiError(format!("Failed to read state: {e}"))
-            })?
+            .map_err(|e| CloudflareWorkerError::ApiError(format!("Failed to read state: {e}")))?
             .ok_or_else(|| {
                 CloudflareWorkerError::ApiError(format!(
                     "No state found for worker '{}' instance {instance_id} — nothing to destroy",
@@ -166,12 +164,9 @@ impl<R: DnsResolver + Clone + Default + 'static> Deployable for CloudflareWorker
             force: None,
         };
 
-        let task = worker_script_delete_worker_request(
-            client.http_client(),
-            &args,
-            None::<fn(&mut _)>,
-        )
-        .map_err(|e| CloudflareWorkerError::ApiError(e.to_string()))?;
+        let task =
+            worker_script_delete_worker_request(client.http_client(), &args, None::<fn(&mut _)>)
+                .map_err(|e| CloudflareWorkerError::ApiError(e.to_string()))?;
 
         Ok(task
             .map_ready(|api_result| {

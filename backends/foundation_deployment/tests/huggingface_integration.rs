@@ -7,14 +7,20 @@
 
 #[cfg(feature = "huggingface")]
 mod tests {
-    use foundation_deployment::providers::huggingface::{HFClientBuilder, HuggingFaceError, client, repository, types};
     use foundation_core::valtron;
+    use foundation_deployment::providers::huggingface::{
+        client, repository, types, HFClientBuilder, HuggingFaceError,
+    };
     use tracing_test::traced_test;
 
     fn get_token() -> Option<String> {
         let token = std::env::var("HF_TOKEN").ok();
         if let Some(t) = &token {
-            eprintln!("HF_TOKEN found, length: {}, starts with: {}", t.len(), &t[..10.min(t.len())]);
+            eprintln!(
+                "HF_TOKEN found, length: {}, starts with: {}",
+                t.len(),
+                &t[..10.min(t.len())]
+            );
         } else {
             eprintln!("WARNING: HF_TOKEN not set in environment!");
         }
@@ -30,11 +36,10 @@ mod tests {
     #[traced_test]
     fn test_whoami() -> Result<(), HuggingFaceError> {
         let _guard = init_valtron();
-        let token = get_token().expect("HF_TOKEN environment variable must be set for integration tests");
+        let token =
+            get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
-        let client = HFClientBuilder::new()
-            .token(token)
-            .build()?;
+        let client = HFClientBuilder::new().token(token).build()?;
 
         let user = client::whoami(&client)?;
 
@@ -57,11 +62,10 @@ mod tests {
     #[traced_test]
     fn test_auth_check() -> Result<(), HuggingFaceError> {
         let _guard = init_valtron();
-        let token = get_token().expect("HF_TOKEN environment variable must be set for integration tests");
+        let token =
+            get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
-        let client = HFClientBuilder::new()
-            .token(token)
-            .build()?;
+        let client = HFClientBuilder::new().token(token).build()?;
 
         client::auth_check(&client)?;
 
@@ -74,11 +78,10 @@ mod tests {
     #[traced_test]
     fn test_list_models() -> Result<(), Box<dyn std::error::Error>> {
         let _guard = init_valtron();
-        let token = get_token().expect("HF_TOKEN environment variable must be set for integration tests");
+        let token =
+            get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
-        let client = HFClientBuilder::new()
-            .token(token)
-            .build()?;
+        let client = HFClientBuilder::new().token(token).build()?;
 
         let params = types::ListModelsParams {
             limit: Some(5),
@@ -92,7 +95,12 @@ mod tests {
         tracing::info!("Fetched {} models:", models.len());
         for (i, result) in models.iter().enumerate() {
             match result {
-                Ok(model) => tracing::info!("  {}. {} (author: {})", i + 1, model.id, model.author.as_deref().unwrap_or("unknown")),
+                Ok(model) => tracing::info!(
+                    "  {}. {} (author: {})",
+                    i + 1,
+                    model.id,
+                    model.author.as_deref().unwrap_or("unknown")
+                ),
                 Err(e) => tracing::error!("  {}. Error: {}", i + 1, e),
             }
         }
@@ -106,11 +114,10 @@ mod tests {
     #[traced_test]
     fn test_list_datasets() -> Result<(), Box<dyn std::error::Error>> {
         let _guard = init_valtron();
-        let token = get_token().expect("HF_TOKEN environment variable must be set for integration tests");
+        let token =
+            get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
-        let client = HFClientBuilder::new()
-            .token(token)
-            .build()?;
+        let client = HFClientBuilder::new().token(token).build()?;
 
         let params = types::ListDatasetsParams {
             limit: Some(5),
@@ -124,7 +131,12 @@ mod tests {
         tracing::info!("Fetched {} datasets:", datasets.len());
         for (i, result) in datasets.iter().enumerate() {
             match result {
-                Ok(dataset) => tracing::info!("  {}. {} (author: {})", i + 1, dataset.id, dataset.author.as_deref().unwrap_or("unknown")),
+                Ok(dataset) => tracing::info!(
+                    "  {}. {} (author: {})",
+                    i + 1,
+                    dataset.id,
+                    dataset.author.as_deref().unwrap_or("unknown")
+                ),
                 Err(e) => tracing::error!("  {}. Error: {}", i + 1, e),
             }
         }
@@ -138,11 +150,10 @@ mod tests {
     #[traced_test]
     fn test_repository_info() -> Result<(), Box<dyn std::error::Error>> {
         let _guard = init_valtron();
-        let token = get_token().expect("HF_TOKEN environment variable must be set for integration tests");
+        let token =
+            get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
-        let client = HFClientBuilder::new()
-            .token(token)
-            .build()?;
+        let client = HFClientBuilder::new().token(token).build()?;
 
         // Test with a well-known public model
         let repo = client.model("bert-base-uncased".to_string(), "");

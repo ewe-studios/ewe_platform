@@ -4,256 +4,199 @@ spec_directory: "specifications/07-foundation-ai"
 feature_directory: "specifications/07-foundation-ai/features/02-huggingface-provider"
 this_file: "specifications/07-foundation-ai/features/02-huggingface-provider/feature.md"
 
-feature: "HuggingFace Model Provider"
-description: "Implement HuggingFaceProvider as a ModelProvider for discovering, downloading, and serving GGUF models from HuggingFace Hub"
+feature: "HuggingFace Model Provider - LlamaCpp Wrapper"
+description: "Wrap LlamaBackends with HuggingFace model downloading capability using existing HFClient from foundation_deployment"
 status: pending
 priority: medium
 depends_on:
   - "01-llamacpp-integration"
-estimated_effort: "medium"
+  - "foundation_deployment (huggingface module)"
+estimated_effort: "small"
 created: 2026-03-17
-last_updated: 2026-03-17
+last_updated: 2026-04-22
 author: "Main Agent"
 
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 5
+  total: 5
   completion_percentage: 0%
 ---
 
-# HuggingFace Model Provider
+# HuggingFace Model Provider - LlamaCpp Wrapper
 
 ## Overview
 
-Implement `HuggingFaceProvider` as a `ModelProvider` that discovers, downloads, and serves GGUF models from HuggingFace Hub. This provider acts as a model source — it downloads models from HuggingFace and delegates actual inference to the llama.cpp backend (feature 01).
+Implement `HuggingFaceProvider` as a **thin wrapper** around `LlamaBackends` (from feature 01) that adds automatic model downloading from HuggingFace Hub.
 
-The provider enables users to specify models by HuggingFace repository ID (e.g., `TheBloke/Llama-2-7B-GGUF`) and automatically handles model discovery, quantization selection, downloading, and caching.
+This provider:
+1. Reuses the existing `HFClient` from `foundation_deployment::providers::huggingface`
+2. Downloads GGUF files on-demand when a model is requested
+3. Delegates all inference to `LlamaBackends` after download
+4. Caches downloaded models locally to avoid re-downloading
 
-## Iron Laws (inherited from spec-wide requirements.md)
+**Key insight:** This is NOT a separate `ModelProvider` implementation. It's `LlamaBackends` + download capability.
 
-**These apply to all crates in this spec — see `requirements.md` Iron Laws section for full details:**
+## Existing Infrastructure
 
-1. **No tokio, No async-trait** — All async operations use Valtron `TaskIterator`/`StreamIterator` from `foundation_core`
-2. **Valtron-Only Async** — No `async fn`, no `.await`, no `Future` — only Valtron patterns
-3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
-4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
+### HFClient (Already Implemented)
 
-## Valtron Async Guidance (Learned from Feature 00a)
+`foundation_deployment::providers::huggingface` already provides:
+- `HFClient` - HTTP client for HuggingFace Hub API
+- `HFRepository` - Repository handle for file operations
+- `repository::download_file()` - Download files with caching
+- Token management, authentication, rate limiting
 
-**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
-**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+All implemented with `simple_http` (no tokio, no reqwest).
 
-### Where Valtron IS Needed
+### LlamaBackends (Already Implemented)
 
-- **Model downloads** — `hf-hub` may expose async download APIs. Wrap with `from_future` + `execute` via an `exec_future` helper.
-- **HuggingFace API calls** — Model discovery/metadata fetching if async.
-
-**Note:** Check `hf_hub::api::sync::Api` first — if the sync API is sufficient, no Valtron wrapping is needed for downloads. Only use `from_future` if forced to use async APIs.
-
-### Where Valtron is NOT Needed
-
-- Quantization matching and GGUF filename parsing — pure computation
-- ModelSpec construction from metadata — synchronous
-- Path resolution and cache lookups — synchronous
-- Delegation to `LlamaBackends` for inference — handled by feature 01
-
-### The `exec_future` Pattern (if needed)
-
-```rust
-use foundation_core::valtron::{execute, from_future, Stream};
-
-// Adapt error type to your crate's error
-pub fn exec_future<T, E, F>(future: F) -> Result<T, HuggingFaceError>
-where
-    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
-    T: Send + 'static,
-    E: std::fmt::Display + Send + 'static,
-{ /* same pattern — see LEARNINGS.md */ }
-```
-
-### Critical Constraints
-
-- All data captured by async blocks must be `Send + 'static`
-- Download progress callbacks or stream iterators may be `!Send` — collect results inside the async block
-
-## Dependencies
-
-**Required Crates:**
-- `hf-hub` - HuggingFace Hub client (already in Cargo.toml)
-- `infrastructure_llama_cpp` - For loading downloaded GGUF models
-
-**Depends On:**
-- Feature 01 (llamacpp-integration) - Provides `LlamaModels`, `LlamaBackendConfig`, error types
+`foundation_ai::backends::llamacpp` already provides:
+- `LlamaBackends` enum (CPU/GPU/Metal) implementing `ModelProvider`
+- `LlamaBackendConfig` with builder pattern
+- `LlamaModels` implementing `Model` trait
+- GGUF model loading and inference
 
 ## Requirements
 
-1. **HuggingFaceProvider struct** - Implements `ModelProvider` trait with `Config = HuggingFaceConfig`
-2. **HuggingFaceConfig** - Configuration with builder pattern: API token, cache directory, preferred quantization, default backend (CPU/GPU/Metal)
-3. **Model Discovery** - List available GGUF files in a HuggingFace repository, filter by quantization
-4. **Model Download** - Download GGUF files via `hf-hub` crate with caching
-5. **ModelId Resolution** - Map `ModelId` (Name/Alias/Group) to HuggingFace repo + GGUF filename
-6. **Quantization Selection** - Given a `ModelId` with `Quantization`, select the best matching GGUF file
-7. **ModelSpec Construction** - Build `ModelSpec` from HuggingFace model metadata (name, id, model_location)
-8. **Provider Descriptor** - Implement `describe()` returning `ModelProviderDescriptor` for HuggingFace
+1. **HuggingFaceProvider struct** - Wraps `LlamaBackends` + `HFClient`, implements `ModelProvider`
+2. **HuggingFaceConfig** - Configuration: HF token, cache directory, preferred quantization, backend config
+3. **Model Download on Request** - When `get_model()` is called, download GGUF if not cached, then delegate to `LlamaBackends`
+4. **GGUF Filename Resolution** - Map `ModelId` (e.g., `TheBloke/Llama-2-7B-GGUF:q4_k_m`) to repo + filename
+5. **Cache Management** - Store downloaded models in `~/.cache/huggingface` or config-specified directory
 
 ## Architecture
 
-### Technical Approach
-
-- **Delegation Pattern**: `HuggingFaceProvider` handles discovery/download, delegates inference to `LlamaBackends`
-- **hf-hub Integration**: Uses `hf_hub::api::sync::Api` for model file operations
-- **Caching**: `hf-hub` handles local caching automatically; we store resolved paths
-- **Quantization Matching**: Parse GGUF filenames to extract quantization level, match against `ModelId` preference
-
-### Component Structure
-
-```mermaid
-graph TD
-    subgraph foundation_ai
-        A[ModelProvider trait] --> B[HuggingFaceProvider]
-        B --> C[HuggingFaceConfig]
-        B --> D[Model Discovery]
-        B --> E[GGUF Download via hf-hub]
-        B --> F[Quantization Matching]
-        B --> G[LlamaBackends - delegate inference]
-    end
-
-    subgraph External
-        H[HuggingFace Hub API]
-        I[Local Cache Directory]
-    end
-
-    E --> H
-    E --> I
-    G --> J[LlamaModels]
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    HuggingFaceProvider                       │
+├─────────────────────────────────────────────────────────────┤
+│  - HFClient (from foundation_deployment)                     │
+│  - LlamaBackends (delegated inference)                       │
+│  - CacheDirectory                                            │
+├─────────────────────────────────────────────────────────────┤
+│  get_model(ModelId) →                                        │
+│    1. Parse ModelId → (repo_id, gguf_filename, quantization)│
+│    2. Check cache for GGUF file                              │
+│    3. If missing: HFClient.download(repo, file, cache_dir)   │
+│    4. LlamaBackends.get_model(cached_path)                   │
+│    5. Return LlamaModels                                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Data Flow
+## ModelId Syntax
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant HF as HuggingFaceProvider
-    participant Hub as hf-hub API
-    participant LB as LlamaBackends
-    participant LM as LlamaModels
-
-    App->>HF: create(config, credential)
-    Note over HF: Store API token, cache dir, preferences
-
-    App->>HF: get_model(ModelId::Name("TheBloke/Llama-2-7B-GGUF", Q4_0))
-    HF->>Hub: List repo files
-    Hub-->>HF: Vec<filenames>
-    HF->>HF: Match quantization: find "*q4_0.gguf"
-    HF->>Hub: Download GGUF file (cached)
-    Hub-->>HF: Local file path
-    HF->>HF: Build ModelSpec with model_location
-    HF->>LB: get_model_by_spec(spec)
-    LB-->>HF: LlamaModels
-    HF-->>App: LlamaModels
-```
-
-### File Structure
+Support HuggingFace-specific model identification:
 
 ```
-backends/foundation_ai/src/
-├── backends/
-│   ├── mod.rs                     - Add huggingface module export (MODIFY)
-│   └── huggingface.rs             - HuggingFaceProvider implementation (MODIFY - replace empty file)
+# Full specification with quantization
+TheBloke/Llama-2-7B-GGUF:q4_k_m
+mistralai/Mistral-7B-Instruct-v0.2-GGUF:q5_k_m
+
+# Without quantization (use default or list available)
+TheBloke/Llama-2-7B-GGUF
+
+# With revision (branch/tag/commit)
+TheBloke/Llama-2-7B-GGUF:main:q4_k_m
 ```
 
-### Interface Definitions
+## Task Breakdown
+
+### Task 1: Create HuggingFaceProvider struct
+
+**File:** `backends/foundation_ai/src/backends/huggingface_provider.rs`
 
 ```rust
-pub struct HuggingFaceConfig {
-    pub api_token: Option<String>,
-    pub cache_dir: Option<PathBuf>,
-    pub preferred_quantization: Option<Quantization>,
-    pub backend: LlamaBackends,
+pub struct HuggingFaceProvider {
+    hf_client: HFClient,
+    llama_backends: LlamaBackends,
+    cache_dir: PathBuf,
+    default_quantization: Option<String>,
 }
-
-// impl Default + builder pattern for HuggingFaceConfig
 
 impl ModelProvider for HuggingFaceProvider {
     type Config = HuggingFaceConfig;
-    type Model = LlamaModels;
-
-    fn create(self, config: Option<Self::Config>, credential: Option<AuthCredential>) -> ...;
-    fn get_model(&self, model_id: ModelId) -> ...;
-    fn get_model_by_spec(&self, model_spec: ModelSpec) -> ...;
-    fn get_one(&self, model_id: ModelId) -> ...;
-    fn get_all(&self, model_id: ModelId) -> ...;
-    fn describe(&self) -> ...;
+    type Model = LlamaModels; // Returns LlamaModels after download
+    
+    fn create(...) -> Result<Self, ModelProviderErrors> { ... }
+    fn get_model(&self, model_id: ModelId) -> Result<Self::Model, ModelErrors> { ... }
+    fn describe(&self) -> ModelProviderDescriptor { ... }
 }
 ```
 
-### Error Handling
+**Verification:** Compiles, implements `ModelProvider` trait.
 
-- Extend `ModelProviderErrors` if needed for HuggingFace-specific failures (network errors, missing quantization, invalid repo)
-- Use existing `FailedFetching(BoxedError)` variant for download failures
-- Own error definitions with `derive_more::From`
+### Task 2: Implement ModelId parsing for HuggingFace syntax
 
-### Authoritative Source Note
+**File:** `backends/foundation_ai/src/backends/huggingface_provider.rs`
 
-The `hf-hub` crate API is the authoritative source for HuggingFace interactions. Adapt implementation to what the crate actually provides.
+Parse `ModelId::Name("owner/repo:quantization", revision)` into:
+- `repo_id: String` (e.g., `"TheBloke/Llama-2-7B-GGUF"`)
+- `quantization: Option<String>` (e.g., `Some("q4_k_m")`)
+- `revision: Option<String>` (e.g., `Some("main")`)
 
-## Tasks
+**Verification:** Unit tests for parsing various ModelId formats.
 
-### Task Group 1: Configuration
-- [ ] Create `HuggingFaceConfig` struct with builder pattern and defaults
-- [ ] Handle API token from config or `AuthCredential`
+### Task 3: Implement download-on-request logic
 
-### Task Group 2: Core Provider
-- [ ] Implement `HuggingFaceProvider` struct with `hf_hub::api::sync::Api`
-- [ ] Implement `ModelProvider::create()` - initialize API client with token/cache config
-- [ ] Implement `ModelProvider::describe()` - return provider descriptor
-- [ ] Implement `ModelProvider::get_one()` - resolve ModelId to ModelSpec
+**File:** `backends/foundation_ai/src/backends/huggingface_provider.rs`
 
-### Task Group 3: Model Discovery & Download
-- [ ] Implement GGUF file discovery in HuggingFace repos (list files, filter *.gguf)
-- [ ] Implement quantization matching (parse filename, match against ModelId preference)
-- [ ] Implement `get_model()` - discover, download, delegate to LlamaBackends
+In `get_model()`:
+1. Check if GGUF exists in cache
+2. If not, call `HFRepository::download_file()` with cache directory
+3. On success, pass cached path to `LlamaBackends::get_model()`
 
-### Task Group 4: Tests
-- [ ] Test HuggingFaceConfig builder and defaults
-- [ ] Test quantization filename matching logic (unit test, no network)
+**Verification:** Integration test downloads a small GGUF and loads it.
 
-## Testing
+### Task 4: Add GGUF filename resolution
 
-### Test Cases
+**File:** `backends/foundation_ai/src/backends/huggingface_provider.rs`
 
-1. **Config builder**
-   - Given: `HuggingFaceConfig::builder().api_token("hf_xxx").build()`
-   - Then: token set, other fields have defaults
+Given a quantization name (e.g., `q4_k_m`), construct the GGUF filename:
+- `llama-2-7b.Q4_K_M.gguf`
+- `mistral-7b-instruct-v0.2.Q5_K_M.gguf`
 
-2. **Quantization filename matching**
-   - Given: filenames `["model-q4_0.gguf", "model-q8_0.gguf", "model-f16.gguf"]` and preference `Q4_0`
-   - Then: selects `"model-q4_0.gguf"`
+Or use `repository::list_tree()` to find matching files.
 
-3. **Missing quantization fallback**
-   - Given: filenames without requested quantization
-   - Then: Returns appropriate error or selects closest match
+**Verification:** Unit tests for filename construction.
+
+### Task 5: Add integration test
+
+**File:** `backends/foundation_ai/tests/huggingface_provider.rs`
+
+```rust
+#[test]
+#[ignore = "requires HF_TOKEN and downloads model"]
+fn test_huggingface_provider_download_and_generate() {
+    // 1. Create provider with HF token
+    // 2. Request a small GGUF model (e.g., TinyLlama)
+    // 3. Verify it downloads and caches
+    // 4. Generate a short completion
+    // 5. Verify model is cached (second call is instant)
+}
+```
+
+**Verification:** Test passes when run with `HF_TOKEN`.
+
+## Dependencies
+
+**Crates:**
+- `foundation_deployment` (feature: `huggingface`) - For `HFClient`, `HFRepository`
+- `infrastructure_llama_cpp` - For `LlamaBackends`, `LlamaModels`
+
+**No new external dependencies** - reuses existing `hf-hub` via `foundation_deployment`.
 
 ## Success Criteria
 
-- [ ] All tasks completed
-- [ ] `cargo check --package foundation_ai` passes
-- [ ] `cargo clippy --package foundation_ai -- -D warnings` passes
-- [ ] `cargo test --package foundation_ai` passes
-- [ ] `HuggingFaceProvider` implements full `ModelProvider` trait
-- [ ] GGUF quantization selection works correctly
+1. `HuggingFaceProvider` implements `ModelProvider` trait
+2. Can download GGUF models from HuggingFace Hub
+3. Caches downloaded models locally
+4. Delegates inference to `LlamaBackends`
+5. All existing `foundation_ai` tests pass
+6. Integration test demonstrates end-to-end flow
 
-## Verification Commands
+## Related Features
 
-```bash
-cargo check --package foundation_ai
-cargo clippy --package foundation_ai -- -D warnings
-cargo test --package foundation_ai
-cargo fmt --package foundation_ai -- --check
-```
-
----
-
-_Created: 2026-03-17_
-_Last Updated: 2026-03-17_
+- **01-llamacpp-integration** - Provides `LlamaBackends` that this wraps
+- **00c-openai-provider** - Another `ModelProvider` implementation (HTTP-based)
+- **foundation_deployment:huggingface** - Provides the underlying `HFClient`

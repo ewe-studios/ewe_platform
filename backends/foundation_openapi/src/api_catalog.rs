@@ -34,25 +34,25 @@ pub struct ApiInfo {
 
 impl ApiInfo {
     /// Get the builder function name for an endpoint.
-    #[must_use] 
+    #[must_use]
     pub fn builder_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_builder"
     }
 
     /// Get the task function name for an endpoint.
-    #[must_use] 
+    #[must_use]
     pub fn task_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_task"
     }
 
     /// Get the execute function name for an endpoint.
-    #[must_use] 
+    #[must_use]
     pub fn execute_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_execute"
     }
 
     /// Get the convenience function name for an endpoint.
-    #[must_use] 
+    #[must_use]
     pub fn convenience_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id)
     }
@@ -73,7 +73,7 @@ pub struct ApiCatalogBuilder {
 }
 
 impl ApiCatalogBuilder {
-    #[must_use] 
+    #[must_use]
     pub fn new(provider: &str) -> Self {
         Self {
             provider: provider.to_string(),
@@ -87,8 +87,8 @@ impl ApiCatalogBuilder {
     /// Returns an error string if the file cannot be read from `spec_path`
     /// or if its contents cannot be parsed as an `OpenAPI` spec.
     pub fn from_spec_file(&self, spec_path: &Path) -> Result<ApiCatalog, String> {
-        let content = std::fs::read_to_string(spec_path)
-            .map_err(|e| format!("Failed to read spec: {e}"))?;
+        let content =
+            std::fs::read_to_string(spec_path).map_err(|e| format!("Failed to read spec: {e}"))?;
 
         self.from_spec_content(&content)
     }
@@ -104,8 +104,8 @@ impl ApiCatalogBuilder {
         let processor = process_spec(content)
             .or_else(|_| {
                 // Try unwrapping from nested structure (e.g., {"openapi.json": {...}})
-                let wrapped: serde_json::Value = serde_json::from_str(content)
-                    .map_err(|e| format!("JSON parse error: {e}"))?;
+                let wrapped: serde_json::Value =
+                    serde_json::from_str(content).map_err(|e| format!("JSON parse error: {e}"))?;
                 if let Some(obj) = wrapped.as_object() {
                     for key in ["openapi.json", "openapi", "spec"] {
                         if let Some(inner) = obj.get(key) {
@@ -196,27 +196,30 @@ impl ApiCatalogBuilder {
                         let content = match std::fs::read_to_string(&spec_path) {
                             Ok(c) => c,
                             Err(e) => {
-                                eprintln!("    Warning: Failed to read {}: {}", spec_path.display(), e);
+                                eprintln!(
+                                    "    Warning: Failed to read {}: {}",
+                                    spec_path.display(),
+                                    e
+                                );
                                 continue;
                             }
                         };
 
                         // Try to process the spec, skip if it fails
-                        let processor = match process_spec(&content)
-                            .or_else(|_| {
-                                let wrapped: serde_json::Value = serde_json::from_str(&content)
-                                    .map_err(|e| format!("JSON parse error: {e}"))?;
-                                if let Some(obj) = wrapped.as_object() {
-                                    for key in ["openapi.json", "openapi", "spec"] {
-                                        if let Some(inner) = obj.get(key) {
-                                            if let Ok(proc) = process_spec(&inner.to_string()) {
-                                                return Ok(proc);
-                                            }
+                        let processor = match process_spec(&content).or_else(|_| {
+                            let wrapped: serde_json::Value = serde_json::from_str(&content)
+                                .map_err(|e| format!("JSON parse error: {e}"))?;
+                            if let Some(obj) = wrapped.as_object() {
+                                for key in ["openapi.json", "openapi", "spec"] {
+                                    if let Some(inner) = obj.get(key) {
+                                        if let Ok(proc) = process_spec(&inner.to_string()) {
+                                            return Ok(proc);
                                         }
                                     }
                                 }
-                                Err("Failed to parse spec".to_string())
-                            }) {
+                            }
+                            Err("Failed to parse spec".to_string())
+                        }) {
                             Ok(p) => p,
                             Err(e) => {
                                 eprintln!("    Warning: Failed to process {api_name}: {e}");
@@ -251,13 +254,13 @@ impl ApiCatalogBuilder {
 
 impl ApiCatalog {
     /// Create a catalog builder for the given provider.
-    #[must_use] 
+    #[must_use]
     pub fn builder(provider: &str) -> ApiCatalogBuilder {
         ApiCatalogBuilder::new(provider)
     }
 
     /// Get total number of endpoints across all APIs.
-    #[must_use] 
+    #[must_use]
     pub fn total_endpoints(&self) -> usize {
         self.apis.iter().map(|api| api.endpoints.len()).sum()
     }
@@ -268,13 +271,13 @@ impl ApiCatalog {
     }
 
     /// Get a specific API by name.
-    #[must_use] 
+    #[must_use]
     pub fn get_api(&self, name: &str) -> Option<&ApiInfo> {
         self.apis.iter().find(|api| api.name == name)
     }
 
     /// Get mutating endpoints (operations that require state tracking) for an API.
-    #[must_use] 
+    #[must_use]
     pub fn mutating_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -287,7 +290,7 @@ impl ApiCatalog {
     }
 
     /// Get read-only endpoints (operations that don't modify state) for an API.
-    #[must_use] 
+    #[must_use]
     pub fn read_only_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -300,7 +303,7 @@ impl ApiCatalog {
     }
 
     /// Get create endpoints for an API.
-    #[must_use] 
+    #[must_use]
     pub fn create_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -313,7 +316,7 @@ impl ApiCatalog {
     }
 
     /// Get read endpoints for an API.
-    #[must_use] 
+    #[must_use]
     pub fn read_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -326,7 +329,7 @@ impl ApiCatalog {
     }
 
     /// Get update endpoints for an API.
-    #[must_use] 
+    #[must_use]
     pub fn update_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -339,7 +342,7 @@ impl ApiCatalog {
     }
 
     /// Get delete endpoints for an API.
-    #[must_use] 
+    #[must_use]
     pub fn delete_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -352,7 +355,7 @@ impl ApiCatalog {
     }
 
     /// Get action endpoints for an API.
-    #[must_use] 
+    #[must_use]
     pub fn action_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -405,7 +408,7 @@ pub fn discover_providers(artefacts_dir: &Path) -> Result<Vec<String>, std::io::
 }
 
 /// Check if a provider directory has sub-APIs.
-#[must_use] 
+#[must_use]
 pub fn has_sub_apis(provider_dir: &Path) -> bool {
     if let Ok(entries) = std::fs::read_dir(provider_dir) {
         for entry in entries.flatten() {
@@ -418,7 +421,7 @@ pub fn has_sub_apis(provider_dir: &Path) -> bool {
 }
 
 /// Convert a string to `PascalCase`.
-#[must_use] 
+#[must_use]
 pub fn to_pascal_case(s: &str) -> String {
     // First split by delimiters (., -, _, @)
     let parts: Vec<&str> = s.split(['.', '-', '_', '@']).collect();
@@ -478,11 +481,13 @@ pub fn to_pascal_case(s: &str) -> String {
 /// than merging into "a2_av1".
 #[must_use]
 pub fn to_snake_case(s: &str) -> String {
-    s.split(['.', '-', '_', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'])
-        .filter(|p| !p.is_empty())
-        .map(|part| camel_to_snake(part))
-        .collect::<Vec<_>>()
-        .join("_")
+    s.split([
+        '.', '-', '_', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/',
+    ])
+    .filter(|p| !p.is_empty())
+    .map(|part| camel_to_snake(part))
+    .collect::<Vec<_>>()
+    .join("_")
 }
 
 /// Convert a single camelCase or PascalCase segment to snake_case.
@@ -513,11 +518,11 @@ fn camel_to_snake(part: &str) -> String {
 
                 // If there's a lowercase letter after the acronym, all but last are part of acronym
                 if j < len && chars[j].is_ascii_lowercase() {
-                    for k in i..j-1 {
+                    for k in i..j - 1 {
                         result.push(chars[k].to_ascii_lowercase());
                     }
                     result.push('_');
-                    result.push(chars[j-1].to_ascii_lowercase());
+                    result.push(chars[j - 1].to_ascii_lowercase());
                     i = j;
                 } else {
                     // Full acronym at end or followed by non-letter
@@ -566,7 +571,12 @@ pub fn to_sentence_case(s: &str) -> String {
 /// ```
 #[must_use]
 pub fn sanitize_identifier(s: &str) -> String {
-    s.replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/', ' '], "_")
+    s.replace(
+        [
+            '-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/', ' ',
+        ],
+        "_",
+    )
 }
 
 /// Convert an API path to a snake_case function name suffix.
@@ -618,11 +628,11 @@ pub fn operation_id_to_fn_name(operation_id: Option<&str>, method: &str, path: &
 #[must_use]
 pub fn escape_rust_keyword(name: &str) -> String {
     match name {
-        "as" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
-        | "false" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match"
-        | "mod" | "move" | "mut" | "pub" | "ref" | "return" | "self" | "Self"
-        | "static" | "struct" | "super" | "trait" | "true" | "type" | "unsafe"
-        | "use" | "where" | "while" | "async" | "await" | "dyn" | "override" => format!("{}_rs", name),
+        "as" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern" | "false"
+        | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match" | "mod" | "move"
+        | "mut" | "pub" | "ref" | "return" | "self" | "Self" | "static" | "struct" | "super"
+        | "trait" | "true" | "type" | "unsafe" | "use" | "where" | "while" | "async" | "await"
+        | "dyn" | "override" => format!("{}_rs", name),
         _ => name.to_string(),
     }
 }
@@ -816,7 +826,11 @@ impl IfEmpty for String {
     where
         F: FnOnce() -> String,
     {
-        if self.is_empty() { f() } else { self.clone() }
+        if self.is_empty() {
+            f()
+        } else {
+            self.clone()
+        }
     }
 }
 
@@ -826,19 +840,33 @@ mod tests {
 
     #[test]
     fn test_to_pascal_case() {
-        assert_eq!(to_pascal_case("getV1ComputeServices"), "GetV1ComputeServices");
-        assert_eq!(to_pascal_case("reports_activities_list"), "ReportsActivitiesList");
+        assert_eq!(
+            to_pascal_case("getV1ComputeServices"),
+            "GetV1ComputeServices"
+        );
+        assert_eq!(
+            to_pascal_case("reports_activities_list"),
+            "ReportsActivitiesList"
+        );
         assert_eq!(to_pascal_case("admin.channels.stop"), "AdminChannelsStop");
     }
 
     #[test]
     fn test_to_snake_case() {
-        assert_eq!(to_snake_case("getV1ComputeServices"), "get_v1_compute_services");
-        assert_eq!(to_snake_case("ReportsActivitiesList"), "reports_activities_list");
+        assert_eq!(
+            to_snake_case("getV1ComputeServices"),
+            "get_v1_compute_services"
+        );
+        assert_eq!(
+            to_snake_case("ReportsActivitiesList"),
+            "reports_activities_list"
+        );
         // Test acronyms
         assert_eq!(to_snake_case("CloudSQL"), "cloud_sql");
-        assert_eq!(to_snake_case("AlloydbProjectsLocationsClustersRestoreFromCloudSQL"),
-                   "alloydb_projects_locations_clusters_restore_from_cloud_sql");
+        assert_eq!(
+            to_snake_case("AlloydbProjectsLocationsClustersRestoreFromCloudSQL"),
+            "alloydb_projects_locations_clusters_restore_from_cloud_sql"
+        );
         assert_eq!(to_snake_case("SBOM"), "sbom");
         assert_eq!(to_snake_case("ExportSBOM"), "export_sbom");
         assert_eq!(to_snake_case("OAuth"), "o_auth");
@@ -848,8 +876,14 @@ mod tests {
         assert_eq!(to_snake_case("Oauth"), "oauth");
         assert_eq!(to_snake_case("FinishOauthFlow"), "finish_oauth_flow");
         // Test delimiter-separated segments preserve boundaries
-        assert_eq!(to_snake_case("agents.a2a.v1.getCard"), "agents_a2a_v1_get_card");
-        assert_eq!(to_snake_case("agents_a2a_v1_getCard"), "agents_a2a_v1_get_card");
+        assert_eq!(
+            to_snake_case("agents.a2a.v1.getCard"),
+            "agents_a2a_v1_get_card"
+        );
+        assert_eq!(
+            to_snake_case("agents_a2a_v1_getCard"),
+            "agents_a2a_v1_get_card"
+        );
         // Test sanitized operation IDs with underscores
         assert_eq!(
             to_snake_case("containeranalysis_projects_resources_exportSBOM"),
@@ -859,28 +893,41 @@ mod tests {
 
     #[test]
     fn test_sanitize_identifier() {
-        assert_eq!(sanitize_identifier("admin.channels.stop"), "admin_channels_stop");
+        assert_eq!(
+            sanitize_identifier("admin.channels.stop"),
+            "admin_channels_stop"
+        );
         assert_eq!(sanitize_identifier("foo-bar@baz"), "foo_bar_baz");
         assert_eq!(sanitize_identifier("test:id<ok>"), "test_id_ok_");
         assert_eq!(sanitize_identifier("a[b]c(d)e"), "a_b_c_d_e");
         // Test field names with spaces (e.g., "QUERY PLAN")
         assert_eq!(sanitize_identifier("QUERY PLAN"), "QUERY_PLAN");
-        assert_eq!(to_snake_case(&sanitize_identifier("QUERY PLAN")), "query_plan");
+        assert_eq!(
+            to_snake_case(&sanitize_identifier("QUERY PLAN")),
+            "query_plan"
+        );
     }
 
     #[test]
     fn test_path_to_fn_suffix() {
-        assert_eq!(path_to_fn_suffix("/projects/{project}/services"), "projects_project_services");
+        assert_eq!(
+            path_to_fn_suffix("/projects/{project}/services"),
+            "projects_project_services"
+        );
         assert_eq!(path_to_fn_suffix("/tools/{id}:execute"), "tools_id_execute");
         assert_eq!(path_to_fn_suffix("/"), "");
     }
 
     #[test]
     fn test_operation_id_to_fn_name() {
-        assert_eq!(operation_id_to_fn_name(Some("CloudKmsProjectsGet"), "GET", "/projects"),
-                   "cloud_kms_projects_get");
-        assert_eq!(operation_id_to_fn_name(None, "GET", "/projects/{id}"),
-                   "get_projects_id");
+        assert_eq!(
+            operation_id_to_fn_name(Some("CloudKmsProjectsGet"), "GET", "/projects"),
+            "cloud_kms_projects_get"
+        );
+        assert_eq!(
+            operation_id_to_fn_name(None, "GET", "/projects/{id}"),
+            "get_projects_id"
+        );
     }
 
     #[test]
@@ -901,8 +948,14 @@ mod tests {
 
     #[test]
     fn test_to_pascal_case_from_any() {
-        assert_eq!(to_pascal_case_from_any("getV1ComputeServices"), "GetV1ComputeServices");
-        assert_eq!(to_pascal_case_from_any("admin.channels.stop"), "AdminChannelsStop");
+        assert_eq!(
+            to_pascal_case_from_any("getV1ComputeServices"),
+            "GetV1ComputeServices"
+        );
+        assert_eq!(
+            to_pascal_case_from_any("admin.channels.stop"),
+            "AdminChannelsStop"
+        );
         assert_eq!(to_pascal_case_from_any(""), "Unknown");
     }
 

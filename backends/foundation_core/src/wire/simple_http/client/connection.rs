@@ -145,7 +145,12 @@ impl HttpClientConnection {
                 Ok(connection) => {
                     // Step 3: Upgrade to TLS if HTTPS or WSS, or create plain RawStream
                     if url.scheme().is_https() || url.scheme().is_wss() {
-                        return Self::upgrade_to_tls_with_config(connection, &host, port, tls_connector);
+                        return Self::upgrade_to_tls_with_config(
+                            connection,
+                            &host,
+                            port,
+                            tls_connector,
+                        );
                     }
                     // Create plain RawStream from Connection (for http:// and ws://)
                     let stream = SharedByteBufferStream::rwrite(
@@ -481,7 +486,10 @@ impl<R: DnsResolver> std::fmt::Debug for HttpConnectionPool<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("HttpConnectionPool")
             .field("pool", &self.pool)
-            .field("tls_connector", &self.tls_connector.as_ref().map(|_| "SSLConnector(...)"))
+            .field(
+                "tls_connector",
+                &self.tls_connector.as_ref().map(|_| "SSLConnector(...)"),
+            )
             .finish()
     }
 }
@@ -534,7 +542,11 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
     #[must_use]
     pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
-        Self { pool, resolver, tls_connector: None }
+        Self {
+            pool,
+            resolver,
+            tls_connector: None,
+        }
     }
 
     /// Acquire a `HttpClientConnection` for the given URL.
@@ -576,7 +588,12 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // No pooled connection available, create a fresh one.
-        HttpClientConnection::connect_with_tls_config(url, &*self.resolver, timeout, self.tls_connector.as_deref())
+        HttpClientConnection::connect_with_tls_config(
+            url,
+            &*self.resolver,
+            timeout,
+            self.tls_connector.as_deref(),
+        )
     }
 
     /// Return a `RawStream` back into the pool for reuse.

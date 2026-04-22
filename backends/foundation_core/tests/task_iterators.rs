@@ -108,7 +108,16 @@ fn test_split_collector_map_transform_returns_none_skips() {
 
     // Matched but transform returns None for odd numbers → skipped
     let (observer, mut continuation) = task.split_collector_map(
-        |x| (true, if x % 2 == 0 { Some(u64::from(*x)) } else { None }),
+        |x| {
+            (
+                true,
+                if x % 2 == 0 {
+                    Some(u64::from(*x))
+                } else {
+                    None
+                },
+            )
+        },
         10,
     );
 

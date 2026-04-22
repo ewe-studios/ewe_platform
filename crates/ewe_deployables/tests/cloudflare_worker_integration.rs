@@ -16,11 +16,11 @@ use ewe_deployables::{Deployable, Deploying};
 
 use foundation_core::valtron::{execute, Stream};
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
-use foundation_db::state::FileStateStore;
 use foundation_db::state::traits::StateStore;
+use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::types::WorkerDeployment;
-use foundation_testing::http::{HttpResponse, TestHttpsServer, test_tls_connector};
+use foundation_testing::http::{test_tls_connector, HttpResponse, TestHttpsServer};
 
 /// Build a ProviderClient pointing at the HTTPS test server.
 fn make_client(
@@ -41,9 +41,7 @@ fn make_client(
 type TestWorker = CloudflareWorker<StaticSocketAddr>;
 
 /// Helper to extract the final Ready value from a driven task iterator.
-fn collect_task_result<I>(
-    driven: &mut impl Iterator<Item = Stream<I, Deploying>>,
-) -> Option<I> {
+fn collect_task_result<I>(driven: &mut impl Iterator<Item = Stream<I, Deploying>>) -> Option<I> {
     for item in driven {
         if let Stream::Next(result) = item {
             return Some(result);
@@ -83,7 +81,9 @@ fn test_namespace_isolation() {
         .collect();
 
     assert!(
-        raw_keys.iter().any(|k| k.contains("cloudflare/workers/script")),
+        raw_keys
+            .iter()
+            .any(|k| k.contains("cloudflare/workers/script")),
         "expected namespaced key in store, got: {raw_keys:?}"
     );
 }
@@ -210,7 +210,9 @@ fn test_deploy_success_stores_state() {
 
     let mut driven = execute(task_result, None).unwrap();
     let result = collect_task_result(&mut driven);
-    let deployment = result.expect("should produce result").expect("deploy should succeed");
+    let deployment = result
+        .expect("should produce result")
+        .expect("deploy should succeed");
 
     assert_eq!(deployment.script_name, "my-worker");
     assert_eq!(deployment.account_id, "my-account");
@@ -232,9 +234,8 @@ fn test_deploy_api_error() {
     let state_store = FileStateStore::with_root(temp_dir.path().to_path_buf());
     state_store.init().unwrap();
 
-    let server = TestHttpsServer::with_response(|_req| {
-        HttpResponse::status(500, "Internal Server Error")
-    });
+    let server =
+        TestHttpsServer::with_response(|_req| HttpResponse::status(500, "Internal Server Error"));
 
     let client = make_client(&server, state_store);
 
@@ -270,7 +271,11 @@ fn test_destroy_success_removes_state() {
     let script_path = temp_dir.path().join("worker.js");
     std::fs::write(&script_path, "export default {}").unwrap();
 
-    let worker = TestWorker::new("destroy-test", script_path.to_str().unwrap(), "test-account");
+    let worker = TestWorker::new(
+        "destroy-test",
+        script_path.to_str().unwrap(),
+        "test-account",
+    );
 
     let deploy_task = worker.deploy(0, client.clone()).unwrap();
     let mut deploy_driven = execute(deploy_task, None).unwrap();

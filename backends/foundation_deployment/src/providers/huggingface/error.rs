@@ -66,7 +66,10 @@ impl fmt::Display for HuggingFaceError {
                 write!(f, "File not found: {path} in {repo_id}")
             }
             HuggingFaceError::InvalidRepoType { expected, actual } => {
-                write!(f, "Invalid repository type: expected {expected}, got {actual}")
+                write!(
+                    f,
+                    "Invalid repository type: expected {expected}, got {actual}"
+                )
             }
             HuggingFaceError::InvalidParameter(msg) => {
                 write!(f, "Invalid parameter: {msg}")

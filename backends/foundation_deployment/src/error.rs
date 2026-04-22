@@ -75,10 +75,7 @@ pub enum DeploymentError {
     },
 
     /// JSON parsing failed.
-    JsonInvalid {
-        file: String,
-        reason: String,
-    },
+    JsonInvalid { file: String, reason: String },
 
     /// Generic error message.
     Generic(String),

@@ -44,10 +44,12 @@ impl AwsConfig {
     /// Panics if the path has no parent directory.
     pub fn from_file(path: &Path) -> Result<Self, DeploymentError> {
         // Check for samconfig.toml first for actual config
-        let parent = path.parent().ok_or_else(|| DeploymentError::ConfigInvalid {
-            file: path.display().to_string(),
-            reason: "path has no parent directory".to_string(),
-        })?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| DeploymentError::ConfigInvalid {
+                file: path.display().to_string(),
+                reason: "path has no parent directory".to_string(),
+            })?;
         let config_path = parent.join("samconfig.toml");
         if config_path.exists() {
             Self::from_samconfig(&config_path)
@@ -64,22 +66,22 @@ impl AwsConfig {
 
     /// Parse configuration from a `samconfig.toml` file.
     fn from_samconfig(path: &Path) -> Result<Self, DeploymentError> {
-        let content = std::fs::read_to_string(path).map_err(|e| DeploymentError::ConfigInvalid {
-            file: path.display().to_string(),
-            reason: e.to_string(),
-        })?;
+        let content =
+            std::fs::read_to_string(path).map_err(|e| DeploymentError::ConfigInvalid {
+                file: path.display().to_string(),
+                reason: e.to_string(),
+            })?;
 
         // Parse TOML - samconfig.toml format is:
         // [default.deploy.parameters]
         // stack_name = "..."
         // region = "..."
         // s3_bucket = "..."
-        let toml: toml::Value = toml::from_str(&content).map_err(|e| {
-            DeploymentError::ConfigInvalid {
+        let toml: toml::Value =
+            toml::from_str(&content).map_err(|e| DeploymentError::ConfigInvalid {
                 file: path.display().to_string(),
                 reason: e.to_string(),
-            }
-        })?;
+            })?;
 
         let stack_name = toml
             .get("default")
@@ -198,15 +200,12 @@ impl DeploymentProvider for AwsCliProvider {
                     if let Ok(entries) = std::fs::read_dir(&build_dir) {
                         for entry in entries.flatten() {
                             if let Ok(meta) = entry.metadata() {
-                                let artifact_type = if entry
-                                    .path()
-                                    .extension()
-                                    .is_some_and(|e| e == "zip")
-                                {
-                                    crate::core::types::ArtifactType::ZipArchive
-                                } else {
-                                    crate::core::types::ArtifactType::Binary
-                                };
+                                let artifact_type =
+                                    if entry.path().extension().is_some_and(|e| e == "zip") {
+                                        crate::core::types::ArtifactType::ZipArchive
+                                    } else {
+                                        crate::core::types::ArtifactType::Binary
+                                    };
 
                                 artifacts.push(BuildArtifact {
                                     path: entry.path(),
@@ -248,9 +247,10 @@ impl DeploymentProvider for AwsCliProvider {
             config.stack_name.clone()
         };
 
-        let s3_bucket = config.s3_bucket.clone().unwrap_or_else(|| {
-            format!("{stack_name}-deploy-bucket")
-        });
+        let s3_bucket = config
+            .s3_bucket
+            .clone()
+            .unwrap_or_else(|| format!("{stack_name}-deploy-bucket"));
 
         // Use sam deploy
         let mut executor = ShellExecutor::new("sam")
@@ -294,9 +294,9 @@ impl DeploymentProvider for AwsCliProvider {
                     deployed_at: Utc::now(),
                 })
             }
-            ShellDone::Failed { stderr, .. } => Err(DeploymentError::DeployRejected {
-                reason: stderr,
-            }),
+            ShellDone::Failed { stderr, .. } => {
+                Err(DeploymentError::DeployRejected { reason: stderr })
+            }
         }
     }
 
@@ -343,14 +343,16 @@ impl DeploymentProvider for AwsCliProvider {
 
         let stream = executor.execute()?;
         let result = collect_one(stream).ok_or_else(|| {
-            DeploymentError::BuildFailed("aws lambda update-function-code produced no output".to_string())
+            DeploymentError::BuildFailed(
+                "aws lambda update-function-code produced no output".to_string(),
+            )
         })?;
 
         match result {
             ShellDone::Success { .. } => Ok(()),
-            ShellDone::Failed { stderr, .. } => Err(DeploymentError::DeployRejected {
-                reason: stderr,
-            }),
+            ShellDone::Failed { stderr, .. } => {
+                Err(DeploymentError::DeployRejected { reason: stderr })
+            }
         }
     }
 
@@ -410,17 +412,15 @@ impl DeploymentProvider for AwsCliProvider {
         executor = executor.current_dir(".");
 
         let stream = executor.execute()?;
-        let result = collect_one(stream).ok_or_else(|| {
-            DeploymentError::DeployRejected {
-                reason: "aws cloudformation delete-stack produced no output".to_string(),
-            }
+        let result = collect_one(stream).ok_or_else(|| DeploymentError::DeployRejected {
+            reason: "aws cloudformation delete-stack produced no output".to_string(),
         })?;
 
         match result {
             ShellDone::Success { .. } => Ok(()),
-            ShellDone::Failed { stderr, .. } => Err(DeploymentError::DeployRejected {
-                reason: stderr,
-            }),
+            ShellDone::Failed { stderr, .. } => {
+                Err(DeploymentError::DeployRejected { reason: stderr })
+            }
         }
     }
 
@@ -456,18 +456,19 @@ impl DeploymentProvider for AwsCliProvider {
 
         let stream = executor.execute()?;
         let result = collect_one(stream).ok_or_else(|| {
-            DeploymentError::BuildFailed("aws cloudformation describe-stacks produced no output".to_string())
+            DeploymentError::BuildFailed(
+                "aws cloudformation describe-stacks produced no output".to_string(),
+            )
         })?;
 
         match result {
             ShellDone::Success { stdout, .. } => {
                 // Parse JSON output
-                let json: serde_json::Value = serde_json::from_str(&stdout).map_err(|e| {
-                    DeploymentError::ConfigInvalid {
+                let json: serde_json::Value =
+                    serde_json::from_str(&stdout).map_err(|e| DeploymentError::ConfigInvalid {
                         file: "aws output".to_string(),
                         reason: e.to_string(),
-                    }
-                })?;
+                    })?;
 
                 let stack = json["Stacks"]
                     .as_array()
@@ -479,9 +480,7 @@ impl DeploymentProvider for AwsCliProvider {
                     .map(String::from)
                     .unwrap_or_default();
 
-                let stack_status = stack["StackStatus"]
-                    .as_str()
-                    .unwrap_or("UNKNOWN");
+                let stack_status = stack["StackStatus"].as_str().unwrap_or("UNKNOWN");
 
                 let creation_time = stack["CreationTime"]
                     .as_str()
@@ -515,9 +514,7 @@ impl DeploymentProvider for AwsCliProvider {
                         project_dir: format!("stack {stack_name} not found"),
                     })
                 } else {
-                    Err(DeploymentError::DeployRejected {
-                        reason: stderr,
-                    })
+                    Err(DeploymentError::DeployRejected { reason: stderr })
                 }
             }
         }
@@ -561,7 +558,10 @@ fn extract_lambda_url(config: &AwsConfig, output: &str) -> Option<String> {
     config.region.as_ref().map(|region| {
         format!(
             "https://{}.lambda-url.{}.on.aws/",
-            config.function_name.as_deref().unwrap_or(&config.stack_name),
+            config
+                .function_name
+                .as_deref()
+                .unwrap_or(&config.stack_name),
             region
         )
     })

@@ -91,7 +91,10 @@ fn processes_gcp_abusiveexperiencereport_spec() {
         .expect("GET v1/sites/{{sitesId}} should exist");
 
     assert_eq!(sites_get.operation_id, "abusiveexperiencereport.sites.get");
-    assert_eq!(sites_get.response_type, Some("SiteSummaryResponse".to_string()));
+    assert_eq!(
+        sites_get.response_type,
+        Some("SiteSummaryResponse".to_string())
+    );
     assert_eq!(sites_get.path_params, vec!["name"]);
 }
 
@@ -138,10 +141,13 @@ fn normalized_output_contains_endpoint_details() {
 fn normalized_output_serializes_to_json() {
     let spec_json = load_fixture("prisma_postgres");
     let processor = process_spec(&spec_json).expect("Should parse spec");
-    let json_output = processor.to_normalized_json().expect("Should serialize to JSON");
+    let json_output = processor
+        .to_normalized_json()
+        .expect("Should serialize to JSON");
 
     // Verify it's valid JSON with expected structure
-    let parsed: serde_json::Value = serde_json::from_str(&json_output).expect("Output should be valid JSON");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_output).expect("Output should be valid JSON");
 
     assert!(parsed["endpoints"].is_object());
     assert!(parsed["types"].is_object());
@@ -175,8 +181,14 @@ fn endpoint_has_request_and_response_types() {
         .and_then(|m| m.get("POST"))
         .expect("POST /v1/compute-services should exist");
 
-    let req_type = post_compute.request_type.as_ref().expect("Should have request_type");
-    let resp_type = post_compute.response_type.as_ref().expect("Should have response_type");
+    let req_type = post_compute
+        .request_type
+        .as_ref()
+        .expect("Should have request_type");
+    let resp_type = post_compute
+        .response_type
+        .as_ref()
+        .expect("Should have response_type");
 
     assert!(!req_type.starts_with('#'));
     assert!(!resp_type.starts_with('#'));

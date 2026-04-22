@@ -57,25 +57,23 @@ pub struct OpenApiSpec {
 
 impl OpenApiSpec {
     /// Get the base URL from the spec (handles multiple formats).
-    #[must_use] 
+    #[must_use]
     pub fn base_url(&self) -> Option<String> {
         self.servers
             .as_ref()
             .and_then(|servers| servers.first())
             .map(|s| s.url.clone())
             .or_else(|| self.base_url.clone())
-            .or_else(|| {
-                match (&self.root_url, &self.service_path) {
-                    (Some(root), Some(service)) => Some(format!("{root}{service}")),
-                    (Some(root), None) => Some(root.clone()),
-                    (None, Some(service)) => Some(service.clone()),
-                    (None, None) => None,
-                }
+            .or_else(|| match (&self.root_url, &self.service_path) {
+                (Some(root), Some(service)) => Some(format!("{root}{service}")),
+                (Some(root), None) => Some(root.clone()),
+                (None, Some(service)) => Some(service.clone()),
+                (None, None) => None,
             })
     }
 
     /// Get all schemas from the spec (both `OpenAPI` and GCP formats).
-    #[must_use] 
+    #[must_use]
     pub fn all_schemas(&self) -> BTreeMap<String, &Schema> {
         let mut schemas = BTreeMap::new();
 
@@ -97,7 +95,7 @@ impl OpenApiSpec {
     }
 
     /// Detect the spec format.
-    #[must_use] 
+    #[must_use]
     pub fn format(&self) -> SpecFormat {
         if self.resources.is_some() || (self.schemas.is_some() && self.components.is_none()) {
             SpecFormat::GcpDiscovery
@@ -320,7 +318,11 @@ pub struct Schema {
     pub const_value: Option<serde_json::Value>,
 
     // OpenAPI 3.1 additionalProperties (can be boolean or schema)
-    #[serde(default, rename = "additionalProperties", deserialize_with = "deserialize_additional_properties")]
+    #[serde(
+        default,
+        rename = "additionalProperties",
+        deserialize_with = "deserialize_additional_properties"
+    )]
     pub additional_properties: Option<bool>,
 }
 

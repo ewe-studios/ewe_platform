@@ -9,9 +9,7 @@
 //! 2. Inner iterator draining over multiple `next()` calls
 //! 3. Pass-through of non-target states unchanged
 
-use foundation_core::valtron::{
-    NoAction, Stream, StreamIteratorExt, TaskIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{NoAction, Stream, StreamIteratorExt, TaskIteratorExt, TaskStatus};
 use std::time::Duration;
 
 // ============================================================================

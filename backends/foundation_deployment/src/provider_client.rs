@@ -9,8 +9,8 @@
 //! HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
 //!       per-API provider instances.
 
+use foundation_core::wire::simple_http::client::{DnsResolver, SimpleHttpClient};
 use foundation_db::state::traits::StateStore;
-use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use std::sync::Arc;
 
 /// Central provider client wrapping a `StateStore` with HTTP client.
@@ -74,7 +74,12 @@ where
     /// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
     /// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
     /// ```
-    pub fn new(project: &str, stage: &str, state_store: S, http_client: SimpleHttpClient<R>) -> Self {
+    pub fn new(
+        project: &str,
+        stage: &str,
+        state_store: S,
+        http_client: SimpleHttpClient<R>,
+    ) -> Self {
         Self {
             state_store: Arc::new(state_store),
             project: project.to_string(),

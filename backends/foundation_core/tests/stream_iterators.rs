@@ -772,7 +772,9 @@ fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
     // Should yield Ignore after max_turns (3) unsuccessful polls
     let mut ignore_count = 0;
     for _ in 0..5 {
-        if let Some(Stream::Ignore) = iter.next() { ignore_count += 1 }
+        if let Some(Stream::Ignore) = iter.next() {
+            ignore_count += 1
+        }
     }
 
     // Should have yielded Ignore multiple times

@@ -6,10 +6,10 @@
 //!
 //! HOW: Iterates paths (`OpenAPI`) or resources (GCP) and extracts operation metadata.
 
-use crate::spec::{OpenApiSpec, Operation, Response, GcpMethod, Schema};
-use crate::endpoint::{EndpointInfo, ResponseType, GcpParameter, OperationType};
-use crate::type_resolver::TypeResolver;
 use crate::classifier::OperationTypeClassifier;
+use crate::endpoint::{EndpointInfo, GcpParameter, OperationType, ResponseType};
+use crate::spec::{GcpMethod, OpenApiSpec, Operation, Response, Schema};
+use crate::type_resolver::TypeResolver;
 use std::collections::{BTreeMap, HashSet};
 use std::sync::Arc;
 
@@ -21,7 +21,7 @@ pub struct EndpointExtractor {
 
 impl EndpointExtractor {
     /// Create extractor from spec.
-    #[must_use] 
+    #[must_use]
     pub fn new(spec: Arc<OpenApiSpec>) -> Self {
         let schemas = spec.all_schemas();
         let schema_map: BTreeMap<String, Schema> = schemas
@@ -58,7 +58,7 @@ impl EndpointExtractor {
     }
 
     /// Extract endpoints from standard `OpenAPI` paths.
-    #[must_use] 
+    #[must_use]
     pub fn extract_from_paths(&self) -> Vec<EndpointInfo> {
         let mut endpoints = Vec::new();
         let base_url = self.spec.base_url();
@@ -74,7 +74,9 @@ impl EndpointExtractor {
 
             for (method_name, operation_opt) in methods {
                 if let Some(operation) = operation_opt {
-                    if let Some(info) = self.extract_operation(operation, path, method_name, base_url.as_deref()) {
+                    if let Some(info) =
+                        self.extract_operation(operation, path, method_name, base_url.as_deref())
+                    {
                         endpoints.push(info);
                     }
                 }
@@ -146,14 +148,17 @@ impl EndpointExtractor {
         }
 
         // Extract request type - handle arrays by wrapping in Vec<>
-        let request_type = operation.request_body.as_ref()
+        let request_type = operation
+            .request_body
+            .as_ref()
             .and_then(|rb| rb.content.as_ref())
             .and_then(|content| content.get("application/json"))
             .and_then(|media| media.schema.as_ref())
             .and_then(|schema| self.resolver.resolve_request_body_type(schema));
 
         // Extract response type from success status codes
-        let (response_type, success_codes, error_types) = self.extract_responses(&operation.responses);
+        let (response_type, success_codes, error_types) =
+            self.extract_responses(&operation.responses);
 
         let mut endpoint = EndpointInfo {
             operation_id,
@@ -228,10 +233,7 @@ impl EndpointExtractor {
     }
 
     /// Extract endpoint info from a GCP method.
-    fn extract_gcp_method(
-        method: &GcpMethod,
-        base_url: Option<&str>,
-    ) -> Option<EndpointInfo> {
+    fn extract_gcp_method(method: &GcpMethod, base_url: Option<&str>) -> Option<EndpointInfo> {
         let operation_id = method.id.clone()?;
 
         // For GCP Discovery v2 APIs, `path` uses resource name expansion
@@ -240,22 +242,28 @@ impl EndpointExtractor {
         // flatPath shows an expanded form with segment placeholders that
         // often don't match parameterOrder at all.
         // Always prefer `path` — it matches parameterOrder directly.
-        let path = method.path.as_deref().unwrap_or_else(|| {
-            method.flat_path.as_deref().unwrap_or("")
-        });
+        let path = method
+            .path
+            .as_deref()
+            .unwrap_or_else(|| method.flat_path.as_deref().unwrap_or(""));
 
         // Extract parameters
-        let params: BTreeMap<String, GcpParameter> = method.parameters.as_ref()
+        let params: BTreeMap<String, GcpParameter> = method
+            .parameters
+            .as_ref()
             .map(|p| {
                 p.iter()
                     .map(|(k, v)| {
-                        (k.clone(), GcpParameter {
-                            param_type: v.param_type.clone(),
-                            format: v.format.clone(),
-                            required: v.required,
-                            description: v.description.clone(),
-                            location: v.location.clone(),
-                        })
+                        (
+                            k.clone(),
+                            GcpParameter {
+                                param_type: v.param_type.clone(),
+                                format: v.format.clone(),
+                                required: v.required,
+                                description: v.description.clone(),
+                                location: v.location.clone(),
+                            },
+                        )
                     })
                     .collect()
             })
@@ -263,8 +271,8 @@ impl EndpointExtractor {
 
         // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder}).
         // GCP v2 uses resource expansion prefix {+name} — strip the `+`.
-        let placeholder_re = regex::Regex::new(r"\{([^}]+)\}")
-            .expect("hard-coded placeholder regex must compile");
+        let placeholder_re =
+            regex::Regex::new(r"\{([^}]+)\}").expect("hard-coded placeholder regex must compile");
         let path_placeholders: Vec<String> = placeholder_re
             .captures_iter(path)
             .map(|cap| {
@@ -320,7 +328,9 @@ impl EndpointExtractor {
         }
 
         // Extract request type
-        let request_type = method.request_body.as_ref()
+        let request_type = method
+            .request_body
+            .as_ref()
             .and_then(|rb| rb.ref_path.as_ref())
             .map(|ref_path| {
                 let name = ref_path.trim_start_matches("#/components/schemas/");
@@ -329,7 +339,9 @@ impl EndpointExtractor {
             });
 
         // Extract response type
-        let response_type = method.response.as_ref()
+        let response_type = method
+            .response
+            .as_ref()
             .and_then(|resp| resp.ref_path.as_ref())
             .map(|ref_path| {
                 let name = ref_path.trim_start_matches("#/components/schemas/");
@@ -340,7 +352,10 @@ impl EndpointExtractor {
 
         let mut endpoint = EndpointInfo {
             operation_id,
-            method: method.http_method.clone().unwrap_or_else(|| "GET".to_string()),
+            method: method
+                .http_method
+                .clone()
+                .unwrap_or_else(|| "GET".to_string()),
             path: path.to_string(),
             path_params,
             query_params,
@@ -351,7 +366,7 @@ impl EndpointExtractor {
             base_url: base_url.map(str::to_string),
             summary: method.description.clone(),
             operation_type: OperationType::Read, // Temporary, will be classified below
-            deprecated: false, // GCP methods don't have a deprecated field
+            deprecated: false,                   // GCP methods don't have a deprecated field
         };
 
         // Classify the operation type
@@ -471,7 +486,10 @@ mod tests {
         assert_eq!(endpoints.len(), 1);
         let ep = &endpoints[0];
         assert_eq!(ep.operation_id, "listApps");
-        assert_eq!(ep.query_params, vec!["org_slug".to_string(), "app_role".to_string()]);
+        assert_eq!(
+            ep.query_params,
+            vec!["org_slug".to_string(), "app_role".to_string()]
+        );
         assert!(ep.path_params.is_empty());
     }
 
@@ -574,7 +592,10 @@ mod tests {
         assert_eq!(ep.operation_id, "createApp");
         assert_eq!(ep.request_type, Some("CreateAppRequest".to_string()));
         assert!(ep.response_type.is_some());
-        assert_eq!(ep.response_type.as_ref().unwrap().as_rust_type(), "AppResponse");
+        assert_eq!(
+            ep.response_type.as_ref().unwrap().as_rust_type(),
+            "AppResponse"
+        );
     }
 
     #[test]

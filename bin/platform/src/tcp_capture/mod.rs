@@ -16,10 +16,10 @@
 //! - `capture.bin.analysis` - Human-readable analysis with hex dump
 
 use clap::{ArgMatches, Command};
-use foundation_core::netcap::Connection;
+use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use foundation_core::netcap::ssl::SSLConnector;
+use foundation_core::netcap::Connection;
 use foundation_core::netcap::RawStream;
-use foundation_core::io::ioutils::{SharedByteBufferStream, ReadTimeoutOperations};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::net::ToSocketAddrs;
@@ -68,9 +68,7 @@ pub fn register(cmd: Command) -> Command {
 ///
 /// Returns an error if the connection fails, the HTTP request fails,
 /// or file writing fails.
-pub fn run(
-    matches: &ArgMatches,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let logging_level = if matches.get_flag("debug") {
         Level::DEBUG
     } else {
@@ -95,7 +93,9 @@ pub fn run(
 
     // Parse URL
     let is_https = url.starts_with("https://");
-    let url_trimmed = url.trim_start_matches("http://").trim_start_matches("https://");
+    let url_trimmed = url
+        .trim_start_matches("http://")
+        .trim_start_matches("https://");
     let (host_port, path) = url_trimmed.split_once('/').unwrap_or((url_trimmed, ""));
     let path = format!("/{}", path);
 
@@ -120,7 +120,10 @@ pub fn run(
     let connection = Connection::with_timeout(socket_addr, timeout)
         .map_err(|e| format!("Connection failed: {}", e))?;
 
-    info!("TCP connected, {} TLS", if is_https { "upgrading to" } else { "plain" });
+    info!(
+        "TCP connected, {} TLS",
+        if is_https { "upgrading to" } else { "plain" }
+    );
 
     // Create RawStream with or without TLS
     let mut stream = if is_https {
@@ -154,19 +157,20 @@ pub fn run(
     let request_bytes = request.as_bytes();
     let mut written = 0;
     while written < request_bytes.len() {
-        let n = stream.write(&request_bytes[written..])
+        let n = stream
+            .write(&request_bytes[written..])
             .map_err(|e| format!("Write error: {}", e))?;
         written += n;
     }
-    stream.flush()
-        .map_err(|e| format!("Flush error: {}", e))?;
+    stream.flush().map_err(|e| format!("Flush error: {}", e))?;
 
     info!("Reading response...");
     let mut raw_bytes = Vec::new();
     let mut buffer = vec![0u8; 8192];
 
     // Set read timeout
-    stream.set_read_timeout_as(timeout)
+    stream
+        .set_read_timeout_as(timeout)
         .map_err(|e| format!("Failed to set read timeout: {}", e))?;
 
     loop {
@@ -228,9 +232,17 @@ fn write_analysis(raw_bytes: &[u8], output_path: &str) -> std::io::Result<()> {
         writeln!(
             analysis,
             "Transfer-Encoding: {}",
-            if is_chunked { "chunked" } else { "identity/content-length" }
+            if is_chunked {
+                "chunked"
+            } else {
+                "identity/content-length"
+            }
         )?;
-        writeln!(analysis, "Body size: {} bytes", raw_bytes.len() - header_end)?;
+        writeln!(
+            analysis,
+            "Body size: {} bytes",
+            raw_bytes.len() - header_end
+        )?;
         writeln!(analysis)?;
 
         let body = &raw_bytes[header_end..];
@@ -246,7 +258,13 @@ fn write_analysis(raw_bytes: &[u8], output_path: &str) -> std::io::Result<()> {
                 .join(" ");
             let ascii_str: String = chunk
                 .iter()
-                .map(|&b| if (32..=126).contains(&b) { b as char } else { '.' })
+                .map(|&b| {
+                    if (32..=126).contains(&b) {
+                        b as char
+                    } else {
+                        '.'
+                    }
+                })
                 .collect();
             writeln!(analysis, "{:08x} {:<48} {}", offset, hex_str, ascii_str)?;
         }
@@ -280,10 +298,7 @@ fn write_analysis(raw_bytes: &[u8], output_path: &str) -> std::io::Result<()> {
 
 fn find_header_end(data: &[u8]) -> Option<usize> {
     for i in 3..data.len() {
-        if data[i] == b'\n'
-            && data[i - 1] == b'\r'
-            && data[i - 2] == b'\n'
-            && data[i - 3] == b'\r'
+        if data[i] == b'\n' && data[i - 1] == b'\r' && data[i - 2] == b'\n' && data[i - 3] == b'\r'
         {
             return Some(i + 1);
         }

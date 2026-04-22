@@ -27,36 +27,34 @@
 //! let endpoints = processor.endpoints();
 //! ```
 
-pub mod spec;
-pub mod endpoint;
-pub mod type_resolver;
-pub mod extractor;
-pub mod normalizer;
 pub mod api_catalog;
 pub mod classifier;
+pub mod endpoint;
+pub mod extractor;
+pub mod normalizer;
+pub mod spec;
+pub mod type_resolver;
 pub mod unified;
 
 // Re-exports for convenient access
-pub use endpoint::{EndpointInfo, ResponseType, OperationType, OperationEffect};
+pub use api_catalog::{
+    discover_providers, escape_rust_keyword, escape_rust_keyword_with_underscore, has_sub_apis,
+    operation_id_to_fn_name, path_to_fn_suffix, sanitize_doc_comment, sanitize_field_name,
+    sanitize_identifier, to_pascal_case, to_pascal_case_from_any, to_sentence_case, to_snake_case,
+    ApiCatalog, ApiCatalogBuilder, ApiInfo,
+};
+pub use classifier::OperationTypeClassifier;
+pub use endpoint::{EndpointInfo, OperationEffect, OperationType, ResponseType};
+pub use extractor::EndpointExtractor;
 pub use normalizer::{
-    normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec,
-    ProcessError, PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
+    normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,
+    PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
 };
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;
-pub use extractor::EndpointExtractor;
-pub use api_catalog::{
-    ApiCatalog, ApiInfo, ApiCatalogBuilder,
-    discover_providers, has_sub_apis,
-    to_pascal_case, to_snake_case, to_sentence_case,
-    sanitize_identifier, path_to_fn_suffix, operation_id_to_fn_name,
-    escape_rust_keyword, escape_rust_keyword_with_underscore,
-    sanitize_field_name, to_pascal_case_from_any, sanitize_doc_comment,
-};
-pub use classifier::OperationTypeClassifier;
 
 // Re-exports for unified code generation
 pub use unified::{
-    UnifiedGenerator, GenError,
-    analyze_spec as analyze_unified, AnalysisOptions, AnalysisResult, ApiGroup,
+    analyze_spec as analyze_unified, AnalysisOptions, AnalysisResult, ApiGroup, GenError,
+    UnifiedGenerator,
 };

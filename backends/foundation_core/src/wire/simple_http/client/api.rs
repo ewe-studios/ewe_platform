@@ -21,7 +21,8 @@ use crate::wire::simple_http::client::{
     MiddlewareChain, PreparedRequest, RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
-    HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeaders, SimpleResponse, Status,
+    HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleResponse, Status,
 };
 use std::sync::Arc;
 
@@ -152,16 +153,21 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
 
 impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
     fn drop(&mut self) {
-        // Return stream to pool if we have one
-        if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
-            // Drain any remaining data from the stream before pooling
-            // This ensures the connection is in a clean state for reuse
-            stream.drain_stream();
+        let connection_close = self
+            .0
+            .as_ref()
+            .and_then(|resp| resp.get_headers_ref().get(&SimpleHeader::CONNECTION))
+            .is_some_and(|vals| vals.iter().any(|v| v.eq_ignore_ascii_case("close")));
 
-            // return to stream
+        if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
+            if connection_close {
+                tracing::debug!("[pool] Connection: close header found, dropping connection");
+                return;
+            }
+            tracing::debug!("[pool] draining stream and returning to pool");
+            stream.drain_stream();
             pool.return_to_pool(stream);
         }
-        // Take and drop the response to release body
         let _ = self.0.take();
     }
 }

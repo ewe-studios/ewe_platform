@@ -36,7 +36,7 @@ pub enum OperationEffect {
 
 impl OperationType {
     /// Check if this operation type should wrap with `StoreStateIdentifierTask`.
-    #[must_use] 
+    #[must_use]
     pub fn requires_state_tracking(&self) -> bool {
         match self {
             OperationType::Create | OperationType::Update | OperationType::Delete => true,
@@ -90,7 +90,7 @@ pub enum ResponseType {
 
 impl ResponseType {
     /// Get the Rust type string for this response type.
-    #[must_use] 
+    #[must_use]
     pub fn as_rust_type(&self) -> &str {
         match self {
             ResponseType::Generated(name) => name,
@@ -100,7 +100,7 @@ impl ResponseType {
     }
 
     /// Check if this is a generatable type (not `JsonValue` or `NoContent`).
-    #[must_use] 
+    #[must_use]
     pub fn is_generated(&self) -> bool {
         matches!(self, ResponseType::Generated(_))
     }
@@ -108,20 +108,20 @@ impl ResponseType {
 
 impl EndpointInfo {
     /// Generate a struct name for the request arguments.
-    #[must_use] 
+    #[must_use]
     pub fn args_struct_name(&self) -> String {
         let pascal_case_op = Self::to_pascal_case(&self.operation_id);
         format!("{pascal_case_op}Args")
     }
 
     /// Generate a function name from the operation ID.
-    #[must_use] 
+    #[must_use]
     pub fn fn_name(&self) -> String {
         Self::to_snake_case(&self.operation_id)
     }
 
     /// Convert identifier to `PascalCase`.
-    #[must_use] 
+    #[must_use]
     pub fn to_pascal_case(s: &str) -> String {
         // First split by delimiters (., -, _, @)
         let parts: Vec<&str> = s.split(['.', '-', '_', '@']).collect();
@@ -177,7 +177,7 @@ impl EndpointInfo {
     }
 
     /// Convert identifier to `snake_case`.
-    #[must_use] 
+    #[must_use]
     pub fn to_snake_case(s: &str) -> String {
         let mut parts = Vec::new();
         let mut current = String::new();
@@ -219,14 +219,15 @@ impl EndpointInfo {
     /// fails to compile, which is not expected to happen.
     #[must_use]
     pub fn extract_path_params(path: &str) -> Vec<String> {
-        let re = regex::Regex::new(r"\{([^}]+)\}").expect("hard-coded placeholder regex must compile");
+        let re =
+            regex::Regex::new(r"\{([^}]+)\}").expect("hard-coded placeholder regex must compile");
         re.captures_iter(path)
             .map(|cap| cap[1].to_string())
             .collect()
     }
 
     /// Extract parameters by location from `OpenAPI` operation parameters.
-    #[must_use] 
+    #[must_use]
     pub fn extract_parameters(parameters: &[Parameter]) -> (Vec<String>, Vec<String>) {
         let mut path_params = Vec::new();
         let mut query_params = Vec::new();
@@ -258,7 +259,7 @@ impl EndpointInfo {
     }
 
     /// Extract parameters by location from GCP method parameters.
-    #[must_use] 
+    #[must_use]
     pub fn extract_gcp_parameters(
         parameter_order: Option<&[String]>,
         params: &BTreeMap<String, GcpParameter>,
@@ -335,23 +336,37 @@ mod tests {
         let params = EndpointInfo::extract_path_params("/v1/projects/{projectId}");
         assert_eq!(params, vec!["projectId".to_string()]);
 
-        let params =
-            EndpointInfo::extract_path_params("/v1/folders/{folderId}/files/{fileId}");
+        let params = EndpointInfo::extract_path_params("/v1/folders/{folderId}/files/{fileId}");
         assert_eq!(params, vec!["folderId".to_string(), "fileId".to_string()]);
     }
 
     #[test]
     fn converts_to_pascal_case() {
-        assert_eq!(EndpointInfo::to_pascal_case("getV1Projects"), "GetV1Projects");
-        assert_eq!(EndpointInfo::to_pascal_case("get_v1_projects"), "GetV1Projects");
-        assert_eq!(EndpointInfo::to_pascal_case("treasury.transaction"), "TreasuryTransaction");
+        assert_eq!(
+            EndpointInfo::to_pascal_case("getV1Projects"),
+            "GetV1Projects"
+        );
+        assert_eq!(
+            EndpointInfo::to_pascal_case("get_v1_projects"),
+            "GetV1Projects"
+        );
+        assert_eq!(
+            EndpointInfo::to_pascal_case("treasury.transaction"),
+            "TreasuryTransaction"
+        );
         assert_eq!(EndpointInfo::to_pascal_case("Custom-pages"), "CustomPages");
     }
 
     #[test]
     fn converts_to_snake_case() {
-        assert_eq!(EndpointInfo::to_snake_case("getV1Projects"), "get_v1_projects");
-        assert_eq!(EndpointInfo::to_snake_case("GetV1Projects"), "get_v1_projects");
+        assert_eq!(
+            EndpointInfo::to_snake_case("getV1Projects"),
+            "get_v1_projects"
+        );
+        assert_eq!(
+            EndpointInfo::to_snake_case("GetV1Projects"),
+            "get_v1_projects"
+        );
     }
 
     #[test]

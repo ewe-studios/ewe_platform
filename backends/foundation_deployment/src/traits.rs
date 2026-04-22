@@ -182,7 +182,10 @@ pub trait Deployable {
     ///
     /// All `get()`, `list()`, `delete()` operations on the returned wrapper
     /// are automatically prefixed with `NAMESPACE`.
-    fn store(&self, client: &ProviderClient<Self::Store, Self::Resolver>) -> NamespacedStore<Self::Store> {
+    fn store(
+        &self,
+        client: &ProviderClient<Self::Store, Self::Resolver>,
+    ) -> NamespacedStore<Self::Store> {
         NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
     }
 

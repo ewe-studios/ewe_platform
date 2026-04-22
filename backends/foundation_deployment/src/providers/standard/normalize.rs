@@ -35,7 +35,8 @@ pub fn normalize_nullable_types(schema: &mut Value) {
     if let Some(obj) = schema.as_object_mut() {
         if let Some(type_val) = obj.get("type") {
             if let Some(arr) = type_val.as_array() {
-                let non_null: Vec<&Value> = arr.iter().filter(|v| v.as_str() != Some("null")).collect();
+                let non_null: Vec<&Value> =
+                    arr.iter().filter(|v| v.as_str() != Some("null")).collect();
                 if non_null.len() == 1 {
                     let actual_type = non_null[0].clone();
                     obj.insert("type".to_string(), actual_type);
@@ -92,7 +93,8 @@ pub fn extract_inline_schemas(
                 nested["type"] = Value::String("object".to_string());
             }
             // Recurse into nested properties
-            if let Some(inner_props) = nested.get_mut("properties").and_then(|p| p.as_object_mut()) {
+            if let Some(inner_props) = nested.get_mut("properties").and_then(|p| p.as_object_mut())
+            {
                 extract_inline_schemas(inner_props, &nested_name, schemas);
             }
             schemas.insert(nested_name.clone(), nested);
@@ -113,11 +115,15 @@ pub fn extract_inline_schemas(
                 if items_schema.get("type").is_none() {
                     items_schema["type"] = Value::String("object".to_string());
                 }
-                if let Some(inner_props) = items_schema.get_mut("properties").and_then(|p| p.as_object_mut()) {
+                if let Some(inner_props) = items_schema
+                    .get_mut("properties")
+                    .and_then(|p| p.as_object_mut())
+                {
                     extract_inline_schemas(inner_props, &item_name, schemas);
                 }
                 schemas.insert(item_name.clone(), items_schema);
-                prop["items"] = serde_json::json!({"$ref": format!("#/components/schemas/{item_name}")});
+                prop["items"] =
+                    serde_json::json!({"$ref": format!("#/components/schemas/{item_name}")});
             }
         }
 
@@ -133,10 +139,12 @@ pub fn extract_inline_schemas(
 ///
 /// Strips version prefix (`v1`, `v2`, etc.), removes path parameters,
 /// and capitalizes each segment.
-#[must_use] 
+#[must_use]
 pub fn path_to_type_name(path: &str) -> String {
     path.split('/')
-        .filter(|s| !s.is_empty() && !s.starts_with('{') && !s.starts_with("v1") && !s.starts_with("v2"))
+        .filter(|s| {
+            !s.is_empty() && !s.starts_with('{') && !s.starts_with("v1") && !s.starts_with("v2")
+        })
         .map(|s| {
             let cleaned = s.replace('-', "_");
             let mut chars = cleaned.chars();
@@ -197,40 +205,55 @@ mod tests {
     #[test]
     fn path_to_type_name_strips_params_and_version() {
         assert_eq!(path_to_type_name("/v1/databases"), "Databases");
-        assert_eq!(path_to_type_name("/v1/databases/{databaseId}/backups"), "DatabasesBackups");
-        assert_eq!(path_to_type_name("/v1/compute-services/{id}/versions"), "Compute_servicesVersions");
+        assert_eq!(
+            path_to_type_name("/v1/databases/{databaseId}/backups"),
+            "DatabasesBackups"
+        );
+        assert_eq!(
+            path_to_type_name("/v1/compute-services/{id}/versions"),
+            "Compute_servicesVersions"
+        );
     }
 
     #[test]
     fn extract_inline_schemas_extracts_nested_object() {
         let mut props = serde_json::Map::new();
-        props.insert("project".to_string(), json!({
-            "type": "object",
-            "properties": {
-                "id": {"type": "string"},
-                "name": {"type": "string"}
-            }
-        }));
+        props.insert(
+            "project".to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"}
+                }
+            }),
+        );
         let mut schemas = serde_json::Map::new();
         extract_inline_schemas(&mut props, "Database", &mut schemas);
 
         assert!(props["project"].get("$ref").is_some());
         assert!(schemas.contains_key("DatabaseProject"));
-        assert_eq!(schemas["DatabaseProject"]["properties"]["id"]["type"], "string");
+        assert_eq!(
+            schemas["DatabaseProject"]["properties"]["id"]["type"],
+            "string"
+        );
     }
 
     #[test]
     fn extract_inline_schemas_extracts_array_items() {
         let mut props = serde_json::Map::new();
-        props.insert("items".to_string(), json!({
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"}
+        props.insert(
+            "items".to_string(),
+            json!({
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"}
+                    }
                 }
-            }
-        }));
+            }),
+        );
         let mut schemas = serde_json::Map::new();
         extract_inline_schemas(&mut props, "List", &mut schemas);
 

@@ -108,8 +108,8 @@ fn test_redirect_as_final_response_chain() {
     // Server that returns redirect as final response, then serves the target
     // This exercises the CheckRedirect state for each redirect in the chain
     let server = TestHttpServer::http_chain(vec![
-        (302, "/final"),  // First request: redirect to /final
-        (200, "Final destination reached!"),  // Second request (after redirect): OK
+        (302, "/final"),                     // First request: redirect to /final
+        (200, "Final destination reached!"), // Second request (after redirect): OK
     ]);
 
     let client = SimpleHttpClient::from_system().max_redirects(5);
@@ -123,7 +123,10 @@ fn test_redirect_as_final_response_chain() {
         .send()
         .expect("Should follow redirect from final response");
 
-    assert!(response.is_success(), "Should receive 200 OK from final destination");
+    assert!(
+        response.is_success(),
+        "Should receive 200 OK from final destination"
+    );
 }
 
 /// WHY: Validate 307 Temporary Redirect (method-preserving) works as final response.
@@ -140,7 +143,7 @@ fn test_redirect_307_as_final_response() {
 
     // Server that returns 307 redirect as final response
     let server = TestHttpServer::http_chain(vec![
-        (307, "/target"),  // 307 Temporary Redirect
+        (307, "/target"), // 307 Temporary Redirect
         (200, "307 redirect target"),
     ]);
 
@@ -175,13 +178,18 @@ fn test_too_many_redirects_as_final_response() {
         (302, "/redirect"),
         (302, "/redirect"),
         (302, "/redirect"),
-        (302, "/redirect"),  // Will keep returning redirect
+        (302, "/redirect"), // Will keep returning redirect
     ]);
 
     let client = SimpleHttpClient::from_system().max_redirects(3);
     let url = server.url("/start");
 
-    let result = client.get(url.as_str()).unwrap().build_client().unwrap().send();
+    let result = client
+        .get(url.as_str())
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send();
 
     assert!(
         matches!(result, Err(HttpClientError::TooManyRedirects)),
@@ -219,7 +227,9 @@ fn test_redirect_after_100_continue() {
         if *count == 1 {
             // First request: send 100 Continue interim, then 302 redirect final
             // Build absolute URL from request's Host header
-            let host = req.headers.get(&foundation_core::wire::simple_http::SimpleHeader::HOST);
+            let host = req
+                .headers
+                .get(&foundation_core::wire::simple_http::SimpleHeader::HOST);
             let host_str = host
                 .and_then(|v| v.first())
                 .map(|s| s.as_str())
@@ -246,6 +256,13 @@ fn test_redirect_after_100_continue() {
         .send()
         .expect("Should follow redirect after 100 Continue");
 
-    assert!(response.is_success(), "Should receive 201 Created from final destination");
-    assert_eq!(response.get_status().into_usize(), 201, "Should be 201 status");
+    assert!(
+        response.is_success(),
+        "Should receive 201 Created from final destination"
+    );
+    assert_eq!(
+        response.get_status().into_usize(),
+        201,
+        "Should be 201 status"
+    );
 }

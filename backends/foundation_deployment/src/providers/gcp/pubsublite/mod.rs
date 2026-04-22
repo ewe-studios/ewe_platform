@@ -5,7 +5,11 @@
 
 #![cfg(feature = "gcp_pubsublite")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
 pub mod shared;

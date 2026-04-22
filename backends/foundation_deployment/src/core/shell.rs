@@ -15,9 +15,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use foundation_core::valtron::{
-    execute, NoAction, Stream, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{execute, NoAction, Stream, TaskIterator, TaskStatus};
 
 // Re-export collect_one from foundation_core for use by providers
 pub use foundation_core::valtron::collect_one;

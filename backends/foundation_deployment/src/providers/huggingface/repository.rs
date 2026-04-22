@@ -13,8 +13,8 @@ use crate::providers::huggingface::types::{
     RepoDownloadFileParams, RepoInfo, RepoInfoParams, RepoListTreeParams, RepoTreeEntry, RepoType,
     RepoUploadFileParams,
 };
-use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::synca::RunOnDrop;
+use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::body_reader::{self, collect_bytes_into};
 use foundation_core::wire::simple_http::client::{RequestIntro, ResponseIntro};
 use foundation_core::wire::simple_http::SimpleHeader;
@@ -47,13 +47,8 @@ pub struct RepositoryArgs {
 
 impl HFRepository {
     /// Create a new repository handle.
-    #[must_use] 
-    pub fn new(
-        client: HFClient,
-        owner: String,
-        name: String,
-        repo_type: RepoType,
-    ) -> Self {
+    #[must_use]
+    pub fn new(client: HFClient, owner: String, name: String, repo_type: RepoType) -> Self {
         Self {
             inner: Arc::new(HFRepositoryInner {
                 client,
@@ -65,7 +60,7 @@ impl HFRepository {
     }
 
     /// Create a new repository handle with arguments.
-    #[must_use] 
+    #[must_use]
     pub fn with_args(client: HFClient, args: RepositoryArgs) -> Self {
         let RepositoryArgs {
             owner,
@@ -84,13 +79,13 @@ impl HFRepository {
     }
 
     /// Get the repository path (owner/name).
-    #[must_use] 
+    #[must_use]
     pub fn repo_path(&self) -> String {
         format!("{}/{}", self.inner.owner, self.inner.name)
     }
 
     /// Get the repository type.
-    #[must_use] 
+    #[must_use]
     pub fn repo_type(&self) -> RepoType {
         self.inner.repo_type
     }
@@ -167,18 +162,16 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
                     });
                 }
                 let body = body_reader::collect_string(stream);
-                let info: RepoInfo = serde_json::from_str(&body)
-                    .map_err(HuggingFaceError::Json)?;
+                let info: RepoInfo = serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(info)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     collect_one(stream)
         .ok_or_else(|| HuggingFaceError::Backend("No result from repo_info".into()))?
@@ -241,8 +234,7 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     match collect_one(stream) {
         Some(Ok(value)) => Ok(value),
@@ -311,8 +303,7 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     match collect_one(stream) {
         Some(Ok(value)) => Ok(value),
@@ -380,18 +371,17 @@ pub fn repo_list_tree(
                     });
                 }
                 let body = body_reader::collect_string(stream);
-                let entries: Vec<RepoTreeEntry> = serde_json::from_str(&body)
-                    .map_err(HuggingFaceError::Json)?;
+                let entries: Vec<RepoTreeEntry> =
+                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(entries)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     Ok(stream.flat_map_next(|result| match result {
         Ok(entries) => {
@@ -415,7 +405,7 @@ pub fn repo_list_tree(
 /// Returns an error if the HTTP request fails, the redirect URL is malformed,
 /// or the file cannot be written to the destination directory.
 pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
-    use foundation_core::wire::simple_http::{SimpleHeaders, SimpleHeader};
+    use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders};
 
     let revision = params.revision.as_deref().unwrap_or("main");
     let url = repo.inner.client.download_url(
@@ -465,9 +455,8 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         }
     }
 
-    let (intro, headers) = intro_data.ok_or_else(|| {
-        HuggingFaceError::Backend("No response intro received".into())
-    })?;
+    let (intro, headers) =
+        intro_data.ok_or_else(|| HuggingFaceError::Backend("No response intro received".into()))?;
 
     let status = &intro.status;
 
@@ -509,8 +498,7 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         });
 
         // Stream body directly to file
-        let mut file = std::fs::File::create(&destination)
-            .map_err(HuggingFaceError::Io)?;
+        let mut file = std::fs::File::create(&destination).map_err(HuggingFaceError::Io)?;
         collect_bytes_into(body, &mut file)
             .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
     } else {
@@ -542,8 +530,7 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         });
 
         // Stream body directly to file
-        let mut file = std::fs::File::create(&destination)
-            .map_err(HuggingFaceError::Io)?;
+        let mut file = std::fs::File::create(&destination).map_err(HuggingFaceError::Io)?;
         collect_bytes_into(body, &mut file)
             .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
     }
@@ -603,7 +590,10 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
 /// `HuggingFaceError::Http` if the Hub responds with a non-2xx status, or
 /// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
 /// executor failures.
-pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) -> Result<CommitInfo> {
+pub fn repo_create_commit(
+    repo: &HFRepository,
+    params: &RepoCreateCommitParams,
+) -> Result<CommitInfo> {
     use std::fmt::Write as _;
 
     let base_path = match repo.inner.repo_type {
@@ -636,7 +626,10 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
 
     for op in &params.operations {
         match op {
-            CommitOperation::Add { path_in_repo, source } => {
+            CommitOperation::Add {
+                path_in_repo,
+                source,
+            } => {
                 let _ = write!(body, "--{boundary}\r\n");
                 let _ = write!(
                     body,
@@ -648,8 +641,8 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
                         body.push_str(&String::from_utf8_lossy(data));
                     }
                     AddSource::File(path) => {
-                        let content = std::fs::read_to_string(path)
-                            .map_err(HuggingFaceError::Io)?;
+                        let content =
+                            std::fs::read_to_string(path).map_err(HuggingFaceError::Io)?;
                         body.push_str(&content);
                     }
                 }
@@ -704,18 +697,17 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
                     });
                 }
                 let body = body_reader::collect_string(stream);
-                let commit_info: CommitInfo = serde_json::from_str(&body)
-                    .map_err(HuggingFaceError::Json)?;
+                let commit_info: CommitInfo =
+                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(commit_info)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     collect_one(stream)
         .ok_or_else(|| HuggingFaceError::Backend("No result from repo_create_commit".into()))?

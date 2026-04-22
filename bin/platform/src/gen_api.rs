@@ -5,8 +5,8 @@
 //! HOW: Uses foundation_openapi for analysis and generation with intelligent grouping.
 
 use foundation_openapi::{
-    UnifiedGenerator,
     unified::{analyze_spec, AnalysisOptions},
+    UnifiedGenerator,
 };
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -39,7 +39,11 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
             let path = entry.path();
             if path.is_dir() && path.join("mod.rs").exists() {
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    if name != "shared" && name != "clients" && name != "resources" && seen.insert(name.to_string()) {
+                    if name != "shared"
+                        && name != "clients"
+                        && name != "resources"
+                        && seen.insert(name.to_string())
+                    {
                         let safe = camel_to_snake(name);
                         sub_providers.push((name.to_string(), safe));
                     }
@@ -60,15 +64,27 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
     writeln!(out, "//! Google Cloud Platform provider.").unwrap();
     writeln!(out, "//!").unwrap();
     writeln!(out, "//! Generated sub-providers for each GCP API.").unwrap();
-    writeln!(out, "//! DO NOT EDIT MANUALLY - regeneration will overwrite this file.").unwrap();
+    writeln!(
+        out,
+        "//! DO NOT EDIT MANUALLY - regeneration will overwrite this file."
+    )
+    .unwrap();
     writeln!(out).unwrap();
     writeln!(out, "#![cfg(feature = \"{}\")]", feature_name).unwrap();
     writeln!(out).unwrap();
     writeln!(out, "// Shared module - re-exports common API types").unwrap();
     writeln!(out, "pub mod shared;").unwrap();
     writeln!(out).unwrap();
-    writeln!(out, "// Sub-providers are auto-generated and conditionally compiled.").unwrap();
-    writeln!(out, "// Each sub-provider has its own feature flag (e.g., gcp_admin, gcp_cloudkms).").unwrap();
+    writeln!(
+        out,
+        "// Sub-providers are auto-generated and conditionally compiled."
+    )
+    .unwrap();
+    writeln!(
+        out,
+        "// Each sub-provider has its own feature flag (e.g., gcp_admin, gcp_cloudkms)."
+    )
+    .unwrap();
     writeln!(out).unwrap();
 
     for (display, safe) in &sub_providers {
@@ -85,10 +101,19 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
         writeln!(out, "pub mod {};", safe).unwrap();
     }
 
-    std::fs::write(provider_dir.join("mod.rs"), out + "\n")
-        .map_err(|e| format!("Failed to write {}: {}", provider_dir.join("mod.rs").display(), e))?;
+    std::fs::write(provider_dir.join("mod.rs"), out + "\n").map_err(|e| {
+        format!(
+            "Failed to write {}: {}",
+            provider_dir.join("mod.rs").display(),
+            e
+        )
+    })?;
 
-    println!("Generated {}/mod.rs with {} sub-provider(s)", provider, sub_providers.len());
+    println!(
+        "Generated {}/mod.rs with {} sub-provider(s)",
+        provider,
+        sub_providers.len()
+    );
 
     Ok(())
 }
@@ -161,7 +186,11 @@ fn fix_hierarchical_features(
     }
 
     println!("\n=== Fixing feature flags for '{}' ===", provider);
-    println!("Found {} sub-provider(s): {:?}", sub_providers.len(), sub_providers);
+    println!(
+        "Found {} sub-provider(s): {:?}",
+        sub_providers.len(),
+        sub_providers
+    );
 
     let cargo_toml_path = output_dir
         .ancestors()
@@ -176,8 +205,8 @@ fn fix_hierarchical_features(
     let content = std::fs::read_to_string(&cargo_toml_path)
         .map_err(|e| format!("Failed to read Cargo.toml: {}", e))?;
 
-    let mut doc: toml::Value = toml::from_str(&content)
-        .map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
+    let mut doc: toml::Value =
+        toml::from_str(&content).map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
 
     let features = doc
         .get_mut("features")
@@ -192,7 +221,8 @@ fn fix_hierarchical_features(
     // If `regenerated` is non-empty (partial regen via --spec), only clear
     // features for those sub-providers. Otherwise clear ALL provider features.
     let full_regeneration = regenerated.is_empty();
-    let old_features: Vec<String> = features.keys()
+    let old_features: Vec<String> = features
+        .keys()
         .filter(|k| {
             if *k == &provider_snake {
                 return full_regeneration;
@@ -217,7 +247,10 @@ fn fix_hierarchical_features(
         features.remove(old);
     }
     if !old_features.is_empty() {
-        println!("Removed {} stale feature(s) for regenerated sub-providers", old_features.len());
+        println!(
+            "Removed {} stale feature(s) for regenerated sub-providers",
+            old_features.len()
+        );
     }
 
     // Also clean up references to cleared features from the base provider feature
@@ -227,22 +260,19 @@ fn fix_hierarchical_features(
 
         // Clean base provider feature (e.g., gcp = [...])
         if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&provider_snake) {
-            arr.retain(|v| {
-                v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true)
-            });
+            arr.retain(|v| v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true));
         }
 
         // Clean *_all feature (e.g., gcp_all = [...])
         if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&all_feature) {
-            arr.retain(|v| {
-                v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true)
-            });
+            arr.retain(|v| v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true));
         }
     }
 
     // Step 1: Ensure base provider feature exists (e.g., cloudflare = [])
     //    This enables the provider module without any specific API.
-    features.entry(provider_snake.clone())
+    features
+        .entry(provider_snake.clone())
         .or_insert(toml::Value::Array(vec![]));
 
     // Step 2: Detect if this is a hierarchical provider (nested sub-providers).
@@ -262,10 +292,22 @@ fn fix_hierarchical_features(
 
     if is_hierarchical {
         // Hierarchical: gcp_all = ["gcp_all_admin", ...], gcp_all_admin = ["gcp_admin_applications", ...]
-        fix_hierarchical_features_recursive(&provider_snake, &all_feature, &sub_providers, features, regenerated);
+        fix_hierarchical_features_recursive(
+            &provider_snake,
+            &all_feature,
+            &sub_providers,
+            features,
+            regenerated,
+        );
     } else {
         // Flat: cloudflare_all = ["cloudflare_access", "cloudflare_workers", ...]
-        fix_flat_features(&provider_snake, &all_feature, &sub_providers, features, regenerated);
+        fix_flat_features(
+            &provider_snake,
+            &all_feature,
+            &sub_providers,
+            features,
+            regenerated,
+        );
     }
 
     // Debug: show gcp_run feature
@@ -327,7 +369,9 @@ fn fix_hierarchical_features_recursive(
                     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                         // Skip shared/clients/resources meta-directories
                         // Also skip self-named directories (e.g., gcp/admin/admin/)
-                        if name != "shared" && name != "clients" && name != "resources"
+                        if name != "shared"
+                            && name != "clients"
+                            && name != "resources"
                             && name != &safe_sub
                         {
                             group_names.push(camel_to_snake(name));
@@ -343,13 +387,15 @@ fn fix_hierarchical_features_recursive(
         // a module at {sub}/{sub}/mod.rs guarded by gcp_{sub}_{sub}.
         let self_group_feature = format!("{provider_snake}_{safe_sub}_{safe_sub}");
         let mut group_apis: Vec<String> = vec![self_group_feature.clone()];
-        features.entry(self_group_feature.clone())
+        features
+            .entry(self_group_feature.clone())
             .or_insert(toml::Value::Array(vec![]));
 
         // Generate individual group features: gcp_{sub}_{group} = []
         for group in &group_names {
             let feature_name = format!("{provider_snake}_{safe_sub}_{group}");
-            features.entry(feature_name.clone())
+            features
+                .entry(feature_name.clone())
                 .or_insert(toml::Value::Array(vec![]));
             group_apis.push(feature_name);
         }
@@ -359,9 +405,15 @@ fn fix_hierarchical_features_recursive(
         if group_apis.is_empty() {
             features.insert(group_feature.clone(), toml::Value::Array(vec![]));
         } else {
-            features.insert(group_feature.clone(), toml::Value::Array(
-                group_apis.iter().map(|f| toml::Value::String(f.clone())).collect()
-            ));
+            features.insert(
+                group_feature.clone(),
+                toml::Value::Array(
+                    group_apis
+                        .iter()
+                        .map(|f| toml::Value::String(f.clone()))
+                        .collect(),
+                ),
+            );
         }
         all_group_features.insert(group_feature.clone());
 
@@ -369,26 +421,35 @@ fn fix_hierarchical_features_recursive(
         // This allows depending on a whole sub-provider (e.g., gcp_run)
         // and transitively enables the provider module and all its endpoints.
         let sub_base_feature = format!("{provider_snake}_{safe_sub}");
-        features.insert(sub_base_feature, toml::Value::Array(vec![
-            toml::Value::String(provider_snake.to_string()),
-            toml::Value::String(self_group_feature),
-        ]));
+        features.insert(
+            sub_base_feature,
+            toml::Value::Array(vec![
+                toml::Value::String(provider_snake.to_string()),
+                toml::Value::String(self_group_feature),
+            ]),
+        );
     }
 
     // Ensure *_all feature includes all group-level features
     let existing_all = if full_regeneration {
         BTreeSet::new()
     } else {
-        features.get(all_feature)
+        features
+            .get(all_feature)
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect::<BTreeSet<_>>()
+            })
             .unwrap_or_default()
     };
 
     let merged: Vec<String> = existing_all.union(&all_group_features).cloned().collect();
-    features.insert(all_feature.to_string(), toml::Value::Array(
-        merged.into_iter().map(|f| toml::Value::String(f)).collect()
-    ));
+    features.insert(
+        all_feature.to_string(),
+        toml::Value::Array(merged.into_iter().map(|f| toml::Value::String(f)).collect()),
+    );
 }
 
 /// Fix features for flat providers (e.g., cloudflare, stripe, supabase).
@@ -408,12 +469,15 @@ fn fix_flat_features(
         if !full_regeneration && !regenerated.contains(&camel_to_snake(sub)) {
             continue;
         }
-        features.entry(feature_name).or_insert(toml::Value::Array(vec![]));
+        features
+            .entry(feature_name)
+            .or_insert(toml::Value::Array(vec![]));
     }
 
     // Collect all individual API features for this provider
     let prefix = format!("{}_", provider_snake);
-    let existing_apis: BTreeSet<String> = features.keys()
+    let existing_apis: BTreeSet<String> = features
+        .keys()
         .filter(|k| k.starts_with(&prefix) && !k.contains("_all"))
         .map(|k| k.clone())
         .collect();
@@ -422,16 +486,22 @@ fn fix_flat_features(
     let existing_all = if full_regeneration {
         BTreeSet::new()
     } else {
-        features.get(all_feature)
+        features
+            .get(all_feature)
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect::<BTreeSet<_>>()
+            })
             .unwrap_or_default()
     };
 
     let merged: Vec<String> = existing_all.union(&existing_apis).cloned().collect();
-    features.insert(all_feature.to_string(), toml::Value::Array(
-        merged.into_iter().map(|f| toml::Value::String(f)).collect()
-    ));
+    features.insert(
+        all_feature.to_string(),
+        toml::Value::Array(merged.into_iter().map(|f| toml::Value::String(f)).collect()),
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -572,7 +642,10 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             }
 
             if !analysis.shared_resources.is_empty() {
-                println!("\n  Shared Resources ({} types):", analysis.shared_resources.len());
+                println!(
+                    "\n  Shared Resources ({} types):",
+                    analysis.shared_resources.len()
+                );
                 for resource in &analysis.shared_resources {
                     println!("    - {}", resource);
                 }
@@ -621,7 +694,10 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 specs.push((provider.clone(), provider_dir.join("openapi.json")));
             } else if provider_dir.join(format!("{}.json", provider)).exists() {
                 // Named spec file
-                specs.push((provider.clone(), provider_dir.join(format!("{}.json", provider))));
+                specs.push((
+                    provider.clone(),
+                    provider_dir.join(format!("{}.json", provider)),
+                ));
             } else {
                 // Multiple subdirectories (GCP-like structure) - find all openapi.json files recursively
                 fn find_specs(
@@ -638,10 +714,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                                     let api_name = path
                                         .strip_prefix(base)
                                         .map(|p| p.to_string_lossy().replace('\\', "/"))
-                                        .unwrap_or_else(|_| path.file_name()
-                                            .and_then(|n| n.to_str())
-                                            .unwrap_or("unknown")
-                                            .to_string());
+                                        .unwrap_or_else(|_| {
+                                            path.file_name()
+                                                .and_then(|n| n.to_str())
+                                                .unwrap_or("unknown")
+                                                .to_string()
+                                        });
                                     specs.push((api_name, spec_path));
                                 }
                                 // Recurse into subdirectory for nested specs
@@ -659,7 +737,11 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             }
 
             if specs.is_empty() {
-                return Err(format!("Provider '{}' not found in artefacts or has no OpenAPI specs", provider).into());
+                return Err(format!(
+                    "Provider '{}' not found in artefacts or has no OpenAPI specs",
+                    provider
+                )
+                .into());
             }
 
             // Apply spec filter if provided
@@ -669,17 +751,27 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 specs.retain(|(api_name, _)| {
                     // Match if the api_name equals the filter or ends with the filter
                     // e.g., filter "admin" matches "admin" or "gcp/admin"
-                    api_name.as_str() == spec_filter.as_str() || api_name.ends_with(&format!("/{}", spec_filter))
+                    api_name.as_str() == spec_filter.as_str()
+                        || api_name.ends_with(&format!("/{}", spec_filter))
                 });
                 if specs.is_empty() {
                     return Err(format!(
                         "No spec matching '{}' found for provider '{}'. Available specs: {}",
                         spec_filter,
                         provider,
-                        specs.iter().map(|(n, _)| n.as_str()).collect::<Vec<_>>().join(", ")
-                    ).into());
+                        specs
+                            .iter()
+                            .map(|(n, _)| n.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                    .into());
                 }
-                println!("Filtered from {} to {} spec(s)", original_count, specs.len());
+                println!(
+                    "Filtered from {} to {} spec(s)",
+                    original_count,
+                    specs.len()
+                );
             }
 
             println!("Found {} spec(s) to generate", specs.len());
@@ -690,8 +782,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             for (api_name, spec_path) in &specs {
                 println!("\n  Processing {} ({})", api_name, spec_path.display());
 
-                let spec_content = std::fs::read_to_string(spec_path)
-                    .map_err(|e| format!("Failed to read spec at {}: {}", spec_path.display(), e))?;
+                let spec_content = std::fs::read_to_string(spec_path).map_err(|e| {
+                    format!("Failed to read spec at {}: {}", spec_path.display(), e)
+                })?;
 
                 if dry_run {
                     let analysis = analyze_spec(&spec_content, api_name, &options)

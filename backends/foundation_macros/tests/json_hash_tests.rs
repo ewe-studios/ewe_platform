@@ -66,7 +66,9 @@ fn test_struct_hash_with_nested_struct() {
     }
 
     let inner = Inner { x: 10 };
-    let outer = Outer { inner: inner.clone() };
+    let outer = Outer {
+        inner: inner.clone(),
+    };
 
     // Both should hash without panic
     let inner_hash = inner.struct_hash();
