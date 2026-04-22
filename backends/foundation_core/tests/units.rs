@@ -10,9 +10,7 @@
 //! - `execute_map_all`: executes multiple `TaskIterators`, applies mapper when all complete
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
-use foundation_core::valtron::{
-    CollectAll, MapAllDone, MapAllPendingAndDone, Stream, TaskStatus,
-};
+use foundation_core::valtron::{CollectAll, MapAllDone, MapAllPendingAndDone, Stream, TaskStatus};
 
 // Simple test stream iterator
 struct TestStream {

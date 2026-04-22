@@ -12,8 +12,7 @@ use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::providers::gcp::run::run::{
     run_projects_locations_jobs_create_request, run_projects_locations_jobs_delete_request,
-    run_projects_locations_services_delete_request,
-    run_projects_locations_services_patch_request,
+    run_projects_locations_services_delete_request, run_projects_locations_services_patch_request,
     GoogleCloudRunV2Container, GoogleCloudRunV2ExecutionTemplate, GoogleCloudRunV2Job,
     GoogleCloudRunV2RevisionTemplate, GoogleCloudRunV2Service, GoogleCloudRunV2TaskTemplate,
     RunProjectsLocationsJobsCreateArgs, RunProjectsLocationsJobsDeleteArgs,
@@ -167,9 +166,7 @@ impl<R: DnsResolver + Clone + Default + 'static> Deployable for CloudRunService<
         let store = self.store(&client);
         let state: CloudRunDeployment = store
             .get_typed(&instance_id.to_string())
-            .map_err(|e| {
-                CloudRunServiceError::StateFailed(format!("Failed to read state: {e}"))
-            })?
+            .map_err(|e| CloudRunServiceError::StateFailed(format!("Failed to read state: {e}")))?
             .ok_or_else(|| {
                 CloudRunServiceError::StateFailed(format!(
                     "No state found for service '{}' instance {instance_id} — nothing to destroy",
@@ -359,9 +356,7 @@ impl<R: DnsResolver + Clone + Default + 'static> Deployable for CloudRunJob<R> {
         let store = self.store(&client);
         let state: CloudRunJobDeployment = store
             .get_typed(&instance_id.to_string())
-            .map_err(|e| {
-                CloudRunJobError::StateFailed(format!("Failed to read state: {e}"))
-            })?
+            .map_err(|e| CloudRunJobError::StateFailed(format!("Failed to read state: {e}")))?
             .ok_or_else(|| {
                 CloudRunJobError::StateFailed(format!(
                     "No state found for job '{}' instance {instance_id} — nothing to destroy",

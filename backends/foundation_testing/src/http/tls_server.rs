@@ -19,7 +19,9 @@ use std::thread;
 
 use foundation_core::netcap::connection::Connection;
 use foundation_core::netcap::ssl::{SSLAcceptor, SSLConnector};
-use foundation_core::wire::simple_http::{Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl};
+use foundation_core::wire::simple_http::{
+    Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl,
+};
 
 use zeroize::Zeroizing;
 
@@ -163,7 +165,9 @@ pub fn test_tls_connector() -> SSLConnector {
 
     let mut root_store = rustls::RootCertStore::empty();
     for cert in certs {
-        root_store.add(cert).expect("Failed to add test cert to root store");
+        root_store
+            .add(cert)
+            .expect("Failed to add test cert to root store");
     }
 
     let provider = Arc::new(
@@ -253,17 +257,14 @@ mod tests {
     fn test_https_roundtrip() {
         let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
-        let server = TestHttpsServer::with_response(|_req| {
-            HttpResponse::ok(b"hello from TLS")
-        });
+        let server = TestHttpsServer::with_response(|_req| HttpResponse::ok(b"hello from TLS"));
 
         let port = server.port();
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
         let dns = StaticSocketAddr::new(addr);
         let connector = test_tls_connector();
 
-        let client = SimpleHttpClient::with_resolver(dns)
-            .with_tls_connector(connector);
+        let client = SimpleHttpClient::with_resolver(dns).with_tls_connector(connector);
 
         let response = client
             .get("https://localhost/test")

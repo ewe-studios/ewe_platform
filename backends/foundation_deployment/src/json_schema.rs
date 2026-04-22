@@ -51,7 +51,7 @@ pub struct MediaType {
 ///
 /// * `responses` - The responses object from an `OpenAPI` operation
 /// * `components_schemas` - Optional schemas from components for resolving $ref targets
-#[must_use] 
+#[must_use]
 pub fn extract_response_type(
     responses: &BTreeMap<String, ResponseContent>,
     components_schemas: Option<&BTreeMap<String, JsonSchema>>,
@@ -72,8 +72,8 @@ pub fn extract_response_type(
                             // It's a $ref, look up the actual schema
                             components_schemas
                                 .and_then(|schemas| {
-                                    let type_name = ref_path
-                                        .trim_start_matches("#/components/schemas/");
+                                    let type_name =
+                                        ref_path.trim_start_matches("#/components/schemas/");
                                     schemas.get(type_name)
                                 })
                                 .unwrap_or(schema)
@@ -88,7 +88,10 @@ pub fn extract_response_type(
                                 && schema_to_check.one_of.is_none());
 
                         if is_generatable {
-                            return extract_type_name_from_schema(schema_to_check, components_schemas);
+                            return extract_type_name_from_schema(
+                                schema_to_check,
+                                components_schemas,
+                            );
                         }
                         // Pure composition type - use serde_json::Value
                         return Some("serde_json::Value".to_string());
@@ -137,7 +140,7 @@ fn extract_type_name_from_schema(
 /// - `treasury.transaction` → `TreasuryTransaction`
 /// - `Custom-pages` → `CustomPages`
 /// - `iam_response_collection_accounts` → `IamResponseCollectionAccounts`
-#[must_use] 
+#[must_use]
 pub fn normalize_type_name(name: &str) -> String {
     name.split(['.', '-', '@', '_'])
         .map(|part| {
@@ -172,7 +175,6 @@ pub fn extract_path_params(path: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn extracts_type_name_from_openapi_ref() {
@@ -192,7 +194,10 @@ mod tests {
 
     #[test]
     fn normalizes_dotted_names() {
-        assert_eq!(normalize_type_name("treasury.transaction"), "TreasuryTransaction");
+        assert_eq!(
+            normalize_type_name("treasury.transaction"),
+            "TreasuryTransaction"
+        );
     }
 
     #[test]
@@ -213,11 +218,7 @@ mod tests {
         let params = extract_path_params("/v1/projects/{projectId}");
         assert_eq!(params, vec!["projectId".to_string()]);
 
-        let params =
-            extract_path_params("/v1/folders/{folderId}/files/{fileId}");
-        assert_eq!(
-            params,
-            vec!["folderId".to_string(), "fileId".to_string()]
-        );
+        let params = extract_path_params("/v1/folders/{folderId}/files/{fileId}");
+        assert_eq!(params, vec!["folderId".to_string(), "fileId".to_string()]);
     }
 }

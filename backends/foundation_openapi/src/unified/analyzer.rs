@@ -37,7 +37,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("reranker", "ai"),
     ("completions", "ai"),
     ("chat", "ai"),
-
     // === Workers & Compute (serverless/runtime) ===
     ("/workers/", "workers"),
     ("hyperdrive", "workers"),
@@ -51,7 +50,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("bindings", "workers"),
     ("triggers", "workers"),
     ("assets", "workers"),
-
     // === Stream & Media (video/audio/images) ===
     ("/stream/", "stream"),
     ("images", "media"),
@@ -62,7 +60,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("livestream", "media"),
     ("video", "media"),
     ("audio", "media"),
-
     // === Network & Tunnels (connectivity) ===
     ("/tunnels/", "network"),
     ("cfd_tunnel", "network"),
@@ -77,7 +74,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("gre", "network"),
     ("vlan", "network"),
     ("bgp", "network"),
-
     // === DNS & Zones (domain management) ===
     ("/zones/", "zones"),
     ("/dns/", "dns"),
@@ -92,7 +88,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("domains", "domains"),
     ("registrar", "domains"),
     ("tlds", "domains"),
-
     // === Security (threat protection) ===
     ("cloudforce", "security"),
     ("intel", "security"),
@@ -108,7 +103,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("rate_limit", "security"),
     ("challenges", "security"),
     ("fingerprints", "security"),
-
     // === Access & Identity (auth/users) ===
     ("/access/", "access"),
     ("iam", "access"),
@@ -121,7 +115,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("permissions", "access"),
     ("users", "access"),
     ("user", "access"),
-
     // === Email ===
     ("email-security", "email"),
     ("/email/", "email"),
@@ -129,28 +122,24 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("dmarc", "email"),
     ("spf", "email"),
     ("email_routing", "email"),
-
     // === Devices & Gateway (Zero Trust) ===
     ("/devices/", "devices"),
     ("ip-profiles", "devices"),
     ("gateway", "devices"),
     ("zerotrust", "devices"),
     ("zt_risk", "devices"),
-
     // === Storage (R2/buckets) ===
     ("/r2/", "storage"),
     ("r2-catalog", "storage"),
     ("bucket", "storage"),
     ("storage", "storage"),
     ("objects", "storage"),
-
     // === Radar/Analytics (traffic insights) ===
     ("/radar/", "radar"),
     ("analytics", "analytics"),
     ("logs", "logs"),
     ("logpush", "logs"),
     ("log", "logs"),
-
     // === Billing ===
     ("billing", "billing"),
     ("subscription", "billing"),
@@ -158,7 +147,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("pay-per-crawl", "billing"),
     ("invoice", "billing"),
     ("plans", "billing"),
-
     // === Rules ===
     ("rulesets", "rules"),
     ("rules", "rules"),
@@ -166,7 +154,6 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("filters", "rules"),
     ("policies", "rules"),
     ("policy", "rules"),
-
     // === Certificates ===
     ("ssl", "certificates"),
     ("tls", "certificates"),
@@ -175,13 +162,11 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("mtls", "certificates"),
     ("keyless", "certificates"),
     ("acm", "certificates"),
-
     // === Cache ===
     ("cache", "cache"),
     ("purge", "cache"),
     ("argo", "cache"),
     ("tiered_cache", "cache"),
-
     // === Load Balancing ===
     ("load_balancer", "load_balancers"),
     ("loadbalancer", "load_balancers"),
@@ -191,13 +176,11 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("healthchecks", "load_balancers"),
     ("monitor", "load_balancers"),
     ("monitors", "load_balancers"),
-
     // === Magic WAN ===
     ("magic/", "magic_wan"),
     ("magic_", "magic_wan"),
     ("wan", "magic_wan"),
     ("addressing", "magic_wan"),
-
     // === Data (schemas, datasets, documents) ===
     ("dlp", "data"),
     ("datasets", "data"),
@@ -210,18 +193,15 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("document", "data"),
     ("entries", "data"),
     ("records", "data"),
-
     // === Queues ===
     ("queue", "queues"),
     ("queues", "queues"),
-
     // === Secrets & Tokens ===
     ("secrets_store", "secrets"),
     ("secrets", "secrets"),
     ("tokens", "tokens"),
     ("token", "tokens"),
     ("api_token", "tokens"),
-
     // === Events ===
     ("event", "events"),
     ("events", "events"),
@@ -230,191 +210,145 @@ const CLOUDFLARE_GROUP_PATTERNS: &[(&str, &str)] = &[
     ("alerting", "events"),
     ("alerts", "events"),
     ("notifications", "events"),
-
     // === Waiting Rooms ===
     ("waiting_room", "waiting_rooms"),
     ("waitingrooms", "waiting_rooms"),
-
     // === Custom Pages ===
     ("custom_pages", "custom_pages"),
     ("custom_hostnames", "custom_pages"),
-
     // === API Gateway ===
     ("api_gateway", "api_gateway"),
-
     // === Page Shield ===
     ("page_shield", "page_shield"),
-
     // === Security Center ===
     ("security-center", "security_center"),
-
     // === Spectrum ===
     ("spectrum", "spectrum"),
-
     // === Web3 ===
     ("web3", "web3"),
-
     // === Snippets ===
     ("snippets", "snippets"),
-
     // === Config ===
     ("settings", "config"),
     ("config", "config"),
     ("configuration", "config"),
-
     // === Apps ===
     ("app", "apps"),
     ("apps", "apps"),
-
     // === Shares ===
     ("share", "shares"),
     ("shares", "shares"),
-
     // === Migration ===
     ("move", "migration"),
     ("migration", "migration"),
     ("migrate", "migration"),
     ("transfer", "migration"),
-
     // === Metrics ===
     ("stats", "metrics"),
     ("statistics", "metrics"),
     ("metrics", "metrics"),
     ("slots", "metrics"),
-
     // === Tasks ===
     ("task", "tasks"),
     ("tasks", "tasks"),
     ("job", "tasks"),
     ("jobs", "tasks"),
-
     // === Reports ===
     ("reports", "reports"),
     ("report", "reports"),
     ("predefined_reports", "reports"),
-
     // === Routes ===
     ("routes", "routes"),
     ("route", "routes"),
     ("routing", "routes"),
-
     // === Stores ===
     ("stores", "stores"),
     ("store", "stores"),
-
     // === Subnets ===
     ("subnets", "subnets"),
     ("subnet", "subnets"),
     ("prefixes", "subnets"),
     ("prefix", "subnets"),
-
     // === Targets ===
     ("target", "targets"),
     ("targets", "targets"),
-
     // === Sessions ===
     ("abort", "sessions"),
     ("recording", "sessions"),
     ("session", "sessions"),
     ("sessions", "sessions"),
-
     // === Audit ===
     ("audit_log", "audit"),
     ("audit_logs", "audit"),
     ("audit", "audit"),
-
     // === Entitlements ===
     ("entitlement", "entitlements"),
     ("entitlements", "entitlements"),
-
     // === Diagnostics ===
     ("diagnostic", "diagnostics"),
     ("diagnostics", "diagnostics"),
-
     // === Infrastructure ===
     ("infrastructure", "infrastructure"),
-
     // === Resources ===
     ("resource-library", "resources"),
     ("resource", "resources"),
-
     // === Slurper ===
     ("slurper", "slurper"),
-
     // === Tracer ===
     ("request-tracer", "tracer"),
     ("request_tracer", "tracer"),
-
     // === Credentials ===
     ("leaked-credential", "credentials"),
     ("leaked_credential", "credentials"),
-
     // === Origin ===
     ("origin_tls", "origin"),
     ("origin-tls", "origin"),
-
     // === Validation ===
     ("token_validation", "validation"),
     ("token-validation", "validation"),
-
     // === Fraud ===
     ("fraud_detection", "fraud"),
     ("fraud-detection", "fraud"),
-
     // === Shield ===
     ("smart_shield", "shield"),
     ("smart-shield", "shield"),
-
     // === Speed ===
     ("speed_api", "speed"),
     ("speed-api", "speed"),
-
     // === Scan ===
     ("content-upload-scan", "scan"),
     ("content_upload_scan", "scan"),
-
     // === Hold ===
     ("hold", "hold"),
-
     // === Connector ===
     ("cloud_connector", "connector"),
     ("cloud-connector", "connector"),
-
     // === Headers ===
     ("managed_headers", "headers"),
     ("managed-headers", "headers"),
-
     // === Profile ===
     ("profile", "profile"),
     ("profiles", "profile"),
-
     // === Memberships ===
     ("membership", "memberships"),
     ("memberships", "memberships"),
-
     // === Tenants ===
     ("tenant", "tenants"),
     ("tenants", "tenants"),
-
     // === System ===
     ("system/", "system"),
     ("internal/", "internal"),
-
     // === Health ===
     ("ready", "health"),
     ("health", "health"),
     ("live", "health"),
-
     // === IPs ===
     ("/ips", "ips"),
-
     // === Signed URL ===
     ("signed-url", "signed_url"),
     ("signed_url", "signed_url"),
-
     // === Accounts ===
     ("/accounts/", "accounts"),
-
     // === User ===
     ("/user/", "user"),
     ("/users/", "user"),
@@ -832,7 +766,11 @@ impl Default for AnalysisOptions {
 }
 
 /// Analyze an OpenAPI spec and return grouping information.
-pub fn analyze_spec(spec_content: &str, provider: &str, options: &AnalysisOptions) -> Result<AnalysisResult, crate::ProcessError> {
+pub fn analyze_spec(
+    spec_content: &str,
+    provider: &str,
+    options: &AnalysisOptions,
+) -> Result<AnalysisResult, crate::ProcessError> {
     let processor = crate::process_spec(spec_content)?;
     let endpoints = processor.endpoints();
 
@@ -847,11 +785,7 @@ pub fn analyze_spec(spec_content: &str, provider: &str, options: &AnalysisOption
     if groups_map.is_empty() {
         if provider.contains('/') {
             // Multi-spec sub-provider: one group per spec
-            let spec_group = provider
-                .split('/')
-                .last()
-                .unwrap_or(provider)
-                .to_string();
+            let spec_group = provider.split('/').last().unwrap_or(provider).to_string();
             let mut all_endpoints = processor.endpoints();
             groups_map.insert(spec_group, all_endpoints);
         } else {
@@ -926,7 +860,10 @@ fn extract_group_name(path: &str) -> String {
 }
 
 /// Apply grouping constraints: keep semantic groups intact (no splitting).
-fn apply_grouping_constraints(mut groups: Vec<ApiGroup>, _options: &AnalysisOptions) -> Vec<ApiGroup> {
+fn apply_grouping_constraints(
+    mut groups: Vec<ApiGroup>,
+    _options: &AnalysisOptions,
+) -> Vec<ApiGroup> {
     // Don't split groups - semantic grouping is more important than size limits
     // The patterns are designed to group related APIs together thoughtfully
     groups.sort_by(|a, b| a.name.cmp(&b.name));
@@ -938,10 +875,16 @@ fn detect_shared_resources(groups: &[ApiGroup]) -> Vec<String> {
 
     for group in groups {
         for type_name in &group.response_types {
-            type_usage.entry(type_name.clone()).or_default().insert(group.name.clone());
+            type_usage
+                .entry(type_name.clone())
+                .or_default()
+                .insert(group.name.clone());
         }
         for type_name in &group.request_types {
-            type_usage.entry(type_name.clone()).or_default().insert(group.name.clone());
+            type_usage
+                .entry(type_name.clone())
+                .or_default()
+                .insert(group.name.clone());
         }
     }
 
@@ -961,8 +904,14 @@ mod tests {
 
     #[test]
     fn test_extract_group_name() {
-        assert_eq!(extract_group_name("/v1/projects/{project}/instances/{instance}"), "instances");
-        assert_eq!(extract_group_name("/v1/run/projects/{project}/locations/{location}/instances"), "instances");
+        assert_eq!(
+            extract_group_name("/v1/projects/{project}/instances/{instance}"),
+            "instances"
+        );
+        assert_eq!(
+            extract_group_name("/v1/run/projects/{project}/locations/{location}/instances"),
+            "instances"
+        );
         assert_eq!(extract_group_name("/projects"), "projects");
         assert_eq!(extract_group_name("/"), "default");
     }

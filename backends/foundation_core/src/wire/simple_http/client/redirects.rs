@@ -115,7 +115,13 @@ pub fn build_followup_request_from_request_descriptor(
     // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.request_uri.host_str().unwrap_or_default();
     let new_host = new_url.host_str().unwrap_or_default();
-    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host, preserve_auth, preserve_cookies);
+    strip_sensitive_headers_for_redirect(
+        &mut headers,
+        &original_host,
+        &new_host,
+        preserve_auth,
+        preserve_cookies,
+    );
 
     Ok(RequestDescriptor {
         request_url: SimpleUrl::url_with_query(new_url.to_string()),
@@ -157,7 +163,13 @@ pub fn build_followup_request_from(
     // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.url.host_str().unwrap_or_default();
     let new_host = new_url.host_str().unwrap_or_default();
-    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host, preserve_auth, preserve_cookies);
+    strip_sensitive_headers_for_redirect(
+        &mut headers,
+        &original_host,
+        &new_host,
+        preserve_auth,
+        preserve_cookies,
+    );
 
     PreparedRequest {
         method: crate::wire::simple_http::SimpleMethod::GET,
@@ -212,7 +224,13 @@ mod tests {
     #[test]
     fn test_strip_sensitive_headers_same_host() {
         let mut headers = create_headers_with_auth_and_cookie();
-        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "example.com", false, false);
+        strip_sensitive_headers_for_redirect(
+            &mut headers,
+            "example.com",
+            "example.com",
+            false,
+            false,
+        );
 
         // Same host - nothing should be stripped
         assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION));
@@ -223,41 +241,92 @@ mod tests {
     #[test]
     fn test_strip_sensitive_headers_different_host_default_behavior() {
         let mut headers = create_headers_with_auth_and_cookie();
-        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", false, false);
+        strip_sensitive_headers_for_redirect(
+            &mut headers,
+            "example.com",
+            "cdn.example.com",
+            false,
+            false,
+        );
 
         // Different host with preserve_auth=false, preserve_cookies=false
-        assert!(!headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be stripped");
-        assert!(!headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be stripped");
-        assert!(headers.contains_key(&SimpleHeader::CONTENT_TYPE), "Content-Type should remain");
+        assert!(
+            !headers.contains_key(&SimpleHeader::AUTHORIZATION),
+            "Authorization should be stripped"
+        );
+        assert!(
+            !headers.contains_key(&SimpleHeader::COOKIE),
+            "Cookie should be stripped"
+        );
+        assert!(
+            headers.contains_key(&SimpleHeader::CONTENT_TYPE),
+            "Content-Type should remain"
+        );
     }
 
     #[test]
     fn test_strip_sensitive_headers_preserve_auth_only() {
         let mut headers = create_headers_with_auth_and_cookie();
-        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", true, false);
+        strip_sensitive_headers_for_redirect(
+            &mut headers,
+            "example.com",
+            "cdn.example.com",
+            true,
+            false,
+        );
 
         // Different host with preserve_auth=true, preserve_cookies=false
-        assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be preserved");
-        assert!(!headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be stripped");
+        assert!(
+            headers.contains_key(&SimpleHeader::AUTHORIZATION),
+            "Authorization should be preserved"
+        );
+        assert!(
+            !headers.contains_key(&SimpleHeader::COOKIE),
+            "Cookie should be stripped"
+        );
     }
 
     #[test]
     fn test_strip_sensitive_headers_preserve_cookies_only() {
         let mut headers = create_headers_with_auth_and_cookie();
-        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", false, true);
+        strip_sensitive_headers_for_redirect(
+            &mut headers,
+            "example.com",
+            "cdn.example.com",
+            false,
+            true,
+        );
 
         // Different host with preserve_auth=false, preserve_cookies=true
-        assert!(!headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be stripped");
-        assert!(headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be preserved");
+        assert!(
+            !headers.contains_key(&SimpleHeader::AUTHORIZATION),
+            "Authorization should be stripped"
+        );
+        assert!(
+            headers.contains_key(&SimpleHeader::COOKIE),
+            "Cookie should be preserved"
+        );
     }
 
     #[test]
     fn test_strip_sensitive_headers_preserve_both() {
         let mut headers = create_headers_with_auth_and_cookie();
-        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", true, true);
+        strip_sensitive_headers_for_redirect(
+            &mut headers,
+            "example.com",
+            "cdn.example.com",
+            true,
+            true,
+        );
 
         // Different host with preserve_auth=true, preserve_cookies=true
-        assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be preserved");
-        assert!(headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be preserved");
+        assert!(
+            headers.contains_key(&SimpleHeader::AUTHORIZATION),
+            "Authorization should be preserved"
+        );
+        assert!(
+            headers.contains_key(&SimpleHeader::COOKIE),
+            "Cookie should be preserved"
+        );
     }
 }

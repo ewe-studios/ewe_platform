@@ -85,15 +85,8 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
         .unwrap()
 }
 
-/// Verify non-streaming chat completion with a mock server.
-///
-/// WHY ignored: `SimpleHttpClient` connection pool reuses the TCP socket from
-/// `get_model` (called during model creation), but `TestHttpServer` handles
-/// one request per connection then closes the socket. The pooled stale
-/// connection causes `generate` to get `ReadFailed`. Streaming tests don't
-/// hit this because `EventSourceTask` opens its own TCP connection.
 #[test]
-#[ignore = "connection pool reuses stale socket from get_model — needs keep-alive server"]
+#[tracing_test::traced_test]
 fn test_provider_generate() {
     let _guard = valtron::initialize_pool(42, Some(4));
 

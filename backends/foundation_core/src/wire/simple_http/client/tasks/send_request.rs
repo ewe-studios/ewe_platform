@@ -217,8 +217,14 @@ where
 
                                     let [first, second] = starter_array;
 
-                                    tracing::debug!("HttpRequestRedirectResponse::Done: first item = {:?}", first);
-                                    tracing::debug!("HttpRequestRedirectResponse::Done: second item = {:?}", second);
+                                    tracing::debug!(
+                                        "HttpRequestRedirectResponse::Done: first item = {:?}",
+                                        first
+                                    );
+                                    tracing::debug!(
+                                        "HttpRequestRedirectResponse::Done: second item = {:?}",
+                                        second
+                                    );
 
                                     let intro = if let IncomingResponseParts::Intro(
                                         status,
@@ -347,7 +353,10 @@ where
                 );
                 let next_value = intro_recv.next();
 
-                tracing::debug!("HttpRequestTaskState::Reading: Gotten next state from iterator, is_some={}", next_value.is_some());
+                tracing::debug!(
+                    "HttpRequestTaskState::Reading: Gotten next state from iterator, is_some={}",
+                    next_value.is_some()
+                );
                 self.0 = Some(SendRequestState::Reading(intro_recv));
 
                 if next_value.is_none() {
@@ -395,7 +404,9 @@ where
                     )))
                 }
                 Some(mut inner) => {
-                    tracing::debug!("HttpRequestTaskState::CheckRedirect: checking response for redirect");
+                    tracing::debug!(
+                        "HttpRequestTaskState::CheckRedirect: checking response for redirect"
+                    );
                     if let RequestIntro::Success {
                         stream: _,
                         conn,
@@ -403,10 +414,23 @@ where
                         headers,
                     } = &mut inner
                     {
-                        tracing::debug!("HttpRequestTaskState::CheckRedirect: intro status = {:?}", intro.0);
-                        tracing::debug!("HttpRequestTaskState::CheckRedirect: is redirect? {}", (Status::MovedPermanently..=Status::PermanentRedirect).contains(&intro.0));
-                        tracing::debug!("HttpRequestTaskState::CheckRedirect: headers = {:?}", headers);
-                        tracing::debug!("HttpRequestTaskState::CheckRedirect: Location header = {:?}", headers.get(&SimpleHeader::LOCATION));
+                        tracing::debug!(
+                            "HttpRequestTaskState::CheckRedirect: intro status = {:?}",
+                            intro.0
+                        );
+                        tracing::debug!(
+                            "HttpRequestTaskState::CheckRedirect: is redirect? {}",
+                            (Status::MovedPermanently..=Status::PermanentRedirect)
+                                .contains(&intro.0)
+                        );
+                        tracing::debug!(
+                            "HttpRequestTaskState::CheckRedirect: headers = {:?}",
+                            headers
+                        );
+                        tracing::debug!(
+                            "HttpRequestTaskState::CheckRedirect: Location header = {:?}",
+                            headers.get(&SimpleHeader::LOCATION)
+                        );
 
                         if (Status::MovedPermanently..=Status::PermanentRedirect).contains(&intro.0)
                         {
@@ -418,7 +442,10 @@ where
                                 .and_then(|v| v.first())
                             {
                                 Some(redirect_url) => {
-                                    tracing::debug!("CheckRedirect: Location header value = {}", redirect_url);
+                                    tracing::debug!(
+                                        "CheckRedirect: Location header value = {}",
+                                        redirect_url
+                                    );
                                     match Uri::parse(redirect_url.as_str()) {
                                         Ok(parsed_uri) => {
                                             let mut new_request = SimpleIncomingRequest::builder()
@@ -427,11 +454,14 @@ where
                                                 .with_body(SendSafeBody::None)
                                                 .with_method(SimpleMethod::GET);
 
-                                            if let Some(link_values) = headers.get(&SimpleHeader::LINK)
+                                            if let Some(link_values) =
+                                                headers.get(&SimpleHeader::LINK)
                                             {
                                                 for link in link_values {
-                                                    new_request = new_request
-                                                        .add_header(SimpleHeader::LINK, link.clone());
+                                                    new_request = new_request.add_header(
+                                                        SimpleHeader::LINK,
+                                                        link.clone(),
+                                                    );
                                                 }
                                             }
 
@@ -474,7 +504,7 @@ where
                                             )))
                                         }
                                     }
-                                },
+                                }
                                 None => Some(TaskStatus::Ready(RequestIntro::Failed(
                                     HttpClientError::ReadError,
                                 ))),

@@ -3,8 +3,5 @@
 //! Re-exports common deployment output types from foundation_deployment.
 
 pub use foundation_deployment::types::{
-    CloudRunDeployment,
-    CloudRunJobDeployment,
-    DeploymentOutput,
-    WorkerDeployment,
+    CloudRunDeployment, CloudRunJobDeployment, DeploymentOutput, WorkerDeployment,
 };

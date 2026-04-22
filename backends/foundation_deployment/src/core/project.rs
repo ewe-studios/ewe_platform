@@ -43,15 +43,15 @@ impl ProjectScanner {
     /// Returns `DeploymentError::NoProviderDetected` if no recognized
     /// config file is found in `root`.
     pub fn scan(root: &Path) -> Result<ProjectInfo, DeploymentError> {
-        let target = DeploymentTarget::detect(root).ok_or_else(|| {
-            DeploymentError::NoProviderDetected {
+        let target =
+            DeploymentTarget::detect(root).ok_or_else(|| DeploymentError::NoProviderDetected {
                 project_dir: root.display().to_string(),
-            }
-        })?;
+            })?;
 
-        let name = root
-            .file_name()
-            .map_or_else(|| "unknown".to_string(), |n| n.to_string_lossy().into_owned());
+        let name = root.file_name().map_or_else(
+            || "unknown".to_string(),
+            |n| n.to_string_lossy().into_owned(),
+        );
 
         Ok(ProjectInfo {
             name,

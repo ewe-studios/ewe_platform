@@ -20,14 +20,15 @@
 
 use crate::providers::huggingface::constants::{
     HF_API_DATASETS, HF_API_MODELS, HF_API_REPOS_CREATE, HF_API_REPOS_DELETE, HF_API_REPOS_MOVE,
-    HF_API_SPACES, HF_API_WHOAMI, HF_DEFAULT_ENDPOINT, HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV,
-    HF_HOME_ENV, HF_TOKEN_ENV, HF_TOKEN_FILENAME, HF_TOKEN_PATH_ENV, HF_USER_AGENT,
+    HF_API_SPACES, HF_API_WHOAMI, HF_DEFAULT_ENDPOINT, HF_HOME_ENV,
+    HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV, HF_TOKEN_ENV, HF_TOKEN_FILENAME, HF_TOKEN_PATH_ENV,
+    HF_USER_AGENT,
 };
 use crate::providers::huggingface::error::{HuggingFaceError, Result};
 use crate::providers::huggingface::repository::HFRepository;
 use crate::providers::huggingface::types::{
     CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
-    ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, SpaceInfo, User, RepoUrl,
+    ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{
@@ -65,7 +66,7 @@ impl Default for HFClientBuilder {
 
 impl HFClientBuilder {
     /// Create a new builder with defaults from environment.
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             endpoint: None,
@@ -94,16 +95,15 @@ impl HFClientBuilder {
     /// Currently infallible, but returns `Result` to allow future configuration
     /// validation (e.g., endpoint URL parsing) without a breaking change.
     pub fn build(self) -> Result<HFClient> {
-        let endpoint = self
-            .endpoint
-            .unwrap_or_else(|| std::env::var("HF_ENDPOINT").unwrap_or_else(|_| HF_DEFAULT_ENDPOINT.to_string()));
+        let endpoint = self.endpoint.unwrap_or_else(|| {
+            std::env::var("HF_ENDPOINT").unwrap_or_else(|_| HF_DEFAULT_ENDPOINT.to_string())
+        });
 
         let token = self.token.or_else(resolve_token);
 
         // Configure client to preserve auth headers on redirects
         // HuggingFace redirects to CDN (cas-bridge.xethub.hf.co) for file downloads
-        let client = SimpleHttpClient::from_system()
-            .preserve_auth_on_redirect(true);
+        let client = SimpleHttpClient::from_system().preserve_auth_on_redirect(true);
 
         Ok(HFClient {
             inner: Arc::new(HFClientInner {
@@ -177,7 +177,7 @@ impl HFClient {
     }
 
     /// Get a builder for fine-grained configuration.
-    #[must_use] 
+    #[must_use]
     pub fn builder() -> HFClientBuilder {
         HFClientBuilder::new()
     }
@@ -223,7 +223,7 @@ impl HFClient {
     ///
     /// Note: This returns only auth-related headers. For use with a request builder,
     /// use `apply_auth_headers()` to add them without replacing the Host header.
-    #[must_use] 
+    #[must_use]
     pub fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         headers.insert(SimpleHeader::USER_AGENT, vec![HF_USER_AGENT.to_string()]);
@@ -248,7 +248,7 @@ impl HFClient {
     /// Apply authentication headers to a request builder.
     ///
     /// This adds headers individually to avoid replacing the Host header.
-    #[must_use] 
+    #[must_use]
     pub fn apply_auth_headers<T: DnsResolver + 'static>(
         &self,
         builder: ClientRequestBuilder<T>,
@@ -267,7 +267,7 @@ impl HFClient {
     }
 
     /// Build API URL for a repository.
-    #[must_use] 
+    #[must_use]
     pub fn api_url(&self, repo_type: Option<RepoType>, repo_id: &str) -> String {
         let prefix = match repo_type {
             Some(RepoType::Dataset) => "datasets/",
@@ -279,7 +279,7 @@ impl HFClient {
     }
 
     /// Build download URL for a file.
-    #[must_use] 
+    #[must_use]
     pub fn download_url(
         &self,
         repo_type: Option<RepoType>,
@@ -358,17 +358,15 @@ pub fn whoami(client: &HFClient) -> Result<User> {
                 let user: User = serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(user)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))?
+    collect_one(stream).ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))?
 }
 
 /// Check if token is valid.
@@ -421,14 +419,13 @@ pub fn list_models(
                     serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(models)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     Ok(stream.flat_map_next(|result| match result {
         Ok(models) => {
@@ -478,14 +475,13 @@ pub fn list_datasets(
                     serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(datasets)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     Ok(stream.flat_map_next(|result| match result {
         Ok(datasets) => {
@@ -535,14 +531,13 @@ pub fn list_spaces(
                     serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(spaces)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     Ok(stream.flat_map_next(|result| match result {
         Ok(spaces) => {
@@ -582,19 +577,19 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
         "spaceSdk": params.space_sdk,
     });
 
-    let builder = http_client
-        .post(&url)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = http_client.post(&url).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let builder = client.apply_auth_headers(builder);
 
-    let builder = builder
-        .body_json(&body_json)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = builder.body_json(&body_json).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let task = builder
         .build_send_request()
@@ -616,14 +611,13 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
                     serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(repo_url)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     collect_one(stream)
         .ok_or_else(|| HuggingFaceError::Backend("No result from create_repo".into()))?
@@ -652,19 +646,19 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
         "missingOk": params.missing_ok,
     });
 
-    let builder = http_client
-        .delete(&url)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = http_client.delete(&url).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let builder = client.apply_auth_headers(builder);
 
-    let builder = builder
-        .body_json(&body_json)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = builder.body_json(&body_json).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let task = builder
         .build_send_request()
@@ -684,14 +678,13 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
                 let _ = body_reader::collect_string(stream);
                 Ok(())
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     collect_one(stream)
         .ok_or_else(|| HuggingFaceError::Backend("No result from delete_repo".into()))?
@@ -720,19 +713,19 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
         }),
     });
 
-    let builder = http_client
-        .post(&url)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = http_client.post(&url).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let builder = client.apply_auth_headers(builder);
 
-    let builder = builder
-        .body_json(&body_json)
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+    let builder = builder.body_json(&body_json).map_err(
+        |e: foundation_core::wire::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
-        })?;
+        },
+    )?;
 
     let task = builder
         .build_send_request()
@@ -754,14 +747,13 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
                     serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
                 Ok(repo_url)
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {e}"
-            ))),
+            RequestIntro::Failed(e) => {
+                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
+            }
         })
         .map_pending(|_| ());
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
     collect_one(stream)
         .ok_or_else(|| HuggingFaceError::Backend("No result from move_repo".into()))?

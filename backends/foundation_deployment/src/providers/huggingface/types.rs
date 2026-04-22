@@ -28,7 +28,6 @@ impl fmt::Display for RepoType {
     }
 }
 
-
 /// Blob LFS information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlobLfsInfo {
@@ -166,7 +165,7 @@ pub enum RepoInfo {
 
 impl RepoInfo {
     /// Get the repository type.
-    #[must_use] 
+    #[must_use]
     pub fn repo_type(&self) -> RepoType {
         match self {
             RepoInfo::Model(_) => RepoType::Model,

@@ -14,4 +14,4 @@ mod analyzer;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};
-pub use generator::{UnifiedGenerator, GenError};
+pub use generator::{GenError, UnifiedGenerator};

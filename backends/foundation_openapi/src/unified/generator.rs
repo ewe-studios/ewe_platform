@@ -6,14 +6,11 @@
 //!
 //! HOW: String templates for each endpoint unit, grouped into modules.
 
-use crate::{
-    EndpointInfo,
-    to_pascal_case, to_snake_case, sanitize_identifier,
-};
+use crate::{sanitize_identifier, to_pascal_case, to_snake_case, EndpointInfo};
 use std::collections::HashSet;
 use std::fmt::Write as FmtWrite;
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
 use toml::Value;
 
 use super::analyzer::ApiGroup;
@@ -24,10 +21,19 @@ fn regex_shared_type_names(content: &str) -> Vec<String> {
     for line in content.lines() {
         let trimmed = line.trim();
         // Match "pub struct TypeName" or "pub enum TypeName"
-        if let Some(rest) = trimmed.strip_prefix("pub struct ").or_else(|| trimmed.strip_prefix("pub enum ")) {
+        if let Some(rest) = trimmed
+            .strip_prefix("pub struct ")
+            .or_else(|| trimmed.strip_prefix("pub enum "))
+        {
             if let Some(name) = rest.split_whitespace().next() {
                 let clean = name.trim_end_matches('{').trim_end();
-                if !clean.is_empty() && clean.chars().next().map(|c| c.is_uppercase() || c == '_').unwrap_or(false) {
+                if !clean.is_empty()
+                    && clean
+                        .chars()
+                        .next()
+                        .map(|c| c.is_uppercase() || c == '_')
+                        .unwrap_or(false)
+                {
                     names.push(clean.to_string());
                 }
             }
@@ -52,12 +58,11 @@ fn regex_shared_type_names(content: &str) -> Vec<String> {
 
 /// Rust keywords that must be escaped when used as identifiers.
 const RUST_KEYWORDS: &[&str] = &[
-    "as", "async", "await", "break", "const", "continue", "dyn", "else", "enum",
-    "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match",
-    "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static",
-    "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while",
-    "abstract", "become", "box", "do", "final", "macro", "override", "priv",
-    "typeof", "unsized", "virtual", "yield", "try", "union", "raw",
+    "as", "async", "await", "break", "const", "continue", "dyn", "else", "enum", "extern", "false",
+    "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref",
+    "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe",
+    "use", "where", "while", "abstract", "become", "box", "do", "final", "macro", "override",
+    "priv", "typeof", "unsized", "virtual", "yield", "try", "union", "raw",
 ];
 
 /// Escape a Rust keyword by prefixing with `r#`.
@@ -95,7 +100,9 @@ fn sanitize_module_name(name: &str) -> String {
 /// Rename a type that conflicts with Rust std types by adding a suffix.
 fn rename_std_type_conflict(type_name: &str) -> String {
     // Types that conflict with std or common types
-    let std_types = ["String", "Vec", "Option", "Result", "Box", "Rc", "Arc", "Cow", "HashMap", "BTreeMap"];
+    let std_types = [
+        "String", "Vec", "Option", "Result", "Box", "Rc", "Arc", "Cow", "HashMap", "BTreeMap",
+    ];
     if std_types.contains(&type_name) {
         format!("{}Type", type_name)
     } else {
@@ -105,13 +112,20 @@ fn rename_std_type_conflict(type_name: &str) -> String {
 
 /// Extract inner type names from a type string (handles Vec<T>, Option<T>, etc.).
 /// Adds extracted type names to the all_types set.
-fn extract_type_names_from_generic(type_str: &str, all_types: &mut std::collections::HashSet<String>) {
+fn extract_type_names_from_generic(
+    type_str: &str,
+    all_types: &mut std::collections::HashSet<String>,
+) {
     // Skip invalid types
     if type_str == "()" || type_str == "serde_json::Value" {
         return;
     }
     // Skip if it's just a generic wrapper without a real type
-    if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_str) {
+    if [
+        "Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow",
+    ]
+    .contains(&type_str)
+    {
         return;
     }
     // If it's a generic type like Vec<T>, extract T
@@ -218,7 +232,8 @@ fn collect_referenced_type_names(
 fn build_type_dependencies(
     schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
 ) -> std::collections::HashMap<String, std::collections::HashSet<String>> {
-    let mut deps: std::collections::HashMap<String, std::collections::HashSet<String>> = std::collections::HashMap::new();
+    let mut deps: std::collections::HashMap<String, std::collections::HashSet<String>> =
+        std::collections::HashMap::new();
 
     for (name, schema) in schemas {
         let safe_name = rename_std_type_conflict(&crate::to_pascal_case(name));
@@ -246,7 +261,13 @@ fn collect_refs_from_schema(
     }
 
     // Recursively collect from allOf/oneOf/anyOf
-    for member in schema.all_of.iter().flatten().chain(schema.one_of.iter().flatten()).chain(schema.any_of.iter().flatten()) {
+    for member in schema
+        .all_of
+        .iter()
+        .flatten()
+        .chain(schema.one_of.iter().flatten())
+        .chain(schema.any_of.iter().flatten())
+    {
         collect_refs_from_schema(member, refs, schemas);
     }
 
@@ -319,19 +340,28 @@ fn find_recursive_types(
 /// Given a field type name, wrap it in Box<> if it's recursive.
 fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<String>) -> String {
     // Handle Option<T> -> Option<Box<T>> if T is recursive
-    if let Some(inner) = field_type.strip_prefix("Option<").and_then(|s| s.strip_suffix(">")) {
+    if let Some(inner) = field_type
+        .strip_prefix("Option<")
+        .and_then(|s| s.strip_suffix(">"))
+    {
         if recursive_types.contains(inner) {
             return format!("Option<Box<{}>>", inner);
         }
     }
     // Handle Vec<T> -> Vec<Box<T>> if T is recursive
-    if let Some(inner) = field_type.strip_prefix("Vec<").and_then(|s| s.strip_suffix(">")) {
+    if let Some(inner) = field_type
+        .strip_prefix("Vec<")
+        .and_then(|s| s.strip_suffix(">"))
+    {
         if recursive_types.contains(inner) {
             return format!("Vec<Box<{}>>", inner);
         }
     }
     // Handle Option<Vec<T>> -> Option<Vec<Box<T>>> if T is recursive
-    if let Some(inner) = field_type.strip_prefix("Option<Vec<").and_then(|s| s.strip_suffix(">>")) {
+    if let Some(inner) = field_type
+        .strip_prefix("Option<Vec<")
+        .and_then(|s| s.strip_suffix(">>"))
+    {
         if recursive_types.contains(inner) {
             return format!("Option<Vec<Box<{}>>>", inner);
         }
@@ -361,8 +391,8 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                 while let Some(&next_c) = chars.peek() {
                     if next_c == '}' {
                         chars.next(); // consume the closing brace
-                        // Check if this param is in our path_params list.
-                        // Strip GCP resource expansion prefix (+) from param_content.
+                                      // Check if this param is in our path_params list.
+                                      // Strip GCP resource expansion prefix (+) from param_content.
                         let normalized = param_content.strip_prefix('+').unwrap_or(&param_content);
                         if let Some(matching_param) = path_params.iter().find(|p| {
                             let sanitized = sanitize_identifier(p);
@@ -370,7 +400,8 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                         }) {
                             // This is a known path parameter - replace with {}
                             result.push_str("{}");
-                            params_in_url_order.push(to_snake_case(&sanitize_identifier(matching_param)));
+                            params_in_url_order
+                                .push(to_snake_case(&sanitize_identifier(matching_param)));
                         } else {
                             // Unknown param - escape as literal braces
                             result.push_str(&format!("{{{{{}}}}}", param_content));
@@ -420,7 +451,13 @@ fn sanitize_group_name(name: &str) -> String {
     // Step 2: Replace any non-alphanumeric characters (except underscore) with underscore
     let sanitized: String = snake_case
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect();
 
     // Step 3: Collapse multiple underscores into one
@@ -482,7 +519,11 @@ fn collapse_redundant_words(name: &str) -> String {
 }
 
 /// Update Cargo.toml with missing feature flags for the provider.
-fn update_cargo_toml(provider: &str, groups: &[ApiGroup], cargo_toml_path: &Path) -> Result<(), std::io::Error> {
+fn update_cargo_toml(
+    provider: &str,
+    groups: &[ApiGroup],
+    cargo_toml_path: &Path,
+) -> Result<(), std::io::Error> {
     let content = fs::read_to_string(cargo_toml_path)?;
 
     // Parse TOML into a mutable Value
@@ -495,7 +536,12 @@ fn update_cargo_toml(provider: &str, groups: &[ApiGroup], cargo_toml_path: &Path
     let features = doc
         .get_mut("features")
         .and_then(|v| v.as_table_mut())
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "missing [features] section"))?;
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "missing [features] section",
+            )
+        })?;
 
     // Check if this is a hierarchical provider (e.g., gcp/admin -> gcp_admin under gcp)
     // We detect this by checking if the provider name contains underscores that indicate nesting
@@ -533,7 +579,10 @@ fn update_cargo_toml(provider: &str, groups: &[ApiGroup], cargo_toml_path: &Path
     // Update provider-level feature to enable all group features
     // e.g., gcp_admin = ["gcp_admin_applications", "gcp_admin_dates", ...]
     let provider_feature_array: Value = Value::Array(
-        group_features.iter().map(|f| Value::String(f.clone())).collect()
+        group_features
+            .iter()
+            .map(|f| Value::String(f.clone()))
+            .collect(),
     );
     features.insert(provider_feature.clone(), provider_feature_array);
 
@@ -555,7 +604,10 @@ fn update_cargo_toml(provider: &str, groups: &[ApiGroup], cargo_toml_path: &Path
 
         // Update parent feature to include all sub-providers
         let parent_feature_array: Value = Value::Array(
-            sub_providers.iter().map(|f| Value::String(f.clone())).collect()
+            sub_providers
+                .iter()
+                .map(|f| Value::String(f.clone()))
+                .collect(),
         );
         features.insert(parent.clone(), parent_feature_array);
     }
@@ -613,13 +665,16 @@ impl From<std::fmt::Error> for GenError {
 
 impl UnifiedGenerator {
     pub fn new(output_dir: PathBuf) -> Self {
-        Self {
-            output_dir,
-        }
+        Self { output_dir }
     }
 
     /// Generate all artifacts for a provider as cohesive per-endpoint units.
-    pub fn generate(&self, provider: &str, spec_content: &str, options: &super::analyzer::AnalysisOptions) -> Result<(), GenError> {
+    pub fn generate(
+        &self,
+        provider: &str,
+        spec_content: &str,
+        options: &super::analyzer::AnalysisOptions,
+    ) -> Result<(), GenError> {
         use super::analyzer::analyze_spec;
 
         // Analyze spec
@@ -634,7 +689,13 @@ impl UnifiedGenerator {
 
         // Generate one module per group
         for group in &analysis.groups {
-            self.generate_group_module(provider, group, &analysis.shared_resources, &analysis.schemas, &provider_output_dir)?;
+            self.generate_group_module(
+                provider,
+                group,
+                &analysis.shared_resources,
+                &analysis.schemas,
+                &provider_output_dir,
+            )?;
         }
 
         // Generate provider mod.rs with feature guards
@@ -646,18 +707,20 @@ impl UnifiedGenerator {
         // - ancestors[0] = backends/foundation_deployment/src/providers
         // - ancestors[1] = backends/foundation_deployment/src
         // - ancestors[2] = backends/foundation_deployment (crate root with Cargo.toml)
-        let cargo_toml_path = self.output_dir
+        let cargo_toml_path = self
+            .output_dir
             .ancestors()
             .nth(2)
             .map(|p| p.join("Cargo.toml"))
             .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"));
 
         if cargo_toml_path.exists() {
-            update_cargo_toml(provider, &analysis.groups, &cargo_toml_path)
-                .map_err(|e| GenError::WriteFile {
+            update_cargo_toml(provider, &analysis.groups, &cargo_toml_path).map_err(|e| {
+                GenError::WriteFile {
                     path: cargo_toml_path.display().to_string(),
                     source: e,
-                })?;
+                }
+            })?;
         }
 
         Ok(())
@@ -682,21 +745,41 @@ impl UnifiedGenerator {
 
         // File header
         let provider_safe = provider.replace('-', "_").replace('/', "_");
-        writeln!(out, "//! Auto-generated API module for {} {}.", provider, group.name)?;
+        writeln!(
+            out,
+            "//! Auto-generated API module for {} {}.",
+            provider, group.name
+        )?;
         writeln!(out, "//!")?;
-        writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_api`.")?;
+        writeln!(
+            out,
+            "//! Generated by `cargo run --bin ewe_platform gen_api`."
+        )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out, "//!")?;
         writeln!(out, "//! Feature flag: `{}_{} `", provider_safe, safe_name)?;
         writeln!(out)?;
-        writeln!(out, "#![cfg(feature = \"{}_{}\")]", provider_safe, safe_name)?;
-        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
-        writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
+        writeln!(
+            out,
+            "#![cfg(feature = \"{}_{}\")]",
+            provider_safe, safe_name
+        )?;
+        writeln!(
+            out,
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+        )?;
+        writeln!(
+            out,
+            "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]"
+        )?;
         writeln!(out, "#![allow(unused_imports)]")?;
         writeln!(out)?;
 
         // Common imports — only what's actually used in the generated code
-        writeln!(out, "use foundation_core::valtron::{{TaskIterator, TaskIteratorExt}};")?;
+        writeln!(
+            out,
+            "use foundation_core::valtron::{{TaskIterator, TaskIteratorExt}};"
+        )?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{ClientRequestBuilder, SimpleHttpClient}};")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -709,16 +792,32 @@ impl UnifiedGenerator {
             if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
                 continue;
             }
-            if !type_name.chars().next().map(|c| c.is_alphabetic() || c == '_').unwrap_or(false) {
+            if !type_name
+                .chars()
+                .next()
+                .map(|c| c.is_alphabetic() || c == '_')
+                .unwrap_or(false)
+            {
                 continue;
             }
-            if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
+            if [
+                "Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow",
+            ]
+            .contains(&type_name.as_str())
+            {
                 continue;
             }
             // Check if any endpoint in this group uses this type directly
             let is_used = group.endpoints.iter().any(|ep| {
-                ep.response_type.as_ref().map(|rt| rt.as_rust_type() == type_name).unwrap_or(false)
-                    || ep.request_type.as_ref().map(|rt| rt == type_name).unwrap_or(false)
+                ep.response_type
+                    .as_ref()
+                    .map(|rt| rt.as_rust_type() == type_name)
+                    .unwrap_or(false)
+                    || ep
+                        .request_type
+                        .as_ref()
+                        .map(|rt| rt == type_name)
+                        .unwrap_or(false)
             });
             if is_used {
                 let renamed = rename_std_type_conflict(type_name);
@@ -761,7 +860,8 @@ impl UnifiedGenerator {
         // Scan the actual shared module file to get all types it defines.
         // This is more reliable than relying on the analyzer's shared_resources list.
         let shared_mod_path = output_dir.join("shared").join("mod.rs");
-        let mut actual_shared_types: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut actual_shared_types: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
         if let Ok(shared_content) = std::fs::read_to_string(&shared_mod_path) {
             // Match "pub struct TypeName" and "pub enum TypeName" patterns
             for cap in regex_shared_type_names(&shared_content) {
@@ -784,7 +884,9 @@ impl UnifiedGenerator {
         // not appear in the group's own shared/mod.rs (they're re-exported from common).
         for special_type in &["Empty", "Operation"] {
             if all_types.contains(*special_type)
-                && !used_shared_types.iter().any(|(orig, _)| orig == special_type)
+                && !used_shared_types
+                    .iter()
+                    .any(|(orig, _)| orig == special_type)
             {
                 used_shared_types.push((special_type.to_string(), special_type.to_string()));
             }
@@ -810,9 +912,15 @@ impl UnifiedGenerator {
         }
 
         // Generate type stubs for forward references
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out, "// TYPE DECLARATIONS")?;
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out)?;
 
         // Build dependency graph to detect recursive types (types that reference themselves)
@@ -839,15 +947,30 @@ impl UnifiedGenerator {
             // Try to find the schema for this type
             if let Some(schema) = schemas.get(type_name) {
                 // Generate proper struct from schema, wrapping recursive refs in Box<>
-                self.generate_type_from_schema(&mut out, &safe_type_name, schema, schemas, &recursive_types)?;
+                self.generate_type_from_schema(
+                    &mut out,
+                    &safe_type_name,
+                    schema,
+                    schemas,
+                    &recursive_types,
+                )?;
             } else {
                 // No schema found - generate placeholder struct
                 writeln!(out, "/// `{}` response type.", safe_type_name)?;
-                writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
+                writeln!(
+                    out,
+                    "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
+                )?;
                 writeln!(out, "pub struct {} {{", safe_type_name)?;
-                writeln!(out, "    /// Raw JSON value - full schema generated from `OpenAPI`")?;
+                writeln!(
+                    out,
+                    "    /// Raw JSON value - full schema generated from `OpenAPI`"
+                )?;
                 writeln!(out, "    #[serde(flatten)]")?;
-                writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
+                writeln!(
+                    out,
+                    "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+                )?;
                 writeln!(out, "}}")?;
                 writeln!(out)?;
             }
@@ -856,13 +979,22 @@ impl UnifiedGenerator {
         }
 
         // Generate Args types per endpoint
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out, "// ARGS TYPES (per-endpoint)")?;
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out)?;
 
         for ep in &group.endpoints {
-            let args_name = format!("{}Args", to_pascal_case(&sanitize_identifier(&ep.operation_id)));
+            let args_name = format!(
+                "{}Args",
+                to_pascal_case(&sanitize_identifier(&ep.operation_id))
+            );
 
             // Check if this endpoint has params
             let has_params = !ep.path_params.is_empty()
@@ -875,12 +1007,14 @@ impl UnifiedGenerator {
                 writeln!(out, "pub struct {} {{", args_name)?;
 
                 for param in &ep.path_params {
-                    let param_name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                    let param_name =
+                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
                     writeln!(out, "    /// Path parameter: `{}`.", param)?;
                     writeln!(out, "    pub {}: String,", param_name)?;
                 }
                 for param in &ep.query_params {
-                    let param_name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                    let param_name =
+                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
                     writeln!(out, "    /// Query parameter: `{}`.", param)?;
                     writeln!(out, "    pub {}: Option<String>,", param_name)?;
                 }
@@ -895,9 +1029,15 @@ impl UnifiedGenerator {
         }
 
         // Generate client functions per endpoint
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out, "// CLIENT FUNCTIONS (per-endpoint)")?;
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out)?;
 
         for ep in &group.endpoints {
@@ -909,7 +1049,9 @@ impl UnifiedGenerator {
         fs::write(&output_path, out)?;
 
         // Format
-        let _ = std::process::Command::new("rustfmt").arg(&output_path).output();
+        let _ = std::process::Command::new("rustfmt")
+            .arg(&output_path)
+            .output();
 
         Ok(())
     }
@@ -927,7 +1069,10 @@ impl UnifiedGenerator {
         use std::collections::BTreeMap;
 
         writeln!(out, "/// `{}` type.", type_name)?;
-        writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
+        writeln!(
+            out,
+            "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
+        )?;
         writeln!(out, "pub struct {} {{", type_name)?;
 
         // Handle allOf - merge properties from all members
@@ -964,7 +1109,8 @@ impl UnifiedGenerator {
         }
         // Handle object with properties
         else if let Some(properties) = &schema.properties {
-            let required: std::collections::HashSet<String> = schema.required.iter().cloned().collect();
+            let required: std::collections::HashSet<String> =
+                schema.required.iter().cloned().collect();
             let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
 
             for (prop_name, prop_schema) in properties {
@@ -991,7 +1137,10 @@ impl UnifiedGenerator {
         // If no properties were generated, add a fallback field
         if schema.properties.is_none() && schema.all_of.is_none() {
             writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
+            writeln!(
+                out,
+                "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+            )?;
         }
 
         writeln!(out, "}}")?;
@@ -1053,35 +1202,55 @@ impl UnifiedGenerator {
         _group: &ApiGroup,
     ) -> Result<(), GenError> {
         let fn_prefix = to_snake_case(&sanitize_identifier(&ep.operation_id));
-        let return_type = ep.response_type
+        let return_type = ep
+            .response_type
             .as_ref()
             .map(|rt| rt.as_rust_type().to_string())
             .unwrap_or_else(|| "()".to_string());
 
-        let args_name = format!("{}Args", to_pascal_case(&sanitize_identifier(&ep.operation_id)));
+        let args_name = format!(
+            "{}Args",
+            to_pascal_case(&sanitize_identifier(&ep.operation_id))
+        );
 
         // Header comment for this endpoint
-        writeln!(out, "// -----------------------------------------------------------------------------")?;
+        writeln!(
+            out,
+            "// -----------------------------------------------------------------------------"
+        )?;
         writeln!(out, "// {} {}", ep.method, ep.path)?;
-        writeln!(out, "// -----------------------------------------------------------------------------")?;
+        writeln!(
+            out,
+            "// -----------------------------------------------------------------------------"
+        )?;
         writeln!(out)?;
 
         // Single merged function: builds request, applies optional modifications, returns task
         writeln!(out, "/// {} {}.", ep.method, ep.path)?;
         writeln!(out, "///")?;
-        writeln!(out, "/// Takes client and args, builds the request, optionally applies modifications,")?;
+        writeln!(
+            out,
+            "/// Takes client and args, builds the request, optionally applies modifications,"
+        )?;
         writeln!(out, "/// and returns a `TaskIterator` for execution.")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
         writeln!(out, "/// * `client` - HTTP client for making the request")?;
-        writeln!(out, "/// * `args` - Request arguments (path params, query params, body)")?;
+        writeln!(
+            out,
+            "/// * `args` - Request arguments (path params, query params, body)"
+        )?;
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Example")?;
         writeln!(out, "///")?;
         writeln!(out, "/// ```ignore")?;
-        writeln!(out, "/// let task = {}_request(&client, &args, Some(|b| {{", fn_prefix)?;
+        writeln!(
+            out,
+            "/// let task = {}_request(&client, &args, Some(|b| {{",
+            fn_prefix
+        )?;
         writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\")")?;
         writeln!(out, "/// }}))?;")?;
         writeln!(out, "/// ```")?;
@@ -1098,7 +1267,10 @@ impl UnifiedGenerator {
 
         // Build URL with path params, then append query params if any
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        let (escaped_base, _) = escape_url_for_format(ep.base_url.as_deref().unwrap_or("https://api.example.com"), &[]);
+        let (escaped_base, _) = escape_url_for_format(
+            ep.base_url.as_deref().unwrap_or("https://api.example.com"),
+            &[],
+        );
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
         for param_name in &params_in_url_order {
@@ -1129,8 +1301,15 @@ impl UnifiedGenerator {
 
         // Build request
         let method_lower = ep.method.to_lowercase();
-        writeln!(out, "    let mut builder = client.{}(&endpoint_url)", method_lower)?;
-        writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;")?;
+        writeln!(
+            out,
+            "    let mut builder = client.{}(&endpoint_url)",
+            method_lower
+        )?;
+        writeln!(
+            out,
+            "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;"
+        )?;
         writeln!(out)?;
 
         // Add body if present
@@ -1157,8 +1336,14 @@ impl UnifiedGenerator {
         } else {
             writeln!(out, "                super::shared::RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
         }
-        writeln!(out, "                    let status: usize = intro.0.into();")?;
-        writeln!(out, "                    if status < 200 || status >= 300 {{")?;
+        writeln!(
+            out,
+            "                    let status: usize = intro.0.into();"
+        )?;
+        writeln!(
+            out,
+            "                    if status < 200 || status >= 300 {{"
+        )?;
         writeln!(out, "                        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers: headers.clone(), body: None }});")?;
         writeln!(out, "                    }}")?;
         if return_type == "()" {
@@ -1171,7 +1356,10 @@ impl UnifiedGenerator {
         writeln!(out, "                }}")?;
         writeln!(out, "                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),")?;
         writeln!(out, "            }})")?;
-        writeln!(out, "            .map_pending(|_| super::shared::ApiPending::Sending)")?;
+        writeln!(
+            out,
+            "            .map_pending(|_| super::shared::ApiPending::Sending)"
+        )?;
         writeln!(out, "    )")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
@@ -1189,21 +1377,37 @@ impl UnifiedGenerator {
         fs::create_dir_all(&shared_dir)?;
 
         let mut out = String::new();
-        writeln!(out, "//! Shared types for {} (used by multiple groups).", analysis.provider)?;
+        writeln!(
+            out,
+            "//! Shared types for {} (used by multiple groups).",
+            analysis.provider
+        )?;
         writeln!(out, "//!")?;
-        writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_api`.")?;
+        writeln!(
+            out,
+            "//! Generated by `cargo run --bin ewe_platform gen_api`."
+        )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
-        writeln!(out, "// Re-export common API types from foundation_deployment")?;
+        writeln!(
+            out,
+            "// Re-export common API types from foundation_deployment"
+        )?;
         writeln!(out, "pub use crate::providers::common::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out)?;
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out, "// SHARED RESOURCE TYPES")?;
-        writeln!(out, "// =============================================================================")?;
+        writeln!(
+            out,
+            "// ============================================================================="
+        )?;
         writeln!(out)?;
 
         for type_name in &analysis.shared_resources {
@@ -1212,11 +1416,20 @@ impl UnifiedGenerator {
                 continue;
             }
             // Skip types starting with non-alphabetic characters (except _)
-            if !type_name.chars().next().map(|c| c.is_alphabetic() || c == '_').unwrap_or(false) {
+            if !type_name
+                .chars()
+                .next()
+                .map(|c| c.is_alphabetic() || c == '_')
+                .unwrap_or(false)
+            {
                 continue;
             }
             // Skip array-like types (Vec, Option, etc. used as raw type names without generics)
-            if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
+            if [
+                "Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow",
+            ]
+            .contains(&type_name.as_str())
+            {
                 continue;
             }
             // Skip Empty and Operation — provided by crate::providers::common
@@ -1228,10 +1441,16 @@ impl UnifiedGenerator {
             let safe_name = rename_std_type_conflict(type_name);
 
             writeln!(out, "/// Shared type: `{}`.", safe_name)?;
-            writeln!(out, "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]")?;
+            writeln!(
+                out,
+                "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
+            )?;
             writeln!(out, "pub struct {} {{", safe_name)?;
             writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
+            writeln!(
+                out,
+                "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+            )?;
             writeln!(out, "}}")?;
             writeln!(out)?;
         }
@@ -1252,12 +1471,21 @@ impl UnifiedGenerator {
         let mut out = String::new();
         writeln!(out, "//! Auto-generated provider module for {}.", provider)?;
         writeln!(out, "//!")?;
-        writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_api`.")?;
+        writeln!(
+            out,
+            "//! Generated by `cargo run --bin ewe_platform gen_api`."
+        )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
-        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
-        writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
+        writeln!(
+            out,
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+        )?;
+        writeln!(
+            out,
+            "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]"
+        )?;
         writeln!(out, "#![allow(unused_imports)]")?;
         writeln!(out)?;
 

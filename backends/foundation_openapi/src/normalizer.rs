@@ -10,10 +10,10 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use crate::spec::{OpenApiSpec, Schema};
 use crate::endpoint::EndpointInfo;
-use crate::type_resolver::TypeResolver;
 use crate::extractor::EndpointExtractor;
+use crate::spec::{OpenApiSpec, Schema};
+use crate::type_resolver::TypeResolver;
 
 /// Normalized `OpenAPI` spec representation.
 #[derive(Debug, Serialize)]
@@ -93,7 +93,7 @@ pub struct SpecProcessor {
 
 impl SpecProcessor {
     /// Create processor from parsed spec.
-    #[must_use] 
+    #[must_use]
     pub fn new(spec: Arc<OpenApiSpec>) -> Self {
         let schemas = spec.all_schemas();
         let schema_map: BTreeMap<String, Schema> = schemas
@@ -181,7 +181,9 @@ impl SpecProcessor {
                 refs,
             })
         } else if let Some(items) = &schema.items {
-            let item_type = items.ref_path.as_ref()
+            let item_type = items
+                .ref_path
+                .as_ref()
                 .map(|ref_path| {
                     let n = ref_path.trim_start_matches("#/components/schemas/");
                     TypeResolver::to_pascal_case(n)
@@ -194,33 +196,41 @@ impl SpecProcessor {
             if ty == "object" {
                 TypeKind::Object
             } else {
-                TypeKind::Primitive { primitive: ty.clone() }
+                TypeKind::Primitive {
+                    primitive: ty.clone(),
+                }
             }
         } else {
             TypeKind::Object
         };
 
         // Extract properties
-        let properties = schema.properties.as_ref().map(|props| {
-            props
-                .iter()
-                .map(|(name, prop_schema)| {
-                    let ty = prop_schema.ref_path.as_ref()
-                        .map(|ref_path| {
-                            let n = ref_path.trim_start_matches("#/components/schemas/");
-                            TypeResolver::to_pascal_case(n)
-                        })
-                        .or_else(|| prop_schema.schema_type.clone())
-                        .unwrap_or_else(|| "unknown".to_string());
+        let properties = schema
+            .properties
+            .as_ref()
+            .map(|props| {
+                props
+                    .iter()
+                    .map(|(name, prop_schema)| {
+                        let ty = prop_schema
+                            .ref_path
+                            .as_ref()
+                            .map(|ref_path| {
+                                let n = ref_path.trim_start_matches("#/components/schemas/");
+                                TypeResolver::to_pascal_case(n)
+                            })
+                            .or_else(|| prop_schema.schema_type.clone())
+                            .unwrap_or_else(|| "unknown".to_string());
 
-                    PropertyDefinition {
-                        name: name.clone(),
-                        ty,
-                        required: schema.required.contains(name),
-                    }
-                })
-                .collect()
-        }).unwrap_or_default();
+                        PropertyDefinition {
+                            name: name.clone(),
+                            ty,
+                            required: schema.required.contains(name),
+                        }
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
 
         TypeDefinition {
             name: TypeResolver::rename_if_keyword(TypeResolver::to_pascal_case(name)),
@@ -230,17 +240,21 @@ impl SpecProcessor {
     }
 
     /// Get normalized representation.
-    #[must_use] 
+    #[must_use]
     pub fn normalize(&self) -> NormalizedSpec {
         let endpoints = self.endpoints();
         let types = self.types();
 
         // Build endpoint map
-        let mut endpoint_map: BTreeMap<String, BTreeMap<String, NormalizedEndpoint>> = BTreeMap::new();
+        let mut endpoint_map: BTreeMap<String, BTreeMap<String, NormalizedEndpoint>> =
+            BTreeMap::new();
         for ep in &endpoints {
             let path_entry = endpoint_map.entry(ep.path.clone()).or_default();
 
-            let response_type_str = ep.response_type.as_ref().map(|rt| rt.as_rust_type().to_string());
+            let response_type_str = ep
+                .response_type
+                .as_ref()
+                .map(|rt| rt.as_rust_type().to_string());
 
             path_entry.insert(
                 ep.method.clone(),
@@ -257,10 +271,8 @@ impl SpecProcessor {
         }
 
         // Build type map
-        let type_map: BTreeMap<String, TypeDefinition> = types
-            .into_iter()
-            .map(|t| (t.name.clone(), t))
-            .collect();
+        let type_map: BTreeMap<String, TypeDefinition> =
+            types.into_iter().map(|t| (t.name.clone(), t)).collect();
 
         let total_types = type_map.len();
 
@@ -280,8 +292,18 @@ impl SpecProcessor {
                 base_url: self.spec.base_url(),
                 total_endpoints: endpoints.len(),
                 total_types,
-                api_version: self.spec.info.as_ref().map(|i| i.version.clone()).unwrap_or_default(),
-                api_title: self.spec.info.as_ref().map(|i| i.title.clone()).unwrap_or_default(),
+                api_version: self
+                    .spec
+                    .info
+                    .as_ref()
+                    .map(|i| i.version.clone())
+                    .unwrap_or_default(),
+                api_title: self
+                    .spec
+                    .info
+                    .as_ref()
+                    .map(|i| i.title.clone())
+                    .unwrap_or_default(),
             },
         }
     }
@@ -299,19 +321,19 @@ impl SpecProcessor {
     }
 
     /// Get base URL for the API.
-    #[must_use] 
+    #[must_use]
     pub fn base_url(&self) -> Option<String> {
         self.spec.base_url()
     }
 
     /// Get API version from info.
-    #[must_use] 
+    #[must_use]
     pub fn version(&self) -> Option<&str> {
         self.spec.info.as_ref().map(|i| i.version.as_str())
     }
 
     /// Get API title from info.
-    #[must_use] 
+    #[must_use]
     pub fn title(&self) -> Option<&str> {
         self.spec.info.as_ref().map(|i| i.title.as_str())
     }

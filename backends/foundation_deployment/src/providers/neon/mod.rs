@@ -5,19 +5,23 @@
 
 #![cfg(feature = "neon")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
 pub mod shared;
 
-#[cfg(feature = "neon_keys")]
-pub mod keys;
 #[cfg(feature = "neon_auth")]
 pub mod auth;
 #[cfg(feature = "neon_compute")]
 pub mod compute;
 #[cfg(feature = "neon_invitations")]
 pub mod invitations;
+#[cfg(feature = "neon_keys")]
+pub mod keys;
 #[cfg(feature = "neon_me")]
 pub mod me;
 #[cfg(feature = "neon_members")]

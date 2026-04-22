@@ -10,7 +10,9 @@
 //!
 //! HOW: Delegates `next_status()` to whichever variant is active.
 
-use foundation_core::valtron::{BoxedSendExecutionAction, ExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, ExecutionAction, TaskIterator, TaskStatus,
+};
 
 /// Either wrapper for two `TaskIterator` implementations.
 pub enum TaskEither<A, B> {
@@ -46,9 +48,7 @@ pub struct OneShotTask<R> {
 impl<R> OneShotTask<R> {
     /// Create a new one-shot task that yields the given value.
     pub fn new(value: R) -> Self {
-        Self {
-            value: Some(value),
-        }
+        Self { value: Some(value) }
     }
 }
 

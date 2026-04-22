@@ -1009,7 +1009,10 @@ mod waitgroup_tests {
 
     /// Test 4: WaitGroupGuard calls done() even during panic
     #[test]
-    #[cfg_attr(cranelift_backend, ignore = "cranelift does not support panic unwinding")]
+    #[cfg_attr(
+        cranelift_backend,
+        ignore = "cranelift does not support panic unwinding"
+    )]
     fn test_waitgroup_guard_calls_done_during_panic() {
         let wg = WaitGroup::new();
         wg.add(1);

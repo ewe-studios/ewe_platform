@@ -200,8 +200,7 @@ pub fn init() {
     {
         use tracing_subscriber::EnvFilter;
 
-        let filter = EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new("info"));
+        let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
         tracing_subscriber::fmt()
             .with_target(false)
@@ -227,8 +226,7 @@ pub fn init() {
 pub fn init_with_filter(filter: &str) {
     use tracing_subscriber::EnvFilter;
 
-    let filter = EnvFilter::try_new(filter)
-        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let filter = EnvFilter::try_new(filter).unwrap_or_else(|_| EnvFilter::new("info"));
 
     tracing_subscriber::fmt()
         .with_target(false)
@@ -304,9 +302,7 @@ mod tests {
     #[test]
     #[cfg(feature = "tracing")]
     fn test_debug_macro_with_tracing() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .try_init();
+        let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
         debug!("Test debug message");
         debug!(target: "test_target", "Test debug with target");
@@ -315,9 +311,7 @@ mod tests {
     #[test]
     #[cfg(feature = "tracing")]
     fn test_warn_macro_with_tracing() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .try_init();
+        let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
         warn!("Test warn message");
         warn!(target: "test_target", "Test warn with target");
@@ -326,9 +320,7 @@ mod tests {
     #[test]
     #[cfg(feature = "tracing")]
     fn test_error_macro_with_tracing() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .try_init();
+        let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
         error!("Test error message");
         error!(target: "test_target", "Test error with target");
@@ -337,9 +329,7 @@ mod tests {
     #[test]
     #[cfg(feature = "tracing")]
     fn test_trace_macro_with_tracing() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .try_init();
+        let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
         trace!("Test trace message");
         trace!(target: "test_target", "Test trace with target");
@@ -348,9 +338,7 @@ mod tests {
     #[test]
     #[cfg(feature = "tracing")]
     fn test_info_with_args_with_tracing() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .try_init();
+        let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
         info!("Test info with args: {} {} {}", 42, "hello", 3.14);
     }

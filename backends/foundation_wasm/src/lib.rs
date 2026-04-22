@@ -16,7 +16,6 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
-
 #![no_std]
 
 extern crate alloc;

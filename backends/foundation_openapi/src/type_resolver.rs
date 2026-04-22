@@ -8,8 +8,8 @@
 //! HOW: Analyzes schema structure to determine if a type should be generated
 //! as a struct or handled as raw JSON.
 
-use crate::spec::{Response, Schema};
 use crate::endpoint::ResponseType;
+use crate::spec::{Response, Schema};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -23,7 +23,7 @@ pub struct TypeResolver {
 
 impl TypeResolver {
     /// Create resolver with schema map.
-    #[must_use] 
+    #[must_use]
     pub fn new(schemas: Arc<BTreeMap<String, Schema>>) -> Self {
         let object_schemas = Self::collect_object_schema_names(&schemas);
         Self {
@@ -41,9 +41,8 @@ impl TypeResolver {
 
         for (name, value) in schemas.iter() {
             // Include all object types and composition types
-            let has_composition = value.all_of.is_some()
-                || value.one_of.is_some()
-                || value.any_of.is_some();
+            let has_composition =
+                value.all_of.is_some() || value.one_of.is_some() || value.any_of.is_some();
             let is_object = value.schema_type.as_deref() == Some("object");
 
             // Also include response types (they may be allOf-refs-only but are still needed)
@@ -130,7 +129,11 @@ impl TypeResolver {
             Some(format!("Vec<{item_type}>"))
         }
         // Items is an inline object with properties - generate Vec<serde_json::Value>
-        else if items_schema.properties.as_ref().is_some_and(|p| !p.is_empty()) {
+        else if items_schema
+            .properties
+            .as_ref()
+            .is_some_and(|p| !p.is_empty())
+        {
             Some("Vec<serde_json::Value>".to_string())
         }
         // Items is a primitive type (e.g., string)
@@ -143,8 +146,7 @@ impl TypeResolver {
                 _ => "serde_json::Value",
             };
             Some(format!("Vec<{rust_type}>"))
-        }
-        else {
+        } else {
             Some("Vec<serde_json::Value>".to_string())
         }
     }
@@ -152,7 +154,7 @@ impl TypeResolver {
     /// Check if a schema is "generatable" (has properties or simple structure).
     ///
     /// Returns false for composition types (oneOf/anyOf) and empty objects.
-    #[must_use] 
+    #[must_use]
     pub fn is_generatable(&self, schema: &Schema) -> bool {
         Self::check_schema_generatable(schema, self.schemas.as_ref())
     }
@@ -179,7 +181,10 @@ impl TypeResolver {
                 }
             }
             // allOf with only $refs (no properties) - still generatable as it extends a base type
-            if all_of.iter().all(|m| m.ref_path.is_some() && m.properties.is_none()) {
+            if all_of
+                .iter()
+                .all(|m| m.ref_path.is_some() && m.properties.is_none())
+            {
                 return true;
             }
             return false;
@@ -205,7 +210,7 @@ impl TypeResolver {
     /// Get the response type for a response object.
     ///
     /// Handles composition types, $refs, and inline schemas.
-    #[must_use] 
+    #[must_use]
     pub fn get_response_type(&self, response: &Response) -> Option<ResponseType> {
         let content = response.content.as_ref()?;
         let media_type = content.get("application/json")?;
@@ -245,7 +250,7 @@ impl TypeResolver {
     /// - "treasury.transaction" → "`TreasuryTransaction`"
     /// - "Custom-pages" → "`CustomPages`"
     /// - "@`cf_ai4bharat.translation`" → "`CfAi4bharatTranslation`"
-    #[must_use] 
+    #[must_use]
     pub fn to_pascal_case(name: &str) -> String {
         name.split(['.', '-', '@', '_'])
             .map(|part| {
@@ -260,7 +265,7 @@ impl TypeResolver {
     }
 
     /// Rename if the type name conflicts with Rust keywords/builtins.
-    #[must_use] 
+    #[must_use]
     pub fn rename_if_keyword(name: String) -> String {
         match name.as_str() {
             "Option" => "ApiOption".to_string(),
@@ -278,7 +283,7 @@ impl TypeResolver {
     }
 
     /// Convert identifier to `snake_case`.
-    #[must_use] 
+    #[must_use]
     pub fn to_snake_case(name: &str) -> String {
         let mut parts = Vec::new();
         let mut current = String::new();
@@ -313,7 +318,7 @@ impl TypeResolver {
     }
 
     /// Get all generatable type names.
-    #[must_use] 
+    #[must_use]
     pub fn generatable_types(&self) -> Vec<String> {
         self.schemas
             .keys()
@@ -332,7 +337,7 @@ impl TypeResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::spec::{Response, MediaType};
+    use crate::spec::{MediaType, Response};
     use std::collections::BTreeMap;
 
     fn make_schema(properties: Option<BTreeMap<String, Schema>>) -> Schema {
@@ -345,7 +350,10 @@ mod tests {
 
     #[test]
     fn normalizes_dotted_names() {
-        assert_eq!(TypeResolver::to_pascal_case("treasury.transaction"), "TreasuryTransaction");
+        assert_eq!(
+            TypeResolver::to_pascal_case("treasury.transaction"),
+            "TreasuryTransaction"
+        );
     }
 
     #[test]
@@ -355,26 +363,50 @@ mod tests {
 
     #[test]
     fn normalizes_snake_case_names() {
-        assert_eq!(TypeResolver::to_pascal_case("iam_response_collection"), "IamResponseCollection");
+        assert_eq!(
+            TypeResolver::to_pascal_case("iam_response_collection"),
+            "IamResponseCollection"
+        );
     }
 
     #[test]
     fn normalizes_at_prefixed_names() {
-        assert_eq!(TypeResolver::to_pascal_case("@cf_ai4bharat.translation"), "CfAi4bharatTranslation");
+        assert_eq!(
+            TypeResolver::to_pascal_case("@cf_ai4bharat.translation"),
+            "CfAi4bharatTranslation"
+        );
     }
 
     #[test]
     fn renames_rust_keywords() {
-        assert_eq!(TypeResolver::rename_if_keyword("Option".to_string()), "ApiOption");
-        assert_eq!(TypeResolver::rename_if_keyword("Value".to_string()), "ApiValue");
-        assert_eq!(TypeResolver::rename_if_keyword("Result".to_string()), "ApiResult");
-        assert_eq!(TypeResolver::rename_if_keyword("MyType".to_string()), "MyType");
+        assert_eq!(
+            TypeResolver::rename_if_keyword("Option".to_string()),
+            "ApiOption"
+        );
+        assert_eq!(
+            TypeResolver::rename_if_keyword("Value".to_string()),
+            "ApiValue"
+        );
+        assert_eq!(
+            TypeResolver::rename_if_keyword("Result".to_string()),
+            "ApiResult"
+        );
+        assert_eq!(
+            TypeResolver::rename_if_keyword("MyType".to_string()),
+            "MyType"
+        );
     }
 
     #[test]
     fn converts_to_snake_case() {
-        assert_eq!(TypeResolver::to_snake_case("getV1Projects"), "get_v1_projects");
-        assert_eq!(TypeResolver::to_snake_case("GetV1Projects"), "get_v1_projects");
+        assert_eq!(
+            TypeResolver::to_snake_case("getV1Projects"),
+            "get_v1_projects"
+        );
+        assert_eq!(
+            TypeResolver::to_snake_case("GetV1Projects"),
+            "get_v1_projects"
+        );
     }
 
     #[test]
@@ -383,10 +415,13 @@ mod tests {
         let resolver = TypeResolver::new(schemas);
 
         let mut props = BTreeMap::new();
-        props.insert("name".to_string(), Schema {
-            schema_type: Some("string".to_string()),
-            ..Default::default()
-        });
+        props.insert(
+            "name".to_string(),
+            Schema {
+                schema_type: Some("string".to_string()),
+                ..Default::default()
+            },
+        );
 
         let schema = make_schema(Some(props));
         assert!(resolver.is_generatable(&schema));
@@ -415,8 +450,14 @@ mod tests {
 
         let schema = Schema {
             one_of: Some(vec![
-                Schema { ref_path: Some("#/components/schemas/A".to_string()), ..Default::default() },
-                Schema { ref_path: Some("#/components/schemas/B".to_string()), ..Default::default() },
+                Schema {
+                    ref_path: Some("#/components/schemas/A".to_string()),
+                    ..Default::default()
+                },
+                Schema {
+                    ref_path: Some("#/components/schemas/B".to_string()),
+                    ..Default::default()
+                },
             ]),
             ..Default::default()
         };
@@ -428,20 +469,29 @@ mod tests {
     fn is_generatable_with_allof_multiple_refs() {
         // allOf with multiple refs (extending base type) should be generatable
         let mut schemas = BTreeMap::new();
-        schemas.insert("BaseResponse".to_string(), Schema {
-            schema_type: Some("object".to_string()),
-            ..Default::default()
-        });
+        schemas.insert(
+            "BaseResponse".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                ..Default::default()
+            },
+        );
         let schemas = Arc::new(schemas);
         let resolver = TypeResolver::new(schemas);
 
         let schema = Schema {
             all_of: Some(vec![
-                Schema { ref_path: Some("#/components/schemas/BaseResponse".to_string()), ..Default::default() },
+                Schema {
+                    ref_path: Some("#/components/schemas/BaseResponse".to_string()),
+                    ..Default::default()
+                },
                 Schema {
                     properties: Some(BTreeMap::from([(
                         "result".to_string(),
-                        Schema { schema_type: Some("object".to_string()), ..Default::default() }
+                        Schema {
+                            schema_type: Some("object".to_string()),
+                            ..Default::default()
+                        },
                     )])),
                     ..Default::default()
                 },
@@ -456,21 +506,30 @@ mod tests {
     fn get_response_type_with_allof_schema() {
         // Test that get_response_type correctly handles allOf response schemas
         let mut schemas = BTreeMap::new();
-        schemas.insert("IamApiResponseCollection".to_string(), Schema {
-            schema_type: Some("object".to_string()),
-            ..Default::default()
-        });
-        schemas.insert("IamAccount".to_string(), Schema {
-            schema_type: Some("object".to_string()),
-            ..Default::default()
-        });
+        schemas.insert(
+            "IamApiResponseCollection".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                ..Default::default()
+            },
+        );
+        schemas.insert(
+            "IamAccount".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                ..Default::default()
+            },
+        );
         let schemas = Arc::new(schemas);
         let resolver = TypeResolver::new(schemas);
 
         // Create an allOf schema like iam_response_collection_accounts
         let response_schema = Schema {
             all_of: Some(vec![
-                Schema { ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()), ..Default::default() },
+                Schema {
+                    ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()),
+                    ..Default::default()
+                },
                 Schema {
                     properties: Some(BTreeMap::from([(
                         "result".to_string(),
@@ -481,7 +540,7 @@ mod tests {
                                 ..Default::default()
                             })),
                             ..Default::default()
-                        }
+                        },
                     )])),
                     ..Default::default()
                 },
@@ -494,7 +553,9 @@ mod tests {
             description: Some("Success".to_string()),
             content: Some(BTreeMap::from([(
                 "application/json".to_string(),
-                MediaType { schema: Some(response_schema) }
+                MediaType {
+                    schema: Some(response_schema),
+                },
             )])),
         };
 
@@ -511,25 +572,37 @@ mod tests {
         let mut schemas = BTreeMap::new();
 
         // Base response type
-        schemas.insert("IamApiResponseCollection".to_string(), Schema {
-            schema_type: Some("object".to_string()),
-            ..Default::default()
-        });
+        schemas.insert(
+            "IamApiResponseCollection".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                ..Default::default()
+            },
+        );
 
         // allOf type that extends base (like iam_response_collection_accounts)
-        schemas.insert("IamResponseCollectionAccounts".to_string(), Schema {
-            all_of: Some(vec![
-                Schema { ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()), ..Default::default() },
-                Schema {
-                    properties: Some(BTreeMap::from([(
-                        "result".to_string(),
-                        Schema { schema_type: Some("array".to_string()), ..Default::default() }
-                    )])),
-                    ..Default::default()
-                },
-            ]),
-            ..Default::default()
-        });
+        schemas.insert(
+            "IamResponseCollectionAccounts".to_string(),
+            Schema {
+                all_of: Some(vec![
+                    Schema {
+                        ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()),
+                        ..Default::default()
+                    },
+                    Schema {
+                        properties: Some(BTreeMap::from([(
+                            "result".to_string(),
+                            Schema {
+                                schema_type: Some("array".to_string()),
+                                ..Default::default()
+                            },
+                        )])),
+                        ..Default::default()
+                    },
+                ]),
+                ..Default::default()
+            },
+        );
 
         let schemas = Arc::new(schemas);
         let resolver = TypeResolver::new(schemas);
@@ -541,15 +614,20 @@ mod tests {
                 "application/json".to_string(),
                 MediaType {
                     schema: Some(Schema {
-                        ref_path: Some("#/components/schemas/IamResponseCollectionAccounts".to_string()),
+                        ref_path: Some(
+                            "#/components/schemas/IamResponseCollectionAccounts".to_string(),
+                        ),
                         ..Default::default()
-                    })
-                }
+                    }),
+                },
             )])),
         };
 
         let result = resolver.get_response_type(&response);
         assert!(result.is_some());
-        assert_eq!(result.unwrap(), ResponseType::Generated("IamResponseCollectionAccounts".to_string()));
+        assert_eq!(
+            result.unwrap(),
+            ResponseType::Generated("IamResponseCollectionAccounts".to_string())
+        );
     }
 }

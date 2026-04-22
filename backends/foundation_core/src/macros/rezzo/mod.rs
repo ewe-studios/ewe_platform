@@ -119,26 +119,22 @@ macro_rules! is_ok {
 mod test_is_ok {
     #[test]
     fn test() {
-        assert!(
-            is_ok!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10), 10)
-        );
-        assert!(
-            is_ok!(
-                Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
-                20,
-                10
-            )
-        );
-        assert!(
-            !is_ok!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10), 20)
-        );
-        assert!(
-            !is_ok!(
-                Err::<usize, std::io::Error>(std::io::Error::from(
-                    std::io::ErrorKind::AlreadyExists
-                )),
-                10
-            )
-        );
+        assert!(is_ok!(
+            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
+            10
+        ));
+        assert!(is_ok!(
+            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
+            20,
+            10
+        ));
+        assert!(!is_ok!(
+            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
+            20
+        ));
+        assert!(!is_ok!(
+            Err::<usize, std::io::Error>(std::io::Error::from(std::io::ErrorKind::AlreadyExists)),
+            10
+        ));
     }
 }

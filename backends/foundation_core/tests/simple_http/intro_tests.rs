@@ -51,7 +51,7 @@ fn test_response_intro_debug_and_clone_if_available() {
         // this block uses a small number of likely constructors/patterns guarded by `let _ =`.
         //
         // We do not assert runtime behavior here — the purpose is to exercise compile-time usage.
-        
+
         (|| {
             // Preferred: a `ResponseIntro::builder()`/`new()` style (common patterns).
             if let Some(ctor) = None::<fn() -> ResponseIntro> {

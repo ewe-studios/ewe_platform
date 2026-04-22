@@ -7,14 +7,14 @@
 //!
 //! HOW: Analyzes `operation_id` keywords first, falls back to HTTP method and path patterns.
 
-use crate::endpoint::{EndpointInfo, OperationType, OperationEffect};
+use crate::endpoint::{EndpointInfo, OperationEffect, OperationType};
 
 /// Classifies endpoint operation type based on heuristics.
 pub struct OperationTypeClassifier;
 
 impl OperationTypeClassifier {
     /// Classify an endpoint's operation type.
-    #[must_use] 
+    #[must_use]
     pub fn classify(endpoint: &EndpointInfo) -> OperationType {
         // Check operation_id keywords first
         if let Some(op_type) = Self::classify_by_operation_id(&endpoint.operation_id) {
@@ -176,7 +176,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Create,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Create);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Create
+        );
 
         let endpoint = EndpointInfo {
             operation_id: "insertRow".to_string(),
@@ -192,7 +195,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Create,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Create);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Create
+        );
     }
 
     #[test]
@@ -211,7 +217,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Read,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Read);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Read
+        );
 
         let endpoint = EndpointInfo {
             operation_id: "listInstances".to_string(),
@@ -227,7 +236,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Read,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Read);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Read
+        );
     }
 
     #[test]
@@ -246,7 +258,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Update,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Update);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Update
+        );
     }
 
     #[test]
@@ -265,7 +280,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Delete,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Delete);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Delete
+        );
     }
 
     #[test]
@@ -348,7 +366,10 @@ mod tests {
             summary: None,
             operation_type: OperationType::Read,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Read);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Read
+        );
 
         // DELETE without keyword -> Delete
         let endpoint = EndpointInfo {
@@ -365,6 +386,9 @@ mod tests {
             summary: None,
             operation_type: OperationType::Delete,
         };
-        assert_eq!(OperationTypeClassifier::classify(&endpoint), OperationType::Delete);
+        assert_eq!(
+            OperationTypeClassifier::classify(&endpoint),
+            OperationType::Delete
+        );
     }
 }

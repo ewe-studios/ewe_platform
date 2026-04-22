@@ -133,7 +133,7 @@ impl TaskIterator for GetRequestIntroTask {
                         Ok(inner) => {
                             tracing::info!("Get intro from stream - got: {:?}", inner);
                             inner
-                        },
+                        }
                         Err(err) => {
                             tracing::error!("Get intro from stream - error: {:?}", err);
                             return Some(TaskStatus::Ready(err.into()));

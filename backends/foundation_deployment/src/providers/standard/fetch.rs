@@ -55,13 +55,11 @@ pub fn fetch_standard_spec(
             .arg(&output_path)
             .arg(&spec_url)
             .output()
-            .map_err(|e| {
-                DeploymentError::ProcessFailed {
-                    command: format!("curl -o {} {}", output_path.display(), spec_url),
-                    exit_code: None,
-                    stdout: String::new(),
-                    stderr: format!("curl execution failed: {e}"),
-                }
+            .map_err(|e| DeploymentError::ProcessFailed {
+                command: format!("curl -o {} {}", output_path.display(), spec_url),
+                exit_code: None,
+                stdout: String::new(),
+                stderr: format!("curl execution failed: {e}"),
             })?;
 
         if !output.status.success() {
@@ -80,14 +78,16 @@ pub fn fetch_standard_spec(
             )))
         })?;
 
-        let spec: serde_json::Value = serde_json::from_str(&content).map_err(|e| {
-            DeploymentError::ConfigInvalid {
+        let spec: serde_json::Value =
+            serde_json::from_str(&content).map_err(|e| DeploymentError::ConfigInvalid {
                 file: format!("{provider_name} OpenAPI spec"),
                 reason: format!("Invalid JSON: {e}"),
-            }
-        })?;
+            })?;
 
-        debug!("Successfully wrote {} spec to {:?}", provider_name, output_path);
+        debug!(
+            "Successfully wrote {} spec to {:?}",
+            provider_name, output_path
+        );
 
         // Extract version for logging
         let version = crate::providers::openapi::extract_version(&spec)
