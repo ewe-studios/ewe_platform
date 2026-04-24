@@ -311,8 +311,7 @@ impl Model for LlamaModels {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
-        // Get backend
-        let backend = LlamaBackend::init().map_err(GenerationError::LlamaCpp)?;
+        let backend = LlamaBackend::init_or_get().map_err(GenerationError::LlamaCpp)?;
 
         // Get model, spec, and context params
         let (model, spec, ctx_params) = {
@@ -409,7 +408,7 @@ impl LlamaCppStream {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Self> {
         // Initialize backend upfront - this is where we can properly report errors
-        let backend = LlamaBackend::init().map_err(|e| {
+        let backend = LlamaBackend::init_or_get().map_err(|e| {
             GenerationError::Generic(format!("Failed to initialize llama.cpp backend: {e}"))
         })?;
 
@@ -474,7 +473,7 @@ impl Iterator for LlamaCppStream {
 
         // Create backend and context on second call if not exists
         if inner.backend.is_none() {
-            let Ok(backend) = LlamaBackend::init() else {
+            let Ok(backend) = LlamaBackend::init_or_get() else {
                 inner.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
@@ -900,7 +899,7 @@ impl ModelProvider for LlamaBackends {
         Self: Sized,
     {
         // Initialize the llama.cpp backend
-        let _backend = LlamaBackend::init()
+        let _backend = LlamaBackend::init_or_get()
             .map_err(|e| crate::errors::ModelProviderErrors::FailedFetching(Box::new(e)))?;
 
         Ok(self)
@@ -950,7 +949,7 @@ impl ModelProvider for LlamaBackends {
         })?;
 
         // Load model
-        let backend = LlamaBackend::init().map_err(|e| {
+        let backend = LlamaBackend::init_or_get().map_err(|e| {
             ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
         })?;
 

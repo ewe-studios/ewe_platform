@@ -2,7 +2,7 @@
 
 use crate::LlamaCppError;
 use infrastructure_llama_bindings::ggml_log_level;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 
 /// Representation of an initialized llama backend
@@ -11,41 +11,51 @@ use std::sync::atomic::Ordering::SeqCst;
 #[derive(Eq, PartialEq, Debug)]
 pub struct LlamaBackend {}
 
-static LLAMA_BACKEND_INITIALIZED: AtomicBool = AtomicBool::new(false);
+static LLAMA_BACKEND_REFCOUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl LlamaBackend {
-    /// Mark the llama backend as initialized
+    /// Try to become the exclusive first initializer.
     fn mark_init() -> crate::Result<()> {
-        match LLAMA_BACKEND_INITIALIZED.compare_exchange(false, true, SeqCst, SeqCst) {
+        match LLAMA_BACKEND_REFCOUNT.compare_exchange(0, 1, SeqCst, SeqCst) {
             Ok(_) => Ok(()),
             Err(_) => Err(LlamaCppError::BackendAlreadyInitialized),
         }
     }
 
-    /// Initialize the llama backend (without numa).
+    /// Return a handle to the llama backend, initializing it on first call.
+    ///
+    /// Unlike [`init`](Self::init), this never errors if the backend is
+    /// already running — it simply returns another handle. The underlying
+    /// C backend is freed only when the last handle is dropped.
     ///
     /// # Examples
     ///
     /// ```
     ///# use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-    ///# use infrastructure_llama_cpp::LlamaCppError;
     ///# use std::error::Error;
     ///
     ///# fn main() -> Result<(), Box<dyn Error>> {
-    ///
-    ///
-    /// let backend = LlamaBackend::init()?;
-    /// // the llama backend can only be initialized once
-    /// assert_eq!(Err(LlamaCppError::BackendAlreadyInitialized), LlamaBackend::init());
-    ///
+    /// let a = LlamaBackend::init_or_get()?;
+    /// let b = LlamaBackend::init_or_get()?; // no error
+    /// drop(a);
+    /// // backend is still alive because `b` holds a reference
+    /// assert!(b.supports_mmap() || !b.supports_mmap()); // can still use it
     ///# Ok(())
     ///# }
     /// ```
     #[tracing::instrument(skip_all)]
-    pub fn init() -> crate::Result<LlamaBackend> {
-        Self::mark_init()?;
-        unsafe { infrastructure_llama_bindings::llama_backend_init() }
-        Ok(LlamaBackend {})
+    pub fn init_or_get() -> crate::Result<LlamaBackend> {
+        match Self::mark_init() {
+            Ok(()) => {
+                unsafe { infrastructure_llama_bindings::llama_backend_init() }
+                Ok(LlamaBackend {})
+            }
+            Err(_) => {
+                tracing::trace!("llama backend already initialized, returning existing handle");
+                LLAMA_BACKEND_REFCOUNT.fetch_add(1, SeqCst);
+                Ok(LlamaBackend {})
+            }
+        }
     }
 
     /// Initialize the llama backend (with numa).
@@ -63,13 +73,21 @@ impl LlamaBackend {
     /// ```
     #[tracing::instrument(skip_all)]
     pub fn init_numa(strategy: NumaStrategy) -> crate::Result<LlamaBackend> {
-        Self::mark_init()?;
-        unsafe {
-            infrastructure_llama_bindings::llama_numa_init(
-                infrastructure_llama_bindings::ggml_numa_strategy::from(strategy),
-            );
+        match Self::mark_init() {
+            Ok(()) => {
+                unsafe {
+                    infrastructure_llama_bindings::llama_numa_init(
+                        infrastructure_llama_bindings::ggml_numa_strategy::from(strategy),
+                    );
+                }
+                Ok(LlamaBackend {})
+            }
+            Err(_) => {
+                tracing::trace!("llama backend already initialized, returning existing handle");
+                LLAMA_BACKEND_REFCOUNT.fetch_add(1, SeqCst);
+                Ok(LlamaBackend {})
+            }
         }
-        Ok(LlamaBackend {})
     }
 
     /// Was the code built for a GPU backend & is a supported one available.
@@ -179,13 +197,11 @@ impl From<NumaStrategy> for infrastructure_llama_bindings::ggml_numa_strategy {
 /// ```
 impl Drop for LlamaBackend {
     fn drop(&mut self) {
-        match LLAMA_BACKEND_INITIALIZED.compare_exchange(true, false, SeqCst, SeqCst) {
-            Ok(_) => {}
-            Err(_) => {
-                unreachable!("This should not be reachable as the only ways to obtain a llama backend involve marking the backend as initialized.")
-            }
+        let prev = LLAMA_BACKEND_REFCOUNT.fetch_sub(1, SeqCst);
+        debug_assert!(prev > 0, "LlamaBackend refcount underflow");
+        if prev == 1 {
+            unsafe { infrastructure_llama_bindings::llama_backend_free() }
         }
-        unsafe { infrastructure_llama_bindings::llama_backend_free() }
     }
 }
 

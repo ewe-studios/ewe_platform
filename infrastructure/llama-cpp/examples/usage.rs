@@ -20,7 +20,7 @@ use std::io::Write;
 #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
 fn main() {
     let model_path = std::env::args().nth(1).expect("Please specify model path");
-    let backend = LlamaBackend::init().unwrap();
+    let backend = LlamaBackend::init_or_get().unwrap();
     let params = LlamaModelParams::default();
 
     let prompt =
