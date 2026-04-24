@@ -13,7 +13,7 @@ use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
     MiddlewareChain, ProxyConfig, SystemDnsResolver,
 };
-use crate::wire::simple_http::{HttpClientError, SimpleHeaders, SimpleHttpBody};
+use crate::wire::simple_http::{HttpClientError, SimpleHeader, SimpleHeaders, SimpleHttpBody};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -51,12 +51,16 @@ pub struct ClientConfig {
     pub full_body_threshold: u64,
     /// Read buffer size for streaming reads (default: 8192)
     pub batch_size: usize,
-    /// Maximum consecutive retries for WouldBlock/TimedOut errors (default: 100)
+    /// Maximum consecutive retries for WouldBlock/TimedOut errors (default: 5)
     pub max_retries: usize,
     /// Whether to preserve Authorization header on cross-host redirects (default: false)
     pub preserve_auth_on_redirect: bool,
     /// Whether to preserve Cookie header on cross-host redirects (default: false)
     pub preserve_cookies_on_redirect: bool,
+    /// Whether to automatically follow redirects like 302/303 responses, normally 301 is whats followed (default: true)
+    pub follow_other_redirects_response: bool,
+    /// Headers to pass on redirects (default: None)
+    pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
 }
 
 impl ClientConfig {
@@ -104,6 +108,13 @@ impl ClientConfig {
         )
     }
 
+    /// Sets whether to automatically follow redirects like 302/303 responses, normally 301 is whats followed (default: true).
+    #[must_use]
+    pub fn with_follow_other_redirects_response(mut self, follow: bool) -> Self {
+        self.follow_other_redirects_response = follow;
+        self
+    }
+
     /// Sets the maximum allowed response body size.
     ///
     /// WHY: Clients downloading large payloads (e.g., file downloads) may want to disable
@@ -117,6 +128,19 @@ impl ClientConfig {
     #[must_use]
     pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
         self.max_body_size = max_body_size;
+        self
+    }
+
+    /// Sets the headers to pass on redirects.
+    ///
+    /// WHAT: Builder method to set headers to pass on redirects.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Headers to pass on redirects
+    #[must_use]
+    pub fn with_headers_to_pass_on_redirect(mut self, headers: Option<Vec<SimpleHeader>>) -> Self {
+        self.headers_to_pass_on_redirect = headers;
         self
     }
 
@@ -264,8 +288,8 @@ impl Default for ClientConfig {
         Self {
             inline_processing_timeout: std::time::Duration::from_millis(10),
             connect_timeout: std::time::Duration::from_secs(15),
-            read_timeout: std::time::Duration::from_secs(10),
-            write_timeout: std::time::Duration::from_secs(10),
+            read_timeout: std::time::Duration::from_secs(3),
+            write_timeout: std::time::Duration::from_secs(3),
             default_headers: BTreeMap::default(),
             max_redirects: 5,
             proxy: None,
@@ -273,9 +297,11 @@ impl Default for ClientConfig {
             max_body_size: None, // Clients typically don't enforce body size limits
             full_body_threshold: 512 * 1024, // 512 KB
             batch_size: 8192,
-            max_retries: 100,
+            max_retries: 5,
             preserve_auth_on_redirect: false,
             preserve_cookies_on_redirect: false,
+            follow_other_redirects_response: true,
+            headers_to_pass_on_redirect: None,
         }
     }
 }

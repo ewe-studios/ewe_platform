@@ -10,6 +10,7 @@
 mod gen_api;
 mod generate;
 mod local;
+mod models;
 mod sandbox;
 mod sandbox_app;
 mod tcp_capture;
@@ -24,6 +25,8 @@ async fn main() -> std::result::Result<(), BoxedError> {
         .about("The Ewe platform toolset")
         .arg_required_else_help(true)
         .allow_external_subcommands(true);
+
+    commander = models::register(commander);
     commander = generate::register(commander);
     commander = tcp_capture::register(commander);
     commander = local::register(commander);

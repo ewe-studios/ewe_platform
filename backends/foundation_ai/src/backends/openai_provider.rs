@@ -1569,9 +1569,9 @@ mod tests {
         let int = json_value_to_arg_type(&serde_json::json!(42));
         assert!(matches!(int, crate::types::ArgType::I64(42)));
 
-        let float = json_value_to_arg_type(&serde_json::json!(3.14));
+        let float = json_value_to_arg_type(&serde_json::json!(3.64));
         assert!(
-            matches!(float, crate::types::ArgType::Float64(f) if (f - 3.14).abs() < f64::EPSILON)
+            matches!(float, crate::types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
         );
 
         let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));

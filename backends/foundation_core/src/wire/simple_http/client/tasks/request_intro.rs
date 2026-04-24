@@ -121,14 +121,12 @@ impl TaskIterator for GetRequestIntroTask {
         match self.0.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
-                    tracing::info!("Creating http response reader from stream");
                     let body_config = self.1.take().unwrap_or_default();
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
                         body_config,
                     );
 
-                    tracing::info!("Get intro from stream");
                     let intro = match reader.next()? {
                         Ok(inner) => {
                             tracing::info!("Get intro from stream - got: {:?}", inner);
@@ -165,7 +163,6 @@ impl TaskIterator for GetRequestIntroTask {
             },
             GetRequestIntroState::WithIntro(inner) => match *inner {
                 Some((mut reader, intro, conn)) => {
-                    tracing::info!("Read request header from stream");
                     let header_response = match reader.next()? {
                         Ok(inner) => inner,
                         Err(err) => {
@@ -176,13 +173,11 @@ impl TaskIterator for GetRequestIntroTask {
                     let crate::wire::simple_http::IncomingResponseParts::Headers(headers) =
                         header_response
                     else {
-                        tracing::info!("No header received or failed reading");
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
                             HttpReaderError::ReadFailed.into(),
                         )));
                     };
 
-                    tracing::info!("Received headers and setting success state");
                     Some(TaskStatus::Ready(RequestIntro::Success {
                         stream: Box::new(reader),
                         conn,

@@ -1911,6 +1911,7 @@ dependencies = [
  "fastrand",
  "foundation_auth",
  "foundation_core",
+ "foundation_deployment",
  "foundation_macros",
  "foundation_nostd",
  "foundation_testing",

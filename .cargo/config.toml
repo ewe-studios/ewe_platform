@@ -30,4 +30,3 @@ codegen-backend = true
 
 [profile.dev]
 codegen-backend = "cranelift"
-

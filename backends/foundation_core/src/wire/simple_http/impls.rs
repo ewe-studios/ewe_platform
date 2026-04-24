@@ -1299,7 +1299,7 @@ impl SimpleUrl {
         let matcher = Self::capture_path_pattern(&request_url_str);
         let queries = Self::capture_query_hashmap(&request_url_str);
 
-        tracing::debug!(
+        tracing::trace!(
             "request_url_str: {:?}, params={:?}, matcher={:?}, queries={:?}",
             request_url_str,
             params,
@@ -2846,7 +2846,7 @@ where
 
             line_read_result?;
 
-            tracing::debug!("HeaderLine: {:?}", &line);
+            tracing::trace!("HeaderLine: {:?}", &line);
 
             if line.trim().is_empty()
                 && (line == "\n" || line == "\r\n" || line == "\n\n" || line.is_empty())
@@ -2869,7 +2869,7 @@ where
 
             let line_parts: Vec<&str> = line.splitn(2, ':').collect();
 
-            tracing::debug!("HeaderLineParts: {:?}", &line_parts);
+            tracing::trace!("HeaderLineParts: {:?}", &line_parts);
 
             // if its start with an invalid character then indicate error
             if line_parts.len() == 2 && line_parts[1].starts_with('\r') {
@@ -2884,7 +2884,7 @@ where
             let (header_key, header_value) = if !line.contains(':') && last_header.is_some() {
                 (last_header.clone().unwrap(), line.clone())
             } else {
-                tracing::debug!(
+                tracing::trace!(
                     "HeaderLinePartsUnicodeTrim: {:?} -- {:?}",
                     &line_parts[0],
                     line_parts[1].trim_matches(|c: char| c.is_whitespace() || c.is_control()),
@@ -2938,8 +2938,8 @@ where
                 }
             }
 
-            tracing::debug!("HeaderKey: {:?}", &header_key);
-            tracing::debug!(
+            tracing::trace!("HeaderKey: {:?}", &header_key);
+            tracing::trace!(
                 "HeaderValue: {:?} -> trimmed: {:?}",
                 &header_value,
                 header_value.trim()
@@ -2993,8 +2993,8 @@ where
             // check if there is any funny business with headers
             // for header_value_part in header_value.split(','). {}
 
-            tracing::debug!("[2] HeaderKey: {:?}", &header_key);
-            tracing::debug!("[2] HeaderValue: {:?}", &header_value);
+            tracing::trace!("[2] HeaderKey: {:?}", &header_key);
+            tracing::trace!("[2] HeaderValue: {:?}", &header_value);
 
             let actual_key = SimpleHeader::from(header_key);
             if let Some(values) = headers.get_mut(&actual_key) {
@@ -3004,10 +3004,10 @@ where
                 }
 
                 if NO_SPLIT_HEADERS.iter().any(|n| n == &actual_key) {
-                    tracing::debug!("[2] ExtendHeader: {:?}", &header_value);
+                    tracing::trace!("[2] ExtendHeader: {:?}", &header_value);
                     values.push(header_value);
                 } else {
-                    tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
+                    tracing::trace!("[2] ExtendAndSplitHeader: {:?}", &header_value);
                     values.extend(header_value.split(',').map(|t| t.trim().into()));
                 }
 
@@ -3029,13 +3029,13 @@ where
             }
 
             if NO_SPLIT_HEADERS.iter().any(|n| n == &actual_key) {
-                tracing::debug!("[2] InsertHeader: {:?}", &header_value);
+                tracing::trace!("[2] InsertHeader: {:?}", &header_value);
 
                 headers.insert(actual_key, vec![header_value]);
             } else {
                 let header_values: Vec<String> =
                     header_value.split(',').map(|t| t.trim().into()).collect();
-                tracing::debug!(
+                tracing::trace!(
                     "[2] InsertAndSplitHeader: {:?} -> values: {:?}",
                     &header_value,
                     &header_values
@@ -3242,7 +3242,7 @@ where
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if let Err(e) = line_read_result {
-                    tracing::debug!("Http read error: {:?}", &e);
+                    tracing::trace!("Http read error: {:?}", &e);
 
                     self.state = HttpReadState::Finished;
                     return Some(Err(e));
@@ -3260,7 +3260,7 @@ where
 
                 // if the lines is more than two then this is not
                 // allowed or wanted, so fail immediately.
-                tracing::debug!(
+                tracing::trace!(
                     "Http Starter with line: {:?} from {:?}",
                     &intro_parts,
                     &line
@@ -3288,7 +3288,7 @@ where
 
                 // this means no protocol is provided, by default use HTTP11
                 if intro_parts.len() == 2 {
-                    tracing::debug!("Creating intro part from 2 components: {:?}", &intro_parts);
+                    tracing::trace!("Creating intro part from 2 components: {:?}", &intro_parts);
 
                     return Some(Ok(IncomingRequestParts::Intro(
                         method,
@@ -3299,7 +3299,7 @@ where
 
                 match Proto::from_str(intro_parts[2]) {
                     Ok(proto) => {
-                        tracing::debug!("Creating intro part for: {:?}", proto);
+                        tracing::trace!("Creating intro part for: {:?}", proto);
 
                         Some(Ok(IncomingRequestParts::Intro(
                             method,
@@ -3335,7 +3335,6 @@ where
                 };
 
                 if no_body {
-                    tracing::debug!("No body flag is set to true");
                     self.state = HttpReadState::NoBody;
                     return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
@@ -3358,7 +3357,7 @@ where
 
                 // if its a chunked body then send and move state to chunked body state
                 if let Some(transfer_encodings) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
-                    tracing::debug!("Transfer Encoding value: {:?}", &transfer_encodings);
+                    tracing::trace!("Transfer Encoding value: {:?}", &transfer_encodings);
 
                     let content_length_header = headers.get(&SimpleHeader::CONTENT_LENGTH);
 
@@ -3393,7 +3392,7 @@ where
                         if let Some(chunked_index) =
                             transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)
                         {
-                            tracing::debug!("Chunked header index: {}", chunked_index);
+                            tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
                                 return Some(Err(HttpReaderError::ChunkedEncodingMustBeLast));
                             }
@@ -3661,7 +3660,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
-        tracing::debug!(
+        tracing::trace!(
             "Current state of HttpResponseReader: {:?} -> should handle as no_body={}",
             &self.state,
             no_body
@@ -3676,13 +3675,13 @@ where
                     .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
-                tracing::debug!(
+                tracing::trace!(
                     "Response start line: {:?} -> {:?}",
                     &line,
                     &line_read_result
                 );
                 if let Err(e) = line_read_result {
-                    tracing::debug!("Http read error: {:?}", &e);
+                    tracing::trace!("Http read error: {:?}", &e);
 
                     self.state = HttpReadState::Finished;
                     return Some(Err(e));
@@ -3700,7 +3699,7 @@ where
 
                 // if the lines is more than two then this is not
                 // allowed or wanted, so fail immediately.
-                tracing::debug!(
+                tracing::trace!(
                     "Http Starter with line: {:?} from {:?}",
                     &intro_parts,
                     &line
@@ -3718,7 +3717,7 @@ where
 
                 // ignore the last part, we do not care
                 let status = Status::from(status_parts[0].to_string());
-                tracing::debug!(
+                tracing::trace!(
                     "Http Starter status: {:?} from {:?} (intro: {:?}",
                     &status,
                     &status_parts,
@@ -3727,7 +3726,7 @@ where
 
                 // ensure to capture and skip methods that should not have a body attached.
                 self.state = if status == Status::SwitchingProtocols {
-                    tracing::debug!(
+                    tracing::trace!(
                         "Identified a SwitchingProtocols status code, setting as no header"
                     );
                     HttpReadState::OnlyHeaders
@@ -3737,10 +3736,10 @@ where
 
                 // this means no protocol is provided, by default use HTTP11
                 let third_line: Option<String> = if intro_parts.len() == 3 {
-                    tracing::debug!("Creating intro part from 3 components: {:?}", &intro_parts);
+                    tracing::trace!("Creating intro part from 3 components: {:?}", &intro_parts);
                     Some(String::from(intro_parts[2].trim()))
                 } else if status_parts.len() > 1 {
-                    tracing::debug!(
+                    tracing::trace!(
                         "Creating status text part from remaining status parts: {:?}",
                         &status_parts
                     );
@@ -3751,7 +3750,7 @@ where
 
                 match Proto::from_str(intro_parts[0]) {
                     Ok(proto) => {
-                        tracing::debug!("Creating intro part for: {:?}", proto);
+                        tracing::trace!("Creating intro part for: {:?}", proto);
 
                         Some(Ok(IncomingResponseParts::Intro(status, proto, third_line)))
                     }
@@ -3776,7 +3775,7 @@ where
 
                 let headers = match header_reader.parse_headers() {
                     Ok(header) => {
-                        tracing::debug!("Response headers: {:?}", &header,);
+                        tracing::trace!("Response headers: {:?}", &header,);
                         header
                     }
                     Err(err) => {
@@ -3787,7 +3786,7 @@ where
                 };
 
                 if no_body {
-                    tracing::debug!("No body flag is set to true");
+                    tracing::trace!("No body flag is set to true");
                     self.state = HttpReadState::NoBody;
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
@@ -3795,7 +3794,7 @@ where
                 // if header has content type that is equal to text/event-stream
                 // then set state to line feed streaming body.
                 if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
-                    tracing::debug!("Response content types: {:?}", &content_types,);
+                    tracing::trace!("Response content types: {:?}", &content_types,);
                     if content_types
                         .iter()
                         .map(|item| item.to_lowercase())
@@ -3803,7 +3802,7 @@ where
                         .count()
                         != 0
                     {
-                        tracing::debug!("Response uses LineFeed based body: {:?}", &content_types,);
+                        tracing::trace!("Response uses LineFeed based body: {:?}", &content_types,);
                         self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
 
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3815,7 +3814,7 @@ where
                 if !headers.contains_key(&SimpleHeader::TRANSFER_ENCODING)
                     && !headers.contains_key(&SimpleHeader::CONTENT_LENGTH)
                 {
-                    tracing::debug!(
+                    tracing::trace!(
                         "Response has neither content length nor transfer_encoding: {:?}",
                         &headers,
                     );
@@ -3827,7 +3826,7 @@ where
 
                 // if its a chunked body then send and move state to chunked body state
                 if let Some(transfer_encodings) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
-                    tracing::debug!("Transfer Encoding value: {:?}", &transfer_encodings);
+                    tracing::trace!("Transfer Encoding value: {:?}", &transfer_encodings);
 
                     let content_length_header = headers.get(&SimpleHeader::CONTENT_LENGTH);
 
@@ -3862,7 +3861,7 @@ where
                         if let Some(chunked_index) =
                             transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)
                         {
-                            tracing::debug!("Chunked header index: {}", chunked_index);
+                            tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
                                 return Some(Err(HttpReaderError::ChunkedEncodingMustBeLast));
                             }
@@ -3882,7 +3881,7 @@ where
                 // must have a CONTENT_LENGTH
                 // header.
                 if let Some(content_size_headers) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
-                    tracing::debug!("Response content length: {:?}", &content_size_headers);
+                    tracing::trace!("Response content length: {:?}", &content_size_headers);
 
                     if content_size_headers.is_empty() {
                         self.state = HttpReadState::NoBody;
@@ -3920,13 +3919,13 @@ where
                         }
                     }
                 } else {
-                    tracing::debug!("Response has no body: {:?}", &headers);
+                    tracing::trace!("Response has no body: {:?}", &headers);
                     self.state = HttpReadState::NoBody;
                     Some(Ok(IncomingResponseParts::Headers(headers)))
                 }
             }
             HttpReadState::NoBody => {
-                tracing::debug!("No body for response, finishing response reader");
+                tracing::trace!("No body for response, finishing response reader");
                 self.state = HttpReadState::Finished;
                 Some(Ok(IncomingResponseParts::NoBody))
             }
@@ -4066,7 +4065,7 @@ impl LineFeed {
                     Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
                         LineFeed::SKIP
                     } else {
-                        tracing::debug!("Processing::LineFeed::Line: {:?} ", &converted_string);
+                        tracing::trace!("Processing::LineFeed::Line: {:?} ", &converted_string);
 
                         // We could process here but maybe instead process else where:
                         // let trailers: Vec<(String, Option<String>)> = converted_string
@@ -4521,7 +4520,7 @@ impl ChunkState {
             return Err(ChunkStateError::ChunkSizeTooLarge(chunk_size as usize));
         }
 
-        tracing::debug!(
+        tracing::trace!(
             "Reading chunk size: {:?} to {:?}",
             &chunk_size,
             &chunk_string
@@ -4552,7 +4551,7 @@ impl ChunkState {
             Ok(extensions)
         })?;
 
-        tracing::debug!("Extensions : {:?}", &extensions);
+        tracing::trace!("Extensions : {:?}", &extensions);
 
         // are we starting out with a CRLF, if so, skip it
         pointer.do_once_mut(|acc| {
@@ -4856,7 +4855,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
     fn next(&mut self) -> Option<Self::Item> {
         match LineFeed::stream_line_feeds(self.1.clone()) {
             Ok(line) => {
-                tracing::debug!("LineFeed::next_line: {:?}", &line);
+                tracing::trace!("LineFeed::next_line: {:?}", &line);
                 match &line {
                     LineFeed::END => None,
                     _ => Some(Ok(line)),
@@ -4909,7 +4908,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
         let ending_indicator = self.3.clone();
 
         if ending_indicator.load(Ordering::Acquire) {
-            tracing::debug!("ChunKState::ParsingTrailer");
+            tracing::trace!("ChunKState::ParsingTrailer");
 
             return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
                 Ok(value) => match value {
@@ -4939,7 +4938,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
             };
         }
 
-        tracing::debug!("ChunKState::StillParsingChunks");
+        tracing::trace!("ChunKState::StillParsingChunks");
         match ChunkState::parse_http_chunk_from_pointer(self.2.clone()) {
             Ok(chunk) => {
                 match chunk {
@@ -4955,7 +4954,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         // let bytes_we_need = total_header_bytes_used + (size as usize);
 
                         match self.2.do_once_mut(|reader| {
-                            tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
+                            tracing::trace!("ChunkState::Chunk::GetSize: {:?}", size);
 
                             #[allow(clippy::cast_possible_truncation)]
                             let mut chunk_data = vec![0; size as usize];
@@ -4973,7 +4972,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                             if size > 0 {
                                 let cr_count = chunk_data.iter().filter(|&&b| b == b'\r').count();
                                 if cr_count > 0 {
-                                    tracing::debug!(
+                                    tracing::trace!(
                                         "Chunk parser: stripping {} CR bytes from chunk data",
                                         cr_count
                                     );
@@ -4981,7 +4980,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                                 }
                             }
 
-                            tracing::debug!(
+                            tracing::trace!(
                                 "ChunkState::Chunk::DataRead: len={:?}",
                                 chunk_data.len(),
                             );
@@ -4996,7 +4995,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         // set the state store as false
                         ending_indicator.store(true, Ordering::Release);
 
-                        tracing::debug!("Received last Chunk, ending");
+                        tracing::trace!("Received last Chunk, ending");
                         Some(Ok(ChunkedData::DataEnded))
                     }
                     ChunkState::Trailer(_) => {
@@ -5065,11 +5064,11 @@ impl BodyExtractor for SimpleHttpBody {
     ) -> Result<SendSafeBody, SendableBoxedError> {
         let _span = tracing::span!(tracing::Level::TRACE, "extract").entered();
 
-        tracing::debug!("Executing extraction: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+        tracing::trace!("Executing extraction: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
 
         match body {
             Body::LineFeedBody(headers) => {
-                tracing::debug!(
+                tracing::trace!(
                     "LineFeedBody: returning lineFeed body reader/iterator with headers={:?}",
                     headers
                 );
@@ -5077,15 +5076,15 @@ impl BodyExtractor for SimpleHttpBody {
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {
-                tracing::debug!("FullBody: reading as full body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
+                tracing::trace!("FullBody: reading as full body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
 
                 // Use explicit max_body_size if provided, otherwise fall back to self.0
                 #[allow(clippy::cast_possible_truncation)]
                 let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
 
-                tracing::debug!("Acquiring borrowed stream");
+                tracing::trace!("Acquiring borrowed stream");
                 match stream.do_once_mut(|borrowed_stream| {
-                    tracing::debug!("Acquired borrowed stream");
+                    tracing::trace!("Acquired borrowed stream");
 
                     EofReader::read_to_end(
                         borrowed_stream,
@@ -5096,7 +5095,7 @@ impl BodyExtractor for SimpleHttpBody {
                     .map(SendSafeBody::Bytes)
                 }) {
                     Ok(inner) => {
-                        tracing::debug!("Finished reading data from stream");
+                        tracing::trace!("Finished reading data from stream");
                         Ok(inner)
                     }
                     Err(err) => {
@@ -5106,7 +5105,7 @@ impl BodyExtractor for SimpleHttpBody {
                 }
             }
             Body::LimitedBody(content_length, headers) => {
-                tracing::debug!("LimitedBody: reading as limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
+                tracing::trace!("LimitedBody: reading as limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
 
                 if content_length == 0 {
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
@@ -5127,7 +5126,7 @@ impl BodyExtractor for SimpleHttpBody {
                 if content_length <= self.1 {
                     // Small body: read entirely into memory with retry resilience
                     match stream.do_once_mut(|borrowed_stream| {
-                        tracing::debug!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+                        tracing::trace!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
 
                         // if lesser than batch size, then just use content length.
                         let batch_size = if content_length < (self.2 as u64) {
@@ -5142,7 +5141,7 @@ impl BodyExtractor for SimpleHttpBody {
                             .map(SendSafeBody::Bytes)
                     }) {
                         Ok(inner) => {
-                            tracing::debug!("Finished reading data from stream");
+                            tracing::trace!("Finished reading data from stream");
                             Ok(inner)
                         }
                         Err(err) => {
@@ -5151,7 +5150,7 @@ impl BodyExtractor for SimpleHttpBody {
                         }
                     }
                 } else {
-                    tracing::debug!("BatchReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+                    tracing::trace!("BatchReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
 
                     // Large body: stream via BatchStreamReader
                     let batch = BatchReader::new(stream)
@@ -5163,7 +5162,7 @@ impl BodyExtractor for SimpleHttpBody {
                 }
             }
             Body::ChunkedBody(transfer_encoding, headers) => {
-                tracing::debug!(
+                tracing::trace!(
                     "ChunkedBody: reading transfer_encoding={:?}, headers={:?}",
                     &transfer_encoding,
                     &headers

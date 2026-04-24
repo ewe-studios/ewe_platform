@@ -231,14 +231,6 @@ where
         let mut iterations = 0;
         while stream.is_empty() && !stream.is_closed() {
             iterations += 1;
-            if iterations % 100 == 1 {
-                tracing::warn!(
-                    "still waiting for queue items - iterations={}, queue_len={}, closed={}",
-                    iterations,
-                    stream.len(),
-                    stream.is_closed()
-                );
-            }
             std::hint::spin_loop();
             std::thread::sleep(Duration::from_micros(100));
         }
