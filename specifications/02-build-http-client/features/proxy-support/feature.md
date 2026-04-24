@@ -803,7 +803,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// HOW: Check NO_PROXY → CONNECT tunnel → conditional target TLS upgrade
     pub fn create_connection_with_proxy(
         &self,
-        url: &ParsedUrl,
+        url: &Uri,
         proxy: Option<&ProxyConfig>,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {

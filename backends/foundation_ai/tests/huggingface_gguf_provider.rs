@@ -1,11 +1,13 @@
-//! Integration tests for `HuggingFaceProvider`.
+//! Integration tests for `HuggingFaceGGUFProvider`.
 //!
 //! These tests verify model downloading and loading from HuggingFace Hub.
 //! Tests are ignored by default as they require network access and download files.
 //!
-//! Run with: `cargo test --package foundation_ai --test huggingface_provider -- --ignored --nocapture`
+//! Run with: `cargo test --package foundation_ai --test huggingface_gguf_provider -- --ignored --nocapture`
 
-use foundation_ai::backends::huggingface_provider::{HuggingFaceConfig, HuggingFaceProvider};
+use foundation_ai::backends::huggingface_gguf_provider::{
+    HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
+};
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, Quantization,
     TextContent, UserModelContent,
@@ -37,11 +39,11 @@ fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
 
 #[test]
 #[ignore = "requires network access and downloads a model"]
-fn test_huggingface_provider_parsing() {
+fn test_huggingface_gguf_provider_parsing() {
     let _guard = init_valtron();
 
-    let config = HuggingFaceConfig::default();
-    let provider = HuggingFaceProvider::new(config).unwrap();
+    let config = HuggingFaceGGUFConfig::default();
+    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     // Test basic parsing
     let parsed = provider.parse_model_id(&ModelId::Name(
@@ -79,20 +81,20 @@ fn test_huggingface_provider_parsing() {
 #[test]
 #[traced_test]
 #[ignore = "requires HF_TOKEN and downloads SmolLM2 model"]
-fn test_huggingface_provider_download_smollm() {
+fn test_huggingface_gguf_provider_download_smollm() {
     let _guard = init_valtron();
 
     let token = get_token().expect("HF_TOKEN must be set for integration tests");
     let project_root = get_project_root();
-    let cache_dir = get_artefacts_dir(&project_root);
+    let cache_dir = get_artefacts_dir(project_root.as_path());
 
-    // Configure HuggingFaceProvider to download to artefacts/models
-    let config = HuggingFaceConfig::builder()
+    // Configure HuggingFaceGGUFProvider to download to artefacts/models
+    let config = HuggingFaceGGUFConfig::builder()
         .token(token)
         .cache_dir(&cache_dir)
         .build();
 
-    let provider = HuggingFaceProvider::new(config).unwrap();
+    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     // Load model using ModelId with explicit quantization
     let model_id = ModelId::Name(
@@ -116,22 +118,22 @@ fn test_huggingface_provider_download_smollm() {
 
 #[test]
 #[ignore = "requires HF_TOKEN and GPU"]
-fn test_huggingface_provider_with_gpu() {
+fn test_huggingface_gguf_provider_with_gpu() {
     let _guard = init_valtron();
 
     let token = get_token().expect("HF_TOKEN must be set for integration tests");
     let project_root = get_project_root();
-    let cache_dir = get_artefacts_dir(&project_root);
+    let cache_dir = get_artefacts_dir(project_root.as_path());
 
     // Configure with GPU backend
-    let config = HuggingFaceConfig::builder()
+    let config = HuggingFaceGGUFConfig::builder()
         .token(token)
         .cache_dir(&cache_dir)
         .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaGPU)
         .n_gpu_layers(32) // Offload 32 layers to GPU
         .build();
 
-    let provider = HuggingFaceProvider::new(config).unwrap();
+    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     // Load model using ModelId with explicit quantization
     let model_id = ModelId::Name(
@@ -145,11 +147,11 @@ fn test_huggingface_provider_with_gpu() {
 
 #[test]
 #[ignore = "requires HF_TOKEN"]
-fn test_huggingface_provider_describe() {
+fn test_huggingface_gguf_provider_describe() {
     let _guard = init_valtron();
 
-    let config = HuggingFaceConfig::default();
-    let provider = HuggingFaceProvider::new(config).unwrap();
+    let config = HuggingFaceGGUFConfig::default();
+    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     let descriptor = provider.describe().unwrap();
 
@@ -161,14 +163,14 @@ fn test_huggingface_provider_describe() {
     assert!(descriptor.base_url.is_some());
 }
 
-/// Test HuggingFaceProvider with SmolLM2 model download and inference.
+/// Test HuggingFaceGGUFProvider with SmolLM2 model download and inference.
 ///
 /// This test downloads the SmolLM2 model (Q2_K quantization) to artefacts/models,
 /// then verifies the provider can load it and perform inference.
 #[test]
 #[traced_test]
 #[ignore = "requires HF_TOKEN and downloads a ~150MB model for inference"]
-fn test_huggingface_provider_with_smollm_inference() {
+fn test_huggingface_gguf_provider_with_smollm_inference() {
     // Initialize valtron pool for blocking execution
     let _guard = init_valtron();
 
@@ -178,8 +180,8 @@ fn test_huggingface_provider_with_smollm_inference() {
     // Use artefacts/models as the cache directory (same as TestHarness)
     let cache_dir = project_root.join("artefacts").join("models");
 
-    // Configure HuggingFaceProvider to use artefacts/models
-    let config = HuggingFaceConfig::builder()
+    // Configure HuggingFaceGGUFProvider to use artefacts/models
+    let config = HuggingFaceGGUFConfig::builder()
         .token(token)
         .cache_dir(&cache_dir)
         .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaCPU)
@@ -188,7 +190,7 @@ fn test_huggingface_provider_with_smollm_inference() {
         .context_length(512usize)
         .build();
 
-    let provider = HuggingFaceProvider::new(config).unwrap();
+    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     // Use ModelId with explicit quantization
     let model_id = ModelId::Name(

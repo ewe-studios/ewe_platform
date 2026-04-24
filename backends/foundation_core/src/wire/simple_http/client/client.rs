@@ -61,6 +61,8 @@ pub struct ClientConfig {
     pub follow_other_redirects_response: bool,
     /// Headers to pass on redirects (default: None)
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
+    /// Headers to be added on every request being made.
+    pub headers_to_add: Option<SimpleHeaders>,
 }
 
 impl ClientConfig {
@@ -141,6 +143,13 @@ impl ClientConfig {
     #[must_use]
     pub fn with_headers_to_pass_on_redirect(mut self, headers: Option<Vec<SimpleHeader>>) -> Self {
         self.headers_to_pass_on_redirect = headers;
+        self
+    }
+
+    /// The headers we want added to the requests every time.
+    #[must_use]
+    pub fn with_headers_to_add(mut self, headers: Option<SimpleHeaders>) -> Self {
+        self.headers_to_add = headers;
         self
     }
 
@@ -302,6 +311,7 @@ impl Default for ClientConfig {
             preserve_cookies_on_redirect: false,
             follow_other_redirects_response: true,
             headers_to_pass_on_redirect: None,
+            headers_to_add: None,
         }
     }
 }

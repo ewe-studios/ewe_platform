@@ -33,7 +33,7 @@ fn test_extensions_get_mut() {
 #[test]
 fn test_middleware_trait_basic() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, ParsedUrl, PreparedRequest,
+        Extensions, Middleware, PreparedRequest, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
@@ -65,7 +65,7 @@ fn test_middleware_trait_basic() {
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com").unwrap(),
+        url: Uri::parse("http://example.com").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -87,14 +87,14 @@ fn test_middleware_trait_basic() {
 #[test]
 fn test_logging_middleware_passthrough() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, LoggingMiddleware, Middleware, ParsedUrl, PreparedRequest,
+        Extensions, LoggingMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com/test").unwrap(),
+        url: Uri::parse("http://example.com/test").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -114,7 +114,7 @@ fn test_logging_middleware_passthrough() {
 #[test]
 fn test_timing_middleware_records_duration() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, ParsedUrl, PreparedRequest, TimingMiddleware,
+        Extensions, Middleware, PreparedRequest, TimingMiddleware, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
@@ -122,7 +122,7 @@ fn test_timing_middleware_records_duration() {
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com/test").unwrap(),
+        url: Uri::parse("http://example.com/test").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -151,14 +151,14 @@ fn test_timing_middleware_records_duration() {
 #[test]
 fn test_header_middleware_adds_headers() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, HeaderMiddleware, Middleware, ParsedUrl, PreparedRequest,
+        Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com/test").unwrap(),
+        url: Uri::parse("http://example.com/test").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -181,14 +181,14 @@ fn test_header_middleware_adds_headers() {
 #[test]
 fn test_header_middleware_respects_existing_headers() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, HeaderMiddleware, Middleware, ParsedUrl, PreparedRequest,
+        Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com/test").unwrap(),
+        url: Uri::parse("http://example.com/test").unwrap(),
         headers: {
             let mut h = BTreeMap::new();
             h.insert(SimpleHeader::USER_AGENT, vec!["existing-agent".to_string()]);
@@ -215,7 +215,7 @@ fn test_header_middleware_respects_existing_headers() {
 #[test]
 fn test_middleware_chain_execution_order() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, MiddlewareChain, ParsedUrl, PreparedRequest,
+        Extensions, Middleware, MiddlewareChain, PreparedRequest, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
     use std::collections::BTreeMap;
@@ -271,7 +271,7 @@ fn test_middleware_chain_execution_order() {
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com").unwrap(),
+        url: Uri::parse("http://example.com").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -381,14 +381,14 @@ fn test_retry_middleware_with_backoff() {
 #[test]
 fn test_retry_middleware_stores_state_in_extensions() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware, RetryState,
+        Extensions, Middleware, PreparedRequest, RetryMiddleware, RetryState, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com").unwrap(),
+        url: Uri::parse("http://example.com").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -408,14 +408,14 @@ fn test_retry_middleware_stores_state_in_extensions() {
 #[test]
 fn test_retry_middleware_passes_through_success() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware,
+        Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com").unwrap(),
+        url: Uri::parse("http://example.com").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),
@@ -449,14 +449,14 @@ fn test_retry_middleware_name() {
 #[test]
 fn test_retry_middleware_returns_retry_error_for_matching_status() {
     use foundation_core::wire::simple_http::client::{
-        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware,
+        Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
     use foundation_core::wire::simple_http::{HttpClientError, SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
-        url: ParsedUrl::parse("http://example.com").unwrap(),
+        url: Uri::parse("http://example.com").unwrap(),
         headers: BTreeMap::new(),
         body: SendSafeBody::None,
         extensions: Extensions::new(),

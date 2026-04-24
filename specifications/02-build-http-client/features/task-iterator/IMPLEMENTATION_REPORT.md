@@ -264,7 +264,7 @@ cargo fmt --all
 ### Satisfied
 - ✅ valtron-utilities - ExecutionAction, TaskIterator, executors
 - ✅ foundation - HttpClientError
-- ✅ connection - HttpClientConnection, ParsedUrl
+- ✅ connection - HttpClientConnection, Uri
 - ✅ request-response - PreparedRequest, ResponseIntro
 
 ### Blocks

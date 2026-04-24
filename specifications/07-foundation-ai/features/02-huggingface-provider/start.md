@@ -6,7 +6,7 @@ this_file: "specifications/07-foundation-ai/features/02-huggingface-provider/sta
 created: 2026-03-17
 ---
 
-# Start: HuggingFace Provider Feature
+# Start: HuggingFace GGUF Provider Feature
 
 ## Required Reading (Before Implementation)
 

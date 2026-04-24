@@ -33,7 +33,7 @@ Create the user-facing API for the HTTP 1.1 client. This feature implements the 
 
 This feature depends on:
 - `foundation` - DnsResolver, errors
-- `connection` - HttpClientConnection, ParsedUrl
+- `connection` - HttpClientConnection, Uri
 - `request-response` - ClientRequestBuilder, ResponseIntro
 - `task-iterator` - execute_task(), HttpRequestTask
 

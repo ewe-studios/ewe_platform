@@ -81,7 +81,7 @@ no_inline:NO #[cfg(test)] modules in source files
 
 ## KEY_TYPES
 SimpleHeaders:BTreeMap<String, String>|used for headers
-ParsedUrl:exists in url module|use for URL parsing
+Uri:exists in url module|use for URL parsing
 ClientConfig:struct in client.rs|add cookie_jar fields here
 ClientRequest:struct in api.rs|modify for cookie handling
 PreparedRequest:struct in request.rs|modify for cookie sending

@@ -1,10 +1,10 @@
 use crate::wire::simple_http::{
-    client::{Extensions, ParsedUrl, PreparedRequest},
+    client::{Extensions, PreparedRequest, Uri},
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
 
-/// Resolve a `Location` header value against a base `ParsedUrl` (Uri).
+/// Resolve a `Location` header value against a base `Uri` (Uri).
 ///
 /// Supports:
 /// - Absolute URI (contains "://") -> parsed directly
@@ -14,13 +14,13 @@ use crate::wire::simple_http::{
 /// # Errors
 ///
 /// Returns `Err(HttpClientError::InvalidLocation(_))` when the resolved location
-/// cannot be parsed as a valid `ParsedUrl`. Callers should inspect the returned
+/// cannot be parsed as a valid `Uri`. Callers should inspect the returned
 /// `Result` to handle parse/resolution failures.
 #[must_use = "inspect the Result to handle potential errors when resolving the Location"]
-pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, HttpClientError> {
+pub fn resolve_location(base: &Uri, location: &str) -> Result<Uri, HttpClientError> {
     // If the location looks like an absolute URI, parse directly.
     if location.contains("://") {
-        return ParsedUrl::parse(location).map_err(|e| {
+        return Uri::parse(location).map_err(|e| {
             HttpClientError::InvalidLocation(format!("failed to parse absolute location: {e}"))
         });
     }
@@ -34,7 +34,7 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
     // If location starts with '/', treat as absolute path on same authority
     if location.starts_with('/') {
         let candidate = format!("{}://{}{}", base.scheme().as_str(), authority_str, location);
-        return ParsedUrl::parse(&candidate).map_err(|e| {
+        return Uri::parse(&candidate).map_err(|e| {
             HttpClientError::InvalidLocation(format!("failed to parse resolved location: {e}"))
         });
     }
@@ -48,7 +48,7 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
             base.path(),
             location
         );
-        return ParsedUrl::parse(&candidate).map_err(|e| {
+        return Uri::parse(&candidate).map_err(|e| {
             HttpClientError::InvalidLocation(format!("failed to parse resolved location: {e}"))
         });
     }
@@ -71,7 +71,7 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
         parent,
         location
     );
-    ParsedUrl::parse(&joined).map_err(|e| {
+    Uri::parse(&joined).map_err(|e| {
         HttpClientError::InvalidLocation(format!("failed to parse resolved relative location: {e}"))
     })
 }
@@ -98,7 +98,7 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
 #[must_use = "inspect the Result to handle potential future errors when resolving the redirect target"]
 pub fn build_followup_request_from_request_descriptor(
     original: &RequestDescriptor,
-    new_url: ParsedUrl,
+    new_url: Uri,
     preserve_auth: bool,
     preserve_cookies: bool,
 ) -> Result<RequestDescriptor, HttpClientError> {
@@ -146,7 +146,7 @@ pub fn build_followup_request_from_request_descriptor(
 #[must_use]
 pub fn build_followup_request_from(
     original: &PreparedRequest,
-    new_url: ParsedUrl,
+    new_url: Uri,
     preserve_auth: bool,
     preserve_cookies: bool,
 ) -> PreparedRequest {

@@ -11,20 +11,12 @@ use std::sync::Arc;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::{Connection, RawStream};
 use crate::wire::simple_http::client::dns::DnsResolver;
-use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::HttpClientError;
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
 
-// Re-export Uri as ParsedUrl for backward compatibility
-/// Backward compatibility alias for Uri.
-///
-/// **Deprecated**: Use `crate::wire::simple_http::url::Uri` instead.
-pub type ParsedUrl = Uri;
-
-// Re-export Scheme from url module
-pub use crate::wire::simple_http::url::Scheme;
+pub use crate::wire::simple_http::url::{Scheme, Uri};
 
 /// HTTP client connection wrapping `netcap::RawStream`.
 ///
@@ -101,7 +93,7 @@ impl HttpClientConnection {
     /// - TLS handshake failures
     /// - Connection timeout
     pub fn connect<R: DnsResolver>(
-        url: &ParsedUrl,
+        url: &Uri,
         resolver: &R,
         timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
@@ -109,7 +101,7 @@ impl HttpClientConnection {
     }
 
     pub fn connect_with_tls_config<R: DnsResolver>(
-        url: &ParsedUrl,
+        url: &Uri,
         resolver: &R,
         timeout: Option<Duration>,
         tls_connector: Option<&SSLConnector>,
@@ -568,7 +560,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// - establishing a new TCP/TLS connection fails or times out.
     pub fn create_http_connection(
         &self,
-        url: &ParsedUrl,
+        url: &Uri,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
         // Extract host/port for pool lookup
@@ -978,7 +970,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// ```
     pub fn create_connection_with_proxy(
         &self,
-        url: &ParsedUrl,
+        url: &Uri,
         proxy: Option<&crate::wire::simple_http::client::ProxyConfig>,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {

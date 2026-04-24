@@ -93,34 +93,50 @@ graph TD
         B[ModelProvider Trait]
         C[LlamaBackends Enum + Model Cache]
         D[LlamaModels Struct]
-        E[HuggingFaceProvider]
-        F[Type Mappings]
-        G[Error Types]
+        E[HuggingFaceGGUFProvider]
+        F[HuggingFaceCandleProvider]
+        G[CandleBackend + Model Cache]
+        H[CandleModels Struct]
+        I[OpenAIProvider]
+        J[Type Mappings]
+        K[Error Types]
+        L[AuthProvider Trait]
     end
 
     subgraph InfrastructureLL["infrastructure_llama_cpp"]
-        H[LlamaBackend]
-        I[LlamaModel]
-        J[LlamaContext]
-        K[LlamaSampler]
-        L[LlamaBatch]
-        M[LlamaChatTemplate]
+        M[LlamaBackend]
+        N[LlamaModel]
+        O[LlamaContext]
+        P[LlamaSampler]
+        Q[LlamaBatch]
+        R[LlamaChatTemplate]
     end
 
     subgraph Bindings["llama_bindings"]
-        N[FFI Bindings]
+        S[FFI Bindings]
+    end
+
+    subgraph Deployment["foundation_deployment"]
+        T[HFClient - HuggingFace Hub]
     end
 
     A --> B
+    L -.-> B
     B --> C
+    B --> F
+    B --> G
+    B --> I
     C --> D
-    D --> H
-    D --> I
-    D --> J
-    D --> K
-    D --> L
     D --> M
-    H --> N
+    D --> N
+    D --> O
+    D --> P
+    D --> Q
+    D --> R
+    M --> S
+    F --> T
+    F --> G
+    G --> H
 ```
 
 **Model Loading & Generation Flow:**
@@ -132,8 +148,8 @@ sequenceDiagram
     participant IL as infrastructure_llama_cpp
     participant LC as llama.cpp (C)
 
-    App->>LB: create(config, credential)
-    Note over LB: Initialize with LlamaBackendConfig (builder + defaults)
+    App->>LB: create(config)
+    Note over LB: Auth from config.auth() via AuthProvider
 
     App->>LB: get_model(model_id)
     LB->>LB: Check model cache (HashMap)
@@ -170,6 +186,10 @@ sequenceDiagram
 | Sampler chain builder from `ModelParams` | Keeps sampling config in foundation_ai types | Direct sampler construction (leaks infrastructure types) |
 | f32 for temperature/top_k/top_p | Supports decimal values; map to i32 internally when llama.cpp API requires it | i32 (loses precision for valid use cases) |
 | `derive_more::From` for error wrapping | Ergonomic error conversion | Manual `From` impls (boilerplate), `thiserror` (extra dep) |
+| `AuthProvider` trait on provider configs | Centralizes auth access; `create()` no longer takes credential param | Separate credential param (more params, less discoverable) |
+| `HuggingFaceCandleProvider` wrapper | Separates Hub downloading from Candle inference | Direct download in `CandleBackend` (couples concerns) |
+| `foundation_deployment` for HF Hub | Consistent with platform pattern (used by GGUF provider) | `hf-hub` crate (inconsistent) |
+| Manual `Clone` on configs (skip auth) | `AuthCredential` is not `Clone` | Derive `Clone` (would require `AuthCredential: Clone`) |
 
 ### Architectural Guidance Note
 
@@ -252,8 +272,8 @@ Features are listed in dependency order. Each feature contains detailed requirem
 | 0e | [state-store-query-filtering](./features/00e-state-store-query-filtering/feature.md) | SQL-level query filtering for StateStore — prefix queries, column indexes, NamespacedStore optimization | 00a-foundation-db | ✅ Complete (100%) |
 | 0f | [test-server-keepalive](./features/00f-test-server-keepalive/feature.md) | Client pool Connection: close awareness (server-side keep-alive abandoned) | None | ✅ Complete (100%) |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | ✅ Complete (100%) |
-| 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | Thin wrapper around LlamaBackends with HuggingFace model downloading via existing HFClient | 01-llamacpp-integration, foundation_deployment | ⬜ Pending (0%) |
-| 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration | ⬜ Pending (0%) |
+| 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | HuggingFaceGGUFProvider — thin wrapper around LlamaBackends with HuggingFace GGUF model downloading via existing HFClient | 01-llamacpp-integration, foundation_deployment | ✅ Complete (100%) |
+| 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration, AuthProvider | 🔄 In Progress (78%) |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -302,6 +322,9 @@ Create a comprehensive AI inference backend in `foundation_ai` that supports:
 25. **Timing Attack Prevention** - Constant-time comparison for all credential validation; hash passwords even for invalid emails
 26. **Argon2id Password Hashing** - Memory-hard, timing-safe password hashing
 27. **Sliding Expiration** - Active sessions auto-extend with configurable absolute maximum
+28. **AuthProvider Trait** - All provider config types implement `AuthProvider` trait (`fn auth(&self) -> Option<&AuthCredential>`); `ModelProvider::Config` bounded by `AuthProvider`; `create()` no longer takes credential param
+29. **HuggingFaceCandleProvider** - Wraps `CandleBackend` with `foundation_deployment::providers::huggingface` for safetensors model downloading; mirrors `HuggingFaceGGUFProvider` pattern
+30. **Candle Backend Auth** - `CandleBackendConfig` stores `auth: Option<AuthCredential>` (not `hf_token`); manual `Clone` impl skips auth field since `AuthCredential` is not `Clone`
 
 ## Success Criteria (Spec-Wide)
 
@@ -309,12 +332,13 @@ Create a comprehensive AI inference backend in `foundation_ai` that supports:
 - All features completed and verified (see Feature Index)
 - `foundation_ai` crate compiles and passes all tests
 - Can load GGUF models from local file paths (llama.cpp backend)
-- Can load safetensors models from local paths and HuggingFace Hub (Candle backend)
+- Can load safetensors models from local paths and HuggingFace Hub (Candle backend via `HuggingFaceCandleProvider`)
 - Can connect to OpenAI-compatible HTTP endpoints (OpenAI, llama.cpp server, vLLM, Ollama)
-- HuggingFace Hub model discovery and GGUF download functional
+- HuggingFace Hub model discovery and GGUF/safetensors download functional
 - Text generation, streaming, chat completion, and embeddings all functional across all backends
 - GPU offloading works on CUDA, Metal, and Vulkan (llama.cpp) / CUDA, Metal (Candle)
 - All error types owned by foundation_ai with idiomatic `derive_more::From` conversions
+- All provider configs implement `AuthProvider` trait; `create()` takes config only (no credential param)
 
 ### Code Quality
 - Zero warnings from `cargo clippy -- -D warnings`
@@ -335,8 +359,9 @@ Agents implementing features should read these:
 
 ### Dependencies
 - `infrastructure_llama_cpp` - Safe Rust bindings to llama.cpp
-- `hf-hub` - HuggingFace Hub client for model downloading
-- `derive_more` - Error type derives with `from`, `error`, `display` features
+- `foundation_deployment` - HuggingFace Hub client for model downloading (via `huggingface` feature)
+- `foundation_auth` - AuthCredential types for provider authentication
+- `derive_more` - Error type derives with `from`, `debug`, `error` features
 
 ## Verification Commands
 

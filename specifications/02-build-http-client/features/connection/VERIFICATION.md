@@ -54,7 +54,7 @@ All placeholder comments replaced with clear documentation of optional features.
 
 ```
 backends/foundation_core/src/wire/simple_http/client/
-├── connection.rs        - HttpClientConnection, ParsedUrl, Scheme
+├── connection.rs        - HttpClientConnection, Uri, Scheme
 └── tests/
     └── connection tests (16) - TCP connection, TLS upgrade, URL parsing
 ```
@@ -93,7 +93,7 @@ Feature **connection** passes all Rule 08 verification checks:
 
 **Key Components:**
 - **HttpClientConnection**: TCP connection wrapper with TLS upgrade support
-- **ParsedUrl**: URL parsing and validation
+- **Uri**: URL parsing and validation
 - **Scheme**: HTTP/HTTPS enum with proper checks
 - **TLS Support**: Working implementations for rustls and openssl backends
 - **Blocking connection**: Working TCP and TLS connection establishment

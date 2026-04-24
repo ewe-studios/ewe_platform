@@ -20,13 +20,14 @@ use crate::valtron::{
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{
-    ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
+    redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
 use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };
+use std::collections::BTreeMap;
 use std::io::Write;
 use std::sync::Arc;
 
@@ -67,6 +68,7 @@ pub struct SendRequestTask<R>(
     Option<SendRequestState<R>>,
     ClientConfig,
     Arc<HttpConnectionPool<R>>,
+    Uri,
 )
 where
     R: DnsResolver + Send + 'static;
@@ -82,6 +84,7 @@ where
         pool: Arc<HttpConnectionPool<R>>,
         config: crate::wire::simple_http::client::ClientConfig,
     ) -> Self {
+        let parsed_uri = request.url.clone();
         Self(
             Some(SendRequestState::Init(Some(Box::new(SendRequest::new(
                 request,
@@ -91,6 +94,7 @@ where
             ))))),
             config,
             pool,
+            parsed_uri,
         )
     }
 }
@@ -132,6 +136,20 @@ where
                             HttpClientError::NoRequestToSend,
                         )));
                     };
+
+                    // if let Some(headers_to_add) = &self.1.headers_to_add {
+                    //     tracing::debug!(
+                    //         "CheckRedirect: Adding headers to req: {:?}",
+                    //         headers_to_add
+                    //     );
+                    //     for (key, values) in headers_to_add.iter() {
+                    //         for value in values {
+                    //             incoming_request.headers = incoming_request
+                    //                 .headers
+                    //                 .add_header(key.clone(), value.clone());
+                    //         }
+                    //     }
+                    // }
 
                     let Ok(into_incoming) = incoming_request.into_simple_incoming_request() else {
                         self.0 = Some(SendRequestState::Done);
@@ -394,15 +412,39 @@ where
                                     "CheckRedirect: Location header value = {}",
                                     redirect_url
                                 );
-                                match Uri::parse(redirect_url.as_str()) {
+
+                                match redirects::resolve_location(&self.3, redirect_url.as_str()) {
                                     Ok(parsed_uri) => {
+                                        let parsed_uri_string: String = parsed_uri.to_string();
+
+                                        tracing::debug!("CheckRedirect: Adding Link header from previous response for: {:?}", &self.3);
+
                                         let mut new_request = SimpleIncomingRequest::builder()
-                                            .with_plain_url(redirect_url.as_str())
-                                            .with_uri(parsed_uri)
+                                            .with_plain_url(parsed_uri_string.as_str())
+                                            .with_uri(parsed_uri.clone())
                                             .with_body(SendSafeBody::None)
                                             .with_method(SimpleMethod::GET);
 
-                                        tracing::debug!("CheckRedirect: Adding Link header from previous response");
+                                        // we always need to include the host in the headers, else
+                                        // it fails.
+                                        if let Some(host_str) = parsed_uri.host_str() {
+                                            new_request = new_request
+                                                .add_header(SimpleHeader::HOST, host_str);
+                                        }
+
+                                        if let Some(headers_to_add) = &self.1.headers_to_add {
+                                            tracing::debug!(
+                                                "CheckRedirect: Adding headers to req: {:?}",
+                                                headers_to_add
+                                            );
+                                            for (key, values) in headers_to_add.iter() {
+                                                for value in values {
+                                                    new_request = new_request
+                                                        .add_header(key.clone(), value.clone());
+                                                }
+                                            }
+                                        }
+
                                         if let Some(link_values) = headers.get(&SimpleHeader::LINK)
                                         {
                                             tracing::debug!(
@@ -415,13 +457,27 @@ where
                                             }
                                         }
 
+                                        tracing::debug!(
+                                            "CheckRedirect: Checking for headers to pass on: {:?} from headers={:?}",
+                                            &self.1.headers_to_pass_on_redirect,
+                                            &headers,
+                                        );
                                         if let Some(pass_on_headers) =
                                             &self.1.headers_to_pass_on_redirect
                                         {
+                                            tracing::debug!(
+                                                "CheckRedirect: Adding new headers: {:?}",
+                                                pass_on_headers,
+                                            );
                                             for header in pass_on_headers {
-                                                if let Some(header_values) = headers.get(&header) {
+                                                tracing::debug!(
+                                                    "CheckRedirect: Pulling value for: {:?}",
+                                                    &header,
+                                                );
+
+                                                if let Some(header_values) = headers.get(header) {
                                                     tracing::debug!(
-                                                        "CheckRedirect: Passing on header: {:?} found: {:?}",
+                                                        "CheckRedirect: Adding values for: {:?} found: {:?}",
                                                         &header,
                                                         &header_values,
                                                     );
@@ -437,6 +493,8 @@ where
 
                                         match new_request.build() {
                                             Ok(newly_built_request) => {
+                                                tracing::debug!("CheckRedirect: creating new request task for: {:?} with new request: {:?}", &parsed_uri_string, &newly_built_request);
+
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                                         Vec::new(),
@@ -466,9 +524,7 @@ where
                                         }
                                     }
                                     Err(parsed_err) => {
-                                        Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpClientError::InvalidURI(parsed_err),
-                                        )))
+                                        Some(TaskStatus::Ready(RequestIntro::Failed(parsed_err)))
                                     }
                                 }
                             }

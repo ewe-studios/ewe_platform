@@ -120,12 +120,13 @@ where
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
+        let inner = EventSourceTask::connect(resolver.clone(), &url_str)?;
         let config = ReconnectingConfig::new(url_str);
 
         info!("Reconnecting SSE client created");
 
         Ok(Self {
-            state: Some(ReconnectingState::Reconnecting),
+            state: Some(ReconnectingState::Connected(Box::new(inner))),
             config,
             resolver,
             last_event_id: None,

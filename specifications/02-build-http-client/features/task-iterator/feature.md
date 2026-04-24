@@ -35,7 +35,7 @@ Create the internal async machinery for the HTTP 1.1 client. This feature implem
 This feature depends on:
 - `valtron-utilities` - Uses reusable ExecutionAction types, unified executor, state machine helpers
 - `foundation` - Uses HttpClientError for errors
-- `connection` - Uses HttpClientConnection, ParsedUrl
+- `connection` - Uses HttpClientConnection, Uri
 - `request-response` - Uses PreparedRequest, ResponseIntro
 
 This feature is required by:

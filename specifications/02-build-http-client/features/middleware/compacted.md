@@ -30,7 +30,7 @@ past:std feature is only valid feature|no "sync" feature exists
 past:tests go in tests/ hierarchy|never inline test modules
 
 ## EXISTING_STRUCTURES
-PreparedRequest:fields[method:SimpleMethod,url:ParsedUrl,headers:SimpleHeaders,body:SendSafeBody]
+PreparedRequest:fields[method:SimpleMethod,url:Uri,headers:SimpleHeaders,body:SendSafeBody]
 ClientConfig:has default_headers,timeouts,redirects|used by SimpleHttpClient
 SimpleHttpClient<R:DnsResolver>:generic over DNS|uses ClientConfig+pool
 ClientRequest<R>:api methods[introduction,body,send]|wraps TaskIterator

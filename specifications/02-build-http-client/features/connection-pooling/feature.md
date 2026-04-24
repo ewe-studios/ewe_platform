@@ -286,7 +286,7 @@ impl HttpClient {
     /// Send HTTP GET request using pooled connection if available.
 
     pub async fn get(&self, url: &str) -> Result<Response> {
-        let parsed = ParsedUrl::parse(url)?;
+        let parsed = Uri::parse(url)?;
         let (host, port) = (parsed.host.clone(), parsed.port);
 
         // Checkout attempt - returns existing idle stream or None

@@ -26,7 +26,7 @@ fn test_llama_backend_creation() {
         .n_threads(2)
         .build();
 
-    let result = backend.create(Some(config), None);
+    let result = backend.create(Some(config));
     assert!(result.is_ok());
 }
 
@@ -62,7 +62,7 @@ fn test_llama_model_loading() {
         .build();
 
     let initialized = backend
-        .create(Some(config), None)
+        .create(Some(config))
         .expect("Failed to create backend");
 
     // Load model
@@ -145,7 +145,7 @@ fn test_llama_with_smollm_model() {
         .build();
 
     let initialized = backend
-        .create(Some(config), None)
+        .create(Some(config))
         .expect("Failed to create backend");
 
     // Load model

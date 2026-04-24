@@ -22,7 +22,7 @@
 - **HTTPS/TLS**: ✅ Fully working
 
 **Details**:
-- ParsedUrl validation (7 tests passing)
+- Uri validation (7 tests passing)
 - HTTP connection tests (4 tests passing)
 - HTTPS/TLS connection tests (verified working)
 - Mock resolver integration (tests passing)

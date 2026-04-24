@@ -4,7 +4,7 @@
 //! - `PreparedRequest` - Internal type holding all request data
 //! - `ClientRequestBuilder` - Fluent API for building requests
 
-use crate::wire::simple_http::client::connection::ParsedUrl;
+use crate::wire::simple_http::client::connection::Uri;
 use crate::wire::simple_http::client::{
     ClientConfig, ClientRequest, DnsResolver, Extensions, HttpConnectionPool, MiddlewareChain,
     SystemDnsResolver,
@@ -25,7 +25,7 @@ use std::sync::Arc;
 /// via `into_simple_incoming_request()` to use with HTTP rendering.
 pub struct PreparedRequest {
     pub method: SimpleMethod,
-    pub url: ParsedUrl,
+    pub url: Uri,
     pub headers: SimpleHeaders,
     pub body: SendSafeBody,
     pub extensions: Extensions,
@@ -84,7 +84,7 @@ impl PreparedRequest {
 /// ```
 pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     method: SimpleMethod,
-    url: ParsedUrl,
+    url: Uri,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
     config: Option<ClientConfig>,
@@ -192,7 +192,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     ///
     /// Panics if the socket address cannot be determined from the URL.
     pub fn new(method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
-        let parsed_url = ParsedUrl::parse(url)?;
+        let parsed_url = Uri::parse(url)?;
         let mut headers = BTreeMap::new();
 
         // Add required Host header
@@ -262,6 +262,12 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     ) -> Self {
         self.with_client_confg(|config| {
             config.follow_other_redirects_response = follow_other_redirects_response;
+        })
+    }
+
+    pub fn client_config_headers_to_add(self, headers: SimpleHeaders) -> Self {
+        self.with_client_confg(|config| {
+            config.headers_to_add = Some(headers);
         })
     }
 

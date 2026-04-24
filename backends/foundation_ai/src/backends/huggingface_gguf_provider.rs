@@ -1,7 +1,7 @@
-//! HuggingFace Provider - LlamaCpp wrapper with model downloading.
+//! HuggingFace GGUF Provider - LlamaCpp wrapper with GGUF model downloading.
 //!
 //! This module provides a thin wrapper around [`LlamaBackends`] that adds
-//! automatic model downloading from HuggingFace Hub.
+//! automatic GGUF model downloading from HuggingFace Hub.
 
 use std::path::PathBuf;
 
@@ -25,7 +25,7 @@ use foundation_deployment::providers::huggingface::repository;
 /// * `cache_dir` - Local directory for cached GGUF files
 /// * `default_quantization` - Default quantization when not specified in ModelId
 #[derive(Clone)]
-pub struct HuggingFaceProvider {
+pub struct HuggingFaceGGUFProvider {
     hf_client: HFClient,
     llama_backend: LlamaBackends,
     cache_dir: PathBuf,
@@ -37,20 +37,20 @@ pub struct HuggingFaceProvider {
 /// # Example
 ///
 /// ```rust
-/// use foundation_ai::backends::huggingface_provider::HuggingFaceConfig;
+/// use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFConfig;
 /// use foundation_ai::backends::llamacpp::LlamaBackends;
 ///
-/// let config = HuggingFaceConfig::builder()
+/// let config = HuggingFaceGGUFConfig::builder()
 ///     .token("hf_...")
 ///     .cache_dir("~/.cache/huggingface")
 ///     .llama_backend(LlamaBackends::LLamaGPU)  // Use GPU
 ///     .n_gpu_layers(32)
 ///     .build();
 /// ```
-#[derive(Debug, Clone)]
-pub struct HuggingFaceConfig {
+#[derive(Debug)]
+pub struct HuggingFaceGGUFConfig {
     /// HuggingFace API token (optional for public models).
-    pub token: Option<String>,
+    pub auth: Option<foundation_auth::AuthCredential>,
     /// Local cache directory for downloaded GGUF files.
     pub cache_dir: PathBuf,
     /// Default quantization when not specified in ModelId.
@@ -61,10 +61,10 @@ pub struct HuggingFaceConfig {
     pub llama_backend: LlamaBackends,
 }
 
-impl Default for HuggingFaceConfig {
+impl Default for HuggingFaceGGUFConfig {
     fn default() -> Self {
         Self {
-            token: None,
+            auth: None,
             cache_dir: default_cache_dir(),
             default_quantization: Some("q4_k_m".to_string()),
             llama_config: LlamaBackendConfig::default(),
@@ -73,11 +73,29 @@ impl Default for HuggingFaceConfig {
     }
 }
 
-impl HuggingFaceConfig {
+impl Clone for HuggingFaceGGUFConfig {
+    fn clone(&self) -> Self {
+        Self {
+            auth: None,
+            cache_dir: self.cache_dir.clone(),
+            default_quantization: self.default_quantization.clone(),
+            llama_config: self.llama_config.clone(),
+            llama_backend: self.llama_backend,
+        }
+    }
+}
+
+impl crate::types::AuthProvider for HuggingFaceGGUFConfig {
+    fn auth(&self) -> Option<&foundation_auth::AuthCredential> {
+        self.auth.as_ref()
+    }
+}
+
+impl HuggingFaceGGUFConfig {
     /// Create a new config builder with default values.
     #[must_use]
-    pub fn builder() -> HuggingFaceConfigBuilder {
-        HuggingFaceConfigBuilder::new()
+    pub fn builder() -> HuggingFaceGGUFConfigBuilder {
+        HuggingFaceGGUFConfigBuilder::new()
     }
 }
 
@@ -100,31 +118,33 @@ fn default_cache_dir() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("./huggingface_cache"))
 }
 
-/// Builder for [`HuggingFaceConfig`].
+/// Builder for [`HuggingFaceGGUFConfig`].
 #[derive(Debug, Clone)]
-pub struct HuggingFaceConfigBuilder {
-    config: HuggingFaceConfig,
+pub struct HuggingFaceGGUFConfigBuilder {
+    config: HuggingFaceGGUFConfig,
 }
 
-impl Default for HuggingFaceConfigBuilder {
+impl Default for HuggingFaceGGUFConfigBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl HuggingFaceConfigBuilder {
+impl HuggingFaceGGUFConfigBuilder {
     /// Create a new builder with default values.
     #[must_use]
     pub fn new() -> Self {
         Self {
-            config: HuggingFaceConfig::default(),
+            config: HuggingFaceGGUFConfig::default(),
         }
     }
 
     /// Set the HuggingFace API token.
     #[must_use]
     pub fn token(mut self, token: impl Into<String>) -> Self {
-        self.config.token = Some(token.into());
+        self.config.auth = Some(foundation_auth::AuthCredential::SecretOnly(
+            foundation_auth::ConfidentialText::new(token.into()),
+        ));
         self
     }
 
@@ -179,7 +199,7 @@ impl HuggingFaceConfigBuilder {
 
     /// Build the final config.
     #[must_use]
-    pub fn build(self) -> HuggingFaceConfig {
+    pub fn build(self) -> HuggingFaceGGUFConfig {
         self.config
     }
 }
@@ -195,15 +215,24 @@ pub struct ParsedModelId {
     pub revision: String,
 }
 
-impl HuggingFaceProvider {
+impl HuggingFaceGGUFProvider {
     /// Create a new provider with the given configuration.
     ///
     /// # Errors
     ///
     /// Returns an error if the HFClient cannot be initialized.
-    pub fn new(config: HuggingFaceConfig) -> ModelProviderResult<Self> {
+    pub fn new(config: HuggingFaceGGUFConfig) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
-            .token(config.token.clone().unwrap_or_default())
+            .token(
+                config
+                    .auth
+                    .as_ref()
+                    .map(|a| match a {
+                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                        _ => String::new(),
+                    })
+                    .unwrap_or_default(),
+            )
             .build()
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
@@ -236,7 +265,7 @@ impl HuggingFaceProvider {
     /// # Examples
     ///
     /// ```
-    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceProvider;
+    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFProvider;
     /// // ModelId::Name("repo".to_string(), Some(Quantization::Q2K)) -> quant="Q2_K"
     /// // ModelId::Name("repo".to_string(), Some(Quantization::Q4_KM)) -> quant="Q4_K_M"
     /// ```
@@ -298,7 +327,7 @@ impl HuggingFaceProvider {
     /// # Examples
     ///
     /// ```
-    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceProvider;
+    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFProvider;
     /// // "q4_k_m" -> "*Q4_K_M.gguf"
     /// // "q2_k" -> "*Q2_K.gguf"
     /// ```
@@ -408,21 +437,20 @@ impl HuggingFaceProvider {
     }
 }
 
-impl ModelProvider for HuggingFaceProvider {
-    type Config = HuggingFaceConfig;
+impl ModelProvider for HuggingFaceGGUFProvider {
+    type Config = HuggingFaceGGUFConfig;
     type Model = LlamaModels;
 
     fn create(
         self,
         config: Option<Self::Config>,
-        _credential: Option<foundation_auth::AuthCredential>,
     ) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
         // If config is provided, recreate with new config
         if let Some(config) = config {
-            HuggingFaceProvider::new(config)
+            HuggingFaceGGUFProvider::new(config)
         } else {
             Ok(self)
         }
@@ -553,7 +581,7 @@ fn find_gguf_file_in_repo(
         .collect();
 
     // Find matching GGUF file
-    let pattern = HuggingFaceProvider::quantization_to_filename_pattern(quantization);
+    let pattern = HuggingFaceGGUFProvider::quantization_to_filename_pattern(quantization);
 
     for entry in &entries {
         if let foundation_deployment::providers::huggingface::RepoTreeEntry::File { path, .. } =

@@ -57,7 +57,7 @@ This report will be updated progressively as features are completed and will con
 
 **Accomplishments**:
 1. ✅ Implemented `Scheme` enum (Http, Https)
-2. ✅ Implemented `ParsedUrl` with comprehensive URL parsing
+2. ✅ Implemented `Uri` with comprehensive URL parsing
 3. ✅ Implemented `HttpClientConnection` with generic resolver support
 4. ✅ HTTP connection establishment working perfectly
 5. ✅ Connection timeout support implemented
@@ -73,7 +73,7 @@ This report will be updated progressively as features are completed and will con
 - Verification: Tests passed ✅, Clippy failed (external issues) ⚠️
 
 **Technical Highlights**:
-- ParsedUrl correctly parses HTTP/HTTPS URLs with default/explicit ports
+- Uri correctly parses HTTP/HTTPS URLs with default/explicit ports
 - Generic resolver pattern with timeout support
 - HTTP connection establishment working perfectly
 - Clean error handling with descriptive messages
@@ -137,7 +137,7 @@ The foundation feature established the core error handling and DNS resolution in
 The connection feature established URL parsing and TCP connection management:
 
 **URL Parsing**:
-- `ParsedUrl` struct with comprehensive HTTP/HTTPS URL parsing
+- `Uri` struct with comprehensive HTTP/HTTPS URL parsing
 - `Scheme` enum for protocol identification
 - Correct handling of default ports (80 for HTTP, 443 for HTTPS)
 - Support for explicit ports, paths, and query strings
@@ -189,7 +189,7 @@ cargo test --package foundation_core -- dns
 ### Connection Feature Tests (34/34 passing)
 
 **Test Categories**:
-1. ParsedUrl tests (HTTP/HTTPS parsing, default/explicit ports, paths, query strings)
+1. Uri tests (HTTP/HTTPS parsing, default/explicit ports, paths, query strings)
 2. HttpClientConnection tests (HTTP connection establishment, timeouts)
 3. Error handling tests (invalid URLs, connection failures)
 4. Edge case tests (malformed URLs, timeout scenarios)

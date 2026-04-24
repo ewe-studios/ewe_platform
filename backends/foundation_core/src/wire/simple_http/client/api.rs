@@ -216,7 +216,7 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
     config: ClientConfig,
 
     /// Connection pool for reuse
-    pool: Option<Arc<HttpConnectionPool<R>>>,
+    pool: Arc<HttpConnectionPool<R>>,
 
     /// Middleware chain for request/response interception
     middleware_chain: Arc<MiddlewareChain>,
@@ -261,12 +261,16 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ) -> Self {
         Self {
             config,
+            pool,
             middleware_chain,
-            pool: Some(pool),
             original_request: None,
             prepared_request: Some(prepared),
             task_state: ClientRequestState::NotStarted,
         }
+    }
+
+    pub fn get_pool(&self) -> Arc<HttpConnectionPool<R>> {
+        self.pool.clone()
     }
 
     /// Executes complete request and returns full response.
@@ -358,11 +362,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 .process_response(request, &mut response)?;
         }
 
-        Ok(FinalizedResponse::new(
-            response,
-            conn,
-            self.pool.take().expect("should have pool"),
-        ))
+        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
     }
 
     /// Internal helper to start request execution.
@@ -388,10 +388,6 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     pub fn start(
         &mut self,
     ) -> Result<(RequestIntroStream, MappedDrivenBodyStream<R>), HttpClientError> {
-        if self.pool.is_none() {
-            return Err(HttpClientError::NoPool);
-        }
-
         if self.task_state != ClientRequestState::NotStarted {
             return Err(HttpClientError::InvalidReadState);
         }
@@ -424,7 +420,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let (observer, task) = SendRequestTask::new(
             request,
             self.config.max_redirects,
-            self.pool.clone().ok_or(HttpClientError::NoPool)?,
+            self.pool.clone(),
             self.config.clone(),
         )
         .split_collect_one_map(|ready| match ready {
