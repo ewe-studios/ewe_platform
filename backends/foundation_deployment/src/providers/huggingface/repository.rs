@@ -15,9 +15,14 @@ use crate::providers::huggingface::types::{
 };
 use foundation_core::synca::RunOnDrop;
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::body_reader::{self, collect_bytes_into};
+use foundation_core::wire::simple_http::client::body_reader::{
+    self, collect_bytes_into, collect_strings_from_send_safe,
+};
+
+use foundation_core::wire::simple_http::client::HttpClientConnection;
 use foundation_core::wire::simple_http::client::{RequestIntro, ResponseIntro};
-use foundation_core::wire::simple_http::SimpleHeader;
+use foundation_core::wire::simple_http::SendSafeBody;
+use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders};
 use foundation_macros::JsonHash;
 use serde::Serialize;
 use std::path::PathBuf;
@@ -405,7 +410,7 @@ pub fn repo_list_tree(
 /// Returns an error if the HTTP request fails, the redirect URL is malformed,
 /// or the file cannot be written to the destination directory.
 pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
-    use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders};
+    tracing::debug!("Starting download of file from huggingface={:?}", &params);
 
     let revision = params.revision.as_deref().unwrap_or("main");
     let url = repo.inner.client.download_url(
@@ -423,13 +428,18 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     let builder = http_client
         .get(&url)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .client_config_follow_other_redirects_response(false)
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
         if let Some(token) = repo.inner.client.token() {
             if HFClient::is_implicit_token_disabled() {
+                println!("HF_TOKEN was disabled and will not be added!");
+                tracing::debug!("HF_TOKEN was disabled and will not be added!");
                 builder
             } else {
+                println!("Adding HF_TOKEN with token having length={}", &token.len());
+                tracing::debug!("Adding HF_TOKEN with token having length={}", &token.len());
                 builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
@@ -442,7 +452,9 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         .build_client()
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
-    let (intro_stream, _body_stream) = request
+    tracing::debug!("Call endpoint for huggingface={:?}", &params);
+
+    let (intro_stream, body_stream) = request
         .start()
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
@@ -459,9 +471,45 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         intro_data.ok_or_else(|| HuggingFaceError::Backend("No response intro received".into()))?;
 
     let status = &intro.status;
+    let status_num = status_code(status);
+
+    tracing::debug!("Received initial response with status={}", &status);
+
+    // Check for error status codes first
+    if status_num >= 400 {
+        let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
+
+        tracing::trace!("Read body stream for response body");
+        for body_element in body_stream {
+            if let Stream::Next(value) = body_element {
+                let res = value.map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+                response_body = Some(res);
+                break;
+            }
+        }
+
+        let Some((_, body)) = response_body else {
+            return Err(HuggingFaceError::Http {
+                status: status_num,
+                url: url.clone(),
+                body: format!("HTTP {} - Unable to get body", status_num),
+            });
+        };
+
+        let response_body = collect_strings_from_send_safe(body)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+
+        return Err(HuggingFaceError::Http {
+            status: status_num,
+            url: url.clone(),
+            body: format!("HTTP {} - {}", status_num, response_body),
+        });
+    }
 
     // Check if this is a redirect (302)
-    if status_code(status) == 302 {
+    if status_num == 302 {
+        tracing::debug!("Received 302 redirect status status={}", &status);
+
         // Extract Location header for redirect
         let location = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
         let redirect_url = location.ok_or_else(|| {
@@ -504,6 +552,8 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     } else {
         // Direct download (no redirect) - use simpler send() API
         drop(request); // Drop the partial request
+
+        tracing::debug!("performing direct download for status={}", &status);
 
         let response = http_client
             .get(&url)

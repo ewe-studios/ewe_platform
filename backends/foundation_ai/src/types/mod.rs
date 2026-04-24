@@ -342,6 +342,59 @@ pub enum Quantization {
     Custom(String),
 }
 
+impl Quantization {
+    /// Convert to GGUF filename format (the exact string used in GGUF filenames).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use foundation_ai::types::Quantization;
+    /// assert_eq!(Quantization::Q2K.to_filename_format(), "Q2_K");
+    /// assert_eq!(Quantization::Q4_KM.to_filename_format(), "Q4_K_M");
+    /// assert_eq!(Quantization::F16.to_filename_format(), "F16");
+    /// ```
+    pub fn to_filename_format(&self) -> String {
+        match self {
+            Quantization::None => String::new(),
+            Quantization::Default => String::new(),
+            Quantization::F16 => "F16".to_string(),
+            Quantization::Q2K => "Q2_K".to_string(),
+            Quantization::Q2_KS => "Q2_KS".to_string(),
+            Quantization::Q2_KM => "Q2_KM".to_string(),
+            Quantization::Q2_KL => "Q2_KL".to_string(),
+            Quantization::Q3_KS => "Q3_KS".to_string(),
+            Quantization::Q3_KM => "Q3_KM".to_string(),
+            Quantization::Q4_0 => "Q4_0".to_string(),
+            Quantization::Q4_1 => "Q4_1".to_string(),
+            Quantization::IQ_4Nl => "IQ4_NL".to_string(),
+            Quantization::IQ_4Xs => "IQ4_XS".to_string(),
+            Quantization::Q4_KM => "Q4_K_M".to_string(),
+            Quantization::Q4_KS => "Q4_KS".to_string(),
+            Quantization::Q5_KS => "Q5_KS".to_string(),
+            Quantization::Q5_KM => "Q5_K_M".to_string(),
+            Quantization::Q5_KL => "Q5_KL".to_string(),
+            Quantization::Q6_K => "Q6_K".to_string(),
+            Quantization::Q6_KM => "Q6_K_M".to_string(),
+            Quantization::Q6_KS => "Q6_KS".to_string(),
+            Quantization::Q6_KL => "Q6_KL".to_string(),
+            Quantization::Q8_0 => "Q8_0".to_string(),
+            Quantization::Q8_1 => "Q8_1".to_string(),
+            Quantization::Ud_IQ_1M => "IQ1_M".to_string(),
+            Quantization::UD_IQ_1S => "IQ1_S".to_string(),
+            Quantization::UD_IQ_2M => "IQ2_M".to_string(),
+            Quantization::UD_IQ_2Xxs => "IQ2_XXS".to_string(),
+            Quantization::UD_IQ_3Xxs => "IQ3_XXS".to_string(),
+            Quantization::UD_Q_2KXl => "Q2_K_XL".to_string(),
+            Quantization::UD_Q_3KXl => "Q3_K_XL".to_string(),
+            Quantization::UD_Q_4KXl => "Q4_K_XL".to_string(),
+            Quantization::UD_Q_5KXl => "Q5_K_XL".to_string(),
+            Quantization::UD_Q_6KXl => "Q6_K_XL".to_string(),
+            Quantization::UD_Q_8KXl => "Q8_K_XL".to_string(),
+            Quantization::Custom(s) => s.clone(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelId {
     /// Specifically named model.

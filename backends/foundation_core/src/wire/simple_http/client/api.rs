@@ -318,6 +318,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         // the request and easily also capture any errors that
         // might occur later.
         let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
+
+        tracing::trace!("Read body stream for response body");
         for body_element in body_stream {
             if let Stream::Next(value) = body_element {
                 let res = value?;

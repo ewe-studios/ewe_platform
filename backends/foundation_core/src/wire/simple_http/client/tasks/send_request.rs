@@ -165,13 +165,9 @@ where
                 None => unreachable!("Task state must never get here"),
             },
             SendRequestState::Connecting(mut recv_iter) => {
-                tracing::debug!(
-                    "HttpRequestTaskState::Connecting: Reading next http state from receiver"
-                );
                 let next_value = recv_iter.next();
 
                 self.0 = Some(SendRequestState::Connecting(recv_iter));
-                tracing::debug!("HttpRequestTaskState::Connecting: received receiver iterator");
 
                 if next_value.is_none() {
                     self.0.take();
@@ -182,7 +178,6 @@ where
                     )));
                 }
 
-                tracing::debug!("HttpRequestTaskState::Connecting: processing next value");
                 match next_value {
                     None => Some(TaskStatus::Ready(RequestIntro::Failed(
                         HttpClientError::ReadError,
@@ -193,151 +188,120 @@ where
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Spawn(action)) => {
-                        tracing::debug!("HttpRequestTaskState::Connecting: spawn new action");
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
-                    Some(TaskStatus::Ready(item)) => {
-                        tracing::debug!(
-                            "HttpRequestTaskState::Connecting: received TaskStats::Ready(_)"
-                        );
+                    Some(TaskStatus::Ready(item)) => match item {
+                        HttpRequestRedirectResponse::Done(
+                            stream,
+                            reader,
+                            boxed_optional_starters,
+                        ) => {
+                            if let Some(starter_array) = *boxed_optional_starters {
+                                let [first, second] = starter_array;
 
-                        match item {
-                            HttpRequestRedirectResponse::Done(
-                                stream,
-                                reader,
-                                boxed_optional_starters,
-                            ) => {
                                 tracing::debug!(
-                                    "HttpRequestTaskState::Connecting::HttpStreamReady::Done(stream): Send next action -> GetRequestIntroTask"
-                                );
-
-                                if let Some(starter_array) = *boxed_optional_starters {
-                                    tracing::debug!("HttpRequestRedirectResponse::Done: received intro from redirect process");
-
-                                    let [first, second] = starter_array;
-
-                                    tracing::debug!(
-                                        "HttpRequestRedirectResponse::Done: first item = {:?}",
-                                        first
-                                    );
-                                    tracing::debug!(
-                                        "HttpRequestRedirectResponse::Done: second item = {:?}",
+                                        "HttpRequestRedirectResponse::Done: first = {:?}, second = {:?}",
+                                        first,
                                         second
                                     );
 
-                                    let intro = if let IncomingResponseParts::Intro(
-                                        status,
-                                        proto,
-                                        text,
-                                    ) = first
-                                    {
-                                        tracing::debug!("HttpRequestRedirectResponse::Done: parsed intro status={:?}", status);
-                                        (status, proto, text)
-                                    } else {
-                                        self.0.take();
+                                let intro = if let IncomingResponseParts::Intro(
+                                    status,
+                                    proto,
+                                    text,
+                                ) = first
+                                {
+                                    tracing::debug!("HttpRequestRedirectResponse::Done: parsed intro status={:?}", status);
+                                    (status, proto, text)
+                                } else {
+                                    self.0.take();
 
-                                        tracing::debug!(
-                                            "First item in optional_starters is not an IncomingResponseParts::Intro"
-                                        );
-                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpClientError::ReadError,
-                                        )));
-                                    };
+                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                        HttpClientError::ReadError,
+                                    )));
+                                };
 
-                                    let IncomingResponseParts::Headers(headers) = second else {
-                                        self.0.take();
+                                let IncomingResponseParts::Headers(headers) = second else {
+                                    self.0.take();
 
-                                        tracing::debug!(
-                                            "Second item in optional_starters is not an IncomingResponseParts::Headers"
-                                        );
-                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpClientError::ReadError,
-                                        )));
-                                    };
+                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                        HttpClientError::ReadError,
+                                    )));
+                                };
 
-                                    self.0 = Some(SendRequestState::SkipReading(Box::new(Some(
-                                        RequestIntro::Success {
-                                            stream: Box::new(reader),
-                                            conn: stream,
-                                            intro,
-                                            headers,
-                                        },
-                                    ))));
+                                tracing::trace!("Setting state to SkipReading for request");
 
-                                    return Some(TaskStatus::Pending(
-                                        HttpRequestPending::WaitingIntroAndHeaders,
-                                    ));
-                                }
+                                self.0 = Some(SendRequestState::SkipReading(Box::new(Some(
+                                    RequestIntro::Success {
+                                        stream: Box::new(reader),
+                                        conn: stream,
+                                        intro,
+                                        headers,
+                                    },
+                                ))));
 
-                                let (get_intro_stream_action, get_intro_receiver) =
-                                    InlineSendAction::boxed_mapper(
-                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                        Vec::new(),
-                                        GetRequestIntroTask::new(stream)
-                                            .with_body_config(self.1.into_simple_http_body()),
-                                        self.1.inline_processing_timeout,
-                                    );
-
-                                self.0 = Some(SendRequestState::Reading(drive_receiver(
-                                    get_intro_receiver,
-                                )));
-
-                                Some(TaskStatus::Spawn(
-                                    get_intro_stream_action.into_box_send_execution_action(),
-                                ))
+                                return Some(TaskStatus::Pending(
+                                    HttpRequestPending::WaitingIntroAndHeaders,
+                                ));
                             }
-                            HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
-                                tracing::debug!(
-                                    "FlushFailed(err={err:?}): Failed and re-attempt and fetch intro"
+
+                            tracing::trace!("Setting state to Reading for request");
+                            let (get_intro_stream_action, get_intro_receiver) =
+                                InlineSendAction::boxed_mapper(
+                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                    Vec::new(),
+                                    GetRequestIntroTask::new(stream)
+                                        .with_body_config(self.1.into_simple_http_body()),
+                                    self.1.inline_processing_timeout,
                                 );
 
-                                if let Err(err) = conn.stream_mut().flush() {
-                                    tracing::error!("Failed to flush HTTP stream: {}", err);
-                                }
+                            self.0 = Some(SendRequestState::Reading(drive_receiver(
+                                get_intro_receiver,
+                            )));
 
-                                let (get_intro_stream_action, get_intro_receiver) =
-                                    InlineSendAction::boxed_mapper(
-                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                        Vec::new(),
-                                        GetRequestIntroTask::new(conn)
-                                            .with_body_config(self.1.into_simple_http_body()),
-                                        self.1.inline_processing_timeout,
-                                    );
-
-                                self.0 = Some(SendRequestState::Reading(drive_receiver(
-                                    get_intro_receiver,
-                                )));
-
-                                Some(TaskStatus::Spawn(
-                                    get_intro_stream_action.into_box_send_execution_action(),
-                                ))
-                            }
-                            HttpRequestRedirectResponse::Error(err) => {
-                                self.0.take();
-
-                                tracing::debug!(
-                                    "HttpRequestTaskState::Connecting::HttpStreamReady::Error({err:?}): Failed and returning read failure"
-                                );
-                                Some(TaskStatus::Ready(RequestIntro::Failed(err)))
-                            }
+                            Some(TaskStatus::Spawn(
+                                get_intro_stream_action.into_box_send_execution_action(),
+                            ))
                         }
-                    }
+                        HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
+                            tracing::debug!(
+                                "FlushFailed(err={err:?}): Failed and re-attempt and fetch intro"
+                            );
+
+                            if let Err(err) = conn.stream_mut().flush() {
+                                tracing::error!("Failed to flush HTTP stream: {}", err);
+                            }
+
+                            let (get_intro_stream_action, get_intro_receiver) =
+                                InlineSendAction::boxed_mapper(
+                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                    Vec::new(),
+                                    GetRequestIntroTask::new(conn)
+                                        .with_body_config(self.1.into_simple_http_body()),
+                                    self.1.inline_processing_timeout,
+                                );
+
+                            self.0 = Some(SendRequestState::Reading(drive_receiver(
+                                get_intro_receiver,
+                            )));
+
+                            Some(TaskStatus::Spawn(
+                                get_intro_stream_action.into_box_send_execution_action(),
+                            ))
+                        }
+                        HttpRequestRedirectResponse::Error(err) => {
+                            self.0.take();
+                            Some(TaskStatus::Ready(RequestIntro::Failed(err)))
+                        }
+                    },
                 }
             }
             SendRequestState::SkipReading(boxed) => match *boxed {
-                None => {
-                    tracing::debug!("HttpRequestTaskState::Reading: received intro already");
-
-                    Some(TaskStatus::Ready(RequestIntro::Failed(
-                        HttpClientError::ReadError,
-                    )))
-                }
+                None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                    HttpClientError::ReadError,
+                ))),
                 Some(container) => {
-                    tracing::debug!(
-                        "HttpRequestTaskState::Reading: received intro already, forwarding"
-                    );
-
                     // do one last check for a redirect as final response
                     self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(container))));
 
@@ -348,9 +312,6 @@ where
                 }
             },
             SendRequestState::Reading(mut intro_recv) => {
-                tracing::debug!(
-                    "HttpRequestTaskState::Reading: Reading next state from http request reciever"
-                );
                 let next_value = intro_recv.next();
 
                 tracing::debug!(
@@ -362,7 +323,6 @@ where
                 if next_value.is_none() {
                     self.0.take();
 
-                    tracing::debug!("HttpRequestTaskState::Reading: failed to read from iterator");
                     return Some(TaskStatus::Ready(RequestIntro::Failed(
                         HttpClientError::ReadError,
                     )));
@@ -382,10 +342,6 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Ready(item)) => {
-                        tracing::debug!(
-                            "HttpRequestTaskState::Reading: got ready value sending for final redirect check"
-                        );
-
                         // do one last check for a redirect as final response
                         self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));
 
@@ -396,17 +352,10 @@ where
                 }
             }
             SendRequestState::CheckRedirect(boxed) => match *boxed {
-                None => {
-                    tracing::debug!("HttpRequestTaskState::Reading: received intro already");
-
-                    Some(TaskStatus::Ready(RequestIntro::Failed(
-                        HttpClientError::ReadError,
-                    )))
-                }
+                None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                    HttpClientError::ReadError,
+                ))),
                 Some(mut inner) => {
-                    tracing::debug!(
-                        "HttpRequestTaskState::CheckRedirect: checking response for redirect"
-                    );
                     if let RequestIntro::Success {
                         stream: _,
                         conn,
@@ -414,60 +363,81 @@ where
                         headers,
                     } = &mut inner
                     {
+                        let is_redirect = (Status::MovedPermanently..=Status::PermanentRedirect)
+                            .contains(&intro.0);
                         tracing::debug!(
-                            "HttpRequestTaskState::CheckRedirect: intro status = {:?}",
-                            intro.0
-                        );
-                        tracing::debug!(
-                            "HttpRequestTaskState::CheckRedirect: is redirect? {}",
-                            (Status::MovedPermanently..=Status::PermanentRedirect)
-                                .contains(&intro.0)
-                        );
-                        tracing::debug!(
-                            "HttpRequestTaskState::CheckRedirect: headers = {:?}",
-                            headers
-                        );
-                        tracing::debug!(
-                            "HttpRequestTaskState::CheckRedirect: Location header = {:?}",
-                            headers.get(&SimpleHeader::LOCATION)
+                            "HttpRequestTaskState::CheckRedirect: intro={:?}, is_redirect={:?}, location= {:?}, headers = {:?}",
+                            &intro,
+                            is_redirect,
+                            headers.get(&SimpleHeader::LOCATION),
+                            &headers,
                         );
 
-                        if (Status::MovedPermanently..=Status::PermanentRedirect).contains(&intro.0)
-                        {
-                            // drain connection
-                            conn.drain_stream();
+                        // if not redirect, yield here
+                        if !is_redirect {
+                            self.0 = Some(SendRequestState::Done);
+                            return Some(TaskStatus::Ready(inner));
+                        }
 
-                            return match headers
-                                .get(&SimpleHeader::LOCATION)
-                                .and_then(|v| v.first())
-                            {
-                                Some(redirect_url) => {
-                                    tracing::debug!(
-                                        "CheckRedirect: Location header value = {}",
-                                        redirect_url
-                                    );
-                                    match Uri::parse(redirect_url.as_str()) {
-                                        Ok(parsed_uri) => {
-                                            let mut new_request = SimpleIncomingRequest::builder()
-                                                .with_plain_url(redirect_url.as_str())
-                                                .with_uri(parsed_uri)
-                                                .with_body(SendSafeBody::None)
-                                                .with_method(SimpleMethod::GET);
+                        // should we not follow body response redirect if so, yield here.
+                        if is_redirect && !self.1.follow_other_redirects_response {
+                            self.0 = Some(SendRequestState::Done);
+                            return Some(TaskStatus::Ready(inner));
+                        }
 
-                                            if let Some(link_values) =
-                                                headers.get(&SimpleHeader::LINK)
-                                            {
-                                                for link in link_values {
-                                                    new_request = new_request.add_header(
-                                                        SimpleHeader::LINK,
-                                                        link.clone(),
+                        // drain connection
+                        conn.drain_stream();
+
+                        return match headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first()) {
+                            Some(redirect_url) => {
+                                tracing::debug!(
+                                    "CheckRedirect: Location header value = {}",
+                                    redirect_url
+                                );
+                                match Uri::parse(redirect_url.as_str()) {
+                                    Ok(parsed_uri) => {
+                                        let mut new_request = SimpleIncomingRequest::builder()
+                                            .with_plain_url(redirect_url.as_str())
+                                            .with_uri(parsed_uri)
+                                            .with_body(SendSafeBody::None)
+                                            .with_method(SimpleMethod::GET);
+
+                                        tracing::debug!("CheckRedirect: Adding Link header from previous response");
+                                        if let Some(link_values) = headers.get(&SimpleHeader::LINK)
+                                        {
+                                            tracing::debug!(
+                                                "CheckRedirect: Link header found: {:?}",
+                                                &link_values
+                                            );
+                                            for link in link_values {
+                                                new_request = new_request
+                                                    .add_header(SimpleHeader::LINK, link.clone());
+                                            }
+                                        }
+
+                                        if let Some(pass_on_headers) =
+                                            &self.1.headers_to_pass_on_redirect
+                                        {
+                                            for header in pass_on_headers {
+                                                if let Some(header_values) = headers.get(&header) {
+                                                    tracing::debug!(
+                                                        "CheckRedirect: Passing on header: {:?} found: {:?}",
+                                                        &header,
+                                                        &header_values,
                                                     );
+                                                    for header_value in header_values {
+                                                        new_request = new_request.add_header(
+                                                            header.clone(),
+                                                            header_value.clone(),
+                                                        );
+                                                    }
                                                 }
                                             }
+                                        }
 
-                                            match new_request.build() {
-                                                Ok(newly_built_request) => {
-                                                    let (get_stream_action, get_stream_receiver) = inlined_task(
+                                        match new_request.build() {
+                                            Ok(newly_built_request) => {
+                                                let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                                         Vec::new(),
                                                         GetHttpRequestRedirectTask::new(
@@ -479,37 +449,33 @@ where
                                                         self.1.inline_processing_timeout,
                                                     );
 
-                                                    self.0 = Some(SendRequestState::Connecting(
-                                                        get_stream_receiver,
-                                                    ));
+                                                self.0 = Some(SendRequestState::Connecting(
+                                                    get_stream_receiver,
+                                                ));
 
-                                                    tracing::debug!(
-                                                        "HttpRequestTaskState::Init: Spawned task to for received redirect response"
-                                                    );
-                                                    Some(TaskStatus::Spawn(
-                                                        get_stream_action
-                                                            .into_box_send_execution_action(),
-                                                    ))
-                                                }
-                                                Err(err) => {
-                                                    Some(TaskStatus::Ready(RequestIntro::Failed(
-                                                        HttpClientError::SimpleRequestError(err),
-                                                    )))
-                                                }
+                                                Some(TaskStatus::Spawn(
+                                                    get_stream_action
+                                                        .into_box_send_execution_action(),
+                                                ))
+                                            }
+                                            Err(err) => {
+                                                Some(TaskStatus::Ready(RequestIntro::Failed(
+                                                    HttpClientError::SimpleRequestError(err),
+                                                )))
                                             }
                                         }
-                                        Err(parsed_err) => {
-                                            Some(TaskStatus::Ready(RequestIntro::Failed(
-                                                HttpClientError::InvalidURI(parsed_err),
-                                            )))
-                                        }
+                                    }
+                                    Err(parsed_err) => {
+                                        Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpClientError::InvalidURI(parsed_err),
+                                        )))
                                     }
                                 }
-                                None => Some(TaskStatus::Ready(RequestIntro::Failed(
-                                    HttpClientError::ReadError,
-                                ))),
-                            };
-                        }
+                            }
+                            None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                                HttpClientError::ReadError,
+                            ))),
+                        };
                     }
 
                     self.0 = Some(SendRequestState::Done);

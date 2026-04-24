@@ -3027,20 +3027,12 @@ where
             Err(concurrent_queue::PopError::Empty) => {
                 // Queue is empty, check if source is done (queue closed)
                 if self.queue.is_closed() {
-                    tracing::debug!("CollectorStreamIterator: queue closed, returning None");
                     None
                 } else {
-                    // Still waiting for items - return Ignore to signal still pending
-                    tracing::trace!(
-                        "CollectorStreamIterator: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => {
-                tracing::debug!("CollectorStreamIterator: queue closed, returning None");
-                None
-            }
+            Err(concurrent_queue::PopError::Closed) => None,
         }
     }
 }
@@ -3134,12 +3126,8 @@ where
             }
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    tracing::debug!("SplitUntilObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!(
-                        "SplitUntilObserver: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -3268,12 +3256,8 @@ where
             }
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    tracing::debug!("SplitUntilObserverMap: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!(
-                        "SplitUntilObserverMap: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -3404,25 +3388,15 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.queue.pop() {
-            Ok(item) => {
-                tracing::trace!("SplitCollectorMapObserver: received item from queue");
-                Some(item)
-            }
+            Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    tracing::debug!("SplitCollectorMapObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!(
-                        "SplitCollectorMapObserver: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => {
-                tracing::debug!("SplitCollectorMapObserver: queue closed, returning None");
-                None
-            }
+            Err(concurrent_queue::PopError::Closed) => None,
         }
     }
 }

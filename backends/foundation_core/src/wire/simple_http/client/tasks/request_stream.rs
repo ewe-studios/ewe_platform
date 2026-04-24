@@ -76,8 +76,6 @@ where
         match self.0.take()? {
             HttpOperationState::Init => {
                 if self.1.request.is_none() {
-                    tracing::warn!("Request is missing");
-
                     self.0 = Some(HttpOperationState::Done);
                     return Some(TaskStatus::Ready(super::HttpStreamReady::Error(
                         HttpClientError::InvalidState,
@@ -91,8 +89,6 @@ where
             }
             HttpOperationState::Connecting => {
                 if self.1.request.is_none() {
-                    tracing::warn!("Request is missing");
-
                     self.0 = Some(HttpOperationState::Done);
                     return Some(TaskStatus::Ready(super::HttpStreamReady::Error(
                         HttpClientError::InvalidState,
@@ -169,10 +165,8 @@ where
                         tracing::debug!("Request sent: {} bytes", request_string.len());
 
                         // Store stream and transition to receiving intro
-                        tracing::debug!("Marking task as done");
                         self.0 = Some(HttpOperationState::Done);
 
-                        tracing::debug!("Returning ready status to caller");
                         // No intro observed at this stage; return None for the intro slot.
                         Some(TaskStatus::Ready(HttpStreamReady::Done(connection)))
                     }

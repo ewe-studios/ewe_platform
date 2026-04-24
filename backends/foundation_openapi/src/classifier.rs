@@ -95,7 +95,7 @@ impl OperationTypeClassifier {
             || lower.contains("watch")
         {
             // Classify action as mutating or read-only
-            let effect = Self::classify_action_effect(&lower);
+            let effect = Self::classify_action_effect(lower.as_str());
             return Some(OperationType::Action(effect));
         }
 
@@ -174,6 +174,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Create,
         };
         assert_eq!(
@@ -193,6 +194,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Create,
         };
         assert_eq!(
@@ -215,6 +217,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Read,
         };
         assert_eq!(
@@ -234,6 +237,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Read,
         };
         assert_eq!(
@@ -256,6 +260,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Update,
         };
         assert_eq!(
@@ -278,6 +283,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Delete,
         };
         assert_eq!(
@@ -300,6 +306,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Action(OperationEffect::Mutating),
         };
         assert_eq!(
@@ -319,6 +326,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Action(OperationEffect::Mutating),
         };
         assert_eq!(
@@ -341,6 +349,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Action(OperationEffect::ReadOnly),
         };
         assert_eq!(
@@ -364,6 +373,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Read,
         };
         assert_eq!(
@@ -384,6 +394,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            deprecated: false,
             operation_type: OperationType::Delete,
         };
         assert_eq!(

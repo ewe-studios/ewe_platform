@@ -249,6 +249,28 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    pub fn with_client_confg(mut self, changer: impl FnOnce(&mut ClientConfig)) -> Self {
+        let mut current = self.config.unwrap_or_default();
+        changer(&mut current);
+        self.config = Some(current);
+        self
+    }
+
+    pub fn client_config_follow_other_redirects_response(
+        self,
+        follow_other_redirects_response: bool,
+    ) -> Self {
+        self.with_client_confg(|config| {
+            config.follow_other_redirects_response = follow_other_redirects_response;
+        })
+    }
+
+    pub fn client_config_headers_to_pass_on(self, headers: Vec<SimpleHeader>) -> Self {
+        self.with_client_confg(|config| {
+            config.headers_to_pass_on_redirect = Some(headers);
+        })
+    }
+
     /// Adds a single header to the request.
     ///
     /// # Arguments

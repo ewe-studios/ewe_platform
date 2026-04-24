@@ -758,6 +758,35 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
     }
 }
 
+/// Collect response body as String directly from a `SendSafeBody`.
+///
+/// WHY: When you already have a `SendSafeBody` (e.g., from a collected response),
+/// this provides a unified way to extract bytes without repeating match logic.
+///
+/// WHAT: Handles all `SendSafeBody` variants (Text, Bytes, Stream, ChunkedStream, LineFeedStream, None).
+///
+/// HOW: Matches on the body variant and collects bytes appropriately.
+/// Returns empty Vec for None body.
+///
+/// # Arguments
+///
+/// * `body` - The `SendSafeBody` to collect bytes from
+///
+/// # Returns
+///
+/// `String` containing the body bytes. Returns empty vec for NoBody.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let response = client.get(url).send()?;
+/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```
+pub fn collect_strings_from_send_safe(body: SendSafeBody) -> Result<String, StringBodyError> {
+    let collected = collect_bytes_from_send_safe(body);
+    String::from_utf8(collected).map_err(StringBodyError::InvalidUtf8)
+}
+
 /// Stream response body from `SendSafeBody` directly into an `io::Write` implementer.
 ///
 /// WHY: For large files or streaming scenarios, writing directly to a file or socket

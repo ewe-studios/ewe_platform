@@ -129,6 +129,10 @@ debug-assertions = true
 incremental = true
 codegen-backend = "cranelift"
 
+[profile.uat]
+inherits = "dev"
+codegen-backend = "llvm"
+
 [profile.dev.package."*"]
 opt-level = 0
 

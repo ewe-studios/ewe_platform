@@ -297,7 +297,6 @@ impl<D, P> Iterator for ConcurrentQueueStreamIterator<D, P> {
                     return Some(value);
                 }
                 Err(PopError::Empty) => {
-                    tracing::trace!(turn = turn, "queue empty, yielding");
                     #[cfg(feature = "std")]
                     std::thread::park_timeout(self.park_duration);
                     #[cfg(not(feature = "std"))]
@@ -1617,20 +1616,13 @@ where
             Err(concurrent_queue::PopError::Empty) => {
                 // Queue is empty, check if source is done (queue closed)
                 if self.queue.is_closed() {
-                    tracing::debug!("SCollectorStreamIterator: queue closed, returning None");
                     None
                 } else {
                     // Still waiting for items - return Ignore to signal still pending
-                    tracing::trace!(
-                        "SCollectorStreamIterator: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => {
-                tracing::debug!("SCollectorStreamIterator: queue closed, returning None");
-                None
-            }
+            Err(concurrent_queue::PopError::Closed) => None,
         }
     }
 }
@@ -1665,7 +1657,6 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
-            tracing::debug!("SSplitCollectorContinuation: source exhausted, queue closed");
             return None;
         };
 
@@ -1675,10 +1666,6 @@ where
                 tracing::error!(
                     "SSplitCollectorContinuation: failed to push to queue: {}",
                     e
-                );
-            } else {
-                tracing::trace!(
-                    "SSplitCollectorContinuation: copied matched item to observer queue"
                 );
             }
         }
@@ -1721,25 +1708,15 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.queue.pop() {
-            Ok(item) => {
-                tracing::trace!("SSplitUntilObserver: received item from queue");
-                Some(item)
-            }
+            Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    tracing::debug!("SSplitUntilObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!(
-                        "SSplitUntilObserver: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => {
-                tracing::debug!("SSplitUntilObserver: queue closed, returning None");
-                None
-            }
+            Err(concurrent_queue::PopError::Closed) => None,
         }
     }
 }
@@ -1772,7 +1749,6 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
-            tracing::debug!("SSplitUntilContinuation: source exhausted, queue closed");
             return None;
         };
 
@@ -1780,14 +1756,11 @@ where
         match (self.predicate)(&item) {
             CollectionState::Skip => {
                 // Skip this item - don't send to observer
-                tracing::trace!("SSplitUntilContinuation: skipping item (CollectionState::Skip)");
             }
             CollectionState::Collect => {
                 // Collect this item for the observer
                 if let Err(e) = self.queue.force_push(item.clone()) {
                     tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
-                } else {
-                    tracing::trace!("SSplitUntilContinuation: collected item for observer");
                 }
             }
             CollectionState::Close(collect_this) => {
@@ -1795,16 +1768,10 @@ where
                 if collect_this {
                     if let Err(e) = self.queue.force_push(item.clone()) {
                         tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
-                    } else {
-                        tracing::trace!("SSplitUntilContinuation: collecting final item and closing observer queue");
                     }
                 } else {
-                    tracing::trace!("SSplitUntilContinuation: closing observer queue without collecting final item");
                 }
                 self.queue.close();
-                tracing::debug!(
-                    "SSplitUntilContinuation: observer queue closed after CollectionState::Close"
-                );
             }
         }
 
@@ -1849,25 +1816,15 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.queue.pop() {
-            Ok(item) => {
-                tracing::trace!("SSplitCollectorMapObserver: received item from queue");
-                Some(item)
-            }
+            Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    tracing::debug!("SSplitCollectorMapObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!(
-                        "SSplitCollectorMapObserver: queue empty but not closed, returning Ignore"
-                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => {
-                tracing::debug!("SSplitCollectorMapObserver: queue closed, returning None");
-                None
-            }
+            Err(concurrent_queue::PopError::Closed) => None,
         }
     }
 }
@@ -1904,7 +1861,6 @@ where
             item
         } else {
             self.queue.close();
-            tracing::debug!("SSplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
         };
 
@@ -1915,10 +1871,6 @@ where
                     tracing::error!(
                         "SSplitCollectorMapContinuation: failed to push to queue: {}",
                         e
-                    );
-                } else {
-                    tracing::trace!(
-                        "SSplitCollectorMapContinuation: copied transformed item to observer queue"
                     );
                 }
             }
