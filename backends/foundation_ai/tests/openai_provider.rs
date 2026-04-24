@@ -69,15 +69,14 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
     let resolver = StaticSocketAddr::new(addr);
-    let config = OpenAIConfig::new().with_base_url(server.base_url());
+    let config = OpenAIConfig::new()
+        .with_base_url(server.base_url())
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "test-key".to_string(),
+        )));
 
     let provider = OpenAIProvider::with_resolver_and_config(resolver, config)
-        .create(
-            Some(OpenAIConfig::new().with_base_url(server.base_url())),
-            Some(AuthCredential::SecretOnly(ConfidentialText::new(
-                "test-key".to_string(),
-            ))),
-        )
+        .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
     provider

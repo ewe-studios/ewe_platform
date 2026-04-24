@@ -113,7 +113,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                         // create the request descriptor
                         let request_descriptor = data.descriptor();
-                        tracing::info!("Connecting to URL: {}", &request_descriptor.request_uri);
+                        tracing::info!("Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, &request_descriptor.headers);
 
                         self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                             data,

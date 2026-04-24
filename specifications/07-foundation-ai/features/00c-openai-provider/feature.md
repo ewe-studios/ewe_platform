@@ -523,7 +523,7 @@ Parsing requires:
 ## Related Features
 
 - **Feature 01 (llamacpp-integration)**: Local inference alternative to OpenAI provider
-- **Feature 02 (huggingface-provider)**: Model discovery and downloading, complements OpenAI provider
+- **Feature 02 (huggingface-gguf-provider)**: GGUF model discovery and downloading, complements OpenAI provider
 - **Feature 03 (candle-integration)**: Alternative local inference backend
 
 ## References

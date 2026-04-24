@@ -92,7 +92,7 @@ impl CookieJar {
     pub fn add(&mut self, cookie: Cookie);
 
     /// Get cookies matching a URL
-    pub fn get_for_url(&self, url: &ParsedUrl) -> Vec<&Cookie>;
+    pub fn get_for_url(&self, url: &Uri) -> Vec<&Cookie>;
 
     /// Remove a specific cookie
     pub fn remove(&mut self, domain: &str, path: &str, name: &str);
@@ -113,7 +113,7 @@ impl CookieJar {
 ```rust
 // On response: parse and store Set-Cookie headers
 impl ClientResponse {
-    fn store_cookies(&self, jar: &mut CookieJar, request_url: &ParsedUrl) {
+    fn store_cookies(&self, jar: &mut CookieJar, request_url: &Uri) {
         for header in self.headers.get_all("Set-Cookie") {
             if let Ok(cookie) = Cookie::parse(header) {
                 let cookie = self.apply_defaults(cookie, request_url);
@@ -125,7 +125,7 @@ impl ClientResponse {
 
 // On request: add matching cookies
 impl PreparedRequest {
-    fn add_cookies(&mut self, jar: &CookieJar, url: &ParsedUrl) {
+    fn add_cookies(&mut self, jar: &CookieJar, url: &Uri) {
         let cookies = jar.get_for_url(url);
         if !cookies.is_empty() {
             let cookie_header = cookies
@@ -173,7 +173,7 @@ Handle Secure and HttpOnly:
 
 ```rust
 impl CookieJar {
-    pub fn get_for_url(&self, url: &ParsedUrl) -> Vec<&Cookie> {
+    pub fn get_for_url(&self, url: &Uri) -> Vec<&Cookie> {
         self.cookies.values()
             .filter(|c| {
                 // Check domain match

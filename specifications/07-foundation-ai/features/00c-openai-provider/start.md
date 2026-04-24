@@ -215,7 +215,7 @@ Ensure these `foundation_core` features are available:
 
 After completing this feature:
 1. Proceed to **Feature 01 (llamacpp-integration)** for local inference
-2. Or proceed to **Feature 02 (huggingface-provider)** for model discovery
+2. Or proceed to **Feature 02 (huggingface-gguf-provider)** for GGUF model discovery
 
 ---
 

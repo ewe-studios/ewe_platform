@@ -864,8 +864,26 @@ pub trait Model {
     ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>>;
 }
 
+/// Trait for config types that can provide authentication credentials
+/// to a [`ModelProvider`].
+///
+/// Implement this on provider config types to expose auth through `create()`.
+///
+/// # Example
+///
+/// ```ignore
+/// impl AuthProvider for MyProviderConfig {
+///     fn auth(&self) -> Option<&AuthCredential> {
+///         self.auth.as_ref()
+///     }
+/// }
+/// ```
+pub trait AuthProvider {
+    fn auth(&self) -> Option<&AuthCredential>;
+}
+
 pub trait ModelProvider {
-    type Config;
+    type Config: AuthProvider;
     type Model: Model;
 
     /// [`create`] will consume self and the credentials, perform the necessary
@@ -884,7 +902,6 @@ pub trait ModelProvider {
     fn create(
         self,
         config: Option<Self::Config>,
-        credential: Option<AuthCredential>,
     ) -> ModelProviderResult<Self>
     where
         Self: Sized;

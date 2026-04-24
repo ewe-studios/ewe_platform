@@ -18,7 +18,7 @@ seven features spanning storage, auth, and multiple inference providers.
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | ⬜ Pending | 0 / 45 | 0% |
 | 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ⬜ Pending | 0 / 12 | 0% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | 🔄 In Progress | 18 / 27 | 67% |
-| 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | ⬜ Pending | 0 / 10 | 0% |
+| 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ⬜ Pending | 0 / 18 | 0% |
 
 **Totals:** 50 / 174 tasks complete (~29%). 1 feature complete, 1 in progress, 5 pending.
@@ -77,8 +77,8 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 3. **00c openai-provider** (45 tasks) — OpenAI-compatible HTTP provider
    (OpenAI, llama.cpp server, vLLM, Ollama) using `simple_http` +
    `event_source` for SSE. Depends on 00b for credential handling.
-4. **02 huggingface-provider** (10 tasks) — HF Hub model discovery and
-   GGUF download via `hf-hub`. Depends on 01.
+4. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
+   GGUF model discovery and download via `hf-hub`. Depends on 01. ✅ Complete.
 5. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
    backend via Candle with safetensors. Depends on 01.
 
@@ -112,7 +112,7 @@ specifications/07-foundation-ai/
     ├── 00c-openai-provider/       (0%   ⬜)
     ├── 00d-state-store-streaming/ (0%   ⬜)
     ├── 01-llamacpp-integration/   (67%  🔄)
-    ├── 02-huggingface-provider/   (0%   ⬜)
+    ├── 02-huggingface-provider/   (100% ✅) [HuggingFaceGGUFProvider]
     └── 03-candle-integration/     (0%   ⬜)
 ```
 

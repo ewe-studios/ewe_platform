@@ -1,17 +1,17 @@
 use foundation_core::wire::simple_http::{
-    client::ParsedUrl, url::percent_decode, url::percent_encode, url::Query,
+    client::Uri, url::percent_decode, url::percent_encode, url::Query,
 };
 
-/// Unit tests for URL query extraction/visibility via `ParsedUrl`.
+/// Unit tests for URL query extraction/visibility via `Uri`.
 ///
-/// These tests exercise the `ParsedUrl::parse(...)` and `.query()` accessor to
+/// These tests exercise the `Uri::parse(...)` and `.query()` accessor to
 /// ensure query strings are preserved and accessible from the parsed URL type.
 ///
 /// They are intentionally small and deterministic to run as part of the fast
 /// unit test tree under `tests/backends/foundation_core/units/simple_http/`.
 #[test]
 fn test_parsed_url_with_query_returns_query_string() {
-    let url = ParsedUrl::parse("http://example.com/search?q=test&limit=10").unwrap();
+    let url = Uri::parse("http://example.com/search?q=test&limit=10").unwrap();
     let q = url.query();
     assert!(q.is_some(), "expected a query component");
     assert_eq!(q.unwrap(), "q=test&limit=10");
@@ -19,13 +19,13 @@ fn test_parsed_url_with_query_returns_query_string() {
 
 #[test]
 fn test_parsed_url_without_query_returns_none() {
-    let url = ParsedUrl::parse("http://example.com/path").unwrap();
+    let url = Uri::parse("http://example.com/path").unwrap();
     assert!(url.query().is_none(), "expected no query component");
 }
 
 #[test]
 fn test_parsed_url_with_empty_and_present_values() {
-    let url = ParsedUrl::parse("http://example.com/?a=&b=2").unwrap();
+    let url = Uri::parse("http://example.com/?a=&b=2").unwrap();
     let q = url.query().expect("expected query present");
     // The exact ordering is preserved as in the raw URL
     assert_eq!(q, "a=&b=2");
@@ -33,7 +33,7 @@ fn test_parsed_url_with_empty_and_present_values() {
 
 #[test]
 fn test_parsed_url_with_percent_encoded_values() {
-    let url = ParsedUrl::parse("http://example.com/?q=hello%20world&lang=en").unwrap();
+    let url = Uri::parse("http://example.com/?q=hello%20world&lang=en").unwrap();
     let q = url.query().expect("expected query present");
     assert!(q.contains("q=hello%20world"));
     assert!(q.contains("lang=en"));

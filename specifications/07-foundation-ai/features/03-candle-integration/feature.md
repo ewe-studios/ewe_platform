@@ -5,21 +5,21 @@ feature_directory: "specifications/07-foundation-ai/features/03-candle-integrati
 this_file: "specifications/07-foundation-ai/features/03-candle-integration/feature.md"
 
 feature: "Candle Inference Backend Integration"
-description: "Implement CandleBackend as an alternative ModelProvider using HuggingFace's Candle framework for native Rust model inference with safetensors support"
-status: pending
+description: "Implement CandleBackend and HuggingFaceCandleProvider using HuggingFace's Candle framework for native Rust model inference with safetensors support"
+status: in-progress
 priority: medium
 depends_on:
   - "01-llamacpp-integration"
 estimated_effort: "large"
 created: 2026-03-17
-last_updated: 2026-03-17
+last_updated: 2026-04-24
 author: "Main Agent"
 
 tasks:
-  completed: 0
-  uncompleted: 18
+  completed: 14
+  uncompleted: 4
   total: 18
-  completion_percentage: 0%
+  completion_percentage: 78%
 ---
 
 # Candle Inference Backend Integration
@@ -42,6 +42,48 @@ This provides an alternative to the llama.cpp backend (feature 01) with differen
 
 Users can choose the backend that best fits their use case — llama.cpp for quantized GGUF models, Candle for safetensors models and pure-Rust deployments.
 
+## Architecture Changes from Original Spec
+
+The implementation diverged from the original spec in several important ways:
+
+### 1. AuthProvider Trait Pattern
+
+All provider config types implement the `AuthProvider` trait (defined in `types/mod.rs`):
+
+```rust
+pub trait AuthProvider {
+    fn auth(&self) -> Option<&AuthCredential>;
+}
+```
+
+This allows `ModelProvider::Config` to be bounded by `AuthProvider`, enabling auth to flow from config rather than as a separate parameter to `create()`.
+
+### 2. ModelProvider::create() Signature Change
+
+The `create()` method no longer takes a `credential` parameter. Auth is sourced from the config via `AuthProvider::auth()`:
+
+```rust
+// Before
+fn create(self, config: Option<Self::Config>, credential: Option<AuthCredential>) -> ModelProviderResult<Self>
+
+// After
+fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
+```
+
+The `Config` type is bounded by `AuthProvider`: `type Config: AuthProvider;`
+
+### 3. CandleBackendConfig Auth Field
+
+`CandleBackendConfig` stores `auth: Option<foundation_auth::AuthCredential>` instead of a plain `hf_token: Option<String>`. The config implements `AuthProvider` and has manual `Clone` (skipping auth since `AuthCredential` is not `Clone`).
+
+### 4. HuggingFaceCandleProvider Wrapper
+
+Rather than having `CandleBackend` directly download from HuggingFace Hub, a separate `HuggingFaceCandleProvider` wraps `CandleBackend` and uses `foundation_deployment::providers::huggingface` (`HFClient`, `repository::repo_download_file`) for model downloading. This mirrors the `HuggingFaceGGUFProvider` pattern.
+
+### 5. No Direct hf-hub Usage in candle.rs
+
+The `candle.rs` backend no longer imports `hf-hub` directly. Model downloading is the responsibility of `HuggingFaceCandleProvider`. `hf-hub` remains as an optional dependency for other potential uses.
+
 ## Iron Laws (inherited from spec-wide requirements.md)
 
 **These apply to all crates in this spec — see `requirements.md` Iron Laws section for full details:**
@@ -62,7 +104,7 @@ Candle operations (tensor computation, forward passes, sampling) are **CPU/GPU-b
 
 ### Where Valtron IS Needed
 
-- **Streaming** — `CandleCppStream` implements `StreamIterator` to yield tokens one-by-one. This is Valtron's native pattern (not `from_future`).
+- **Streaming** — `CandleStream` implements `StreamIterator` to yield tokens one-by-one. This is Valtron's native pattern (not `from_future`).
 - **Model downloads** — If downloading safetensors from HuggingFace Hub via async API, wrap with `from_future`. Check if `hf_hub::api::sync::Api` suffices first.
 
 ### Where Valtron is NOT Needed
@@ -96,39 +138,44 @@ impl StreamIterator for CandleStream {
 - `candle-core` - Tensor computation, device management
 - `candle-nn` - Neural network building blocks
 - `candle-transformers` - Pre-built transformer model architectures (LLaMA, Mistral, Phi, etc.)
-- `tokenizers` - HuggingFace tokenizer (likely already available or add)
-- `hf-hub` - Model downloading (already in Cargo.toml)
+- `tokenizers` - HuggingFace tokenizer
+- `hf-hub` - Model downloading (optional, behind `candle` feature)
 
 **Depends On:**
 - Feature 01 (llamacpp-integration) - Establishes `ModelProvider` pattern, `ModelOutput::Embedding`, error types, `ModelParams`
+- `foundation_deployment` - HFClient for HuggingFace Hub interactions (used by `HuggingFaceCandleProvider`)
 
 ## Requirements
 
 1. **CandleBackend Enum** - Implements `ModelProvider` trait for CPU/CUDA/Metal hardware variants
-2. **CandleBackendConfig** - Configuration struct with builder pattern: device selection, dtype, model architecture, context length
+2. **CandleBackendConfig** - Configuration struct with builder pattern: device selection, dtype, model architecture, context length, **auth credential**
 3. **CandleModels Struct** - `Model` trait implementation wrapping Candle model + tokenizer with interior mutability
-4. **Model Loading** - Load safetensors models from local paths or HuggingFace Hub
+4. **Model Loading** - Load safetensors models from local paths (Hub downloading via `HuggingFaceCandleProvider`)
 5. **Tokenization** - Integrate HuggingFace `tokenizers` crate for text tokenization/detokenization
 6. **Text Generation** - Autoregressive generation loop: encode -> forward pass -> sample -> decode
 7. **Sampling** - Temperature, top-k, top-p, repeat penalty sampling from `ModelParams` (f32 values, cast internally as needed)
 8. **Chat Templates** - Apply chat templates from `ModelInteraction` context using tokenizer's chat template or manual construction
-9. **Streaming** - `CandleCppStream` implementing `StreamIterator` for token-by-token generation
+9. **Streaming** - `CandleStream` implementing `StreamIterator` for token-by-token generation
 10. **Embeddings** - Extract embeddings from model hidden states -> `ModelOutput::Embedding { dimensions, values }`
 11. **Model Cache** - `CandleBackend` caches loaded models via `HashMap<ModelId, CandleModels>`
 12. **Error Types** - Own error definitions for Candle failures using `derive_more::From` pattern
 13. **Feature Flags** - `candle-cuda` and `candle-metal` feature flags in Cargo.toml
 14. **Architecture Support** - Support multiple model architectures via `candle-transformers` (LLaMA, Mistral, Phi, Qwen, etc.)
+15. **HuggingFaceCandleProvider** - Wrapper provider that downloads safetensors models from HuggingFace Hub via `foundation_deployment` and loads them via `CandleBackend`
+16. **AuthProvider Implementation** - `CandleBackendConfig` and `HuggingFaceCandleConfig` implement `AuthProvider` trait
 
 ## Architecture
 
 ### Technical Approach
 
 - **Provider Pattern**: `CandleBackend` implements `ModelProvider` with `CandleBackendConfig`, mirroring the llama.cpp provider pattern
+- **Wrapper Provider**: `HuggingFaceCandleProvider` wraps `CandleBackend` and handles HuggingFace Hub model downloading via `foundation_deployment::providers::huggingface` (`HFClient`, `repository::repo_download_file`)
+- **AuthProvider**: Both `CandleBackendConfig` and `HuggingFaceCandleConfig` implement `AuthProvider`, sourcing auth from `config.auth()` instead of a separate `credential` parameter to `create()`
 - **Pure Rust**: No FFI — Candle is native Rust, simplifying builds and deployment
 - **Safetensors**: Models loaded directly from safetensors format via `candle_core::safetensors`
 - **HuggingFace Native**: Tokenizers and models both from HuggingFace ecosystem
 - **Interior Mutability**: Same `RefCell`/`Mutex` pattern as `LlamaModels` for `&self` on Model trait
-- **Architecture Dispatch**: Different model architectures (LLaMA, Mistral, etc.) handled via enum or trait object dispatch
+- **Architecture Dispatch**: Different model architectures (LLaMA, Mistral, etc.) handled via enum dispatch (`CandleModels`)
 
 ### Authoritative Source Note
 
@@ -140,30 +187,31 @@ The Candle crate APIs (`candle-core`, `candle-nn`, `candle-transformers`) are th
 graph TD
     subgraph foundation_ai
         A[ModelProvider trait] --> B[CandleBackend enum]
-        B --> |"create(config)"| B2[CandleBackendConfig - builder + defaults]
-        B --> |"HashMap cache"| C[CandleModels struct]
-        C --> |"RefCell/Mutex"| D[Generation Logic]
-        C --> E[Streaming - CandleStream]
-        C --> F[Chat Template from ModelInteraction]
-        C --> G[Embeddings -> ModelOutput::Embedding]
-        H[Sampling from ModelParams] --> C
+        A --> C[HuggingFaceCandleProvider]
+        B --> |"create(config)"| B2[CandleBackendConfig - builder + defaults + auth]
+        C --> |"wraps"| B
+        C --> |"uses HFClient from"| D[foundation_deployment::providers::huggingface]
+        B --> |"HashMap cache"| E[CandleModels struct]
+        E --> |"RefCell/Mutex"| F[Generation Logic]
+        E --> G[Streaming - CandleStream]
+        E --> H[Chat Template from ModelInteraction]
+        E --> I[Embeddings -> ModelOutput::Embedding]
+        J[Sampling from ModelParams] --> E
     end
 
     subgraph Candle["candle crates"]
-        I[candle-core: Device + Tensor]
-        J[candle-transformers: Model Architectures]
-        K[candle-nn: Layers]
+        K[candle-core: Device + Tensor]
+        L[candle-transformers: Model Architectures]
+        M[candle-nn: Layers]
     end
 
     subgraph HuggingFace
-        L[tokenizers: Tokenization]
-        M[hf-hub: Model Download]
+        N[tokenizers: Tokenization]
     end
 
-    C --> I
-    C --> J
-    C --> L
-    B --> M
+    E --> K
+    E --> L
+    E --> N
 ```
 
 ### Data Flow
@@ -172,22 +220,23 @@ graph TD
 ```mermaid
 sequenceDiagram
     participant App as Application
-    participant CB as CandleBackend (Provider)
+    participant HF as HuggingFaceCandleProvider
+    participant CB as CandleBackend
     participant CM as CandleModels
     participant CT as candle-transformers Model
     participant TK as tokenizers::Tokenizer
 
-    App->>CB: create(config, credential)
-    Note over CB: Initialize device (CPU/CUDA/Metal)
+    App->>HF: create(config)
+    Note over HF: Auth from config.auth() via AuthProvider
+    HF->>HF: init HFClient
+    HF->>CB: create CandleBackend
 
-    App->>CB: get_model(model_id)
-    CB->>CB: Check model cache
-    alt Cache miss
-        CB->>CB: Download safetensors + tokenizer via hf-hub
-        CB->>CT: Load model weights into architecture
-        CB->>TK: Load tokenizer.json
-        CB->>CB: Cache CandleModels
-    end
+    App->>HF: get_model(model_id)
+    HF->>HF: parse repo_id from ModelId
+    HF->>HF: download safetensors via HFClient
+    HF->>CB: get_model_by_spec(local_path)
+    CB->>CT: Load model weights into architecture
+    CB->>TK: Load tokenizer.json
     CB-->>App: CandleModels
 
     App->>CM: generate(interaction, params)
@@ -220,14 +269,16 @@ sequenceDiagram
 
 ```
 backends/foundation_ai/
-├── Cargo.toml                         - Add candle-core, candle-nn, candle-transformers, tokenizers deps (MODIFY)
+├── Cargo.toml                                    - Add candle-core, candle-nn, candle-transformers, tokenizers deps (MODIFY)
 ├── src/
 │   ├── backends/
-│   │   ├── mod.rs                     - Add candle module export (MODIFY)
-│   │   ├── candle.rs                  - CandleBackend + CandleModels + CandleBackendConfig (CREATE)
-│   │   └── candle_helpers.rs          - Sampling, device selection helpers (CREATE)
+│   │   ├── mod.rs                                - Add candle + huggingface_candle_provider module export (MODIFY)
+│   │   ├── candle.rs                             - CandleBackend + CandleModels + CandleBackendConfig (CREATE)
+│   │   └── huggingface_candle_provider.rs        - HuggingFaceCandleProvider wrapper (CREATE)
 │   ├── errors/
-│   │   └── mod.rs                     - Add Candle error variants (MODIFY)
+│   │   └── mod.rs                                - Add Candle error variants (MODIFY)
+│   └── types/
+│       └── mod.rs                                - Add AuthProvider trait (MODIFY)
 ```
 
 ### Error Handling
@@ -240,6 +291,8 @@ Own error definitions using `derive_more::From`:
 - `ModelErrors` gets:
   - `CandleModelLoad(String)` - Model loading/weight initialization failures
   - `UnsupportedArchitecture(String)` - Requested model architecture not supported
+- `ModelProviderErrors` gets:
+  - Standard wrapping for provider-level failures (HF download, initialization)
 
 ### Trade-offs and Decisions
 
@@ -251,6 +304,10 @@ Own error definitions using `derive_more::From`:
 | `tokenizers` crate for tokenization | HuggingFace standard, supports all tokenizer types | Manual tokenization (fragile) |
 | Safetensors format | Native Candle format, HuggingFace standard | GGUF (already covered by feature 01) |
 | Feature flags for GPU | `candle-cuda`, `candle-metal` mirror infra pattern | Always compile GPU support (bloated builds) |
+| `HuggingFaceCandleProvider` wrapper | Separates concerns: CandleBackend handles inference, wrapper handles downloads | Direct Hub download in CandleBackend (couples concerns) |
+| `foundation_deployment` for HF Hub | Consistent with rest of platform (used by GGUF provider too) | `hf-hub` crate (inconsistent with platform pattern) |
+| `AuthProvider` trait on configs | Centralizes auth access, removes credential param from `create()` | Separate credential parameter (more params, less discoverable) |
+| Manual `Clone` on configs (skip auth) | `AuthCredential` is not `Clone` | Derive `Clone` (would require `AuthCredential: Clone`) |
 
 ### Performance Considerations
 
@@ -262,37 +319,57 @@ Own error definitions using `derive_more::From`:
 ## Tasks
 
 ### Task Group 1: Dependencies & Feature Flags
-- [ ] Add `candle-core`, `candle-nn`, `candle-transformers`, `tokenizers` to Cargo.toml
-- [ ] Add `candle-cuda` and `candle-metal` feature flags
-- [ ] Add `candle` module to `backends/mod.rs`
+- [x] Add `candle-core`, `candle-nn`, `candle-transformers`, `tokenizers` to Cargo.toml
+- [x] Add `candle-cuda` and `candle-metal` feature flags
+- [x] Add `candle` module to `backends/mod.rs`
 
 ### Task Group 2: Error Types
-- [ ] Add `Candle` and `TokenizerError` variants to `GenerationError`
-- [ ] Add `CandleModelLoad` and `UnsupportedArchitecture` variants to `ModelErrors`
+- [x] Add `Candle` and `TokenizerError` variants to `GenerationError`
+- [x] Add `CandleModelLoad` and `UnsupportedArchitecture` variants to `ModelErrors`
 
 ### Task Group 3: Configuration
-- [ ] Create `CandleBackendConfig` struct with builder pattern (device, dtype, context_length, model_architecture)
-- [ ] Create `CandleBackend` enum (CPU, CUDA, Metal) implementing `ModelProvider`
-- [ ] Implement `create()` with device initialization and model cache
+- [x] Create `CandleBackendConfig` struct with builder pattern (device, dtype, context_length, model_architecture, **auth**)
+- [x] Create `CandleBackend` enum (CPU, CUDA, Metal) implementing `ModelProvider`
+- [x] Implement `create()` with device initialization and model cache (no credential param — auth from config)
+- [x] Implement `AuthProvider` on `CandleBackendConfig` (manual `Clone` skipping auth)
 
 ### Task Group 4: Core Model
-- [ ] Create `CandleModels` struct with interior mutability (`RefCell`/`Mutex`)
-- [ ] Implement model loading from safetensors (local path + hf-hub download)
-- [ ] Implement tokenizer loading from `tokenizer.json`
-- [ ] Implement architecture dispatch (support at least LLaMA family initially)
-- [ ] Implement `Model::spec()` and `Model::costing()`
+- [x] Create `CandleModels` struct with interior mutability (`Rc<RefCell<CandleModelsState>>`)
+- [x] Implement model loading from safetensors (local path only; Hub via `HuggingFaceCandleProvider`)
+- [x] Implement tokenizer loading from `tokenizer.json`
+- [x] Implement architecture dispatch (LLaMA family supported)
+- [x] Implement `Model::spec()` and `Model::costing()`
 
 ### Task Group 5: Generation & Streaming
-- [ ] Implement `Model::generate()` - tokenize, forward pass loop, sample, detokenize
-- [ ] Implement sampling: temperature (f32), top_k (f32, cast internally), top_p (f32), repeat penalty
-- [ ] Implement chat template application from `ModelInteraction`
-- [ ] Implement embeddings extraction -> `ModelOutput::Embedding { dimensions, values }`
-- [ ] Implement `CandleStream` as `StreamIterator` for token-by-token generation
+- [x] Implement `Model::generate()` - tokenize, forward pass loop, sample, detokenize
+- [x] Implement sampling: temperature (f32), top_k (f32, cast internally), top_p (f32), repeat penalty
+- [x] Implement chat template application from `ModelInteraction`
+- [x] Implement embeddings extraction -> `ModelOutput::Embedding { dimensions, values }`
+- [x] Implement `CandleStream` as `StreamIterator` for token-by-token generation
 
-### Task Group 6: Tests
+### Task Group 6: HuggingFaceCandleProvider
+- [x] Create `HuggingFaceCandleProvider` wrapping `CandleBackend`
+- [x] Implement `download_model()` using `foundation_deployment::providers::huggingface`
+- [x] Implement `list_model_files()` for safetensors discovery
+- [x] Implement `ModelProvider` trait (`Config = HuggingFaceCandleConfig`, `Model = CandleModels`)
+- [x] `HuggingFaceCandleConfig` with `auth` field, builder, `AuthProvider` impl, manual `Clone`
+
+### Task Group 7: AuthProvider Trait (types/mod.rs)
+- [x] Define `AuthProvider` trait: `fn auth(&self) -> Option<&AuthCredential>`
+- [x] Bound `ModelProvider::Config` by `AuthProvider`
+- [x] Remove `credential` param from `ModelProvider::create()`
+- [x] Add `AuthProvider` impl + `auth` field + manual `Clone` to all config types:
+  - `CandleBackendConfig`
+  - `HuggingFaceCandleConfig`
+  - `HuggingFaceGGUFConfig`
+  - `OpenAIConfig`
+  - `LlamaBackendConfig` (returns `None`)
+
+### Task Group 8: Tests
 - [ ] Test CandleBackendConfig builder and defaults
 - [ ] Test sampling logic (unit tests, no model required)
 - [ ] Test error type conversions
+- [ ] Integration test: HuggingFaceCandleProvider download + inference with SmolLM safetensors
 
 ## Testing
 

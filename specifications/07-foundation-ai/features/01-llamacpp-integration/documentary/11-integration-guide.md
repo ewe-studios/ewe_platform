@@ -595,12 +595,12 @@ fn format_model_filename(name: &str, quant: &Option<Quantization>) -> String {
 }
 ```
 
-### HuggingFace Provider
+### HuggingFace GGUF Provider
 
 ```rust
-pub struct HuggingFaceProvider;
+pub struct HuggingFaceGGUFProvider;
 
-impl ModelProvider for HuggingFaceProvider {
+impl ModelProvider for HuggingFaceGGUFProvider {
     fn get_one(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec> {
         match model_id {
             ModelId::Name(name, quant) => {

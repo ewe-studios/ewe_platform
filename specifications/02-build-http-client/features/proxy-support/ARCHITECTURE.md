@@ -28,7 +28,7 @@
 
 ### Phase 1: Extend HttpClientConnection
 
-Add methods that connect by host:port instead of ParsedUrl:
+Add methods that connect by host:port instead of Uri:
 
 ```rust
 impl HttpClientConnection {
@@ -225,7 +225,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// HOW: Proxy CONNECT + conditional TLS upgrade
     pub fn create_connection_with_proxy(
         &self,
-        url: &ParsedUrl,
+        url: &Uri,
         proxy: Option<&ProxyConfig>,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {

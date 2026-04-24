@@ -5,11 +5,11 @@
 //! by the `simple_http` client. They are fast, deterministic unit tests that
 //! avoid network IO.
 
-use foundation_core::wire::simple_http::{client::ParsedUrl, url::Scheme};
+use foundation_core::wire::simple_http::{client::Uri, url::Scheme};
 
 #[test]
 fn test_parsed_url_http_has_default_port_80() {
-    let url = ParsedUrl::parse("http://example.com").expect("should parse http URL");
+    let url = Uri::parse("http://example.com").expect("should parse http URL");
 
     // Default scheme detection
     assert!(url.scheme().is_http(), "scheme should be detected as HTTP");
@@ -21,7 +21,7 @@ fn test_parsed_url_http_has_default_port_80() {
 
 #[test]
 fn test_parsed_url_https_has_default_port_443() {
-    let url = ParsedUrl::parse("https://example.com").expect("should parse https URL");
+    let url = Uri::parse("https://example.com").expect("should parse https URL");
 
     // Default scheme detection
     assert!(
@@ -36,8 +36,7 @@ fn test_parsed_url_https_has_default_port_443() {
 
 #[test]
 fn test_parsed_url_explicit_port_preserved() {
-    let url =
-        ParsedUrl::parse("http://example.com:8080/path").expect("should parse http URL with port");
+    let url = Uri::parse("http://example.com:8080/path").expect("should parse http URL with port");
 
     assert!(url.scheme().is_http());
     assert_eq!(url.port().unwrap(), 8080);
@@ -47,8 +46,7 @@ fn test_parsed_url_explicit_port_preserved() {
 
 #[test]
 fn test_parsed_url_scheme_case_insensitive() {
-    let url =
-        ParsedUrl::parse("HTTP://Example.COM").expect("should parse case-insensitive scheme/host");
+    let url = Uri::parse("HTTP://Example.COM").expect("should parse case-insensitive scheme/host");
 
     // Scheme detection should be case-insensitive
     assert!(url.scheme().is_http());
@@ -62,7 +60,7 @@ fn test_parsed_url_scheme_case_insensitive() {
 #[test]
 fn test_parsed_url_supports_custom_protocols() {
     // Unsupported/unknown schemes should produce a parse error
-    let result = ParsedUrl::parse("ftp://example.com/resource");
+    let result = Uri::parse("ftp://example.com/resource");
     assert!(
         result.is_ok(),
         "unknown scheme should return be a Custom protocol"

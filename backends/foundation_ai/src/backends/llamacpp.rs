@@ -101,6 +101,12 @@ fn num_cpus() -> usize {
     std::thread::available_parallelism().map_or(4, std::num::NonZeroUsize::get)
 }
 
+impl crate::types::AuthProvider for LlamaBackendConfig {
+    fn auth(&self) -> Option<&foundation_auth::AuthCredential> {
+        None
+    }
+}
+
 impl LlamaBackendConfig {
     /// Create a new config builder with default values.
     #[must_use]
@@ -893,7 +899,6 @@ impl ModelProvider for LlamaBackends {
     fn create(
         self,
         _config: Option<Self::Config>,
-        _credential: Option<foundation_auth::AuthCredential>,
     ) -> ModelProviderResult<Self>
     where
         Self: Sized,

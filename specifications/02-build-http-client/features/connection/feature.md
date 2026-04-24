@@ -31,17 +31,17 @@ This feature depends on:
 - `foundation` - Uses DnsResolver for hostname resolution, HttpClientError for errors
 
 This feature is required by:
-- `request-response` - Uses ParsedUrl for request building
+- `request-response` - Uses Uri for request building
 - `task-iterator` - Uses HttpClientConnection for state machine
 
 ## Requirements
 
 ### URL Parsing
 
-Create `ParsedUrl` for parsing HTTP/HTTPS URLs:
+Create `Uri` for parsing HTTP/HTTPS URLs:
 
 ```rust
-pub struct ParsedUrl {
+pub struct Uri {
     pub scheme: Scheme,  // Http or Https
     pub host: String,
     pub port: u16,       // 80 for HTTP, 443 for HTTPS by default
@@ -54,7 +54,7 @@ pub enum Scheme {
     Https,
 }
 
-impl ParsedUrl {
+impl Uri {
     pub fn parse(url: &str) -> Result<Self, HttpClientError>;
 }
 ```
@@ -77,7 +77,7 @@ impl ParsedUrl {
 ```rust
 impl HttpClientConnection {
     pub fn connect<R: DnsResolver>(
-        url: &ParsedUrl,
+        url: &Uri,
         resolver: &R,
         timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError>;
@@ -103,7 +103,7 @@ fn create_tls_connector() -> NativeTlsConnector { ... }
 
 ```
 client/
-├── connection.rs    (NEW - ParsedUrl, HttpClientConnection)
+├── connection.rs    (NEW - Uri, HttpClientConnection)
 └── ...
 ```
 
@@ -126,11 +126,11 @@ IoError(std::io::Error),
 
 ## Success Criteria
 
-- [ ] `ParsedUrl` correctly parses HTTP URLs
-- [ ] `ParsedUrl` correctly parses HTTPS URLs
-- [ ] `ParsedUrl` handles default ports (80/443)
-- [ ] `ParsedUrl` handles explicit ports
-- [ ] `ParsedUrl` handles paths and query strings
+- [ ] `Uri` correctly parses HTTP URLs
+- [ ] `Uri` correctly parses HTTPS URLs
+- [ ] `Uri` handles default ports (80/443)
+- [ ] `Uri` handles explicit ports
+- [ ] `Uri` handles paths and query strings
 - [ ] `HttpClientConnection::connect()` works for HTTP
 - [ ] `HttpClientConnection::connect()` works for HTTPS (with TLS feature)
 - [ ] Connection timeout works

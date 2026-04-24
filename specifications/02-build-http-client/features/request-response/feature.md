@@ -30,7 +30,7 @@ Create the request building and response type infrastructure for the HTTP 1.1 cl
 
 This feature depends on:
 - `foundation` - Uses HttpClientError for errors
-- `connection` - Uses ParsedUrl for URL handling
+- `connection` - Uses Uri for URL handling
 
 This feature is required by:
 - `task-iterator` - Uses PreparedRequest and ResponseIntro
@@ -79,7 +79,7 @@ Internal type representing a fully prepared request ready to send:
 ```rust
 pub struct PreparedRequest {
     pub method: SimpleMethod,
-    pub url: ParsedUrl,
+    pub url: Uri,
     pub headers: SimpleHeaders,
     pub body: SimpleBody,
 }
@@ -96,7 +96,7 @@ Fluent API for building requests:
 ```rust
 pub struct ClientRequestBuilder {
     method: SimpleMethod,
-    url: ParsedUrl,
+    url: Uri,
     headers: SimpleHeaders,
     body: Option<SimpleBody>,
 }

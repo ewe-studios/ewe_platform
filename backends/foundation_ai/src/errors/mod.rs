@@ -51,6 +51,14 @@ pub enum GenerationError {
     /// llama.cpp context load errors.
     LlamaContextLoad(LlamaContextLoadError),
 
+    /// Candle tensor/compute errors.
+    #[cfg(feature = "candle")]
+    Candle(candle_core::Error),
+
+    /// Tokenizer failures (from the `tokenizers` crate).
+    #[from(ignore)]
+    Tokenizer(String),
+
     /// Backend execution failures (Valtron scheduling, etc.).
     #[from(ignore)]
     Backend(String),
@@ -89,6 +97,9 @@ impl core::fmt::Display for GenerationError {
             GenerationError::ApplyChatTemplate(e) => write!(f, "Apply chat template error: {e}"),
             GenerationError::LlamaModelLoad(e) => write!(f, "llama.cpp model load error: {e}"),
             GenerationError::LlamaContextLoad(e) => write!(f, "llama.cpp context load error: {e}"),
+            #[cfg(feature = "candle")]
+            GenerationError::Candle(e) => write!(f, "Candle error: {e}"),
+            GenerationError::Tokenizer(msg) => write!(f, "Tokenizer error: {msg}"),
             GenerationError::Backend(msg) => write!(f, "Backend error: {msg}"),
             GenerationError::Generic(msg) => write!(f, "Generation error: {msg}"),
         }
@@ -121,6 +132,12 @@ pub enum ModelErrors {
 
     /// Embedding extraction errors.
     Embeddings(EmbeddingsError),
+
+    /// Candle model loading/weight initialization failures.
+    CandleModelLoad(String),
+
+    /// Requested model architecture is not supported.
+    UnsupportedArchitecture(String),
 }
 
 impl From<LlamaModelLoadError> for ModelErrors {
@@ -149,6 +166,10 @@ impl core::fmt::Display for ModelErrors {
             ModelErrors::LlamaModelLoad(e) => write!(f, "llama.cpp model load error: {e}"),
             ModelErrors::LlamaContextLoad(e) => write!(f, "llama.cpp context load error: {e}"),
             ModelErrors::Embeddings(e) => write!(f, "Embedding error: {e}"),
+            ModelErrors::CandleModelLoad(msg) => write!(f, "Candle model load error: {msg}"),
+            ModelErrors::UnsupportedArchitecture(arch) => {
+                write!(f, "Unsupported architecture: {arch}")
+            }
         }
     }
 }

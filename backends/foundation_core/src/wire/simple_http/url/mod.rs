@@ -297,6 +297,12 @@ impl Into<String> for Uri {
     }
 }
 
+// impl Uri {
+//     pub fn to_string(&self) -> String {
+//         format!("{self:}")
+//     }
+// }
+
 impl fmt::Display for Uri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // scheme:

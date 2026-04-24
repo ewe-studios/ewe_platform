@@ -20,9 +20,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, StopReason, TextContent,
-    UsageCosting, UsageReport,
+    AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, StopReason,
+    TextContent, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -30,7 +30,7 @@ use crate::types::{
 // ============================================================================
 
 /// Configuration for the `OpenAI` provider.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct OpenAIConfig {
     pub base_url: String,
     pub api_version: String,
@@ -38,6 +38,7 @@ pub struct OpenAIConfig {
     pub max_retries: u32,
     pub proxy_url: Option<String>,
     pub streaming: bool,
+    pub auth: Option<AuthCredential>,
 }
 
 impl Default for OpenAIConfig {
@@ -49,6 +50,7 @@ impl Default for OpenAIConfig {
             max_retries: 3,
             proxy_url: None,
             streaming: true,
+            auth: None,
         }
     }
 }
@@ -95,13 +97,47 @@ impl OpenAIConfig {
         self
     }
 
-    fn build_url(&self, endpoint: &str) -> String {
+    #[must_use]
+    pub fn with_auth(mut self, auth: AuthCredential) -> Self {
+        self.auth = Some(auth);
+        self
+    }
+
+    /// Build a full URL for an API endpoint.
+    #[must_use]
+    pub fn build_url(&self, endpoint: &str) -> String {
         format!(
             "{}/{}/{}",
             self.base_url.trim_end_matches('/'),
             self.api_version,
             endpoint.trim_start_matches('/')
         )
+    }
+}
+
+impl Clone for OpenAIConfig {
+    fn clone(&self) -> Self {
+        Self {
+            base_url: self.base_url.clone(),
+            api_version: self.api_version.clone(),
+            timeout_secs: self.timeout_secs,
+            max_retries: self.max_retries,
+            proxy_url: self.proxy_url.clone(),
+            streaming: self.streaming,
+            auth: None,
+        }
+    }
+}
+
+impl crate::types::AuthProvider for OpenAIConfig {
+    fn auth(&self) -> Option<&AuthCredential> {
+        self.auth.as_ref()
+    }
+}
+
+impl<R: DnsResolver> OpenAIProvider<R> {
+    fn build_url(&self, endpoint: &str) -> String {
+        self.config.build_url(endpoint)
     }
 }
 
@@ -234,35 +270,32 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
     type Config = OpenAIConfig;
     type Model = OpenAIModel<R>;
 
-    fn create(
-        mut self,
-        config: Option<Self::Config>,
-        credential: Option<AuthCredential>,
-    ) -> ModelProviderResult<Self> {
+    fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
+            if let Some(cred) = cfg.auth() {
+                match &cred {
+                    AuthCredential::SecretOnly(key) => {
+                        self.api_key = Some(key.clone());
+                    }
+                    AuthCredential::ClientSecret {
+                        client_id: _,
+                        client_secret,
+                    } => {
+                        self.api_key = Some(client_secret.clone());
+                    }
+                    AuthCredential::OAuth(cred) => {
+                        self.api_key = Some(cred.access_token.clone());
+                    }
+                    AuthCredential::EmailAuth { .. }
+                    | AuthCredential::UsernameAndPassword { .. } => {
+                        return Err(ModelProviderErrors::NotFound(
+                            "OpenAI provider requires SecretOnly, ClientSecret, or OAuth credentials"
+                                .into(),
+                        ));
+                    }
+                }
+            }
             self.config = cfg;
-        }
-
-        match &credential {
-            Some(AuthCredential::SecretOnly(key)) => {
-                self.api_key = Some(key.clone());
-            }
-            Some(AuthCredential::ClientSecret {
-                client_id: _,
-                client_secret,
-            }) => {
-                self.api_key = Some(client_secret.clone());
-            }
-            Some(AuthCredential::OAuth(cred)) => {
-                self.api_key = Some(cred.access_token.clone());
-            }
-            Some(AuthCredential::EmailAuth { .. } | AuthCredential::UsernameAndPassword { .. }) => {
-                return Err(ModelProviderErrors::NotFound(
-                    "OpenAI provider requires SecretOnly, ClientSecret, or OAuth credentials"
-                        .into(),
-                ));
-            }
-            None => {}
         }
 
         // Apply proxy and timeout configuration to the HTTP client.
@@ -319,7 +352,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
         }
         drop(cache);
 
-        let url = self.config.build_url(&format!("models/{model_name}"));
+        let url = self.build_url(&format!("models/{model_name}"));
         let result: Result<OpenAIModelResponse, _> = self.execute_request(&url, "");
 
         let info = match result {
@@ -363,7 +396,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
     }
 
     fn get_all(&self, model_id: ModelId) -> ModelProviderResult<Vec<ModelSpec>> {
-        let url = self.config.build_url("models");
+        let url = self.build_url("models");
         let response: OpenAIListResponse = self
             .execute_request(&url, "")
             .map_err(|e| ModelProviderErrors::NotFound(e.to_string()))?;
@@ -410,6 +443,10 @@ pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
 }
 
 impl<R: DnsResolver + 'static> OpenAIModel<R> {
+    fn build_url(&self, endpoint: &str) -> String {
+        self.config.build_url(endpoint)
+    }
+
     fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
         let mut headers = Vec::new();
         if let Some(key) = &self.api_key {
@@ -493,7 +530,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         let body = serde_json::to_string(&request)
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
-        let url = self.config.build_url("chat/completions");
+        let url = self.build_url("chat/completions");
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
 
         let message = parse_chat_response(&response, &self.model_id)?;
@@ -511,7 +548,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         let body = serde_json::to_string(&request)
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
-        let url = self.config.build_url("chat/completions");
+        let url = self.build_url("chat/completions");
 
         let resolver = self
             .resolver
