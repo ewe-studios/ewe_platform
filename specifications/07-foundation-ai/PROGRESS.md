@@ -1,6 +1,6 @@
 # Progress - Foundation AI
 
-_Last updated: 2026-04-12 (after `86c85840 ADD: ai llamacpp rewire`)_
+_Last updated: 2026-04-25 (after Candle integration complete)_
 
 ## Overview
 
@@ -19,9 +19,9 @@ seven features spanning storage, auth, and multiple inference providers.
 | 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ⬜ Pending | 0 / 12 | 0% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | 🔄 In Progress | 18 / 27 | 67% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
-| 3  | [candle-integration](./features/03-candle-integration/feature.md) | ⬜ Pending | 0 / 18 | 0% |
+| 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
 
-**Totals:** 50 / 174 tasks complete (~29%). 1 feature complete, 1 in progress, 5 pending.
+**Totals:** 68 / 174 tasks complete (~39%). 2 features complete, 1 in progress, 4 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -41,6 +41,21 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
   wrappers were identical since `StorageProvider` already selects the backend)
 - Local auth tests run against a real SQLite file via the Turso provider
 - `StorageProvider::new` now auto-calls `init_schema()` for Turso/libsql
+
+### 02 HuggingFace GGUF Provider (100% ✅)
+- `HuggingFaceGGUFProvider` with HF Hub GGUF model discovery and download
+
+### 03 Candle Integration (100% ✅)
+- `CandleBackend` enum (CPU/CUDA/Metal) implementing `ModelProvider`
+- `CandleBackendConfig` + `HuggingFaceCandleConfig` with builder pattern, `AuthProvider` impl, manual `Clone`
+- `AuthProvider` trait on all provider configs — `create()` no longer takes credential param
+- `HuggingFaceCandleProvider` wrapper using `foundation_deployment::providers::huggingface` for safetensors download
+- `CandleModels` struct with interior mutability, architecture dispatch (LLaMA family)
+- Text generation, streaming (`CandleStream`), embeddings, chat template application
+- `sample_token` handles variable logits ranks (1D/2D/3D)
+- 15 unit tests passing (`candle_backend.rs`), 3 integration tests (`huggingface_candle_provider.rs`)
+- Bug fix: `repository.rs` `Stream::Next` vs `Stream::Done` body extraction
+- All tests run with `--profile uat` (LLVM backend; cranelift fails with `pulp` inline asm)
 
 ### 01 llama.cpp Integration (67%)
 - Type extensions (`ModelOutput::Embedding`, `ChatMessage`, `LlamaConfig`,
@@ -80,7 +95,7 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 4. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
    GGUF model discovery and download via `hf-hub`. Depends on 01. ✅ Complete.
 5. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
-   backend via Candle with safetensors. Depends on 01.
+   backend via Candle with safetensors. Depends on 01. ✅ Complete.
 
 ### Parallel Cleanup Effort
 
@@ -113,7 +128,7 @@ specifications/07-foundation-ai/
     ├── 00d-state-store-streaming/ (0%   ⬜)
     ├── 01-llamacpp-integration/   (67%  🔄)
     ├── 02-huggingface-provider/   (100% ✅) [HuggingFaceGGUFProvider]
-    └── 03-candle-integration/     (0%   ⬜)
+    └── 03-candle-integration/     (100% ✅)
 ```
 
 Each feature directory contains its own `PROGRESS.md` with the detailed
