@@ -923,9 +923,32 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
 }
 
 fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_core::Error> {
-    let logits = logits.squeeze(0)?;
-    let seq_len = logits.dim(0)?;
-    let last_logits = logits.get(seq_len - 1)?;
+    // Logits shape: [batch, seq_len, vocab] or [seq_len, vocab] or [vocab]
+    // Extract the last token's logits as a 1-d [vocab] tensor.
+    let dims = logits.dims();
+    let last_logits = match dims.len() {
+        3 => {
+            // [batch, seq_len, vocab] -> narrow to last position in seq
+            let seq_len = dims[1];
+            logits.narrow(1, seq_len - 1, 1)?.squeeze(0)?.squeeze(0)?
+        }
+        2 => {
+            // [seq_len, vocab] -> take last row
+            let seq_len = dims[0];
+            logits.get(seq_len - 1)?
+        }
+        1 => {
+            // Already [vocab]
+            logits.clone()
+        }
+        _ => {
+            return Err(candle_core::Error::msg(format!(
+                "Unexpected logits rank: {} (dims: {:?})",
+                dims.len(),
+                dims
+            )));
+        }
+    };
 
     if params.temperature <= 0.0 {
         return argmax(&last_logits);
