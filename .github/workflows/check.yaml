@@ -22,7 +22,7 @@ jobs:
       image: ${{ vars.CI_TEST_IMAGE || 'ewetumo/ewe-platform-ci:latest' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
           fetch-depth: 1
@@ -54,7 +54,7 @@ jobs:
         target: [linux/arm64, linux/amd64]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
           fetch-depth: 1
@@ -89,7 +89,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
           fetch-depth: 1
@@ -117,7 +117,7 @@ jobs:
 #    runs-on: windows-latest
 #    steps:
 #      - name: Checkout
-#        uses: actions/checkout@v4
+#        uses: actions/checkout@v6
 #        with:
 #          submodules: false
 #          fetch-depth: 1
