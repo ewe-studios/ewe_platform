@@ -1,6 +1,6 @@
 # Progress - Foundation AI
 
-_Last updated: 2026-04-25 (after Candle integration complete)_
+_Last updated: 2026-04-26 (after OpenAI provider complete)_
 
 ## Overview
 
@@ -15,13 +15,13 @@ seven features spanning storage, auth, and multiple inference providers.
 |----|---------|--------|-------|------------|
 | 0a | [foundation-db](./features/00a-foundation-db/feature.md) | ✅ Complete | 32 / 32 | 100% |
 | 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | ⬜ Pending | 0 / 30 | 0% |
-| 0c | [openai-provider](./features/00c-openai-provider/feature.md) | ⬜ Pending | 0 / 45 | 0% |
+| 0c | [openai-provider](./features/00c-openai-provider/feature.md) | ✅ Complete | 45 / 45 | 100% |
 | 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ⬜ Pending | 0 / 12 | 0% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | 🔄 In Progress | 18 / 27 | 67% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
 
-**Totals:** 68 / 174 tasks complete (~39%). 2 features complete, 1 in progress, 4 pending.
+**Totals:** 113 / 174 tasks complete (~65%). 3 features complete, 1 in progress, 3 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -57,6 +57,19 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - Bug fix: `repository.rs` `Stream::Next` vs `Stream::Done` body extraction
 - All tests run with `--profile uat` (LLVM backend; cranelift fails with `pulp` inline asm)
 
+### 00c OpenAI Provider (100% ✅)
+- `OpenAIProvider` implementing `ModelProvider` trait — connects to OpenAI, llama.cpp server, vLLM, Ollama, OpenRouter
+- `OpenAIConfig` with builder pattern (base_url, timeout, retries, proxy, streaming)
+- Chat completions via `/v1/chat/completions` — request/response types, message parsing
+- Embeddings via `/v1/embeddings` — `generate_embeddings()` method on `OpenAIModel`
+- Model discovery via `/v1/models` — list models, filter by capability, cache with TTL
+- SSE streaming via `OpenAIStream` + `ReconnectingEventSourceTask` — token-by-token, tool call delta accumulation
+- Retry with exponential backoff for 429/5xx — `Retry-After` header parsing
+- Error mapping: OpenAI JSON errors → `GenerationError` variants
+- Usage tracking: prompt/completion/total tokens from API responses
+- `AuthProvider` trait on `OpenAIConfig` — `create()` without credential param
+- 20 unit tests + 3 integration tests passing
+
 ### 01 llama.cpp Integration (67%)
 - Type extensions (`ModelOutput::Embedding`, `ChatMessage`, `LlamaConfig`,
   `SplitMode`, `KVCacheType`, `llama` on `ModelConfig`) — complete
@@ -89,12 +102,9 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 2. **00b auth-infrastructure** (30 tasks) — JWT, OAuth 2.0 (PKCE S256),
    credential storage via foundation_db, auth state machine, 2FA.
    Unblocked — 00a is complete.
-3. **00c openai-provider** (45 tasks) — OpenAI-compatible HTTP provider
-   (OpenAI, llama.cpp server, vLLM, Ollama) using `simple_http` +
-   `event_source` for SSE. Depends on 00b for credential handling.
-4. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
+3. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
    GGUF model discovery and download via `hf-hub`. Depends on 01. ✅ Complete.
-5. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
+4. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
    backend via Candle with safetensors. Depends on 01. ✅ Complete.
 
 ### Parallel Cleanup Effort
@@ -124,7 +134,7 @@ specifications/07-foundation-ai/
 └── features/
     ├── 00a-foundation-db/         (100% ✅)
     ├── 00b-auth-infrastructure/   (0%   ⬜)
-    ├── 00c-openai-provider/       (0%   ⬜)
+    ├── 00c-openai-provider/       (100% ✅)
     ├── 00d-state-store-streaming/ (0%   ⬜)
     ├── 01-llamacpp-integration/   (67%  🔄)
     ├── 02-huggingface-provider/   (100% ✅) [HuggingFaceGGUFProvider]
