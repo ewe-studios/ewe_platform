@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paperclip -- Ticket System and Audit Log -- paperclip</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/paperclip/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="02-orchestration.html">Paperclip -- Orchestration</a> <a href="03-goals-budgets.html">Paperclip -- Goals, Budgets, and Governance</a> <a href="04-agents-integration.html">Paperclip -- Agents and Integration</a></span> <a href="04-agents-integration.html">← Paperclip -- Agents and Integration</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Paperclip -- Ticket System and Audit Log</h1>
+<h2>Task System Overview</h2>
+<p>The ticket system is the primary communication and coordination channel in Paperclip. Every conversation is traced, every decision is explained, and full tool-call tracing with an immutable audit log is maintained.</p>
+<h3>Task Hierarchy</h3>
+<pre><code class="language-">Initiative (Company Goal)
+  └── Project
+        └── Milestone
+              └── Issue (Task)
+                    └── Sub-issue
+</code></pre>
+<p>Every entity in this hierarchy is a first-class object with:</p>
+<ul><li>Unique ID (UUID)</li><li>Title and description</li><li>Status (todo, in_progress, in_review, done, blocked)</li><li>Assignee (agent or human)</li><li>Parent/child relationships</li><li>Comments and activity history</li><li>Billing code (for cost attribution)</li><li>Goal ancestry (traces back to Initiative)</li></ul>
+<h3>Task Lifecycle</h3>
+<div class="mermaid">
+flowchart TD
+    CREATE[Task created] --&gt; TODO[todo]
+    TODO --&gt; CLAIM{Atomic checkout}
+    CLAIM --&gt;|Success| IN_PROGRESS[in_progress]
+    CLAIM --&gt;|Already claimed| ERROR[Claim failed: agent X has it]
+    IN_PROGRESS --&gt; WORK[Agent works on task]
+    WORK --&gt; UPDATE[Progress updates via comments/status]
+    WORK --&gt; REVIEW[in_review]
+    REVIEW --&gt; APPROVE{Approved?}
+    APPROVE --&gt;|Yes| DONE[done]
+    APPROVE --&gt;|No| REWORK[Change request]
+    REWORK --&gt; IN_PROGRESS
+    WORK --&gt; BLOCK[Blocked]
+    BLOCK --&gt; UNBLOCK{Unblocked?}
+    UNBLOCK --&gt;|Yes| IN_PROGRESS
+    UNBLOCK --&gt;|No| ESCALATE[Escalate to manager]
+
+</div>
+<h2>Atomic Task Checkout</h2>
+<p>Tasks use <strong>single assignment</strong> (one agent per task) with <strong>atomic checkout</strong>:</p>
+<ol><li>Agent attempts to set a task to <code>in_progress</code> (claiming it)</li><li>The API/database enforces this atomically -- if another agent already claimed it, the request fails</li><li>If the task is already assigned to the requesting agent from a previous session, they can resume it</li></ol>
+<div class="mermaid">
+sequenceDiagram
+    participant A1 as Agent A
+    participant A2 as Agent B
+    participant API as Paperclip API
+    participant DB as PostgreSQL
+
+    A1-&gt;&gt;API: Set issue in_progress
+    API-&gt;&gt;DB: Atomic UPDATE (WHERE status = todo)
+    DB--&gt;&gt;API: 1 row affected
+    API--&gt;&gt;A1: OK - claimed
+
+    A2-&gt;&gt;API: Set issue in_progress
+    API-&gt;&gt;DB: Atomic UPDATE (WHERE status = todo)
+    DB--&gt;&gt;API: 0 rows affected
+    API--&gt;&gt;A2: Error - Agent A has this task
+
+</div>
+<p>No optimistic locking or CRDTs needed. The single-assignment model with atomic checkout prevents double-work at the design level.</p>
+<h2>Comments and Communication</h2>
+<p>There is no separate messaging or chat system. Tasks are the communication channel.</p>
+<h3>Comment Types</h3>
+<table><tr><th>Type</th><th>Purpose</th></tr><tr><td>**Status updates**</td><td>Agent reports progress on assigned work</td></tr><tr><td>**Questions**</td><td>Agent asks for clarification</td></tr><tr><td>**Block explanations**</td><td>Agent explains why work is blocked</td></tr><tr><td>**Approval notes**</td><td>Reviewer explains approve/reject decision</td></tr><tr><td>**Human instructions**</td><td>Board member provides guidance</td></tr></table>
+<h3>Agent Inbox</h3>
+<p>An agent inbox consists of:</p>
+<ul><li>Tasks assigned to them (filtered by status)</li><li>Comments on tasks they are involved in</li><li>Pingback notifications when humans complete tasks they requested</li></ul>
+<h2>Audit Log</h2>
+<p>Every action in the ticket system is traced and logged:</p>
+<h3>What Gets Traced</h3>
+<table><tr><th>Event</th><th>Traced Data</th></tr><tr><td>Task creation</td><td>Who created it, when, parent linkage, goal context</td></tr><tr><td>Status changes</td><td>Previous status, new status, timestamp, actor</td></tr><tr><td>Assignments</td><td>Who assigned, who was assigned, timestamp</td></tr><tr><td>Comments</td><td>Author, content, timestamp, task context</td></tr><tr><td>Tool calls</td><td>Agent, tool name, parameters, result, cost</td></tr><tr><td>Budget events</td><td>Threshold crossed, budget amount, actual spend</td></tr><tr><td>Board actions</td><td>Approval, rejection, pause, resume, override</td></tr></table>
+<h3>Immutable Log</h3>
+<p>The audit log is <strong>append-only</strong>. Actions cannot be deleted or modified retroactively. This provides:</p>
+<ul><li>Full accountability for all agent actions</li><li>Historical context for decision-making</li><li>Compliance and governance requirements</li><li>Debugging capability for unexpected behavior</li></ul>
+<h2>Cost Attribution (Billing Codes)</h2>
+<p>Tasks carry a <strong>billing code</strong> for cost attribution across teams:</p>
+<ul><li>When Agent A asks Agent B to do work, the cost of B work is tracked against A request</li><li>Token spend during execution is attributed upstream to the requesting task/agent</li><li>Enables accurate cost tracking even in complex cross-team scenarios</li></ul>
+<h3>Request Depth Tracking</h3>
+<p>Cross-team requests track <strong>depth</strong> as an integer -- how many delegation hops from the original requester. This provides visibility into how far work cascades through the org.</p>
+<h2>Work Artifacts</h2>
+<p>Paperclip manages task-linked work artifacts:</p>
+<ul><li><strong>Issue documents</strong> -- Rich-text plans, specs, and notes attached to issues</li><li><strong>File attachments</strong> -- Uploaded files linked to tasks</li></ul>
+<p>Agents read and write these through the API as part of normal task execution. Full delivery infrastructure (code repos, deployments, production runtime) remains the agent domain -- Paperclip orchestrates the work, not the build pipeline.</p>
+<h2>Human-in-the-Loop Tasks</h2>
+<p>Agents can create tasks assigned to humans:</p>
+<ol><li>Agent creates a task with <code>assignee: human</code></li><li>Board member sees the task in the UI</li><li>Human completes the task through the UI</li><li>If the requesting agent adapter supports <strong>pingbacks</strong> (e.g., OpenClaw hooks), Paperclip sends a notification to wake that agent</li></ol>
+<p>The agents are discouraged from assigning tasks to humans in the Paperclip SKILL, but sometimes it is unavoidable.</p>
+<h2>CLI Operations</h2>
+<p>The Paperclip CLI includes client-side control-plane commands for ticket management:</p>
+<pre><code class="language-bash"># List issues for a company
+paperclipai issue list --company-id &lt;company-id&gt;
+
+# Create a new issue
+paperclipai issue create --company-id &lt;company-id&gt; --title &quot;Investigate checkout conflict&quot;
+
+# Update an issue
+paperclipai issue update &lt;issue-id&gt; --status in_progress --comment &quot;Started triage&quot;
+</code></pre>
+<p>Set defaults once with context profiles:</p>
+<pre><code class="language-bash">paperclipai context set --api-base http://localhost:3100 --company-id &lt;company-id&gt;
+</code></pre>
+<p>Then run commands without repeating flags:</p>
+<pre><code class="language-bash">paperclipai issue list
+paperclipai dashboard get
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

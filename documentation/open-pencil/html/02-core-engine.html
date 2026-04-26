@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenPencil -- Core Engine -- open-pencil</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/open-pencil/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">OpenPencil -- Overview</a> <a href="01-architecture.html">OpenPencil -- Architecture</a></span> <a href="01-architecture.html">← OpenPencil -- Architecture</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>OpenPencil -- Core Engine</h1>
+<h2>Scene Graph</h2>
+<p>The scene graph is the central data structure in <code>@open-pencil/core</code>. It is a tree of <code>SceneNode</code> objects, where each node represents a visual element.</p>
+<h3>Node Types</h3>
+<table><tr><th>Type</th><th>Description</th></tr><tr><td>`DOCUMENT`</td><td>Root node, contains pages</td></tr><tr><td>`PAGE`</td><td>Top-level container, has its own background and bounds</td></tr><tr><td>`FRAME`</td><td>Auto-layout container with fills, strokes, effects</td></tr><tr><td>`GROUP`</td><td>Simple grouping container (no layout)</td></tr><tr><td>`SECTION`</td><td>Semantic grouping with background</td></tr><tr><td>`RECTANGLE`</td><td>Basic shape</td></tr><tr><td>`ELLIPSE`</td><td>Circle/ellipse shape</td></tr><tr><td>`LINE`</td><td>Straight line</td></tr><tr><td>`STAR`</td><td>Star shape</td></tr><tr><td>`POLYGON`</td><td>Polygon shape</td></tr><tr><td>`VECTOR`</td><td>Bezier curve network (vector paths)</td></tr><tr><td>`TEXT`</td><td>Text node with style runs and character overrides</td></tr><tr><td>`BOOLEAN_OPERATION`</td><td>Union/subtract/intersect/exclude of shapes</td></tr><tr><td>`COMPONENT`</td><td>Reusable component definition</td></tr><tr><td>`INSTANCE`</td><td>Reference to a component with overrides</td></tr></table>
+<h3>Node Properties</h3>
+<p>Each node carries a rich set of properties:</p>
+<ul><li><strong>Geometry</strong>: <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>rotation</code>, <code>opacity</code></li><li><strong>Fills</strong>: Array of solid colors, gradients (linear/radial/angular), images, videos</li><li><strong>Strokes</strong>: Weight, alignment (inside/center/outside), caps, joins, dash pattern</li><li><strong>Effects</strong>: Drop shadow, inner shadow, layer blur, background blur</li><li><strong>Layout</strong>: Auto-layout (flex) direction, gap, padding, sizing, alignment; Grid columns/rows, track sizing, child positioning</li><li><strong>Constraints</strong>: How the node resizes with its parent (left/right/scale/hug)</li><li><strong>Border radius</strong>: Per-corner or uniform</li><li><strong>Export settings</strong>: Multiple export formats and scales per node</li><li><strong>Variables</strong>: Color, number, string, boolean variable bindings</li></ul>
+<h3>Scene Graph API</h3>
+<pre><code class="language-typescript">const graph = new SceneGraph()
+graph.on(&#x27;nodeAdded&#x27;, (node) =&gt; { ... })
+graph.on(&#x27;nodeRemoved&#x27;, (node) =&gt; { ... })
+graph.on(&#x27;nodeChanged&#x27;, (node, prop) =&gt; { ... })
+
+graph.addNode(parent, node)
+graph.removeNode(node)
+graph.moveNode(node, newParent, index)
+graph.duplicateNode(node)
+graph.findNodeById(id)
+</code></pre>
+<h2>Renderer</h2>
+<p>The rendering engine uses <strong>Skia CanvasKit WASM</strong> compiled to WebAssembly. It provides GPU-accelerated rendering via WebGL or WebGPU.</p>
+<h3>Pipeline</h3>
+<div class="mermaid">
+flowchart LR
+    SG[Scene Graph] --&gt; LAYOUT[Yoga Layout]
+    LAYOUT --&gt; BOUNDS[Compute bounds]
+    BOUNDS --&gt; DRAW[Draw commands]
+    DRAW --&gt; SKIA[Skia CanvasKit]
+    SKIA --&gt; CANVAS[WebGL/WebGPU Canvas]
+
+</div>
+<h3>Rendering Stages</h3>
+<ol><li><strong>Layout resolution</strong> -- Yoga WASM computes final positions for auto-layout and grid containers</li><li><strong>Bounds computation</strong> -- Absolute bounding boxes for every visible node</li><li><strong>Draw call generation</strong> -- Each node type produces Skia draw commands</li><li><strong>Paint execution</strong> -- GPU renders the commands to the canvas</li><li><strong>Label cache</strong> -- Component and section labels are cached for performance</li></ol>
+<h3>Supported Visual Features</h3>
+<ul><li>Solid colors, linear/radial/angular gradients, image fills</li><li>Stroke with dash patterns, corner caps, joins</li><li>Drop shadow, inner shadow, layer blur, background blur</li><li>Blend modes (pass through, normal, multiply, screen, overlay, etc.)</li><li>Masks (alpha, vector, layer)</li><li>Vector paths with bezier curves</li><li>Styled text with font families, weights, sizes, decorations</li><li>Opacity and rotation</li></ul>
+<h2>Layout Engine</h2>
+<p>Layout is powered by <strong>Yoga WASM</strong>, using a <a href="https://github.com/open-pencil/yoga/tree/grid">forked version</a> that adds CSS Grid support.</p>
+<h3>Flex Layout (Auto Layout)</h3>
+<ul><li>Direction: horizontal, vertical</li><li>Gap, padding, item spacing</li><li>Primary/counter axis alignment</li><li>Sizing: fixed, hug, fill</li><li>Wrap support</li></ul>
+<h3>Grid Layout</h3>
+<ul><li>Column/row track definitions (fixed, fractional, auto)</li><li>Child grid position (span, start, end)</li><li>Gap between tracks</li><li>Alignment within cells</li></ul>
+<h2>File Formats</h2>
+<h3>.fig (Figma)</h3>
+<p>OpenPencil reads and writes native Figma <code>.fig</code> files by implementing the <strong>Kiwi protocol</strong> -- the binary serialization format Figma uses internally.</p>
+<ul><li><strong>Parsing</strong>: Zstd-decompressed protobuf-like binary format</li><li><strong>Message types</strong>: Node changes, variable bindings, style updates</li><li><strong>Compatibility</strong>: Reads Figma files, exports Figma-compatible <code>.fig</code> files</li><li><strong>Wire protocol</strong>: Handles <code>fig-wire</code> magic header and message framing</li></ul>
+<h3>.pen (OpenPencil native)</h3>
+<p>The <code>.pen</code> format is OpenPencil's native document format.</p>
+<ul><li><strong>Structure</strong>: ZIP archive containing Kiwi-serialized scene graph data</li><li><strong>Compression</strong>: Zstd for efficient storage</li><li><strong>Open</strong>: Documented and parseable without proprietary software</li></ul>
+<h3>Kiwi Binary Format</h3>
+<p>The Kiwi format is the internal serialization layer used by both <code>.fig</code> and <code>.pen</code>:</p>
+<ul><li>Varint-encoded lengths and identifiers</li><li>Message types for node operations (add, remove, modify)</li><li>Type-safe GUIDs for node identity</li><li>Color, paint, effect, and variable binding serialization</li><li>Schema-driven (compiled schema for validation)</li></ul>
+<h3>Export Formats</h3>
+<table><tr><th>Format</th><th>Role</th><th>Notes</th></tr><tr><td>PNG</td><td>Raster</td><td>Scales 1x-4x, full page or selection</td></tr><tr><td>JPG</td><td>Raster</td><td>Quality 0-100, with white background</td></tr><tr><td>WEBP</td><td>Raster</td><td>Lossless/lossy, transparency</td></tr><tr><td>SVG</td><td>Vector</td><td>Path-based, preserves vector data</td></tr><tr><td>JSX</td><td>Code</td><td>React JSX with inline styles or Tailwind CSS</td></tr><tr><td>.fig</td><td>Figma</td><td>Figma-compatible binary export</td></tr></table>
+<h2>Tool Registry</h2>
+<p>The tool registry defines all operations that can modify the scene graph. Tools are the bridge between user actions, AI models, and programmatic access.</p>
+<h3>Tool Definition</h3>
+<pre><code class="language-typescript">interface ToolDef {
+  name: string
+  description: string
+  params: Record&lt;string, ParamDef&gt;
+  execute: (args: Record&lt;string, unknown&gt;, context: ToolContext) =&gt; Promise&lt;ToolResult&gt;
+}
+</code></pre>
+<h3>Tool Categories</h3>
+<table><tr><th>Category</th><th>Tools</th><th>Purpose</th></tr><tr><td>**Create**</td><td>`create_rectangle`, `create_text`, `create_frame`, `create_ellipse`, `create_line`, `create_star`, `create_polygon`, `create_vector`, `create_section`, `create_component`</td><td>Add new nodes to the scene</td></tr><tr><td>**Modify**</td><td>`set_property`, `set_fills`, `set_strokes`, `set_effects`, `set_text`, `set_layout`, `set_opacity`, `set_rotation`, `set_border_radius`, `rename`, `move`, `resize`</td><td>Change existing nodes</td></tr><tr><td>**Read**</td><td>`get_node`, `get_tree`, `get_selection`, `get_properties`, `get_styles`, `get_variables`</td><td>Query the scene graph</td></tr><tr><td>**Analyze**</td><td>`analyze_colors`, `analyze_typography`, `analyze_spacing`, `analyze_clusters`</td><td>Audit design systems</td></tr><tr><td>**Structure**</td><td>`group`, `ungroup`, `flatten`, `boolean_union`, `boolean_subtract`, `boolean_intersect`, `boolean_exclude`</td><td>Structural operations</td></tr><tr><td>**Vector**</td><td>`vector_create`, `vector_add_vertex`, `vector_remove_vertex`, `vector_move_vertex`</td><td>Vector path editing</td></tr><tr><td>**Variables**</td><td>`create_variable`, `set_variable_value`, `bind_variable`, `get_variables`</td><td>Design token management</td></tr><tr><td>**Codegen**</td><td>`render`, `get_jsx`, `get_svg`</td><td>Design-to-code export</td></tr><tr><td>**Stock Photo**</td><td>`search_pexels`, `search_unsplash`, `set_image_fill`</td><td>Image search and insertion</td></tr><tr><td>**Eval**</td><td>`eval`</td><td>Execute Figma Plugin API scripts</td></tr></table>
+<h3>AI Integration</h3>
+<p>Tools are converted to AI tool schemas via <code>toolsToAI()</code>, which maps parameter types to the Vercel AI SDK format. The AI adapter handles:</p>
+<ul><li>Step budgeting (token/cost limits per AI step)</li><li>Tool result formatting</li><li>Debug logging for tracing AI decisions</li><li>Multi-step execution with error recovery</li></ul>
+<h2>XPath Engine</h2>
+<p>OpenPencil implements XPath queries for navigating the scene graph.</p>
+<pre><code class="language-sh">//FRAME                    # All frames
+//FRAME[@width &lt; 300]      # Frames under 300px wide
+//TEXT[contains(@name, &#x27;Title&#x27;)]  # Text nodes named &#x27;Title&#x27;
+//*[@cornerRadius &gt; 0]     # Nodes with rounded corners
+//SECTION//TEXT            # Text inside sections
+</code></pre>
+<h3>XPath API</h3>
+<pre><code class="language-typescript">queryByXPath(root, &quot;//FRAME[@autoLayout]&quot;)
+matchByXPath(root, &quot;//TEXT&quot;, { typeFilter: [&quot;TEXT&quot;] })
+nodeToXPath(node)  # Generate XPath for a specific node
+</code></pre>
+<h2>Linter</h2>
+<p>The lint system checks design files for quality issues.</p>
+<h3>Rules (18 built-in)</h3>
+<table><tr><th>Rule</th><th>Category</th><th>Severity</th></tr><tr><td>`no-default-names`</td><td>Naming</td><td>Warning</td></tr><tr><td>`no-empty-frames`</td><td>Structure</td><td>Warning</td></tr><tr><td>`no-hidden-layers`</td><td>Structure</td><td>Warning</td></tr><tr><td>`no-groups`</td><td>Structure</td><td>Warning (prefer frames)</td></tr><tr><td>`no-deeply-nested`</td><td>Structure</td><td>Warning</td></tr><tr><td>`no-detached-instances`</td><td>Components</td><td>Warning</td></tr><tr><td>`min-text-size`</td><td>Accessibility</td><td>Warning</td></tr><tr><td>`color-contrast`</td><td>Accessibility</td><td>Warning</td></tr><tr><td>`touch-target-size`</td><td>Accessibility</td><td>Warning</td></tr><tr><td>`prefer-auto-layout`</td><td>Layout</td><td>Warning</td></tr><tr><td>`consistent-spacing`</td><td>Layout</td><td>Warning</td></tr><tr><td>`consistent-radius`</td><td>Layout</td><td>Warning</td></tr><tr><td>`pixel-perfect`</td><td>Layout</td><td>Warning</td></tr><tr><td>`no-hardcoded-colors`</td><td>Design tokens</td><td>Warning</td></tr><tr><td>`no-mixed-styles`</td><td>Design tokens</td><td>Warning</td></tr><tr><td>`text-style-required`</td><td>Typography</td><td>Warning</td></tr><tr><td>`effect-style-required`</td><td>Effects</td><td>Warning</td></tr><tr><td>`color-space`</td><td>Color</td><td>Warning</td></tr></table>
+<h3>Presets</h3>
+<ul><li><strong>recommended</strong> -- Core set for most projects</li><li><strong>strict</strong> -- All rules enabled</li><li><strong>accessibility</strong> -- Focus on accessibility rules</li></ul>
+<h2>Vector Engine</h2>
+<p>Handles bezier curve networks for freeform drawing:</p>
+<ul><li>Vertex, segment, and region data structures</li><li>Cubic bezier evaluation (bounds, splitting, nearest point)</li><li>Handle mirroring and breaking</li><li>SVG path encoding</li><li>Blob serialization for Kiwi format</li></ul>
+<h2>Color System</h2>
+<ul><li>Standard RGBA color representation</li><li><strong>OkHCL</strong> perceptual color space for intuitive editing</li><li>Color space management (sRGB, Display P3)</li><li>Color distance computation for palette analysis</li><li>OKLCH for modern CSS color output</li></ul>
+<h2>Font System</h2>
+<ul><li>OpenType font loading via opentype.js</li><li>CJK and Arabic fallback fonts</li><li>Variable font detection</li><li>Glyph outline probing for rendering</li><li>Font provider abstraction for custom font sources</li></ul>
+<h2>RPC System</h2>
+<p>The RPC (Remote Procedure Call) system enables communication between the CLI, MCP server, and the browser app:</p>
+<ul><li>Command-based protocol (tool execution, file operations, queries)</li><li>Codec for message encoding/decoding</li><li>Session management with authentication tokens</li><li>WebSocket transport for browser communication</li></ul>
+<h2>See Also</h2>
+<ul><li><a href="03-cli.md">CLI</a> -- How the CLI uses the engine headlessly</li><li><a href="04-ai-mcp.md">AI & MCP</a> -- How tools are exposed to AI agents</li><li><a href="06-vue-sdk.md">Vue SDK</a> -- How the Vue SDK interacts with the engine</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

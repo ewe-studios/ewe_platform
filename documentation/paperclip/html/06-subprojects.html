@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paperclip -- Sub-Projects -- paperclip</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/paperclip/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="03-goals-budgets.html">Paperclip -- Goals, Budgets, and Governance</a> <a href="04-agents-integration.html">Paperclip -- Agents and Integration</a> <a href="05-ticket-system.html">Paperclip -- Ticket System and Audit Log</a></span> <a href="05-ticket-system.html">← Paperclip -- Ticket System and Audit Log</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Paperclip -- Sub-Projects</h1>
+<p>Paperclip is distributed across multiple sub-projects, each serving a distinct purpose in the ecosystem.</p>
+<h2>Overview</h2>
+<table><tr><th>Project</th><th>Stack</th><th>Purpose</th><th>Location</th></tr><tr><td>[Clipmart](#clipmart)</td><td>Next.js</td><td>Company templates marketplace</td><td>`clipmart/`</td></tr><tr><td>[PR Reviewer](#pr-reviewer)</td><td>Cloudflare Workers (Hono)</td><td>PR triage dashboard</td><td>`pr-reviewer/`</td></tr><tr><td>[Companies Tool](#companies-tool)</td><td>CLI (TypeScript)</td><td>Import/export agent companies</td><td>`companies-tool/`</td></tr><tr><td>[Paperclip Website](#paperclip-website)</td><td>Astro</td><td>Marketing site</td><td>`paperclip-website/`</td></tr></table>
+<h2>Clipmart</h2>
+<p><strong>Company templates marketplace.</strong> Browse pre-built company templates -- full org structures, agent configs, and skills -- and import them into your Paperclip instance in seconds.</p>
+<h3>What It Does</h3>
+<ul><li>Browse available company templates</li><li>Preview org structures, agent roles, and configurations</li><li>One-click import into your Paperclip instance</li><li>Template versioning and updates</li></ul>
+<h3>Status</h3>
+<p>Coming soon. The infrastructure for company import/export already exists via the companies-tool CLI and the Paperclip import/export API. Clipmart adds a web-based marketplace layer on top.</p>
+<h3>Architecture</h3>
+<p>Clipmart is built with Next.js and serves as a frontend for discovering and installing company templates. Templates are stored as Agent Companies packages (markdown-first packages following the open standard at <a href="https://companies.io">companies.io</a>).</p>
+<h2>PR Reviewer</h2>
+<p><strong>PR triage dashboard</strong> for the paperclipai/paperclip repository. It syncs open (and recent closed/merged) pull requests from GitHub, scores them, and presents a ranked list to help maintainers decide what to review next.</p>
+<p><strong>Live dashboard:</strong> https://pr-triage.bippadotta.workers.dev</p>
+<h3>How Scoring Works</h3>
+<p>Every PR receives a <strong>composite score from 0 to 180</strong>, built from ten signals:</p>
+<h4>Base Signals (0-115 points)</h4>
+<table><tr><th>Signal</th><th>Points</th><th>How It Works</th></tr><tr><td>**Greptile confidence**</td><td>0-40</td><td>Greptile bot confidence score (1-5) multiplied by 8</td></tr><tr><td>**CI status**</td><td>0-25</td><td>Passing = 25, pending = 12, unknown = 8, failing = 0</td></tr><tr><td>**Merge conflicts**</td><td>-15 to +15</td><td>No conflicts = +15, has conflicts = -15</td></tr><tr><td>**Human comments**</td><td>0-20</td><td>1 comment = 10, 2+ comments = 20 (bot comments excluded)</td></tr><tr><td>**Lines of code**</td><td>0-15</td><td>Smaller PRs score higher (logarithmic decay)</td></tr></table>
+<h4>Contributor Priority (-25 to +25 points)</h4>
+<p>Each author gets an internal priority score (0-100) based on their history, mapped to -25 to +25 composite points:</p>
+<ul><li><strong>First-time contributors</strong> get a +15 bonus</li><li><strong>Track record</strong> (0-10): based on merged PR count</li><li><strong>Merge rate</strong>: 80%+ = +10, 60-79% = +5, 40-59% = 0, 20-39% = -15, <20% = -30</li><li><strong>Open PR load</strong> (0-10): authors with many open PRs get a small boost</li></ul>
+<h4>Bonus Signals (0-40 points)</h4>
+<table><tr><th>Signal</th><th>Points</th><th>How It Works</th></tr><tr><td>**Includes tests**</td><td>+10</td><td>PR touches test files</td></tr><tr><td>**Thinking Path**</td><td>+10</td><td>PR description contains "Thinking Path"</td></tr><tr><td>**Issue link**</td><td>+10</td><td>PR description links to a GitHub issue</td></tr><tr><td>**Freshness**</td><td>0-10</td><td>Newer PRs score higher (<1 day = 10, older = 0)</td></tr></table>
+<h3>Architecture</h3>
+<ul><li>Runs as a <strong>Cloudflare Worker</strong> with a D1 database</li><li>Syncs PR data from GitHub on a schedule</li><li>All scoring logic lives in <code>src/scoring.ts</code></li><li>Merges to <code>master</code> are automatically deployed via CI</li></ul>
+<h3>Deployment</h3>
+<pre><code class="language-bash">npm install
+# Create .dev.vars with CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
+npx wrangler deploy
+</code></pre>
+<h2>Companies Tool</h2>
+<p><strong>The CLI for the Agent Companies open standard.</strong> Browse installable companies at <a href="https://companies.sh">companies.sh</a>.</p>
+<h3>What It Does</h3>
+<ul><li>Install agent companies from GitHub, URLs, or local paths</li><li>Import into Paperclip or other orchestrators</li><li>List available companies in the provider</li></ul>
+<h3>Install Commands</h3>
+<pre><code class="language-bash"># GitHub shorthand (owner/repo/path)
+npx companies.sh add paperclipai/companies/gstack
+
+# GitHub tree URL
+npx companies.sh add https://github.com/paperclipai/companies/tree/main/gstack
+
+# Local path
+npx companies.sh add ./my-company
+</code></pre>
+<h3>Options</h3>
+<table><tr><th>Option</th><th>Description</th></tr><tr><td>`--target <mode>`</td><td>Import into a `new` or `existing` company</td></tr><tr><td>`-C, --company-id <id>`</td><td>Target company id for existing</td></tr><tr><td>`--include <values>`</td><td>Comma-separated: `company,agents,projects,tasks,skills`</td></tr><tr><td>`--agents <list>`</td><td>Comma-separated agent slugs, or `all`</td></tr><tr><td>`--collision <mode>`</td><td>Collision strategy: `rename`, `skip`, or `replace`</td></tr><tr><td>`--dry-run`</td><td>Preview the import without applying</td></tr><tr><td>`-y, --yes`</td><td>Skip interactive prompts</td></tr><tr><td>`-p, --provider <provider>`</td><td>Destination orchestrator (default: `paperclip`)</td></tr></table>
+<h3>Company Package Format</h3>
+<p>An Agent Company is a portable, markdown-first package:</p>
+<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`COMPANY.md`</td><td>Company metadata and configuration (YAML frontmatter)</td></tr><tr><td>`AGENTS.md`</td><td>Agent definitions, roles, and reporting structure</td></tr><tr><td>`PROJECT.md`</td><td>Project definitions and workspace bindings</td></tr><tr><td>`TASK.md`</td><td>Pre-loaded tasks and assignments</td></tr><tr><td>`SKILL.md`</td><td>Reusable skills available to agents</td></tr></table>
+<h3>Connection Modes</h3>
+<table><tr><th>Mode</th><th>Behavior</th></tr><tr><td>`auto`</td><td>Checks local Paperclip config, falls back to localhost, runs onboard if no config exists</td></tr><tr><td>`custom-url`</td><td>Skips local bootstrap; expects a reachable instance at `--api-base`</td></tr></table>
+<h3>Provider Architecture</h3>
+<p><code>companies.sh</code> is provider-based. Paperclip is the first supported provider, but the architecture accepts additional agent orchestrators. To add a provider, open a PR with the orchestrator name, documentation link, and CLI/SDK for the import flow.</p>
+<h2>Paperclip Website</h2>
+<p><strong>Marketing site</strong> for Paperclip, built with Astro.</p>
+<h3>Purpose</h3>
+<ul><li>Project overview and feature descriptions</li><li>Documentation links and quickstart guide</li><li>Community links (Discord, GitHub)</li><li>Landing page for new users</li></ul>
+<h3>Architecture</h3>
+<ul><li><strong>Astro</strong> static site generator</li><li>Deployed to Cloudflare Pages</li><li>Source in <code>paperclip-website/</code></li><li>Content in <code>paperclip-website/src/</code> and <code>paperclip-website/doc/</code></li></ul>
+<h3>Development</h3>
+<pre><code class="language-bash">npm install
+# Configure wrangler.jsonc for deployment
+make deploy
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

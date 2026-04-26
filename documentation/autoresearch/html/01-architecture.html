@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>autoresearch -- Architecture -- autoresearch</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/autoresearch/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">autoresearch -- Overview</a></span> <a href="00-overview.html">← autoresearch -- Overview</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>autoresearch -- Architecture</h1>
+<h2>Project Structure</h2>
+<p>The repository is deliberately kept small. Only three files matter:</p>
+<pre><code class="language-">autoresearch/
+├── prepare.py       # Constants, data prep, tokenizer, dataloader, eval (DO NOT MODIFY)
+├── train.py         # GPT model, optimizer, training loop (AGENT MODIFIES THIS)
+├── program.md       # Agent instructions / &quot;skill&quot; file (HUMAN MODIFIES THIS)
+├── pyproject.toml   # Dependencies (uv)
+├── uv.lock          # Lockfile
+├── results.tsv      # Experiment log (untracked, not committed)
+└── run.log          # Latest experiment output
+</code></pre>
+<h2>The Three Key Files</h2>
+<h3><code>prepare.py</code> — Fixed Foundation</h3>
+<p>This file is read-only. The agent is not allowed to modify it. It provides:</p>
+<ul><li><strong>Constants:</strong> <code>MAX_SEQ_LEN</code> (2048), <code>TIME_BUDGET</code> (300 seconds), <code>EVAL_TOKENS</code> (40 * 524288)</li><li><strong>Data download:</strong> Fetches ClimbMix-400B dataset shards from HuggingFace, stores them in <code>~/.cache/autoresearch/data/</code></li><li><strong>Tokenizer training:</strong> Trains a BPE tokenizer using <code>rustbpe</code>, saves as a tiktoken pickle in <code>~/.cache/autoresearch/tokenizer/</code></li><li><strong>Dataloader:</strong> BOS-aligned dataloader with best-fit packing — 100% token utilization, no padding</li><li><strong>Evaluation:</strong> <code>evaluate_bpb()</code> function — the ground truth metric. Computes validation bits per byte on the pinned validation shard (shard_06542)</li></ul>
+<h3><code>train.py</code> — The Agent's Canvas</h3>
+<p>This is the only file the agent modifies. It contains:</p>
+<ul><li><strong>GPT model:</strong> Full transformer with causal self-attention, MLP blocks, value embeddings (ResFormer), rotary positional embeddings, sliding window attention patterns, soft-capped logits, residual connections with learnable lambdas</li><li><strong>Optimizer:</strong> Combined Muon + AdamW optimizer with fused <code>torch.compile</code> kernels</li><li><strong>Training loop:</strong> Gradient accumulation, LR warmup/warmdown schedules, momentum scheduling, weight decay scheduling, GC management</li><li><strong>Hyperparameters:</strong> All defined as module-level constants (no CLI flags). The agent can change any of them: architecture, optimizer, batch size, learning rates, etc.</li></ul>
+<h3><code>program.md</code> — The Human's Lever</h3>
+<p>This is a lightweight "skill" file that guides the AI agent. It contains:</p>
+<ul><li><strong>Setup instructions:</strong> How to initialize a new experiment run (branch creation, data verification, results TSV initialization)</li><li><strong>Rules:</strong> What the agent can and cannot do</li><li><strong>The experiment loop:</strong> The autonomous research procedure</li><li><strong>Logging format:</strong> How to record results in <code>results.tsv</code></li><li><strong>Behavioral directives:</strong> "NEVER STOP" — the agent must continue until manually interrupted</li></ul>
+<p>The human iterates on this file over time to improve the "research org code."</p>
+<div class="mermaid">
+graph TD
+    H[Human] --&gt;|writes/edits| P[program.md]
+    P --&gt;|instructions| A[AI Agent]
+    A --&gt;|modifies| T[train.py]
+    T --&gt;|runs 5 min| E[Training Run]
+    E --&gt;|outputs| V[val_bpb]
+    V --&gt;|improved?| A
+    V --&gt;|logged to| R[results.tsv]
+    T -.read-only.-&gt; D[prepare.py]
+    D --&gt;|provides| L[dataloader]
+    D --&gt;|provides| K[tokenizer]
+    D --&gt;|provides| M[evaluate_bpb]
+
+    style A fill:#1a1a2e,color:#e0e0e0
+    style T fill:#16213e,color:#e0e0e0
+    style P fill:#0f3460,color:#e0e0e0
+    style H fill:#533483,color:#e0e0e0
+
+</div>
+<h2>Data Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant H as Human
+    participant A as AI Agent
+    participant T as train.py
+    participant P as prepare.py
+    participant GPU as GPU
+    participant R as results.tsv
+
+    H-&gt;&gt;A: Spin up agent, point to program.md
+    A-&gt;&gt;P: Read constants, tokenizer, dataloader
+    A-&gt;&gt;T: Read current model code
+    A-&gt;&gt;T: Modify hyperparameters/architecture
+    A-&gt;&gt;T: git commit
+    A-&gt;&gt;T: Run: uv run train.py
+    T-&gt;&gt;P: Load tokenizer, dataloader
+    T-&gt;&gt;GPU: Train for 5 minutes
+    T-&gt;&gt;P: Call evaluate_bpb()
+    P-&gt;&gt;T: Return val_bpb
+    T-&gt;&gt;A: Print summary (val_bpb, peak_vram_mb, etc.)
+    A-&gt;&gt;R: Log result to results.tsv
+    alt val_bpb improved (lower)
+        A-&gt;&gt;T: Keep commit, advance branch
+    else val_bpb same or worse
+        A-&gt;&gt;T: git reset, discard changes
+    end
+    A-&gt;&gt;A: Loop — next experiment
+
+</div>
+<h2>File Interaction Summary</h2>
+<table><tr><th>File</th><th>Modified by</th><th>Purpose</th></tr><tr><td>`prepare.py`</td><td>Nobody (read-only)</td><td>Data, tokenizer, dataloader, evaluation</td></tr><tr><td>`train.py`</td><td>AI Agent</td><td>Model architecture, optimizer, training loop</td></tr><tr><td>`program.md`</td><td>Human</td><td>Agent instructions, research strategy</td></tr><tr><td>`results.tsv`</td><td>AI Agent (untracked)</td><td>Experiment log with commit, val_bpb, memory, status, description</td></tr><tr><td>`pyproject.toml`</td><td>Nobody (read-only)</td><td>Dependencies</td></tr></table>
+<h2>Next</h2>
+<ul><li><a href="./02-agent-research.md">02-agent-research</a> — how the autonomous agent loop works</li><li><a href="./03-training-setup.md">03-training-setup</a> — model architecture and optimizer details</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

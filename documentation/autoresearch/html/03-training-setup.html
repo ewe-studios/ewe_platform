@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>autoresearch -- Training Setup -- autoresearch</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/autoresearch/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">autoresearch -- Overview</a> <a href="01-architecture.html">autoresearch -- Architecture</a> <a href="02-agent-research.html">autoresearch -- Agent Research Process</a></span> <a href="02-agent-research.html">← autoresearch -- Agent Research Process</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>autoresearch -- Training Setup</h1>
+<h2>Model Architecture</h2>
+<p>The model is a decoder-only transformer (GPT), cherry-picked and simplified from <a href="https://github.com/karpathy/nanochat">nanochat</a>. Key architectural choices:</p>
+<h3>Default Configuration</h3>
+<table><tr><th>Parameter</th><th>Default</th><th>Description</th></tr><tr><td>`DEPTH`</td><td>8</td><td>Number of transformer layers</td></tr><tr><td>`ASPECT_RATIO`</td><td>64</td><td>model_dim = depth * ASPECT_RATIO (→ 512)</td></tr><tr><td>`HEAD_DIM`</td><td>128</td><td>Target head dimension</td></tr><tr><td>`n_head`</td><td>4</td><td>Derived: model_dim / HEAD_DIM</td></tr><tr><td>`n_kv_head`</td><td>4</td><td>GQA, same as n_head (no GQA in defaults)</td></tr><tr><td>`n_embd`</td><td>512</td><td>Derived: rounded up to multiple of HEAD_DIM</td></tr><tr><td>`WINDOW_PATTERN`</td><td>"SSSL"</td><td>Sliding window: S=half context, L=full context</td></tr><tr><td>`MAX_SEQ_LEN`</td><td>2048</td><td>Context length</td></tr><tr><td>`vocab_size`</td><td>8192</td><td>BPE vocabulary size</td></tr></table>
+<h3>Architectural Features</h3>
+<ul><li><strong>RMSNorm</strong> — applied to attention inputs, query/key projections, and pre-MLP</li><li><strong>Rotary Positional Embeddings (RoPE)</strong> — precomputed for 10x the sequence length, base=10000</li><li><strong>Value Embeddings (ResFormer)</strong> — alternating layers add value embeddings to V projections, gated by an input-dependent linear layer (sigmoid, scaled by 2 → neutral at init)</li><li><strong>Residual connections with learnable scalars</strong> — each layer uses <code>lambda_res <em> x + lambda_x0 </em> x0</code> instead of plain residual, allowing the model to interpolate between residual and direct input paths</li><li><strong>Sliding window attention</strong> — "SSSL" pattern alternates between half-context and full-context attention across layers; the last layer always uses full context</li><li><strong>Soft-capped logits</strong> — logits are tanh-scaled with softcap=15 before the final softmax</li><li><strong>Squared ReLU activation</strong> — MLP uses <code>ReLU(x)^2</code> (GELU variant)</li><li><strong>Grouped Query Attention</strong> — supported via <code>n_kv_head</code> parameter (defaults to equal <code>n_head</code>)</li></ul>
+<h3>Model Size</h3>
+<p>With default settings (DEPTH=8), the model has approximately 50 million parameters. The <code>ASPECT_RATIO</code> and <code>DEPTH</code> knobs control model complexity — the agent can adjust these.</p>
+<h3>Weight Initialization</h3>
+<ul><li>Embedding: normal(0, 1)</li><li>LM head: normal(0, 0.001)</li><li>Attention/MLP matrices: uniform(-s, s) where s = sqrt(3) / sqrt(n_embd)</li><li>Attention output projections: zeros (residual path carries signal initially)</li><li>MLP output projections: zeros (same rationale)</li><li>Per-layer scalars: resid_lambdas=1.0, x0_lambdas=0.1</li><li>Value embedding gates: zeros (sigmoid(0)=0.5, scaled by 2 → neutral)</li><li>Embeddings cast to bfloat16</li></ul>
+<h2>Optimizer: Muon + AdamW</h2>
+<p>The optimizer uses a hybrid approach:</p>
+<table><tr><th>Parameter Type</th><th>Optimizer</th><th>LR</th><th>Notes</th></tr><tr><td>LM head (unembedding)</td><td>AdamW</td><td>0.004</td><td>beta=(0.8, 0.95), eps=1e-10, no weight decay</td></tr><tr><td>Token embedding</td><td>AdamW</td><td>0.6</td><td>beta=(0.8, 0.95), eps=1e-10, no weight decay</td></tr><tr><td>Value embeddings</td><td>AdamW</td><td>0.6</td><td>beta=(0.8, 0.95), eps=1e-10, no weight decay</td></tr><tr><td>Per-layer scalars (resid)</td><td>AdamW</td><td>0.005</td><td>beta=(0.8, 0.95), eps=1e-10, no weight decay</td></tr><tr><td>Per-layer scalars (x0)</td><td>AdamW</td><td>0.5</td><td>beta=(0.96, 0.95), eps=1e-10, no weight decay</td></tr><tr><td>Matrix params (2D, by shape)</td><td>Muon</td><td>0.04</td><td>momentum=0.95, ns_steps=5, beta2=0.95, cautious weight decay=0.2</td></tr></table>
+<h3>Muon Details</h3>
+<ul><li><strong>Polar Express</strong> — Newton-Schulz iteration for matrix orthogonalization using precomputed polynomial coefficients (5 iterations default)</li><li><strong>NorMuon</strong> — variance reduction via per-layer normalization using tracked second moment</li><li><strong>Cautious weight decay</strong> — weight decay is only applied when the update direction agrees with the parameter sign (mask-based)</li><li><strong>Fused kernels</strong> — both AdamW and Muon steps use <code>torch.compile</code> fused kernels for performance</li><li><strong>Shape-based grouping</strong> — matrix parameters are grouped by shape, and Muon steps stack same-shaped parameters together for batched orthogonalization</li></ul>
+<h3>Learning Rate Scheduling</h3>
+<ul><li><strong>Warmup</strong> — fraction of time budget (default: 0, no warmup)</li><li><strong>Warmdown</strong> — fraction of time budget for cooldown (default: 0.5, i.e., last 50% of training)</li><li><strong>Final LR fraction</strong> — final LR as fraction of initial (default: 0, goes to zero)</li><li><strong>Muon momentum</strong> — ramps from 0.85 to 0.95 over first 300 steps</li><li><strong>Weight decay</strong> — linearly decays to zero over the training run</li><li><strong>Dimension scaling</strong> — AdamW LRs are scaled by 1/sqrt(model_dim/768) to account for different model widths</li></ul>
+<h2>Training Loop</h2>
+<h3>Batch Configuration</h3>
+<table><tr><th>Parameter</th><th>Default</th><th>Description</th></tr><tr><td>`TOTAL_BATCH_SIZE`</td><td>2^19 (~524K)</td><td>Tokens per optimizer step</td></tr><tr><td>`DEVICE_BATCH_SIZE`</td><td>128</td><td>Per-device batch size</td></tr><tr><td>`MAX_SEQ_LEN`</td><td>2048</td><td>Sequence length</td></tr><tr><td>Tokens per fwd/bwd pass</td><td>262,144</td><td>DEVICE_BATCH_SIZE * MAX_SEQ_LEN</td></tr><tr><td>Gradient accumulation steps</td><td>2</td><td>TOTAL_BATCH_SIZE / tokens_per_pass</td></tr></table>
+<h3>Dataloader</h3>
+<ul><li><strong>BOS-aligned</strong> — every row starts with the BOS token</li><li><strong>Best-fit packing</strong> — documents are packed using best-fit bin packing to minimize cropping</li><li><strong>100% utilization</strong> — no padding; when no document fits remaining space, the shortest document is cropped to fill exactly</li><li><strong>Infinite iterator</strong> — yields batches forever, tracking epoch number</li><li><strong>Pinned memory</strong> — CPU-to-GPU transfer uses pinned memory with non-blocking copy</li></ul>
+<h3>Time Budget Enforcement</h3>
+<ul><li>Training runs for exactly <strong>300 seconds</strong> (5 minutes) of wall-clock time</li><li>First 10 steps are excluded from timing (to avoid counting CUDA compilation)</li><li>The loop checks <code>total_training_time >= TIME_BUDGET</code> after step 10</li><li>Fast-fail: if loss is NaN or exceeds 100, the process exits immediately</li></ul>
+<h3>GC Management</h3>
+<ul><li>Python's garbage collector causes ~500ms stalls</li><li>GC is disabled after step 0 (<code>gc.freeze()</code> + <code>gc.disable()</code>)</li><li>Manual <code>gc.collect()</code> every 5000 steps</li></ul>
+<h3>Output Format</h3>
+<p>When training finishes, a summary is printed:</p>
+<pre><code class="language-">val_bpb:          0.997900
+training_seconds: 300.1
+total_seconds:    325.9
+peak_vram_mb:     45060.2
+mfu_percent:      39.80
+total_tokens_M:   499.6
+num_steps:        953
+num_params_M:     50.3
+depth:            8
+</code></pre>
+<p>The agent extracts <code>val_bpb</code> and <code>peak_vram_mb</code> from this output using <code>grep</code>.</p>
+<h2>Next</h2>
+<ul><li><a href="./04-platform-support.md">04-platform-support</a> — GPU requirements and platform forks</li><li><a href="./02-agent-research.md">02-agent-research</a> — how the autonomous agent works</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
