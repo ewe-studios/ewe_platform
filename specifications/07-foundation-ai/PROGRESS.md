@@ -1,13 +1,14 @@
 # Progress - Foundation AI
 
-_Last updated: 2026-04-26 (after OpenAI provider complete)_
+_Last updated: 2026-04-26 (after OpenAI provider enhancements spec created)_
 
 ## Overview
 
 `07-foundation-ai` covers the `foundation_ai` backend crate and its supporting
 infrastructure (storage, auth, providers) for unified AI model inference.
 The spec was originally scoped to llama.cpp only; it has since expanded to
-seven features spanning storage, auth, and multiple inference providers.
+ten features spanning storage, auth, multiple inference providers, and
+full OpenAI API compatibility (Chat Completions + Responses API).
 
 ## Feature Status
 
@@ -19,9 +20,12 @@ seven features spanning storage, auth, and multiple inference providers.
 | 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ⬜ Pending | 0 / 12 | 0% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | 🔄 In Progress | 18 / 27 | 67% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
+| 0g | [openai-provider-enhancements](./features/00g-openai-provider-enhancements/feature.md) | ⬜ Pending | 0 / 54 | 0% |
+| 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | 🔄 In Progress | 18 / 27 | 67% |
+| 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
 
-**Totals:** 113 / 174 tasks complete (~65%). 3 features complete, 1 in progress, 3 pending.
+**Totals:** 113 / 228 tasks complete (~50%). 4 features complete, 1 in progress, 4 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -102,9 +106,12 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 2. **00b auth-infrastructure** (30 tasks) — JWT, OAuth 2.0 (PKCE S256),
    credential storage via foundation_db, auth state machine, 2FA.
    Unblocked — 00a is complete.
-3. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
+3. **00g openai-provider-enhancements** (54 tasks) — Responses API provider,
+   output format control, sampling params, tool_choice, multimodal, logprobs,
+   error handling. Depends on 00c.
+4. **02 huggingface-gguf-provider** (5 tasks) — `HuggingFaceGGUFProvider`: HF Hub
    GGUF model discovery and download via `hf-hub`. Depends on 01. ✅ Complete.
-4. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
+5. **03 candle-integration** (18 tasks) — alternative pure-Rust inference
    backend via Candle with safetensors. Depends on 01. ✅ Complete.
 
 ### Parallel Cleanup Effort
@@ -136,9 +143,15 @@ specifications/07-foundation-ai/
     ├── 00b-auth-infrastructure/   (0%   ⬜)
     ├── 00c-openai-provider/       (100% ✅)
     ├── 00d-state-store-streaming/ (0%   ⬜)
+    ├── 00e-http-client-connection-pool/
+    ├── 00e-state-store-query-filtering/
+    ├── 00f-test-server-keepalive/
+    ├── 00g-openai-provider-enhancements/ (0% ⬜)
     ├── 01-llamacpp-integration/   (67%  🔄)
     ├── 02-huggingface-provider/   (100% ✅) [HuggingFaceGGUFProvider]
-    └── 03-candle-integration/     (100% ✅)
+    ├── 03-candle-integration/     (100% ✅)
+    ├── 04-tool-calling-formatter/
+    └── 05-agentic-coding-reference/
 ```
 
 Each feature directory contains its own `PROGRESS.md` with the detailed

@@ -25,6 +25,10 @@ fn test_sampler_chain_with_all_options() {
         thinking_level: foundation_ai::types::ThinkingLevels::Medium,
         cache_retention: foundation_ai::types::CacheRetention::None,
         thinking_budget: None,
+        output_format: None,
+        frequency_penalty: None,
+        presence_penalty: None,
+        logit_bias: None,
     };
 
     let sampler = build_sampler_chain(&params);

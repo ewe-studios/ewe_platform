@@ -214,6 +214,7 @@ fn test_huggingface_gguf_provider_with_smollm_inference() {
         }],
         tools: vec![],
         chat_template: None,
+        tool_choice: None,
     };
 
     let result = model.generate(interaction, Some(ModelParams::default()));

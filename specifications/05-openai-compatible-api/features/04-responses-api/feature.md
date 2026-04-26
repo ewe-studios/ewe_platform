@@ -3,8 +3,9 @@ workspace_name: "ewe_platform"
 spec_directory: "specifications/05-openai-compatible-api"
 feature_directory: "specifications/05-openai-compatible-api/features/04-responses-api"
 this_file: "specifications/05-openai-compatible-api/features/04-responses-api/feature.md"
+retired: 2026-04-26
 
-status: pending
+status: retired
 priority: high
 created: 2026-03-08
 

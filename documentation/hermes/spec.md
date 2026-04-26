@@ -40,7 +40,10 @@ hermes/
 │   ├── 08-cron.md                  ← Scheduling, jobs, automation
 │   ├── 09-plugins.md               ← Plugin architecture, memory/context/image
 │   ├── 10-platform-adapters.md     ← Per-platform adapter details
-│   └── 11-data-flow.md             ← End-to-end flows with sequence diagrams
+│   ├── 11-data-flow.md             ← End-to-end flows with sequence diagrams
+│   ├── 12-cost-tracking.md         ← Token usage, pricing, cost estimation, account monitoring
+│   ├── 13-self-evolution.md        ← GEPA-based prompt/skill evolution
+│   └── 14-function-calling.md      ← Hermes 2 Pro / 3 function calling + JSON mode
 ├── html/                           ← Rendered HTML (viewable locally + GitHub Pages)
 │   ├── index.html                  ← Auto-generated index + navigation
 │   ├── styles.css                  ← Shared CSS (dark/light, responsive)
@@ -67,6 +70,14 @@ hermes/
 | 11 | Platform Adapters: per-platform details | DONE | `10-platform-adapters.md` |
 | 12 | Data Flow: end-to-end sequences | DONE | `11-data-flow.md` |
 | 13 | README index | DONE | `README.md` |
+
+### Phase 1b: Extended Documentation
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 14 | Cost Tracking: pricing, usage normalization, account monitoring | DONE | `12-cost-tracking.md` |
+| 15 | Self-Evolution: GEPA-based prompt/skill evolution | DONE | `13-self-evolution.md` |
+| 16 | Function Calling: Hermes 2 Pro / 3 tool use + JSON mode | DONE | `14-function-calling.md` |
 
 ### Phase 2: HTML Rendering -- COMPLETE
 
@@ -125,10 +136,10 @@ python3 build.py pi
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 13 |
-| Generated HTML files | 14 (13 docs + 1 index) |
+| Markdown source files | 16 |
+| Generated HTML files | 17 (16 docs + 1 index) |
 | CSS files | 1 (shared) |
-| Total HTML output | 14 files + styles.css |
+| Total HTML output | 16 files + styles.css |
 
 ## Expected Outcome
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi Extensions -- pi-annotate -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="10-extension-system.html">Pi -- Extension System (Cross-Cutting)</a> <a href="11-data-flow.html">Pi -- Data Flow (End-to-End)</a> <a href="12-sessions.html">Pi and Hermes -- Session Management Deep Dive</a></span> <a href="12-sessions.html">← Pi and Hermes -- Session Management Deep Dive</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>pi-annotate</h1>
+<p><strong>Visual annotation for AI. Click elements, capture screenshots, fix code.</strong></p>
+<p>Pi Annotate provides a Figma-like annotation experience directly within the Pi coding agent. It combines an element picker (vanilla JS) with the agent's ability to read selectors, box models, accessibility data, and screenshots -- giving the agent everything it needs to fix UI issues.</p>
+<h2>How It Works</h2>
+<ol><li>Run <code>/annotate</code> in Pi</li><li>Click UI elements to annotate them (like Figma comments)</li><li>Add notes and descriptions</li><li>Submit -- the agent receives selectors, CSS properties, and screenshots</li><li>The agent fixes the code</li></ol>
+<h2>Commands</h2>
+<pre><code class="language-">/annotate    -- Start annotation mode
+</code></pre>
+<h2>Why It Exists</h2>
+<p>UI feedback is notoriously hard to communicate to coding agents through text alone. pi-annotate bridges the gap between visual design tools and code execution, letting designers and developers point at problems rather than describe them.</p>
+<h2>Package Details</h2>
+<table><tr><th>Property</th><th>Value</th></tr><tr><td>Install</td><td>`pi install npm:pi-annotate`</td></tr><tr><td>Platform</td><td>macOS</td></tr><tr><td>Trigger</td><td>`/annotate` command</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

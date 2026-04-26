@@ -37,7 +37,7 @@ pub struct HuggingFaceGGUFProvider {
 /// # Example
 ///
 /// ```rust
-/// use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFConfig;
+/// use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 /// use foundation_ai::backends::llamacpp::LlamaBackends;
 ///
 /// let config = HuggingFaceGGUFConfig::builder()
@@ -265,7 +265,7 @@ impl HuggingFaceGGUFProvider {
     /// # Examples
     ///
     /// ```
-    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFProvider;
+    /// # use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFProvider;
     /// // ModelId::Name("repo".to_string(), Some(Quantization::Q2K)) -> quant="Q2_K"
     /// // ModelId::Name("repo".to_string(), Some(Quantization::Q4_KM)) -> quant="Q4_K_M"
     /// ```
@@ -327,7 +327,7 @@ impl HuggingFaceGGUFProvider {
     /// # Examples
     ///
     /// ```
-    /// # use foundation_ai::backends::huggingface_provider::HuggingFaceGGUFProvider;
+    /// # use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFProvider;
     /// // "q4_k_m" -> "*Q4_K_M.gguf"
     /// // "q2_k" -> "*Q2_K.gguf"
     /// ```

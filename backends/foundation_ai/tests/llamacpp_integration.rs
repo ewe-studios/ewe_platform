@@ -174,6 +174,7 @@ fn test_llama_with_smollm_model() {
         }],
         tools: vec![],
         chat_template: None,
+        tool_choice: None,
     };
 
     let result = model.generate(interaction, Some(ModelParams::default()));

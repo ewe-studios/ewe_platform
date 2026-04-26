@@ -2,6 +2,15 @@
 purpose: "Architecture review and logic verification for the OpenAI-compatible API specification"
 version: "1.0"
 created: 2026-03-08
+retired: 2026-04-26
+---
+
+# ⚠️ This file is RETIRED
+
+Preserved for historical reference. The active implementation lives in
+`specifications/07-foundation-ai/` with `features/00c-openai-provider/`
+(implemented) and `features/00g-openai-provider-enhancements/` (planned).
+
 ---
 
 # Architecture Review
