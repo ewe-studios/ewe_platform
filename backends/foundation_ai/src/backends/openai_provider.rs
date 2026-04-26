@@ -1025,7 +1025,7 @@ pub struct OpenAIMessage {
 }
 
 /// Content for an OpenAI message — either simple text or multimodal parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum OpenAIMessageContent {
     /// Simple text content (shorthand form).
@@ -1034,14 +1034,14 @@ pub enum OpenAIMessageContent {
     Parts(Vec<OpenAIContentPart>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum OpenAIContentPart {
     Text { text: String },
     ImageUrl { image_url: OpenAIImageUrlObject },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct OpenAIImageUrlObject {
     /// Data URL (base64) or HTTPS URL.
     pub url: String,
@@ -1497,6 +1497,7 @@ fn build_chat_request(
                         content: Some(OpenAIMessageContent::Text(thinking.clone())),
                         tool_calls: None,
                         tool_call_id: None,
+                        refusal: None,
                     });
                 }
                 ModelOutput::Image(img) => {
@@ -1520,6 +1521,7 @@ fn build_chat_request(
                         ])),
                         tool_calls: None,
                         tool_call_id: None,
+                        refusal: None,
                     });
                 }
                 ModelOutput::Embedding { .. } => {}
@@ -1652,6 +1654,8 @@ fn build_chat_request(
         presence_penalty: params.presence_penalty,
         logit_bias,
         response_format,
+        logprobs: None,
+        top_logprobs: None,
     }
 }
 
@@ -1921,12 +1925,14 @@ mod tests {
                     content: Some(OpenAIMessageContent::Text("You are helpful".into())),
                     tool_calls: None,
                     tool_call_id: None,
+                    refusal: None,
                 },
                 OpenAIMessage {
                     role: "user".into(),
                     content: Some(OpenAIMessageContent::Text("Hello".into())),
                     tool_calls: None,
                     tool_call_id: None,
+                    refusal: None,
                 },
             ],
             temperature: Some(0.7),
@@ -1942,6 +1948,8 @@ mod tests {
             presence_penalty: None,
             logit_bias: None,
             response_format: None,
+            logprobs: None,
+            top_logprobs: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();
@@ -1969,7 +1977,7 @@ mod tests {
         assert_eq!(response.id, "chatcmpl-123");
         assert_eq!(
             response.choices[0].message.as_ref().unwrap().content,
-            Some("Hello!".into())
+            Some(OpenAIMessageContent::Text("Hello!".into()))
         );
         assert!(response.usage.is_some());
         assert_eq!(response.usage.as_ref().unwrap().total_tokens, 15);
@@ -2105,14 +2113,17 @@ mod tests {
                         },
                     }]),
                     tool_call_id: None,
+                    refusal: None,
                 }),
                 finish_reason: Some("tool_calls".into()),
+                logprobs: None,
             }],
             usage: Some(OpenAIUsage {
                 prompt_tokens: 10,
                 completion_tokens: 5,
                 total_tokens: 15,
             }),
+            system_fingerprint: None,
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
@@ -2158,14 +2169,17 @@ mod tests {
                     content: Some(OpenAIMessageContent::Text("Hello!".into())),
                     tool_calls: None,
                     tool_call_id: None,
+                    refusal: None,
                 }),
                 finish_reason: Some("stop".into()),
+                logprobs: None,
             }],
             usage: Some(OpenAIUsage {
                 prompt_tokens: 5,
                 completion_tokens: 2,
                 total_tokens: 7,
             }),
+            system_fingerprint: None,
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
@@ -2175,6 +2189,7 @@ mod tests {
             content,
             stop_reason,
             usage,
+            metadata: _,
             ..
         } = &result
         {
@@ -2361,6 +2376,7 @@ mod tests {
             ])),
             tool_calls: None,
             tool_call_id: None,
+            refusal: None,
         };
 
         let json = serde_json::to_string(&msg).unwrap();
@@ -2377,6 +2393,7 @@ mod tests {
             content: Some(OpenAIMessageContent::Text("Hello".into())),
             tool_calls: None,
             tool_call_id: None,
+            refusal: None,
         };
 
         let json = serde_json::to_string(&msg).unwrap();
