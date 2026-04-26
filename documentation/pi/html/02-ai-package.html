@@ -186,17 +186,155 @@ import { loginCopilot } from &#x27;@mariozechner/pi-ai/copilot&#x27;;
 const token = await loginAnthropic();
 </code></pre>
 <h2>Token and Cost Tracking</h2>
-<p>Every API call returns usage data:</p>
+<p>Every API call returns a detailed <code>Usage</code> object that tracks tokens and costs across five dimensions:</p>
 <pre><code class="language-typescript">interface Usage {
-  inputTokens: number;
-  outputTokens: number;
-  thinkingTokens?: number;
-  cacheReadTokens?: number;
-  cacheWriteTokens?: number;
-  cost: number;              // USD
+  input: number;         // Non-cached input tokens
+  output: number;        // Output (completion) tokens
+  cacheRead: number;     // Tokens served from prompt cache (cheaper)
+  cacheWrite: number;    // Tokens written to prompt cache (first time)
+  totalTokens: number;   // Sum of all four categories
+
+  cost: {
+    input: number;       // USD cost for input tokens
+    output: number;      // USD cost for output tokens
+    cacheRead: number;   // USD cost for cache reads
+    cacheWrite: number;  // USD cost for cache writes
+    total: number;       // Total USD cost for this call
+  };
 }
 </code></pre>
-<p>Cost is calculated from provider-specific pricing tables built into pi-ai.</p>
+<h3>Model Pricing Tables</h3>
+<p>Each model in pi-ai carries a built-in pricing table expressed as <strong>USD per million tokens</strong>. The <code>Model<TApi></code> interface includes:</p>
+<pre><code class="language-typescript">interface Model&lt;TApi extends Api&gt; {
+  // ...
+  cost: {
+    input: number;       // $/M input tokens
+    output: number;      // $/M output tokens
+    cacheRead: number;   // $/M cache-read tokens
+    cacheWrite: number;  // $/M cache-write tokens
+  };
+  // ...
+}
+</code></pre>
+<p>Pricing is defined in <code>models.generated.ts</code> -- a large generated file that registers every model with its provider, context window, max output, capabilities, and pricing. Examples:</p>
+<table><tr><th>Model</th><th>Input ($/M)</th><th>Output ($/M)</th><th>Cache Read ($/M)</th><th>Cache Write ($/M)</th></tr><tr><td>Claude Sonnet 4.6</td><td>$3.00</td><td>$15.00</td><td>$0.30</td><td>$3.75</td></tr><tr><td>Claude Opus 4.7</td><td>$15.00</td><td>$75.00</td><td>$1.50</td><td>$18.75</td></tr><tr><td>GPT-5.2</td><td>$2.50</td><td>$12.50</td><td>$0.50</td><td>$3.13</td></tr><tr><td>GPT-5.3</td><td>$5.00</td><td>$25.00</td><td>$1.25</td><td>$6.25</td></tr><tr><td>Gemini 2.5 Pro</td><td>$2.50</td><td>$10.00</td><td>$0.25</td><td>$1.25</td></tr><tr><td>Amazon Nova Lite</td><td>$0.06</td><td>$0.24</td><td>$0.015</td><td>$0</td></tr></table>
+<p>These values match the providers' public pricing and are updated as the file is regenerated.</p>
+<h3>Cost Calculation</h3>
+<p>The <code>calculateCost()</code> function in <code>models.ts</code> applies the pricing table to actual usage:</p>
+<pre><code class="language-typescript">export function calculateCost&lt;TApi extends Api&gt;(model: Model&lt;TApi&gt;, usage: Usage): Usage[&quot;cost&quot;] {
+  usage.cost.input = (model.cost.input / 1_000_000) * usage.input;
+  usage.cost.output = (model.cost.output / 1_000_000) * usage.output;
+  usage.cost.cacheRead = (model.cost.cacheRead / 1_000_000) * usage.cacheRead;
+  usage.cost.cacheWrite = (model.cost.cacheWrite / 1_000_000) * usage.cacheWrite;
+  usage.cost.total = usage.cost.input + usage.cost.output + usage.cost.cacheRead + usage.cost.cacheWrite;
+  return usage.cost;
+}
+</code></pre>
+<p>The formula is straightforward: <code>(price_per_million / 1_000_000) * actual_token_count</code>. Each cost component is calculated independently and summed.</p>
+<h3>Per-Provider Usage Extraction</h3>
+<p>Each provider extracts token counts from its native response format:</p>
+<ul><li><strong>Anthropic</strong>: Reads <code>usage.input_tokens</code>, <code>usage.output_tokens</code>, <code>usage.cache_read_input_tokens</code>, and <code>usage.cache_creation_input_tokens</code> from the Message API response. Both streaming (message_stop event) and non-streaming modes are covered.</li><li><strong>OpenAI (Chat Completions)</strong>: Reads <code>usage.prompt_tokens</code>, <code>usage.completion_tokens</code>, and cached token fields from the response. Also handles <code>prompt_tokens_details.cached_tokens</code> for Azure OpenAI.</li><li><strong>OpenAI (Responses API)</strong>: Reads from <code>response.usage</code> including <code>input_tokens</code>, <code>output_tokens</code>, and <code>output_tokens_details.reasoning_tokens</code>.</li><li><strong>Google Gemini</strong>: Reads <code>usageMetadata.promptTokenCount</code>, <code>candidates[0].tokenCount</code>, and <code>cachedContentTokenCount</code>.</li><li><strong>AWS Bedrock</strong>: Extracts from the Converse API response's <code>usage</code> block.</li><li><strong>Google Vertex</strong>: Reads <code>usageMetadata.promptTokenCount</code>, <code>candidatesMetadata.tokenCount</code>, and <code>cachedContentTokenCount</code>.</li></ul>
+<p>Providers initialize <code>usage</code> with zeroed counters at the start of each call, then populate them from the response. The cost field is initially <code>{ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }</code> and filled by <code>calculateCost()</code>.</p>
+<h3>Service Tier Pricing Adjustments</h3>
+<p>Some providers offer service tiers that affect pricing. OpenAI's Responses API and Codex Responses apply a <strong>service tier multiplier</strong>:</p>
+<pre><code class="language-typescript">function getServiceTierCostMultiplier(tier: string | undefined): number {
+  switch (tier) {
+    case &quot;auto&quot;:  return 1.0;   // Default pricing
+    case &quot;default&quot;: return 1.0;
+    case &quot;flex&quot;:  return 0.5;   // 50% discount (lower priority)
+    case &quot;priority&quot;: return 2.0; // 2x cost (higher priority)
+    default: return 1;
+  }
+}
+
+function applyServiceTierPricing(usage: Usage, serviceTier: string | undefined) {
+  const multiplier = getServiceTierCostMultiplier(serviceTier);
+  if (multiplier === 1) return;
+  usage.cost.input *= multiplier;
+  usage.cost.output *= multiplier;
+  usage.cost.cacheRead *= multiplier;
+  usage.cost.cacheWrite *= multiplier;
+  usage.cost.total = usage.cost.input + usage.cost.output + usage.cost.cacheRead + usage.cost.cacheWrite;
+}
+</code></pre>
+<p>The <code>flex</code> tier halves costs (lower priority), while <code>priority</code> doubles them. This is applied <strong>after</strong> the base cost calculation.</p>
+<h3>Faux Provider (Local Models) -- Usage Estimation</h3>
+<p>The <code>faux</code> provider handles local models (llama.cpp, Ollama, etc.) that don't report token counts. It uses an <strong>estimation strategy</strong>:</p>
+<pre><code class="language-typescript">function withUsageEstimate(
+  message: AssistantMessage,
+  context: Context,
+  options: StreamOptions | undefined,
+  promptCache: Map&lt;string, string&gt;,
+): AssistantMessage {
+  const promptText = serializeContext(context);
+  const promptTokens = estimateTokens(promptText);
+  const outputTokens = estimateTokens(assistantContentToText(message.content));
+  // ... cache-aware estimation
+}
+</code></pre>
+<p>The estimation:</p>
+<ol><li>Serializes the full context to text</li><li>Counts tokens using a character-based heuristic (~4 chars per token)</li><li>For cache-aware sessions: compares current prompt text against the previous prompt, finds the common prefix, and splits tokens into cache-read (prefix) vs cache-write (new content)</li><li>Output tokens are estimated from the response text length</li></ol>
+<p>Cost for faux providers is always <code>$0</code> since local models have no API charges, but token counts are still tracked for context window management.</p>
+<h3>Session-Level Cost Aggregation</h3>
+<p>At the <code>pi-agent-core</code> level, usage is accumulated across all turns in a session. The <code>AgentSession</code> class in <code>pi-coding-agent</code> provides <code>getSessionStats()</code>:</p>
+<pre><code class="language-typescript">interface SessionStats {
+  sessionFile: string | undefined;
+  sessionId: string;
+  userMessages: number;
+  assistantMessages: number;
+  toolCalls: number;
+  toolResults: number;
+  totalMessages: number;
+  tokens: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+    total: number;
+  };
+  cost: number;             // Total USD spent in this session
+  contextUsage?: ContextUsage;
+}
+</code></pre>
+<p>The aggregation walks all <code>AssistantMessage</code> entries in the current context and sums each field:</p>
+<pre><code class="language-typescript">let totalInput = 0, totalOutput = 0, totalCacheRead = 0, totalCacheWrite = 0, totalCost = 0;
+for (const msg of messages) {
+  if (msg.role === &quot;assistant&quot;) {
+    totalInput += msg.usage.input;
+    totalOutput += msg.usage.output;
+    totalCacheRead += msg.usage.cacheRead;
+    totalCacheWrite += msg.usage.cacheWrite;
+    totalCost += msg.usage.cost.total;
+  }
+}
+</code></pre>
+<h3>Post-Compaction Usage Accuracy</h3>
+<p>After context compaction, pre-compaction messages carry stale usage data that reflects the old (larger) context. The session manager handles this by:</p>
+<ol><li>Only trusting <code>usage</code> from <code>AssistantMessage</code> entries that were created <strong>after</strong> the latest compaction boundary</li><li>For error messages (no usage data), estimating cost from the last successful post-compaction response</li><li>Using <code>calculateContextTokens()</code> to verify the context size matches the reported usage</li></ol>
+<h3>Cost in the Agent Event Protocol</h3>
+<p>Usage flows through the agent event system at multiple points:</p>
+<ul><li><code>turn_end</code> events carry the <code>Usage</code> for that specific turn</li><li><code>message_update</code> events carry partial text, not usage</li><li><code>agent_end</code> events carry the final accumulated <code>Usage</code> from the last turn</li></ul>
+<p>Applications that subscribe to agent events can track cost in real-time by listening to <code>turn_end</code> and accumulating the <code>cost.total</code> field.</p>
+<h3>Cost Comparison Across Models</h3>
+<p>The model registry (<code>models.ts</code>) provides <code>getModel()</code>, <code>getModels()</code>, and <code>getProviders()</code> for programmatic access. A common pattern for comparing costs:</p>
+<pre><code class="language-typescript">const models = getModels(&#x27;anthropic&#x27;);
+for (const m of models) {
+  console.log(`${m.name}: input=$${m.cost.input}/M, output=$${m.cost.output}/M`);
+}
+</code></pre>
+<p>This lets applications choose models based on budget constraints. The <code>StreamParams.max_price</code> field supports filtering by maximum price per million tokens:</p>
+<pre><code class="language-typescript">interface StreamParams {
+  max_price?: {
+    input?: number;   // Max $/M input tokens
+    output?: number;  // Max $/M output tokens
+  };
+  // ...
+}
+</code></pre>
+<h3>AWS Cost Allocation Tags</h3>
+<p>For AWS Bedrock, pi-ai supports <code>costAllocationTags</code> -- key-value pairs attached to inference requests that appear in AWS Cost Explorer. This enables per-project, per-team, or per-environment cost tracking at the AWS billing level.</p>
+<h3>Design Decisions</h3>
+<ol><li><strong>Pricing embedded in model config</strong> -- No external API calls needed for cost estimation. Works offline.</li><li><strong>Per-million-token pricing</strong> -- Matches how all providers bill. Simple division, no floating-point surprises.</li><li><strong>Usage on every message</strong> -- Every <code>AssistantMessage</code> carries its own <code>Usage</code>, enabling accurate per-turn and per-session aggregation.</li><li><strong>Service tier awareness</strong> -- OpenAI's flex/priority tiers multiply costs after base calculation.</li><li><strong>Faux provider estimation</strong> -- Local models get token estimates for context management even though cost is always zero.</li></ol>
 <h2>Provider Architecture</h2>
 <p>Each provider implements a common interface:</p>
 <pre><code class="language-typescript">interface ProviderAdapter {

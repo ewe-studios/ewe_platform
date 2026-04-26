@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi and Hermes -- Session Management Deep Dive -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="09-tool-system.html">Pi -- Tool System (Cross-Cutting)</a> <a href="10-extension-system.html">Pi -- Extension System (Cross-Cutting)</a> <a href="11-data-flow.html">Pi -- Data Flow (End-to-End)</a></span> <a href="11-data-flow.html">← Pi -- Data Flow (End-to-End)</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pi and Hermes -- Session Management Deep Dive</h1>
+<h2>Overview</h2>
+<p>Pi and Hermes take fundamentally different approaches to session management. Pi uses a <strong>tree-structured JSONL file</strong> approach with versioned migrations and compaction entries. Hermes uses a <strong>SQLite-backed database</strong> with FTS5 full-text search, parent session chains, and compression-triggered session rotation. Both systems solve the same problems -- persistence, branching, context management, and search -- but with different tradeoffs.</p>
+<hr>
+<h2>Pi Session Architecture</h2>
+<h3>Session File Format: JSONL with Tree Structure</h3>
+<p>Pi stores sessions as JSONL files in <code>~/.pi/sessions/</code>. Each line is a JSON object representing a single entry:</p>
+<pre><code class="language-jsonl">{&quot;type&quot;:&quot;session&quot;,&quot;version&quot;:3,&quot;workingDirectory&quot;:&quot;/path/to/project&quot;}
+{&quot;type&quot;:&quot;message&quot;,&quot;id&quot;:&quot;a1b2c3d4&quot;,&quot;parentId&quot;:null,&quot;message&quot;:{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;...&quot;,&quot;timestamp&quot;:1712345678000}}
+{&quot;type&quot;:&quot;message&quot;,&quot;id&quot;:&quot;e5f6g7h8&quot;,&quot;parentId&quot;:&quot;a1b2c3d4&quot;,&quot;message&quot;:{&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:&quot;...&quot;,&quot;usage&quot;:{...},&quot;timestamp&quot;:1712345679000}}
+{&quot;type&quot;:&quot;model_change&quot;,&quot;id&quot;:&quot;i9j0k1l2&quot;,&quot;parentId&quot;:&quot;e5f6g7h8&quot;,&quot;model&quot;:&quot;claude-sonnet-4-6&quot;,&quot;thinkingLevel&quot;:&quot;medium&quot;}
+{&quot;type&quot;:&quot;compaction&quot;,&quot;id&quot;:&quot;m3n4o5p6&quot;,&quot;parentId&quot;:&quot;i9j0k1l2&quot;,&quot;firstKeptEntryId&quot;:&quot;e5f6g7h8&quot;,&quot;summary&quot;:&quot;...&quot;,&quot;timestamp&quot;:1712345680000}
+</code></pre>
+<p>The <code>id</code>/<code>parentId</code> fields form a <strong>tree</strong> (not a linear list). Each entry has a unique 8-character hex ID, and the parent pointer creates a directed acyclic graph that supports branching.</p>
+<h3>Session Versioning and Migrations</h3>
+<p>Pi sessions are versioned (<code>CURRENT_SESSION_VERSION = 3</code>). Old sessions are automatically migrated on load:</p>
+<table><tr><th>Version</th><th>Change</th></tr><tr><td>v1</td><td>Flat JSONL, no id/parentId fields -- linear only</td></tr><tr><td>v2</td><td>Added id/parentId tree structure, migrated `firstKeptEntryIndex` to `firstKeptEntryId` in compaction entries</td></tr><tr><td>v3</td><td>Renamed `hookMessage` role to `custom`</td></tr></table>
+<p>Migrations run in <code>parseSessionEntries()</code> when loading. The header line (<code>{"type":"session","version":3}</code>) tracks the version.</p>
+<h3>Session Entry Types</h3>
+<table><tr><th>Type</th><th>Purpose</th><th>Key Fields</th></tr><tr><td>`session`</td><td>Header/metadata</td><td>version, workingDirectory</td></tr><tr><td>`message`</td><td>User/assistant/toolResult messages</td><td>id, parentId, message (full message object)</td></tr><tr><td>`model_change`</td><td>Model or thinking level switch</td><td>model, thinkingLevel</td></tr><tr><td>`compaction`</td><td>Context compression boundary</td><td>firstKeptEntryId, summary</td></tr><tr><td>`branch_summary`</td><td>Fork point description</td><td>branchId, summary</td></tr><tr><td>`custom`</td><td>Extension-defined entries (ignored by context building)</td><td>data (arbitrary)</td></tr><tr><td>`session_info`</td><td>User-defined display name</td><td>displayName</td></tr><tr><td>`label`</td><td>User-applied tags</td><td>labels[]</td></tr></table>
+<h3>SessionManager: Tree Operations</h3>
+<p>The <code>SessionManager</code> class manages the session file:</p>
+<pre><code class="language-typescript">class SessionManager {
+  // Core operations
+  createSession(options: NewSessionOptions): void
+  appendMessage(message: Message): string  // returns entry ID
+  getTree(): SessionTreeNode               // full tree with children
+  getEntries(): SessionEntry[]             // flat list
+  getBranch(id: string): SessionEntry[]    // entries on a specific branch
+
+  // Compaction
+  insertCompactionEntry(entry: CompactionEntry): void
+
+  // Branching
+  branchFrom(id: string): void             // create new branch point
+  getBranchSummaries(): BranchSummaryEntry[]
+
+  // Metadata
+  getSessionName(): string
+  getSessionDir(): string
+  getSessionId(): string                   // derived from filename
+}
+</code></pre>
+<p>The tree is built by grouping entries by <code>parentId</code>:</p>
+<pre><code class="language-typescript">interface SessionTreeNode {
+  entry: SessionEntry;
+  children: SessionTreeNode[];
+}
+</code></pre>
+<h3>Session Context Building</h3>
+<p>When the agent needs the current conversation context, <code>buildSessionContext()</code> walks the tree:</p>
+<ol><li>Starts from the session header</li><li>Traverses the tree following <code>parentId</code> links</li><li>At compaction entries, skips everything before <code>firstKeptEntryId</code></li><li>At branch points, follows only the active branch</li><li>Collects <code>message</code> entries into the <code>SessionContext.messages</code> array</li><li>Applies <code>model_change</code> entries to determine current model/thinking level</li><li>Ignores <code>custom</code> entries (they're for extensions, not the LLM context)</li></ol>
+<h3>Compaction and Context Overflow</h3>
+<p>Pi detects context overflow before it happens:</p>
+<pre><code class="language-typescript">// In agent-session.ts
+if (isContextOverflow(model, messages)) {
+  // Estimate cost of compaction
+  const estimate = await prepareCompaction(messages, model);
+  // Compact: keep entries after firstKeptEntryId, insert summary
+  const result = await compact(messages, model);
+}
+</code></pre>
+<p>After compaction:</p>
+<ol><li>A <code>compaction</code> entry is inserted with <code>firstKeptEntryId</code> pointing to the oldest kept message</li><li>A summary of removed messages is generated and stored in the compaction entry</li><li>The session file is rewritten (not appended -- old entries are physically removed)</li><li>Usage data from pre-compaction messages becomes stale and is not trusted for cost reporting</li></ol>
+<h3>Session Stats and Cost Aggregation</h3>
+<p><code>AgentSession.getSessionStats()</code> walks the current context and aggregates:</p>
+<pre><code class="language-typescript">interface SessionStats {
+  sessionId: string;
+  userMessages: number;
+  assistantMessages: number;
+  toolCalls: number;
+  toolResults: number;
+  tokens: {
+    input: number;       // Sum of all assistantMsg.usage.input
+    output: number;      // Sum of all assistantMsg.usage.output
+    cacheRead: number;
+    cacheWrite: number;
+    total: number;
+  };
+  cost: number;          // Sum of all assistantMsg.usage.cost.total
+  contextUsage?: ContextUsage;
+}
+</code></pre>
+<h3>Session Files on Disk</h3>
+<pre><code class="language-">~/.pi/sessions/
+  a1b2c3d4.session      # Active session (JSONL)
+  e5f6g7h8.session      # Another session
+  ...
+</code></pre>
+<p>Session IDs are UUIDs (v7), truncated to 8 hex characters for the filename. The session file name IS the session ID.</p>
+<h3>Session Branching and Forking</h3>
+<p>Pi supports branching at any point in the conversation:</p>
+<pre><code class="language-">session_header
+  ├── msg_1 (user)
+  │   └── msg_2 (assistant)
+  │       └── msg_3 (user)
+  │           ├── msg_4a (assistant)  ← branch A (active)
+  │           └── msg_4b (assistant)  ← branch B
+</code></pre>
+<p>Branching creates a new entry with a different <code>parentId</code> at the branch point. The <code>branch_summary</code> entry stores a description of why the branch was created.</p>
+<h3>Events: Session Lifecycle</h3>
+<p>The session emits events throughout its lifecycle:</p>
+<table><tr><th>Event</th><th>When</th></tr><tr><td>`SessionStartEvent`</td><td>Session created or loaded</td></tr><tr><td>`SessionTreeEvent`</td><td>Tree structure changed (branch, compaction)</td></tr><tr><td>`SessionBeforeCompactEvent`</td><td>About to compact (extensions can intercept)</td></tr><tr><td>`SessionCompactEvent`</td><td>Compaction complete</td></tr><tr><td>`SessionBeforeForkEvent`</td><td>About to branch</td></tr><tr><td>`SessionBeforeSwitchEvent`</td><td>About to switch sessions</td></tr><tr><td>`SessionBeforeCompactResult`</td><td>Compaction result available</td></tr><tr><td>`SessionShutdownEvent`</td><td>Session being closed</td></tr></table>
+<p>Extensions can listen to these events and inject behavior at each lifecycle point.</p>
+<hr>
+<h2>Hermes Session Architecture</h2>
+<h3>SQLite Database with FTS5 Search</h3>
+<p>Hermes uses a SQLite database (<code>~/.hermes/sessions.db</code>) instead of per-session files. The schema has three core tables:</p>
+<pre><code class="language-sql">CREATE TABLE sessions (
+    id TEXT PRIMARY KEY,
+    source TEXT NOT NULL,              -- &#x27;cli&#x27;, &#x27;telegram&#x27;, &#x27;discord&#x27;, etc.
+    user_id TEXT,
+    model TEXT,
+    model_config TEXT,                  -- JSON
+    system_prompt TEXT,
+    parent_session_id TEXT,             -- FK to sessions(id)
+    started_at REAL NOT NULL,
+    ended_at REAL,
+    end_reason TEXT,                    -- &#x27;compression&#x27;, &#x27;user_exit&#x27;, etc.
+    message_count INTEGER DEFAULT 0,
+    tool_call_count INTEGER DEFAULT 0,
+    input_tokens INTEGER DEFAULT 0,
+    output_tokens INTEGER DEFAULT 0,
+    cache_read_tokens INTEGER DEFAULT 0,
+    cache_write_tokens INTEGER DEFAULT 0,
+    reasoning_tokens INTEGER DEFAULT 0,
+    billing_provider TEXT,
+    billing_base_url TEXT,
+    billing_mode TEXT,
+    estimated_cost_usd REAL,
+    actual_cost_usd REAL,
+    cost_status TEXT,
+    cost_source TEXT,
+    pricing_version TEXT,
+    title TEXT,
+    api_call_count INTEGER DEFAULT 0,
+    FOREIGN KEY (parent_session_id) REFERENCES sessions(id)
+);
+
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL REFERENCES sessions(id),
+    role TEXT NOT NULL,                 -- &#x27;user&#x27;, &#x27;assistant&#x27;, &#x27;tool&#x27;
+    content TEXT,
+    tool_call_id TEXT,
+    tool_calls TEXT,                    -- JSON
+    tool_name TEXT,
+    timestamp REAL NOT NULL,
+    token_count INTEGER,
+    finish_reason TEXT,
+    reasoning TEXT,                     -- Extended thinking
+    reasoning_content TEXT,
+    reasoning_details TEXT,             -- JSON
+    codex_reasoning_items TEXT,         -- JSON (OpenAI Codex)
+    codex_message_items TEXT            -- JSON (OpenAI Codex)
+);
+
+CREATE VIRTUAL TABLE messages_fts USING fts5(
+    content,
+    content=messages,
+    content_rowid=id
+);
+</code></pre>
+<h3>Schema Evolution (v1 → v8)</h3>
+<p>Hermes has gone through 8 schema migrations:</p>
+<table><tr><th>Version</th><th>Change</th></tr><tr><td>v1</td><td>Initial schema: sessions + messages tables</td></tr><tr><td>v2</td><td>Added FTS5 full-text search</td></tr><tr><td>v3</td><td>Added `title` column to sessions</td></tr><tr><td>v4</td><td>Added `reasoning` / `reasoning_content` / `reasoning_details` to messages</td></tr><tr><td>v5</td><td>Added `codex_reasoning_items` / `codex_message_items`</td></tr><tr><td>v6</td><td>Added `billing_provider`, `billing_base_url`, `billing_mode` for cost tracking</td></tr><tr><td>v7</td><td>Added `estimated_cost_usd`, `actual_cost_usd`, `cost_status`, `cost_source`, `pricing_version`</td></tr><tr><td>v8</td><td>Added `api_call_count` to sessions</td></tr></table>
+<h3>SessionDB Class: Core Operations</h3>
+<p>The <code>SessionDB</code> class manages all database operations with write-ahead logging (WAL) and connection pooling for concurrent access:</p>
+<pre><code class="language-python">class SessionDB:
+    # Session lifecycle
+    create_session(session_id, source, model, system_prompt, user_id, parent_session_id) -&gt; str
+    end_session(session_id, end_reason: str)
+    reopen_session(session_id)                              # Clear ended_at for resume
+    ensure_session(session_id, source, model)               # INSERT OR IGNORE
+
+    # Message operations
+    append_message(session_id, role, content, tool_calls, tool_name, ...) -&gt; int
+    update_token_counts(session_id, input_tokens, output_tokens, ...)  # Increment or absolute
+
+    # Metadata
+    set_session_title(session_id, title: str) -&gt; bool
+    get_session_title(session_id: str) -&gt; str | None
+    get_session_by_title(title: str) -&gt; dict | None
+    get_next_title_in_lineage(base_title: str) -&gt; str       # Auto-numbering: &quot;Title&quot;, &quot;Title (2)&quot;, ...
+
+    # Search
+    session_search(query: str, source: str = None, limit: int = 20) -&gt; list[dict]
+    resolve_session_id(session_id_or_prefix: str) -&gt; str | None
+
+    # Rich session listing
+    list_sessions_rich(source: str = None, limit: int = 50) -&gt; list[dict]
+    # Returns: id, title, source, model, started_at, message_count,
+    #          token counts, cost, end_reason, parent_session_id
+</code></pre>
+<h3>Message Persistence: Dual-Write Strategy</h3>
+<p>Hermes writes messages to <strong>two places</strong> simultaneously:</p>
+<ol><li><strong>JSON log file</strong>: <code>~/.hermes/sessions/session_<id>.json</code> -- human-readable, portable</li><li><strong>SQLite database</strong>: <code>~/.hermes/sessions.db</code> -- searchable, indexed</li></ol>
+<p>The <code>_flush_messages_to_session_db()</code> method uses <code>_last_flushed_db_idx</code> to track which messages have been written, preventing duplicate writes on multiple exit paths:</p>
+<pre><code class="language-python">def _flush_messages_to_session_db(self, messages: List[Dict], conversation_history=None):
+    start_idx = len(conversation_history) if conversation_history else 0
+    flush_from = max(start_idx, self._last_flushed_db_idx)
+    for msg in messages[flush_from:]:
+        self._session_db.append_message(
+            session_id=self.session_id,
+            role=msg.get(&quot;role&quot;),
+            content=msg.get(&quot;content&quot;),
+            tool_calls=...,
+            reasoning=msg.get(&quot;reasoning&quot;) if role == &quot;assistant&quot; else None,
+            ...
+        )
+    self._last_flushed_db_idx = len(messages)
+</code></pre>
+<h3>Compression-Triggered Session Splitting</h3>
+<p>When Hermes compresses context, it <strong>rotates</strong> the session:</p>
+<pre><code class="language-python"># In run_agent.py, during compression:
+old_title = self._session_db.get_session_title(self.session_id)
+self.commit_memory_session(messages)            # Extract memories before rotation
+self._session_db.end_session(self.session_id, &quot;compression&quot;)
+old_session_id = self.session_id
+
+# Create new session as child of old
+self.session_id = f&quot;{timestamp}_{uuid_hex[:6]}&quot;
+self._session_db.create_session(
+    session_id=self.session_id,
+    source=self.platform or &quot;cli&quot;,
+    model=self.model,
+    parent_session_id=old_session_id,           # &lt;-- lineage chain
+)
+
+# Propagate title with auto-numbering
+if old_title:
+    new_title = self._session_db.get_next_title_in_lineage(old_title)
+    self._session_db.set_session_title(self.session_id, new_title)
+</code></pre>
+<p>This creates a <strong>parent_session_id chain</strong>:</p>
+<pre><code class="language-">session_A (title: &quot;Project Setup&quot;)
+  └── session_B (title: &quot;Project Setup (2)&quot;, parent_session_id=session_A)
+      └── session_C (title: &quot;Project Setup (3)&quot;, parent_session_id=session_B)
+</code></pre>
+<p>The chain preserves the full conversation history while keeping each individual session bounded in size.</p>
+<h3>Gateway Session Management</h3>
+<p>For the multi-platform gateway, Hermes uses a <strong>stable per-chat key</strong> (<code>gateway_session_key</code>) to maintain session continuity across platform-specific identifiers:</p>
+<pre><code class="language-">agent:main:telegram:dm:123456     # Telegram DM
+agent:main:discord:channel:789    # Discord channel
+agent:main:slack:channel:ABC      # Slack channel
+</code></pre>
+<p>The gateway session key is composed of: <code>agent_name:platform:chat_type:chat_id</code>. This allows:</p>
+<ol><li><strong>Stable session identity</strong> across process restarts</li><li><strong>Per-chat isolation</strong> -- each chat gets its own session</li><li><strong>Cross-platform consistency</strong> -- the same user on different platforms gets different sessions</li><li><strong>Memory provider scoping</strong> -- memory providers use the gateway key to scope per-chat memory</li></ol>
+<h3>Session Search (FTS5)</h3>
+<p>The <code>session_search()</code> method uses SQLite's FTS5 for full-text search across all messages:</p>
+<pre><code class="language-python">def session_search(self, query: str, source: str = None, limit: int = 20):
+    cursor.execute(&quot;&quot;&quot;
+        SELECT m.*, s.source, s.title, s.model
+        FROM messages_fts f
+        JOIN messages m ON m.id = f.rowid
+        JOIN sessions s ON s.id = m.session_id
+        WHERE messages_fts MATCH ?
+        ORDER BY rank
+        LIMIT ?
+    &quot;&quot;&quot;, (query, limit))
+</code></pre>
+<p>This enables searching across <strong>all sessions</strong> regardless of source, with optional filtering by platform. Results include the session title, model, and source for context.</p>
+<h3>Token and Cost Tracking at Session Level</h3>
+<p>Hermes tracks cumulative token counts directly on the <code>sessions</code> table:</p>
+<table><tr><th>Column</th><th>Purpose</th></tr><tr><td>`input_tokens`</td><td>Total input tokens (incremented per API call)</td></tr><tr><td>`output_tokens`</td><td>Total output tokens</td></tr><tr><td>`cache_read_tokens`</td><td>Tokens served from cache</td></tr><tr><td>`cache_write_tokens`</td><td>Tokens written to cache</td></tr><tr><td>`reasoning_tokens`</td><td>Extended thinking/reasoning tokens</td></tr><tr><td>`estimated_cost_usd`</td><td>Calculated cost from pricing tables</td></tr><tr><td>`actual_cost_usd`</td><td>Actual billed cost (if available from provider API)</td></tr><tr><td>`cost_status`</td><td>'estimated' or 'actual'</td></tr><tr><td>`cost_source`</td><td>Which pricing table was used</td></tr><tr><td>`pricing_version`</td><td>Pricing table version for audit</td></tr><tr><td>`api_call_count`</td><td>Number of individual LLM API calls</td></tr></table>
+<p>The <code>update_token_counts()</code> method supports both <strong>incremental</strong> (CLI path, per-call deltas) and <strong>absolute</strong> (gateway path, cumulative totals) modes:</p>
+<pre><code class="language-python"># Incremental (default) -- CLI adds per-call deltas
+session_db.update_token_counts(session_id, input_tokens=1200, output_tokens=800)
+
+# Absolute -- gateway sets cumulative totals directly
+session_db.update_token_counts(session_id, input_tokens=50000, output_tokens=30000, absolute=True)
+</code></pre>
+<h3>Reasoning Chain Preservation</h3>
+<p>Hermes preserves reasoning/thinking data across session reloads (v4+ schema). The <code>reasoning</code>, <code>reasoning_content</code>, and <code>reasoning_details</code> fields store the full chain of thought:</p>
+<ul><li><code>reasoning</code>: Plain text reasoning (Anthropic-style thinking blocks)</li><li><code>reasoning_content</code>: Structured reasoning content</li><li><code>reasoning_details</code>: JSON array of reasoning block metadata</li></ul>
+<p>Without this, reasoning chains are lost on session reload, breaking multi-turn reasoning continuity.</p>
+<h3>Concurrent Access: WAL and Locking</h3>
+<p>Multiple Hermes processes can access the session database simultaneously (gateway + CLI sessions + worktree agents):</p>
+<ol><li><strong>WAL mode</strong> (<code>journal_mode=WAL</code>) -- enables concurrent reads, serialized writes</li><li><strong>Busy timeout</strong> (<code>PRAGMA busy_timeout=5000</code>) -- retries on lock contention instead of failing</li><li><strong>Write serialization</strong> -- the <code>_execute_write()</code> method uses a threading lock to serialize writes</li><li><strong>Graceful degradation</strong> -- if <code>create_session()</code> fails due to lock, the session row may be missing from the FTS index, but subsequent message flushes still work</li></ol>
+<h3>Session IDs and JSON Logs</h3>
+<p>In addition to SQLite, each session has a JSON log file:</p>
+<pre><code class="language-">~/.hermes/sessions/
+  session_20260426_143052_a1b2c3.json
+  session_20260426_150000_d4e5f6.json
+  ...
+</code></pre>
+<p>The session ID format is <code>{YYYYMMDD_HHMMSS}_{uuid_hex_6}</code>. The JSON file contains the full conversation trajectory for debugging and portability. It's written alongside the SQLite flush via <code>_save_session_log()</code>.</p>
+<hr>
+<h2>Comparison: Pi vs Hermes Sessions</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th></tr><tr><td>**Storage**</td><td>JSONL files (one per session)</td><td>SQLite database + JSON log files</td></tr><tr><td>**Search**</td><td>None (file-by-file grep)</td><td>FTS5 full-text search across all sessions</td></tr><tr><td>**Tree structure**</td><td>id/parentId in JSONL entries</td><td>parent_session_id FK in sessions table</td></tr><tr><td>**Versioning**</td><td>v1 → v2 → v3 migrations</td><td>v1 → v8 migrations</td></tr><tr><td>**Compaction**</td><td>Rewrites file, inserts compaction entry</td><td>Ends old session, creates child session</td></tr><tr><td>**Branching**</td><td>Multiple children per parent in tree</td><td>parent_session_id chain (linear)</td></tr><tr><td>**Cost tracking**</td><td>Per-message usage, aggregated at runtime</td><td>Cumulative counters on session row</td></tr><tr><td>**Concurrent access**</td><td>File-level (no locking)</td><td>WAL mode + busy timeout + write lock</td></tr><tr><td>**Gateway support**</td><td>No (coding agent only)</td><td>Yes (gateway_session_key per chat)</td></tr><tr><td>**Reasoning preservation**</td><td>Stored in message content</td><td>Dedicated columns (reasoning, reasoning_details)</td></tr><tr><td>**Session titles**</td><td>session_info entries</td><td>Dedicated title column with auto-numbering</td></tr><tr><td>**Memory integration**</td><td>None built-in</td><td>commit_memory_session() before rotation</td></tr></table>
+<h3>When to Use Which Approach</h3>
+<p><strong>Pi's JSONL approach</strong> is simpler, more portable, and easier to inspect manually. It works well for single-user coding sessions where file-level operations are sufficient. The tree structure enables true branching (multiple children per node).</p>
+<p><strong>Hermes's SQLite approach</strong> is more powerful for multi-user, multi-platform scenarios. FTS5 enables cross-session search, cumulative counters avoid re-scanning messages for stats, and WAL mode handles concurrent access. The parent_session_id chain is simpler than Pi's full tree but sufficient for compression-based lineage tracking.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
