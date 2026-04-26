@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi Extensions -- Index -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-ext-pi-vs-claude-code.html">Pi Extensions -- pi-vs-claude-code</a> <a href="13-ext-pi-web-access.html">Pi Extensions -- pi-web-access</a> <a href="13-ext-pi_agent_rust.html">Pi Extensions -- pi_agent_rust</a></span> <a href="13-ext-pi_agent_rust.html">← Pi Extensions -- pi_agent_rust</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pi Extensions</h1>
+<p>The <code>pi-extensions/</code> directory contains community and official extensions for the Pi coding agent. Each extension adds new tools, skills, modes, or integrations.</p>
+<h2>Extension Catalog</h2>
+<h3>Agent Runtimes</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi_agent_rust](13-ext-pi_agent_rust.md)</td><td>High-performance Rust CLI for the Pi coding agent</td></tr><tr><td>[pi-vs-claude-code](13-ext-pi-vs-claude-code.md)</td><td>Customized Pi instances showcasing advantages over Claude Code</td></tr></table>
+<h3>Collaboration & Messaging</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-discord](13-ext-pi-discord.md)</td><td>Discord bot integration with persistent sessions</td></tr><tr><td>[pi-intercom](13-ext-pi-intercom.md)</td><td>Direct 1:1 messaging between Pi sessions on the same machine</td></tr><tr><td>[pi-messenger](13-ext-pi-messenger.md)</td><td>Multi-agent chat room -- agents in different terminals can coordinate</td></tr></table>
+<h3>Multi-Agent & Coordination</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-coordination](13-ext-pi-coordination.md)</td><td>Multi-agent parallel task execution with dependencies and review cycles</td></tr><tr><td>[pi-foreground-chains](13-ext-pi-foreground-chains.md)</td><td>Observable multi-agent workflows with file-based handoff</td></tr><tr><td>[pi-side-chat](13-ext-pi-side-chat.md)</td><td>Fork conversations into side chats while main agent keeps working</td></tr><tr><td>[pi-subagents](13-ext-pi-subagents.md)</td><td>Delegate tasks to subagents with chains and parallel execution</td></tr></table>
+<h3>Tools & Skills</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-annotate](13-ext-pi-annotate.md)</td><td>Visual UI annotation -- click elements, add notes, agent fixes code</td></tr><tr><td>[pi-computer-use](13-ext-pi-computer-use.md)</td><td>macOS computer use with AX-first semantic targeting</td></tr><tr><td>[pi-interview-tool](13-ext-pi-interview-tool.md)</td><td>Interactive web form for gathering user responses to clarification questions</td></tr><tr><td>[pi-mcp-adapter](13-ext-pi-mcp-adapter.md)</td><td>Use MCP servers without burning context window tokens</td></tr><tr><td>[pi-model-switch](13-ext-pi-model-switch.md)</td><td>Let the agent switch models autonomously</td></tr><tr><td>[pi-skill-palette](13-ext-pi-skill-palette.md)</td><td>Command palette for selecting which skill to inject</td></tr><tr><td>[pi-skills](13-ext-pi-skills.md)</td><td>Collection of skills compatible with Pi, Claude Code, Codex, Amp, Droid</td></tr><tr><td>[pi-web-access](13-ext-pi-web-access.md)</td><td>Web search, content extraction, and video understanding</td></tr></table>
+<h3>UX & Interface</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-design-deck](13-ext-pi-design-deck.md)</td><td>Multi-slide visual decision decks with high-fidelity previews</td></tr><tr><td>[pi-interactive-shell](13-ext-pi-interactive-shell.md)</td><td>Run interactive CLIs in an observable TUI overlay</td></tr><tr><td>[pi-powerline-footer](13-ext-pi-powerline-footer.md)</td><td>Powerline-style status bar with working vibes</td></tr></table>
+<h3>Compaction & Context</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-custom-compaction](13-ext-pi-custom-compaction.md)</td><td>Swap the model and template for compaction</td></tr><tr><td>[pi-rewind-hook](13-ext-pi-rewind-hook.md)</td><td>Record and restore file state rewind points</td></tr></table>
+<h3>Prompt & Model Control</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-prompt-template-model](13-ext-pi-prompt-template-model.md)</td><td>Frontmatter for model, skill, and thinking level in templates</td></tr></table>
+<h3>Runtime & Deployment</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-boomerang](13-ext-pi-boomerang.md)</td><td>Token-efficient autonomous task execution with context collapse</td></tr><tr><td>[pi-coding-agent-termux](13-ext-pi-coding-agent-termux.md)</td><td>Termux port (deprecated -- upstream now supports Termux)</td></tr><tr><td>[pi-gitlab-duo](13-ext-pi-gitlab-duo.md)</td><td>GitLab Duo provider extension (Claude + GPT via AI Gateway)</td></tr><tr><td>[pi-runtime-extensions](13-ext-pi-runtime-extensions.md)</td><td>Load/unload extensions dynamically during a running session</td></tr></table>
+<h3>Review & Quality</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-review-loop](13-ext-pi-review-loop.md)</td><td>Automated code review loop until no issues remain</td></tr></table>
+<h3>Reference</h3>
+<table><tr><th>Extension</th><th>What It Does</th></tr><tr><td>[pi-package-test](13-ext-pi-package-test.md)</td><td>Reference package demonstrating Pi's package system features</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

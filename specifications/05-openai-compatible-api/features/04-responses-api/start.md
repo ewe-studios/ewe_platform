@@ -1,22 +1,11 @@
 ---
-purpose: "Agent workflow for implementing Responses API feature"
-version: "1.0"
-created: 2026-03-08
+purpose: "RETIRED — see specifications/07-foundation-ai"
+retired: 2026-04-26
 ---
 
-# Responses API Feature Workflow
+# ⚠️ RETIRED
 
-**Important**: Place tests in correct location - follow language testing skill or project test structure.
+This feature has been superseded by `specifications/07-foundation-ai/`.
 
-## Tasks Summary
-
-1. Create Responses API types module
-2. Implement non-streaming client
-3. Implement streaming client
-4. Handle reasoning-specific features
-5. Write tests
-6. Add documentation
-
-## Next Action
-
-Start with Task 1: Create `backends/foundation_ai/src/openai/responses/types.rs`
+- Chat Completions: `features/00c-openai-provider/feature.md`
+- Responses API + enhancements: `features/00g-openai-provider-enhancements/feature.md`

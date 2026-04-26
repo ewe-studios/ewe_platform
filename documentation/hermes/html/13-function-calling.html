@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes -- Function Calling & JSON Mode -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="10-platform-adapters.html">Hermes Agent -- Platform Adapters</a> <a href="11-data-flow.html">Hermes Agent -- Data Flow (End-to-End)</a> <a href="12-cost-tracking.html">Hermes Agent -- Token Usage and Cost Tracking</a></span> <a href="12-cost-tracking.html">← Hermes Agent -- Token Usage and Cost Tracking</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Function Calling</h1>
+<p><strong>Structured tool use and JSON output for Hermes 2 Pro and Hermes 3 models.</strong></p>
+<p>Hermes-Function-Calling provides the prompt templates, schemas, and inference scripts for enabling function calling and structured JSON output on Hermes 2 Pro and Hermes 3 models. The models use ChatML prompt format with XML-wrapped tool calls, enabling OpenAI endpoint compatibility.</p>
+<h2>Features</h2>
+<table><tr><th>Feature</th><th>Models</th><th>Description</th></tr><tr><td>**Function Calling**</td><td>Hermes 2 Pro, Hermes 3</td><td>Parse tool schemas, generate function calls with arguments</td></tr><tr><td>**JSON Mode**</td><td>Hermes 2 Pro, Hermes 3</td><td>Structured output adhering to a provided JSON schema</td></tr><tr><td>**Scratch Pad (Hermes 3)**</td><td>Hermes 3 only</td><td>GOAP reasoning framework for planning before tool calls</td></tr></table>
+<h2>Function Calling Prompt Format</h2>
+<p>Hermes uses ChatML with XML tags for tool calls. The system prompt defines available tools and the expected output format:</p>
+<ul><li>System role with tool schema in XML tools tags</li><li>Pydantic model schema for function call structure</li><li>Tool calls wrapped in XML tool_call tags (Hermes 2 Pro)</li><li>Tool calls wrapped in XML tool_call tags with scratch_pad planning (Hermes 3)</li><li>Tool responses returned in XML tool_result tags</li></ul>
+<h3>Conversation Flow</h3>
+<ol><li><strong>System</strong>: Defines available tools and calling format</li><li><strong>User</strong>: Natural language request</li><li><strong>Assistant</strong>: Generates structured function call</li><li><strong>Tool</strong>: Executes function, returns result</li><li><strong>Assistant</strong>: Interprets result, generates natural language response</li></ol>
+<p>See the key scripts section below for the Python implementations.</p>
+<h2>JSON Mode Prompt Format</h2>
+<p>For structured outputs, the model responds with only a JSON object matching the provided schema:</p>
+<ul><li>System: "You are a helpful assistant that answers in JSON" with schema in XML schema tags</li><li>User: Natural language request</li><li>Assistant: JSON object matching the provided schema</li></ul>
+<h2>Example: Function Call</h2>
+<p>Input: "Fetch the stock fundamentals data for Tesla (TSLA)"</p>
+<p>The model generates a tool call for get_stock_fundamentals with symbol=TSLA. After execution, the result contains market cap, P/E ratio, P/B ratio, EPS, beta, 52-week range, and more. The assistant then provides a natural language summary.</p>
+<h2>Example: JSON Mode</h2>
+<p>Input: "Please return a json object to represent Goku from Dragon Ball Z"</p>
+<p>With a Pydantic Character schema (name, species, role, personality_traits, special_attacks), the model outputs valid JSON matching that schema.</p>
+<h2>Key Scripts</h2>
+<table><tr><th>Script</th><th>Purpose</th></tr><tr><td>functioncall.py</td><td>Main entry point for function call inference. Initializes model, tokenizer, handles recursive loop for generating and executing function calls</td></tr><tr><td>jsonmode.py</td><td>JSON mode inference. Generates JSON objects adhering to provided schema, validates output</td></tr><tr><td>prompter.py</td><td>Manages prompt generation. Reads system prompts from YAML, formats with tools/examples/schema</td></tr><tr><td>schema.py</td><td>Defines Pydantic models for function calls and definitions</td></tr><tr><td>functions.py</td><td>Tool implementations using yfinance for stock data</td></tr><tr><td>validator.py</td><td>Validates function call outputs</td></tr><tr><td>utils.py</td><td>Utility functions</td></tr></table>
+<h2>Adding Custom Functions</h2>
+<p>Functions are defined in functions.py using the @tool decorator. Each function needs:</p>
+<ul><li>Typed parameters with descriptions</li><li>Docstring explaining purpose</li><li>Return type (dict)</li><li>Registration in get_openai_tools()</li></ul>
+<h2>Adding Custom Pydantic Models for JSON Mode</h2>
+<p>Define a Pydantic model with desired fields, set additionalProperties to false in schema_extra, and serialize with .schema_json(). The model schema becomes the constraint the LLM must follow.</p>
+<h2>Hermes 3 Scratch Pad</h2>
+<p>Hermes 3 adds a scratch_pad section with the GOAP (Goal Oriented Action Planning) framework for more deliberate reasoning:</p>
+<ul><li><strong>Goal</strong>: Restates the user request</li><li><strong>Actions</strong>: Lists Python-style function calls to execute</li><li><strong>Observation</strong>: Tool results summarized when provided</li><li><strong>Reflection</strong>: Evaluates tool relevance, parameter availability, and overall task status</li></ul>
+<p>This structured reasoning helps the model plan its tool calls more carefully before generating them.</p>
+<h2>Package Details</h2>
+<table><tr><th>Property</th><th>Value</th></tr><tr><td>Source</td><td>github.com/NousResearch/Hermes-Function-Calling</td></tr><tr><td>License</td><td>Apache 2.0</td></tr><tr><td>Models</td><td>Hermes 2 Pro, Hermes 3</td></tr><tr><td>Default Model</td><td>NousResearch/Hermes-2-Pro-Llama-3-8B</td></tr><tr><td>Prompt Format</td><td>ChatML with XML tags</td></tr><tr><td>Framework</td><td>Transformers + bitsandbytes (optional 4-bit)</td></tr><tr><td>Compatibility</td><td>OpenAI endpoint format</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

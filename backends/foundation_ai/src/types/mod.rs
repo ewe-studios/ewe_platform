@@ -353,10 +353,10 @@ impl Quantization {
     /// assert_eq!(Quantization::Q4_KM.to_filename_format(), "Q4_K_M");
     /// assert_eq!(Quantization::F16.to_filename_format(), "F16");
     /// ```
+    #[must_use]
     pub fn to_filename_format(&self) -> String {
         match self {
-            Quantization::None => String::new(),
-            Quantization::Default => String::new(),
+            Quantization::None | Quantization::Default => "".to_string(),
             Quantization::F16 => "F16".to_string(),
             Quantization::Q2K => "Q2_K".to_string(),
             Quantization::Q2_KS => "Q2_KS".to_string(),
@@ -413,7 +413,7 @@ pub enum ModelId {
 
 /// [`CallSpec`] defines the calling configuration for the model
 /// which can be customized as needed for different use-case.
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelParams {
     pub max_tokens: usize,
     pub temperature: f32,
@@ -425,6 +425,16 @@ pub struct ModelParams {
     pub thinking_level: ThinkingLevels,
     pub cache_retention: CacheRetention,
     pub thinking_budget: Option<ThinkingBudget>,
+    /// Constrain the model's output format (text, JSON, schema).
+    pub output_format: Option<OutputFormat>,
+    /// Penalize new tokens based on their frequency in the text so far
+    /// (-2.0 to 2.0, provider-specific; OpenAI only).
+    pub frequency_penalty: Option<f32>,
+    /// Penalize new tokens based on whether they appear in the text so far
+    /// (-2.0 to 2.0, provider-specific; OpenAI only).
+    pub presence_penalty: Option<f32>,
+    /// Modify likelihood of specified tokens (-2.0 to 2.0, provider-specific).
+    pub logit_bias: Option<HashMap<String, f32>>,
 }
 
 impl Default for ModelParams {
@@ -440,11 +450,15 @@ impl Default for ModelParams {
             thinking_level: ThinkingLevels::default(),
             cache_retention: CacheRetention::default(),
             thinking_budget: None,
+            output_format: None,
+            frequency_penalty: None,
+            presence_penalty: None,
+            logit_bias: None,
         }
     }
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelConfig {
     // standard model properties
     pub context_length: usize,
@@ -576,6 +590,9 @@ pub enum StopReason {
     ToolUse,
     Error,
     Aborted,
+    /// Custom or unknown finish reason — preserves provider-specific values.
+    #[from(ignore)]
+    Message(String),
 }
 
 #[allow(clippy::match_same_arms)]
@@ -583,11 +600,11 @@ impl From<String> for StopReason {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
             "length" => Self::Length,
-            "tooluse" => Self::ToolUse,
+            "tooluse" | "tool_calls" => Self::ToolUse,
             "error" => Self::Error,
             "aborted" => Self::Aborted,
             "stop" => Self::Stop,
-            _ => Self::Stop,
+            _ => Self::Message(value),
         }
     }
 }
@@ -598,10 +615,10 @@ impl From<&'static str> for StopReason {
         match value.to_lowercase().as_str() {
             "stop" => Self::Stop,
             "length" => Self::Length,
-            "tooluse" => Self::ToolUse,
+            "tooluse" | "tool_calls" => Self::ToolUse,
             "error" => Self::Error,
             "aborted" => Self::Aborted,
-            _ => Self::Stop,
+            _ => Self::Message(value.to_string()),
         }
     }
 }
@@ -671,6 +688,90 @@ pub enum UserModelContent {
     Image(ImageContent),
 }
 
+/// Constrain the model's output format.
+///
+/// Used by `ModelParams::output_format` to request structured output
+/// from providers that support it (e.g., OpenAI `response_format`).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub enum OutputFormat {
+    /// Plain text output (default).
+    #[default]
+    Text,
+    /// Force JSON output. Model responds with valid JSON.
+    JsonObject,
+    /// Schema-constrained JSON output.
+    JsonSchema(JsonSchema),
+}
+
+/// JSON schema definition for `OutputFormat::JsonSchema`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct JsonSchema {
+    /// Name of the schema (for identification).
+    pub name: String,
+    /// Description of what the schema represents.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// The JSON schema definition.
+    pub schema: serde_json::Value,
+    /// Whether to enforce strict schema validation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Per-token log probability and alternative tokens.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ContentLogProb {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_logprobs: Option<Vec<TopLogProbEntry>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TopLogProbEntry {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct RefusalLogProb {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+}
+
+/// Provider-specific metadata attached to a generation result.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum GenerationMetadata {
+    /// Log probabilities for each generated token (OpenAI).
+    LogProbs {
+        /// Per-token log probability and alternative tokens.
+        content: Vec<ContentLogProb>,
+        /// Log probs for refusal tokens, if any.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        refusal: Option<Vec<RefusalLogProb>>,
+    },
+    /// System fingerprint for reproducibility (OpenAI).
+    SystemFingerprint(String),
+    /// Timing information for generation (local backends).
+    Timing {
+        /// Total generation time in milliseconds.
+        total_ms: u64,
+        /// Time to first token in milliseconds.
+        time_to_first_ms: Option<u64>,
+        /// Tokens per second.
+        tokens_per_sec: Option<f64>,
+    },
+    /// Model refusal reason for safety/policy violations.
+    RefusalReason(String),
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ModelOutput {
     Text(TextContent),
@@ -716,6 +817,8 @@ pub enum Messages {
         provider: ModelProviders,
         error_detail: Option<String>,
         signature: Option<String>,
+        /// Provider-specific metadata (logprobs, system fingerprint, etc.).
+        metadata: Option<Vec<GenerationMetadata>>,
     },
     ToolResult {
         id: String,
@@ -785,12 +888,47 @@ pub struct Tool {
     pub arguments: Option<HashMap<String, ArgType>>,
 }
 
+/// Strategy for tool selection in model interactions.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum ToolChoice {
+    /// Let the model decide whether to use tools.
+    Auto,
+    /// Force the model to not use any tools.
+    None,
+    /// Force the model to use at least one tool.
+    Required,
+    /// Force the model to use a specific function.
+    Function(ToolChoiceFunction),
+}
+
+/// Reference to a specific function in a forced tool choice.
+///
+/// Note: Serde supports `#[serde(serialize_with, deserialize_with)]` to render
+/// a plain `String` as `{"name": "..."}` and back, which would eliminate the
+/// struct. However, that requires custom serialization functions (~10 lines)
+/// that are more code and less readable than the struct itself.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ToolChoiceFunction {
+    #[serde(rename = "type")]
+    pub tool_type: String,
+    pub function: ToolFunctionRef,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ToolFunctionRef {
+    pub name: String,
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelInteraction {
     pub system_prompt: Option<String>,
     pub messages: Vec<Messages>,
     pub tools: Vec<Tool>,
     pub chat_template: Option<String>,
+    /// Strategy for tool selection. When `None`, the provider's default
+    /// behavior is used (typically auto).
+    pub tool_choice: Option<ToolChoice>,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -899,10 +1037,7 @@ pub trait ModelProvider {
     /// # Errors
     ///
     /// Returns a [`ModelProviderErrors`] if the provider fails to initialize or authenticate.
-    fn create(
-        self,
-        config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized;
 

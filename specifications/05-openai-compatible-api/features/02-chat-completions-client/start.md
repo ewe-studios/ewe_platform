@@ -1,25 +1,11 @@
 ---
-purpose: "Agent workflow for implementing Chat Completions Client feature"
-version: "1.0"
-created: 2026-03-08
+purpose: "RETIRED — see specifications/07-foundation-ai"
+retired: 2026-04-26
 ---
 
-# Chat Completions Client Feature Workflow
+# ⚠️ RETIRED
 
-## Agent Workflow
+This feature has been superseded by `specifications/07-foundation-ai/`.
 
-Follow the same workflow pattern as previous features.
-
-**Important**: Place tests in correct location - follow language testing skill or project test structure.
-
-## Tasks Summary
-
-1. Implement chat completions method
-2. Implement error response parsing
-3. Add builder convenience methods
-4. Write integration tests
-5. Add documentation
-
-## Next Action
-
-Start with Task 1: Add `chat_completions()` method to `OpenAIClient`
+- Chat Completions: `features/00c-openai-provider/feature.md`
+- Responses API + enhancements: `features/00g-openai-provider-enhancements/feature.md`

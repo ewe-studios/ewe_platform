@@ -610,6 +610,7 @@ impl Iterator for LlamaCppStream {
             provider: ModelProviders::LLAMACPP,
             error_detail: None,
             signature: None,
+            metadata: None,
         }))
     }
 }
@@ -764,6 +765,7 @@ fn generate_embeddings(
         provider: ModelProviders::LLAMACPP,
         error_detail: None,
         signature: None,
+        metadata: None,
     }])
 }
 
@@ -874,6 +876,7 @@ fn generate_text(
         provider: ModelProviders::LLAMACPP,
         error_detail: None,
         signature: None,
+        metadata: None,
     }])
 }
 

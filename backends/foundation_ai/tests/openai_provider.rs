@@ -63,6 +63,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
         }],
         tools: vec![],
         chat_template: None,
+        tool_choice: None,
     }
 }
 

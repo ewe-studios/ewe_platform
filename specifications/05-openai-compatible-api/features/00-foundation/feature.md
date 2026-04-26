@@ -3,8 +3,10 @@ workspace_name: "ewe_platform"
 spec_directory: "specifications/05-openai-compatible-api"
 feature_directory: "specifications/05-openai-compatible-api/features/00-foundation"
 this_file: "specifications/05-openai-compatible-api/features/00-foundation/feature.md"
+retired: 2026-04-26
+retired_reason: "Superseded by specifications/07-foundation-ai/features/00c-openai-provider and 00g-openai-provider-enhancements"
 
-status: pending
+status: retired
 priority: high
 created: 2026-03-08
 

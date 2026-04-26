@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Token Usage and Cost Tracking -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="09-plugins.html">Hermes Agent -- Plugin System</a> <a href="10-platform-adapters.html">Hermes Agent -- Platform Adapters</a> <a href="11-data-flow.html">Hermes Agent -- Data Flow (End-to-End)</a></span> <a href="11-data-flow.html">← Hermes Agent -- Data Flow (End-to-End)</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Token Usage and Cost Tracking</h1>
+<h2>Overview</h2>
+<p>Hermes has a multi-layered cost tracking system that goes far beyond simple token counting. It includes:</p>
+<ol><li><strong>Per-call token normalization</strong> -- Canonical token buckets from 3 API shapes</li><li><strong>Pricing resolution</strong> -- Official docs snapshots, live APIs, and fallbacks</li><li><strong>Per-call cost estimation</strong> -- Decimal-accurate cost calculation</li><li><strong>Session-level accumulation</strong> -- Cumulative counters in SQLite</li><li><strong>Account usage monitoring</strong> -- Live quota checks from provider APIs</li><li><strong>Billing exhaustion detection</strong> -- Error classifier identifies credit limits</li></ol>
+<hr>
+<h2>Layer 1: Canonical Usage Normalization</h2>
+<p>Every LLM API returns usage data in a different format. Hermes normalizes all three shapes into a single <code>CanonicalUsage</code> dataclass:</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class CanonicalUsage:
+    input_tokens: int = 0        # Non-cached input tokens
+    output_tokens: int = 0       # Completion tokens
+    cache_read_tokens: int = 0   # Tokens served from prompt cache
+    cache_write_tokens: int = 0  # Tokens written to prompt cache
+    reasoning_tokens: int = 0    # Extended thinking/reasoning tokens
+    request_count: int = 1
+    raw_usage: Optional[dict] = None
+
+    @property
+    def prompt_tokens(self) -&gt; int:
+        return self.input_tokens + self.cache_read_tokens + self.cache_write_tokens
+
+    @property
+    def total_tokens(self) -&gt; int:
+        return self.prompt_tokens + self.output_tokens
+</code></pre>
+<h3>Three API Shapes</h3>
+<p>The <code>normalize_usage()</code> function handles three fundamentally different API response formats:</p>
+<p><strong>Anthropic Messages API</strong> -- All fields are top-level and separate:</p>
+<pre><code class="language-python"># input_tokens, output_tokens, cache_read_input_tokens, cache_creation_input_tokens
+input_tokens = usage.input_tokens           # Already separated
+output_tokens = usage.output_tokens
+cache_read_tokens = usage.cache_read_input_tokens
+cache_write_tokens = usage.cache_creation_input_tokens
+</code></pre>
+<p><strong>Codex Responses API</strong> -- <code>input_tokens</code> is a total that includes cache tokens; details break them out:</p>
+<pre><code class="language-python">input_total = usage.input_tokens             # Includes cached tokens
+output_tokens = usage.output_tokens
+cache_read = usage.input_tokens_details.cached_tokens
+cache_write = usage.input_tokens_details.cache_creation_tokens
+input_tokens = max(0, input_total - cache_read - cache_write)  # Derive non-cached
+</code></pre>
+<p><strong>OpenAI Chat Completions</strong> -- <code>prompt_tokens</code> is a total, <code>prompt_tokens_details</code> breaks out cache:</p>
+<pre><code class="language-python">prompt_total = usage.prompt_tokens           # Includes cached tokens
+output_tokens = usage.completion_tokens
+cache_read = usage.prompt_tokens_details.cached_tokens
+cache_write = usage.prompt_tokens_details.cache_write_tokens
+input_tokens = max(0, prompt_total - cache_read - cache_write)
+</code></pre>
+<p>The OpenAI path also falls back to Anthropic-style top-level fields for proxies (OpenRouter, Vercel AI Gateway, Cline) that expose cache tokens differently when routing Claude models.</p>
+<p>Reasoning tokens are extracted from <code>output_tokens_details.reasoning_tokens</code> across all API shapes.</p>
+<hr>
+<h2>Layer 2: Billing Route Resolution</h2>
+<p>Before pricing can be applied, Hermes must determine the <strong>billing route</strong> -- which provider and billing mode applies to a given model:</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class BillingRoute:
+    provider: str          # &quot;anthropic&quot;, &quot;openai&quot;, &quot;openrouter&quot;, &quot;bedrock&quot;, etc.
+    model: str             # Canonical model ID
+    base_url: str          # API base URL
+    billing_mode: str      # How cost should be calculated
+</code></pre>
+<h3>Billing Modes</h3>
+<table><tr><th>Mode</th><th>Meaning</th><th>Cost Calculation</th></tr><tr><td>`official_docs_snapshot`</td><td>Model with known published pricing</td><td>Lookup in `_OFFICIAL_DOCS_PRICING` dict</td></tr><tr><td>`official_models_api`</td><td>Provider has a live models API</td><td>Fetch pricing from `/models` endpoint</td></tr><tr><td>`provider_models_api`</td><td>OpenAI-compatible endpoint</td><td>Fetch from `{base_url}/models`</td></tr><tr><td>`subscription_included`</td><td>Cost covered by subscription (Codex)</td><td>$0</td></tr><tr><td>`unknown`</td><td>Custom/local model</td><td>No pricing available</td></tr></table>
+<p>Route resolution logic:</p>
+<pre><code class="language-python">def resolve_billing_route(model_name, provider, base_url):
+    # OpenAI Codex → subscription included
+    if provider == &quot;openai-codex&quot;:
+        return BillingRoute(..., billing_mode=&quot;subscription_included&quot;)
+
+    # OpenRouter → live models API
+    if provider == &quot;openrouter&quot;:
+        return BillingRoute(..., billing_mode=&quot;official_models_api&quot;)
+
+    # Anthropic → official docs snapshot
+    if provider == &quot;anthropic&quot;:
+        return BillingRoute(..., billing_mode=&quot;official_docs_snapshot&quot;)
+
+    # OpenAI → official docs snapshot
+    if provider == &quot;openai&quot;:
+        return BillingRoute(..., billing_mode=&quot;official_docs_snapshot&quot;)
+
+    # Custom/local base URL → try endpoint models API
+    if base_url and &quot;localhost&quot; in base_url:
+        return BillingRoute(..., billing_mode=&quot;unknown&quot;)
+
+    # Fallback → unknown
+    return BillingRoute(..., billing_mode=&quot;unknown&quot;)
+</code></pre>
+<hr>
+<h2>Layer 3: Pricing Entry Resolution</h2>
+<p><code>get_pricing_entry()</code> returns a <code>PricingEntry</code> with per-million-token costs:</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class PricingEntry:
+    input_cost_per_million: Optional[Decimal]    # $/M input tokens
+    output_cost_per_million: Optional[Decimal]   # $/M output tokens
+    cache_read_cost_per_million: Optional[Decimal]  # $/M cache read
+    cache_write_cost_per_million: Optional[Decimal] # $/M cache write
+    request_cost: Optional[Decimal]              # Per-request cost (some providers)
+    source: CostSource                           # Where pricing came from
+    source_url: Optional[str]                    # URL of pricing source
+    pricing_version: Optional[str]               # Version identifier for audit
+    fetched_at: Optional[datetime]
+</code></pre>
+<h3>Pricing Sources (in priority order)</h3>
+<ol><li><strong>Official docs snapshot</strong> -- Hardcoded pricing from provider documentation for well-known models. Stored in <code>_OFFICIAL_DOCS_PRICING</code> dict with source URLs for verification.</li></ol>
+<ol><li><strong>OpenRouter models API</strong> -- Live pricing fetched from <code>openrouter.ai/api/v1/models</code>. OpenRouter returns per-token pricing which is converted to per-million.</li></ol>
+<ol><li><strong>OpenAI-compatible endpoint</strong> -- For custom base URLs, Hermes fetches <code>{base_url}/models</code> and extracts pricing from the model metadata.</li></ol>
+<ol><li><strong>None</strong> -- If no pricing source is available, cost is marked as <code>unknown</code>.</li></ol>
+<h3>Official Docs Snapshot Models</h3>
+<p>The hardcoded pricing table covers all major models with source URLs:</p>
+<table><tr><th>Provider</th><th>Model</th><th>Input ($/M)</th><th>Output ($/M)</th><th>Cache Read ($/M)</th><th>Cache Write ($/M)</th></tr><tr><td>Anthropic</td><td>claude-opus-4-20250514</td><td>$15.00</td><td>$75.00</td><td>$1.50</td><td>$18.75</td></tr><tr><td>Anthropic</td><td>claude-sonnet-4-20250514</td><td>$3.00</td><td>$15.00</td><td>$0.30</td><td>$3.75</td></tr><tr><td>Anthropic</td><td>claude-3-5-sonnet-20241022</td><td>$3.00</td><td>$15.00</td><td>$0.30</td><td>$3.75</td></tr><tr><td>Anthropic</td><td>claude-3-5-haiku-20241022</td><td>$0.80</td><td>$4.00</td><td>$0.08</td><td>$1.00</td></tr><tr><td>Anthropic</td><td>claude-3-opus-20240229</td><td>$15.00</td><td>$75.00</td><td>$1.50</td><td>$18.75</td></tr><tr><td>Anthropic</td><td>claude-3-haiku-20240307</td><td>$0.25</td><td>$1.25</td><td>$0.03</td><td>$0.30</td></tr><tr><td>OpenAI</td><td>gpt-4o</td><td>$2.50</td><td>$10.00</td><td>$1.25</td><td>--</td></tr><tr><td>OpenAI</td><td>gpt-4o-mini</td><td>$0.15</td><td>$0.60</td><td>$0.075</td><td>--</td></tr><tr><td>OpenAI</td><td>gpt-4.1</td><td>$2.00</td><td>$8.00</td><td>$0.50</td><td>--</td></tr><tr><td>OpenAI</td><td>gpt-4.1-mini</td><td>$0.40</td><td>$1.60</td><td>$0.10</td><td>--</td></tr><tr><td>OpenAI</td><td>gpt-4.1-nano</td><td>$0.10</td><td>$0.40</td><td>$0.025</td><td>--</td></tr><tr><td>OpenAI</td><td>o3</td><td>$10.00</td><td>$40.00</td><td>$2.50</td><td>--</td></tr><tr><td>OpenAI</td><td>o3-mini</td><td>$1.10</td><td>$4.40</td><td>$0.55</td><td>--</td></tr><tr><td>DeepSeek</td><td>deepseek-chat</td><td>$0.14</td><td>$0.28</td><td>--</td><td>--</td></tr><tr><td>DeepSeek</td><td>deepseek-reasoner</td><td>$0.55</td><td>$2.19</td><td>--</td><td>--</td></tr><tr><td>Google</td><td>gemini-2.5-pro</td><td>$1.25</td><td>$10.00</td><td>--</td><td>--</td></tr><tr><td>Google</td><td>gemini-2.5-flash</td><td>$0.15</td><td>$0.60</td><td>--</td><td>--</td></tr><tr><td>Google</td><td>gemini-2.0-flash</td><td>$0.10</td><td>$0.40</td><td>--</td><td>--</td></tr><tr><td>Bedrock</td><td>anthropic.claude-opus-4-6</td><td>$15.00</td><td>$75.00</td><td>--</td><td>--</td></tr><tr><td>Bedrock</td><td>anthropic.claude-sonnet-4-6</td><td>$3.00</td><td>$15.00</td><td>--</td><td>--</td></tr><tr><td>Bedrock</td><td>amazon.nova-pro</td><td>$0.80</td><td>$3.20</td><td>--</td><td>--</td></tr><tr><td>Bedrock</td><td>amazon.nova-lite</td><td>$0.06</td><td>$0.24</td><td>--</td><td>--</td></tr><tr><td>Bedrock</td><td>amazon.nova-micro</td><td>$0.035</td><td>$0.14</td><td>--</td><td>--</td></tr></table>
+<p>Each entry includes <code>source="official_docs_snapshot"</code>, a <code>source_url</code> pointing to the provider's pricing page, and a <code>pricing_version</code> for audit (e.g., <code>"anthropic-prompt-caching-2026-03-16"</code>).</p>
+<hr>
+<h2>Layer 4: Cost Estimation</h2>
+<p><code>estimate_usage_cost()</code> combines the pricing entry with actual token counts:</p>
+<pre><code class="language-python">def estimate_usage_cost(model_name, usage: CanonicalUsage, *, provider, base_url, api_key):
+    route = resolve_billing_route(model_name, provider, base_url)
+
+    # Subscription included (e.g., Codex) → $0
+    if route.billing_mode == &quot;subscription_included&quot;:
+        return CostResult(amount_usd=Decimal(&quot;0&quot;), status=&quot;included&quot;, source=&quot;none&quot;, label=&quot;included&quot;)
+
+    entry = get_pricing_entry(model_name, provider, base_url, api_key)
+    if not entry:
+        return CostResult(amount_usd=None, status=&quot;unknown&quot;, source=&quot;none&quot;, label=&quot;n/a&quot;)
+
+    # Missing pricing for any used token type → unknown
+    if usage.input_tokens and entry.input_cost_per_million is None:
+        return CostResult(amount_usd=None, status=&quot;unknown&quot;, ...)
+    if usage.output_tokens and entry.output_cost_per_million is None:
+        return CostResult(amount_usd=None, status=&quot;unknown&quot;, ...)
+
+    # Calculate: (tokens × price_per_million) / 1_000_000
+    amount = Decimal(&quot;0&quot;)
+    amount += Decimal(usage.input_tokens) * entry.input_cost_per_million / _ONE_MILLION
+    amount += Decimal(usage.output_tokens) * entry.output_cost_per_million / _ONE_MILLION
+    amount += Decimal(usage.cache_read_tokens) * entry.cache_read_cost_per_million / _ONE_MILLION
+    amount += Decimal(usage.cache_write_tokens) * entry.cache_write_cost_per_million / _ONE_MILLION
+    if entry.request_cost:
+        amount += Decimal(usage.request_count) * entry.request_cost
+
+    return CostResult(
+        amount_usd=amount,
+        status=&quot;estimated&quot;,
+        source=entry.source,
+        label=f&quot;~${amount:.2f}&quot;,
+        pricing_version=entry.pricing_version,
+    )
+</code></pre>
+<p>All calculations use Python <code>Decimal</code> to avoid floating-point rounding errors. The result includes a <code>label</code> field (e.g., <code>"~$0.35"</code>) for display.</p>
+<h3>Cost Status Values</h3>
+<table><tr><th>Status</th><th>Meaning</th></tr><tr><td>`actual`</td><td>Real cost from provider billing API</td></tr><tr><td>`estimated`</td><td>Calculated from pricing tables</td></tr><tr><td>`included`</td><td>Cost covered by subscription (Codex, etc.)</td></tr><tr><td>`unknown`</td><td>Pricing data unavailable</td></tr></table>
+<h3>Cost Source Values</h3>
+<table><tr><th>Source</th><th>Meaning</th></tr><tr><td>`provider_cost_api`</td><td>Real-time from provider's billing endpoint</td></tr><tr><td>`provider_generation_api`</td><td>From provider's generation API metadata</td></tr><tr><td>`provider_models_api`</td><td>From provider's models listing API (OpenRouter)</td></tr><tr><td>`official_docs_snapshot`</td><td>From hardcoded pricing table (this module)</td></tr><tr><td>`user_override`</td><td>Manually set by user</td></tr><tr><td>`custom_contract`</td><td>Custom enterprise pricing</td></tr><tr><td>`none`</td><td>No cost (subscription included, free model)</td></tr></table>
+<hr>
+<h2>Layer 5: Integration into the Agent Loop</h2>
+<p>Every LLM call in <code>run_agent.py</code> goes through this pipeline:</p>
+<pre><code class="language-python"># 1. Extract raw usage from API response
+if hasattr(response, &#x27;usage&#x27;) and response.usage:
+    # 2. Normalize to canonical buckets
+    canonical_usage = normalize_usage(
+        response.usage,
+        provider=self.provider,
+        api_mode=self.api_mode,
+    )
+
+    # 3. Update context compressor (for compaction decisions)
+    self.context_compressor.update_from_response({
+        &quot;prompt_tokens&quot;: canonical_usage.prompt_tokens,
+        &quot;completion_tokens&quot;: canonical_usage.output_tokens,
+        &quot;total_tokens&quot;: canonical_usage.total_tokens,
+    })
+
+    # 4. Accumulate session-level counters
+    self.session_input_tokens += canonical_usage.input_tokens
+    self.session_output_tokens += canonical_usage.output_tokens
+    self.session_cache_read_tokens += canonical_usage.cache_read_tokens
+    self.session_cache_write_tokens += canonical_usage.cache_write_tokens
+    self.session_reasoning_tokens += canonical_usage.reasoning_tokens
+    self.session_api_calls += 1
+
+    # 5. Estimate cost
+    cost_result = estimate_usage_cost(
+        self.model,
+        canonical_usage,
+        provider=self.provider,
+        base_url=self.base_url,
+        api_key=self.api_key,
+    )
+
+    # 6. Accumulate session cost
+    if cost_result.amount_usd is not None:
+        self.session_estimated_cost_usd += float(cost_result.amount_usd)
+
+    # 7. Persist to SQLite session DB
+    self._session_db.update_token_counts(
+        self.session_id,
+        input_tokens=canonical_usage.input_tokens,
+        output_tokens=canonical_usage.output_tokens,
+        cache_read_tokens=canonical_usage.cache_read_tokens,
+        cache_write_tokens=canonical_usage.cache_write_tokens,
+        reasoning_tokens=canonical_usage.reasoning_tokens,
+        estimated_cost_usd=float(cost_result.amount_usd),
+        cost_status=cost_result.status,
+        cost_source=cost_result.source,
+        billing_provider=self.provider,
+        billing_base_url=self.base_url,
+    )
+</code></pre>
+<hr>
+<h2>Layer 6: Session DB Persistence</h2>
+<p>The <code>SessionDB.update_token_counts()</code> method supports both <strong>incremental</strong> and <strong>absolute</strong> modes:</p>
+<p><strong>Incremental (default)</strong> -- CLI path, per-call deltas:</p>
+<pre><code class="language-sql">UPDATE sessions SET
+    input_tokens = input_tokens + ?,
+    output_tokens = output_tokens + ?,
+    cache_read_tokens = cache_read_tokens + ?,
+    cache_write_tokens = cache_write_tokens + ?,
+    reasoning_tokens = reasoning_tokens + ?,
+    estimated_cost_usd = estimated_cost_usd + COALESCE(?, 0),
+    api_call_count = api_call_count + 1
+WHERE id = ?
+</code></pre>
+<p><strong>Absolute</strong> -- Gateway path, cumulative totals:</p>
+<pre><code class="language-sql">UPDATE sessions SET
+    input_tokens = ?,
+    output_tokens = ?,
+    cache_read_tokens = ?,
+    cache_write_tokens = ?,
+    reasoning_tokens = ?,
+    estimated_cost_usd = COALESCE(?, 0),
+    api_call_count = api_call_count + 1
+WHERE id = ?
+</code></pre>
+<p>This dual-mode design prevents double-counting when the gateway holds a cached agent and accumulates across multiple messages.</p>
+<h3>Cost Columns in the Sessions Table</h3>
+<table><tr><th>Column</th><th>Type</th><th>Purpose</th></tr><tr><td>`input_tokens`</td><td>INTEGER</td><td>Cumulative non-cached input</td></tr><tr><td>`output_tokens`</td><td>INTEGER</td><td>Cumulative output tokens</td></tr><tr><td>`cache_read_tokens`</td><td>INTEGER</td><td>Cumulative cache reads</td></tr><tr><td>`cache_write_tokens`</td><td>INTEGER</td><td>Cumulative cache writes</td></tr><tr><td>`reasoning_tokens`</td><td>INTEGER</td><td>Cumulative reasoning/thinking</td></tr><tr><td>`estimated_cost_usd`</td><td>REAL</td><td>Running total of estimated cost</td></tr><tr><td>`actual_cost_usd`</td><td>REAL</td><td>Real cost (if provider reports it)</td></tr><tr><td>`cost_status`</td><td>TEXT</td><td>'estimated', 'actual', 'included', 'unknown'</td></tr><tr><td>`cost_source`</td><td>TEXT</td><td>Which pricing source was used</td></tr><tr><td>`pricing_version`</td><td>TEXT</td><td>Audit trail for pricing data</td></tr><tr><td>`billing_provider`</td><td>TEXT</td><td>Which provider was billed</td></tr><tr><td>`billing_base_url`</td><td>TEXT</td><td>API base URL for the route</td></tr><tr><td>`billing_mode`</td><td>TEXT</td><td>'subscription_included', etc.</td></tr><tr><td>`api_call_count`</td><td>INTEGER</td><td>Number of individual API calls</td></tr></table>
+<hr>
+<h2>Layer 7: Account Usage Monitoring</h2>
+<p>Beyond per-call cost tracking, Hermes can query <strong>live account usage APIs</strong> to check remaining quotas:</p>
+<h3>Supported Providers</h3>
+<p><strong>Anthropic (OAuth only)</strong> -- Fetches from <code>api.anthropic.com/api/oauth/usage</code>:</p>
+<pre><code class="language-python"># Returns usage windows for multiple time periods:
+# - Current session (5-hour window)
+# - Current week (7-day window)
+# - Opus week (separate Opus quota)
+# - Sonnet week (separate Sonnet quota)
+# - Extra usage (monthly credit overage)
+</code></pre>
+<p>Example response:</p>
+<pre><code class="language-">Provider: Anthropic (Pro)
+Current session: 73% remaining (27% used) • resets in 3h 15m
+Current week: 42% remaining (58% used) • resets in 2d 5h
+Opus week: 89% remaining (11% used) • resets in 2d 5h
+Sonnet week: 42% remaining (58% used) • resets in 2d 5h
+Extra usage: 12.50 / 25.00 USD
+</code></pre>
+<p><strong>OpenAI Codex</strong> -- Fetches from the Codex backend's <code>/wham/usage</code> endpoint:</p>
+<pre><code class="language-">Provider: OpenAI Codex (Pro)
+Session: 65% remaining (35% used) • resets in 4h 30m
+Weekly: 82% remaining (18% used) • resets in 5d 2h
+Credits balance: $42.50
+</code></pre>
+<p><strong>OpenRouter</strong> -- Fetches from <code>openrouter.ai/credits</code> and <code>/key</code>:</p>
+<pre><code class="language-">Provider: OpenRouter
+API key quota: 23% used • $7.70 of $10.00 remaining • resets 2026-05-01
+Credits balance: $15.23
+API key usage: $2.30 total • $0.50 today • $1.20 this week
+</code></pre>
+<h3>Usage Command</h3>
+<p>The <code>/usage</code> CLI command fetches and displays account usage:</p>
+<pre><code class="language-python">def fetch_account_usage(provider, *, base_url=None, api_key=None):
+    if provider == &quot;openai-codex&quot;:
+        return _fetch_codex_account_usage()
+    if provider == &quot;anthropic&quot;:
+        return _fetch_anthropic_account_usage()
+    if provider == &quot;openrouter&quot;:
+        return _fetch_openrouter_account_usage(base_url, api_key)
+</code></pre>
+<p>If the provider doesn't support a usage API, returns <code>None</code>. For Anthropic API keys (non-OAuth), returns "unavailable" with an explanation.</p>
+<hr>
+<h2>Layer 8: Billing Exhaustion Detection</h2>
+<p>Hermes's error classifier (<code>error_classifier.py</code>) detects <strong>billing exhaustion</strong> vs transient rate limits:</p>
+<pre><code class="language-python">class FailoverReason(Enum):
+    billing = &quot;billing&quot;                  # 402 or confirmed credit exhaustion
+    rate_limit = &quot;rate_limit&quot;            # 429, transient quota
+    context_overflow = &quot;context_overflow&quot;
+    auth = &quot;auth&quot;
+    long_context_tier = &quot;long_context_tier&quot;  # Anthropic &quot;extra usage&quot; tier gate
+</code></pre>
+<p>The classifier uses a multi-stage detection:</p>
+<ol><li><strong>HTTP status code</strong> -- 402 = billing, 429 = rate limit (but needs disambiguation)</li><li><strong>Error message patterns</strong> -- "billing hard limit", "credit exhausted", "insufficient_quota"</li><li><strong>Usage limit disambiguation</strong> -- "usage limit" + "resets" = transient rate limit, not billing</li><li><strong>Provider-specific patterns</strong> -- OpenRouter 403 "key limit exceeded" = billing, not auth</li></ol>
+<pre><code class="language-python">def _disambiguate_402(status_code, error_msg, provider):
+    # 402 with &quot;usage limit&quot; + &quot;resets in&quot; = transient quota, not billing
+    has_usage_limit = any(p in error_msg for p in _USAGE_LIMIT_PATTERNS)
+    has_transient_signal = any(p in error_msg for p in _TRANSIENT_PATTERNS)
+
+    if has_usage_limit and has_transient_signal:
+        return FailoverReason.rate_limit  # Periodic quota, resets
+
+    # Confirmed billing exhaustion
+    if any(p in error_msg for p in _BILLING_PATTERNS):
+        return FailoverReason.billing
+</code></pre>
+<p>When billing exhaustion is detected, Hermes can:</p>
+<ul><li>Alert the user to rotate credentials or add credits</li><li>Skip the provider in failover routing</li><li>Classify the error differently for retry logic (don't retry billing errors)</li></ul>
+<hr>
+<h2>Layer 9: Context Engine Token Tracking</h2>
+<p>The <code>ContextCompressor</code> tracks token usage for compaction decisions:</p>
+<pre><code class="language-python">class ContextCompressor:
+    last_prompt_tokens: int = 0
+    last_completion_tokens: int = 0
+
+    def update_from_response(self, usage: Dict[str, Any]):
+        self.last_prompt_tokens = usage.get(&quot;prompt_tokens&quot;, 0)
+        self.last_completion_tokens = usage.get(&quot;completion_tokens&quot;, 0)
+</code></pre>
+<p>This feeds into:</p>
+<ul><li><strong>Context pressure calculation</strong> -- <code>(prompt_tokens / context_window) * 100</code></li><li><strong>Compaction triggers</strong> -- When pressure exceeds threshold (e.g., 80%)</li><li><strong>Token estimation</strong> -- After compaction, <code>last_prompt_tokens</code> reflects the compressed context size</li></ul>
+<hr>
+<h2>Utility Functions</h2>
+<h3>Token Count Formatting</h3>
+<pre><code class="language-python">def format_token_count_compact(value: int) -&gt; str:
+    # 500 → &quot;500&quot;
+    # 1500 → &quot;1.5K&quot;
+    # 1500000 → &quot;1.5M&quot;
+    # 1500000000 → &quot;1.5B&quot;
+</code></pre>
+<h3>Duration Formatting</h3>
+<pre><code class="language-python">def format_duration_compact(seconds: float) -&gt; str:
+    # 30 → &quot;30s&quot;
+    # 90 → &quot;2m&quot;
+    # 3600 → &quot;1h&quot;
+    # 90000 → &quot;1d 1h&quot;
+</code></pre>
+<hr>
+<h2>Cost Tracking Architecture Diagram</h2>
+<div class="mermaid">
+flowchart TD
+    RESP[LLM API Response] --&gt; NORM[normalize_usage]
+    NORM --&gt;|CanonicalUsage| CUM[Session Counters&lt;br/&gt;input/output/cache/reasoning]
+    NORM --&gt;|CanonicalUsage| CC[Context Compressor&lt;br/&gt;pressure calculation]
+
+    NORM --&gt;|CanonicalUsage| COST[estimate_usage_cost]
+    ROUTE[resolve_billing_route] --&gt;|BillingRoute| COST
+    PRICE[get_pricing_entry] --&gt;|PricingEntry| COST
+    PRICE --&gt;|Snapshot| SNAP[_OFFICIAL_DOCS_PRICING]
+    PRICE --&gt;|Live API| LIVE[OpenRouter /models API]
+
+    COST --&gt;|CostResult| ACCUM[Session Cost Accumulator]
+    ACCUM --&gt;|Deltas| PERSIST[_session_db.update_token_counts]
+
+    PERSIST --&gt; DB[(SQLite sessions table)]
+    DB --&gt; INSIGHTS[/insights command]
+
+    USAGE[fetch_account_usage] --&gt;|Live quotas| ANTH[Anthropic OAuth]
+    USAGE --&gt;|Live quotas| CODEX[Codex endpoint]
+    USAGE --&gt;|Live quotas| OR[OpenRouter credits]
+
+    ERR[API Error] --&gt; CLASS[error_classifier]
+    CLASS --&gt;|billing| ALERT[Alert: rotate credentials]
+    CLASS --&gt;|rate_limit| RETRY[Retry after backoff]
+
+</div>
+<hr>
+<h2>Comparison with Pi's Approach</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th></tr><tr><td>**Pricing storage**</td><td>In `models.generated.ts` (TypeScript, per-model config)</td><td>`_OFFICIAL_DOCS_PRICING` dict + live APIs</td></tr><tr><td>**Cost calculation**</td><td>`(price / 1M) * tokens` in `models.ts`</td><td>Same formula, but with `Decimal` precision</td></tr><tr><td>**Usage normalization**</td><td>Per-provider in each adapter file</td><td>Central `normalize_usage()` with 3 API shapes</td></tr><tr><td>**Billing routing**</td><td>None (model ID determines pricing)</td><td>`resolve_billing_route()` with 5 billing modes</td></tr><tr><td>**Live pricing**</td><td>None (all hardcoded)</td><td>OpenRouter models API, custom endpoint APIs</td></tr><tr><td>**Account quotas**</td><td>None</td><td>Live API checks for Anthropic, Codex, OpenRouter</td></tr><tr><td>**Billing detection**</td><td>None</td><td>Error classifier detects credit exhaustion</td></tr><tr><td>**Per-request cost**</td><td>`AssistantMessage.usage.cost`</td><td>`CostResult` per call, accumulated to session</td></tr><tr><td>**Session persistence**</td><td>In-memory aggregation, not persisted</td><td>SQLite cumulative counters + JSON log files</td></tr><tr><td>**Cache token handling**</td><td>Provider-specific extraction</td><td>3 modes: Anthropic, OpenAI, Codex with fallbacks</td></tr><tr><td>**Reasoning tokens**</td><td>Tracked in usage</td><td>Tracked in usage + persisted to DB</td></tr></table>
+<h3>Design Decisions</h3>
+<ol><li><strong>Decimal over float</strong> -- All cost calculations use Python <code>Decimal</code> to avoid floating-point accumulation errors over long sessions.</li></ol>
+<ol><li><strong>Incremental vs absolute persistence</strong> -- CLI path sends per-call deltas, gateway path sends cumulative totals. Prevents double-counting.</li></ol>
+<ol><li><strong>Graceful degradation</strong> -- If pricing lookup fails, cost is marked <code>unknown</code> but the call still succeeds. Missing cache pricing for used cache tokens returns <code>unknown</code> rather than guessing.</li></ol>
+<ol><li><strong>Multi-source pricing</strong> -- Official docs snapshot for known models, live APIs for OpenRouter and custom endpoints. Ensures cost estimates are available even for new models not in the hardcoded table.</li></ol>
+<ol><li><strong>Billing exhaustion detection</strong> -- Critical for multi-provider failover. A billing error on one provider triggers failover to another, while a rate limit triggers backoff.</li></ol>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

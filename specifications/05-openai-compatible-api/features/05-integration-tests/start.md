@@ -1,21 +1,11 @@
 ---
-purpose: "Agent workflow for implementing Integration Tests feature"
-version: "1.0"
-created: 2026-03-08
+purpose: "RETIRED — see specifications/07-foundation-ai"
+retired: 2026-04-26
 ---
 
-# Integration Tests Feature Workflow
+# ⚠️ RETIRED
 
-**Important**: Place tests in correct location - follow language testing skill or project test structure.
+This feature has been superseded by `specifications/07-foundation-ai/`.
 
-## Tasks Summary
-
-1. Create test infrastructure
-2. Write Chat Completions tests
-3. Write Responses API tests
-4. Add llama.cpp integration tests
-5. Add CI configuration
-
-## Next Action
-
-Start with Task 1: Create `tests/backends/foundation_ai/openai/` directory
+- Chat Completions: `features/00c-openai-provider/feature.md`
+- Responses API + enhancements: `features/00g-openai-provider-enhancements/feature.md`

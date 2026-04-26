@@ -638,6 +638,7 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
             provider: ModelProviders::OPENAI,
             error_detail: None,
             signature: None,
+            metadata: None,
         }])
     }
 }
@@ -819,6 +820,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                             provider: ModelProviders::OPENAI,
                             error_detail: None,
                             signature: None,
+                            metadata: None,
                         }));
                     }
                 }
@@ -862,7 +864,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             Some("stop") | None => StopReason::Stop,
             Some("length") => StopReason::Length,
             Some("tool_calls") => StopReason::ToolUse,
-            Some(_) => StopReason::Error,
+            Some(reason) => StopReason::Message(reason.to_string()),
         };
 
         #[allow(clippy::cast_precision_loss)]
@@ -922,6 +924,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             provider: ModelProviders::OPENAI,
             error_detail: None,
             signature: None,
+            metadata: None,
         }
     }
 }
@@ -947,20 +950,104 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<OpenAITool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_choice: Option<OpenAIToolChoice>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seed: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub frequency_penalty: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub presence_penalty: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logit_bias: Option<HashMap<String, i32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<OpenAIResponseFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_logprobs: Option<usize>,
+}
+
+/// Wire format for OpenAI `response_format` field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum OpenAIResponseFormat {
+    Text,
+    JsonObject,
+    JsonSchema {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        json_schema: Option<OpenAIJsonSchema>,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIJsonSchema {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub schema: serde_json::Value,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Wire format for OpenAI `tool_choice` field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAIToolChoice {
+    /// `"auto"` or `"none"` or `"required"`
+    Simple(String),
+    /// `{ "type": "function", "function": { "name": "..." } }`
+    Function {
+        #[serde(rename = "type")]
+        type_: String,
+        function: OpenAIToolChoiceFunction,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIToolChoiceFunction {
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenAIMessage {
     pub role: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
+    pub content: Option<OpenAIMessageContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<OpenAIToolCall>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
+    /// Refusal text when model declines due to safety/policy.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
+}
+
+/// Content for an OpenAI message — either simple text or multimodal parts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAIMessageContent {
+    /// Simple text content (shorthand form).
+    Text(String),
+    /// Array of content parts for multimodal messages.
+    Parts(Vec<OpenAIContentPart>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum OpenAIContentPart {
+    Text { text: String },
+    ImageUrl { image_url: OpenAIImageUrlObject },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIImageUrlObject {
+    /// Data URL (base64) or HTTPS URL.
+    pub url: String,
+    /// Detail level: "low", "high", or "auto".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1002,6 +1089,8 @@ pub struct ChatCompletionResponse {
     pub choices: Vec<OpenAIChoice>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<OpenAIUsage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_fingerprint: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1021,6 +1110,8 @@ pub struct OpenAIChoice {
     pub message: Option<OpenAIMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub finish_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<OpenAILogProbs>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1069,6 +1160,41 @@ pub struct OpenAIUsage {
     pub completion_tokens: u64,
     #[serde(rename = "total_tokens")]
     pub total_tokens: u64,
+}
+
+/// Wire format — OpenAI's logprobs in the response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAILogProbs {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<Vec<OpenAIContentLogProb>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<Vec<OpenAIRefusalLogProb>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIContentLogProb {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_logprobs: Option<Vec<OpenAITopLogProb>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAITopLogProb {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIRefusalLogProb {
+    pub token: String,
+    pub logprob: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1291,33 +1417,53 @@ fn build_chat_request(
     if let Some(ref system) = interaction.system_prompt {
         messages.push(OpenAIMessage {
             role: String::from("system"),
-            content: Some(system.clone()),
+            content: Some(OpenAIMessageContent::Text(system.clone())),
             tool_calls: None,
             tool_call_id: None,
+            refusal: None,
         });
     }
 
     for msg in &interaction.messages {
         match msg {
             Messages::User { content, .. } => {
-                let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                let msg_content = match content {
+                    crate::types::UserModelContent::Text(tc) => {
+                        OpenAIMessageContent::Text(tc.content.clone())
+                    }
+                    crate::types::UserModelContent::Image(img) => {
+                        let mime_str = match img.mime_type {
+                            crate::types::MimeType::ImagePng => "image/png",
+                            crate::types::MimeType::ImageJpeg => "image/jpeg",
+                            crate::types::MimeType::ImageGif => "image/gif",
+                            crate::types::MimeType::ImageWebp => "image/webp",
+                            _ => "image/png",
+                        };
+                        let data_url = format!("data:{};base64,{}", mime_str, img.b64);
+                        OpenAIMessageContent::Parts(vec![OpenAIContentPart::ImageUrl {
+                            image_url: OpenAIImageUrlObject {
+                                url: data_url,
+                                detail: Some(String::from("auto")),
+                            },
+                        }])
+                    }
                 };
                 messages.push(OpenAIMessage {
                     role: String::from("user"),
-                    content: Some(text),
+                    content: Some(msg_content),
                     tool_calls: None,
                     tool_call_id: None,
+                    refusal: None,
                 });
             }
             Messages::Assistant { content, .. } => match content {
                 ModelOutput::Text(tc) => {
                     messages.push(OpenAIMessage {
                         role: String::from("assistant"),
-                        content: Some(tc.content.clone()),
+                        content: Some(OpenAIMessageContent::Text(tc.content.clone())),
                         tool_calls: None,
                         tool_call_id: None,
+                        refusal: None,
                     });
                 }
                 ModelOutput::ToolCall {
@@ -1342,17 +1488,41 @@ fn build_chat_request(
                         content: None,
                         tool_calls: Some(tool_calls),
                         tool_call_id: None,
+                        refusal: None,
                     });
                 }
                 ModelOutput::ThinkingContent { thinking, .. } => {
                     messages.push(OpenAIMessage {
                         role: String::from("assistant"),
-                        content: Some(thinking.clone()),
+                        content: Some(OpenAIMessageContent::Text(thinking.clone())),
                         tool_calls: None,
                         tool_call_id: None,
                     });
                 }
-                ModelOutput::Image(_) | ModelOutput::Embedding { .. } => {}
+                ModelOutput::Image(img) => {
+                    let mime_str = match img.mime_type {
+                        crate::types::MimeType::ImagePng => "image/png",
+                        crate::types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::MimeType::ImageGif => "image/gif",
+                        crate::types::MimeType::ImageWebp => "image/webp",
+                        _ => "image/png",
+                    };
+                    let data_url = format!("data:{};base64,{}", mime_str, img.b64);
+                    messages.push(OpenAIMessage {
+                        role: String::from("assistant"),
+                        content: Some(OpenAIMessageContent::Parts(vec![
+                            OpenAIContentPart::ImageUrl {
+                                image_url: OpenAIImageUrlObject {
+                                    url: data_url,
+                                    detail: Some(String::from("auto")),
+                                },
+                            },
+                        ])),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    });
+                }
+                ModelOutput::Embedding { .. } => {}
             },
             Messages::ToolResult {
                 id, name, content, ..
@@ -1363,9 +1533,10 @@ fn build_chat_request(
                 };
                 messages.push(OpenAIMessage {
                     role: String::from("tool"),
-                    content: Some(format!("[{name}] {text}")),
+                    content: Some(OpenAIMessageContent::Text(format!("[{name}] {text}"))),
                     tool_calls: None,
                     tool_call_id: Some(id.clone()),
+                    refusal: None,
                 });
             }
         }
@@ -1417,6 +1588,37 @@ fn build_chat_request(
         )
     };
 
+    let response_format = params.output_format.as_ref().map(|fmt| match fmt {
+        crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
+        crate::types::OutputFormat::JsonObject => OpenAIResponseFormat::JsonObject,
+        crate::types::OutputFormat::JsonSchema(js) => OpenAIResponseFormat::JsonSchema {
+            json_schema: Some(OpenAIJsonSchema {
+                name: js.name.clone(),
+                description: js.description.clone(),
+                schema: js.schema.clone(),
+                strict: js.strict,
+            }),
+        },
+    });
+
+    let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
+        crate::types::ToolChoice::Auto => OpenAIToolChoice::Simple(String::from("auto")),
+        crate::types::ToolChoice::None => OpenAIToolChoice::Simple(String::from("none")),
+        crate::types::ToolChoice::Required => OpenAIToolChoice::Simple(String::from("required")),
+        crate::types::ToolChoice::Function(f) => OpenAIToolChoice::Function {
+            type_: f.tool_type.clone(),
+            function: OpenAIToolChoiceFunction {
+                name: f.function.name.clone(),
+            },
+        },
+    });
+
+    let logit_bias = params.logit_bias.as_ref().map(|bias| {
+        bias.iter()
+            .map(|(k, v)| (k.clone(), (*v).round() as i32))
+            .collect()
+    });
+
     #[allow(clippy::cast_possible_truncation)]
     ChatCompletionRequest {
         model: model_name.to_string(),
@@ -1443,8 +1645,13 @@ fn build_chat_request(
         },
         stream: Some(streaming),
         tools,
+        tool_choice,
         n: Some(1),
         seed: params.seed,
+        frequency_penalty: params.frequency_penalty,
+        presence_penalty: params.presence_penalty,
+        logit_bias,
+        response_format,
     }
 }
 
@@ -1462,17 +1669,25 @@ fn parse_chat_response(
         .as_ref()
         .ok_or_else(|| GenerationError::Generic("No message in response choice".into()))?;
 
-    let content = message.content.clone().unwrap_or_default();
+    let content = match &message.content {
+        Some(OpenAIMessageContent::Text(text)) => text.clone(),
+        Some(OpenAIMessageContent::Parts(parts)) => parts
+            .iter()
+            .filter_map(|p| match p {
+                OpenAIContentPart::Text { text } => Some(text.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+        None => String::new(),
+    };
 
     let stop_reason = match choice.finish_reason.as_deref() {
         Some("stop") | None => StopReason::Stop,
         Some("length") => StopReason::Length,
         Some("tool_calls") => StopReason::ToolUse,
         Some("content_filter") => StopReason::Error,
-        Some(other) => {
-            tracing::warn!("Unknown finish reason: {other}");
-            StopReason::Stop
-        }
+        Some(other) => StopReason::Message(other.to_string()),
     };
 
     #[allow(clippy::cast_precision_loss)]
@@ -1538,7 +1753,79 @@ fn parse_chat_response(
         provider: ModelProviders::OPENAI,
         error_detail: None,
         signature: None,
+        metadata: build_metadata(&choice.logprobs, &response.system_fingerprint, &message.refusal),
     })
+}
+
+fn build_metadata(
+    logprobs: &Option<OpenAILogProbs>,
+    system_fingerprint: &Option<String>,
+    refusal: &Option<String>,
+) -> Option<Vec<crate::types::GenerationMetadata>> {
+    let mut metadata = Vec::new();
+
+    if let Some(lp) = logprobs {
+        let content: Vec<crate::types::ContentLogProb> = lp
+            .content
+            .as_ref()
+            .map(|items| {
+                items
+                    .iter()
+                    .map(|p| crate::types::ContentLogProb {
+                        token: p.token.clone(),
+                        logprob: p.logprob,
+                        bytes: p.bytes.clone(),
+                        top_logprobs: p.top_logprobs.as_ref().map(|tops| {
+                            tops.iter()
+                                .map(|t| crate::types::TopLogProbEntry {
+                                    token: t.token.clone(),
+                                    logprob: t.logprob,
+                                    bytes: t.bytes.clone(),
+                                })
+                                .collect()
+                        }),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let refusal_probs: Option<Vec<crate::types::RefusalLogProb>> =
+            lp.refusal.as_ref().map(|items| {
+                items
+                    .iter()
+                    .map(|p| crate::types::RefusalLogProb {
+                        token: p.token.clone(),
+                        logprob: p.logprob,
+                        bytes: p.bytes.clone(),
+                    })
+                    .collect()
+            });
+
+        if !content.is_empty() || refusal_probs.is_some() {
+            metadata.push(crate::types::GenerationMetadata::LogProbs {
+                content,
+                refusal: refusal_probs,
+            });
+        }
+    }
+
+    if let Some(fp) = system_fingerprint {
+        metadata.push(crate::types::GenerationMetadata::SystemFingerprint(
+            fp.clone(),
+        ));
+    }
+
+    if let Some(reason) = refusal {
+        metadata.push(crate::types::GenerationMetadata::RefusalReason(
+            reason.clone(),
+        ));
+    }
+
+    if metadata.is_empty() {
+        None
+    } else {
+        Some(metadata)
+    }
 }
 
 #[cfg(test)]
@@ -1631,13 +1918,13 @@ mod tests {
             messages: vec![
                 OpenAIMessage {
                     role: "system".into(),
-                    content: Some("You are helpful".into()),
+                    content: Some(OpenAIMessageContent::Text("You are helpful".into())),
                     tool_calls: None,
                     tool_call_id: None,
                 },
                 OpenAIMessage {
                     role: "user".into(),
-                    content: Some("Hello".into()),
+                    content: Some(OpenAIMessageContent::Text("Hello".into())),
                     tool_calls: None,
                     tool_call_id: None,
                 },
@@ -1648,8 +1935,13 @@ mod tests {
             stop: None,
             stream: Some(false),
             tools: None,
+            tool_choice: None,
             n: Some(1),
             seed: None,
+            frequency_penalty: None,
+            presence_penalty: None,
+            logit_bias: None,
+            response_format: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();
@@ -1863,7 +2155,7 @@ mod tests {
                 index: 0,
                 message: Some(OpenAIMessage {
                     role: "assistant".into(),
-                    content: Some("Hello!".into()),
+                    content: Some(OpenAIMessageContent::Text("Hello!".into())),
                     tool_calls: None,
                     tool_call_id: None,
                 }),
@@ -1951,5 +2243,144 @@ mod tests {
         assert_eq!(exponential_backoff(3), 8);
         assert_eq!(exponential_backoff(5), 30); // capped
         assert_eq!(exponential_backoff(10), 30); // capped
+    }
+
+    #[test]
+    fn test_response_format_serialization() {
+        let fmt = OpenAIResponseFormat::Text;
+        let json = serde_json::to_string(&fmt).unwrap();
+        assert_eq!(json, r#"{"type":"text"}"#);
+
+        let fmt = OpenAIResponseFormat::JsonObject;
+        let json = serde_json::to_string(&fmt).unwrap();
+        assert_eq!(json, r#"{"type":"json_object"}"#);
+
+        let fmt = OpenAIResponseFormat::JsonSchema {
+            json_schema: Some(OpenAIJsonSchema {
+                name: "test_schema".into(),
+                description: Some("A test schema".into()),
+                schema: serde_json::json!({"type": "object", "properties": {"name": {"type": "string"}}}),
+                strict: Some(true),
+            }),
+        };
+        let json = serde_json::to_string(&fmt).unwrap();
+        assert!(json.contains(r#""type":"json_schema""#));
+        assert!(json.contains(r#""name":"test_schema""#));
+        assert!(json.contains(r#""strict":true"#));
+    }
+
+    #[test]
+    fn test_tool_choice_serialization() {
+        let tc = OpenAIToolChoice::Simple("auto".into());
+        let json = serde_json::to_string(&tc).unwrap();
+        assert_eq!(json, r#""auto""#);
+
+        let tc = OpenAIToolChoice::Simple("none".into());
+        let json = serde_json::to_string(&tc).unwrap();
+        assert_eq!(json, r#""none""#);
+
+        let tc = OpenAIToolChoice::Simple("required".into());
+        let json = serde_json::to_string(&tc).unwrap();
+        assert_eq!(json, r#""required""#);
+
+        let tc = OpenAIToolChoice::Function {
+            type_: "function".into(),
+            function: OpenAIToolChoiceFunction {
+                name: "get_weather".into(),
+            },
+        };
+        let json = serde_json::to_string(&tc).unwrap();
+        assert!(json.contains(r#""type":"function""#));
+        assert!(json.contains(r#""name":"get_weather""#));
+    }
+
+    #[test]
+    fn test_build_chat_request_with_new_fields() {
+        use crate::types::{OutputFormat, ToolChoice, ToolChoiceFunction, ToolFunctionRef};
+
+        let mut interaction = ModelInteraction {
+            system_prompt: Some("You are helpful".into()),
+            messages: vec![crate::types::Messages::User {
+                role: "user".into(),
+                content: crate::types::UserModelContent::Text(TextContent {
+                    content: "Hello".into(),
+                    signature: None,
+                }),
+                signature: None,
+            }],
+            tools: vec![],
+            chat_template: None,
+            tool_choice: Some(ToolChoice::Auto),
+        };
+        let mut params = ModelParams::default();
+        params.output_format = Some(OutputFormat::JsonObject);
+        params.frequency_penalty = Some(0.5);
+        params.presence_penalty = Some(0.3);
+        let mut logit_bias = std::collections::HashMap::new();
+        logit_bias.insert("50256".to_string(), -100.0);
+        params.logit_bias = Some(logit_bias);
+
+        let request = build_chat_request("gpt-4", &interaction, &params, false);
+
+        assert!(request.response_format.is_some());
+        let fmt = request.response_format.unwrap();
+        assert!(serde_json::to_string(&fmt).unwrap().contains("json_object"));
+
+        assert_eq!(request.frequency_penalty, Some(0.5));
+        assert_eq!(request.presence_penalty, Some(0.3));
+        assert!(request.logit_bias.is_some());
+        assert!(request.tool_choice.is_some());
+
+        // Now test forced function
+        interaction.tool_choice = Some(ToolChoice::Function(ToolChoiceFunction {
+            tool_type: "function".into(),
+            function: ToolFunctionRef {
+                name: "get_weather".into(),
+            },
+        }));
+        let request2 = build_chat_request("gpt-4", &interaction, &params, false);
+        let tc = request2.tool_choice.unwrap();
+        let json = serde_json::to_string(&tc).unwrap();
+        assert!(json.contains("get_weather"));
+    }
+
+    #[test]
+    fn test_multimodal_message_serialization() {
+        let msg = OpenAIMessage {
+            role: "user".into(),
+            content: Some(OpenAIMessageContent::Parts(vec![
+                OpenAIContentPart::Text {
+                    text: "What is this?".into(),
+                },
+                OpenAIContentPart::ImageUrl {
+                    image_url: OpenAIImageUrlObject {
+                        url: "data:image/png;base64,iVBORw0KGgo".into(),
+                        detail: Some("auto".into()),
+                    },
+                },
+            ])),
+            tool_calls: None,
+            tool_call_id: None,
+        };
+
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains(r#""type":"text""#));
+        assert!(json.contains(r#""type":"image_url""#));
+        assert!(json.contains("data:image/png;base64,"));
+        assert!(json.contains(r#""detail":"auto""#));
+    }
+
+    #[test]
+    fn test_text_only_message_serialization() {
+        let msg = OpenAIMessage {
+            role: "user".into(),
+            content: Some(OpenAIMessageContent::Text("Hello".into())),
+            tool_calls: None,
+            tool_call_id: None,
+        };
+
+        let json = serde_json::to_string(&msg).unwrap();
+        // Text variant serializes as simple string, not object
+        assert!(json.contains(r#""content":"Hello""#));
     }
 }
