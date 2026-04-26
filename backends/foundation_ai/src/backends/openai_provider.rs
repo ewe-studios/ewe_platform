@@ -6,7 +6,8 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::SystemTime;
+use std::thread;
+use std::time::{Duration, SystemTime};
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -15,7 +16,7 @@ use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader};
+use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleHeaders};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
@@ -218,12 +219,38 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         headers
     }
 
-    /// Execute a non-streaming HTTP request and parse the JSON response.
+    /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
         body: &str,
     ) -> GenerationResult<T> {
+        let mut attempt = 0;
+        let max_retries = self.config.max_retries;
+
+        loop {
+            let result = self.do_request::<T>(url, body)?;
+            match result {
+                Ok(value) => return Ok(value),
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
+                        return Err(GenerationError::Backend(msg));
+                    }
+                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
+                    attempt += 1;
+                    thread::sleep(Duration::from_secs(delay));
+                }
+            }
+        }
+    }
+
+    /// Perform a single HTTP request attempt and parse the JSON response.
+    /// Returns `Err((status, retry_after, message))` on HTTP errors.
+    fn do_request<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
         let Some(client) = &self.http_client else {
             return Err(GenerationError::Generic(
                 "HTTP client not initialized".into(),
@@ -248,6 +275,7 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let status_code: usize = response.get_status().into();
+        let headers = response.get_headers_ref();
         let body_text = match response.get_body_ref() {
             SendSafeBody::Text(t) => t.clone(),
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
@@ -258,10 +286,14 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         };
 
         if !(200..=299).contains(&status_code) {
-            return Err(map_http_error(status_code, &body_text));
+            let retry_after = extract_retry_after(headers);
+            let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
+            let msg = format_http_error(status_code, &detail);
+            return Ok(Err((status_code as u16, retry_after, msg)));
         }
 
         serde_json::from_str(&body_text)
+            .map(|v| Ok(v))
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
     }
 }
@@ -437,7 +469,7 @@ pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
     api_key: Option<ConfidentialText>,
     http_client: Option<SimpleHttpClient<R>>,
     resolver: Option<R>,
-    /// Cached model metadata from the provider.
+    /// Cached model metadata from the provider (used in model identity).
     #[allow(dead_code)]
     info: OpenAIModelInfo,
 }
@@ -456,12 +488,37 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
         headers
     }
 
-    /// Execute a non-streaming HTTP request and parse the JSON response.
+    /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
         body: &str,
     ) -> GenerationResult<T> {
+        let mut attempt = 0;
+        let max_retries = self.config.max_retries;
+
+        loop {
+            let result = self.do_request::<T>(url, body)?;
+            match result {
+                Ok(value) => return Ok(value),
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
+                        return Err(GenerationError::Backend(msg));
+                    }
+                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
+                    attempt += 1;
+                    thread::sleep(Duration::from_secs(delay));
+                }
+            }
+        }
+    }
+
+    /// Perform a single HTTP request attempt and parse the JSON response.
+    fn do_request<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
         let Some(client) = &self.http_client else {
             return Err(GenerationError::Generic(
                 "HTTP client not initialized".into(),
@@ -486,6 +543,7 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let status_code: usize = response.get_status().into();
+        let headers = response.get_headers_ref();
         let body_text = match response.get_body_ref() {
             SendSafeBody::Text(t) => t.clone(),
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
@@ -496,11 +554,91 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
         };
 
         if !(200..=299).contains(&status_code) {
-            return Err(map_http_error(status_code, &body_text));
+            let retry_after = extract_retry_after(headers);
+            let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
+            let msg = format_http_error(status_code, &detail);
+            return Ok(Err((status_code as u16, retry_after, msg)));
         }
 
         serde_json::from_str(&body_text)
+            .map(|v| Ok(v))
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Generate embeddings via `/v1/embeddings` endpoint.
+    fn generate_embeddings(&self, interaction: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
+        let text = interaction
+            .messages
+            .iter()
+            .filter_map(|msg| {
+                if let Messages::User { content, .. } = msg {
+                    match content {
+                        crate::types::UserModelContent::Text(tc) => Some(tc.content.clone()),
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let input = if text.len() == 1 {
+            EmbeddingInput::String(text.into_iter().next().unwrap())
+        } else {
+            EmbeddingInput::Strings(text)
+        };
+
+        let request = EmbeddingRequest {
+            model: self.model_name.clone(),
+            input,
+            encoding_format: Some("float".to_string()),
+        };
+
+        let body = serde_json::to_string(&request)
+            .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
+
+        let url = self.build_url("embeddings");
+        let response: EmbeddingResponse = self.execute_request(&url, &body)?;
+
+        let data = response
+            .data
+            .first()
+            .ok_or_else(|| GenerationError::Generic("No embeddings in response".into()))?;
+
+        #[allow(clippy::cast_precision_loss)]
+        Ok(vec![Messages::Assistant {
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: UsageReport {
+                input: response
+                    .usage
+                    .as_ref()
+                    .map_or(0.0, |u| u.prompt_tokens as f64),
+                output: 0.0,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: response
+                    .usage
+                    .as_ref()
+                    .map_or(0.0, |u| u.total_tokens as f64),
+                cost: UsageCosting {
+                    currency: "USD".to_string(),
+                    input: 0.0,
+                    output: 0.0,
+                    cache_read: 0.0,
+                    cache_write: 0.0,
+                    total_tokens: 0.0,
+                },
+            },
+            content: ModelOutput::Embedding {
+                dimensions: data.embedding.len(),
+                values: data.embedding.clone(),
+            },
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::OPENAI,
+            error_detail: None,
+            signature: None,
+        }])
     }
 }
 
@@ -525,6 +663,12 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
         let params = specs.unwrap_or_default();
+
+        // Check if this is an embedding request (model returns ModelOutput::Embedding)
+        if is_embedding_request(&interaction.messages) {
+            return self.generate_embeddings(&interaction);
+        }
+
         let request = build_chat_request(&self.model_name, &interaction, &params, false);
 
         let body = serde_json::to_string(&request)
@@ -940,19 +1084,52 @@ struct OpenAIErrorDetail {
     code: Option<String>,
 }
 
-fn map_http_error(status_code: usize, body_text: &str) -> GenerationError {
-    let detail = serde_json::from_str::<OpenAIErrorResponse>(body_text)
-        .map_or_else(|_| body_text.to_string(), |e| e.error.message);
+// ============================================================================
+// Retry & Error Helpers
+// ============================================================================
 
-    match status_code {
-        401 => GenerationError::Backend(format!("Authentication failed: {detail}")),
-        403 => GenerationError::Backend(format!("Permission denied: {detail}")),
-        404 => GenerationError::Backend(format!("Not found: {detail}")),
-        429 => GenerationError::Backend(format!("Rate limit exceeded: {detail}")),
-        500..=503 => {
-            GenerationError::Backend(format!("Server error (HTTP {status_code}): {detail}"))
+/// Check if the user is requesting embeddings by looking for a marker message.
+fn is_embedding_request(messages: &[Messages]) -> bool {
+    messages.iter().any(|msg| {
+        if let Messages::Assistant { content, .. } = msg {
+            matches!(content, ModelOutput::Embedding { .. })
+        } else {
+            false
         }
-        _ => GenerationError::Backend(format!("HTTP {status_code}: {detail}")),
+    })
+}
+
+fn is_retryable_status(status: u16) -> bool {
+    status == 429 || (500..=503).contains(&status)
+}
+
+fn exponential_backoff(attempt: u32) -> u64 {
+    let base_secs: u64 = 1 << attempt.min(5); // 1, 2, 4, 8, 16, 32
+    base_secs.min(30) // cap at 30s
+}
+
+fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
+    let header = SimpleHeader::from("Retry-After".to_string());
+    headers
+        .get(&header)
+        .and_then(|values| values.first())
+        .and_then(|v| v.parse::<u64>().ok())
+}
+
+fn parse_openai_error(body: &str) -> Option<String> {
+    serde_json::from_str::<OpenAIErrorResponse>(body)
+        .ok()
+        .map(|e| e.error.message)
+}
+
+fn format_http_error(status_code: usize, detail: &str) -> String {
+    match status_code {
+        401 => format!("Authentication failed: {detail}"),
+        403 => format!("Permission denied: {detail}"),
+        404 => format!("Not found: {detail}"),
+        429 => format!("Rate limit exceeded: {detail}"),
+        500..=503 => format!("Server error (HTTP {status_code}): {detail}"),
+        _ => format!("HTTP {status_code}: {detail}"),
     }
 }
 
@@ -1722,28 +1899,57 @@ mod tests {
     }
 
     #[test]
-    fn test_map_http_error_parses_openai_format() {
+    fn test_parse_openai_error_format() {
         let body = r#"{"error":{"message":"Invalid API key","type":"invalid_request_error","code":"invalid_api_key"}}"#;
-        let err = map_http_error(401, body);
-        let msg = err.to_string();
+        let detail = parse_openai_error(body).expect("Should parse OpenAI error");
+        assert_eq!(detail, "Invalid API key");
+    }
+
+    #[test]
+    fn test_parse_openai_error_plain_text_fallback() {
+        let detail = parse_openai_error("Internal Server Error");
+        assert!(detail.is_none());
+    }
+
+    #[test]
+    fn test_format_http_error_auth() {
+        let msg = format_http_error(401, "Invalid API key");
         assert!(msg.contains("Authentication failed"), "got: {msg}");
         assert!(msg.contains("Invalid API key"), "got: {msg}");
     }
 
     #[test]
-    fn test_map_http_error_rate_limit() {
-        let body =
-            r#"{"error":{"message":"Rate limit reached","type":"rate_limit_error","code":null}}"#;
-        let err = map_http_error(429, body);
-        let msg = err.to_string();
+    fn test_format_http_error_rate_limit() {
+        let msg = format_http_error(429, "Rate limit reached");
         assert!(msg.contains("Rate limit exceeded"), "got: {msg}");
     }
 
     #[test]
-    fn test_map_http_error_plain_text_fallback() {
-        let err = map_http_error(500, "Internal Server Error");
-        let msg = err.to_string();
+    fn test_format_http_error_server_error() {
+        let msg = format_http_error(500, "Internal Server Error");
         assert!(msg.contains("Server error"), "got: {msg}");
         assert!(msg.contains("Internal Server Error"), "got: {msg}");
+    }
+
+    #[test]
+    fn test_is_retryable_status() {
+        assert!(is_retryable_status(429));
+        assert!(is_retryable_status(500));
+        assert!(is_retryable_status(502));
+        assert!(is_retryable_status(503));
+        assert!(!is_retryable_status(400));
+        assert!(!is_retryable_status(401));
+        assert!(!is_retryable_status(404));
+        assert!(!is_retryable_status(200));
+    }
+
+    #[test]
+    fn test_exponential_backoff() {
+        assert_eq!(exponential_backoff(0), 1);
+        assert_eq!(exponential_backoff(1), 2);
+        assert_eq!(exponential_backoff(2), 4);
+        assert_eq!(exponential_backoff(3), 8);
+        assert_eq!(exponential_backoff(5), 30); // capped
+        assert_eq!(exponential_backoff(10), 30); // capped
     }
 }
