@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Platform Adapters -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-cli-tui.html">Hermes Agent -- CLI & TUI</a> <a href="08-cron.html">Hermes Agent -- Cron & Scheduling</a> <a href="09-plugins.html">Hermes Agent -- Plugin System</a></span> <a href="09-plugins.html">← Hermes Agent -- Plugin System</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Platform Adapters</h1>
+<h2>Overview</h2>
+<p>Each messaging platform has an adapter that handles connection, authentication, message parsing, formatting, and delivery. All adapters implement a common interface but handle platform-specific details internally.</p>
+<h2>Common Adapter Interface</h2>
+<pre><code class="language-python">class PlatformAdapter:
+    async def start(self, on_message):
+        &quot;&quot;&quot;Connect to the platform and start listening.&quot;&quot;&quot;
+        ...
+
+    async def send_message(self, channel_id, content):
+        &quot;&quot;&quot;Send a text message to a channel/user.&quot;&quot;&quot;
+        ...
+
+    async def send_attachment(self, channel_id, attachment):
+        &quot;&quot;&quot;Send a file/image attachment.&quot;&quot;&quot;
+        ...
+
+    async def get_user_info(self, user_id):
+        &quot;&quot;&quot;Get user profile information.&quot;&quot;&quot;
+        ...
+
+    async def stop(self):
+        &quot;&quot;&quot;Disconnect from the platform.&quot;&quot;&quot;
+        ...
+</code></pre>
+<h2>Telegram</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`python-telegram-bot`</td></tr><tr><td>Connection</td><td>Polling or Webhook</td></tr><tr><td>Formatting</td><td>MarkdownV2</td></tr><tr><td>Max message</td><td>4096 chars</td></tr><tr><td>Inline images</td><td>Yes</td></tr><tr><td>Threads</td><td>Reply-to message</td></tr><tr><td>Bot creation</td><td>@BotFather</td></tr></table>
+<pre><code class="language-python"># gateway/platforms/telegram.py (simplified)
+class TelegramAdapter(PlatformAdapter):
+    async def start(self, on_message):
+        app = ApplicationBuilder().token(self.token).build()
+        app.add_handler(MessageHandler(filters.TEXT, self.handle_message))
+        await app.run_polling()
+
+    async def handle_message(self, update, context):
+        text = update.message.text
+        user_id = str(update.message.from_user.id)
+        chat_id = str(update.message.chat_id)
+        await self.on_message(&quot;telegram&quot;, user_id, chat_id, text)
+
+    async def send_message(self, chat_id, content):
+        formatted = self.to_markdown_v2(content)
+        await self.bot.send_message(
+            chat_id=chat_id,
+            text=formatted,
+            parse_mode=&quot;MarkdownV2&quot;,
+        )
+</code></pre>
+<h2>Discord</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`discord.py`</td></tr><tr><td>Connection</td><td>WebSocket (Gateway)</td></tr><tr><td>Formatting</td><td>Markdown</td></tr><tr><td>Max message</td><td>2000 chars</td></tr><tr><td>Embeds</td><td>Yes (rich embeds)</td></tr><tr><td>Threads</td><td>Discord threads</td></tr><tr><td>Bot creation</td><td>Discord Developer Portal</td></tr></table>
+<pre><code class="language-python"># gateway/platforms/discord.py (simplified)
+class DiscordAdapter(PlatformAdapter):
+    async def start(self, on_message):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        client = discord.Client(intents=intents)
+
+        @client.event
+        async def on_message(message):
+            if message.author == client.user:
+                return
+            await self.on_message(&quot;discord&quot;, str(message.author.id),
+                                   str(message.channel.id), message.content)
+
+        await client.start(self.token)
+
+    async def send_message(self, channel_id, content):
+        channel = self.client.get_channel(int(channel_id))
+        # Split into 2000-char chunks
+        for chunk in split_text(content, 2000):
+            await channel.send(chunk)
+</code></pre>
+<h2>Slack</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`slack-bolt`</td></tr><tr><td>Connection</td><td>Socket Mode (WebSocket)</td></tr><tr><td>Formatting</td><td>mrkdwn</td></tr><tr><td>Max message</td><td>40000 chars</td></tr><tr><td>Blocks</td><td>Yes (Block Kit)</td></tr><tr><td>Threads</td><td>Slack threads</td></tr><tr><td>Bot creation</td><td>Slack API → Your Apps</td></tr></table>
+<pre><code class="language-python"># gateway/platforms/slack.py (simplified)
+class SlackAdapter(PlatformAdapter):
+    async def start(self, on_message):
+        app = AsyncApp(token=self.bot_token)
+
+        @app.event(&quot;message&quot;)
+        async def handle_message(event, say):
+            if event.get(&quot;bot_id&quot;):
+                return
+            await self.on_message(&quot;slack&quot;, event[&quot;user&quot;],
+                                   event[&quot;channel&quot;], event[&quot;text&quot;])
+
+        handler = AsyncSocketModeHandler(app, self.app_token)
+        await handler.start_async()
+</code></pre>
+<h2>WhatsApp</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Twilio or Vonage SDK</td></tr><tr><td>Connection</td><td>Webhook (HTTP)</td></tr><tr><td>Formatting</td><td>Limited (bold, italic, monospace)</td></tr><tr><td>Max message</td><td>65536 chars</td></tr><tr><td>Media</td><td>Images, audio, documents</td></tr><tr><td>Threads</td><td>No native threads</td></tr><tr><td>Setup</td><td>Twilio/Vonage account + phone number</td></tr></table>
+<p>Requires a webhook endpoint -- the gateway must be publicly accessible or use a tunnel.</p>
+<h2>Signal</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>signal-cli or signal-bot</td></tr><tr><td>Connection</td><td>Local daemon</td></tr><tr><td>Formatting</td><td>Plain text</td></tr><tr><td>Max message</td><td>65536 chars</td></tr><tr><td>Media</td><td>Images, attachments</td></tr><tr><td>Threads</td><td>No</td></tr><tr><td>Setup</td><td>Phone number + signal-cli</td></tr></table>
+<h2>Matrix</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>matrix-nio</td></tr><tr><td>Connection</td><td>Long polling or WebSocket</td></tr><tr><td>Formatting</td><td>HTML or Markdown</td></tr><tr><td>Max message</td><td>No hard limit</td></tr><tr><td>Media</td><td>Yes</td></tr><tr><td>Threads</td><td>Matrix threads (MSC3440)</td></tr><tr><td>Setup</td><td>Matrix homeserver account</td></tr></table>
+<h2>Email</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>aiosmtplib + aioimaplib</td></tr><tr><td>Connection</td><td>IMAP (receive) + SMTP (send)</td></tr><tr><td>Formatting</td><td>HTML</td></tr><tr><td>Max message</td><td>No hard limit</td></tr><tr><td>Attachments</td><td>Yes</td></tr><tr><td>Threads</td><td>Email threading (In-Reply-To)</td></tr><tr><td>Setup</td><td>IMAP/SMTP credentials</td></tr></table>
+<h2>DingTalk</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>DingTalk Open API SDK</td></tr><tr><td>Connection</td><td>Webhook + Event subscription</td></tr><tr><td>Formatting</td><td>Markdown (DingTalk flavor)</td></tr><tr><td>Setup</td><td>DingTalk Developer account</td></tr></table>
+<h2>Feishu (Lark)</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Feishu Open Platform SDK</td></tr><tr><td>Connection</td><td>WebSocket or Webhook</td></tr><tr><td>Formatting</td><td>Rich text cards</td></tr><tr><td>Setup</td><td>Feishu Developer account</td></tr></table>
+<h2>SMS</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Twilio SDK</td></tr><tr><td>Connection</td><td>Webhook</td></tr><tr><td>Formatting</td><td>Plain text</td></tr><tr><td>Max message</td><td>1600 chars (concatenated SMS)</td></tr><tr><td>Media</td><td>MMS for images</td></tr><tr><td>Setup</td><td>Twilio account + phone number</td></tr></table>
+<h2>Platform Feature Matrix</h2>
+<table><tr><th>Feature</th><th>TG</th><th>DC</th><th>SL</th><th>WA</th><th>SIG</th><th>MTX</th><th>Email</th><th>DT</th><th>FS</th><th>SMS</th></tr><tr><td>Markdown</td><td>V2</td><td>MD</td><td>mrk</td><td>Ltd</td><td>No</td><td>HTML</td><td>HTML</td><td>MD</td><td>Rich</td><td>No</td></tr><tr><td>Images</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>MMS</td></tr><tr><td>Threads</td><td>Y</td><td>Y</td><td>Y</td><td>N</td><td>N</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>N</td></tr><tr><td>Reactions</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>Y</td><td>Y</td><td>N</td></tr><tr><td>Typing indicator</td><td>Y</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>N</td><td>N</td><td>N</td></tr><tr><td>Max msg</td><td>4K</td><td>2K</td><td>40K</td><td>65K</td><td>65K</td><td>--</td><td>--</td><td>--</td><td>--</td><td>1.6K</td></tr></table>
+<h2>Message Format Conversion</h2>
+<p>The delivery layer converts the agent's Markdown response to each platform's format:</p>
+<div class="mermaid">
+flowchart TD
+    AGENT[Agent Response&lt;br/&gt;Markdown] --&gt; CONVERTER[Format Converter]
+    CONVERTER --&gt; TG_FMT[Telegram MarkdownV2&lt;br/&gt;Escape special chars]
+    CONVERTER --&gt; DC_FMT[Discord Markdown&lt;br/&gt;Code blocks, embeds]
+    CONVERTER --&gt; SL_FMT[Slack mrkdwn&lt;br/&gt;Block Kit for complex]
+    CONVERTER --&gt; WA_FMT[WhatsApp&lt;br/&gt;Bold, italic, mono only]
+    CONVERTER --&gt; PLAIN[Plain text&lt;br/&gt;Signal, SMS]
+    CONVERTER --&gt; HTML_FMT[HTML&lt;br/&gt;Email, Matrix]
+
+</div>
+<h2>Key Files</h2>
+<pre><code class="language-">gateway/platforms/
+  ├── telegram.py       Telegram adapter
+  ├── discord.py        Discord adapter
+  ├── slack.py          Slack adapter
+  ├── whatsapp.py       WhatsApp adapter (Twilio/Vonage)
+  ├── signal.py         Signal adapter
+  ├── matrix.py         Matrix adapter
+  ├── email.py          Email adapter (IMAP/SMTP)
+  ├── dingtalk.py       DingTalk adapter
+  ├── feishu.py         Feishu (Lark) adapter
+  ���── sms.py            SMS adapter (Twilio)
+gateway/
+  ├── delivery.py       Message delivery + format conversion
+  └── display_config.py Per-platform display preferences
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

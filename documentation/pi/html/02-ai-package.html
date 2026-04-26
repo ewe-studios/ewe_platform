@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi -- pi-ai Package -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Pi -- Overview</a> <a href="01-architecture.html">Pi -- Architecture</a></span> <a href="01-architecture.html">← Pi -- Architecture</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pi -- pi-ai Package</h1>
+<h2>Purpose</h2>
+<p><code>@mariozechner/pi-ai</code> is the foundation layer. It provides a unified API for calling 20+ LLM providers with streaming, tool calling, thinking/reasoning, token tracking, and cost estimation. Every other Pi package depends on it.</p>
+<h2>Why It Exists as a Separate Package</h2>
+<p>LLM provider APIs differ in message format, streaming protocol, tool calling schema, and authentication. pi-ai absorbs all of that. The rest of Pi writes against one API and gets every provider for free.</p>
+<h2>Supported Providers</h2>
+<table><tr><th>Provider</th><th>Module</th><th>Auth</th></tr><tr><td>Anthropic</td><td>`./anthropic`</td><td>API key</td></tr><tr><td>OpenAI (Chat)</td><td>`./openai`</td><td>API key</td></tr><tr><td>OpenAI (Responses)</td><td>`./openai-responses`</td><td>API key</td></tr><tr><td>Google Gemini</td><td>`./google`</td><td>API key / OAuth</td></tr><tr><td>AWS Bedrock</td><td>`./bedrock-provider`</td><td>AWS credentials</td></tr><tr><td>Azure OpenAI</td><td>`./azure`</td><td>API key / Entra ID</td></tr><tr><td>Mistral</td><td>`./mistral`</td><td>API key</td></tr><tr><td>xAI (Grok)</td><td>`./xai`</td><td>API key</td></tr><tr><td>Groq</td><td>`./groq`</td><td>API key</td></tr><tr><td>DeepSeek</td><td>`./deepseek`</td><td>API key</td></tr><tr><td>Together</td><td>`./together`</td><td>API key</td></tr><tr><td>Fireworks</td><td>`./fireworks`</td><td>API key</td></tr><tr><td>GitHub Copilot</td><td>`./copilot`</td><td>OAuth</td></tr><tr><td>OpenRouter</td><td>`./openrouter`</td><td>API key</td></tr><tr><td>Cerebras</td><td>`./cerebras`</td><td>API key</td></tr><tr><td>NVIDIA NIM</td><td>`./nvidia`</td><td>API key</td></tr><tr><td>Sambanova</td><td>`./sambanova`</td><td>API key</td></tr><tr><td>Custom/Local</td><td>`./openai` (compatible)</td><td>Varies</td></tr></table>
+<p>Each provider is a subpath export -- you only import the ones you use.</p>
+<h2>Core API</h2>
+<h3>Model Discovery</h3>
+<pre><code class="language-typescript">import { getModel, getModels, getProviders } from &#x27;@mariozechner/pi-ai&#x27;;
+
+// Get all available providers
+const providers = getProviders();
+// → [&#x27;anthropic&#x27;, &#x27;openai&#x27;, &#x27;google&#x27;, &#x27;bedrock&#x27;, ...]
+
+// Get all models for a provider
+const models = await getModels(&#x27;anthropic&#x27;);
+// → [{ id: &#x27;claude-sonnet-4-6&#x27;, name: &#x27;Claude Sonnet 4.6&#x27;, ... }, ...]
+
+// Get a specific model configuration
+const model = getModel(&#x27;claude-sonnet-4-6&#x27;);
+// → { id, provider, contextWindow, maxOutput, supportsTools, supportsThinking, ... }
+</code></pre>
+<h3>Streaming (Full Control)</h3>
+<pre><code class="language-typescript">import { stream } from &#x27;@mariozechner/pi-ai&#x27;;
+
+const events = stream({
+  model: &#x27;claude-sonnet-4-6&#x27;,
+  messages: [
+    { role: &#x27;user&#x27;, content: &#x27;Explain Pi framework architecture&#x27; }
+  ],
+  tools: [myTool],
+  onEvent: (event) =&gt; {
+    switch (event.type) {
+      case &#x27;text_delta&#x27;:
+        process.stdout.write(event.text);
+        break;
+      case &#x27;tool_call&#x27;:
+        console.log(&#x27;Tool called:&#x27;, event.name, event.arguments);
+        break;
+      case &#x27;thinking_delta&#x27;:
+        // Extended thinking output
+        break;
+      case &#x27;usage&#x27;:
+        console.log(&#x27;Tokens:&#x27;, event.input, event.output);
+        break;
+    }
+  }
+});
+
+const response = await events;
+</code></pre>
+<h3>Simple Completion</h3>
+<pre><code class="language-typescript">import { completeSimple } from &#x27;@mariozechner/pi-ai&#x27;;
+
+const result = await completeSimple({
+  model: &#x27;claude-sonnet-4-6&#x27;,
+  prompt: &#x27;What is TypeScript?&#x27;,
+});
+// result.text → &quot;TypeScript is...&quot;
+// result.usage → { input: 12, output: 150, cost: 0.0012 }
+</code></pre>
+<h3>Stream Simple (Reasoning Interface)</h3>
+<pre><code class="language-typescript">import { streamSimple } from &#x27;@mariozechner/pi-ai&#x27;;
+
+const stream = streamSimple({
+  model: &#x27;claude-sonnet-4-6&#x27;,
+  prompt: &#x27;Plan a migration strategy&#x27;,
+  thinking: true,  // Enable extended thinking
+});
+
+for await (const chunk of stream) {
+  if (chunk.type === &#x27;thinking&#x27;) {
+    console.log(&#x27;[thinking]&#x27;, chunk.text);
+  } else {
+    process.stdout.write(chunk.text);
+  }
+}
+</code></pre>
+<h2>Tool Calling</h2>
+<p>pi-ai uses TypeBox schemas for tool definitions. The schema is validated at runtime and converted to JSON Schema for the LLM.</p>
+<pre><code class="language-typescript">import { Type, type Static } from &#x27;@sinclair/typebox&#x27;;
+
+const searchTool = {
+  name: &#x27;search&#x27;,
+  description: &#x27;Search the web for information&#x27;,
+  parameters: Type.Object({
+    query: Type.String({ description: &#x27;Search query&#x27; }),
+    maxResults: Type.Optional(Type.Number({ description: &#x27;Max results&#x27;, default: 5 })),
+  }),
+};
+
+// Type inference from schema
+type SearchParams = Static&lt;typeof searchTool.parameters&gt;;
+// → { query: string; maxResults?: number }
+</code></pre>
+<h3>How Tool Calls Flow Through Providers</h3>
+<div class="mermaid">
+flowchart TD
+    APP[Application] --&gt;|TypeBox schema| AI[pi-ai]
+    AI --&gt;|JSON Schema| LLM[LLM Provider]
+    LLM --&gt;|Tool call JSON| AI
+    AI --&gt;|Validated params| APP
+    APP --&gt;|Execute tool| RESULT[Tool Result]
+    RESULT --&gt;|String result| AI
+    AI --&gt;|Tool result message| LLM
+
+</div>
+<p>Each provider converts the JSON Schema into its native format:</p>
+<ul><li><strong>Anthropic</strong>: <code>tools</code> array with <code>input_schema</code></li><li><strong>OpenAI</strong>: <code>tools</code> array with <code>function.parameters</code></li><li><strong>Google</strong>: <code>functionDeclarations</code> with <code>parameters</code></li><li><strong>Bedrock</strong>: Provider-specific wrapping</li></ul>
+<p>pi-ai handles the conversion. The application defines tools once.</p>
+<h2>Context System</h2>
+<p>pi-ai supports serializing and deserializing conversation context for:</p>
+<ul><li>Saving/restoring sessions</li><li>Cross-provider handoffs (start with Claude, continue with GPT)</li><li>Context compaction (summarizing old messages to fit context window)</li></ul>
+<pre><code class="language-typescript">import { serializeContext, deserializeContext } from &#x27;@mariozechner/pi-ai&#x27;;
+
+// Save context
+const serialized = serializeContext(messages, model);
+fs.writeFileSync(&#x27;session.json&#x27;, JSON.stringify(serialized));
+
+// Restore context (potentially with a different model)
+const messages = deserializeContext(serialized, &#x27;gpt-4o&#x27;);
+</code></pre>
+<h2>OAuth Authentication</h2>
+<p>Some providers (Anthropic Max, Google, GitHub Copilot) use OAuth. pi-ai handles the full flow:</p>
+<pre><code class="language-typescript">import { loginAnthropic } from &#x27;@mariozechner/pi-ai/anthropic&#x27;;
+import { loginGoogle } from &#x27;@mariozechner/pi-ai/google&#x27;;
+import { loginCopilot } from &#x27;@mariozechner/pi-ai/copilot&#x27;;
+
+// Opens browser for OAuth, stores token
+const token = await loginAnthropic();
+</code></pre>
+<h2>Token and Cost Tracking</h2>
+<p>Every API call returns usage data:</p>
+<pre><code class="language-typescript">interface Usage {
+  inputTokens: number;
+  outputTokens: number;
+  thinkingTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  cost: number;              // USD
+}
+</code></pre>
+<p>Cost is calculated from provider-specific pricing tables built into pi-ai.</p>
+<h2>Provider Architecture</h2>
+<p>Each provider implements a common interface:</p>
+<pre><code class="language-typescript">interface ProviderAdapter {
+  stream(params: StreamParams): AsyncIterable&lt;StreamEvent&gt;;
+  complete(params: CompleteParams): Promise&lt;CompleteResponse&gt;;
+  listModels(): Promise&lt;ModelInfo[]&gt;;
+}
+</code></pre>
+<p>The adapter converts pi-ai's normalized types to/from the provider's native format. All provider-specific logic is encapsulated in the adapter file.</p>
+<pre><code class="language-">packages/ai/src/providers/
+  ├── anthropic.ts          Anthropic Messages API
+  ├── openai.ts             OpenAI Chat Completions
+  ├── openai-responses.ts   OpenAI Responses API
+  ├── google.ts             Google Gemini
+  ├── bedrock.ts            AWS Bedrock (wraps Anthropic/others)
+  ├── azure.ts              Azure OpenAI
+  ├── mistral.ts            Mistral
+  ├── xai.ts                xAI (Grok)
+  ├── groq.ts               Groq
+  ├── deepseek.ts           DeepSeek
+  ├── together.ts           Together AI
+  ├── fireworks.ts          Fireworks
+  ├── copilot.ts            GitHub Copilot
+  ├── openrouter.ts         OpenRouter
+  └── ... (more)
+</code></pre>
+<h2>Key Design Decisions</h2>
+<ol><li><strong>Subpath exports per provider</strong> -- Tree-shaking. An app using only Anthropic doesn't bundle the OpenAI adapter.</li><li><strong>TypeBox for tool schemas</strong> -- Single source of truth for types, validation, and JSON Schema.</li><li><strong>Streaming-first</strong> -- <code>stream()</code> is the primary API. <code>complete()</code> is built on top of it.</li><li><strong>Provider-agnostic context</strong> -- Serialized context can be used with any provider. You can switch models mid-conversation.</li><li><strong>Built-in cost tracking</strong> -- No external dependency for usage estimation.</li></ol>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

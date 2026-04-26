@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Agent Core -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Hermes Agent -- Overview</a> <a href="01-architecture.html">Hermes Agent -- Architecture</a></span> <a href="01-architecture.html">← Hermes Agent -- Architecture</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Agent Core</h1>
+<h2>The AIAgent Class</h2>
+<p><code>run_agent.py</code> contains the <code>AIAgent</code> class -- the central orchestrator at 3,600+ lines. Every interaction with Hermes flows through this class.</p>
+<h2>Responsibilities</h2>
+<div class="mermaid">
+flowchart TD
+    AGENT[AIAgent]
+    AGENT --&gt; LLM[LLM Communication&lt;br/&gt;Select adapter, stream, parse]
+    AGENT --&gt; TOOLS[Tool Dispatch&lt;br/&gt;Validate, execute, collect results]
+    AGENT --&gt; MEMORY[Memory Management&lt;br/&gt;Prefetch, sync, update]
+    AGENT --&gt; CONTEXT[Context Management&lt;br/&gt;Compress when needed]
+    AGENT --&gt; PROMPT[Prompt Assembly&lt;br/&gt;Identity, skills, context, memory]
+    AGENT --&gt; STATE[State Tracking&lt;br/&gt;Turn count, token usage, budget]
+    AGENT --&gt; TRAJECTORY[Trajectory Recording&lt;br/&gt;For RL training]
+
+</div>
+<h2>Message Loop</h2>
+<p>The core of AIAgent is the message loop -- a <code>while</code> loop that calls the LLM, executes tool calls, and repeats until the LLM stops calling tools or the budget is exhausted.</p>
+<pre><code class="language-python"># Simplified from run_agent.py
+class AIAgent:
+    async def run(self, user_message: str) -&gt; str:
+        self.messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_message})
+
+        while True:
+            # 1. Prefetch memory
+            await self.memory_manager.prefetch(self.messages)
+
+            # 2. Build system prompt
+            system = self.prompt_builder.build(
+                identity=self.soul,
+                skills=self.active_skills,
+                memory=self.memory_manager.get_context(),
+                context_files=self.context_files,
+            )
+
+            # 3. Get available tools
+            tools = self.model_tools.get_tool_schemas()
+
+            # 4. Call LLM
+            response = await self.call_llm(system, self.messages, tools)
+
+            # 5. Append assistant message
+            self.messages.append(response.message)
+
+            # 6. Check for tool calls
+            if not response.tool_calls:
+                break  # LLM is done
+
+            # 7. Execute each tool call
+            for tool_call in response.tool_calls:
+                result = await self.execute_tool(tool_call)
+                self.messages.append({
+                    &quot;role&quot;: &quot;tool&quot;,
+                    &quot;tool_use_id&quot;: tool_call.id,
+                    &quot;content&quot;: result,
+                })
+
+            # 8. Sync memory
+            await self.memory_manager.sync(self.messages)
+
+            # 9. Check budget
+            if self.turns &gt;= self.max_turns:
+                break
+
+        return response.message[&quot;content&quot;]
+</code></pre>
+<h3>Loop Detail</h3>
+<div class="mermaid">
+flowchart TD
+    START[User message arrives] --&gt; PREFETCH[Prefetch memory]
+    PREFETCH --&gt; BUILD[Build system prompt]
+    BUILD --&gt; TOOLS_SCHEMA[Get tool schemas]
+    TOOLS_SCHEMA --&gt; CALL[Call LLM&lt;br/&gt;via adapter]
+    CALL --&gt; STREAM[Stream response]
+    STREAM --&gt; PARSE[Parse response]
+    PARSE --&gt; CHECK{Has tool calls?}
+    CHECK --&gt;|No| DONE[Return text response]
+    CHECK --&gt;|Yes| EXEC_LOOP[Execute tool calls]
+    EXEC_LOOP --&gt; APPEND[Append tool results]
+    APPEND --&gt; SYNC[Sync memory]
+    SYNC --&gt; BUDGET{Within budget?}
+    BUDGET --&gt;|Yes| PREFETCH
+    BUDGET --&gt;|No| DONE
+
+</div>
+<h2>LLM Adapter Selection</h2>
+<p>AIAgent selects the appropriate adapter based on the configured model:</p>
+<pre><code class="language-python">def get_adapter(self, model_name: str):
+    if &quot;claude&quot; in model_name or &quot;anthropic&quot; in model_name:
+        return AnthropicAdapter(self.api_key)
+    elif &quot;gemini&quot; in model_name:
+        return GeminiNativeAdapter(self.api_key)
+    elif model_name.startswith(&quot;bedrock/&quot;):
+        return BedrockAdapter(self.aws_config)
+    elif &quot;codex&quot; in model_name:
+        return CodexResponsesAdapter(self.api_key)
+    else:
+        # Default: OpenAI-compatible
+        return None  # Uses OpenAI SDK directly
+</code></pre>
+<h3>Anthropic Adapter Details</h3>
+<p>The Anthropic adapter handles:</p>
+<ul><li>Claude 4.x model families (Opus, Sonnet, Haiku)</li><li>Extended thinking / adaptive thinking modes</li><li>Prompt caching via cache control tags</li><li>Tool use with the Anthropic tool format</li><li>Streaming with SSE parsing</li></ul>
+<pre><code class="language-python"># Simplified from agent/anthropic_adapter.py
+class AnthropicAdapter:
+    async def stream(self, system, messages, tools, **kwargs):
+        client = anthropic.AsyncAnthropic(api_key=self.api_key)
+
+        # Convert messages to Anthropic format
+        anthropic_messages = self.convert_messages(messages)
+
+        # Add cache control for prompt caching
+        system_with_cache = add_cache_tags(system)
+
+        async with client.messages.stream(
+            model=self.model,
+            system=system_with_cache,
+            messages=anthropic_messages,
+            tools=self.convert_tools(tools),
+            max_tokens=kwargs.get(&quot;max_tokens&quot;, 4096),
+        ) as stream:
+            async for event in stream:
+                yield self.convert_event(event)
+</code></pre>
+<h2>Tool Execution</h2>
+<h3>The Bridge: model_tools.py</h3>
+<p><code>model_tools.py</code> bridges between <code>AIAgent</code> and the tool registry:</p>
+<pre><code class="language-python"># model_tools.py (simplified)
+class ModelTools:
+    def __init__(self, registry, toolsets):
+        self.registry = registry
+        self.toolsets = toolsets
+
+    def get_tool_schemas(self) -&gt; list[dict]:
+        &quot;&quot;&quot;Get JSON schemas for all active tools (sent to LLM).&quot;&quot;&quot;
+        active_tools = self.toolsets.get_active_tools()
+        return [self.registry.get_schema(name) for name in active_tools]
+
+    async def execute(self, tool_call) -&gt; str:
+        &quot;&quot;&quot;Execute a tool call and return the result.&quot;&quot;&quot;
+        handler = self.registry.get_handler(tool_call.name)
+        return await handler(tool_call.arguments, self.context)
+</code></pre>
+<h3>Toolsets</h3>
+<p>Toolsets define which tools are available for different scenarios:</p>
+<pre><code class="language-python"># toolsets.py (simplified)
+TOOLSETS = {
+    &quot;default&quot;: [&quot;terminal&quot;, &quot;file_tools&quot;, &quot;web_search&quot;, &quot;memory&quot;],
+    &quot;coding&quot;: [&quot;terminal&quot;, &quot;file_tools&quot;, &quot;search_files&quot;, &quot;code_execution&quot;],
+    &quot;research&quot;: [&quot;web_search&quot;, &quot;web_extract&quot;, &quot;web_vision&quot;, &quot;memory&quot;],
+    &quot;full&quot;: [...]  # All tools
+}
+</code></pre>
+<p>The active toolset is configured per-session. The LLM only sees tools from the active set.</p>
+<h2>Prompt Assembly</h2>
+<p>The prompt builder constructs the system prompt from multiple sources:</p>
+<div class="mermaid">
+flowchart TD
+    BUILDER[Prompt Builder] --&gt; IDENTITY[SOUL.md&lt;br/&gt;AI persona]
+    BUILDER --&gt; USER[USER.md&lt;br/&gt;User profile]
+    BUILDER --&gt; SKILLS[Active Skills&lt;br/&gt;Skill descriptions]
+    BUILDER --&gt; MEMORY_CTX[Memory Context&lt;br/&gt;Relevant memories]
+    BUILDER --&gt; CONTEXT[Context Files&lt;br/&gt;.hermes.md, HERMES.md]
+    BUILDER --&gt; GUIDANCE[Memory Guidance&lt;br/&gt;How to use memory]
+
+    IDENTITY --&gt; SYSTEM[Final System Prompt]
+    USER --&gt; SYSTEM
+    SKILLS --&gt; SYSTEM
+    MEMORY_CTX --&gt; SYSTEM
+    CONTEXT --&gt; SYSTEM
+    GUIDANCE --&gt; SYSTEM
+
+</div>
+<h3>Assembly Order</h3>
+<pre><code class="language-python"># agent/prompt_builder.py (simplified)
+def build(self, identity, user, skills, memory, context_files, guidance):
+    sections = []
+
+    # 1. Identity (who the agent is)
+    sections.append(identity)  # SOUL.md contents
+
+    # 2. User profile (who they&#x27;re talking to)
+    if user:
+        sections.append(f&quot;## User Profile\n{user}&quot;)
+
+    # 3. Skills (what the agent can do procedurally)
+    if skills:
+        sections.append(&quot;## Available Skills\n&quot; + format_skills(skills))
+
+    # 4. Memory guidance (how to use memory tools)
+    if guidance:
+        sections.append(guidance)
+
+    # 5. Relevant memories (prefetched)
+    if memory:
+        sections.append(f&quot;## Relevant Context\n{memory}&quot;)
+
+    # 6. Project context files
+    for ctx in context_files:
+        sections.append(f&quot;## Project Context: {ctx.name}\n{ctx.content}&quot;)
+
+    return &quot;\n\n&quot;.join(sections)
+</code></pre>
+<h2>State Management</h2>
+<p><code>hermes_state.py</code> persists session state to disk:</p>
+<pre><code class="language-python"># State tracks:
+{
+    &quot;session_id&quot;: &quot;uuid&quot;,
+    &quot;model&quot;: &quot;claude-sonnet-4-6&quot;,
+    &quot;messages&quot;: [...],           # Full conversation history
+    &quot;turn_count&quot;: 15,
+    &quot;total_tokens&quot;: 45000,
+    &quot;total_cost&quot;: 0.35,
+    &quot;active_toolset&quot;: &quot;default&quot;,
+    &quot;skills&quot;: [&quot;check-ci&quot;, &quot;deploy&quot;],
+    &quot;memory_provider&quot;: &quot;honcho&quot;,
+    &quot;context_files&quot;: [&quot;.hermes.md&quot;],
+}
+</code></pre>
+<p>State is saved after each turn and restored on session resume.</p>
+<h2>Error Handling and Failover</h2>
+<h3>Error Classification</h3>
+<p><code>agent/error_classifier.py</code> classifies API errors to decide recovery strategy:</p>
+<table><tr><th>Error Class</th><th>Example</th><th>Action</th></tr><tr><td>`rate_limit`</td><td>429 Too Many Requests</td><td>Exponential backoff with jitter</td></tr><tr><td>`overloaded`</td><td>529 API Overloaded</td><td>Wait and retry</td></tr><tr><td>`context_too_long`</td><td>Context exceeds limit</td><td>Trigger compaction, retry</td></tr><tr><td>`auth_error`</td><td>401 Unauthorized</td><td>Switch credentials from pool</td></tr><tr><td>`transient`</td><td>500 Server Error</td><td>Retry up to 3 times</td></tr><tr><td>`permanent`</td><td>400 Bad Request</td><td>Report error, stop</td></tr></table>
+<h3>Credential Pool</h3>
+<p>For high-availability deployments, Hermes supports multiple API keys per provider. If one key is rate-limited, it rotates to the next:</p>
+<pre><code class="language-python"># agent/credential_pool.py (simplified)
+class CredentialPool:
+    def get_key(self, provider: str) -&gt; str:
+        keys = self.keys[provider]
+        # Round-robin with rate-limit awareness
+        for key in keys:
+            if not self.is_rate_limited(key):
+                return key
+        # All rate-limited -- return least-recently-limited
+        return min(keys, key=lambda k: self.rate_limit_until[k])
+</code></pre>
+<h2>Trajectory Recording</h2>
+<p>For RL training, AIAgent can record full conversation trajectories:</p>
+<pre><code class="language-python"># agent/trajectory.py
+class TrajectoryRecorder:
+    def record_turn(self, messages, tool_calls, tool_results, response):
+        self.trajectory.append({
+            &quot;input&quot;: messages,
+            &quot;tool_calls&quot;: tool_calls,
+            &quot;tool_results&quot;: tool_results,
+            &quot;output&quot;: response,
+            &quot;metadata&quot;: {
+                &quot;model&quot;: self.model,
+                &quot;tokens&quot;: self.token_count,
+                &quot;timestamp&quot;: datetime.now().isoformat(),
+            }
+        })
+
+    def save(self, path: str):
+        # ShareGPT-compatible format
+        write_json(path, {&quot;conversations&quot;: self.trajectory})
+</code></pre>
+<p>Trajectories are used by <code>batch_runner.py</code> to generate training data at scale.</p>
+<h2>Key Files</h2>
+<pre><code class="language-">run_agent.py                      AIAgent class (3,600+ lines)
+model_tools.py                    Tool dispatch bridge
+toolsets.py                       Toolset definitions
+hermes_state.py                   Session state persistence
+agent/
+  ├── anthropic_adapter.py        Anthropic adapter
+  ├── bedrock_adapter.py          Bedrock adapter
+  ├── gemini_native_adapter.py    Gemini adapter
+  ├── codex_responses_adapter.py  Codex adapter
+  ├── copilot_acp_client.py       Copilot adapter
+  ├── prompt_builder.py           System prompt assembly
+  ├── prompt_caching.py           Cache control tags
+  ├── model_metadata.py           Token limits, pricing
+  ├── error_classifier.py         Error classification
+  ├── credential_pool.py          API key rotation
+  ├── retry_utils.py              Backoff strategies
+  ├── usage_pricing.py            Cost estimation
+  └── trajectory.py               RL trajectory recording
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

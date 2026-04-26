@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi -- Extension System (Cross-Cutting) -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-pods.html">Pi -- pi-pods Package</a> <a href="08-web-ui.html">Pi -- pi-web-ui Package</a> <a href="09-tool-system.html">Pi -- Tool System (Cross-Cutting)</a></span> <a href="09-tool-system.html">← Pi -- Tool System (Cross-Cutting)</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pi -- Extension System (Cross-Cutting)</h1>
+<h2>Overview</h2>
+<p>Pi's extensibility has four mechanisms, from most powerful to most focused:</p>
+<ol><li><strong>Extensions</strong> -- TypeScript plugins that hook into the agent lifecycle</li><li><strong>Skills</strong> -- External CLI programs the agent can invoke</li><li><strong>Prompt Templates</strong> -- Customize system prompts per model/provider</li><li><strong>Themes</strong> -- Customize TUI and web UI styling</li></ol>
+<h2>Extensions</h2>
+<p>Extensions are TypeScript modules that can:</p>
+<ul><li>Hook into agent lifecycle events</li><li>Register custom tools</li><li>Define slash commands</li><li>Customize message rendering</li><li>Add keybindings</li></ul>
+<h3>Extension Interface</h3>
+<pre><code class="language-typescript">interface Extension {
+  name: string;
+
+  // Lifecycle hooks
+  onAgentStart?: (session: AgentSession) =&gt; void | Promise&lt;void&gt;;
+  onAgentEnd?: (session: AgentSession) =&gt; void | Promise&lt;void&gt;;
+  onTurnStart?: (turn: number) =&gt; void | Promise&lt;void&gt;;
+  onTurnEnd?: (turn: number) =&gt; void | Promise&lt;void&gt;;
+  onToolResult?: (tool: string, result: ToolResult) =&gt; void | Promise&lt;void&gt;;
+
+  // Custom tools
+  tools?: AgentTool[];
+
+  // Slash commands
+  commands?: Record&lt;string, CommandHandler&gt;;
+
+  // Message rendering
+  renderMessage?: (message: Message) =&gt; string | undefined;
+
+  // Keybindings
+  keybindings?: Record&lt;string, () =&gt; void&gt;;
+
+  // Context injection
+  getContext?: () =&gt; string | Promise&lt;string&gt;;
+}
+
+type CommandHandler = (args: string, session: AgentSession) =&gt; void | Promise&lt;void&gt;;
+</code></pre>
+<h3>Example Extension</h3>
+<pre><code class="language-typescript">// A git-aware extension that adds context and tools
+
+const gitExtension: Extension = {
+  name: &#x27;git-context&#x27;,
+
+  // Inject git context into system prompt
+  getContext: async () =&gt; {
+    const branch = await exec(&#x27;git branch --show-current&#x27;);
+    const status = await exec(&#x27;git status --short&#x27;);
+    const log = await exec(&#x27;git log --oneline -5&#x27;);
+
+    return `## Git Context
+Current branch: ${branch}
+Status:
+${status}
+Recent commits:
+${log}`;
+  },
+
+  // Add a /commit slash command
+  commands: {
+    &#x27;/commit&#x27;: async (args, session) =&gt; {
+      const message = args || &#x27;auto-generated commit message&#x27;;
+      await session.runTool(&#x27;bash&#x27;, {
+        command: `git add -A &amp;&amp; git commit -m &quot;${message}&quot;`,
+      });
+    },
+  },
+
+  // Add a git-diff tool
+  tools: [
+    {
+      name: &#x27;git_diff&#x27;,
+      description: &#x27;Show the git diff for staged or unstaged changes&#x27;,
+      parameters: Type.Object({
+        staged: Type.Optional(Type.Boolean({ default: false })),
+        file: Type.Optional(Type.String()),
+      }),
+      execute: async (id, params, signal) =&gt; {
+        const args = [&#x27;git&#x27;, &#x27;diff&#x27;];
+        if (params.staged) args.push(&#x27;--staged&#x27;);
+        if (params.file) args.push(params.file);
+        const result = await exec(args.join(&#x27; &#x27;));
+        return { content: result || &#x27;No changes.&#x27; };
+      },
+    },
+  ],
+};
+</code></pre>
+<h3>Extension Loading</h3>
+<p>Extensions are loaded from:</p>
+<ol><li>The <code>.pi/extensions/</code> directory in the project</li><li>npm packages that export an Extension</li><li>Programmatically via the SDK</li></ol>
+<div class="mermaid">
+flowchart TD
+    START[Agent Session Start] --&gt; DISCOVER[Discover Extensions]
+    DISCOVER --&gt; LOCAL[.pi/extensions/]
+    DISCOVER --&gt; NPM[npm packages]
+    DISCOVER --&gt; SDK[SDK registration]
+
+    LOCAL --&gt; LOAD[Load &amp; Validate]
+    NPM --&gt; LOAD
+    SDK --&gt; LOAD
+
+    LOAD --&gt; REGISTER[Register hooks, tools, commands]
+    REGISTER --&gt; READY[Agent ready with extensions]
+
+</div>
+<h2>Skills</h2>
+<p>Skills are external CLI programs that the agent can call as tools. They're simpler than extensions -- no TypeScript, no lifecycle hooks, just a program with a description file.</p>
+<h3>SKILL.md Format</h3>
+<pre><code class="language-markdown">---
+name: check-ci
+description: Check the CI pipeline status for a GitHub repository
+parameters:
+  repo:
+    type: string
+    description: Repository URL or owner/name
+    required: true
+  branch:
+    type: string
+    description: Branch to check
+    default: main
+---
+
+# check-ci
+
+Checks CI status and returns a summary of recent pipeline runs.
+
+## Usage
+
+```bash
+check-ci &lt;repo&gt; [branch]
+</code></pre>
+<h2>Output</h2>
+<p>Returns JSON with pipeline status, duration, and failure details.</p>
+<pre><code class="language-">### How Skills Work
+
+```mermaid
+sequenceDiagram
+    participant LLM
+    participant Agent
+    participant Skill as Skill CLI Program
+
+    LLM-&gt;&gt;Agent: tool_call: check-ci { repo: &quot;owner/repo&quot; }
+    Agent-&gt;&gt;Agent: Parse SKILL.md for parameters
+    Agent-&gt;&gt;Agent: Validate arguments
+    Agent-&gt;&gt;Skill: Execute: check-ci owner/repo
+    Skill-&gt;&gt;Skill: Run (any language, any runtime)
+    Skill--&gt;&gt;Agent: stdout/stderr output
+    Agent-&gt;&gt;LLM: tool_result: CI output
+</code></pre>
+<p>Skills are language-agnostic. The program can be written in Python, Bash, Go, or anything that runs from the command line.</p>
+<h3>Skill Storage</h3>
+<pre><code class="language-">.pi/skills/
+  ├── check-ci/
+  │   ├── SKILL.md
+  │   └── check-ci.sh
+  ├── deploy/
+  │   ├── SKILL.md
+  │   └── deploy.py
+  └── analyze-perf/
+      ├── SKILL.md
+      └── analyze-perf
+</code></pre>
+<h3>Self-Created Skills (pi-mom)</h3>
+<p>The Mom Slack bot can create its own skills during conversation. When it solves a recurring problem, it saves the solution as a skill for future use. This is Pi's "self-improvement" mechanism.</p>
+<h2>Prompt Templates</h2>
+<p>Customize the system prompt per model or scenario. Stored in <code>.pi/prompts/</code>:</p>
+<pre><code class="language-">.pi/prompts/
+  ├── default.md           Base system prompt
+  ├── claude-sonnet.md     Claude-specific prompt overrides
+  ├── gpt-4o.md            GPT-specific prompt overrides
+  └── code-review.md       Task-specific prompt
+</code></pre>
+<h3>Template Format</h3>
+<pre><code class="language-markdown">---
+name: code-review
+description: System prompt for code review tasks
+model: &quot;*&quot;
+---
+
+You are a senior code reviewer. Focus on:
+1. Security vulnerabilities
+2. Performance issues
+3. Code clarity and maintainability
+
+When reviewing, always check:
+- Input validation at system boundaries
+- Error handling for edge cases
+- Test coverage for new code
+</code></pre>
+<p>Templates are selected by matching the model name or by explicit user choice.</p>
+<h2>Themes</h2>
+<p>Customize the TUI appearance. Stored in <code>.pi/themes/</code>:</p>
+<pre><code class="language-typescript">// .pi/themes/nord.ts
+export const theme = {
+  name: &#x27;nord&#x27;,
+  colors: {
+    primary: &#x27;#88c0d0&#x27;,
+    secondary: &#x27;#81a1c1&#x27;,
+    accent: &#x27;#a3be8c&#x27;,
+    background: &#x27;#2e3440&#x27;,
+    foreground: &#x27;#eceff4&#x27;,
+    error: &#x27;#bf616a&#x27;,
+    warning: &#x27;#ebcb8b&#x27;,
+    muted: &#x27;#4c566a&#x27;,
+  },
+  codeTheme: &#x27;nord&#x27;,
+};
+</code></pre>
+<p>Themes affect:</p>
+<ul><li>Text colors in the terminal</li><li>Code block syntax highlighting theme</li><li>Spinner and loader colors</li><li>Border and separator colors</li></ul>
+<h2>Configuration Hierarchy</h2>
+<div class="mermaid">
+flowchart TD
+    GLOBAL[~/.pi/config&lt;br/&gt;Global settings] --&gt; PROJECT[.pi/config&lt;br/&gt;Project settings]
+    PROJECT --&gt; SESSION[Session settings&lt;br/&gt;Model, mode, etc.]
+    SESSION --&gt; RUNTIME[Runtime&lt;br/&gt;Extensions, skills, prompt]
+
+    GLOBAL --&gt; EXT_G[Global extensions]
+    GLOBAL --&gt; SKILL_G[Global skills]
+    GLOBAL --&gt; THEME_G[Global themes]
+
+    PROJECT --&gt; EXT_P[Project extensions]
+    PROJECT --&gt; SKILL_P[Project skills]
+    PROJECT --&gt; PROMPT_P[Project prompts]
+    PROJECT --&gt; CONTEXT[.clauderc context files]
+
+</div>
+<p>Project settings override global settings. Session settings override project settings. This lets you have global preferences while customizing per-project.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
