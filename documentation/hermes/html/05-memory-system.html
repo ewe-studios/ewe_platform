@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Memory System -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="02-agent-core.html">Hermes Agent -- Agent Core</a> <a href="03-tool-system.html">Hermes Agent -- Tool System</a> <a href="04-gateway.html">Hermes Agent -- Multi-Platform Gateway</a></span> <a href="04-gateway.html">← Hermes Agent -- Multi-Platform Gateway</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Memory System</h1>
+<h2>Overview</h2>
+<p>Hermes has a layered memory system: built-in markdown files for persistent knowledge, pluggable external providers for advanced features, and session search for recalling past conversations.</p>
+<div class="mermaid">
+flowchart TD
+    MANAGER[Memory Manager] --&gt; BUILTIN[Built-in Memory]
+    MANAGER --&gt; EXTERNAL[External Provider&lt;br/&gt;max 1 active]
+    MANAGER --&gt; SEARCH[Session Search]
+
+    BUILTIN --&gt; MEMORY_MD[MEMORY.md&lt;br/&gt;Working memory]
+    BUILTIN --&gt; USER_MD[USER.md&lt;br/&gt;User profile]
+    BUILTIN --&gt; SOUL_MD[SOUL.md&lt;br/&gt;Agent persona]
+    BUILTIN --&gt; PROJECT_MD[.hermes.md&lt;br/&gt;Project context]
+
+    EXTERNAL --&gt; HONCHO[Honcho&lt;br/&gt;Dialectic user modeling]
+    EXTERNAL --&gt; MEM0[Mem0&lt;br/&gt;API-based memory]
+    EXTERNAL --&gt; HINDSIGHT[Hindsight&lt;br/&gt;Vector search]
+    EXTERNAL --&gt; RETAINDB[RetainDB]
+    EXTERNAL --&gt; OPENVIKING[OpenViking]
+    EXTERNAL --&gt; BYTEROVER[ByteRover]
+    EXTERNAL --&gt; HOLOGRAPHIC[Holographic]
+    EXTERNAL --&gt; SUPERMEMORY[SuperMemory]
+
+    SEARCH --&gt; PAST[Past Conversations&lt;br/&gt;Indexed by content]
+
+</div>
+<h2>Memory Manager</h2>
+<p>The memory manager orchestrates all memory sources. It runs before each LLM call (prefetch) and after (sync).</p>
+<pre><code class="language-python"># agent/memory_manager.py (simplified)
+class MemoryManager:
+    def __init__(self, builtin_memory, external_provider=None):
+        self.builtin = builtin_memory
+        self.external = external_provider
+
+    async def prefetch(self, messages):
+        &quot;&quot;&quot;Called before each LLM call. Gathers relevant memories.&quot;&quot;&quot;
+        context_parts = []
+
+        # 1. Read built-in memory files
+        context_parts.append(self.builtin.read_all())
+
+        # 2. Query external provider for relevant memories
+        if self.external:
+            query = self.extract_query(messages)
+            memories = await self.external.retrieve(query)
+            context_parts.append(self.format_memories(memories))
+
+        self.current_context = &quot;\n\n&quot;.join(context_parts)
+
+    async def sync(self, messages):
+        &quot;&quot;&quot;Called after each LLM call. Saves new memories.&quot;&quot;&quot;
+        # Check if agent wrote to MEMORY.md via memory tool
+        if self.builtin.has_pending_writes():
+            self.builtin.flush_writes()
+
+        # Sync with external provider
+        if self.external:
+            await self.external.sync(messages)
+
+    def get_context(self) -&gt; str:
+        &quot;&quot;&quot;Returns prefetched memory context for system prompt.&quot;&quot;&quot;
+        return self.current_context
+</code></pre>
+<h3>Lifecycle in the Agent Loop</h3>
+<div class="mermaid">
+sequenceDiagram
+    participant Agent as AIAgent
+    participant MM as Memory Manager
+    participant Builtin as MEMORY.md
+    participant External as External Provider
+    participant LLM
+
+    Agent-&gt;&gt;MM: prefetch(messages)
+    MM-&gt;&gt;Builtin: Read MEMORY.md, USER.md, SOUL.md
+    Builtin--&gt;&gt;MM: File contents
+    MM-&gt;&gt;External: retrieve(query from messages)
+    External--&gt;&gt;MM: Relevant memories
+    MM--&gt;&gt;Agent: Memory context ready
+
+    Agent-&gt;&gt;LLM: Call with system prompt (includes memory)
+    LLM--&gt;&gt;Agent: Response (may include memory tool calls)
+
+    Agent-&gt;&gt;MM: sync(messages)
+    MM-&gt;&gt;Builtin: Flush MEMORY.md writes (if any)
+    MM-&gt;&gt;External: sync(new messages)
+
+</div>
+<h2>Built-in Memory: Markdown Files</h2>
+<h3>MEMORY.md</h3>
+<p>The primary working memory. The agent reads it on every conversation and can update it via the memory tool.</p>
+<pre><code class="language-markdown"># Memory
+
+## User Preferences
+- Prefers concise responses
+- Uses Arch Linux, btw
+- Primary language: Rust
+
+## Project Context
+- Currently working on ewe_platform
+- Uses cargo workspaces
+- CI runs on GitHub Actions
+
+## Ongoing Tasks
+- Migration from OpenSSL to aws-lc-rs
+- Documentation overhaul
+</code></pre>
+<h3>USER.md</h3>
+<p>Stores information about the human user:</p>
+<pre><code class="language-markdown"># User Profile
+
+Name: Alex
+Role: Software engineer
+Expertise: Rust, systems programming
+Communication style: Direct, technical
+</code></pre>
+<h3>SOUL.md</h3>
+<p>Defines the agent's persona:</p>
+<pre><code class="language-markdown"># Hermes
+
+You are Hermes, an AI assistant created by Nous Research.
+You are helpful, direct, and technically competent.
+You prefer working solutions over theoretical discussions.
+You always verify your work before reporting it as done.
+</code></pre>
+<h3>.hermes.md / HERMES.md</h3>
+<p>Project-specific context files in the repository root. Similar to CLAUDE.md but for Hermes.</p>
+<h2>External Memory Providers</h2>
+<p>Only one external provider can be active at a time. The provider implements the <code>MemoryProvider</code> ABC:</p>
+<pre><code class="language-python"># agent/memory_provider.py
+from abc import ABC, abstractmethod
+
+class MemoryProvider(ABC):
+    @abstractmethod
+    async def retrieve(self, query: str, limit: int = 10) -&gt; list[Memory]:
+        &quot;&quot;&quot;Retrieve relevant memories for a query.&quot;&quot;&quot;
+        ...
+
+    @abstractmethod
+    async def store(self, memory: Memory) -&gt; None:
+        &quot;&quot;&quot;Store a new memory.&quot;&quot;&quot;
+        ...
+
+    @abstractmethod
+    async def sync(self, messages: list[dict]) -&gt; None:
+        &quot;&quot;&quot;Sync conversation messages to memory.&quot;&quot;&quot;
+        ...
+
+    @abstractmethod
+    async def search(self, query: str) -&gt; list[Memory]:
+        &quot;&quot;&quot;Search memories by content.&quot;&quot;&quot;
+        ...
+</code></pre>
+<h3>Honcho (Dialectic User Modeling)</h3>
+<pre><code class="language-python"># plugins/honcho/provider.py
+class HonchoProvider(MemoryProvider):
+    &quot;&quot;&quot;Uses Honcho AI for dialectic user modeling.
+    Builds a dynamic model of the user through conversation.&quot;&quot;&quot;
+
+    async def retrieve(self, query, limit=10):
+        return await self.client.get_metamemories(
+            user_id=self.user_id,
+            query=query,
+            top_k=limit,
+        )
+</code></pre>
+<h3>Mem0</h3>
+<pre><code class="language-python"># plugins/mem0/provider.py
+class Mem0Provider(MemoryProvider):
+    &quot;&quot;&quot;Uses Mem0 API for persistent memory.&quot;&quot;&quot;
+
+    async def retrieve(self, query, limit=10):
+        return await self.client.search(query, limit=limit, user_id=self.user_id)
+</code></pre>
+<h3>Hindsight</h3>
+<pre><code class="language-python"># plugins/hindsight/provider.py
+class HindsightProvider(MemoryProvider):
+    &quot;&quot;&quot;Long-term memory with local vector search.&quot;&quot;&quot;
+
+    async def retrieve(self, query, limit=10):
+        embeddings = await self.embed(query)
+        return self.vector_store.search(embeddings, top_k=limit)
+</code></pre>
+<h2>Memory Tool</h2>
+<p>The agent uses the <code>memory</code> tool to read/write MEMORY.md:</p>
+<pre><code class="language-python"># tools/memory_tool.py
+ToolRegistry.register(
+    name=&quot;memory&quot;,
+    description=&quot;Read or update the working memory (MEMORY.md)&quot;,
+    input_schema={
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;action&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;enum&quot;: [&quot;read&quot;, &quot;write&quot;, &quot;append&quot;],
+            },
+            &quot;content&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;description&quot;: &quot;Content to write/append (for write/append actions)&quot;,
+            },
+            &quot;section&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;description&quot;: &quot;Optional: specific section to update&quot;,
+            },
+        },
+        &quot;required&quot;: [&quot;action&quot;],
+    },
+    handler=memory_handler,
+)
+</code></pre>
+<h2>Session Search</h2>
+<p>The <code>session_search</code> tool lets the agent search past conversations:</p>
+<pre><code class="language-python"># tools/session_search_tool.py
+async def session_search_handler(params, context):
+    query = params[&quot;query&quot;]
+    limit = params.get(&quot;limit&quot;, 5)
+
+    # Search across all saved sessions
+    results = []
+    for session_file in glob(&quot;sessions/**/*.jsonl&quot;):
+        messages = read_jsonl(session_file)
+        for msg in messages:
+            if query.lower() in msg.get(&quot;content&quot;, &quot;&quot;).lower():
+                results.append({
+                    &quot;session&quot;: session_file,
+                    &quot;role&quot;: msg[&quot;role&quot;],
+                    &quot;content&quot;: msg[&quot;content&quot;][:200],
+                    &quot;timestamp&quot;: msg.get(&quot;timestamp&quot;),
+                })
+
+    results.sort(key=lambda r: r.get(&quot;timestamp&quot;, &quot;&quot;), reverse=True)
+    return format_results(results[:limit])
+</code></pre>
+<h2>Key Files</h2>
+<pre><code class="language-">agent/
+  ├── memory_manager.py       Memory orchestration
+  ├── memory_provider.py      ABC for memory providers
+tools/
+  ├── memory_tool.py          MEMORY.md operations
+  ├── session_search_tool.py  Past conversation search
+plugins/
+  ├── honcho/                 Honcho memory provider
+  ├── mem0/                   Mem0 memory provider
+  ├── hindsight/              Hindsight (vector search)
+  ├── retaindb/               RetainDB provider
+  ├── openviking/             OpenViking provider
+  ├── byterover/              ByteRover provider
+  ├── holographic/            Holographic provider
+  └── supermemory/            SuperMemory provider
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

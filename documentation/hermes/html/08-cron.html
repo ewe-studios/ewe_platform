@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Cron & Scheduling -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="05-memory-system.html">Hermes Agent -- Memory System</a> <a href="06-context-engine.html">Hermes Agent -- Context Engine</a> <a href="07-cli-tui.html">Hermes Agent -- CLI & TUI</a></span> <a href="07-cli-tui.html">← Hermes Agent -- CLI & TUI</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Cron & Scheduling</h1>
+<h2>Purpose</h2>
+<p>Hermes can run tasks on a schedule. Cron jobs trigger agent runs with specific prompts, delivering results to configured platforms. This enables automated monitoring, reporting, and maintenance.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    GATEWAY[Gateway Runner] --&gt; SCHEDULER[Cron Scheduler&lt;br/&gt;Ticks every 60s]
+    SCHEDULER --&gt; CHECK{Any jobs due?}
+    CHECK --&gt;|No| WAIT[Wait for next tick]
+    CHECK --&gt;|Yes| LOAD[Load job config]
+    LOAD --&gt; AGENT[Create AIAgent]
+    AGENT --&gt; RUN[Execute job task]
+    RUN --&gt; DELIVER[Deliver result to platform]
+    DELIVER --&gt; LOG[Log execution]
+    LOG --&gt; WAIT
+
+</div>
+<h2>Job Types</h2>
+<table><tr><th>Type</th><th>Description</th><th>Example</th></tr><tr><td>**Cron expression**</td><td>Standard cron syntax</td><td>`0 9 * * 1-5` (weekdays at 9am)</td></tr><tr><td>**Interval**</td><td>Run every N minutes/hours</td><td>`every 30 minutes`</td></tr><tr><td>**One-shot**</td><td>Run once at a specific time</td><td>`at 2026-04-26T15:00:00`</td></tr></table>
+<h2>Job Storage</h2>
+<p>Jobs are stored as JSONL in <code>~/.hermes/cron/jobs.jsonl</code>:</p>
+<pre><code class="language-jsonl">{&quot;id&quot;: &quot;job_1&quot;, &quot;name&quot;: &quot;morning-report&quot;, &quot;schedule&quot;: &quot;0 9 * * *&quot;, &quot;task&quot;: &quot;Generate a summary of yesterday&#x27;s GitHub activity&quot;, &quot;platform&quot;: &quot;telegram&quot;, &quot;channel&quot;: &quot;123456&quot;, &quot;enabled&quot;: true, &quot;created&quot;: &quot;2026-04-20T10:00:00Z&quot;}
+{&quot;id&quot;: &quot;job_2&quot;, &quot;name&quot;: &quot;ci-check&quot;, &quot;schedule&quot;: &quot;*/30 * * * *&quot;, &quot;task&quot;: &quot;Check CI pipeline status for ewe_platform&quot;, &quot;platform&quot;: &quot;discord&quot;, &quot;channel&quot;: &quot;789012&quot;, &quot;enabled&quot;: true, &quot;created&quot;: &quot;2026-04-21T08:00:00Z&quot;}
+{&quot;id&quot;: &quot;job_3&quot;, &quot;name&quot;: &quot;one-time-reminder&quot;, &quot;schedule&quot;: &quot;at 2026-04-26T15:00:00&quot;, &quot;task&quot;: &quot;Remind me to review the PR&quot;, &quot;platform&quot;: &quot;telegram&quot;, &quot;channel&quot;: &quot;123456&quot;, &quot;enabled&quot;: true, &quot;created&quot;: &quot;2026-04-26T10:00:00Z&quot;}
+</code></pre>
+<h2>Scheduler</h2>
+<pre><code class="language-python"># cron/scheduler.py (simplified)
+class CronScheduler:
+    def __init__(self, jobs_path=&quot;~/.hermes/cron/jobs.jsonl&quot;):
+        self.jobs = load_jobs(jobs_path)
+
+    async def start(self, tick_interval=60):
+        &quot;&quot;&quot;Run the scheduler loop. Checks every tick_interval seconds.&quot;&quot;&quot;
+        while True:
+            now = datetime.now()
+
+            for job in self.jobs:
+                if not job.enabled:
+                    continue
+
+                if self.is_due(job, now):
+                    await self.execute_job(job)
+
+            await asyncio.sleep(tick_interval)
+
+    def is_due(self, job, now):
+        if job.schedule.startswith(&quot;at &quot;):
+            # One-shot: check if time has passed
+            target = parse_datetime(job.schedule[3:])
+            return now &gt;= target and not job.executed
+
+        elif job.schedule.startswith(&quot;every &quot;):
+            # Interval: check if enough time has passed
+            interval = parse_interval(job.schedule[6:])
+            return (now - job.last_run) &gt;= interval
+
+        else:
+            # Cron expression
+            return cron_matches(job.schedule, now)
+
+    async def execute_job(self, job):
+        &quot;&quot;&quot;Run a job: create agent, execute task, deliver result.&quot;&quot;&quot;
+        agent = AIAgent(
+            model=job.model or config.default_model,
+            tools=job.tools or config.default_toolset,
+        )
+
+        result = await agent.run(job.task)
+
+        # Deliver to platform
+        await deliver(job.platform, job.channel, result)
+
+        # Update last_run
+        job.last_run = datetime.now()
+
+        # Disable one-shot jobs after execution
+        if job.schedule.startswith(&quot;at &quot;):
+            job.enabled = False
+            job.executed = True
+
+        self.save_jobs()
+</code></pre>
+<h2>Job Management</h2>
+<h3>Via CLI</h3>
+<pre><code class="language-bash"># List jobs
+hermes cron list
+
+# Create a job
+hermes cron add --name &quot;ci-check&quot; --schedule &quot;*/30 * * * *&quot; \
+  --task &quot;Check CI pipeline status&quot; --platform telegram --channel 123456
+
+# Pause a job
+hermes cron pause ci-check
+
+# Resume a job
+hermes cron resume ci-check
+
+# Trigger a job manually
+hermes cron trigger ci-check
+
+# Delete a job
+hermes cron delete ci-check
+</code></pre>
+<h3>Via Agent Tool</h3>
+<p>The agent can create cron jobs during conversation:</p>
+<pre><code class="language-python"># tools/cronjob_tools.py
+ToolRegistry.register(
+    name=&quot;create_cronjob&quot;,
+    description=&quot;Create a scheduled task&quot;,
+    input_schema={
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;name&quot;: {&quot;type&quot;: &quot;string&quot;},
+            &quot;schedule&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Cron expression, interval, or &#x27;at &lt;datetime&gt;&#x27;&quot;},
+            &quot;task&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Task description for the agent&quot;},
+            &quot;platform&quot;: {&quot;type&quot;: &quot;string&quot;},
+            &quot;channel&quot;: {&quot;type&quot;: &quot;string&quot;},
+        },
+        &quot;required&quot;: [&quot;name&quot;, &quot;schedule&quot;, &quot;task&quot;],
+    },
+    handler=create_cronjob_handler,
+)
+</code></pre>
+<p>Example conversation:</p>
+<pre><code class="language-">User: &quot;Check the deployment status every hour and alert me on Telegram&quot;
+Agent: [calls create_cronjob with schedule=&quot;0 * * * *&quot;, task=&quot;Check deployment status...&quot;, platform=&quot;telegram&quot;]
+Agent: &quot;Done. Created cron job &#x27;deployment-check&#x27; running hourly. Results will be sent to your Telegram.&quot;
+</code></pre>
+<h2>Job Isolation</h2>
+<p>Each job execution is isolated:</p>
+<ul><li>Fresh AIAgent instance (no context from previous runs)</li><li>Own message history (not shared with other jobs)</li><li>Separate tool execution context</li><li>Results delivered to the configured platform only</li></ul>
+<p>This prevents jobs from interfering with each other or leaking context.</p>
+<h2>Job Execution Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Scheduler
+    participant Job as Job Config
+    participant Agent as AIAgent
+    participant LLM
+    participant Platform as Telegram/Discord
+
+    Scheduler-&gt;&gt;Scheduler: Tick (every 60s)
+    Scheduler-&gt;&gt;Job: Check: is_due?
+    Job--&gt;&gt;Scheduler: Yes (cron matches)
+
+    Scheduler-&gt;&gt;Agent: Create fresh AIAgent
+    Scheduler-&gt;&gt;Agent: run(job.task)
+    Agent-&gt;&gt;LLM: Stream with tools
+    LLM--&gt;&gt;Agent: Tool calls + response
+    Agent--&gt;&gt;Scheduler: Final result text
+
+    Scheduler-&gt;&gt;Platform: deliver(channel, result)
+    Platform--&gt;&gt;Scheduler: Delivered
+    Scheduler-&gt;&gt;Job: Update last_run timestamp
+
+</div>
+<h2>Key Files</h2>
+<pre><code class="language-">cron/
+  ├── __init__.py         Public API exports
+  ├── scheduler.py        Tick scheduler (runs in gateway)
+  └── jobs.py             Job CRUD (create, update, pause, trigger, delete)
+hermes_cli/
+  └── cron.py             CLI subcommands for cron management
+tools/
+  └── cronjob_tools.py    Agent tool for creating/managing jobs
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

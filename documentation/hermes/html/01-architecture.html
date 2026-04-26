@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Architecture -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Hermes Agent -- Overview</a></span> <a href="00-overview.html">← Hermes Agent -- Overview</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Architecture</h1>
+<h2>System Layers</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;User Interfaces&quot;
+        CLI[CLI/TUI&lt;br/&gt;hermes_cli/]
+        ACP[ACP Adapter&lt;br/&gt;acp_adapter/]
+        GW[Gateway&lt;br/&gt;gateway/]
+    end
+
+    subgraph &quot;Core&quot;
+        AGENT[AIAgent&lt;br/&gt;run_agent.py]
+        TOOLS_REG[Tool Registry&lt;br/&gt;tools/registry.py]
+        MODEL_TOOLS[Tool Bridge&lt;br/&gt;model_tools.py]
+        TOOLSETS[Toolset Manager&lt;br/&gt;toolsets.py]
+    end
+
+    subgraph &quot;LLM Layer&quot;
+        ANTHROPIC[Anthropic Adapter]
+        BEDROCK[Bedrock Adapter]
+        GEMINI[Gemini Adapter]
+        CODEX[Codex Adapter]
+        COPILOT[Copilot ACP Client]
+    end
+
+    subgraph &quot;Intelligence&quot;
+        MEMORY[Memory Manager&lt;br/&gt;agent/memory_manager.py]
+        CONTEXT[Context Engine&lt;br/&gt;agent/context_engine.py]
+        PROMPT[Prompt Builder&lt;br/&gt;agent/prompt_builder.py]
+        SKILLS_SYS[Skills System&lt;br/&gt;agent/skill_utils.py]
+    end
+
+    subgraph &quot;Tools (40+)&quot;
+        TERM[Terminal]
+        BROWSER[Browser]
+        FILES[File Operations]
+        WEB[Web Search/Extract]
+        MEM_TOOL[Memory Tool]
+        DELEGATE[Delegate/Subagent]
+        MEDIA[Media/Vision]
+        API_TOOLS[API Tools]
+    end
+
+    subgraph &quot;Plugins&quot;
+        MEM_PLUGINS[Memory Providers&lt;br/&gt;Honcho, Mem0, Hindsight]
+        CTX_PLUGINS[Context Engines]
+        IMG_PLUGINS[Image Generation]
+    end
+
+    subgraph &quot;Scheduling&quot;
+        CRON[Cron Scheduler&lt;br/&gt;cron/]
+    end
+
+    CLI --&gt; AGENT
+    ACP --&gt; AGENT
+    GW --&gt; AGENT
+    GW --&gt; CRON
+
+    AGENT --&gt; MODEL_TOOLS
+    MODEL_TOOLS --&gt; TOOLS_REG
+    TOOLS_REG --&gt; TERM &amp; BROWSER &amp; FILES &amp; WEB &amp; MEM_TOOL &amp; DELEGATE &amp; MEDIA &amp; API_TOOLS
+    AGENT --&gt; TOOLSETS
+
+    AGENT --&gt; ANTHROPIC &amp; BEDROCK &amp; GEMINI &amp; CODEX &amp; COPILOT
+    AGENT --&gt; MEMORY
+    AGENT --&gt; CONTEXT
+    AGENT --&gt; PROMPT
+    AGENT --&gt; SKILLS_SYS
+
+    MEMORY --&gt; MEM_PLUGINS
+    CONTEXT --&gt; CTX_PLUGINS
+    MEDIA -.-&gt; IMG_PLUGINS
+
+</div>
+<h2>Module Dependencies</h2>
+<h3>Core → Everything Flows Through AIAgent</h3>
+<p><code>run_agent.py</code> contains the <code>AIAgent</code> class -- the central orchestrator. It's 3,600+ lines and coordinates:</p>
+<ul><li>LLM calls via adapter selection</li><li>Tool dispatch via the registry</li><li>Memory reading/writing</li><li>Context compression</li><li>Prompt assembly</li><li>Skill loading</li></ul>
+<p>Every user interface (CLI, gateway, ACP) creates an <code>AIAgent</code> instance and runs it.</p>
+<h3>LLM Adapters → Provider Abstraction</h3>
+<p>Each adapter converts Hermes's internal message format to/from a provider's API:</p>
+<table><tr><th>Adapter</th><th>Provider</th><th>API Format</th></tr><tr><td>`anthropic_adapter.py`</td><td>Anthropic</td><td>Messages API</td></tr><tr><td>`bedrock_adapter.py`</td><td>AWS Bedrock</td><td>Bedrock Messages</td></tr><tr><td>`gemini_native_adapter.py`</td><td>Google Gemini</td><td>Gemini API</td></tr><tr><td>`gemini_cloudcode_adapter.py`</td><td>Google Cloud Code</td><td>Cloud API</td></tr><tr><td>`codex_responses_adapter.py`</td><td>OpenAI Codex</td><td>Responses API</td></tr><tr><td>`copilot_acp_client.py`</td><td>GitHub Copilot</td><td>ACP Protocol</td></tr></table>
+<p>The default path uses the OpenAI SDK's chat completions format. Adapters handle cases where a provider's API diverges significantly.</p>
+<h3>Tool Registry → Self-Registration</h3>
+<p>Tools self-register on import:</p>
+<pre><code class="language-python"># In tools/terminal_tool.py
+from tools.registry import registry
+
+@registry.register(
+    name=&quot;terminal&quot;,
+    description=&quot;Execute shell commands&quot;,
+    input_schema={...}
+)
+async def terminal_tool(params, context):
+    ...
+</code></pre>
+<p>When <code>tools/__init__.py</code> is imported, it imports all tool modules, which triggers registration. The registry then provides tool schemas (for LLM) and dispatch (for execution).</p>
+<h3>Gateway → Per-Platform Adapters</h3>
+<p>The gateway creates per-platform adapter instances based on configuration:</p>
+<div class="mermaid">
+flowchart TD
+    GW[Gateway Runner] --&gt; CONFIG[Load Config]
+    CONFIG --&gt; ADAPTERS{Create Adapters}
+    ADAPTERS --&gt; TG[Telegram Adapter]
+    ADAPTERS --&gt; DC[Discord Adapter]
+    ADAPTERS --&gt; SL[Slack Adapter]
+    ADAPTERS --&gt; WA[WhatsApp Adapter]
+    ADAPTERS --&gt; SIG[Signal Adapter]
+    ADAPTERS --&gt; MTX[Matrix Adapter]
+    ADAPTERS --&gt; EMAIL[Email Adapter]
+
+    TG --&gt; SESSION_TG[User Sessions]
+    DC --&gt; SESSION_DC[User Sessions]
+    SL --&gt; SESSION_SL[User Sessions]
+
+</div>
+<p>Each adapter handles platform-specific:</p>
+<ul><li>Authentication</li><li>Message format conversion</li><li>Media upload/download</li><li>Thread/reply handling</li><li>Rate limiting</li></ul>
+<h3>Memory → Layered Architecture</h3>
+<div class="mermaid">
+flowchart TD
+    AGENT[AIAgent] --&gt; MANAGER[Memory Manager]
+    MANAGER --&gt; BUILTIN[Built-in Memory&lt;br/&gt;MEMORY.md files]
+    MANAGER --&gt; EXTERNAL[External Provider&lt;br/&gt;max 1 active]
+
+    EXTERNAL --&gt; HONCHO[Honcho]
+    EXTERNAL --&gt; MEM0[Mem0]
+    EXTERNAL --&gt; HINDSIGHT[Hindsight]
+
+    MANAGER --&gt; SEARCH[Session Search&lt;br/&gt;Past conversations]
+
+    BUILTIN --&gt; GLOBAL[Global MEMORY.md]
+    BUILTIN --&gt; USER_MEM[USER.md]
+    BUILTIN --&gt; SOUL[SOUL.md]
+    BUILTIN --&gt; PROJECT[.hermes.md]
+
+</div>
+<p>The memory manager orchestrates one built-in memory system (markdown files) plus at most one external provider. It prefetches relevant memories before each LLM call and syncs updates after.</p>
+<h2>Communication Patterns</h2>
+<h3>1. Synchronous: CLI → Agent → LLM</h3>
+<p>Direct function calls. The CLI calls <code>AIAgent.run()</code>, which calls the LLM adapter, which makes HTTP requests. Streaming responses flow back through callbacks.</p>
+<h3>2. Async: Gateway → Agent → Platform</h3>
+<p>The gateway uses asyncio. Incoming messages trigger async agent runs. Responses are delivered back to the originating platform asynchronously.</p>
+<h3>3. Self-Registration: Tool Loading</h3>
+<p>Tools register themselves when their module is imported. The registry maintains a dictionary of name → handler mappings. No central configuration file lists all tools.</p>
+<h3>4. Plugin Discovery: Abstract Base Classes</h3>
+<p>Plugins implement abstract base classes (<code>ContextEngine</code>, <code>MemoryProvider</code>). The plugin loader discovers them by package name and instantiates the configured implementation.</p>
+<h2>Key Files Map</h2>
+<pre><code class="language-">hermes-agent/
+├── run_agent.py                 AIAgent class (3,600+ lines, core orchestrator)
+├── model_tools.py               Tool dispatch bridge
+├── toolsets.py                  Toolset composition
+├── hermes_state.py              Session state persistence
+├── hermes_constants.py          Global paths and constants
+├── agent/
+│   ├── anthropic_adapter.py     Anthropic LLM adapter
+│   ├── bedrock_adapter.py       AWS Bedrock adapter
+│   ├── gemini_native_adapter.py Gemini adapter
+│   ├── context_engine.py        ABC for context compression
+│   ├── context_compressor.py    Default compressor implementation
+│   ├── memory_manager.py        Memory orchestration
+│   ├── memory_provider.py       ABC for memory providers
+│   ├── prompt_builder.py        System prompt assembly
+│   ├── prompt_caching.py        Anthropic cache control
+│   ├── model_metadata.py        Token limits, pricing
+│   ├── skill_utils.py           Skill loading and execution
+│   └── credential_pool.py       API key management
+├── tools/
+│   ├── registry.py              Central tool registry
+│   ├── __init__.py              Imports all tool modules (triggers registration)
+│   ├── terminal_tool.py         Shell execution
+│   ├── browser_tool.py          Browser automation
+│   ├── file_tools.py            File operations
+│   ├── web_search_tool.py       Web search
+│   ├── memory_tool.py           Memory operations
+│   ├── delegate_tool.py         Subagent spawning
+│   └── ... (30+ more)
+├── hermes_cli/
+│   ├── main.py                  CLI entry point
+│   ├── commands.py              Interactive commands
+│   ├── config.py                Configuration loading
+│   └── auth.py                  Authentication
+├── gateway/
+│   ├── run.py                   Gateway runner
+│   ├── session.py               Per-user sessions
+│   ├── delivery.py              Message delivery
+│   └── platforms/               Platform adapters
+├── cron/
+│   ├── scheduler.py             Cron tick scheduler
+│   └── jobs.py                  Job CRUD
+└── plugins/
+    ├── honcho/                  Honcho memory provider
+    ├── hindsight/               Hindsight memory provider
+    ├── mem0/                    Mem0 memory provider
+    └── image_gen/               Image generation plugins
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

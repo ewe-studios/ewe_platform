@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Tool System -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Hermes Agent -- Overview</a> <a href="01-architecture.html">Hermes Agent -- Architecture</a> <a href="02-agent-core.html">Hermes Agent -- Agent Core</a></span> <a href="02-agent-core.html">← Hermes Agent -- Agent Core</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Tool System</h1>
+<h2>Overview</h2>
+<p>Hermes ships with 40+ tools organized by category. Tools self-register with a central registry. The LLM sees JSON schemas and returns tool calls. The registry dispatches execution to the correct handler.</p>
+<h2>Tool Registry</h2>
+<pre><code class="language-python"># tools/registry.py (simplified)
+class ToolRegistry:
+    _tools: dict[str, ToolDef] = {}
+
+    @classmethod
+    def register(cls, name, description, input_schema, handler):
+        cls._tools[name] = ToolDef(
+            name=name,
+            description=description,
+            input_schema=input_schema,
+            handler=handler,
+        )
+
+    @classmethod
+    def get_schemas(cls) -&gt; list[dict]:
+        &quot;&quot;&quot;Return JSON schemas for all registered tools (sent to LLM).&quot;&quot;&quot;
+        return [
+            {
+                &quot;name&quot;: t.name,
+                &quot;description&quot;: t.description,
+                &quot;input_schema&quot;: t.input_schema,
+            }
+            for t in cls._tools.values()
+        ]
+
+    @classmethod
+    async def dispatch(cls, name: str, params: dict, context) -&gt; str:
+        tool = cls._tools[name]
+        return await tool.handler(params, context)
+</code></pre>
+<h3>Self-Registration Pattern</h3>
+<p>Each tool module registers itself when imported:</p>
+<pre><code class="language-python"># tools/terminal_tool.py
+from tools.registry import ToolRegistry
+
+async def terminal_handler(params, context):
+    command = params[&quot;command&quot;]
+    # Execute command, capture output
+    result = await run_command(command, cwd=context.cwd, timeout=params.get(&quot;timeout&quot;, 120))
+    return result.stdout + result.stderr
+
+ToolRegistry.register(
+    name=&quot;terminal&quot;,
+    description=&quot;Execute a shell command and return its output&quot;,
+    input_schema={
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;command&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;The shell command to execute&quot;},
+            &quot;timeout&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Timeout in seconds&quot;, &quot;default&quot;: 120},
+        },
+        &quot;required&quot;: [&quot;command&quot;],
+    },
+    handler=terminal_handler,
+)
+</code></pre>
+<p><code>tools/__init__.py</code> imports all tool modules, which triggers registration for all tools.</p>
+<h2>Tool Categories</h2>
+<h3>Terminal & Code Execution</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`terminal`</td><td>Execute shell commands</td></tr><tr><td>`code_execution`</td><td>Run code in sandboxed environment</td></tr><tr><td>`process`</td><td>Manage long-running processes</td></tr></table>
+<h3>File Operations</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`file_tools`</td><td>Read, write, create, delete files</td></tr><tr><td>`file_operations`</td><td>Move, copy, rename files</td></tr><tr><td>`search_files`</td><td>Search files by name or content</td></tr><tr><td>`patch_parser`</td><td>Apply unified diff patches</td></tr></table>
+<h3>Browser Automation</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`browser`</td><td>Navigate, click, type in browser</td></tr><tr><td>`browser_cdp`</td><td>Chrome DevTools Protocol (low-level)</td></tr><tr><td>`browser_supervisor`</td><td>Manage browser lifecycle</td></tr><tr><td>`browser_camofox`</td><td>Stealth browser (anti-detection)</td></tr><tr><td>`browser_dialog`</td><td>Handle browser dialogs/alerts</td></tr></table>
+<h3>Web</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`web_search`</td><td>Search the web (multiple engines)</td></tr><tr><td>`web_extract`</td><td>Extract content from URLs</td></tr><tr><td>`web_vision`</td><td>Screenshot and analyze web pages</td></tr></table>
+<h3>Memory & Knowledge</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`memory`</td><td>Read/write MEMORY.md files</td></tr><tr><td>`session_search`</td><td>Search past conversation history</td></tr></table>
+<h3>Media</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`image_generation`</td><td>Generate images (DALL-E, Grok, etc.)</td></tr><tr><td>`vision`</td><td>Analyze images</td></tr><tr><td>`text_to_speech`</td><td>Convert text to audio</td></tr></table>
+<h3>APIs & Integrations</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`mcp`</td><td>Model Context Protocol server calls</td></tr><tr><td>`discord`</td><td>Discord API operations</td></tr><tr><td>`homeassistant`</td><td>Home automation control</td></tr><tr><td>`feishu_doc`</td><td>Feishu document operations</td></tr></table>
+<h3>Agent Operations</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`delegate`</td><td>Spawn isolated subagents for complex tasks</td></tr><tr><td>`cronjob`</td><td>Create/manage scheduled jobs</td></tr><tr><td>`clarify`</td><td>Ask user for clarification</td></tr><tr><td>`interrupt`</td><td>Signal that the agent needs user input</td></tr></table>
+<h3>Safety & Control</h3>
+<table><tr><th>Tool</th><th>Purpose</th></tr><tr><td>`approval`</td><td>Request user approval for dangerous operations</td></tr><tr><td>`checkpoint_manager`</td><td>Create/restore file system checkpoints</td></tr></table>
+<h2>Tool Execution Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant LLM
+    participant Agent as AIAgent
+    participant Bridge as model_tools.py
+    participant Registry as Tool Registry
+    participant Handler as Tool Handler
+
+    LLM-&gt;&gt;Agent: tool_call: { name: &quot;terminal&quot;, input: { command: &quot;ls -la&quot; } }
+    Agent-&gt;&gt;Bridge: execute(&quot;terminal&quot;, { command: &quot;ls -la&quot; })
+    Bridge-&gt;&gt;Registry: dispatch(&quot;terminal&quot;, params, context)
+    Registry-&gt;&gt;Registry: Look up handler
+    Registry-&gt;&gt;Handler: terminal_handler(params, context)
+    Handler-&gt;&gt;Handler: Execute command
+    Handler--&gt;&gt;Registry: &quot;total 42\ndrwxr-xr-x ...&quot;
+    Registry--&gt;&gt;Bridge: Result string
+    Bridge--&gt;&gt;Agent: Result
+    Agent-&gt;&gt;LLM: tool_result: &quot;total 42\ndrwxr-xr-x ...&quot;
+
+</div>
+<h2>Delegate Tool: Subagents</h2>
+<p>The <code>delegate</code> tool spawns an isolated subagent for complex subtasks:</p>
+<pre><code class="language-python"># tools/delegate_tool.py (simplified)
+async def delegate_handler(params, context):
+    task = params[&quot;task&quot;]
+    tools = params.get(&quot;tools&quot;, [&quot;terminal&quot;, &quot;file_tools&quot;])
+
+    # Create isolated subagent
+    subagent = AIAgent(
+        model=context.model,
+        tools=tools,
+        system_prompt=f&quot;Complete this task: {task}&quot;,
+        max_turns=params.get(&quot;max_turns&quot;, 10),
+    )
+
+    # Run subagent
+    result = await subagent.run(task)
+
+    return result
+</code></pre>
+<p>Subagents:</p>
+<ul><li>Have their own message history (no context leakage)</li><li>Can use a subset of tools</li><li>Have a separate turn budget</li><li>Return their final result to the parent agent</li></ul>
+<div class="mermaid">
+flowchart TD
+    PARENT[Parent Agent] --&gt;|delegate| SUB[Subagent]
+    SUB --&gt; SUB_TOOLS[Subset of Tools]
+    SUB --&gt; SUB_LLM[LLM Calls]
+    SUB --&gt;|result| PARENT
+
+</div>
+<h2>File Safety System</h2>
+<div class="mermaid">
+flowchart TD
+    TOOL[File Tool] --&gt; CHECK[Path Security Check]
+    CHECK --&gt; TRAVERSAL{Path traversal?}
+    TRAVERSAL --&gt;|Yes| BLOCK[Block operation]
+    TRAVERSAL --&gt;|No| SAFETY[File Safety Check]
+    SAFETY --&gt; CREDS{Credential file?}
+    CREDS --&gt;|Yes| WARN[Warn + require approval]
+    CREDS --&gt;|No| EXECUTE[Execute operation]
+
+</div>
+<p>Two layers:</p>
+<ol><li><strong>path_security.py</strong> -- Prevents directory traversal attacks (<code>../../etc/passwd</code>)</li><li><strong>file_safety.py</strong> -- Warns before modifying credential files, config files, etc.</li></ol>
+<h2>Tool Result Storage</h2>
+<p>Large tool results are stored on disk and referenced by ID:</p>
+<pre><code class="language-python"># tools/tool_result_storage.py
+class ToolResultStorage:
+    def store(self, tool_name: str, result: str) -&gt; str:
+        if len(result) &gt; MAX_INLINE_SIZE:
+            result_id = uuid4().hex
+            write_file(f&quot;results/{result_id}.txt&quot;, result)
+            return f&quot;[Result stored: {result_id}] (truncated preview: {result[:500]}...)&quot;
+        return result
+</code></pre>
+<p>This prevents massive tool outputs (e.g., large file contents) from bloating the message history.</p>
+<h2>Adding Custom Tools</h2>
+<h3>Direct Registration</h3>
+<pre><code class="language-python">from tools.registry import ToolRegistry
+
+async def my_tool_handler(params, context):
+    # Your tool logic
+    return &quot;result&quot;
+
+ToolRegistry.register(
+    name=&quot;my_tool&quot;,
+    description=&quot;Does something useful&quot;,
+    input_schema={
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;input&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Input value&quot;},
+        },
+        &quot;required&quot;: [&quot;input&quot;],
+    },
+    handler=my_tool_handler,
+)
+</code></pre>
+<h3>Via MCP (Model Context Protocol)</h3>
+<p>Hermes supports MCP servers, which expose tools over a standard protocol:</p>
+<pre><code class="language-yaml"># config.yaml
+mcp_servers:
+  - name: &quot;github&quot;
+    command: &quot;npx @modelcontextprotocol/server-github&quot;
+    env:
+      GITHUB_TOKEN: &quot;ghp_...&quot;
+</code></pre>
+<p>MCP tools appear in the registry alongside built-in tools. The LLM doesn't know the difference.</p>
+<h2>Key Files</h2>
+<pre><code class="language-">tools/
+  ├── registry.py              Central registry (register, get_schemas, dispatch)
+  ├── __init__.py              Imports all tools (triggers registration)
+  ├── terminal_tool.py         Shell execution
+  ├── code_execution_tool.py   Sandboxed code runner
+  ├── process_tool.py          Process management
+  ├── browser_tool.py          Browser automation
+  ├── browser_cdp_tool.py      Chrome DevTools Protocol
+  ├── browser_supervisor.py    Browser lifecycle
+  ├── file_tools.py            File read/write/create
+  ├── file_operations.py       File move/copy/rename
+  ├── search_files_tool.py     File search
+  ├── patch_parser.py          Diff patch application
+  ├── web_search_tool.py       Web search
+  ├── web_extract_tool.py      URL content extraction
+  ├── web_vision_tool.py       Web page screenshots
+  ├── memory_tool.py           MEMORY.md operations
+  ├── session_search_tool.py   Past conversation search
+  ├── image_generation_tool.py Image generation
+  ├── vision_tool.py           Image analysis
+  ├── text_to_speech_tool.py   TTS
+  ├── mcp_tool.py              MCP server integration
+  ├── delegate_tool.py         Subagent spawning
+  ├── cronjob_tools.py         Cron job management
+  ├── approval.py              User approval system
+  ├── clarify_tool.py          Ask for clarification
+  ├── interrupt.py             Interrupt handling
+  ├── checkpoint_manager.py    Filesystem checkpoints
+  ├── path_security.py         Path traversal prevention
+  ├── file_safety.py           Credential file protection
+  ├── tool_result_storage.py   Large result storage
+  ├── file_state.py            File modification tracking
+  └── budget_config.py         Turn budget config
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

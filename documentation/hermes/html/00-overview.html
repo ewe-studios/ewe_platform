@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Overview -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Overview</h1>
+<h2>What Hermes Is</h2>
+<p>Hermes Agent is a self-improving AI agent built by Nous Research. It's designed around three principles:</p>
+<ol><li><strong>Run anywhere</strong> -- $5 VPS, cloud server, serverless function, or your laptop</li><li><strong>Talk to anyone</strong> -- Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, DingTalk, Feishu, SMS</li><li><strong>Get better over time</strong> -- Creates skills from experience, searches past conversations, compresses and retains context</li></ol>
+<h2>Capabilities</h2>
+<pre><code class="language-">┌─────────────────────────────────────────────────────────────────┐
+│                         HERMES AGENT                             │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ 40+ Tools   │  │ 10+ Plat-   │  │ Memory &amp;    │             │
+│  │ Terminal     │  │ forms       │  │ Context     │             │
+│  │ Browser      │  │ Telegram    │  │ Providers   │             │
+│  │ Files        │  │ Discord     │  │ Compression │             │
+│  │ Web search   │  │ Slack       │  │ Search      │             │
+│  │ Vision       │  │ WhatsApp    │  │ Skills      │             │
+│  │ Image gen    │  │ Signal      │  │ Learning    │             │
+│  │ APIs         │  │ Matrix      │  │             │             │
+│  │ MCP          │  │ Email       │  │             │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ LLM Back-   │  │ Scheduling  │  │ Plugins     │             │
+│  │ ends        │  │ Cron jobs   │  │ Memory      │             │
+│  │ Anthropic   │  │ Intervals   │  │ Context     │             │
+│  │ OpenAI      │  │ One-shot    │  │ Image gen   │             │
+│  │ Gemini      │  │ Timers      │  │ Custom      │             │
+│  │ Bedrock     │  │             │  │             │             │
+│  │ Codex       │  │             │  │             │             │
+│  │ Local       │  │             │  │             │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐                               │
+│  │ CLI/TUI     │  │ ACP/Editor  │                               │
+│  │ Interactive  │  │ Cursor      │                               │
+│  │ Headless    │  │ VSCode      │                               │
+│  └─────────────┘  └─────────────┘                               │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h2>Key Differentiators</h2>
+<h3>Multi-Platform Gateway</h3>
+<p>Hermes isn't just a CLI tool. The gateway module lets it live on messaging platforms as a persistent presence. Users interact via their preferred messaging app. The agent maintains per-user sessions, memories, and context across platforms.</p>
+<h3>Self-Improvement Loop</h3>
+<div class="mermaid">
+flowchart TD
+    TASK[User gives task] --&gt; SOLVE[Agent solves it]
+    SOLVE --&gt; SKILL{Reusable pattern?}
+    SKILL --&gt;|Yes| CREATE[Create skill]
+    CREATE --&gt; STORE[Store in skills/]
+    STORE --&gt; FUTURE[Available for future tasks]
+    SKILL --&gt;|No| DONE[Done]
+    SOLVE --&gt; MEMORY[Update MEMORY.md]
+    MEMORY --&gt; CONTEXT[Better context for future]
+
+</div>
+<p>When Hermes solves a problem, it can save the solution as a skill -- a reusable procedure. Next time a similar problem comes up, it has the skill ready. Working memory (MEMORY.md) captures preferences, facts, and patterns that persist across conversations.</p>
+<h3>Pluggable Everything</h3>
+<p>Every major subsystem has an abstract base class:</p>
+<ul><li><strong>LLM adapters</strong> -- Plug in any provider</li><li><strong>Memory providers</strong> -- Plug in Honcho, Mem0, Hindsight, or custom</li><li><strong>Context engines</strong> -- Plug in custom compression strategies</li><li><strong>Image generation</strong> -- Plug in DALL-E, Grok, or custom</li><li><strong>Tools</strong> -- Self-registering tool registry</li></ul>
+<h3>RL Training Support</h3>
+<p>Hermes can generate trajectories (conversation traces with tool calls) for reinforcement learning training. This enables training custom models on Hermes's behavior.</p>
+<h2>Technology Stack</h2>
+<table><tr><th>Concern</th><th>Choice</th></tr><tr><td>Language</td><td>Python 3.11+</td></tr><tr><td>Package management</td><td>pip / uv</td></tr><tr><td>Build</td><td>setuptools via pyproject.toml</td></tr><tr><td>LLM clients</td><td>OpenAI SDK, Anthropic SDK, httpx</td></tr><tr><td>Messaging</td><td>python-telegram-bot, discord.py, slack-bolt</td></tr><tr><td>CLI</td><td>prompt_toolkit, curses</td></tr><tr><td>Schema validation</td><td>Pydantic</td></tr><tr><td>Async</td><td>asyncio, aiohttp</td></tr><tr><td>Browser automation</td><td>CDP (Chrome DevTools Protocol)</td></tr><tr><td>Testing</td><td>(not specified in pyproject.toml)</td></tr></table>
+<h2>Entry Points</h2>
+<table><tr><th>Command</th><th>What It Does</th></tr><tr><td>`hermes`</td><td>Interactive CLI/TUI</td></tr><tr><td>`hermes gateway`</td><td>Start multi-platform messaging gateway</td></tr><tr><td>`hermes setup`</td><td>Configuration wizard</td></tr><tr><td>`hermes model`</td><td>Switch LLM model</td></tr><tr><td>`hermes cron`</td><td>Manage scheduled jobs</td></tr><tr><td>`hermes tools`</td><td>Configure tools and skills</td></tr><tr><td>`hermes-agent`</td><td>Direct agent invocation (scripting)</td></tr><tr><td>`hermes-acp`</td><td>ACP server for editor integration</td></tr></table>
+<h2>Configuration</h2>
+<pre><code class="language-">~/.hermes/
+├── config.yaml        Main configuration
+├── MEMORY.md          Built-in working memory
+├── USER.md            User profile
+├── SOUL.md            AI persona definition
+├── skills/            Custom skills
+├── cron/
+│   └── jobs.jsonl     Scheduled jobs
+└── plugins/           Installed plugins
+</code></pre>
+<p>Project-level context files: <code>.hermes.md</code> or <code>HERMES.md</code> in the project root.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
