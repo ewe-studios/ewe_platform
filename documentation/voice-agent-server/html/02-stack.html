@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Agent Server -- Technology Stack -- voice-agent-server</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/voice-agent-server/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Voice Agent Server -- Overview</a> <a href="01-api.html">Voice Agent Server -- REST API</a></span> <a href="01-api.html">← Voice Agent Server -- REST API</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Voice Agent Server -- Technology Stack</h1>
+<h2>Languages and Runtimes</h2>
+<table><tr><th>Concern</th><th>Choice</th><th>Version</th></tr><tr><td>Language</td><td>TypeScript (strict mode)</td><td>5.6+</td></tr><tr><td>Runtime</td><td>Node.js</td><td>22.x</td></tr><tr><td>Module system</td><td>CommonJS</td><td>--</td></tr></table>
+<h2>Dependencies</h2>
+<h3>Runtime</h3>
+<table><tr><th>Package</th><th>Purpose</th><th>Version</th></tr><tr><td>`express`</td><td>HTTP server and routing</td><td>5.1.0</td></tr><tr><td>`@vapi-ai/server-sdk`</td><td>Vapi AI platform client</td><td>0.11.0</td></tr><tr><td>`dotenv`</td><td>Environment variable loading</td><td>17.2.3</td></tr></table>
+<h3>Development</h3>
+<table><tr><th>Package</th><th>Purpose</th><th>Version</th></tr><tr><td>`typescript`</td><td>TypeScript compiler</td><td>5.6.0</td></tr><tr><td>`@types/express`</td><td>Express type definitions</td><td>5.0.0</td></tr><tr><td>`@types/node`</td><td>Node.js type definitions</td><td>22.0.0</td></tr><tr><td>`@flydotio/dockerfile`</td><td>Dockerfile generator</td><td>0.7.10</td></tr></table>
+<h2>External Services</h2>
+<h3>Vapi AI Platform</h3>
+<p>The core dependency. Vapi provides:</p>
+<ul><li><strong>Voice assistant creation and management</strong> -- LLM + voice + telephony in one API</li><li><strong>Phone number provisioning</strong> -- US phone numbers with configurable area codes</li><li><strong>Call handling</strong> -- STT, LLM inference, TTS, all managed by Vapi</li></ul>
+<p>This server is essentially a persistence and convenience layer on top of Vapi. Without Vapi, the server has nothing to manage.</p>
+<h3>OpenAI</h3>
+<p>The AI backend for all voice assistants:</p>
+<ul><li><strong>Model:</strong> <code>chatgpt-4o-latest</code></li><li><strong>Provider:</strong> OpenAI (configured through Vapi)</li><li>Managed entirely by Vapi; this server only passes the model name in assistant creation requests</li></ul>
+<h3>ElevenLabs (11Labs)</h3>
+<p>Voice synthesis for all assistants:</p>
+<ul><li><strong>Voice ID:</strong> <code>DwwuoY7Uz8AP8zrY5TAo</code></li><li>Configured through Vapi during assistant creation</li><li>Can be changed per-assistant via the update endpoint</li></ul>
+<h2>Local Database</h2>
+<p><strong>Format:</strong> Single JSON file (<code>data.json</code>)</p>
+<p><strong>Location:</strong> Project root (same directory as <code>package.json</code>)</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-json">{
+  &quot;assistants&quot;: [],
+  &quot;phoneNumbers&quot;: []
+}
+</code></pre>
+<p><strong>Implementation:</strong> <code>src/lib/db.ts</code> -- ~130 lines. Uses Node.js <code>fs.readFileSync</code> / <code>fs.writeFileSync</code> for every operation. No caching, no indexing, no migrations. Each read re-reads the file; each write overwrites it entirely.</p>
+<p>This is intentional: the dataset is expected to be small (dozens of records at most), and simplicity is prioritized over performance.</p>
+<p><strong>Backwards compatibility:</strong> If <code>data.json</code> exists but lacks a <code>phoneNumbers</code> array (from before phone numbers were added), the database layer adds it automatically on read.</p>
+<h2>Build and Deployment</h2>
+<table><tr><th>Step</th><th>Tool</th></tr><tr><td>Transpile</td><td>`tsc` (TypeScript compiler)</td></tr><tr><td>Container</td><td>Docker (multi-stage build, Node 22 slim)</td></tr><tr><td>Hosting</td><td>Fly.io (shared CPU, 1 GB RAM, auto-stop)</td></tr><tr><td>Region</td><td>YYZ (Toronto)</td></tr></table>
+<h2>What This Server Does NOT Use</h2>
+<p>No database server (Postgres, MongoDB, etc.). No caching layer (Redis). No authentication or authorization. No rate limiting. No logging framework. No test framework. No CI/CD pipeline.</p>
+<p>This is by design. The server is a thin management layer meant to be simple and easy to understand. If you need any of those features, they would be additions to the baseline.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

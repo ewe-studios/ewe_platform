@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenPencil -- Vue SDK -- open-pencil</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/open-pencil/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="03-cli.html">OpenPencil -- CLI</a> <a href="04-ai-mcp.html">OpenPencil -- AI & MCP</a> <a href="05-collaboration.html">OpenPencil -- Collaboration</a></span> <a href="05-collaboration.html">← OpenPencil -- Collaboration</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>OpenPencil -- Vue SDK</h1>
+<h2>Overview</h2>
+<p><code>@open-pencil/vue</code> is a headless Vue SDK for building custom design editors. It provides composable functions and headless UI components that connect to the OpenPencil core engine.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TB
+    subgraph SDK[&quot;@open-pencil/vue&quot;]
+        CTX[Editor Context\nprovideEditor / useEditor]
+        CANVAS[Canvas Composables\nuseCanvas, useCanvasInput]
+        SEL[Selection\nuseSelectionState]
+        PROP[Property Controls\nusePosition, useLayout,\nuseAppearance, useTypography]
+        COLOR[Color System\nuseFillControls,\nuseStrokeControls,\nuseOkHCL]
+        LAYER[Layer Tree\nuseLayerTree, useLayerDrag]
+        TOOL[Toolbar\nuseToolbar, useToolbarState]
+        VAR[Variables\nuseVariables, useVariablesEditor]
+    end
+
+    subgraph Engine[&quot;@open-pencil/core&quot;]
+        SG[Scene Graph]
+        ED[Editor]
+        R[Renderer]
+    end
+
+    CTX --&gt; ED
+    CANVAS --&gt; R
+    SEL --&gt; SG
+    PROP --&gt; SG
+    COLOR --&gt; SG
+    LAYER --&gt; SG
+    TOOL --&gt; ED
+    VAR --&gt; SG
+
+</div>
+<h2>Installation</h2>
+<pre><code class="language-sh">bun add @open-pencil/vue
+</code></pre>
+<h2>Editor Context</h2>
+<p>The foundation of the SDK. Make an Editor instance available to a Vue subtree:</p>
+<pre><code class="language-typescript">import { provideEditor, useEditor } from &#x27;@open-pencil/vue&#x27;
+
+// In a parent component:
+provideEditor(editor)
+
+// In any child component:
+const { editor, state } = useEditor()
+</code></pre>
+<h3>API</h3>
+<table><tr><th>Export</th><th>Purpose</th></tr><tr><td>`provideEditor(editor)`</td><td>Make editor available via Vue provide/inject</td></tr><tr><td>`useEditor()`</td><td>Access editor and state from any child component</td></tr><tr><td>`EDITOR_KEY`</td><td>Injection key for custom scenarios</td></tr></table>
+<h2>Canvas Composables</h2>
+<h3>useCanvas</h3>
+<p>Sets up the CanvasKit rendering surface:</p>
+<pre><code class="language-typescript">const { canvasRef, resizeObserver } = useCanvas({
+  editor,
+  zoom,
+  pan
+})
+</code></pre>
+<h3>useCanvasInput</h3>
+<p>Handles mouse/touch input on the canvas:</p>
+<ul><li>Pan, zoom, selection</li><li>Tool-specific interactions (shape drawing, text editing)</li><li>Keyboard shortcuts</li></ul>
+<h3>useTextEdit</h3>
+<p>In-place text editing overlay:</p>
+<ul><li>Caret management</li><li>Font metrics</li><li>Commit/cancel handling</li></ul>
+<h3>useCanvasDrop</h3>
+<p>Drag-and-drop support:</p>
+<ul><li>File drops (images, .fig, .pen)</li><li>Clipboard paste handling</li><li>Image extraction from clipboard</li></ul>
+<h2>Property Controls</h2>
+<h3>useNodeProps</h3>
+<p>Read and write node properties with mixed-value support (when multiple nodes are selected with different values):</p>
+<pre><code class="language-typescript">const { width, height, rotation, opacity } = useNodeProps()
+</code></pre>
+<h3>usePosition</h3>
+<p>X, Y, width, height, rotation, and corner radius controls.</p>
+<h3>useLayout</h3>
+<p>Auto-layout and grid layout controls:</p>
+<ul><li>Layout mode (horizontal, vertical, grid, none)</li><li>Gap, padding, item spacing</li><li>Alignment, sizing modes</li><li>Grid tracks and child positioning</li></ul>
+<h3>useAppearance</h3>
+<p>Opacity, blend mode, visibility controls.</p>
+<h3>useTypography</h3>
+<p>Text properties:</p>
+<ul><li>Font family, size, weight</li><li>Alignment, spacing, decoration</li><li>Character style overrides</li><li>Style run management</li></ul>
+<h3>useFillControls / useStrokeControls</h3>
+<p>Fill and stroke management:</p>
+<ul><li>Solid colors, gradients, images</li><li>Stroke weight, alignment, caps, joins</li><li>OkHCL color space support</li></ul>
+<h3>useOkHCL</h3>
+<p>Perceptual color editing via OkHCL color space.</p>
+<h3>useEffectsControls</h3>
+<p>Drop shadow, inner shadow, blur effect controls.</p>
+<h2>Color System</h2>
+<h3>ColorPicker</h3>
+<p>Headless color picker components:</p>
+<pre><code class="language-typescript">import {
+  ColorInputRoot,
+  ColorPickerRoot,
+  createColorPickerModel,
+  createSliderGradientModel
+} from &#x27;@open-pencil/vue&#x27;
+</code></pre>
+<p>Supports:</p>
+<ul><li>Solid color (RGB, HSL, HSB, OkHCL)</li><li>Gradient editor (linear, radial, angular)</li><li>Opacity control</li><li>Color format conversion</li></ul>
+<h2>Layout Components</h2>
+<h3>LayerTree</h3>
+<p>Hierarchical layer display:</p>
+<pre><code class="language-typescript">import { LayerTreeRoot, LayerTreeItem, useLayerTree } from &#x27;@open-pencil/vue&#x27;
+</code></pre>
+<h3>Toolbar</h3>
+<p>Tool selection and state:</p>
+<pre><code class="language-typescript">import { ToolbarRoot, ToolbarItem, useToolbar } from &#x27;@open-pencil/vue&#x27;
+</code></pre>
+<h3>PropertyList</h3>
+<p>Generic property display with editing:</p>
+<pre><code class="language-typescript">import { PropertyListRoot, PropertyListItem, usePropertyList } from &#x27;@open-pencil/vue&#x27;
+</code></pre>
+<h2>Variables Editor</h2>
+<p>Design token (variable) management:</p>
+<table><tr><th>Composable</th><th>Purpose</th></tr><tr><td>`useVariables`</td><td>Access variable collections and values</td></tr><tr><td>`useVariablesEditor`</td><td>Full variable editor state</td></tr><tr><td>`useVariablesTable`</td><td>Tabular variable display</td></tr><tr><td>`useVariablesDialogState`</td><td>Variable creation/editing dialog</td></tr></table>
+<h2>Commands and Menus</h2>
+<h3>useEditorCommands</h3>
+<p>Maps editor commands to keyboard shortcuts and menu entries:</p>
+<pre><code class="language-typescript">const { commands, execute } = useEditorCommands()
+</code></pre>
+<h3>useMenuModel</h3>
+<p>Builds menu structures from command definitions:</p>
+<pre><code class="language-typescript">const menuModel = useMenuModel(commandGroups)
+</code></pre>
+<h2>Canvas Components</h2>
+<p>The SDK also exports headless structural primitives:</p>
+<table><tr><th>Component</th><th>Purpose</th></tr><tr><td>`CanvasRoot`</td><td>Root container for canvas</td></tr><tr><td>`CanvasSurface`</td><td>CanvasKit rendering surface</td></tr><tr><td>`ColorInputRoot`</td><td>Color input wrapper</td></tr><tr><td>`ColorPickerRoot`</td><td>Color picker root</td></tr><tr><td>`FillPickerRoot`</td><td>Fill picker wrapper</td></tr><tr><td>`FontPickerRoot`</td><td>Font picker wrapper</td></tr><tr><td>`GradientEditorRoot`</td><td>Gradient editor</td></tr><tr><td>`GradientEditorBar`</td><td>Gradient bar</td></tr><tr><td>`GradientEditorStop`</td><td>Gradient stop handle</td></tr><tr><td>`LayerTreeRoot`</td><td>Layer tree root</td></tr><tr><td>`LayerTreeItem`</td><td>Layer tree item</td></tr><tr><td>`LayoutControlsRoot`</td><td>Layout controls</td></tr><tr><td>`AppearanceControlsRoot`</td><td>Appearance controls</td></tr><tr><td>`PageListRoot`</td><td>Page navigation</td></tr><tr><td>`PositionControlsRoot`</td><td>Position controls</td></tr><tr><td>`ScrubInputRoot`</td><td>Numeric scrub input</td></tr><tr><td>`ToolbarRoot`</td><td>Toolbar container</td></tr><tr><td>`TypographyControlsRoot`</td><td>Typography panel</td></tr><tr><td>`VariablesEditor`</td><td>Variable editor panel</td></tr></table>
+<h2>Internationalization</h2>
+<p>Built-in i18n support:</p>
+<pre><code class="language-typescript">import { setLocale, useI18n, AVAILABLE_LOCALES } from &#x27;@open-pencil/vue&#x27;
+
+setLocale(&#x27;de&#x27;)
+const { t } = useI18n()
+</code></pre>
+<p>Supported locales: English, German, French, Spanish, Italian, Polish, Russian, and more.</p>
+<h2>Building a Custom Editor</h2>
+<p>Minimal example:</p>
+<pre><code class="language-vue">&lt;script setup lang=&quot;ts&quot;&gt;
+import { createEditor } from &#x27;@open-pencil/core&#x27;
+import { provideEditor, useCanvas, CanvasRoot, CanvasSurface } from &#x27;@open-pencil/vue&#x27;
+
+const editor = createEditor({ /* options */ })
+provideEditor(editor)
+
+const { canvasRef } = useCanvas({ editor })
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;CanvasRoot&gt;
+    &lt;CanvasSurface ref=&quot;canvasRef&quot; /&gt;
+    &lt;!-- Add your custom UI around the canvas --&gt;
+  &lt;/CanvasRoot&gt;
+&lt;/template&gt;
+</code></pre>
+<h2>See Also</h2>
+<ul><li><a href="02-core-engine.md">Core Engine</a> -- The engine the SDK connects to</li><li><a href="01-architecture.md">Architecture</a> -- How the SDK fits in the package graph</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>paperclip -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/paperclip/docs</span>
+    <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+  </nav>
+
+  <h1>paperclip Documentation</h1>
+  <p>Open-source AI company orchestration. Org charts, budgets, governance, and coordination for multi-agent teams.</p>
+  <ul class="doc-index">
+    <li><a href="00-overview.html">Paperclip -- Overview</a></li>
+<li><a href="01-architecture.html">Paperclip -- Architecture</a></li>
+<li><a href="02-orchestration.html">Paperclip -- Orchestration</a></li>
+<li><a href="03-goals-budgets.html">Paperclip -- Goals, Budgets, and Governance</a></li>
+<li><a href="04-agents-integration.html">Paperclip -- Agents and Integration</a></li>
+<li><a href="05-ticket-system.html">Paperclip -- Ticket System and Audit Log</a></li>
+<li><a href="06-subprojects.html">Paperclip -- Sub-Projects</a></li>
+<li><a href="07-development.html">Paperclip -- Development Guide</a></li>
+<li><a href="README.html">Paperclip -- Documentation Index</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

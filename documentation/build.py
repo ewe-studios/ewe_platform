@@ -394,6 +394,10 @@ def build(project_dir: str):
     descriptions = {
         'pi': "Modular AI agent framework. 7 TypeScript packages for LLM APIs, agent runtimes, and applications.",
         'hermes': "Self-improving AI agent. Python framework with 40+ tools, 10+ messaging platforms, and pluggable memory.",
+        'autoresearch': "Autonomous AI research system. AI agent experiments with LLM training code overnight, ~100 experiments/night.",
+        'open-pencil': "Open-source design editor. Opens .fig/.pen files, 100+ AI tools, MCP server, WebRTC collaboration, headless CLI + Vue SDK.",
+        'paperclip': "Open-source AI company orchestration. Org charts, budgets, governance, and coordination for multi-agent teams.",
+        'voice-agent-server': "Voice AI assistant server. Express.js REST API managing Vapi voice assistants and phone numbers with 11Labs synthesis.",
     }
     desc = descriptions.get(project_name, f"Documentation for {project_name}.")
 
@@ -421,9 +425,9 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         build(sys.argv[1])
     else:
-        # Default: build both pi and hermes from this directory
+        # Default: build pi, hermes, open-pencil, and autoresearch from this directory
         base = Path(__file__).resolve().parent
-        for proj in ['pi', 'hermes']:
+        for proj in ['pi', 'hermes', 'open-pencil', 'autoresearch', 'paperclip', 'voice-agent-server']:
             p = base / proj
             if p.exists():
                 build(str(p))

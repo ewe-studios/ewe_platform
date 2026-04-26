@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Agent Server -- Overview -- voice-agent-server</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/voice-agent-server/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Voice Agent Server -- Overview</h1>
+<h2>What It Is</h2>
+<p>Voice Agent Server is a small Express.js REST API server that manages voice AI assistants and their associated phone numbers. It sits between a local JSON file database and the Vapi AI platform, providing CRUD operations that keep both in sync.</p>
+<p>Instead of calling Vapi's API directly, applications talk to this server. The server handles:</p>
+<ul><li>Creating voice assistants (with configurable personality, voice, and AI model)</li><li>Provisioning phone numbers (area code 207 by default)</li><li>Linking phone numbers to assistants</li><li>Persisting all records locally in a <code>data.json</code> file</li></ul>
+<h2>Purpose</h2>
+<p>Vapi's API is powerful but stateless. This server adds a persistence and management layer so you can:</p>
+<ol><li><strong>Track created assistants and phone numbers</strong> in a local database with metadata</li><li><strong>Update assistants</strong> (personality, voice, model config) through a single endpoint</li><li><strong>Manage phone number-to-assistant routing</strong> -- link any phone number to any assistant</li><li><strong>Keep a local record</strong> that survives Vapi API downtime or account changes</li></ol>
+<p>It's intentionally simple. No auth layer, no complex routing, no caching. Just CRUD with Vapi sync.</p>
+<h2>Architecture</h2>
+<pre><code class="language-">┌──────────────┐     HTTP      ┌─────────────────────┐     API      ┌──────────────┐
+│   Client     │ ────────────&gt; │  Voice Agent Server │ ──────────&gt;  │   Vapi API   │
+│  (any app)   │ &lt;──────────── │  (Express.js :3000) │ &lt;──────────  │  (Cloud)     │
+└──────────────┘               │                     │              └──────────────┘
+                               │  ┌───────────────┐  │
+                               │  │  data.json    │  │
+                               │  │  (local DB)   │  │
+                               │  └───────────────┘  │
+                               └─────────────────────┘
+</code></pre>
+<h3>Two Resource Types</h3>
+<p><strong>Assistants</strong> represent a voice AI configuration:</p>
+<ul><li>Name and greeting message</li><li>System prompt (defines personality)</li><li>AI model (OpenAI <code>chatgpt-4o-latest</code>)</li><li>Voice provider and voice ID (11Labs)</li><li>Max call duration, end call message</li><li>Link to a phone number</li></ul>
+<p><strong>Phone Numbers</strong> represent provisioned telephone lines:</p>
+<ul><li>Name and actual phone number</li><li>Area code (207 -- Maine, USA)</li><li>Link to an assistant (routes incoming calls)</li></ul>
+<h3>How Writes Work</h3>
+<p>Every POST/PATCH/DELETE follows the same pattern:</p>
+<ol><li>Perform the operation on Vapi's API first</li><li>If Vapi succeeds, update the local <code>data.json</code></li><li>Return the local record (with Vapi IDs attached)</li></ol>
+<p>This means the local DB is the source of truth for IDs and metadata, while Vapi holds the actual voice assistant and phone number configuration.</p>
+<h3>How Reads Work</h3>
+<ul><li><strong>List</strong> (<code>GET /assistants</code>, <code>GET /phone-numbers</code>): Returns only local records (fast, no Vapi calls)</li><li><strong>Get by ID</strong> (<code>GET /assistants/:id</code>, <code>GET /phone-numbers/:id</code>): Fetches the local record, then enriches it with live data from Vapi</li></ul>
+<h2>Default Assistant Personality</h2>
+<p>When creating an assistant without a custom system prompt, the server uses this default:</p>
+<blockquote>You are {name}, a real human personal assistant. Never call yourself an AI, bot, or virtual assistant. Speak casually, warmly, and with a sense of humor. Be curious and conversational -- ask natural follow-up questions and react like a friend who genuinely cares. Keep answers practical and concise, but not terse; add a light joke or playful remark when it fits. Avoid canned phrases and corporate tone. If you do not know something, say so and think it through out loud. Your goal: help, collaborate, and make the conversation feel like it is with a real person.</blockquote>
+<h2>Project Structure</h2>
+<pre><code class="language-">voice-agent-server/
+├── src/
+│   ├── index.ts          # Express app, all route handlers
+│   └── lib/
+│       ├── db.ts         # JSON file database (read/write)
+│       └── vapi.ts       # Vapi SDK client initialization
+├── data.json             # Local database (created on first write)
+├── package.json          # Dependencies and scripts
+├── tsconfig.json         # TypeScript config
+├── Dockerfile            # Multi-stage Docker build
+└── fly.toml              # Fly.io deployment config
+</code></pre>
+<p>Only three source files. The entire server is ~350 lines of TypeScript.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
