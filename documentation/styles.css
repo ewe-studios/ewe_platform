@@ -1,27 +1,27 @@
 :root {
-  --bg: #fafaf9;
+  --bg: #f8f6f0;
   --bg-strong: #ffffff;
-  --bg-muted: #f0efed;
-  --fg: #1c1917;
-  --fg-muted: #57534e;
-  --fg-soft: #a8a29e;
-  --accent: #2563eb;
-  --line: #e7e5e4;
-  --line-strong: #d6d3d1;
-  --code-bg: #f5f5f4;
+  --bg-muted: #f0ece4;
+  --fg: #2d2a32;
+  --fg-muted: #6b6580;
+  --fg-soft: #a89fb5;
+  --accent: #7c6fae;
+  --line: #e4e0d8;
+  --line-strong: #d4cfc6;
+  --code-bg: #f2efe8;
 }
 
 [data-theme="dark"] {
-  --bg: #0c0a09;
-  --bg-strong: #1c1917;
-  --bg-muted: #292524;
-  --fg: #fafaf9;
-  --fg-muted: #a8a29e;
-  --fg-soft: #78716c;
-  --accent: #60a5fa;
-  --line: #292524;
-  --line-strong: #44403c;
-  --code-bg: #1c1917;
+  --bg: #1e1b2e;
+  --bg-strong: #2a2640;
+  --bg-muted: #332f4a;
+  --fg: #e8e4f0;
+  --fg-muted: #b8b0cc;
+  --fg-soft: #8a80a0;
+  --accent: #a89bde;
+  --line: #3d3860;
+  --line-strong: #4a4470;
+  --code-bg: #2a2640;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

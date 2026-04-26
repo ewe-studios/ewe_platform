@@ -39,7 +39,8 @@ pi/
 │   ├── 08-web-ui.md                ← @mariozechner/pi-web-ui deep dive
 │   ├── 09-tool-system.md           ← Cross-cutting: tool definition → execution
 │   ├── 10-extension-system.md      ← Cross-cutting: extensions, skills, themes
-│   └── 11-data-flow.md             ← End-to-end flows with sequence diagrams
+│   ├── 11-data-flow.md             ← End-to-end flows with sequence diagrams
+│   └── 12-sessions.md              ← Pi + Hermes session management deep dive
 ├── html/                           ← Rendered HTML (viewable locally + GitHub Pages)
 │   ├── index.html                  ← Auto-generated index + navigation
 │   ├── styles.css                  ← Shared CSS (dark/light, responsive)
@@ -65,7 +66,8 @@ pi/
 | 10 | Tool System: definition, schema, dispatch, lifecycle | DONE | `09-tool-system.md` |
 | 11 | Extension System: extensions, skills, prompts, themes | DONE | `10-extension-system.md` |
 | 12 | Data Flow: request lifecycle, streaming, compaction | DONE | `11-data-flow.md` |
-| 13 | README index | DONE | `README.md` |
+| 13 | Sessions: Pi JSONL tree + Hermes SQLite + comparison | DONE | `12-sessions.md` |
+| 14 | README index | DONE | `README.md` |
 
 ### Phase 2: HTML Rendering -- COMPLETE
 
@@ -124,8 +126,8 @@ python3 build.py hermes
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 13 |
-| Generated HTML files | 14 (13 docs + 1 index) |
+| Markdown source files | 14 |
+| Generated HTML files | 15 (14 docs + 1 index) |
 | CSS files | 1 (shared) |
 | Total HTML output | 14 files + styles.css |
 
