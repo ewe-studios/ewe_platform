@@ -1,6 +1,6 @@
 # Progress - Foundation AI
 
-_Last updated: 2026-04-27 (01-llamacpp-integration & 06-llama-server-testing marked 100%)_
+_Last updated: 2026-04-27 (00d, 00b, 00g verified complete; ready for 07 anthropic-provider)_
 
 ## Overview
 
@@ -21,7 +21,7 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 0e1 | [http-client-connection-pool](./features/00e-http-client-connection-pool/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 0e2 | [state-store-query-filtering](./features/00e-state-store-query-filtering/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 0f | [test-server-keepalive](./features/00f-test-server-keepalive/feature.md) | ⬜ Pending | 0 / ? | 0% |
-| 0g | [openai-provider-enhancements](./features/00g-openai-provider-enhancements/feature.md) | 🔄 In Progress | 2 / 54 | ~4% |
+| 0g | [openai-provider-enhancements](./features/00g-openai-provider-enhancements/feature.md) | ✅ Complete | 64 / 64 | 100% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | ✅ Complete | 27 / 27 | 100% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
@@ -30,7 +30,7 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
 | 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ⬜ Pending | 0 / ? | 0% |
 
-**Totals:** 143 / ~270 tasks complete (~53%). 7 features complete, 2 in progress, 6 pending.
+**Totals:** 207 / ~334 tasks complete (~62%). 8 features complete, 0 in progress, 5 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -104,39 +104,42 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - Centralized model path config in `mise.toml` `[env]` section
 - `multi` feature gating fixed: no longer forced on by default via `foundation_deployment`
 
-### 00g OpenAI Provider Enhancements (Partial)
-- `ResponsesProvider` implemented for OpenAI Responses API (`/v1/responses`)
-- SSE streaming for Responses API with proper error propagation
+### 00g OpenAI Provider Enhancements (100% ✅)
+- `ResponsesProvider` / `ResponsesModel` implementing `ModelProvider` for `/v1/responses`
+  (reasoning models: o1, o3, o1-pro)
+- `ResponseRequest`, `ResponseInput`, `ResponseInputItem`, `ResponseOutputItem`,
+  `ResponseEvent` — full request/response/streaming types
+- SSE streaming for Responses API with named event parsing
+- `OutputFormat` (text, json_object, json_schema) wired through `build_chat_request`
+- Advanced sampling: `frequency_penalty`, `presence_penalty`, `logit_bias` in `ModelParams`
+- `ToolChoice` (auto, none, required, function) wired through `build_chat_request`
+- Multimodal: `OpenAIMessageContent` (text/parts), `OpenAIContentPart`, `OpenAIImageUrlObject`
+- Logprobs: `OpenAILogProbs`, `ContentLogProb`, `TopLogProbEntry`, `RefusalLogProb`
+  → `GenerationMetadata::LogProbs`
+- `GenerationMetadata` enum: LogProbs, SystemFingerprint, Timing, RefusalReason
+- `metadata: Option<Vec<GenerationMetadata>>` on `Messages::Assistant`
+- Refusal: parsed from `OpenAIMessage.refusal` → `GenerationMetadata::RefusalReason`
+- `StopReason::Message(String)` for unknown/custom finish reasons
 - 2 llama-server integration tests for Responses API (generate + stream)
-- Remaining: output format control, advanced sampling params, multimodal, logprobs, tool_choice, etc.
+- 10 unit tests for Responses API types, 20+ unit tests in openai_provider.rs
 
 ## What's Next
 
-### Immediate (finish in-progress features)
+### Immediate (next feature to implement)
 
-**00g openai-provider-enhancements — 52 tasks remaining**
-- Output format control (text, json_object, json_schema)
-- Advanced sampling params (presence_penalty, frequency_penalty, seed)
-- Multimodal input (image_url, image_content blocks)
-- Logprobs support (top_logprobs, per-token breakdown)
-- tool_choice (auto, required, specific function)
-- Run full verification gate: `cargo check/clippy/test --package foundation_ai`
+**07 anthropic-provider — 32 tasks**
+- `AnthropicMessagesProvider` connecting to Anthropic's `/v1/messages` endpoint
+- Native Anthropic protocol: `x-api-key` + `anthropic-version` headers, content block model
+- Extended thinking support (Claude 3.7+), native tool use format, multimodal input
+- SSE streaming with named events (`message_start`, `content_block_delta`, etc.)
+- Depends on 00c (complete) — can start immediately
 
-### Dependency-ordered queue after current work
+### Dependency-ordered queue after 07
 
-1. **00d state-store-streaming** (12 tasks) — fixes all state stores to use
-   `run_future_iter` for proper row streaming. 00a is done, so this is
-   unblocked; should land before 00b so auth persistence streams cleanly.
-2. **00b auth-infrastructure** (30 tasks) — JWT, OAuth 2.0 (PKCE S256),
-   credential storage via foundation_db, auth state machine, 2FA.
-   Unblocked — 00a is complete.
-3. **04 tool-calling-formatter** (18 tasks) — plugin-based ToolFormatter for
+1. **04 tool-calling-formatter** (18 tasks) — plugin-based ToolFormatter for
    OpenAI, Anthropic, llama.cpp, open-source tool calling formats.
-   Depends on 00c (complete).
-4. **07 anthropic-provider** (32 tasks) — Anthropic Messages API provider with
-   streaming, tool use, extended thinking, multimodal.
-   Depends on 00c (complete) and 00g (in progress).
-5. **05 agentic-coding-reference** (reference only) — documentary analysis of
+   Depends on 00c (complete) and 07 (anthropic).
+2. **05 agentic-coding-reference** (reference only) — documentary analysis of
    pi-mono and hermes-agent agentic coding patterns. No code tasks.
    Depends on 04.
 
@@ -172,7 +175,7 @@ specifications/07-foundation-ai/
     ├── 00e-http-client-connection-pool/
     ├── 00e-state-store-query-filtering/
     ├── 00f-test-server-keepalive/
-    ├── 00g-openai-provider-enhancements/ (~4% 🔄)
+    ├── 00g-openai-provider-enhancements/ (100% ✅)
     ├── 01-llamacpp-integration/   (100% ✅)
     ├── 02-huggingface-provider/   (100% ✅)
     ├── 03-candle-integration/     (100% ✅)
