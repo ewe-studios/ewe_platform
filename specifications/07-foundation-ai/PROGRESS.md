@@ -28,9 +28,9 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 5  | [agentic-coding-reference](./features/05-agentic-coding-reference/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
-| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ⬜ Pending | 0 / ? | 0% |
+| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 32 / 32 | 100% |
 
-**Totals:** 207 / ~334 tasks complete (~62%). 8 features complete, 0 in progress, 5 pending.
+**Totals:** 239 / ~334 tasks complete (~72%). 9 features complete, 0 in progress, 5 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -104,6 +104,23 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - Centralized model path config in `mise.toml` `[env]` section
 - `multi` feature gating fixed: no longer forced on by default via `foundation_deployment`
 
+### 07 Anthropic Messages Provider (100% ✅)
+- `AnthropicMessagesProvider` implementing `ModelProvider` trait — connects to Anthropic's `/v1/messages` endpoint
+- `AnthropicConfig` with builder pattern (base_url, api_version, timeout_secs, max_retries, proxy_url, streaming, auth)
+- Native Anthropic protocol: `x-api-key` + `anthropic-version` headers (no Bearer token)
+- `MessagesRequest` with all fields: model, system (string or blocks), messages, max_tokens, temperature, top_p, top_k, stream, stop_sequences, tools, tool_choice, thinking config
+- `AnthropicContentBlock`: tagged serde enum with Text, Image, ToolUse, ToolResult, Thinking, RedactedThinking
+- `AnthropicToolChoice`: Auto, Any, Tool { name } variants
+- SSE streaming: `StreamEvent` enum with named events (message_start, content_block_start/delta/stop, message_delta/stop, ping)
+- `AnthropicDelta`: TextDelta, ThinkingDelta, InputJsonDelta
+- `AnthropicModel` implementing `Model` trait with generate() and stream()
+- `AnthropicStream` iterator accumulating text, thinking, and tool call arguments from SSE events
+- `build_anthropic_request`: maps `ModelInteraction` → `MessagesRequest` with proper content block conversion
+- `parse_response`: maps `MessagesResponse` → `Messages` with content extraction
+- Stop reason mapping: end_turn→Stop, stop_sequence→Stop, max_tokens→Length, tool_use→ToolUse
+- Error handling: parse_anthropic_error, format_http_error, retry with exponential backoff, Retry-After header parsing
+- 29 unit tests passing (config, serialization, deserialization, request building, error parsing, stop reason mapping)
+
 ### 00g OpenAI Provider Enhancements (100% ✅)
 - `ResponsesProvider` / `ResponsesModel` implementing `ModelProvider` for `/v1/responses`
   (reasoning models: o1, o3, o1-pro)
@@ -125,23 +142,15 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
 ## What's Next
 
-### Immediate (next feature to implement)
+### Immediate (next features to implement)
 
-**07 anthropic-provider — 32 tasks**
-- `AnthropicMessagesProvider` connecting to Anthropic's `/v1/messages` endpoint
-- Native Anthropic protocol: `x-api-key` + `anthropic-version` headers, content block model
-- Extended thinking support (Claude 3.7+), native tool use format, multimodal input
-- SSE streaming with named events (`message_start`, `content_block_delta`, etc.)
-- Depends on 00c (complete) — can start immediately
+**04 tool-calling-formatter — 18 tasks** — plugin-based ToolFormatter for
+OpenAI, Anthropic, llama.cpp, open-source tool calling formats.
+Depends on 00c (complete) and 07 (complete) — can start immediately.
 
-### Dependency-ordered queue after 07
-
-1. **04 tool-calling-formatter** (18 tasks) — plugin-based ToolFormatter for
-   OpenAI, Anthropic, llama.cpp, open-source tool calling formats.
-   Depends on 00c (complete) and 07 (anthropic).
-2. **05 agentic-coding-reference** (reference only) — documentary analysis of
-   pi-mono and hermes-agent agentic coding patterns. No code tasks.
-   Depends on 04.
+**05 agentic-coding-reference — reference only** — documentary analysis of
+pi-mono and hermes-agent agentic coding patterns. No code tasks.
+Depends on 04.
 
 ### Parallel Cleanup Effort
 
