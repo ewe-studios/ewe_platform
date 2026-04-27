@@ -17,13 +17,14 @@ use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::{SendSafeBody, SimpleHeader};
+use crate::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 /// Configuration for reconnecting SSE client.
 pub struct ReconnectingConfig {
     url: String,
+    method: SimpleMethod,
     headers: Vec<(SimpleHeader, String)>,
     body: Option<SendSafeBody>,
     max_retries: u32,
@@ -35,6 +36,7 @@ impl ReconnectingConfig {
     fn new(url: String) -> Self {
         Self {
             url,
+            method: SimpleMethod::GET,
             headers: Vec::new(),
             body: None,
             max_retries: 5,
@@ -56,6 +58,8 @@ pub enum ReconnectingProgress {
 }
 
 enum ReconnectingState<R: DnsResolver + Send + 'static> {
+    /// Initial state — inner task not yet created, config being built.
+    Init,
     /// Active connection with inner task.
     Connected(Box<EventSourceTask<R>>),
     /// Backoff wait before reconnection.
@@ -120,13 +124,12 @@ where
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
-        let inner = EventSourceTask::connect(resolver.clone(), &url_str)?;
         let config = ReconnectingConfig::new(url_str);
 
         info!("Reconnecting SSE client created");
 
         Ok(Self {
-            state: Some(ReconnectingState::Connected(Box::new(inner))),
+            state: Some(ReconnectingState::Init),
             config,
             resolver,
             last_event_id: None,
@@ -193,19 +196,24 @@ where
     ///
     /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
     /// WHAT: Returns Self with the body applied to the initial inner task.
-    /// On reconnect, the body is dropped — only the URL and headers are re-sent.
+    /// On reconnect, the body is dropped — only the URL, method, and headers are re-sent.
     #[must_use]
     pub fn with_body(mut self, body: SendSafeBody) -> Self {
         debug!("Setting request body (first connection only)");
         self.config.body = Some(body);
+        self.config.method = SimpleMethod::POST;
         self
     }
 
     /// Create a new inner [`EventSourceTask`] for (re)connection.
     ///
     /// NOTE: Body is taken via `take()` so it only applies on the first connection.
+    /// The method is preserved across all reconnections.
     fn create_inner_task(&mut self) -> Option<EventSourceTask<R>> {
         let mut task = EventSourceTask::connect(self.resolver.clone(), &self.config.url).ok()?;
+
+        // Apply method (preserved across reconnections)
+        task = task.with_method(self.config.method.clone());
 
         // Apply headers (reapplied on reconnect)
         for (name, value) in &self.config.headers {
@@ -255,6 +263,18 @@ where
         let state = self.state.take()?;
 
         match state {
+            ReconnectingState::Init => {
+                debug!(url = %self.config.url, "Creating initial SSE connection");
+                if let Some(inner) = self.create_inner_task() {
+                    self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                    Some(TaskStatus::Pending(ReconnectingProgress::Connecting))
+                } else {
+                    error!("Failed to create initial inner task");
+                    self.state = Some(ReconnectingState::Exhausted);
+                    None
+                }
+            }
+
             ReconnectingState::Connected(mut inner) => {
                 trace!(state = "Connected", "Forwarding from inner task");
 

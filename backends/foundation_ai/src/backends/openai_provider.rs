@@ -12,7 +12,7 @@ use std::time::{Duration, SystemTime};
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
-use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask, ReconnectingProgress};
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -765,67 +765,89 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
             return None;
         }
 
-        loop {
-            let item = self.inner.next()?;
+        let item = self.inner.next()?;
 
-            match item {
-                Stream::Next(parse_result) => {
-                    let Event::Message { data, .. } = &parse_result.event else {
-                        continue;
-                    };
+        match item {
+            Stream::Next(parse_result) => {
+                let Event::Message { data, .. } = &parse_result.event else {
+                    return Some(Stream::Ignore);
+                };
 
-                    if data.trim() == "[DONE]" {
-                        self.done = true;
-                        return Some(Stream::Next(self.build_final_message()));
-                    }
+                if data.trim() == "[DONE]" {
+                    self.done = true;
+                    return Some(Stream::Next(self.build_final_message()));
+                }
 
-                    let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
-                        continue;
-                    };
-
-                    if let Some(u) = chunk.usage {
-                        self.usage = Some(u);
-                    }
-
-                    let mut text_yielded = false;
-                    for choice in &chunk.choices {
-                        if let Some(ref delta) = choice.delta {
-                            if let Some(ref content) = delta.content {
-                                if !content.is_empty() {
-                                    self.accumulated_text.push_str(content);
-                                    text_yielded = true;
-                                }
-                            }
-                            if let Some(ref tool_calls) = delta.tool_calls {
-                                self.accumulate_tool_calls(tool_calls);
-                            }
-                        }
-                        if let Some(ref reason) = choice.finish_reason {
-                            if reason != "null" {
-                                self.finish_reason = Some(reason.clone());
-                            }
-                        }
-                    }
-
-                    if text_yielded {
-                        return Some(Stream::Next(Messages::Assistant {
-                            model: self.model_id.clone(),
-                            timestamp: SystemTime::now(),
-                            usage: empty_usage_report(),
-                            content: ModelOutput::Text(TextContent {
-                                content: self.accumulated_text.clone(),
-                                signature: None,
-                            }),
-                            stop_reason: StopReason::Stop,
-                            provider: ModelProviders::OPENAI,
-                            error_detail: None,
+                let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
+                    tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
+                    return Some(Stream::Next(Messages::Assistant {
+                        model: self.model_id.clone(),
+                        timestamp: SystemTime::now(),
+                        usage: empty_usage_report(),
+                        content: ModelOutput::Text(TextContent {
+                            content: self.accumulated_text.clone(),
                             signature: None,
-                            metadata: None,
-                        }));
+                        }),
+                        stop_reason: StopReason::Error,
+                        provider: ModelProviders::OPENAI,
+                        error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
+                        signature: None,
+                        metadata: None,
+                    }));
+                };
+
+                if let Some(u) = chunk.usage {
+                    self.usage = Some(u);
+                }
+
+                let mut text_yielded = false;
+                for choice in &chunk.choices {
+                    if let Some(ref delta) = choice.delta {
+                        if let Some(ref content) = delta.content {
+                            if !content.is_empty() {
+                                self.accumulated_text.push_str(content);
+                                text_yielded = true;
+                            }
+                        }
+                        if let Some(ref tool_calls) = delta.tool_calls {
+                            self.accumulate_tool_calls(tool_calls);
+                        }
+                    }
+                    if let Some(ref reason) = choice.finish_reason {
+                        if reason != "null" {
+                            self.finish_reason = Some(reason.clone());
+                        }
                     }
                 }
-                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => {}
+
+                if text_yielded {
+                    Some(Stream::Next(Messages::Assistant {
+                        model: self.model_id.clone(),
+                        timestamp: SystemTime::now(),
+                        usage: empty_usage_report(),
+                        content: ModelOutput::Text(TextContent {
+                            content: self.accumulated_text.clone(),
+                            signature: None,
+                        }),
+                        stop_reason: StopReason::Stop,
+                        provider: ModelProviders::OPENAI,
+                        error_detail: None,
+                        signature: None,
+                        metadata: None,
+                    }))
+                } else {
+                    Some(Stream::Ignore)
+                }
             }
+            Stream::Pending(p) => Some(Stream::Pending(match p {
+                ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
+                    ModelState::GeneratingTokens(None)
+                }
+                ReconnectingProgress::Reconnecting => ModelState::GeneratingTokens(None),
+            })),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
         }
     }
 }

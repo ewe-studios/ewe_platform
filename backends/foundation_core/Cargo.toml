@@ -64,6 +64,7 @@ serial_test = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
+foundation_testing = { path = "../foundation_testing" }
 
 [features]
 debug_trace = ["standard", "log_debug"]

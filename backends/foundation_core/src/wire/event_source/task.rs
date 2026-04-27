@@ -216,6 +216,18 @@ where
         self
     }
 
+    /// Set the HTTP method for the request.
+    ///
+    /// WHY: The reconnecting task needs to preserve the method across reconnections.
+    #[must_use]
+    pub fn with_method(mut self, method: SimpleMethod) -> Self {
+        debug!(?method, "Setting request method");
+        if let Some(EventSourceState::Init(ref mut config)) = self.state {
+            config.method = method;
+        }
+        self
+    }
+
     /// Get the last event ID seen.
     ///
     /// WHY: Reconnecting task needs to track last event ID for reconnection resume.

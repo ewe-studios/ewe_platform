@@ -29,6 +29,9 @@ sha1 = { version = "0.10", features = ["std"] }
 rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "logging", "ring"] }
 zeroize = "1"
 
+# SSE test server dependencies (for TCP RST in abrupt drop tests)
+socket2 = "0.6"
+
 [dev-dependencies]
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
@@ -40,3 +43,6 @@ std = ["foundation_nostd/std"]
 
 # HuggingFace model downloading for AI backend testing
 huggingface = ["foundation_deployment/huggingface"]
+
+# Multi-threaded executor
+multi = ["foundation_deployment/multi", "foundation_core/multi"]

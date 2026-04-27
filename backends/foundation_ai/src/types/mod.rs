@@ -1010,7 +1010,7 @@ pub trait Model {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```text
 /// impl AuthProvider for MyProviderConfig {
 ///     fn auth(&self) -> Option<&AuthCredential> {
 ///         self.auth.as_ref()
