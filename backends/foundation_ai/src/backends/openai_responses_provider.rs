@@ -828,7 +828,21 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
                     };
 
                     let Ok(event) = serde_json::from_str::<ResponseEvent>(data) else {
-                        continue;
+                        tracing::warn!(data = %data, "Failed to parse SSE chunk JSON in Responses API");
+                        return Some(Stream::Next(Messages::Assistant {
+                            model: self.model_id.clone(),
+                            timestamp: SystemTime::now(),
+                            usage: empty_usage_report(),
+                            content: ModelOutput::Text(TextContent {
+                                content: self.accumulated_text.clone(),
+                                signature: None,
+                            }),
+                            stop_reason: StopReason::Error,
+                            provider: ModelProviders::OPENAIRESPONSES,
+                            error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
+                            signature: None,
+                            metadata: None,
+                        }));
                     };
 
                     match event {

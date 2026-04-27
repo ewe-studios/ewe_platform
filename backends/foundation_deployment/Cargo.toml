@@ -16,10 +16,7 @@ workspace = true
 workspace = true
 
 [dependencies.foundation_core]
-features = [
-    "ssl",
-    "multi",
-]
+features = ["ssl"]
 workspace = true
 
 [dependencies.foundation_db]
@@ -43,6 +40,8 @@ tracing-test = "0.2"
 
 [features]
 all = ["aws", "gcp", "gcp_all", "cloudflare", "cloudflare_all", "fly_io", "fly_io_all"]
+default = []
+multi = ["foundation_core/multi"]
 aws = []
 cloudflare = []
 cloudflare_access = []
@@ -133,7 +132,6 @@ cloudflare_tracer = []
 cloudflare_waiting_rooms = []
 cloudflare_workers = []
 cloudflare_zones = []
-default = []
 fly = ["fly_io"]
 fly_io = []
 fly_io_all = [

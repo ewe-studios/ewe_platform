@@ -16,6 +16,16 @@ PROJECT_ROOT = "{{config_root}}"
 _.path = ["./node_modules/.bin", "./tools/depot_tools"]
 
 # =============================================================================
+# Test model — single source of truth for llama-server integration tests.
+# Change the model here and every task/test that references it updates.
+# =============================================================================
+LLAMA_TEST_MODEL_DIR = "{{config_root}}/artefact/models"
+LLAMA_TEST_MODEL_FILE = "{{config_root}}/artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+LLAMA_TEST_MODEL_NAME = "qwen2.5-0.5b-instruct"
+LLAMA_TEST_MODEL_URL = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
+
+# =============================================================================
 # Tool versions - mise manages these automatically
 # =============================================================================
 # NOTE: Rust toolchain is managed by rust-toolchain.toml (rustup).
@@ -479,6 +489,251 @@ echo "D1_INTEGRATION_TEST: ${D1_INTEGRATION_TEST:-not set}"
 echo "R2_INTEGRATION_TEST: ${R2_INTEGRATION_TEST:-not set}"
 """
 
+# --- llama-server Testing Infrastructure ---
+
+[tasks."llama:server:build"]
+description = "Build llama-server via build.rs (places binary at support/bin/llama-server)"
+run = """
+LLAMA_SERVER_BUILD=1 cargo build --package foundation_ai --lib
+echo "llama-server built at $PROJECT_ROOT/support/bin/llama-server"
+ls -lh "$PROJECT_ROOT/support/bin/llama-server"
+"""
+
+[tasks."llama:server:clean"]
+description = "Clean llama-server build artifacts (both CMake and support/bin)"
+run = """
+#!/usr/bin/env bash
+LLAMA_DIR="$PROJECT_ROOT/infrastructure/llama-bindings/llama.cpp"
+if [ -d "$LLAMA_DIR/build" ]; then
+    echo "Cleaning llama.cpp build directory..."
+    rm -rf "$LLAMA_DIR/build"
+fi
+if [ -f "$PROJECT_ROOT/support/bin/llama-server" ]; then
+    echo "Removing support/bin/llama-server..."
+    rm -f "$PROJECT_ROOT/support/bin/llama-server"
+fi
+echo "Clean complete"
+"""
+
+[tasks."llama:server:version"]
+description = "Show llama-server version and build info"
+run = """
+#!/usr/bin/env bash
+SERVER_BIN="$PROJECT_ROOT/support/bin/llama-server"
+
+if [ ! -f "$SERVER_BIN" ]; then
+    echo "ERROR: llama-server not found at $SERVER_BIN"
+    echo "Run: mise run llama:server:build"
+    exit 1
+fi
+
+"$SERVER_BIN" --version
+"""
+
+[tasks."llama:test-model:download"]
+description = "Download a small GGUF test model ($LLAMA_TEST_MODEL_DESC)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mkdir -p "$LLAMA_TEST_MODEL_DIR"
+
+if [ -f "$LLAMA_TEST_MODEL_FILE" ]; then
+    echo "Test model already exists at: $LLAMA_TEST_MODEL_FILE"
+    ls -lh "$LLAMA_TEST_MODEL_FILE"
+    exit 0
+fi
+
+echo "Downloading $LLAMA_TEST_MODEL_DESC..."
+curl -L -o "$LLAMA_TEST_MODEL_FILE" "$LLAMA_TEST_MODEL_URL"
+
+echo "Model downloaded to: $LLAMA_TEST_MODEL_FILE"
+ls -lh "$LLAMA_TEST_MODEL_FILE"
+"""
+
+[tasks."llama:test-model:path"]
+description = "Print the path to the test model file"
+run = """
+#!/usr/bin/env bash
+echo "$LLAMA_TEST_MODEL_FILE"
+"""
+
+[tasks."llama:server:start"]
+description = "Start llama-server with test model in background"
+run = """
+#!/usr/bin/env bash
+set -e
+
+SERVER_BIN="$PROJECT_ROOT/support/bin/llama-server"
+
+PORT="${LLAMA_SERVER_PORT:-8999}"
+LOG_FILE="$PROJECT_ROOT/llama-server-test.log"
+
+# Validate prerequisites
+if [ ! -f "$SERVER_BIN" ]; then
+    echo "ERROR: llama-server not found at $SERVER_BIN"
+    echo "Run: mise run llama:server:build"
+    exit 1
+fi
+
+if [ ! -f "$LLAMA_TEST_MODEL_FILE" ]; then
+    echo "ERROR: test model not found at $LLAMA_TEST_MODEL_FILE"
+    echo "Run: mise run llama:test-model:download"
+    exit 1
+fi
+
+# Kill any existing server
+pkill -f "llama-server.*--port $PORT" 2>/dev/null || true
+sleep 1
+
+echo "Starting llama-server on port $PORT..."
+echo "Model: $LLAMA_TEST_MODEL_FILE"
+echo "Log:   $LOG_FILE"
+
+"$SERVER_BIN" \\
+    --model "$LLAMA_TEST_MODEL_FILE" \\
+    --host 127.0.0.1 \\
+    --port "$PORT" \\
+    --api-key "test-api-key-123" \\
+    --threads 4 \\
+    --ctx-size 2048 \\
+    --batch-size 512 \\
+    --ubatch-size 256 \\
+    --no-webui \\
+    --log-disable \\
+    > "$LOG_FILE" 2>&1 &
+
+SERVER_PID=$!
+echo "llama-server PID: $SERVER_PID"
+echo "$SERVER_PID" > /tmp/llama-server-test.pid
+
+# Wait for server to be ready
+echo "Waiting for llama-server to be ready..."
+for i in $(seq 1 60); do
+    if curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT/health" | grep -q "200"; then
+        echo "llama-server is ready on port $PORT (PID: $SERVER_PID)"
+        exit 0
+    fi
+    sleep 1
+done
+
+echo "ERROR: llama-server failed to start within 60 seconds"
+echo "=== Last 50 lines of log ==="
+tail -50 "$LOG_FILE"
+kill "$SERVER_PID" 2>/dev/null || true
+exit 1
+"""
+
+[tasks."llama:server:stop"]
+description = "Stop llama-server background process"
+run = """
+#!/usr/bin/env bash
+if [ -f /tmp/llama-server-test.pid ]; then
+    PID=$(cat /tmp/llama-server-test.pid)
+    if kill -0 "$PID" 2>/dev/null; then
+        echo "Stopping llama-server (PID: $PID)..."
+        kill "$PID"
+        wait "$PID" 2>/dev/null || true
+        echo "llama-server stopped"
+    else
+        echo "llama-server (PID: $PID) is not running"
+    fi
+    rm -f /tmp/llama-server-test.pid
+else
+    echo "No llama-server PID file found"
+    pkill -f "llama-server.*--port" 2>/dev/null || true
+    echo "Killed any remaining llama-server processes"
+fi
+"""
+
+[tasks."llama:server:status"]
+description = "Check if llama-server is running and healthy"
+run = """
+#!/usr/bin/env bash
+PORT="${LLAMA_SERVER_PORT:-8999}"
+
+if [ -f /tmp/llama-server-test.pid ]; then
+    PID=$(cat /tmp/llama-server-test.pid)
+    if kill -0 "$PID" 2>/dev/null; then
+        echo "llama-server is running (PID: $PID)"
+    else
+        echo "llama-server PID $PID is not running"
+    fi
+else
+    echo "No PID file found"
+fi
+
+echo "Checking health endpoint..."
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT/health" 2>/dev/null || echo "000")
+echo "Health status: $STATUS"
+
+if [ "$STATUS" = "200" ]; then
+    curl -s "http://127.0.0.1:$PORT/health" | head -5
+fi
+"""
+
+[tasks."test:llama-server"]
+description = "Run all llama-server integration tests (auto-starts/stops server)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "=== llama-server Integration Tests ==="
+echo ""
+
+# Start server
+mise run llama:server:start
+trap 'mise run llama:server:stop' EXIT
+
+# Run tests
+export LLAMA_SERVER_TEST=1
+export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
+export LLAMA_SERVER_API_KEY="test-api-key-123"
+
+echo ""
+echo "=== Running OpenAI Provider Tests ==="
+cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+
+echo ""
+echo "=== Running Responses Provider Tests ==="
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+
+echo ""
+echo "All llama-server integration tests passed"
+"""
+
+[tasks."test:llama-server:chat"]
+description = "Run Chat Completions API tests against llama-server"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run llama:server:start
+trap 'mise run llama:server:stop' EXIT
+
+export LLAMA_SERVER_TEST=1
+export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
+export LLAMA_SERVER_API_KEY="test-api-key-123"
+
+cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+"""
+
+[tasks."test:llama-server:responses"]
+description = "Run Responses API tests against llama-server"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run llama:server:start
+trap 'mise run llama:server:stop' EXIT
+
+export LLAMA_SERVER_TEST=1
+export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
+export LLAMA_SERVER_API_KEY="test-api-key-123"
+
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+"""
+
 # --- Foundation NoStd Testing ---
 
 [tasks."test:nostd"]
@@ -862,6 +1117,18 @@ echo "  test:cf:d1         Run D1 kvstore tests (auto-starts wrangler)"
 echo "  test:quick         Quick smoke test"
 echo "  test:nostd         All foundation_nostd tests"
 echo "  test:wasm          WASM compilation tests"
+echo ""
+echo "llama-server Testing:"
+echo "  llama:server:build     Build llama-server via build.rs"
+echo "  llama:server:clean     Clean llama-server build artifacts"
+echo "  llama:server:version   Show llama-server version"
+echo "  llama:server:start     Start llama-server with test model"
+echo "  llama:server:stop      Stop llama-server background process"
+echo "  llama:server:status    Check llama-server health"
+echo "  llama:test-model:download  Download GGUF test model (~370MB)"
+echo "  test:llama-server      Run all llama-server integration tests"
+echo "  test:llama-server:chat Run Chat Completions tests"
+echo "  test:llama-server:responses  Run Responses API tests"
 echo ""
 echo "Benchmarking:"
 echo "  bench              Run all benchmarks"

@@ -311,6 +311,8 @@ exec_future(async move {
 10. **`from_future` bridges async crates** - Any async-only library can be used via `from_future` + `execute` without tokio
 11. **Collect !Send types inside async blocks** - Database row iterators are typically `!Send` and must be consumed before crossing the Valtron boundary
 12. **Sync code stays sync** - CPU-bound operations (hashing, signing, inference) should NOT be wrapped in Valtron
+13. **Never swallow SSE parse errors as `Stream::Ignore`** - Return `Stream::Next` with `stop_reason: Error` so consumers see the failure
+14. **SSE test data must match full struct schema** - Missing required fields (e.g. `created`, `model` in `ChatCompletionChunk`) causes silent JSON parse failures
 
 ---
 
@@ -371,4 +373,41 @@ _Last Updated: 2026-03-28 (Added: from_future/exec_future patterns from foundati
 
 **Model-Specific Formats:**
 - Llama 3.x: `<|python_tag|>` prefix + JSON
-- Hermes: `
+- Hermes: `<|im_start|>` + `<|plugin|>` blocks
+
+## SSE Streaming Debugging (2026-04-27)
+
+### Silent JSON Parse Failures in OpenAIStream
+
+**Problem:** `OpenAIStream::next()` returned `Stream::Ignore` when `serde_json::from_str::<ChatCompletionChunk>()` failed. This silently discarded SSE events that had malformed or incomplete JSON, making it impossible for consumers to distinguish "no text in this chunk" from "this chunk failed to parse".
+
+**Symptom:** Test server sent valid SSE events (confirmed via raw TCP), but the consumer saw empty text. The test data was missing `created` and `model` fields required by `ChatCompletionChunk` (non-`Option`), so JSON deserialization failed every time.
+
+**Root cause:** The `else { return Some(Stream::Ignore); }` pattern after `let Ok(chunk) = ... else` silently swallowed parse errors. Three levels of `Ignore` hid the problem:
+1. SSE transport layer worked correctly (events reached the parser)
+2. SSE parser correctly extracted `data: {...}` strings
+3. JSON parse failed, returned `Stream::Ignore` — consumer thought stream was empty
+
+**How to apply:** JSON parse failures in `OpenAIStream::next()` now return `Stream::Next(Messages::Assistant { stop_reason: Error, error_detail: Some(...) })` with the raw data and parse error. This ensures:
+- Consumers see an error, not silence
+- Debug output includes the failing data for diagnosis
+- The stream can continue after the error if needed
+
+**Rule:** Never return `Stream::Ignore` for parse/decode failures in streaming consumers. Return `Stream::Next` with an error-carrying message so failures are observable.
+
+### SSE Test Data Must Match Full Struct Schema
+
+**Problem:** Test SSE handlers sent minimal JSON chunks like `{"id":"c1","choices":[...]}` — omitting `created` and `model` fields because they weren't being tested. But `ChatCompletionChunk` has these as required (non-`Option`) fields, so `serde_json::from_str` rejected them.
+
+**How to apply:** SSE test data must include ALL required fields of the target struct, not just the fields under test. When adding or modifying SSE test handlers, verify the JSON matches the actual deserialization target's schema:
+- `ChatCompletionChunk` requires: `id`, `object`, `created`, `model`, `choices`
+- Missing required fields cause silent failures if the error is swallowed (see above)
+
+### Debugging Strategy: Transport vs Application
+
+**Approach:** When SSE events aren't reaching the consumer, test at each layer:
+1. **Raw TCP test** — Connect to the test server with raw TCP, verify HTTP response headers + SSE events arrive correctly
+2. **Parser debug** — Add eprintln to `SseParser::parse_next()` to confirm raw event data is received
+3. **Consumer debug** — Add eprintln to `OpenAIStream::next()` to log each parsed event before JSON deserialization
+
+This quickly isolates whether the failure is in transport (TCP), parsing (SSE format), or application (JSON schema mismatch).
