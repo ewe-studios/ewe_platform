@@ -887,6 +887,7 @@ pub struct Tool {
     pub name: String,
     pub description: String,
     pub arguments: Option<HashMap<String, ArgType>>,
+    pub returns: Option<HashMap<String, ArgType>>,
 }
 
 /// Strategy for tool selection in model interactions.
