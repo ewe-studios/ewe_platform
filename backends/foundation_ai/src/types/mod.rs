@@ -1021,6 +1021,7 @@ pub trait ToolFormatter: Default + Send + Sync {
 }
 
 /// Output of `extract_tool_calls()` — extracted tool calls plus remaining text.
+#[derive(Debug)]
 pub struct ExtractResult {
     /// Extracted tool calls in unified `ModelOutput::ToolCall` format.
     pub calls: Vec<ModelOutput>,
@@ -1033,6 +1034,36 @@ pub struct ExtractResult {
 /// XML tag used by text-based models for tool calling.
 const TOOL_CALL_OPEN: &str = "<ToolCall>";
 const TOOL_CALL_CLOSE: &str = "</ToolCall>";
+
+/// Convert a raw JSON value to `ArgType`.
+/// Needed because `ArgType` is externally tagged and can't be deserialized
+/// from plain JSON values.
+fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
+    match v {
+        serde_json::Value::String(s) => ArgType::Text(s.clone()),
+        serde_json::Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                ArgType::I64(i)
+            } else if let Some(f) = n.as_f64() {
+                ArgType::Float64(f)
+            } else {
+                ArgType::Text(v.to_string())
+            }
+        }
+        serde_json::Value::Bool(b) => ArgType::Text(if *b { "true" } else { "false" }.to_string()),
+        serde_json::Value::Null => ArgType::Text(String::new()),
+        serde_json::Value::Array(arr) => {
+            ArgType::Text(arr.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(", "))
+        }
+        serde_json::Value::Object(map) => {
+            let nested: HashMap<String, ArgType> = map
+                .iter()
+                .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                .collect();
+            ArgType::JSONMap(nested)
+        }
+    }
+}
 
 /// Shared formatter for text-based models (llama.cpp, Candle).
 ///
@@ -1101,7 +1132,7 @@ impl ToolFormatter for TextBasedFormatter {
         &self,
         response: &str,
     ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
-        let pattern = regex!(r"<ToolCall>\s*(\{.*?\})\s*</ToolCall>");
+        let pattern = regex!(r"<ToolCall>\s*(.*?)\s*</ToolCall>");
         let mut calls = Vec::new();
         let mut remaining_parts = Vec::new();
         let mut last_end = 0;
@@ -1116,21 +1147,29 @@ impl ToolFormatter for TextBasedFormatter {
             }
             last_end = full.end();
 
-            // Try to parse the JSON
-            let parsed: Result<HashMap<String, ArgType>, _> = serde_json::from_str(json_str);
+            // Try to parse the JSON as a generic value, then convert to ArgType map
+            let parsed: Result<serde_json::Value, _> = serde_json::from_str(json_str);
             match parsed {
-                Ok(arguments) => {
-                    let name = arguments.get("name").and_then(|v| match v {
-                        ArgType::Text(s) => Some(s.clone()),
-                        _ => None,
-                    }).unwrap_or_default();
-                    if !name.is_empty() {
-                        calls.push(ModelOutput::ToolCall {
-                            id: format!("tool_{}", calls.len()),
-                            name,
-                            arguments: Some(arguments),
-                            signature: None,
-                        });
+                Ok(value) => {
+                    if let Some(obj) = value.as_object() {
+                        let arguments: HashMap<String, ArgType> = obj
+                            .iter()
+                            .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                            .collect();
+                        let name = arguments.get("name").and_then(|v| match v {
+                            ArgType::Text(s) => Some(s.clone()),
+                            _ => None,
+                        }).unwrap_or_default();
+                        if !name.is_empty() {
+                            calls.push(ModelOutput::ToolCall {
+                                id: format!("tool_{}", calls.len()),
+                                name,
+                                arguments: Some(arguments),
+                                signature: None,
+                            });
+                        }
+                    } else {
+                        remaining_parts.push(full.as_str());
                     }
                 }
                 Err(_) => {
@@ -1149,7 +1188,16 @@ impl ToolFormatter for TextBasedFormatter {
         let remaining_text = if remaining_parts.is_empty() {
             None
         } else {
-            Some(remaining_parts.concat())
+            let trimmed: Vec<&str> = remaining_parts
+                .iter()
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .collect();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.join("\n"))
+            }
         };
 
         Ok(ExtractResult { calls, remaining_text, has_tool_calls })
