@@ -31,26 +31,24 @@ Basic usage:
 
 ```rust
 use foundation_errstacks::{ErrorTrace, PlainResultExt, ErrorTraceResultExt};
-use derive_more::{Display, Error};
+use derive_more::{Display, Error, From};
 
-#[derive(Debug, Display, Error)]
-#[display("database connection failed")]
-struct DbError;
-
-#[derive(Debug, Display, Error)]
-#[display("user lookup failed")]
-struct UserError;
-
-fn connect_to_db() -> Result<Connection, ErrorTrace<DbError>> {
-    Err(DbError)
-        .attach("host=db.example.com")
-        .attach("port=5432")
+// Enum is the preferred default — each variant carries its own context.
+// Structs work too; use whichever fits your error domain best.
+#[derive(Debug, Display, Error, From)]
+enum DbError {
+    #[display("database connection failed")]
+    Connect,
+    #[display("query failed on table '{table}': {reason}")]
+    Query { table: String, reason: String },
+    #[display("connection pool exhausted")]
+    PoolExhausted,
 }
 
-fn get_user(id: u64) -> Result<User, ErrorTrace<UserError>> {
-    connect_to_db()
-        .change_context(UserError)
-        .attach_with(|| format!("user_id={}", id))
+fn connect_to_db() -> Result<Connection, ErrorTrace<DbError>> {
+    Err(DbError::PoolExhausted)
+        .attach("host=db.example.com")
+        .attach("port=5432")
 }
 ```
 
@@ -165,21 +163,23 @@ struct ParseError {
 }
 ```
 
-### Error Enums
+## Preferred Error Shape
+
+This project prefers **enums** as the default error type. Each variant carries the fields relevant to that failure mode:
 
 ```rust
-use derive_more::{Display, Error};
-
-#[derive(Debug, Display, Error)]
-enum IoError {
-    #[display("read failed: {0}")]
-    Read(&'static str),
-    #[display("write failed: {0}")]
-    Write(&'static str),
-    #[display("permission denied: {0}")]
-    Permission(&'static str),
+#[derive(Debug, Display, Error, From)]
+enum ApiError {
+    #[display("request to {url} failed: {reason}")]
+    Request { url: String, reason: String },
+    #[display("rate limited, retry after {retry_after}s")]
+    RateLimited { retry_after: u64 },
+    #[display("authentication failed: invalid token")]
+    AuthFailed,
 }
 ```
+
+Structs still work fine — `ErrorTrace<C>` only requires `C: Display + Error`. Use whichever fits your domain. The enum preference is a project convention, not a technical requirement.
 
 ### From Conversions
 

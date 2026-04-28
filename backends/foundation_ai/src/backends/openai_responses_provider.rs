@@ -718,6 +718,7 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
 }
 
 impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
+    type Formatter = crate::types::TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),

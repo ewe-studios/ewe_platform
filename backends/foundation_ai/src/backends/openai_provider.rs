@@ -17,13 +17,14 @@ use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_errstacks::ErrorTrace;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, StopReason,
-    TextContent, UsageCosting, UsageReport,
+    Args, AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
+    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -300,7 +301,7 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
 
 impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
     type Config = OpenAIConfig;
-    type Model = OpenAIModel<R>;
+    type Model = OpenAIModel<OpenAIFormatter, R>;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -380,6 +381,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 http_client: self.http_client.clone(),
                 resolver: self.resolver.clone(),
                 info: info.clone(),
+                _formatter: std::marker::PhantomData,
             });
         }
         drop(cache);
@@ -413,6 +415,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             http_client: self.http_client.clone(),
             resolver: self.resolver.clone(),
             info,
+            _formatter: std::marker::PhantomData,
         })
     }
 
@@ -462,7 +465,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 // ============================================================================
 
 /// A model handle for the `OpenAI` provider implementing [`Model`].
-pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
+///
+/// The `F` type parameter allows customizing the tool formatter. When used
+/// natively with OpenAI it defaults to `OpenAIFormatter`; when used as a
+/// proxy to other endpoints the caller can supply a different formatter.
+pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = SystemDnsResolver> {
     config: OpenAIConfig,
     model_id: ModelId,
     model_name: String,
@@ -472,9 +479,10 @@ pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
     /// Cached model metadata from the provider (used in model identity).
     #[allow(dead_code)]
     info: OpenAIModelInfo,
+    _formatter: std::marker::PhantomData<F>,
 }
 
-impl<R: DnsResolver + 'static> OpenAIModel<R> {
+impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -643,7 +651,147 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
+// ============================================================================
+// OpenAI Tool Formatter
+// ============================================================================
+
+/// Formatter for OpenAI's native tool calling format.
+///
+/// Tool defs: `{type: "function", function: {name, description, parameters}}`
+/// Tool calls: `{id: "...", type: "function", function: {name, arguments: "..."}}`
+/// Tool results: `{role: "tool", tool_call_id: "...", content: "..."}`
+#[derive(Default, Clone, Copy)]
+pub struct OpenAIFormatter;
+
+impl ToolFormatter for OpenAIFormatter {
+    fn format_tools(
+        &self,
+        tools: &[Tool],
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        Ok(serde_json::Value::Array(
+            tools
+                .iter()
+                .map(|tool| {
+                    let mut properties = serde_json::Map::new();
+                    if let Some(args) = &tool.arguments {
+                        for arg in args {
+                            if let Args::Named(key, value) = arg {
+                                let schema_type = match value {
+                                    crate::types::ArgType::Float32(_)
+                                    | crate::types::ArgType::Float64(_) => "number",
+                                    crate::types::ArgType::Usize(_)
+                                    | crate::types::ArgType::U8(_)
+                                    | crate::types::ArgType::U16(_)
+                                    | crate::types::ArgType::U32(_)
+                                    | crate::types::ArgType::U64(_)
+                                    | crate::types::ArgType::Isize(_)
+                                    | crate::types::ArgType::I8(_)
+                                    | crate::types::ArgType::I16(_)
+                                    | crate::types::ArgType::I32(_)
+                                    | crate::types::ArgType::I64(_) => "integer",
+                                    _ => "string",
+                                };
+                                properties.insert(
+                                    key.clone(),
+                                    serde_json::json!({ "type": schema_type }),
+                                );
+                            }
+                        }
+                    }
+                    serde_json::json!({
+                        "type": "function",
+                        "function": {
+                            "name": &tool.name,
+                            "description": tool.description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": properties,
+                            },
+                        },
+                    })
+                })
+                .collect(),
+        ))
+    }
+
+    fn tool_calling_instructions(&self) -> Option<String> {
+        None
+    }
+
+    fn extract_tool_calls(
+        &self,
+        response: &str,
+    ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
+        let parsed: serde_json::Value =
+            serde_json::from_str(response).map_err(|e| {
+                ErrorTrace::new(ToolCallingError::Extract { reason: e.to_string() })
+                    .attach("source=openai_response")
+            })?;
+
+        let mut calls = Vec::new();
+        let mut remaining_text = None;
+
+        if let Some(choice) = parsed.get("choices").and_then(|v| v.as_array()).and_then(|a| a.first()) {
+            if let Some(message) = choice.get("message") {
+                // Check for tool_calls
+                if let Some(tool_calls) = message.get("tool_calls").and_then(|v| v.as_array()) {
+                    for tc in tool_calls {
+                        let id = tc.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let function = tc.get("function").and_then(|v| v.as_object());
+                        let name = function.and_then(|f| f.get("name")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let args_str = function.and_then(|f| f.get("arguments")).and_then(|v| v.as_str()).unwrap_or("{}");
+                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                            serde_json::from_str(args_str).ok();
+                        calls.push(ModelOutput::ToolCall {
+                            id,
+                            name,
+                            arguments,
+                            signature: None,
+                        });
+                    }
+                }
+                // Get text content for remaining_text
+                if let Some(content) = message.get("content").and_then(|v| v.as_str()) {
+                    if !content.is_empty() {
+                        remaining_text = Some(content.to_string());
+                    }
+                }
+            }
+        }
+
+        let has_tool_calls = !calls.is_empty();
+        Ok(ExtractResult { calls, remaining_text, has_tool_calls })
+    }
+
+    fn format_tool_response(
+        &self,
+        result: &Messages,
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        let Messages::ToolResult {
+            id, content, ..
+        } = result
+        else {
+            return Err(ErrorTrace::new(ToolCallingError::Response {
+                tool_name: String::new(),
+                reason: "expected Messages::ToolResult".to_string(),
+            }).attach("source=openai_formatter"));
+        };
+
+        let content_str = match content {
+            crate::types::UserModelContent::Text(t) => t.content.clone(),
+            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+        };
+
+        Ok(serde_json::json!({
+            "role": "tool",
+            "tool_call_id": id,
+            "content": content_str,
+        }))
+    }
+}
+
+impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
+    type Formatter = F;
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
