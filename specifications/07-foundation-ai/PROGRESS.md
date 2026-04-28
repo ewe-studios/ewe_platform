@@ -28,9 +28,10 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 5  | [agentic-coding-reference](./features/05-agentic-coding-reference/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
-| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | 🔄 In Progress | 35 / 39 | 90% |
+| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 39 / 39 | 100% |
+| 08 | [tool-arguments-refactor](./features/08-tool-arguments-refactor/feature.md) | ✅ Complete | 4 / 4 | 100% |
 
-**Totals:** 239 / ~341 tasks complete (~70%). 8 features complete, 1 in progress, 5 pending.
+**Totals:** 247 / ~345 tasks complete (~72%). 10 features complete, 0 in progress, 5 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -198,7 +199,8 @@ specifications/07-foundation-ai/
     ├── 04-tool-calling-formatter/ (0%   ⬜)
     ├── 05-agentic-coding-reference/(0%   ⬜)
     ├── 06-llama-server-testing/   (100% ✅)
-    └── 07-anthropic-provider/     (0%   ⬜)
+    ├── 07-anthropic-provider/     (100% ✅)
+    └── 08-tool-arguments-refactor/ (0%   ⬜)
 ```
 
 Each feature directory contains its own `PROGRESS.md` with the detailed

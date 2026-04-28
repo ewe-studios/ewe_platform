@@ -609,7 +609,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
     is_retryable_status, map_stop_reason, parse_anthropic_error, parse_response,
 };
 use foundation_ai::types::{
-    ArgType, ImageContent, MimeType, Tool,
+    ArgType, Args, ImageContent, MimeType, Tool,
 };
 use std::collections::HashMap;
 use std::time::SystemTime;
@@ -1094,10 +1094,10 @@ fn test_build_anthropic_request_with_tools() {
             id: "tool_1".into(),
             name: "get_weather".into(),
             description: "Get weather info".into(),
-            arguments: Some(HashMap::from([(
+            arguments: Some(vec![Args::Named(
                 "location".into(),
                 ArgType::Text("Paris".into()),
-            )])),
+            )]),
             returns: None,
         }],
         chat_template: None,
