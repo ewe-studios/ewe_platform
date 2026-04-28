@@ -141,13 +141,36 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [17: Foundation JSON Schema](./17-foundation-jsonschema/)
+**Status:** ⏳ Pending
+**Description:** Self-contained JSON Schema validation library for ewe_platform supporting Drafts 4/6/7/2019-09/2020-12 with no_std compatibility, no reqwest/tokio/wasm-bindgen dependencies, and trait-based external reference resolution via `JsonResolver`.
+**Has Features:** Yes (11 features)
+
+| # | Feature | Description | Dependencies | Tasks |
+|---|---------|-------------|--------------|-------|
+| 0 | [core-types](./17-foundation-jsonschema/features/00-core-types/) | JsonType, paths, Draft enum, JsonResolver trait | None | 28 |
+| 1 | [referencing](./17-foundation-jsonschema/features/01-referencing/) | URI resolution, Registry, Resolver, anchors, vocabulary | 0 | 42 |
+| 2 | [keywords-validators](./17-foundation-jsonschema/features/02-keywords-validators/) | 35+ keyword validator implementations | 0, 1 | 52 |
+| 3 | [compiler](./17-foundation-jsonschema/features/03-compiler/) | Schema compilation pipeline | 0, 1, 2 | 24 |
+| 4 | [validation-engine](./17-foundation-jsonschema/features/04-validation-engine/) | Runtime validation, cycle detection, evaluation output | 0–3 | 22 |
+| 5 | [error-reporting](./17-foundation-jsonschema/features/05-error-reporting/) | Structured error types, error iterator, path tracking | 0 | 20 |
+| 6 | [draft-support](./17-foundation-jsonschema/features/06-draft-support/) | Per-draft modules, meta-schema validation | 0, 1, 2 | 18 |
+| 7 | [format-validation](./17-foundation-jsonschema/features/07-format-validation/) | 19 built-in format validators (email, uri, date-time, etc.) | 0, 2 | 22 |
+| 8 | [custom-extensions](./17-foundation-jsonschema/features/08-custom-extensions/) | Custom keyword factory, custom format validators | 0, 2, 3, 4 | 12 |
+| 9 | [test-suite](./17-foundation-jsonschema/features/09-test-suite/) | Official JSON Schema Test Suite (~7200 tests), integration tests | All | 30 |
+| 10 | [fuzz-targets](./17-foundation-jsonschema/features/10-fuzz-targets/) | Fuzz targets for compilation, validation, referencing | All | 10 |
+
+**Total Tasks:** 280
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 7
-- **Completed:** 4 (57%)
-- **In Progress:** 1 (14%)
-- **Pending:** 2 (29%)
+- **Total Specifications:** 8
+- **Completed:** 4 (50%)
+- **In Progress:** 1 (12.5%)
+- **Pending:** 3 (37.5%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -161,6 +184,7 @@ This directory contains all project specifications and requirements. Each specif
 ### Pending ⏳
 - 07: TCP-Resilient Batch Readers
 - 09: Valtron StreamIterator Migration
+- 17: Foundation JSON Schema
 
 ## Specification Guidelines
 
@@ -187,4 +211,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-04-04*
+*Last updated: 2026-04-28*
