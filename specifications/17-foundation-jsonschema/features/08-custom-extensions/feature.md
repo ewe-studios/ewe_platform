@@ -48,6 +48,7 @@ Derived from `crates/jsonschema/src/keywords/custom.rs` in the reference project
            value: &serde_json::Value,
            schema_path: Location,
        ) -> Result<BoxedValidator, ValidationError>;
+       // NOTE: ValidationError = ErrorTrace<ValidationErrorKind> from Feature 05
    }
    ```
 
@@ -112,11 +113,10 @@ impl Validate for KeywordAdapter {
     
     fn validate(&self, instance: &Value, instance_path: &LazyLocation<'_>, _ctx: &mut ValidationContext) -> Result<(), ValidationError> {
         self.keyword.validate(instance).map_err(|msg| {
-            ValidationError::new(
-                ErrorKind::Custom { message: msg },
+            ValidationErrorBuilder::new(
                 instance_path.materialize(),
                 self.schema_path.clone(),
-            )
+            ).build(ValidationErrorKind::Custom { message: msg })
         })
     }
     

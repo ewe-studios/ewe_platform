@@ -1,0 +1,33 @@
+[package]
+name = "foundation_jsonschema"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Self-contained JSON Schema validation for ewe_platform"
+keywords = ["jsonschema", "validation", "json-schema"]
+
+[features]
+default = ["std"]
+std = ["foundation_errstacks/std", "dep:tracing"]
+fancy-regex = ["dep:fancy-regex"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+regex = { workspace = true }
+foundation_errstacks = { workspace = true }
+derive_more = { workspace = true }
+percent-encoding = "2.3"
+itoa = "1.0"
+ryu = "1.0"
+fancy-regex = { version = "0.14", optional = true }
+tracing = { version = "0.1", optional = true }
+
+[dev-dependencies]
+test-case = "3"
+
+[lints]
+workspace = true

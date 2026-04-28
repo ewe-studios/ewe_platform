@@ -419,47 +419,45 @@ sequenceDiagram
 Instead of built-in HTTP/file resolution with reqwest/tokio, we define:
 
 ```rust
-/// Trait for resolving external JSON Schema references.
-///
+use foundation_errstacks::{ErrorTrace, PlainResultExt};
+use derive_more::{Display, Error};
+
 /// WHY: JSON Schema documents can reference external schemas via `$ref` with
 /// absolute URIs (e.g., "https://example.com/schemas/address.json"). Rather
 /// than baking in HTTP/file/async dependencies, we let the user provide their
 /// own resolution strategy — which could be a local cache, a bundled map,
 /// an HTTP client, or a no-op that rejects all external references.
 ///
-/// WHAT: Given a URI string, return the resolved JSON value or an error.
+/// WHAT: Given a URI string, return the resolved JSON value or an error trace.
 ///
 /// HOW: Implement this trait and pass it to `ValidationOptions::with_resolver()`.
 /// The registry calls `resolve()` during schema compilation for any URI not
 /// already present in the registry. Resolution happens exactly once per URI —
 /// results are cached in the registry.
 pub trait JsonResolver {
-    /// Resolve an external schema reference by URI.
-    ///
-    /// Returns `Ok(Value)` with the resolved JSON Schema document,
-    /// or `Err` if the URI cannot be resolved.
-    fn resolve(&self, uri: &str) -> Result<serde_json::Value, Box<dyn core::fmt::Display>>;
+    fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>>;
+}
+
+/// Context type for resolution failures.
+#[derive(Debug, Display, Error)]
+#[display("failed to resolve external reference: {uri}")]
+pub struct ResolveError {
+    pub uri: String,
 }
 
 /// A resolver that always fails — for schemas with no external references.
-///
-/// This is the default resolver used when none is provided. Any external
-/// $ref will produce a compilation error, making it clear that the schema
-/// requires external resolution but none was configured.
 pub struct NoopResolver;
 
 impl JsonResolver for NoopResolver {
-    fn resolve(&self, uri: &str) -> Result<serde_json::Value, Box<dyn core::fmt::Display>> {
-        Err(Box::new(format!("No resolver configured for external reference: {uri}")))
+    fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>> {
+        Err(ResolveError { uri: uri.into() }.into_error_trace()
+            .attach(format!("no resolver configured for: {uri}")))
     }
 }
 
 /// A resolver backed by a pre-loaded map of URI → Value.
-///
-/// Useful for bundling all referenced schemas at build time or loading
-/// them from disk before validation begins.
 pub struct MapResolver {
-    schemas: HashMap<String, serde_json::Value>,
+    schemas: BTreeMap<String, serde_json::Value>,
 }
 
 impl MapResolver {
@@ -468,8 +466,10 @@ impl MapResolver {
 }
 
 impl JsonResolver for MapResolver {
-    fn resolve(&self, uri: &str) -> Result<serde_json::Value, Box<dyn core::fmt::Display>> {
-        self.schemas.get(uri).cloned().ok_or_else(|| ...)
+    fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>> {
+        self.schemas.get(uri).cloned().ok_or_else(||
+            ResolveError { uri: uri.into() }.into_error_trace()
+                .attach(format!("not found in map")))
     }
 }
 ```
@@ -480,9 +480,10 @@ impl JsonResolver for MapResolver {
 |----------|-----------|------------------------|
 | **No reqwest/tokio** | User wants zero network deps; resolution strategy is caller's concern | Built-in HTTP like reference project; rejected because it couples the validator to a specific HTTP stack |
 | **`JsonResolver` trait** | Simple, synchronous, one method — easy to implement for any backend | Async trait (adds complexity, needs runtime); multiple traits for different protocols (over-engineered) |
+| **`ErrorTrace` from `foundation_errstacks`** | Consistent error handling across ewe_platform; attach context along error paths; no_std compatible | Custom error types with boxed strings (loses structured context); anyhow/eyre (brings global hooks, std-only) |
 | **no_std + alloc core** | Enables use in embedded/WASM without std; follows foundation_nostd pattern | std-only (limits portability); pure no_std without alloc (impossible — JSON requires heap) |
 | **Compile-once architecture** | Schema compilation is expensive; instances are validated many times | Interpret-on-validate (simpler but much slower for repeated validation) |
-| **Vendor-free URI parsing** | Use a lightweight URI parser; avoid pulling in url/fluent-uri full crates | Use the `url` crate (it's std-only and heavier than needed) |
+| **Copy URI code from foundation_core** | Reuse existing URI parsing (scheme, authority, path, query, fragment); avoid depending on foundation_core (std-only, heavy transitive deps); adapt to no_std; add RFC 3986 §5 resolution on top | Pull in `url` crate (std-only, heavy); write from scratch (reinventing what exists) |
 | **Replicate all tests** | Ensures correctness parity; tests serve as living documentation | Write new tests only (risk missing edge cases the original suite catches) |
 | **Single crate** | Simpler than the reference project's 14-crate workspace; ewe_platform already has the workspace structure | Multi-crate (referencing as separate crate); rejected for simplicity — internal modules achieve the same separation |
 | **Feature-gated regex** | Allow choosing between `regex` (fast, no backtracking) and `fancy-regex` (ECMA-262 compatible with lookaround) | Only regex (loses ECMA compat); only fancy-regex (slower for simple patterns) |
@@ -509,7 +510,9 @@ Each layer/component is implemented as a separate feature with clear dependencie
 - `serde` + `serde_json` — JSON parsing (already in workspace)
 - `regex` — pattern matching (already in workspace)
 - `fancy-regex` — ECMA-262 pattern support (feature-gated)
-- `ahash` or equivalent — fast hashing for internal maps
+- `foundation_errstacks` — structured error traces via `ErrorTrace` (already in workspace)
+- `derive_more` — derive Display/Error/From for error context types (already in workspace)
+- `ahash` — fast hashing for internal maps
 - `percent-encoding` — JSON Pointer escape handling
 - `itoa` / `ryu` — fast number serialization for canonical JSON
 - Small, no_std-compatible utility crates as needed
@@ -539,13 +542,15 @@ keywords = ["jsonschema", "validation", "json-schema"]
 
 [features]
 default = ["std"]
-std = []
+std = ["foundation_errstacks/std"]
 fancy-regex = ["dep:fancy-regex"]
 
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
 regex = { workspace = true }
+foundation_errstacks = { workspace = true }
+derive_more = { workspace = true }
 ahash = "0.8"
 percent-encoding = "2.3"
 itoa = "1.0"

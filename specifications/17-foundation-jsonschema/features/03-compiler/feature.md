@@ -40,7 +40,7 @@ Derived from `crates/jsonschema/src/compiler.rs` and `crates/jsonschema/src/node
 
 ## Requirements
 
-1. **`compile()` entry point** — Accept a schema `Value`, a `Registry`, and `ValidationOptions`. Walk the schema tree and produce a `SchemaNode`.
+1. **`compile()` entry point** — Accept a schema `Value`, a `Registry`, and `ValidationOptions`. Walk the schema tree and produce a `SchemaNode`. Returns `Result<SchemaNode, ValidationError>` where `ValidationError = ErrorTrace<ValidationErrorKind>` (from Feature 05).
 
 2. **`CompilerContext`** — Track compilation state:
    - Current base URI (from `$id`)
@@ -258,6 +258,7 @@ fn compile_keyword(
     value: &Value,
     schema: &Value,
 ) -> Option<Result<BoxedValidator, ValidationError>> {
+    // ValidationError = ErrorTrace<ValidationErrorKind> (Feature 05)
     match keyword {
         "type" => Some(TypeValidator::compile(value, ctx)),
         "const" => Some(Ok(Box::new(ConstValidator::new(value.clone(), ctx.schema_path())))),

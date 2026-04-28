@@ -418,98 +418,103 @@ impl TestHttpServer {
         mut stream: TcpStream,
         handler: &ResponseHandler,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // Parse minimal HTTP request (method, path, version)
-        let conn = RawStream::from_tcp(stream.try_clone()?).expect("should wrap tcp stream");
+        // Handle multiple requests per connection (HTTP keep-alive)
+        // Loop until connection closes or max requests reached
+        const MAX_REQUESTS_PER_CONN: usize = 10;
+
+        // Clone the stream for reading — keep original for writing responses.
+        // The reader consumes bytes; the writer needs the original socket.
+        let read_stream = stream.try_clone().expect("should clone tcp stream");
+        let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
         let request_streams = http_streams::send::http_streams(conn);
 
-        tracing::info!("Read a line on connection!");
+        for _req_num in 0..MAX_REQUESTS_PER_CONN {
+            // fetch the intro portion and validate we have resources for processing request
+            let request_reader = request_streams.next_request();
+            tracing::debug!("Pulled next request");
 
-        // fetch the intro portion and validate we have resources for processing request
-        // if not, just break and return an error
-        let request_reader = request_streams.next_request();
-        tracing::debug!("Pulled next request");
+            let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
+                .into_iter()
+                .filter(|item| match item {
+                    Ok(IncomingRequestParts::SKIP) => false,
+                    Ok(_) | Err(_) => true,
+                })
+                .collect();
 
-        let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
-            .into_iter()
-            .filter(|item| match item {
-                Ok(IncomingRequestParts::SKIP) => false,
-                Ok(_) | Err(_) => true,
-            })
-            .collect();
+            tracing::debug!("Collected all parts of request");
+            if let Err(part_err) = parts {
+                tracing::debug!("Failed to read request parts: {part_err:?}, ending connection");
+                break;
+            }
 
-        tracing::debug!("Collected all parts of request");
-        if let Err(part_err) = parts {
-            tracing::error!("Failed to read requests from reader due to: {:?}", part_err);
-            return Ok(());
-        }
+            tracing::debug!("Unwrap into request parts");
+            let mut request_parts = parts.unwrap();
+            if request_parts.len() != 3 {
+                tracing::debug!(
+                    "Unexpected request parts count (expected 3): {:?}",
+                    &request_parts
+                );
+                break;
+            }
 
-        tracing::debug!("Unwrap into request parts");
-        let mut request_parts = parts.unwrap();
-        if request_parts.len() != 3 {
-            tracing::error!(
-                "Failed to receive expected request parts of 3: {:?}",
-                &request_parts
+            let body_part = request_parts.pop().unwrap();
+            let headers_part = request_parts.pop().unwrap();
+            let intros_part = request_parts.pop().unwrap();
+
+            tracing::debug!("Deconstruct request parts");
+
+            let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
+                tracing::debug!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
+                break;
+            };
+
+            let IncomingRequestParts::Headers(headers) = headers_part else {
+                tracing::debug!("Failed to receive a IncomingRequestParts::Headers(_)");
+                break;
+            };
+
+            tracing::debug!("Reviewing body part: {:?}", body_part);
+
+            let body = match body_part {
+                IncomingRequestParts::NoBody => SendSafeBody::None,
+                IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
+                    body
+                }
+                _ => {
+                    tracing::debug!("Failed to receive a IncomingRequestParts::Body(_)");
+                    break;
+                }
+            };
+
+            tracing::info!(
+                "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
+                method,
+                url,
+                proto,
             );
-            return Ok(());
+
+            tracing::info!("Got request");
+            let request = HttpRequest {
+                path: url,
+                method,
+                proto,
+                headers,
+                body,
+            };
+
+            // Call user's handler to get response
+            let response = {
+                let handler_guard = handler.lock().unwrap();
+                handler_guard(&request)
+            };
+
+            // Send response
+            tracing::info!("render response");
+            let rendered = response.render();
+            stream.write_all(&rendered)?;
+            stream.flush()?;
+            tracing::info!("flush response");
         }
-
-        let body_part = request_parts.pop().unwrap();
-        let headers_part = request_parts.pop().unwrap();
-        let intros_part = request_parts.pop().unwrap();
-
-        tracing::debug!("Deconstruct request parts");
-
-        let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
-            tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
-            return Ok(());
-        };
-
-        let IncomingRequestParts::Headers(headers) = headers_part else {
-            tracing::error!("Failed to receive a IncomingRequestParts::Headers(_)");
-            return Ok(());
-        };
-
-        tracing::debug!("Reviewing body part: {:?}", body_part);
-
-        let body = match body_part {
-            IncomingRequestParts::NoBody => SendSafeBody::None,
-            IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
-                body
-            }
-            _ => {
-                tracing::error!("Failed to receive a IncomingRequestParts::Body(_)");
-                return Ok(());
-            }
-        };
-
-        tracing::info!(
-            "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
-            method,
-            url,
-            proto,
-        );
-
-        tracing::info!("Got request");
-        let request = HttpRequest {
-            path: url,
-            method,
-            proto,
-            headers,
-            body,
-        };
-
-        // Call user's handler to get response
-        let response = {
-            let handler_guard = handler.lock().unwrap();
-            handler_guard(&request)
-        };
-
-        // Send response
-        tracing::info!("render response");
-        let rendered = response.render();
-        stream.write_all(&rendered)?;
-        stream.flush()?;
-        tracing::info!("flush response");
 
         Ok(())
     }

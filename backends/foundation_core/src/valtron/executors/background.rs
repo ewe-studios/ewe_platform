@@ -236,6 +236,10 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "split_thread_count requires at least 2 threads")]
+    #[cfg_attr(
+        cranelift_backend,
+        ignore = "cranelift does not support panic unwinding"
+    )]
     fn test_split_thread_count_panics_below_2() {
         let _ = split_thread_count(1);
     }
