@@ -79,6 +79,20 @@ hermes/
 | 15 | Self-Evolution: GEPA-based prompt/skill evolution | DONE | `13-self-evolution.md` |
 | 16 | Function Calling: Hermes 2 Pro / 3 tool use + JSON mode | DONE | `14-function-calling.md` |
 
+### Phase 1c: Agent Loop Deep Dive
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 17 | Agent loop deep dive: run_conversation, multi-turn, steer, tool pipeline, recovery | DONE | `15-agent-loop.md` |
+
+### Phase 1d: Model Interop & Memory Expansion
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 18 | Model providers: LiteLLM integration, OpenAI-compatible, Anthropic, local models, model fallbacks | TODO | `16-model-providers.md` |
+| 19 | Memory expansion: deep dive into memory providers, context engines, compression strategies | TODO | `17-memory-deep.md` |
+| 20 | Multi-model execution: background tasks, parallel model calls, model routing, credential pools | TODO | `18-multi-model.md` |
+
 ### Phase 2: HTML Rendering -- COMPLETE
 
 | # | Task | Status | File |
@@ -136,8 +150,8 @@ python3 build.py pi
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 16 |
-| Generated HTML files | 17 (16 docs + 1 index) |
+| Markdown source files | 17 |
+| Generated HTML files | 18 (17 docs + 1 index) |
 | CSS files | 1 (shared) |
 | Total HTML output | 16 files + styles.css |
 

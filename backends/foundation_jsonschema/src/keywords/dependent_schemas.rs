@@ -12,6 +12,10 @@ use super::{Validate, ValidationContext};
 
 pub struct DependentSchemasValidator;
 
+impl Default for DependentSchemasValidator {
+    fn default() -> Self { Self }
+}
+
 impl Validate for DependentSchemasValidator {
     fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
         true

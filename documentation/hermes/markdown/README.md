@@ -31,6 +31,15 @@
 | [10-platform-adapters.md](./10-platform-adapters.md) | Per-platform messaging adapter details |
 | [11-data-flow.md](./11-data-flow.md) | End-to-end message flows with sequence diagrams |
 
+### Extended Deep Dives
+
+| Document | What It Covers |
+|----------|---------------|
+| [12-cost-tracking.md](./12-cost-tracking.md) | Token usage, pricing, cost estimation, account monitoring |
+| [13-self-evolution.md](./13-self-evolution.md) | GEPA-based prompt/skill evolution |
+| [14-function-calling.md](./14-function-calling.md) | Hermes 2 Pro / 3 function calling + JSON mode |
+| [15-agent-loop.md](./15-agent-loop.md) | Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling |
+
 ## Quick Orientation
 
 ```

@@ -13,6 +13,10 @@ use super::{Validate, ValidationContext};
 
 pub struct ItemsValidator;
 
+impl Default for ItemsValidator {
+    fn default() -> Self { Self }
+}
+
 impl Validate for ItemsValidator {
     fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
         true

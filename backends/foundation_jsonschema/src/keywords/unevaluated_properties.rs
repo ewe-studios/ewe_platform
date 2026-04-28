@@ -12,6 +12,10 @@ use super::{Validate, ValidationContext};
 
 pub struct UnevaluatedPropertiesValidator;
 
+impl Default for UnevaluatedPropertiesValidator {
+    fn default() -> Self { Self }
+}
+
 impl Validate for UnevaluatedPropertiesValidator {
     fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
         true

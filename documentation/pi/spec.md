@@ -95,6 +95,20 @@ pi/
 | 21 | Code snippet rendering | DONE | Escaped, syntax-tagged, scrollable |
 | 22 | Mobile-responsive HTML layout | DONE | Media query at 600px in styles.css |
 
+### Phase 5: Agent Loop Deep Dive
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 23 | Agent loop deep dive: loop mechanics, multi-turn, queues, tool pipeline | DONE | `13-agent-loop.md` |
+
+### Phase 6: Model Interop & Memory Expansion
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 24 | Model providers: 20+ providers, OpenAI-compatible, Anthropic, local models, model fallbacks | TODO | `14-model-providers.md` |
+| 25 | Memory expansion: deep dive into memory types, context management, compaction | TODO | `15-memory-deep.md` |
+| 26 | Multi-model execution: background work, parallel model calls, model routing | TODO | `16-multi-model.md` |
+
 ## Build System
 
 **Script:** `documentation/build.py` (shared with Hermes)
@@ -126,8 +140,8 @@ python3 build.py hermes
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 14 |
-| Generated HTML files | 15 (14 docs + 1 index) |
+| Markdown source files | 18 |
+| Generated HTML files | 19 (18 docs + 1 index) |
 | CSS files | 1 (shared) |
 | Total HTML output | 14 files + styles.css |
 
