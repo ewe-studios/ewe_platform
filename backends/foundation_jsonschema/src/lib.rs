@@ -94,6 +94,10 @@ mod validator;
 mod validation_context;
 mod evaluation;
 
+// ── In-Memory Fetcher (Meta-schema bundle) ───────────────────────────
+
+mod in_memory_fetcher;
+
 // ── Public API ──────────────────────────────────────────────────────
 
 pub use draft::Draft;
@@ -106,6 +110,7 @@ pub use types::{JsonType, JsonTypeSet};
 pub use validator::Validator;
 
 pub use options::ValidationOptions;
+pub use in_memory_fetcher::InMemoryFetcher;
 
 /// Validate an instance against a schema (boolean result).
 ///

@@ -30,6 +30,8 @@
 | [09-tool-system.md](./09-tool-system.md) | Tool definition, TypeBox schemas, execution lifecycle |
 | [10-extension-system.md](./10-extension-system.md) | Extensions, skills, prompt templates, themes |
 | [11-data-flow.md](./11-data-flow.md) | End-to-end request flows with sequence diagrams |
+| [12-sessions.md](./12-sessions.md) | Pi JSONL tree + Hermes SQLite + comparison |
+| [13-agent-loop.md](./13-agent-loop.md) | Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling |
 
 ## Quick Orientation
 

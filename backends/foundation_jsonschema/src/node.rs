@@ -1,38 +1,90 @@
-//! Stub: SchemaNode — will be implemented in Feature 3.
+//! SchemaNode — compiled representation of a single schema.
+//!
+//! WHY: After compilation, validation operates on SchemaNode trees rather
+//! than raw JSON. This separates the cost of schema analysis from validation.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::error::{ErrorIterator, ValidationError};
-use crate::paths::LazyLocation;
-use crate::keywords::ValidationContext;
+use crate::keywords::{BoxedValidator, ValidationContext};
+use crate::paths::{LazyLocation, Location};
+
+use foundation_errstacks::IntoErrorTrace;
 use serde_json::Value;
 
+/// A compiled schema node — the fundamental unit of the validator tree.
+///
+/// WHY: After compilation, validation operates on SchemaNode trees rather
+/// than raw JSON. This separates the cost of schema analysis from validation.
 pub enum SchemaNode {
+    /// Schema is boolean `true` — validates everything.
     AlwaysValid,
-    AlwaysInvalid { schema_path: crate::paths::Location },
-    Validators { validators: Vec<crate::keywords::BoxedValidator>, schema_path: crate::paths::Location },
+    /// Schema is boolean `false` — validates nothing.
+    AlwaysInvalid { schema_path: Location },
+    /// Schema with one or more keyword validators.
+    Validators {
+        validators: Vec<BoxedValidator>,
+        schema_path: Location,
+    },
 }
 
 impl SchemaNode {
-    pub fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
-        unimplemented!()
+    /// Fast boolean validation.
+    pub fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
+        match self {
+            Self::AlwaysValid => true,
+            Self::AlwaysInvalid { .. } => false,
+            Self::Validators { validators, .. } => {
+                validators.iter().all(|v| v.is_valid(instance, ctx))
+            }
+        }
     }
 
+    /// Validate and return the first error.
     pub fn validate(
         &self,
-        _instance: &Value,
-        _path: &LazyLocation<'_>,
-        _ctx: &mut ValidationContext,
+        instance: &Value,
+        path: &LazyLocation<'_>,
+        ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
-        unimplemented!()
+        match self {
+            Self::AlwaysValid => Ok(()),
+            Self::AlwaysInvalid { schema_path } => Err(
+                crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
+            ),
+            Self::Validators { validators, .. } => {
+                for v in validators {
+                    v.validate(instance, path, ctx)?;
+                }
+                Ok(())
+            }
+        }
     }
 
+    /// Return an iterator over all validation errors.
     pub fn iter_errors(
         &self,
-        _instance: &Value,
-        _path: &LazyLocation<'_>,
-        _ctx: &mut ValidationContext,
+        instance: &Value,
+        path: &LazyLocation<'_>,
+        ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        unimplemented!()
+        match self {
+            Self::AlwaysValid => Box::new(core::iter::empty()),
+            Self::AlwaysInvalid { schema_path } => {
+                Box::new(core::iter::once(
+                    crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
+                ))
+            }
+            Self::Validators { validators, .. } => {
+                let mut errors: Vec<ValidationError> = Vec::new();
+                for v in validators {
+                    for e in v.iter_errors(instance, path, ctx) {
+                        errors.push(e);
+                    }
+                }
+                Box::new(errors.into_iter())
+            }
+        }
     }
 }

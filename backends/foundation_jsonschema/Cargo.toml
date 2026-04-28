@@ -8,6 +8,7 @@ authors.workspace = true
 repository.workspace = true
 description = "Self-contained JSON Schema validation for ewe_platform"
 keywords = ["jsonschema", "validation", "json-schema"]
+include = ["src", "artefacts", "Cargo.toml", "README.md"]
 
 [features]
 default = ["std"]

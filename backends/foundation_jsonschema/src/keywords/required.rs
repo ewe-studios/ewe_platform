@@ -85,7 +85,7 @@ mod tests {
     use serde_json::json;
 
     fn ctx() -> ValidationContext {
-        ValidationContext
+        ValidationContext::new()
     }
 
     #[test]

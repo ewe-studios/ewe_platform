@@ -11,6 +11,10 @@ use super::{Validate, ValidationContext};
 
 pub struct PrefixItemsValidator;
 
+impl Default for PrefixItemsValidator {
+    fn default() -> Self { Self }
+}
+
 impl Validate for PrefixItemsValidator {
     fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
         true

@@ -9,8 +9,9 @@ use foundation_core::wire::event_source::ReconnectingEventSourceTask;
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_testing::http::{
-    HttpResponse, TestHttpServer, SseConnectionResult, SseStreamWriter, SseTestServer,
+    HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
 };
+use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -32,6 +33,7 @@ fn server_addr(server: &TestHttpServer) -> SocketAddr {
 /// Regression test for: `connect()` eagerly creating the inner `EventSourceTask`
 /// with GET/no body, so `.with_body()` only applied to reconnections.
 #[test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_initial_connection_sends_post_with_body() {
     #[derive(Clone, Default)]
     struct CapturedRequest {
@@ -43,50 +45,51 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
     let captured = CapturedRequest::default();
     let captured_clone = captured.clone();
 
-    let server = TestHttpServer::with_response(move |req: &foundation_testing::http::HttpRequest| {
-        {
-            let mut m = captured.method.lock().unwrap();
-            *m = match &req.method {
-                SimpleMethod::GET => "GET".to_string(),
-                SimpleMethod::POST => "POST".to_string(),
-                SimpleMethod::PUT => "PUT".to_string(),
-                SimpleMethod::DELETE => "DELETE".to_string(),
-                SimpleMethod::PATCH => "PATCH".to_string(),
-                SimpleMethod::HEAD => "HEAD".to_string(),
-                SimpleMethod::OPTIONS => "OPTIONS".to_string(),
-                SimpleMethod::CONNECT => "CONNECT".to_string(),
-                SimpleMethod::TRACE => "TRACE".to_string(),
-                SimpleMethod::Custom(s) => s.clone(),
-            };
-        }
-        {
-            let mut b = captured.body.lock().unwrap();
-            *b = match &req.body {
-                SendSafeBody::Text(s) => s.clone(),
-                SendSafeBody::Bytes(v) => String::from_utf8_lossy(v).to_string(),
-                SendSafeBody::None => String::new(),
-                _ => "(stream body)".to_string(),
-            };
-        }
-        {
-            let mut a = captured.auth_header.lock().unwrap();
-            if let Some(values) = req.headers.get(&SimpleHeader::AUTHORIZATION) {
-                if let Some(v) = values.first() {
-                    *a = v.clone();
+    let server =
+        TestHttpServer::with_response(move |req: &foundation_testing::http::HttpRequest| {
+            {
+                let mut m = captured.method.lock().unwrap();
+                *m = match &req.method {
+                    SimpleMethod::GET => "GET".to_string(),
+                    SimpleMethod::POST => "POST".to_string(),
+                    SimpleMethod::PUT => "PUT".to_string(),
+                    SimpleMethod::DELETE => "DELETE".to_string(),
+                    SimpleMethod::PATCH => "PATCH".to_string(),
+                    SimpleMethod::HEAD => "HEAD".to_string(),
+                    SimpleMethod::OPTIONS => "OPTIONS".to_string(),
+                    SimpleMethod::CONNECT => "CONNECT".to_string(),
+                    SimpleMethod::TRACE => "TRACE".to_string(),
+                    SimpleMethod::Custom(s) => s.clone(),
+                };
+            }
+            {
+                let mut b = captured.body.lock().unwrap();
+                *b = match &req.body {
+                    SendSafeBody::Text(s) => s.clone(),
+                    SendSafeBody::Bytes(v) => String::from_utf8_lossy(v).to_string(),
+                    SendSafeBody::None => String::new(),
+                    _ => "(stream body)".to_string(),
+                };
+            }
+            {
+                let mut a = captured.auth_header.lock().unwrap();
+                if let Some(values) = req.headers.get(&SimpleHeader::AUTHORIZATION) {
+                    if let Some(v) = values.first() {
+                        *a = v.clone();
+                    }
                 }
             }
-        }
 
-        HttpResponse {
-            status: 200,
-            status_text: "OK".to_string(),
-            headers: vec![
-                ("Content-Type".to_string(), "text/event-stream".to_string()),
-                ("Connection".to_string(), "close".to_string()),
-            ],
-            body: b"data: {\"test\": true}\n\n".to_vec(),
-        }
-    });
+            HttpResponse {
+                status: 200,
+                status_text: "OK".to_string(),
+                headers: vec![
+                    ("Content-Type".to_string(), "text/event-stream".to_string()),
+                    ("Connection".to_string(), "close".to_string()),
+                ],
+                body: b"data: {\"test\": true}\n\n".to_vec(),
+            }
+        });
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -151,6 +154,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 /// 3. Only the first connection has the body
 /// 4. Both connections have the Authorization header
 #[test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
     #[derive(Clone, Default)]
     struct CapturedRequests {
@@ -264,7 +268,10 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
 
     // Second connection (reconnection): POST + NO body + auth
     let (method, body, auth) = &requests[1];
-    assert_eq!(method, "POST", "Reconnection should use POST, got: {method}");
+    assert_eq!(
+        method, "POST",
+        "Reconnection should use POST, got: {method}"
+    );
     assert!(
         body.is_empty(),
         "Reconnection should NOT include body (body is take()n), got: {body}"

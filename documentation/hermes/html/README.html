@@ -47,7 +47,7 @@
     <span class="nav-brand">~/hermes/docs</span>
     <div class="nav-links">
       <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="12-cost-tracking.html">Hermes Agent -- Token Usage and Cost Tracking</a> <a href="13-function-calling.html">Hermes -- Function Calling & JSON Mode</a> <a href="13-self-evolution.html">Hermes -- Self-Evolution (GEPA Prompt Evolution)</a></span> <a href="13-self-evolution.html">← Hermes -- Self-Evolution (GEPA Prompt Evolution)</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-function-calling.html">Hermes -- Function Calling & JSON Mode</a> <a href="13-self-evolution.html">Hermes -- Self-Evolution (GEPA Prompt Evolution)</a> <a href="15-agent-loop.html">Hermes Agent -- Agent Loop Deep Dive</a></span> <a href="15-agent-loop.html">← Hermes Agent -- Agent Loop Deep Dive</a>
       <button class="theme-toggle" onclick="toggleTheme()">theme</button>
     </div>
   </nav>
@@ -61,6 +61,8 @@
 <table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[02-agent-core.md](./02-agent-core.md)</td><td>AIAgent orchestrator, message loop, LLM adapters</td></tr><tr><td>[03-tool-system.md](./03-tool-system.md)</td><td>Tool registry, 40+ tools, dispatch, schemas</td></tr><tr><td>[04-gateway.md](./04-gateway.md)</td><td>Multi-platform messaging gateway</td></tr><tr><td>[05-memory-system.md](./05-memory-system.md)</td><td>Memory manager, providers, session search</td></tr><tr><td>[06-context-engine.md](./06-context-engine.md)</td><td>Context compression, DAG, summarization</td></tr></table>
 <h3>Application Layer</h3>
 <table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[07-cli-tui.md](./07-cli-tui.md)</td><td>CLI entry points, TUI, commands, configuration</td></tr><tr><td>[08-cron.md](./08-cron.md)</td><td>Scheduling, jobs, automation</td></tr><tr><td>[09-plugins.md](./09-plugins.md)</td><td>Plugin architecture and extension points</td></tr><tr><td>[10-platform-adapters.md](./10-platform-adapters.md)</td><td>Per-platform messaging adapter details</td></tr><tr><td>[11-data-flow.md](./11-data-flow.md)</td><td>End-to-end message flows with sequence diagrams</td></tr></table>
+<h3>Extended Deep Dives</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[12-cost-tracking.md](./12-cost-tracking.md)</td><td>Token usage, pricing, cost estimation, account monitoring</td></tr><tr><td>[13-self-evolution.md](./13-self-evolution.md)</td><td>GEPA-based prompt/skill evolution</td></tr><tr><td>[14-function-calling.md](./14-function-calling.md)</td><td>Hermes 2 Pro / 3 function calling + JSON mode</td></tr><tr><td>[15-agent-loop.md](./15-agent-loop.md)</td><td>Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling</td></tr></table>
 <h2>Quick Orientation</h2>
 <pre><code class="language-">CLI/TUI ──→ AIAgent ──→ LLM Adapter ──→ Provider API
                 │

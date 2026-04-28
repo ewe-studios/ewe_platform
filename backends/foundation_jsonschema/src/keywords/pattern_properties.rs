@@ -13,6 +13,10 @@ use super::{Validate, ValidationContext};
 
 pub struct PatternPropertiesValidator;
 
+impl Default for PatternPropertiesValidator {
+    fn default() -> Self { Self }
+}
+
 impl Validate for PatternPropertiesValidator {
     fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
         true
