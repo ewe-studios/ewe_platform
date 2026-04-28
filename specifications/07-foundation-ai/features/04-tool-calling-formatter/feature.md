@@ -6,7 +6,7 @@ this_file: "specifications/07-foundation-ai/features/04-tool-calling-formatter/f
 
 feature: "tool-calling-formatter"
 description: "Stateless ToolFormatter trait as Model associated type for bidirectional tool definition/call/response formatting across providers"
-status: unapproved
+status: complete
 priority: high
 depends_on:
   - "00c-openai-provider"
@@ -18,10 +18,10 @@ last_updated: 2026-04-28
 author: "Main Agent"
 
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 ## Learnings from pi-mono
@@ -204,7 +204,7 @@ pub trait ToolFormatter: Default + Send + Sync {
     /// For text-based models (llama.cpp, Candle): produces a JSON array of
     /// available tools for the calling side to inspect.
     fn format_tools(&self, tools: &[Tool])
-        -> Result<ToolFormatResult, ErrorTrace<ToolCallingError>>;
+        -> Result<serde_json::Value, ErrorTrace<ToolCallingError>>;
 
     /// System prompt instructions for tool calling format.
     ///
@@ -261,19 +261,6 @@ pub trait ToolFormatter: Default + Send + Sync {
 ## Result Types
 
 ```rust
-/// Output of `format_tools()` — provider tool schema plus any system prompt additions.
-pub struct ToolFormatResult {
-    /// Provider-specific tool definitions as JSON.
-    /// For API providers: the array/object to include in the `tools` field.
-    /// For text-based models: may be `Null` (no structured tools) with
-    /// `system_prompt_additions` containing the tool calling format instructions.
-    pub schema: serde_json::Value,
-    /// Additional system prompt text required for tool mode.
-    /// e.g., Anthropic OAuth mode needs tool-use guidance,
-    /// text-based models need format instructions.
-    pub system_prompt_additions: Option<String>,
-}
-
 /// Output of `extract_tool_calls()` — extracted tool calls plus remaining text.
 pub struct ExtractResult {
     /// Extracted tool calls in unified `ModelOutput::ToolCall` format.
@@ -307,6 +294,7 @@ Models declare their formatter via an associated type. Any code that needs to fo
 | `OpenAIModel<F>` | `OpenAIFormatter` (default) | Generic `F: ToolFormatter` — caller picks the formatter |
 | `LlamaCppModel` | `TextBasedFormatter` | Hardcoded — local inference, text-based parsing |
 | `CandleModel` | `TextBasedFormatter` | Hardcoded — local inference, text-based parsing |
+| `ResponsesModel` | `TextBasedFormatter` | Hardcoded — OpenAI Responses API, text-based fallback |
 
 OpenAI is the only provider that needs a generic because it can act as a proxy to many backends (llama.cpp server, vLLM, Ollama, OpenRouter). When used natively with OpenAI it defaults to `OpenAIFormatter`; when used as a proxy to Anthropic-compatible endpoints the caller supplies `AnthropicFormatter`.
 
@@ -353,19 +341,24 @@ Each provider's native tool format:
 Uses `foundation_errstacks` for context-aware error handling. The project convention is to use enums as the default error type — each variant carries the fields relevant to that failure mode.
 
 ```rust
-use derive_more::{Display, Error, From};
-use foundation_errstacks::{ErrorTrace, PlainResultExt};
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
-#[derive(Debug, Display, Error, From)]
+#[derive(Debug, Display, Error)]
 pub enum ToolCallingError {
-    #[display("failed to format tool '{tool_name}': {reason}")]
-    Format { tool_name: String, reason: String },
+    /// Failed to parse a tool call from provider output.
     #[display("failed to extract tool calls: {reason}")]
     Extract { reason: String },
+    /// Failed to format a tool definition for a provider.
+    #[display("failed to format tool '{tool_name}': {reason}")]
+    Format { tool_name: String, reason: String },
+    /// Failed to format a tool result for round-trip.
     #[display("failed to format result for '{tool_name}': {reason}")]
     Response { tool_name: String, reason: String },
 }
 ```
+
+**Note on `derive_more::From`**: Initially tried deriving `From` on the enum, but two variants (`Format` and `Response`) both have `(String, String)` fields, causing conflicting `From` impls. Removed `From` derive — the enum is used directly with `ErrorTrace::new(err).attach(...)` for context.
 
 All trait methods return `ErrorTrace<ToolCallingError>`. Callers attach context using `.attach()` from `PlainResultExt`:
 
@@ -374,29 +367,74 @@ All trait methods return `ErrorTrace<ToolCallingError>`. Callers attach context 
 formatter.format_tools(&tools)
     .map_err(|trace| trace.attach("model=llamacpp"))
     .map_err(|trace| trace.attach("tool_count=3"))
-
-// Extractor attaching raw response snippet for debugging
-formatter.extract_tool_calls(&response_text)
-    .map_err(|trace| trace.attach(format!("response_preview={}", &response_text[..100])))
 ```
 
-This aligns with the project's convention of enum-first error types with `derive_more::From` + manual `Display` (no `thiserror`), while allowing the full error trace to propagate through provider boundaries.
+## Implementation Learnings
+
+### ArgType External Tagging
+
+`ArgType` is an externally-tagged enum (`#[derive(Serialize, Deserialize)]` on an enum), which means plain JSON objects like `{"location": "Paris"}` cannot be deserialized directly into `HashMap<String, ArgType>` — serde expects externally-tagged format like `{"Text": "Paris"}`. Solution: a manual `json_value_to_arg_type()` helper that recursively converts `serde_json::Value` to `ArgType`:
+
+```rust
+fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
+    match v {
+        Value::String(s) => ArgType::Text(s.clone()),
+        Value::Number(n) => { /* i64 → I64, f64 → Float64 */ }
+        Value::Object(map) => {
+            ArgType::JSONMap(map.iter().map(|(k, v)| (k.clone(), json_value_to_arg_type(v))).collect())
+        }
+        // ...
+    }
+}
+```
+
+This is used by both `TextBasedFormatter` and `OpenAIFormatter` when extracting tool call arguments.
+
+### TextBasedFormatter: XML Tags, Not Backticks
+
+Originally the spec considered backtick-wrapped JSON (````json ... ````) for text-based tool calling. During implementation we switched to XML tags (`<ToolCall>...</ToolCall>`) because:
+
+1. Backtick boundaries are ambiguous — models naturally use backticks for code examples in prose
+2. Non-greedy regex ```` ```.*?``` ```` stops at the first closing backtick, breaking on nested code blocks
+3. XML tags have unambiguous open/close boundaries that don't collide with natural JSON braces
+4. The regex `<ToolCall>\s*(.*?)\s*</ToolCall>` (with `.*?` on the full capture group, not just `\{.*?\}`) correctly handles multi-line JSON with nested objects
+
+**Key regex lesson**: The initial regex `r"<ToolCall>\s*\{.*?\}\s*</ToolCall>"` stopped at the first `}` inside nested JSON. Changed to `r"<ToolCall>\s*(.*?)\s*</ToolCall>"` — capture everything between tags, then parse the inner content as JSON.
+
+### Remaining Text Whitespace Handling
+
+When `<ToolCall>` tags sit on their own lines, concatenating the text segments between matches produces double newlines (`\n\n`) where the original had `\n` (one before the tag, one after). Solution: trim each remaining segment individually, filter empty ones, and join with a single `\n`. This produces clean text without extra blank lines:
+
+```rust
+let trimmed: Vec<&str> = remaining_parts.iter().map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+Some(trimmed.join("\n"))
+```
+
+### OpenAIModel Generic Over Formatter
+
+`OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver>` is generic over the formatter with a default. This allows:
+- Native OpenAI usage: `OpenAIModel::new(...)` → uses `OpenAIFormatter`
+- Proxy to other backends: `OpenAIModel::<AnthropicFormatter>::new(...)` → uses `AnthropicFormatter`
+
+The `PhantomData<F>` field is required because the generic parameter isn't used in struct fields directly.
 
 ## Formatter Implementation Details
 
 ### AnthropicFormatter
 
-**`format_tools()`**: Converts `Tool[]` to Anthropic's `{name, description, input_schema: {type: "object", properties: {...}}}` format. Iterates over each tool's `arguments`, matches `Args::Named(key, value)` to extract parameter names and infer JSON Schema types from `ArgType` variants (`Float32`/`Float64` → `"number"`, integer types → `"integer"`, everything else → `"string"`). Returns `Ok(ToolFormatResult { schema: Value::Array, system_prompt_additions: None })`. On failure, returns `Err(ErrorTrace<ToolCallingError::Format>)` with the failing tool name and reason.
+**`format_tools()`**: Converts `Tool[]` to Anthropic's `{name, description, input_schema: {type: "object", properties: {...}}}` format. Iterates over each tool's `arguments`, matches `Args::Named(key, value)` to extract parameter names and infer JSON Schema types from `ArgType` variants (`Float32`/`Float64` → `"number"`, integer types → `"integer"`, everything else → `"string"`). Returns `Ok(Value::Array)`. On failure, returns `Err(ErrorTrace<ToolCallingError::Format>)` with the failing tool name and reason.
 
-**`extract_tool_calls()`**: Parses the `MessagesResponse` JSON and iterates over `content` blocks. For each `ToolUse` block, extracts `id`, `name`, and `input` (already a parsed JSON object — this is the Anthropic difference vs OpenAI which returns JSON strings). Converts the object to `HashMap<String, ArgType>` using the same `json_value_to_arg_type` conversion. Text and thinking blocks become `remaining_text`. Sets `has_tool_calls = true` if any `ToolUse` blocks were found.
+**`extract_tool_calls()`**: Parses the `MessagesResponse` JSON and iterates over `content` blocks. For each `ToolUse` block, extracts `id`, `name`, and `input` (already a parsed JSON object — this is the Anthropic difference vs OpenAI which returns JSON strings). Converts the object to `HashMap<String, ArgType>` using `json_value_to_arg_type`. Text and thinking blocks become `remaining_text`. Sets `has_tool_calls = true` if any `ToolUse` blocks were found.
 
 **Streaming**: The provider's stream iterator accumulates tool call fragments across `content_block_start`, `content_block_delta`, and `content_block_stop` events. When the stream completes (`message_stop`), the provider assembles the complete response JSON and calls `formatter.extract_tool_calls()` on it. The formatter does not handle incremental parsing.
 
 **`format_tool_response()`**: Takes `Messages::ToolResult` and produces `{"type": "tool_result", "tool_use_id": id, "content": [{"type": "text", "text": result}], "is_error": bool}`. The caller must merge this into the user message's content array alongside any other tool results — Anthropic requires all tool results in a single user message for role alternation. This merge is the provider's responsibility in `build_anthropic_request`, not the formatter's.
 
+**`tool_calling_instructions()`**: Returns `None` — Anthropic's native tool API handles this.
+
 ### OpenAIFormatter
 
-**`format_tools()`**: Converts `Tool[]` to OpenAI's `[{type: "function", function: {name, description, parameters: {...}}}]` format. Same type inference from `ArgType` as Anthropic. Returns `Ok(ToolFormatResult { schema: Value::Array, system_prompt_additions: None })`. On failure, returns `Err(ErrorTrace<ToolCallingError::Format>)`.
+**`format_tools()`**: Converts `Tool[]` to OpenAI's `[{type: "function", function: {name, description, parameters: {...}}}]` format. Same type inference from `ArgType` as Anthropic. Returns `Ok(Value::Array)`. On failure, returns `Err(ErrorTrace<ToolCallingError::Format>)`.
 
 **`extract_tool_calls()`**: Parses `ChatCompletionResponse` JSON, extracts `choices[0].message.tool_calls[]`. Each tool call has `id`, `function.name`, and `function.arguments` (a JSON **string**, not parsed object — this is the OpenAI difference vs Anthropic). Deserializes the arguments string to `HashMap<String, ArgType>`. If no tool calls present, `remaining_text` gets the message's `content` field. Sets `has_tool_calls` based on presence of `tool_calls` in the response.
 
@@ -404,119 +442,54 @@ This aligns with the project's convention of enum-first error types with `derive
 
 **`format_tool_response()`**: Takes `Messages::ToolResult` and produces `{"role": "tool", "tool_call_id": id, "content": result}`. Simple — OpenAI doesn't require merging; each tool result is a separate message.
 
+**`tool_calling_instructions()`**: Returns `None` — OpenAI's native tool API handles this.
+
 ### TextBasedFormatter — Text-Based Model Tool Calling
 
-A single shared formatter for models that do NOT have structured tool calling APIs. Used by both llama.cpp (via `llama.cpp server`'s `/v1/messages` endpoint or direct inference) and Candle (local GGUF/safetensors inference). Other providers can wrap or customize it if they need slightly different formats.
-
-#### How llama.cpp Server Handles Tool Calling (Observed Behavior)
-
-The llama.cpp server's OpenAI-compatible `/v1/messages` endpoint implements tool calling through the model's Jinja chat template. When a request includes a `tools` array, the server:
-
-1. Converts tool definitions to a format the chat template expects (the template itself defines how tools are represented — some templates use special tokens, others use XML-like tags)
-2. Passes tools as a `"tools"` parameter to the Jinja template alongside messages
-3. The template renders tool instructions into the prompt
-4. The model generates text, and if it decides to use a tool, outputs text matching the template's tool call format
-5. The server's response parser looks for tool call markers in the generated text and converts them to OpenAI-compatible `tool_calls[]` in the response JSON
-
-**Critical observation**: The tool calling format is determined by the **chat template**, not by llama.cpp itself. A Llama 3.1 model's template uses `<|python_tag|>` prefixes and JSON. A Qwen model's template may use different markers. A model without tool-aware template support won't produce parseable tool calls at all.
-
-#### Our llama.cpp Integration (Current State)
-
-Our `llamacpp.rs` uses `LlamaChatMessage` (simple `role + content` struct from `infrastructure/llama-cpp/src/model.rs:78-94`) and `LlamaChatTemplate` (wrapper around Jinja template string). The current `apply_chat_template` function converts `Messages` to `(role, content)` tuples:
-
-- `Messages::User` → `("user", text)`
-- `Messages::Assistant { ToolCall }` → `("assistant", "[Tool call: name(args_str)]")` — this is a lossy text representation
-- `Messages::ToolResult` → `("tool", text)` — just the result content
-
-There is **no structured tool calling** — everything becomes text strings that the chat template processes. The current approach works for models whose templates tolerate arbitrary text content, but it doesn't leverage templates that have native tool calling support.
-
-#### Candle's Current State
-
-Candle has **no tool-related code at all**. It's the most primitive — just raw token generation with no chat template support, no role-based messages, no tool calling. Any tool calling support for Candle must be built from scratch.
+A single shared formatter for models that do NOT have structured tool calling APIs. Used by both llama.cpp and Candle. Other providers can wrap or customize it if they need slightly different formats.
 
 #### Architecture Decision: Chat Template vs System Prompt
 
 Two approaches exist for instructing text-based models on tool calling format:
 
-**Approach A — Chat Template (preferred when available)**: If the model's GGUF file includes a Jinja chat template with tool calling support, we pass tools as a template parameter and let the template render the correct format. The template knows the model's native tool calling convention (e.g., Llama 3.1's `<|python_tag|>{"name":"...","arguments":{...}}`). This is what llama.cpp server does.
+**Approach A — Chat Template (preferred when available)**: If the model's GGUF file includes a Jinja chat template with tool calling support, we pass tools as a template parameter and let the template render the correct format.
 
 **Approach B — System Prompt Injection (fallback)**: If the model has no tool-aware template (or no template at all, as with Candle), we inject tool calling format instructions into the system prompt. The formatter produces a text block describing the expected format, and the provider prepends it to the system prompt before template application.
 
-**Our strategy**: `TextBasedFormatter` carries a JSON Schema that defines the expected tool call structure. A `tool_calling_instructions() -> Option<String>` method on the formatter generates human-readable instructions from that schema. The provider calls this when no chat template supports tools and prepends the result to the system prompt:
-
-```rust
-// On the ToolFormatter trait
-fn tool_calling_instructions(&self) -> Option<String>;
-```
-
-- When `Some(instructions)` — provider prepends to system prompt for system prompt injection
-- When `None` — provider uses the chat template route or has no tool support
-
-This means the JSON Schema is the single source of truth — it drives both `format_tools()` (the available tools list) and `extract_tool_calls()` (the regex validator), while `tool_calling_instructions()` derives the human-readable guidance the model needs to produce valid output.
-
-#### Custom Wrappers — Model-Specific Formats
-
-`TextBasedFormatter` defaults to `<ToolCall>...</ToolCall>` XML-wrapped JSON. If a model was pre-trained on a different convention (e.g., Qwen3-Coder's `<function>`/`<parameter>` tags), wrap it with a custom schema:
-
-```rust
-// Default: XML-wrapped JSON
-TextBasedFormatter::default()
-
-// Wrapped with custom tag format for a specific model
-TextBasedFormatter::with_schema(FunctionTagSchema)
-```
-
-The wrapper supplies a different tag format and JSON Schema; parsing, instruction generation, and validation all derive from it automatically. The user is responsible for ensuring the format matches what their model's prompt training expects.
+**Our strategy**: `TextBasedFormatter` provides `tool_calling_instructions() -> Option<String>` for system prompt injection. When `Some(instructions)` — provider prepends to system prompt. When `None` — provider uses the chat template route or has no tool support.
 
 #### `format_tools()` — Available Tools List
 
-`TextBasedFormatter` takes the `Tool[]` definitions and produces a JSON representation of the available tools:
+Produces a JSON array of available tools:
 
 ```json
 [
-  {"name": "get_weather", "description": "Get weather for a location.", "parameters": {"location": "string"}},
-  {"name": "search", "description": "Search the web.", "parameters": {"query": "string"}}
+  {"name": "get_weather", "description": "Get weather for a location.", "parameters": {"type": "object", "properties": {"location": {"type": "string"}}}},
+  {"name": "search", "description": "Search the web.", "parameters": {"type": "object", "properties": {"query": {"type": "string"}}}}
 ]
 ```
 
-The `schema` field in `ToolFormatResult` holds this JSON. `system_prompt_additions` is `None` — the instruction block comes from `tool_calling_instructions()` instead.
-
-Returns `Ok(ToolFormatResult)` on success. Errors are unlikely for text-based format, but if a tool has invalid metadata, returns `Err(ErrorTrace<ToolCallingError::Format>)` with the offending tool name.
-
 #### `tool_calling_instructions()` — System Prompt Format Instructions
 
-Generates the human-readable instruction block from the formatter's JSON Schema:
-
 ```
-You have access to the following tools:
-- get_weather: Get weather for a location. Parameters: location (string)
-- search: Search the web. Parameters: query (string)
-
 To use a tool, wrap your call in <ToolCall> tags with valid JSON inside:
 <ToolCall>{"name":"tool_name","arguments":{"param":"value"}}</ToolCall>
 
 Only output tool calls when necessary. Do not invent tool calls.
 ```
 
-Returns `Some(instructions)` when the formatter has instructions to inject. Returns `None` for API-based formatters (Anthropic, OpenAI) since they don't need system prompt injection — their native tool format handles it.
-
-The provider calls this when Approach B applies (no tool-aware template) and prepends the result to the system prompt. This way the JSON Schema is the single source of truth — `format_tools()` lists the available tools, `tool_calling_instructions()` derives the guidance the model needs, and `extract_tool_calls()` validates against the schema.
-
 #### `extract_tool_calls()` — Text Parsing Strategy
 
 The formatter parses tool calls from the model's complete text output. The provider accumulates tokens until generation completes, then passes the full text to the formatter.
-
-Returns `Ok(ExtractResult)` on success (even if zero tool calls found — that's a valid result, not an error). Returns `Err(ErrorTrace<ToolCallingError::Extract>)` only when the response text is malformed in a way that prevents parsing (e.g., unclosed `<ToolCall>` tag with tool-like content that suggests a truncated tool call).
 
 **XML-wrapped JSON (only pattern):**
 ```
 <ToolCall>{"name": "get_weather", "arguments": {"location": "Paris"}}</ToolCall>
 ```
-Regex: matches `<ToolCall>` opening tag, then a JSON object with required `name` field, then `</ToolCall>` closing tag. This is the only accepted format — no fallback to raw JSON or backticks. XML tags provide unambiguous boundaries that don't collide with natural prose.
 
-**Disambiguation strategy**: After regex extraction, the parser validates each match by checking if the extracted tool `name` matches one of the known tools provided in the original request. If the name doesn't match any known tool, the match is treated as prose (not a tool call) and preserved in `remaining_text`. This prevents the parser from misidentifying JSON in the model's explanations as tool calls.
+Regex: `r"<ToolCall>\s*(.*?)\s*</ToolCall>"` — captures everything between tags, then parses as JSON. This is the only accepted format — no fallback to raw JSON or backticks. XML tags provide unambiguous boundaries that don't collide with natural prose.
 
-**Interleaved text handling**: When multiple tool calls are found with text between them, the parser splits the input at each tool call boundary. Text before the first tool call, between consecutive tool calls, and after the last tool call are concatenated into `remaining_text`. The `calls` vector contains all extracted tool calls in order of appearance. This preserves the model's full output: the caller can reconstruct the original text if needed, and gets structured tool calls for dispatch.
+**Interleaved text handling**: When multiple tool calls are found with text between them, each text segment is trimmed and filtered for emptiness, then joined with a single `\n`. This avoids double-newline artifacts when tool call tags sit on their own lines.
 
 Example input:
 ```
@@ -529,29 +502,20 @@ Let me also check Tokyo.
 
 Output:
 - `calls`: 3 `ModelOutput::ToolCall` entries (Paris, London, Tokyo)
-- `remaining_text`: "I'll check the weather in all three cities.\nLet me also check Tokyo.\n"
+- `remaining_text`: `"I'll check the weather in all three cities.\nLet me also check Tokyo."`
 - `has_tool_calls`: true
 
-**Streaming integration**: During streaming, the provider emits text tokens as they arrive. When generation completes (EOS token or stop sequence), the provider:
-1. Passes the accumulated complete text to `formatter.extract_tool_calls()`
-2. If tool calls are found: yields them as additional `Stream::Next` messages after the final text token
-3. If no tool calls found: the stream completes with the text message alone
-
-This mirrors how our Anthropic and OpenAI streaming already work — accumulate during stream, parse on completion, emit tool calls after text.
-
-**Candle-specific note**: Candle doesn't use chat templates. Its output is raw token sequences. The `extract_tool_calls` parser works the same way (regex on complete text), but the provider has no template-mediated formatting to fall back on — the system prompt instructions are the only mechanism for guiding tool calling format.
+**Malformed JSON handling**: If the content inside `<ToolCall>` tags is not valid JSON, the entire tag is kept as `remaining_text` — not an error, just unparseable.
 
 #### `format_tool_response()` — Tool Result as Message
 
-For text-based models, a tool result must be formatted as text the model can understand as a tool response. Takes `Messages::ToolResult` and produces:
+For text-based models, a tool result is formatted as:
 
 ```json
-{"role": "tool", "name": "get_weather", "content": "22°C and sunny in Paris"}
+{"role": "tool", "name": "get_weather", "content": "[get_weather] 22°C and sunny in Paris"}
 ```
 
-Returns `Ok(Value)` on success. Errors are rare (tool result formatting is straightforward), but if the tool name is empty or the result is malformed, returns `Err(ErrorTrace<ToolCallingError::Response>)` with the tool name and reason.
-
-The provider converts this to a `LlamaChatMessage { role: "tool", content: "[get_weather] 22°C and sunny in Paris" }` and appends it to the conversation. The role `"tool"` signals to the chat template (if present) that this is a tool result. For models without template support, the provider prepends the tool name in brackets as a text convention: `[tool_name] result_text`.
+The provider converts this to a `LlamaChatMessage { role: "tool", content: "[get_weather] 22°C and sunny in Paris" }` and appends it to the conversation. Error results get an `(error)` suffix appended to the content.
 
 **Multi-turn flow for text-based models**:
 1. User message + available tools → provider injects tool instructions into system prompt
@@ -559,29 +523,31 @@ The provider converts this to a `LlamaChatMessage { role: "tool", content: "[get
 3. Generation completes → provider calls `formatter.extract_tool_calls()` on complete text
 4. Tool calls found → provider yields text message, then tool call messages to the stream
 5. Caller executes tools → caller sends tool results back via `Messages::ToolResult`
-6. Provider converts tool results to messages using `formatter.format_tool_response(&Messages::ToolResult { ... })`
+6. Provider converts tool results to messages using `formatter.format_tool_response()`
 7. Provider re-invokes `generate()` or `stream()` with extended conversation
 8. Model generates continuation (final answer or more tool calls)
 
 ## Task List
 
-1. **[types]** Define `ToolFormatter` trait + `ToolFormatResult` + `ExtractResult` + `ToolCallingError` enum in `types/mod.rs` using `derive_more` + `foundation_errstacks`
-2. **[anthropic]** Implement `AnthropicFormatter` with all three methods + attach to `AnthropicModel`
-3. **[openai]** Implement `OpenAIFormatter` with all three methods + `OpenAIModel<F>` with default
-4. **[llamacpp]** Attach `TextBasedFormatter` to `LlamaCppModel`
-5. **[candle]** Attach `TextBasedFormatter` to `CandleModel`
-6. **[text-parsers]** Implement `TextBasedFormatter` regex-based tool call parsers (shared between llama.cpp and Candle)
-7. **[integration]** Wire formatters into provider `generate()` and `stream()` methods — replace inline tool formatting with formatter calls
-8. **[tests]** Unit tests for all formatters with sample provider responses + streaming accumulation
+1. **[types]** ✅ Define `ToolFormatter` trait + `ExtractResult` + `ToolCallingError` enum in `types/mod.rs` using `derive_more` + `foundation_errstacks`
+2. **[anthropic]** ✅ Implement `AnthropicFormatter` with all four methods + attach to `AnthropicModel`
+3. **[openai]** ✅ Implement `OpenAIFormatter` with all four methods + `OpenAIModel<F>` with default
+4. **[llamacpp]** ✅ Attach `TextBasedFormatter` to `LlamaCppModel`
+5. **[candle]** ✅ Attach `TextBasedFormatter` to `CandleModel`
+6. **[text-parsers]** ✅ Implement `TextBasedFormatter` regex-based tool call parsers (shared between llama.cpp and Candle)
+7. **[integration]** ✅ Wire formatters into provider `generate()` and `stream()` methods
+8. **[tests]** ✅ 28 unit tests for all formatters with sample provider responses
 
 ## Affected files
 
-- `backends/foundation_ai/src/types/mod.rs` — trait, result types, `ToolCallingError` enum
+- `backends/foundation_ai/src/types/mod.rs` — trait, result types, `ToolCallingError` enum, `TextBasedFormatter`, `json_value_to_arg_type()`
 - `backends/foundation_ai/src/backends/anthropic_messages_provider.rs` — `AnthropicFormatter`
 - `backends/foundation_ai/src/backends/openai_provider.rs` — `OpenAIFormatter`, `OpenAIModel<F>`
 - `backends/foundation_ai/src/backends/llamacpp.rs` — attach `TextBasedFormatter` to `LlamaCppModel`
 - `backends/foundation_ai/src/backends/candle.rs` — attach `TextBasedFormatter` to `CandleModel`
-- `backends/foundation_ai/tests/tool_calling_formatter.rs` — unit tests
+- `backends/foundation_ai/src/backends/openai_responses_provider.rs` — attach `TextBasedFormatter` to `ResponsesModel`
+- `backends/foundation_ai/tests/tool_calling_formatter.rs` — 28 unit tests
+- `backends/foundation_ai/Cargo.toml` — added `foundation_errstacks` dependency
 
 ## Design Philosophy
 
