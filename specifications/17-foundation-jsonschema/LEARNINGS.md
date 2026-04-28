@@ -26,7 +26,7 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 ## Critical Implementation Details
 
 - The reference project (Stranger6667/jsonschema at `/home/darkvoid/Boxxed/@formulas/src.rust/src.jsonschema/jsonschema/`) has 14 crates. We consolidate into a single crate `foundation_jsonschema` with internal modules instead.
-- The reference project uses `fluent-uri` for RFC 3986 URI resolution. We need a lightweight alternative or minimal internal implementation since fluent-uri may pull in std-only deps.
+- The reference project uses `fluent-uri` for RFC 3986 URI resolution. We copy the URI module from `foundation_core` (`wire/simple_http/url/`) which provides `Uri`, `Scheme`, `Authority`, `PathAndQuery`, `Query`, and percent-decoding — then adapt to no_std and add RFC 3986 §5 reference resolution and JSON Pointer percent-decoding on top. This avoids depending on foundation_core (which is std-only and pulls in heavy deps like `url`, `regex`, TLS, compression).
 - Draft 4 uses `id` (not `$id`) for schema identification — this is a common source of bugs.
 - `$recursiveRef` (Draft 2019-09) and `$dynamicRef` (Draft 2020-12) have subtly different semantics — both walk the dynamic scope but `$dynamicRef` uses named anchors while `$recursiveRef` checks `$recursiveAnchor: true`.
 - JSON Pointer escaping: `~0` → `~`, `~1` → `/` — order matters (unescape `~1` first, then `~0`).
@@ -45,6 +45,8 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 
 - `serde` + `serde_json` are workspace dependencies — use workspace versions
 - `regex` is a workspace dependency — use workspace version
+- `foundation_errstacks` is the workspace error handling crate — ALL error types use `ErrorTrace<ContextType>`, with `#[derive(Display, Error)]` context types from `derive_more`. Context is attached via `.attach()` as errors bubble up, not stored in the context type directly.
+- `derive_more` is a workspace dependency — used for `Display` and `Error` derives on context types
 - `foundation_nostd` provides spin-based sync primitives if needed for no_std memoization caches
 
 ## Future Considerations

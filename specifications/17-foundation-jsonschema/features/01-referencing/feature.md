@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/01-referencing"
 this_file: "specifications/17-foundation-jsonschema/features/01-referencing/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-04-28
 
 depends_on: ["00-core-types"]
 
 tasks:
-  completed: 0
-  uncompleted: 42
+  completed: 42
+  uncompleted: 0
   total: 42
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 1: Referencing Engine
@@ -75,7 +75,7 @@ This is derived from the `jsonschema-referencing` crate in the reference project
 
 ### Technical Approach
 
-- **Minimal URI parser**: Implement a lightweight URI parser that handles the subset of RFC 3986 needed by JSON Schema: scheme, authority, path, query, fragment extraction; relative resolution against a base URI; normalization. This avoids pulling in `fluent-uri` or `url`.
+- **Minimal URI parser**: Adapted from `foundation_core`'s `wire/simple_http/url/` module — we copy the relevant types (Uri, Scheme, Authority, PathAndQuery, percent-decoding) directly into this crate rather than depending on foundation_core (which is std-only and brings many heavy deps like `url`, `regex`, TLS, compression). We then add JSON Schema-specific functionality on top: RFC 3986 §5 reference resolution, fragment-only references, and percent-decoding for JSON Pointer segments.
 - **BFS resource crawling**: When building the registry, crawl all provided schemas breadth-first to discover all sub-resources (`$id` creates new resources) and external references. This ensures all resources are indexed before the compiler begins.
 - **Immutable after build**: `Registry` is immutable after `RegistryBuilder::build()`. All mutations happen during the build phase.
 - **Resolver carries context**: `Resolver` holds a reference to the registry plus the current base URI and dynamic scope stack. It creates new `Resolver` instances (with updated base URI) when entering sub-resources.
@@ -106,8 +106,10 @@ backends/foundation_jsonschema/src/referencing/
 
 ### Component Details
 
-1. **`uri.rs` — Minimal URI Parser**
-   - **Purpose**: Parse, resolve, and normalize URIs without external crate dependency.
+1. **`uri.rs` — URI Parser** (copied from foundation_core + extended)
+   - **Purpose**: Parse, resolve, and normalize URIs without pulling in foundation_core or the `url` crate.
+   - **Copied from foundation_core** (`wire/simple_http/url/`): `Uri`, `Scheme`, `Authority`, `Host`, `PathAndQuery`, `Query`, `InvalidUri`, percent-encoding/decoding helpers. Adapted to no_std + alloc and to use our own `InvalidUri` error.
+   - **Added for JSON Schema**: RFC 3986 §5 reference resolution (`Uri::resolve_against()`), fragment-only reference handling, JSON Pointer segment percent-decoding.
    - **Key Types**:
      ```rust
      /// Parsed URI components.
@@ -400,24 +402,50 @@ sequenceDiagram
 
 ### Error Handling Strategy
 
+**Internal vs. Public errors**: `UriError` and `PointerError` are low-level error types used internally by `Uri::parse()` and `resolve_pointer()`. They are converted into `ReferencingError` (`ErrorTrace<ReferencingErrorKind>`) at the public API boundary (e.g., `Resolver::lookup()`, `RegistryBuilder::build()`). This keeps the public API consistent with `foundation_errstacks` while allowing internal functions to return lightweight errors.
+
 ```rust
-/// Errors from the referencing engine.
-#[derive(Debug)]
-pub enum ReferencingError {
+use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
+use derive_more::{Display, Error};
+
+/// Context type for referencing engine errors.
+///
+/// WHY: URI parsing, pointer traversal, and registry building each have
+/// distinct failure modes. The context type carries the minimal data for
+/// categorization; additional detail is attached via .attach() as the
+/// error bubbles up.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ReferencingErrorKind {
     /// URI parsing failed.
     InvalidUri { uri: String, reason: String },
     /// JSON Pointer traversal failed (key not found, index out of bounds).
-    PointerError { pointer: String, reason: String },
+    PointerTraversalFailed { pointer: String, reason: String },
     /// Resource not found in registry and resolver failed.
     ResourceNotFound { uri: String },
     /// Anchor not found in resource.
     AnchorNotFound { uri: String, anchor: String },
     /// External resolution failed.
-    ResolveFailed { uri: String, reason: String },
+    ResolveFailed { uri: String },
     /// Circular reference detected during registry build.
     CircularReference { uri: String },
 }
+
+impl Display for ReferencingErrorKind {
+    // Human-readable messages for each variant
+}
+
+impl Error for ReferencingErrorKind {}
+
+/// Type alias — full foundation_errstacks API for referencing errors.
+pub type ReferencingError = ErrorTrace<ReferencingErrorKind>;
+
+// Usage:
+// let err = ReferencingErrorKind::InvalidUri { uri: s.clone(), reason: "bad fragment".into() }
+//     .into_error_trace()
+//     .attach(format!("while parsing URI: {}", s));
 ```
+
+All public methods that return `Result<..., ReferencingError>` use this `ErrorTrace`-based type. This includes `RegistryBuilder::build()`, `Resolver::lookup()`, `Resolver::lookup_recursive_ref()`, `Resolver::lookup_dynamic_ref()`, and `Resolver::in_subresource()`.
 
 ### Performance Considerations
 
@@ -430,7 +458,7 @@ pub enum ReferencingError {
 
 | Decision | Rationale | Alternatives Considered |
 |----------|-----------|------------------------|
-| Minimal internal URI parser | Avoids fluent-uri/url dependency; JSON Schema uses a limited URI subset | fluent-uri (not no_std compatible); url crate (heavy, std-only) |
+| Copy URI code from foundation_core | Avoids heavy dependency on foundation_core (which brings url, regex, TLS, compression); lets us make it no_std | Direct dependency (too many transitive deps); writing from scratch (reinvents what exists) |
 | BTreeMap for resource index | no_std compatible, deterministic ordering | AHashMap (faster but needs no_std hasher); Vec with binary search (more code) |
 | Resolver carries owned String for base_uri | Avoids lifetime complexity across resolver evolution | &str (lifetime issues when evolve() creates new resolver); Arc<str> (over-engineering) |
 | Vec<String> for dynamic scope | Simple, small in practice (rarely > 5 deep) | LinkedList (no advantage); SmallVec (premature optimization) |
@@ -470,7 +498,7 @@ pub enum ReferencingError {
 - [ ] Task 31: Implement `Resolver::evolve()` — create new resolver with updated base URI and scope
 - [ ] Task 32: Implement `Resolver::in_subresource()` — enter sub-resource scope
 - [ ] Task 33: Implement `Resolved` struct
-- [ ] Task 34: Implement `ReferencingError` enum with all variants
+- [ ] Task 34: Implement `ReferencingErrorKind` enum + `ReferencingError` type alias (`ErrorTrace<ReferencingErrorKind>`)
 - [ ] Task 35: Write unit tests for URI parsing — absolute, relative, fragment-only, edge cases
 - [ ] Task 36: Write unit tests for URI resolution — all RFC 3986 §5 examples
 - [ ] Task 37: Write unit tests for JSON Pointer traversal — objects, arrays, escaping, percent-encoding

@@ -27,6 +27,7 @@ mod impls_simple_incoming_tests;
 mod impls_simple_url_tests;
 mod intro_tests;
 mod middleware_tests;
+mod pool_drain_tests;
 mod pool_tests;
 mod proxy_tests;
 mod request_tests;

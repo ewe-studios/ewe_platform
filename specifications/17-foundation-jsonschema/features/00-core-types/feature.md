@@ -51,7 +51,7 @@ This feature also creates the crate skeleton (`Cargo.toml`, `lib.rs`) and establ
 
 5. **Draft enum** — Identify which JSON Schema draft a schema conforms to. Must support detection from the `$schema` keyword and explicit construction.
 
-6. **JsonResolver trait** — The pluggable interface for resolving external `$ref` URIs. Plus `NoopResolver` (always fails) and `MapResolver` (pre-loaded map).
+6. **JsonResolver trait** — The pluggable interface for resolving external `$ref` URIs. Uses `ErrorTrace<ResolveError>` from `foundation_errstacks` for structured error handling. Plus `NoopResolver` (always fails) and `MapResolver` (pre-loaded map).
 
 7. **no_std compatibility** — All types in this feature must work in `no_std + alloc` environments. Use `alloc::string::String`, `alloc::vec::Vec`, `alloc::boxed::Box` etc. when `std` is not available.
 
@@ -235,8 +235,9 @@ backends/foundation_jsonschema/
    - **Purpose**: Pluggable external schema resolution. This is the key design divergence from the reference project.
    - **Key Types**:
      ```rust
-     /// Trait for resolving external JSON Schema references.
-     ///
+     use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
+     use derive_more::{Display, Error};
+
      /// WHY: JSON Schema allows $ref to point to external URIs. Rather than
      /// building in HTTP/file resolution, we let the caller provide their own
      /// strategy. This keeps the crate dependency-free and works in no_std.
@@ -245,44 +246,56 @@ backends/foundation_jsonschema/
      /// The registry calls this during schema compilation for URIs not already
      /// in its index. Each URI is resolved at most once — results are cached.
      pub trait JsonResolver {
-         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ResolveError>;
+         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>>;
      }
-     
-     /// Error returned when a JsonResolver cannot resolve a URI.
-     #[derive(Debug)]
+
+     /// Context type for resolution failures.
+     ///
+     /// WHY: Using `foundation_errstacks::ErrorTrace` lets callers attach
+     /// additional context (e.g., which registry triggered the resolution,
+     /// what the base URI was) as the error bubbles up through the compile stack.
+     ///
+     /// WHAT: A minimal error type carrying only the URI that failed.
+     ///
+     /// HOW: Wrapped in ErrorTrace; attachments added by the registry.
+     #[derive(Debug, Display, Error)]
+     #[display("failed to resolve external reference: {uri}")]
      pub struct ResolveError {
-         uri: String,
-         reason: String,
+         pub uri: String,
      }
-     
-     impl fmt::Display for ResolveError { ... }
-     
-     #[cfg(feature = "std")]
-     impl std::error::Error for ResolveError {}
-     
-     /// A resolver that always fails. Default when no resolver is provided.
-     pub struct NoopResolver;
-     
-     impl JsonResolver for NoopResolver {
-         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ResolveError> {
-             Err(ResolveError::new(uri, "no resolver configured"))
+
+     impl ResolveError {
+         pub fn new(uri: impl Into<String>) -> Self {
+             Self { uri: uri.into() }
          }
      }
-     
+
+     /// A resolver that always fails. Default when no resolver is provided.
+     pub struct NoopResolver;
+
+     impl JsonResolver for NoopResolver {
+         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>> {
+             Err(ResolveError::new(uri).into_error_trace()
+                 .attach(format!("no resolver configured for: {uri}")))
+         }
+     }
+
      /// A resolver backed by a pre-loaded map of URI → schema document.
      pub struct MapResolver {
          schemas: alloc::collections::BTreeMap<String, serde_json::Value>,
      }
-     
+
      impl MapResolver {
          pub fn new() -> Self { ... }
          pub fn insert(&mut self, uri: impl Into<String>, schema: serde_json::Value) -> &mut Self { ... }
          pub fn from_iter(iter: impl IntoIterator<Item = (String, serde_json::Value)>) -> Self { ... }
      }
-     
+
      impl JsonResolver for MapResolver {
-         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ResolveError> {
-             self.schemas.get(uri).cloned().ok_or_else(|| ResolveError::new(uri, "not found in map"))
+         fn resolve(&self, uri: &str) -> Result<serde_json::Value, ErrorTrace<ResolveError>> {
+             self.schemas.get(uri).cloned().ok_or_else(||
+                 ResolveError::new(uri).into_error_trace()
+                     .attach(format!("not found in map resolver: {uri}")))
          }
      }
      ```
@@ -308,9 +321,10 @@ pub use resolver_trait::{JsonResolver, NoopResolver, MapResolver, ResolveError};
 
 ### Error Handling Strategy
 
-- `ResolveError` is the only error type introduced in this feature.
-- It is intentionally simple (uri + reason strings) because it crosses the trait boundary.
-- The `std::error::Error` impl is feature-gated behind `std`.
+- `ResolveError` is a minimal `#[derive(Display, Error)]` context type — it is wrapped in `ErrorTrace<ResolveError>` when returned.
+- Additional context is attached via `.attach()` at the call site (registry, compiler).
+- `ErrorTrace<ResolveError>` implements `std::error::Error` when `std` feature is enabled (via `foundation_errstacks`).
+- No custom `Display` or `Error` impls needed on `ResolveError` — derived via `derive_more`.
 
 ### Performance Considerations
 
@@ -324,7 +338,7 @@ pub use resolver_trait::{JsonResolver, NoopResolver, MapResolver, ResolveError};
 |----------|-----------|------------------------|
 | BTreeMap for MapResolver | no_std compatible, no hasher dependency | HashMap (needs std or ahash); Vec<(String,Value)> with linear scan (slower for large maps) |
 | LazyLocation as linked list | Zero-alloc happy path, matches reference project pattern | Pre-allocated Vec (wastes memory on valid instances); String building (many small allocations) |
-| ResolveError with String fields | Simple, works across trait boundary, no lifetime issues | &str (lifetime issues with trait objects); Box<dyn Display> (allocation on error path — acceptable but more complex) |
+| `ResolveError` as minimal derive_more type with `ErrorTrace` wrapper | Uses project-standard error handling; context attached at each call site via `.attach()`; structured chain of errors with source locations | Box<dyn Display> (loses type safety, no attachments); custom error with message field (redundant with attachment system) |
 | Draft::DEFAULT = Draft202012 | Matches JSON Schema spec recommendation and reference project default | Draft7 (more widely deployed but not the latest spec) |
 
 ## Implementation

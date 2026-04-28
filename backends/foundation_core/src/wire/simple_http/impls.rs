@@ -3725,9 +3725,16 @@ where
                 );
 
                 // ensure to capture and skip methods that should not have a body attached.
-                self.state = if status == Status::SwitchingProtocols {
+                // Per RFC 7230: 1xx, 204 No Content, and 304 Not Modified responses
+                // MUST NOT include a message body.
+                let no_body_status = status == Status::SwitchingProtocols
+                    || status == Status::NoContent
+                    || status == Status::NotModified
+                    || (status.clone().into_usize() >= 100 && status.clone().into_usize() < 200);
+                self.state = if no_body_status {
                     tracing::trace!(
-                        "Identified a SwitchingProtocols status code, setting as no header"
+                        "Identified a no-body status code {:?}, setting as only headers",
+                        &status
                     );
                     HttpReadState::OnlyHeaders
                 } else {

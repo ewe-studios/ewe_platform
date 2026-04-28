@@ -34,7 +34,6 @@ fn test_threaded_future_error() {
     let results: Vec<Result<i32, &'static str>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
-            _ => None,
         })
         .collect();
 
@@ -51,7 +50,6 @@ fn test_threaded_future_empty_iterator() {
     let results: Vec<Result<i32, ()>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
-            _ => None,
         })
         .collect();
 

@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/02-keywords-validators"
 this_file: "specifications/17-foundation-jsonschema/features/02-keywords-validators/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-04-28
 
 depends_on: ["00-core-types", "01-referencing"]
 
 tasks:
-  completed: 0
-  uncompleted: 52
+  completed: 52
+  uncompleted: 0
   total: 52
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 2: Keywords & Validators
@@ -46,6 +46,8 @@ This is derived from the `keywords/` module in the reference project (`crates/js
    - `is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool` — fast boolean check
    - `validate(&self, instance: &Value, instance_path: &LazyLocation, ctx: &mut ValidationContext) -> Result<(), ValidationError>` — first-error semantics
    - `iter_errors(&self, instance: &Value, instance_path: &LazyLocation, ctx: &mut ValidationContext) -> ErrorIterator` — collect all errors
+
+   **NOTE**: `ValidationError` is `type ValidationError = ErrorTrace<ValidationErrorKind>` from Feature 05. Errors are created via `ValidationErrorKind { ... }.into_error_trace()` with `.attach()` for additional context (paths, messages).
 
 2. **Keyword categories** — Implement validators grouped by category:
    - **Type**: `type`, `const`, `enum`
@@ -189,11 +191,10 @@ impl Validate for MinLengthValidator {
         if let Value::String(s) = instance {
             let len = s.chars().count() as u64;
             if len < self.min {
-                return Err(ValidationError::new(
-                    ErrorKind::MinLength { min: self.min, actual: len },
+                return Err(ValidationErrorBuilder::new(
                     instance_path.materialize(),
                     self.schema_path.clone(),
-                ));
+                ).build(ValidationErrorKind::MinLength { min: self.min, actual: len }));
             }
         }
         Ok(())
