@@ -1,4 +1,4 @@
-//! build.rs — Conditionally builds llama-server from the llama.cpp CMake tree.
+//! build.rs — Conditionally builds llama-server from the llama.cpp `CMake` tree.
 //!
 //! Only runs when `LLAMA_SERVER_BUILD=1` is set in the environment.
 //! Normal `cargo build` is unaffected.
@@ -14,10 +14,7 @@ fn main() {
     // Only re-run when the env var changes.
     println!("cargo:rerun-if-env-changed=LLAMA_SERVER_BUILD");
 
-    let should_build = env::var("LLAMA_SERVER_BUILD")
-        .ok()
-        .map(|v| v == "1")
-        .unwrap_or(false);
+    let should_build = env::var("LLAMA_SERVER_BUILD").is_ok_and(|v| v == "1");
 
     if !should_build {
         return;
@@ -76,14 +73,11 @@ fn main() {
         .status()
         .expect("failed to run cmake");
 
-    if !status.success() {
-        panic!("cmake configure failed for llama-server");
-    }
+    assert!(status.success(), "cmake configure failed for llama-server");
 
     // Build only the server target.
     let nproc = std::thread::available_parallelism()
-        .map(|n| n.get().to_string())
-        .unwrap_or_else(|_| "4".into());
+        .map_or_else(|_| "4".into(), |n| n.get().to_string());
 
     let status = Command::new("make")
         .current_dir(&build_dir)
@@ -91,16 +85,13 @@ fn main() {
         .status()
         .expect("failed to run make");
 
-    if !status.success() {
-        panic!("make llama-server failed");
-    }
+    assert!(status.success(), "make llama-server failed");
 
-    if !src_bin.exists() {
-        panic!(
-            "llama-server binary not found at {} after build",
-            src_bin.display()
-        );
-    }
+    assert!(
+        src_bin.exists(),
+        "llama-server binary not found at {} after build",
+        src_bin.display()
+    );
 
     // Copy to support/bin for a stable, discoverable location.
     fs::create_dir_all(&output_dir).unwrap();

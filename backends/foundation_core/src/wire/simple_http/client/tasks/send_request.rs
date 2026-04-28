@@ -27,7 +27,6 @@ use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };
-use std::collections::BTreeMap;
 use std::io::Write;
 use std::sync::Arc;
 

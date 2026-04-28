@@ -1769,7 +1769,6 @@ where
                     if let Err(e) = self.queue.force_push(item.clone()) {
                         tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
                     }
-                } else {
                 }
                 self.queue.close();
             }
