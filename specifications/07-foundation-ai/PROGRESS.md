@@ -1,6 +1,6 @@
 # Progress - Foundation AI
 
-_Last updated: 2026-04-27 (00d, 00b, 00g verified complete; ready for 07 anthropic-provider)_
+_Last updated: 2026-04-28 (07 anthropic-provider, 04 tool-calling-formatter verified complete)_
 
 ## Overview
 
@@ -15,23 +15,23 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | #  | Feature | Status | Tasks | Completion |
 |----|---------|--------|-------|------------|
 | 0a | [foundation-db](./features/00a-foundation-db/feature.md) | ✅ Complete | 32 / 32 | 100% |
-| 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | ⬜ Pending | 0 / 30 | 0% |
+| 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | ✅ Complete | 30 / 30 | 100% |
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | ✅ Complete | 45 / 45 | 100% |
-| 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ⬜ Pending | 0 / 12 | 0% |
+| 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | ✅ Complete | 12 / 12 | 100% |
 | 0e1 | [http-client-connection-pool](./features/00e-http-client-connection-pool/feature.md) | ⬜ Pending | 0 / ? | 0% |
-| 0e2 | [state-store-query-filtering](./features/00e-state-store-query-filtering/feature.md) | ⬜ Pending | 0 / ? | 0% |
-| 0f | [test-server-keepalive](./features/00f-test-server-keepalive/feature.md) | ⬜ Pending | 0 / ? | 0% |
+| 0e2 | [state-store-query-filtering](./features/00e-state-store-query-filtering/feature.md) | ✅ Complete | ? / ? | 100% |
+| 0f | [test-server-keepalive](./features/00f-test-server-keepalive/feature.md) | ✅ Complete | ? / ? | 100% |
 | 0g | [openai-provider-enhancements](./features/00g-openai-provider-enhancements/feature.md) | ✅ Complete | 64 / 64 | 100% |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | ✅ Complete | 27 / 27 | 100% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
-| 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | 🔄 In Progress | 0 / 6 | 0% |
+| 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | ✅ Complete | 8 / 8 | 100% |
 | 5  | [agentic-coding-reference](./features/05-agentic-coding-reference/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
-| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 39 / 39 | 100% |
+| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 44 / 44 | 100% |
 | 08 | [tool-arguments-refactor](./features/08-tool-arguments-refactor/feature.md) | ✅ Complete | 4 / 4 | 100% |
 
-**Totals:** 247 / ~351 tasks complete (~70%). 10 features complete, 1 in progress, 5 pending.
+**Totals:** ~285 tasks complete. 14 features complete, 1 pending (00e connection-pool), 1 documentary (05).
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -105,7 +105,7 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - Centralized model path config in `mise.toml` `[env]` section
 - `multi` feature gating fixed: no longer forced on by default via `foundation_deployment`
 
-### 07 Anthropic Messages Provider (90% 🔄)
+### 07 Anthropic Messages Provider (100% ✅)
 - `AnthropicMessagesProvider` implementing `ModelProvider` trait — connects to Anthropic's `/v1/messages` endpoint
 - `AnthropicConfig` with builder pattern (base_url, api_version, timeout_secs, max_retries, proxy_url, streaming, auth)
 - Native Anthropic protocol: `x-api-key` + `anthropic-version` headers (no Bearer token)
@@ -119,15 +119,10 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - `build_anthropic_request`: maps `ModelInteraction` → `MessagesRequest` with proper content block conversion
 - Stop reason mapping: end_turn→Stop, stop_sequence→Stop, max_tokens→Length, tool_use→ToolUse
 - Error handling: parse_anthropic_error, format_http_error, retry with exponential backoff, Retry-After header parsing
+- `parse_response` returns `Vec<Messages>` (one per content block)
+- `build_final_messages` emits thinking, text, and tool calls as separate messages
 - 5 mock integration tests passing (TestHttpServer: generate, streaming text, tool calls, thinking, multimodal)
 - 5 llama-server integration tests (#[ignore]-gated): generate, streaming, multi-turn, max_tokens, resolve
-
-**Remaining tasks:**
-- Add `Messages::Thinking` variant to separate thinking from assistant text output
-- `parse_response` → return `Vec<Messages>` (one per content block, no discarding)
-- `build_final_message` → emit multiple messages sequentially via Stream
-- Delete `extract_content` helper (collapsing helper no longer needed)
-- Update `build_anthropic_request` to handle `Messages::Thinking` as round-trip
 
 ### 00g OpenAI Provider Enhancements (100% ✅)
 - `ResponsesProvider` / `ResponsesModel` implementing `ModelProvider` for `/v1/responses`
@@ -150,16 +145,9 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
 ## What's Next
 
-### Immediate (next features to implement)
+### Remaining Features
 
-**04 tool-calling-formatter — 6 tasks** — stateless `ToolFormatter` trait as
-`Model::Formatter` associated type. Each provider uses its own formatter;
-OpenAI accepts a generic `F: ToolFormatter` for proxy flexibility.
-Depends on 00c (complete) and 07 (complete) — can start immediately.
-
-**05 agentic-coding-reference — reference only** — documentary analysis of
-pi-mono and hermes-agent agentic coding patterns. No code tasks.
-Depends on 04.
+**00e http-client-connection-pool — pending** — connection pooling for HTTP clients used across providers.
 
 ### Parallel Cleanup Effort
 
@@ -187,18 +175,18 @@ specifications/07-foundation-ai/
 ├── start.md
 └── features/
     ├── 00a-foundation-db/         (100% ✅)
-    ├── 00b-auth-infrastructure/   (0%   ⬜)
+    ├── 00b-auth-infrastructure/   (100% ✅)
     ├── 00c-openai-provider/       (100% ✅)
-    ├── 00d-state-store-streaming/ (0%   ⬜)
-    ├── 00e-http-client-connection-pool/
-    ├── 00e-state-store-query-filtering/
-    ├── 00f-test-server-keepalive/
+    ├── 00d-state-store-streaming/ (100% ✅)
+    ├── 00e-http-client-connection-pool/ (⬜ Pending)
+    ├── 00e-state-store-query-filtering/ (100% ✅)
+    ├── 00f-test-server-keepalive/ (100% ✅)
     ├── 00g-openai-provider-enhancements/ (100% ✅)
     ├── 01-llamacpp-integration/   (100% ✅)
     ├── 02-huggingface-provider/   (100% ✅)
     ├── 03-candle-integration/     (100% ✅)
-    ├── 04-tool-calling-formatter/ (0%   ⬜)
-    ├── 05-agentic-coding-reference/(0%   ⬜)
+    ├── 04-tool-calling-formatter/ (100% ✅)
+    ├── 05-agentic-coding-reference/ (⬜ Documentary)
     ├── 06-llama-server-testing/   (100% ✅)
     ├── 07-anthropic-provider/     (100% ✅)
     └── 08-tool-arguments-refactor/ (100% ✅)
