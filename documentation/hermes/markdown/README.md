@@ -40,6 +40,14 @@
 | [14-function-calling.md](./14-function-calling.md) | Hermes 2 Pro / 3 function calling + JSON mode |
 | [15-agent-loop.md](./15-agent-loop.md) | Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling |
 
+### Model Interop & Memory Expansion
+
+| Document | What It Covers |
+|----------|---------------|
+| [16-model-providers.md](./16-model-providers.md) | 30+ providers, transport abstraction, context length detection, credential management |
+| [17-memory-deep.md](./17-memory-deep.md) | MemoryManager, 8+ providers, context compression, DAG-based context, session search |
+| [18-multi-model.md](./18-multi-model.md) | Credential pool, fallback chain, error classification, auxiliary models, cost routing |
+
 ## Quick Orientation
 
 ```

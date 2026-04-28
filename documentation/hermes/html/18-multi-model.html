@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Multi-Model Execution -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="15-agent-loop.html">Hermes Agent -- Agent Loop Deep Dive</a> <a href="16-model-providers.html">Hermes Agent -- Model Providers Deep Dive</a> <a href="17-memory-deep.html">Hermes Agent -- Memory System Deep Dive</a></span> <a href="17-memory-deep.html">← Hermes Agent -- Memory System Deep Dive</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Multi-Model Execution</h1>
+<h2>Overview</h2>
+<p>Hermes uses one model at a time per conversation, but provides rich infrastructure for model failover, credential pooling across multiple keys, auxiliary model usage for background tasks, and runtime model switching. The architecture supports a primary → fallback chain with automatic activation on persistent failures.</p>
+<div class="mermaid">
+flowchart LR
+    PRIMARY[Primary Model&lt;br/&gt;claude-opus-4-7] --&gt;|persistent failure| FALLBACK[Fallback Model&lt;br/&gt;gemini-2.5-flash]
+    PRIMARY --&gt;|rate limit 429| POOL[Credential Pool&lt;br/&gt;rotate to next key]
+    PRIMARY --&gt;|context overflow| COMPRESS[Context Engine&lt;br/&gt;compress + retry]
+    PRIMARY --&gt;|model not found| FALLBACK
+    COMPRESS --&gt;|still too large| FALLBACK
+
+</div>
+<h2>Credential Pool</h2>
+<h3>Architecture</h3>
+<p>The credential pool (<code>credential_pool.py</code>) manages multiple API keys per provider for high availability:</p>
+<pre><code class="language-python">@dataclass
+class PooledCredential:
+    provider: str                         # &quot;openai&quot;, &quot;anthropic&quot;, etc.
+    id: str                               # UUID[:6] for display
+    label: str                            # &quot;Production Key&quot;, user@email.com
+    auth_type: str                        # &quot;api_key&quot; | &quot;oauth&quot;
+    priority: int                         # 0 = first choice, 1 = second, ...
+    source: str                           # &quot;manual&quot; | &quot;oauth&quot; | &quot;import&quot;
+    access_token: str                     # The actual API key
+    last_status: Optional[str]            # &quot;ok&quot; | &quot;exhausted&quot;
+    last_error_code: Optional[int]        # 429, 402, 401, etc.
+    last_error_reset_at: Optional[float]  # Unix timestamp for retry
+    request_count: int                    # Total requests issued
+    base_url: Optional[str]              # Custom endpoint per credential
+</code></pre>
+<h3>Selection Strategies</h3>
+<pre><code class="language-python">SUPPORTED_POOL_STRATEGIES = {
+    &quot;fill_first&quot;,    # Use first until exhausted, then next (default)
+    &quot;round_robin&quot;,   # Rotate through available credentials
+    &quot;random&quot;,        # Random selection from available pool
+    &quot;least_used&quot;,    # Credential with lowest request_count
+}
+</code></pre>
+<p>Configuration in <code>config.yaml</code>:</p>
+<pre><code class="language-yaml">credential_pool_strategies:
+  openai: &quot;round_robin&quot;
+  anthropic: &quot;fill_first&quot;
+  custom:my-endpoint: &quot;least_used&quot;
+</code></pre>
+<h3>Exhaustion and Recovery</h3>
+<pre><code class="language-python">EXHAUSTED_TTL_429_SECONDS = 3600    # 1 hour for rate limits
+EXHAUSTED_TTL_DEFAULT_SECONDS = 3600 # 1 hour for billing/quota
+
+def _exhausted_until(entry: PooledCredential) -&gt; Optional[float]:
+    &quot;&quot;&quot;When can this credential be retried?&quot;&quot;&quot;
+    if entry.last_status != STATUS_EXHAUSTED:
+        return None
+    # Provider-supplied reset_at overrides defaults
+    reset_at = entry.last_error_reset_at
+    if reset_at is not None:
+        return reset_at
+    # Fallback to default TTL
+    return entry.last_status_at + _exhausted_ttl(entry.last_error_code)
+</code></pre>
+<h3>Custom Provider Pools</h3>
+<p>Custom OpenAI-compatible endpoints get their own pool namespace:</p>
+<pre><code class="language-python">def get_custom_provider_pool_key(base_url: str) -&gt; Optional[str]:
+    &quot;&quot;&quot;Look up custom_providers in config.yaml → &#x27;custom:&lt;name&gt;&#x27;&quot;&quot;&quot;
+    for norm_name, entry in _iter_custom_providers():
+        if entry[&quot;base_url&quot;] == base_url:
+            return f&quot;custom:{norm_name}&quot;
+    return None
+</code></pre>
+<h3>Pool Persistence</h3>
+<p>Stored in <code>~/.hermes/auth.json</code>:</p>
+<pre><code class="language-json">{
+  &quot;openai&quot;: [
+    {
+      &quot;id&quot;: &quot;abc123&quot;,
+      &quot;label&quot;: &quot;Production Key&quot;,
+      &quot;access_token&quot;: &quot;sk-...&quot;,
+      &quot;priority&quot;: 0,
+      &quot;request_count&quot;: 5000,
+      &quot;last_status&quot;: &quot;ok&quot;
+    },
+    {
+      &quot;id&quot;: &quot;def456&quot;,
+      &quot;label&quot;: &quot;Backup Key&quot;,
+      &quot;access_token&quot;: &quot;sk-...&quot;,
+      &quot;priority&quot;: 1,
+      &quot;last_status&quot;: &quot;exhausted&quot;,
+      &quot;last_error_code&quot;: 429,
+      &quot;last_error_reset_at&quot;: 1714300000.0
+    }
+  ]
+}
+</code></pre>
+<h2>Fallback Chain</h2>
+<h3>Configuration</h3>
+<pre><code class="language-yaml"># config.yaml
+model:
+  provider: &quot;anthropic&quot;
+  name: &quot;claude-opus-4-7&quot;
+
+fallback_model:
+  provider: &quot;openrouter&quot;
+  model: &quot;google/gemini-2.5-flash&quot;
+  base_url: &quot;&quot;  # Optional override
+</code></pre>
+<h3>Activation Logic</h3>
+<pre><code class="language-python">def _try_activate_fallback() -&gt; bool:
+    &quot;&quot;&quot;Switch to fallback on persistent primary failure.&quot;&quot;&quot;
+    if _fallback_activated or not _fallback_model:
+        return False
+
+    # Resolve fallback provider credentials
+    client, model = resolve_provider_client(
+        provider=_fallback_model[&quot;provider&quot;],
+        model=_fallback_model[&quot;model&quot;],
+        base_url=_fallback_model.get(&quot;base_url&quot;),
+    )
+
+    if client is None:
+        logger.error(&quot;Fallback unavailable (missing credentials)&quot;)
+        return False
+
+    # Update agent state
+    self.client = client
+    self.model = model
+    self._context_engine.update_model(model, ctx_len, base_url)
+
+    _fallback_activated = True  # Only fire once per session
+    return True
+</code></pre>
+<h3>Fallback triggers:</h3>
+<ol><li><strong>Rate limit exhaustion</strong> — all credentials for primary provider exhausted</li><li><strong>Model not found</strong> — 404 from primary provider</li><li><strong>Persistent server errors</strong> — 5xx after max retries</li><li><strong>Auth failure</strong> — permanent 401/403 after token refresh</li></ol>
+<h3>Recovery to Primary</h3>
+<pre><code class="language-python"># At the start of each new turn:
+def _restore_primary_runtime():
+    &quot;&quot;&quot;If fallback was activated in previous turn, try restoring primary.&quot;&quot;&quot;
+    if _fallback_activated and primary_credentials_recovered():
+        _fallback_activated = False
+        # Rebuild client for primary provider
+</code></pre>
+<h2>Error Classification Pipeline</h2>
+<h3>Structured Error Handling</h3>
+<p>Every API failure passes through the error classifier:</p>
+<div class="mermaid">
+flowchart TD
+    ERROR[API Error] --&gt; CLASSIFY[error_classifier.py]
+    CLASSIFY --&gt; RESULT[ClassifiedError]
+
+    RESULT --&gt; RETRY{retryable?}
+    RETRY --&gt;|Yes| BACKOFF[Jittered backoff&lt;br/&gt;min 3s, max 8s]
+    BACKOFF --&gt; AGAIN[Retry API call]
+
+    RETRY --&gt;|No| ROTATE{should_rotate?}
+    ROTATE --&gt;|Yes| POOL[Credential Pool&lt;br/&gt;next credential]
+    POOL --&gt; AGAIN
+
+    ROTATE --&gt;|No| COMPRESS{should_compress?}
+    COMPRESS --&gt;|Yes| ENGINE[Context Engine&lt;br/&gt;compress messages]
+    ENGINE --&gt; AGAIN
+
+    COMPRESS --&gt;|No| FALLBACK{should_fallback?}
+    FALLBACK --&gt;|Yes| ACTIVATE[Activate fallback model]
+    ACTIVATE --&gt; AGAIN
+
+    FALLBACK --&gt;|No| ABORT[Abort with error message]
+
+</div>
+<h3>Retry Strategy</h3>
+<pre><code class="language-python"># Jittered exponential backoff
+retry_delay = min(3 + retry_count, 8)  # seconds
+# Max 2 retries per error before escalation
+# Rate-limit recovery: wait 1 hour then retry
+# Context error: shrink context, no wait
+</code></pre>
+<h2>Runtime Model Switching</h2>
+<h3>User-Initiated Switch</h3>
+<pre><code class="language-python">def switch_model(self, provider, model, base_url=&quot;&quot;, api_key=&quot;&quot;) -&gt; bool:
+    &quot;&quot;&quot;User runs /model to switch mid-conversation.&quot;&quot;&quot;
+
+    # 1. Resolve new provider client
+    client, norm_model = resolve_provider_client(provider, model, base_url, api_key)
+    if not client:
+        return False
+
+    # 2. Update agent state
+    self.client = client
+    self.model = norm_model
+    self.provider = provider
+
+    # 3. Detect new context window
+    ctx_len = get_model_context_length(norm_model, base_url, api_key, provider)
+    self._context_engine.update_model(norm_model, ctx_len, base_url, api_key, provider)
+
+    return True
+</code></pre>
+<h3>Cron Job Model Selection</h3>
+<p>Cron jobs (scheduled tasks) can specify their own model:</p>
+<pre><code class="language-yaml"># In cron configuration
+cron:
+  weekly_summary:
+    schedule: &quot;0 9 * * 1&quot;
+    model:
+      provider: &quot;openai&quot;
+      name: &quot;gpt-4o-mini&quot;  # Cheaper model for automated tasks
+</code></pre>
+<h2>Auxiliary Models</h2>
+<h3>Summarization Client</h3>
+<p>Context compression uses a separate "auxiliary" model — cheaper and faster than the primary:</p>
+<pre><code class="language-python">_AUXILIARY_CLIENT_CACHE: Dict[tuple, tuple[client, model, loop]] = {}
+
+def get_async_text_auxiliary_client(task: str = &quot;&quot;):
+    &quot;&quot;&quot;Get or create async client for summarization/compression.&quot;&quot;&quot;
+    # Reuses clients to avoid creation overhead
+    # Runs in separate event loop per provider
+    # Default: gpt-4o-mini or similar cheap model
+</code></pre>
+<h3>Background Operations</h3>
+<p>Background tasks that use auxiliary models:</p>
+<ol><li><strong>Context compression</strong> — summarize old messages to fit context window</li><li><strong>Memory prefetch</strong> — background threads querying memory backends</li><li><strong>Title generation</strong> — generate session titles from conversation content</li><li><strong>Insights collection</strong> — track usage patterns and cost statistics</li></ol>
+<h2>Parallel Tool Execution</h2>
+<h3>Concurrent Tool Batching</h3>
+<p>When the LLM returns multiple tool calls in a single response:</p>
+<pre><code class="language-python">_MAX_TOOL_WORKERS = 8
+
+_PARALLEL_SAFE_TOOLS = {&quot;read_file&quot;, &quot;search_files&quot;, &quot;web_search&quot;, ...}
+_NEVER_PARALLEL_TOOLS = {&quot;clarify&quot;}
+_PATH_SCOPED_TOOLS = {&quot;read_file&quot;, &quot;write_file&quot;, &quot;patch&quot;}
+
+# Execute concurrently where safe:
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    futures = [executor.submit(execute_tool, call) for call in tool_calls]
+    results = [f.result() for f in futures]
+</code></pre>
+<h3>Safety Rules</h3>
+<ul><li><strong>Read-only tools</strong>: Always parallelizable</li><li><strong>Interactive tools</strong> (clarify): Never parallel</li><li><strong>Path-scoped tools</strong>: Check for file path conflicts before parallelizing</li><li><strong>Write tools</strong>: Sequential if touching same file</li></ul>
+<h2>Subagent Model Delegation</h2>
+<h3>Shared Iteration Budget</h3>
+<p>Parent and subagents share a single <code>IterationBudget</code>:</p>
+<pre><code class="language-python">class IterationBudget:
+    def __init__(self, max_iterations: int):
+        self.remaining = max_iterations
+
+    def consume(self) -&gt; bool:
+        &quot;&quot;&quot;Returns False if budget exhausted.&quot;&quot;&quot;
+        if self.remaining &lt;= 0:
+            return False
+        self.remaining -= 1
+        return True
+</code></pre>
+<p>A parent with budget 90 and a subagent each consume from the same counter — preventing runaway nested loops.</p>
+<h3>Subagent Model Selection</h3>
+<p>Subagents can use different models than the parent:</p>
+<pre><code class="language-python"># Parent delegates with specific model
+subagent = AIAgent(
+    model=&quot;gpt-4o-mini&quot;,           # Cheaper for sub-tasks
+    fallback_model=None,            # No fallback for subagents
+    iteration_budget=parent.budget, # Shared budget
+)
+result = await subagent.run(sub_task)
+</code></pre>
+<h2>Cost-Aware Routing</h2>
+<h3>Usage Pricing</h3>
+<p><code>usage_pricing.py</code> tracks costs per model:</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class PricingEntry:
+    input_cost_per_million: Optional[Decimal]
+    output_cost_per_million: Optional[Decimal]
+    cache_read_cost_per_million: Optional[Decimal]
+    cache_write_cost_per_million: Optional[Decimal]
+    source: CostSource  # &quot;official_docs_snapshot&quot;, &quot;models_dev&quot;, &quot;unknown&quot;
+</code></pre>
+<h3>Cost Estimation</h3>
+<pre><code class="language-python">def estimate_usage_cost(usage, billing_route) -&gt; CostResult:
+    pricing = lookup_model_pricing(billing_route.provider, billing_route.model)
+
+    prompt_cost = usage.prompt_tokens * pricing.input / 1_000_000
+    output_cost = usage.output_tokens * pricing.output / 1_000_000
+
+    if billing_route.provider == &quot;anthropic&quot;:
+        cache_read = usage.cache_read * pricing.cache_read / 1_000_000
+        cache_write = usage.cache_write * pricing.cache_write / 1_000_000
+
+    return CostResult(
+        amount_usd=prompt_cost + output_cost + cache_read + cache_write,
+        source=pricing.source,
+    )
+</code></pre>
+<h3>Usage Insights</h3>
+<p><code>agent/insights.py</code> provides a session-level cost dashboard:</p>
+<ul><li>Cost per session with breakdown by component</li><li>Cache hit rates and savings from prompt caching</li><li>Model comparison for task categories</li><li>Cheapest-model recommendations based on observed usage</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

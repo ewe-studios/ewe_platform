@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi -- Memory and Context Management Deep Dive -- pi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/pi/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-ext-pi_agent_rust.html">Pi Extensions -- pi_agent_rust</a> <a href="13-extensions-index.html">Pi Extensions -- Index</a> <a href="14-model-providers.html">Pi -- Model Providers Deep Dive</a></span> <a href="14-model-providers.html">← Pi -- Model Providers Deep Dive</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pi -- Memory and Context Management Deep Dive</h1>
+<h2>Overview</h2>
+<p>Pi's memory system is deliberately minimal compared to frameworks with dedicated memory databases. Instead of external vector stores, Pi manages context through <strong>conversation-scoped state</strong> — the message array is the memory. The strategy: keep the conversation history within the model's context window using compaction, overflow detection, and session persistence.</p>
+<pre><code class="language-">Session Store (JSONL)              Runtime Memory (agent state)
+┌─────────────────────┐            ┌─────────────────────────────┐
+│ session-001.jsonl   │ ──load──→  │ MutableAgentState.messages   │
+│ - user messages     │            │ - UserMessage[]              │
+│ - assistant msgs    │            │ - AssistantMessage[]         │
+│ - tool results      │            │ - ToolResultMessage[]        │
+│ - thinking blocks   │            │                              │
+│ - usage stats       │            │ Agent.contextWindow          │
+└─────────────────────┘            │ Agent.maxTokens              │
+                                   │ Agent.compactionConfig       │
+                                   └─────────────────────────────┘
+</code></pre>
+<h2>Message-Based Memory</h2>
+<h3>The Messages Array</h3>
+<p>Pi's primary memory is the <code>messages: Message[]</code> array in <code>MutableAgentState</code>. This holds the complete conversation history for the current session:</p>
+<pre><code class="language-typescript">type Message = UserMessage | AssistantMessage | ToolResultMessage;
+
+interface MutableAgentState {
+  messages: AgentMessage[];   // Complete conversation history
+  tools: Tool[];              // Currently available tools
+  isStreaming: boolean;       // Whether a stream is active
+  pendingToolCalls: ToolCall[];
+  error?: string;
+}
+</code></pre>
+<p>Every LLM call receives the full message array as context. The model "remembers" everything by literally seeing the entire conversation on every turn.</p>
+<h3>Message Types and Structure</h3>
+<p><strong>UserMessage</strong>: Text and/or images with a timestamp.</p>
+<pre><code class="language-typescript">interface UserMessage {
+  role: &quot;user&quot;;
+  content: string | (TextContent | ImageContent)[];
+  timestamp: number;
+}
+</code></pre>
+<p><strong>AssistantMessage</strong>: LLM output with thinking, text, tool calls, and usage tracking.</p>
+<pre><code class="language-typescript">interface AssistantMessage {
+  role: &quot;assistant&quot;;
+  content: (TextContent | ThinkingContent | ToolCall)[];
+  api: Api;
+  provider: Provider;
+  model: string;
+  usage: Usage;
+  stopReason: StopReason;
+  timestamp: number;
+}
+</code></pre>
+<p><strong>ToolResultMessage</strong>: Results from tool execution, including error status.</p>
+<pre><code class="language-typescript">interface ToolResultMessage {
+  role: &quot;toolResult&quot;;
+  toolCallId: string;
+  toolName: string;
+  content: (TextContent | ImageContent)[];
+  isError: boolean;
+  timestamp: number;
+}
+</code></pre>
+<h2>Context Window Management</h2>
+<h3>Overflow Detection</h3>
+<p>The <code>overflow.ts</code> utility estimates whether the current context will fit in the model's window:</p>
+<pre><code class="language-typescript">// utils/overflow.ts
+function estimateTokens(messages: Message[]): number {
+  // Rough estimation based on character count
+  // ~4 characters per token for English text
+  // Accounts for message structure overhead
+}
+
+function willOverflow(model: Model, messages: Message[], maxTokens: number): boolean {
+  const estimated = estimateTokens(messages);
+  const available = model.contextWindow - maxTokens;
+  return estimated &gt; available;
+}
+</code></pre>
+<h3>Compaction</h3>
+<p>When the conversation approaches the context window limit, Pi compacts it. The compaction strategy:</p>
+<ol><li><strong>Preserve recent messages</strong> — the last N messages remain verbatim</li><li><strong>Summarize older messages</strong> — older conversation is compressed into a summary</li><li><strong>Keep system prompt</strong> — always retained in full</li><li><strong>Keep tool results</strong> — recent tool results preserved for chain continuity</li></ol>
+<p>The agent loop checks for overflow before each LLM call:</p>
+<pre><code class="language-typescript">// In runLoop (agent-loop.ts)
+// Before calling the LLM:
+if (willOverflow(config.model, currentContext.messages, config.maxTokens)) {
+  currentContext.messages = await compact(
+    currentContext.messages,
+    config.model,
+    config.compactionConfig,
+  );
+}
+</code></pre>
+<h3>Custom Compaction</h3>
+<p>Pi supports custom compaction strategies via the <code>compactionConfig</code>:</p>
+<pre><code class="language-typescript">interface CompactionConfig {
+  preserveRecentMessages: number;  // How many recent messages to keep verbatim
+  summaryModel?: Model;            // Which model to use for summarization
+  maxSummaryTokens?: number;       // Budget for the summary
+}
+</code></pre>
+<p>The pi-coding-agent extension <code>pi-custom-compaction</code> provides an enhanced compaction strategy that preserves code context and file references across compaction boundaries.</p>
+<h2>Session Persistence</h2>
+<h3>JSONL Format</h3>
+<p>Pi persists sessions as JSONL (JSON Lines) files — one JSON object per line. Each line is a message in the conversation:</p>
+<pre><code class="language-">{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;Fix the bug in auth.ts&quot;,&quot;timestamp&quot;:1714300000000}
+{&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:[{&quot;type&quot;:&quot;thinking&quot;,&quot;thinking&quot;:&quot;Let me...&quot;},{&quot;type&quot;:&quot;text&quot;,&quot;text&quot;:&quot;I&#x27;ll fix...&quot;}],&quot;usage&quot;:{&quot;input&quot;:150,&quot;output&quot;:300},...}
+{&quot;role&quot;:&quot;toolResult&quot;,&quot;toolCallId&quot;:&quot;tc_1&quot;,&quot;toolName&quot;:&quot;read_file&quot;,&quot;content&quot;:[{&quot;type&quot;:&quot;text&quot;,&quot;text&quot;:&quot;...file content...&quot;}],...}
+</code></pre>
+<h3>Session Tree</h3>
+<p>Sessions form a <strong>tree structure</strong> — a session can fork into multiple branches when the user reverts and takes a different path. The tree is stored as a directory:</p>
+<pre><code class="language-">sessions/
+├── session-001/
+│   ├── messages.jsonl      ← Linear message log
+│   ├── branches/
+│   │   ├── branch-a.jsonl  ← Alternate path from turn 5
+│   │   └── branch-b.jsonl  ← Another alternate path
+│   └── metadata.json       ← Session metadata, model, timestamps
+</code></pre>
+<h3>Load and Resume</h3>
+<p>When resuming a session, the entire JSONL file is loaded back into the <code>messages</code> array. The agent picks up exactly where it left off — no special "resume" logic, just restoring the message history.</p>
+<h2>Extensions and Skills as Memory</h2>
+<h3>Extension-Provided Context</h3>
+<p>Pi extensions can inject context into the agent via the system prompt or steering messages:</p>
+<ul><li><strong>Skills</strong>: Loaded as system prompt additions. A skill like <code>pi-skills</code> adds instructions that persist across all turns.</li><li><strong>Context files</strong>: Some extensions add file content to the system prompt (<code>.pi</code> directory files).</li><li><strong>Steering messages</strong>: Extensions inject messages between turns via the steering queue, effectively adding "memory" mid-conversation.</li></ul>
+<h3>Project Context</h3>
+<p>The coding agent reads project files (<code>.pi/</code> directory) at startup and includes them in the system prompt. This provides project-specific memory without a database:</p>
+<ul><li><code>.pi/extensions/</code> — Extension configurations</li><li><code>.pi/prompts/</code> — Custom prompt templates</li><li><code>.pi/themes/</code> — UI themes</li></ul>
+<h2>Thinking Blocks as Working Memory</h2>
+<h3>Extended Thinking</h3>
+<p>When a model supports thinking (<code>supportsThinking: true</code>), Pi preserves thinking blocks in the message history:</p>
+<pre><code class="language-typescript">interface ThinkingContent {
+  type: &quot;thinking&quot;;
+  thinking: string;
+  thinkingSignature?: string;  // Opaque signature for multi-turn continuity
+  redacted?: boolean;          // Safety-filtered thinking
+}
+</code></pre>
+<p>Thinking blocks serve as the model's "working memory" — they let the model reason across turns by seeing its prior reasoning. The <code>thinkingSignature</code> enables providers (like Anthropic) to maintain thinking continuity without re-sending the full thinking text.</p>
+<h3>Reasoning Levels</h3>
+<p>The <code>SimpleStreamOptions.reasoning</code> field controls how much "working memory" the model uses per turn:</p>
+<pre><code class="language-typescript">type ThinkingLevel = &quot;minimal&quot; | &quot;low&quot; | &quot;medium&quot; | &quot;high&quot; | &quot;xhigh&quot;;
+</code></pre>
+<p>Higher levels produce more thinking tokens, giving the model more room to reason. The <code>xhigh</code> level is only supported by GPT-5.2+/5.3+/5.4+ and Opus 4.6+ models.</p>
+<h2>Comparison with External Memory Systems</h2>
+<p>Pi's approach trades off capability for simplicity:</p>
+<table><tr><th>Aspect</th><th>Pi</th><th>External Memory Systems</th></tr><tr><td>Storage</td><td>Message array (RAM) + JSONL (disk)</td><td>Vector DB, SQL, Redis</td></tr><tr><td>Retrieval</td><td>Full context replay</td><td>Semantic search, embeddings</td></tr><tr><td>Cross-session</td><td>Load from JSONL</td><td>Persistent memory store</td></tr><tr><td>Scalability</td><td>Limited by context window</td><td>Scales independently</td></tr><tr><td>Latency</td><td>Zero (in-memory)</td><td>Network round-trip</td></tr><tr><td>Complexity</td><td>None</td><td>Embedding pipeline, indexing</td></tr></table>
+<p>Pi's design philosophy: the context window <strong>is</strong> the memory. As context windows grow (1M+ tokens for Claude, 400K+ for GPT-5.x), the need for external memory diminishes for most coding tasks. When it doesn't suffice, extensions can add external memory providers.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

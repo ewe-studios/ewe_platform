@@ -47,7 +47,7 @@
     <span class="nav-brand">~/pi/docs</span>
     <div class="nav-links">
       <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-ext-pi-web-access.html">Pi Extensions -- pi-web-access</a> <a href="13-ext-pi_agent_rust.html">Pi Extensions -- pi_agent_rust</a> <a href="13-extensions-index.html">Pi Extensions -- Index</a></span> <a href="13-extensions-index.html">← Pi Extensions -- Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="14-model-providers.html">Pi -- Model Providers Deep Dive</a> <a href="15-memory-deep.html">Pi -- Memory and Context Management Deep Dive</a> <a href="16-multi-model.html">Pi -- Multi-Model Execution</a></span> <a href="16-multi-model.html">← Pi -- Multi-Model Execution</a>
       <button class="theme-toggle" onclick="toggleTheme()">theme</button>
     </div>
   </nav>
@@ -61,6 +61,8 @@
 <table><tr><th>Document</th><th>Package</th><th>Purpose</th></tr><tr><td>[02-ai-package.md](./02-ai-package.md)</td><td>`pi-ai`</td><td>Unified LLM API across 20+ providers</td></tr><tr><td>[03-agent-core.md](./03-agent-core.md)</td><td>`pi-agent-core`</td><td>Stateful agent with tool execution and events</td></tr><tr><td>[04-coding-agent.md](./04-coding-agent.md)</td><td>`pi-coding-agent`</td><td>Interactive terminal coding agent (flagship)</td></tr><tr><td>[05-tui.md](./05-tui.md)</td><td>`pi-tui`</td><td>Terminal UI framework with differential rendering</td></tr><tr><td>[06-mom.md](./06-mom.md)</td><td>`pi-mom`</td><td>Slack bot with Docker sandbox and skills</td></tr><tr><td>[07-pods.md](./07-pods.md)</td><td>`pi-pods`</td><td>GPU pod management for vLLM deployment</td></tr><tr><td>[08-web-ui.md](./08-web-ui.md)</td><td>`pi-web-ui`</td><td>Web components for AI chat interfaces</td></tr></table>
 <h3>Cross-Cutting Concerns</h3>
 <table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[09-tool-system.md](./09-tool-system.md)</td><td>Tool definition, TypeBox schemas, execution lifecycle</td></tr><tr><td>[10-extension-system.md](./10-extension-system.md)</td><td>Extensions, skills, prompt templates, themes</td></tr><tr><td>[11-data-flow.md](./11-data-flow.md)</td><td>End-to-end request flows with sequence diagrams</td></tr><tr><td>[12-sessions.md](./12-sessions.md)</td><td>Pi JSONL tree + Hermes SQLite + comparison</td></tr><tr><td>[13-agent-loop.md](./13-agent-loop.md)</td><td>Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling</td></tr></table>
+<h3>Model Interop & Memory Expansion</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[14-model-providers.md](./14-model-providers.md)</td><td>20+ providers, API registry, lazy loading, OpenAI-compatible endpoints, streaming</td></tr><tr><td>[15-memory-deep.md](./15-memory-deep.md)</td><td>Message-based memory, context window management, compaction, session persistence</td></tr><tr><td>[16-multi-model.md](./16-multi-model.md)</td><td>Model switching, parallel tool execution, background runs, extension-driven routing</td></tr></table>
 <h2>Quick Orientation</h2>
 <pre><code class="language-">pi-ai              ← LLM abstraction (foundation)
   ↓
