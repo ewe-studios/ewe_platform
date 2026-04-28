@@ -584,7 +584,7 @@ impl From<&'static str> for StopReason {
     }
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ArgType {
     Text(String),
     Float32(f32),
@@ -606,6 +606,19 @@ pub enum ArgType {
     // Custom types
     #[from(ignore)]
     JSON(String),
+    /// Nested structured object with named sub-fields.
+    #[from(ignore)]
+    JSONMap(std::collections::HashMap<String, ArgType>),
+}
+
+/// A single tool argument parameter.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum Args {
+    /// Named parameter (e.g. `"location" → Text("Paris")`).
+    Named(String, ArgType),
+    /// Positional / unnamed parameter.
+    Unnamed(ArgType),
 }
 
 /// [`UsageCosting`] represents the overall costing in actual currency value.
@@ -886,8 +899,8 @@ pub struct Tool {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub arguments: Option<HashMap<String, ArgType>>,
-    pub returns: Option<HashMap<String, ArgType>>,
+    pub arguments: Option<Vec<Args>>,
+    pub returns: Option<Vec<Args>>,
 }
 
 /// Strategy for tool selection in model interactions.

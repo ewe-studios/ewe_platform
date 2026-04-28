@@ -1139,26 +1139,28 @@ pub fn build_anthropic_request(
                 .map(|tool| {
                     let mut properties = serde_json::Map::new();
                     if let Some(args) = &tool.arguments {
-                        for (key, value) in args {
-                            let schema_type = match value {
-                                crate::types::ArgType::Float32(_)
-                                | crate::types::ArgType::Float64(_) => "number",
-                                crate::types::ArgType::Usize(_)
-                                | crate::types::ArgType::U8(_)
-                                | crate::types::ArgType::U16(_)
-                                | crate::types::ArgType::U32(_)
-                                | crate::types::ArgType::U64(_)
-                                | crate::types::ArgType::Isize(_)
-                                | crate::types::ArgType::I8(_)
-                                | crate::types::ArgType::I16(_)
-                                | crate::types::ArgType::I32(_)
-                                | crate::types::ArgType::I64(_) => "integer",
-                                _ => "string",
-                            };
-                            properties.insert(
-                                key.clone(),
-                                serde_json::json!({ "type": schema_type }),
-                            );
+                        for arg in args {
+                            if let crate::types::Args::Named(key, value) = arg {
+                                let schema_type = match value {
+                                    crate::types::ArgType::Float32(_)
+                                    | crate::types::ArgType::Float64(_) => "number",
+                                    crate::types::ArgType::Usize(_)
+                                    | crate::types::ArgType::U8(_)
+                                    | crate::types::ArgType::U16(_)
+                                    | crate::types::ArgType::U32(_)
+                                    | crate::types::ArgType::U64(_)
+                                    | crate::types::ArgType::Isize(_)
+                                    | crate::types::ArgType::I8(_)
+                                    | crate::types::ArgType::I16(_)
+                                    | crate::types::ArgType::I32(_)
+                                    | crate::types::ArgType::I64(_) => "integer",
+                                    _ => "string",
+                                };
+                                properties.insert(
+                                    key.clone(),
+                                    serde_json::json!({ "type": schema_type }),
+                                );
+                            }
                         }
                     }
                     AnthropicTool {
