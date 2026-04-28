@@ -14,7 +14,7 @@ use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
@@ -396,98 +396,6 @@ impl<R: DnsResolver + 'static> AnthropicMessagesProvider<R> {
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-
-    fn auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
-        if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::from("x-api-key".to_string()), key.get().clone()));
-        }
-        headers.push((
-            SimpleHeader::from("anthropic-version".to_string()),
-            self.config.api_version.clone(),
-        ));
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
-        headers
-    }
-
-    fn build_url(&self, endpoint: &str) -> String {
-        self.config.build_url(endpoint)
-    }
-
-    fn execute_request<T: for<'de> Deserialize<'de> + Send>(
-        &self,
-        url: &str,
-        body: &str,
-    ) -> GenerationResult<T> {
-        let mut attempt = 0;
-        let max_retries = self.config.max_retries;
-
-        loop {
-            let result = self.do_request::<T>(url, body)?;
-            match result {
-                Ok(value) => return Ok(value),
-                Err((status, retry_after, msg)) => {
-                    if attempt >= max_retries || !is_retryable_status(status) {
-                        return Err(GenerationError::Backend(msg));
-                    }
-                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
-                    attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
-                }
-            }
-        }
-    }
-
-    fn do_request<T: for<'de> Deserialize<'de> + Send>(
-        &self,
-        url: &str,
-        body: &str,
-    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
-
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
-            .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
-
-        let status_code: usize = response.get_status().into();
-        let headers = response.get_headers_ref();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
-
-        if !(200..=299).contains(&status_code) {
-            let retry_after = extract_retry_after(headers);
-            let detail = parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.clone());
-            let msg = format_http_error(status_code, &detail);
-            return Ok(Err((status_code as u16, retry_after, msg)));
-        }
-
-        serde_json::from_str(&body_text)
-            .map(|v| Ok(v))
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
-    }
 }
 
 impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProvider<R> {
@@ -757,7 +665,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         let response: MessagesResponse = self.execute_request(&url, &body)?;
 
         let message = parse_response(&response, &self.model_id)?;
-        Ok(vec![message])
+        Ok(message)
     }
 
     fn stream(
@@ -808,6 +716,8 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             stop_reason: None,
             usage: None,
             done: false,
+            final_messages: Vec::new(),
+            final_message_index: 0,
         })
     }
 }
@@ -831,152 +741,153 @@ struct AnthropicStream<R: DnsResolver + 'static> {
     stop_reason: Option<String>,
     usage: Option<AnthropicUsage>,
     done: bool,
+    final_messages: Vec<Messages>,
+    final_message_index: usize,
 }
 
 impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Drain buffered final messages first.
+        if self.final_message_index < self.final_messages.len() {
+            let msg = self.final_messages[self.final_message_index].clone();
+            self.final_message_index += 1;
+            if self.final_message_index >= self.final_messages.len() {
+                self.done = true;
+            }
+            return Some(Stream::Next(msg));
+        }
+
         if self.done {
             return None;
         }
 
-        loop {
-            let item = self.inner.next()?;
+        let Some(item) = self.inner.next() else {
+            // Inner stream closed.
+            self.done = true;
+            return None;
+        };
 
-            match item {
-                Stream::Next(parse_result) => {
-                    let Event::Message { data, event_type, .. } = &parse_result.event else {
-                        continue;
-                    };
+        match item {
+            Stream::Next(parse_result) => {
+                let Event::Message { data, event_type, .. } = &parse_result.event else {
+                    return Some(Stream::Ignore);
+                };
 
-                    // Anthropic uses named events; skip if no event name
-                    if event_type.as_ref().map_or(true, |e| e.is_empty()) {
-                        continue;
+                // Anthropic uses named events; skip if no event name
+                let event_name = event_type.as_ref().map(String::as_str).unwrap_or("");
+                if event_name.is_empty() {
+                    return Some(Stream::Ignore);
+                }
+
+                match event_name {
+                    "message_start" => {
+                        let Ok(StreamEvent::MessageStart { message }) =
+                            serde_json::from_str::<StreamEvent>(data)
+                        else {
+                            return Some(Stream::Ignore);
+                        };
+                        self.usage = Some(message.usage);
+                        Some(Stream::Ignore)
                     }
-
-                    let event_name = event_type.as_ref().map(String::as_str).unwrap_or("");
-
-                    match event_name {
-                        "message_start" => {
-                            let Ok(StreamEvent::MessageStart { message }) =
-                                serde_json::from_str::<StreamEvent>(data)
-                            else {
-                                continue;
-                            };
-                            self.usage = Some(message.usage);
+                    "content_block_start" => {
+                        let Ok(StreamEvent::ContentBlockStart { content_block, .. }) =
+                            serde_json::from_str::<StreamEvent>(data)
+                        else {
                             return Some(Stream::Ignore);
+                        };
+                        if let AnthropicContentBlock::ToolUse { id, name, .. } = content_block {
+                            self.tool_calls.push(AccumulatedToolCall {
+                                id,
+                                name,
+                                arguments: String::new(),
+                            });
                         }
-                        "content_block_start" => {
-                            // Track content block type for accumulation
-                            let Ok(StreamEvent::ContentBlockStart { content_block, .. }) =
-                                serde_json::from_str::<StreamEvent>(data)
-                            else {
-                                continue;
-                            };
-                            if let AnthropicContentBlock::ToolUse { id, name, input } =
-                                content_block
-                            {
-                                self.tool_calls.push(AccumulatedToolCall {
-                                    id,
-                                    name,
-                                    arguments: serde_json::to_string(&input)
-                                        .unwrap_or_default(),
-                                });
-                            }
+                        Some(Stream::Ignore)
+                    }
+                    "content_block_delta" => {
+                        let Ok(StreamEvent::ContentBlockDelta { delta, .. }) =
+                            serde_json::from_str::<StreamEvent>(data)
+                        else {
                             return Some(Stream::Ignore);
-                        }
-                        "content_block_delta" => {
-                            let Ok(StreamEvent::ContentBlockDelta { delta, .. }) =
-                                serde_json::from_str::<StreamEvent>(data)
-                            else {
-                                continue;
-                            };
-                            match delta {
-                                AnthropicDelta::TextDelta { text } => {
-                                    self.accumulated_text.push_str(&text);
-                                    return Some(Stream::Next(Messages::Assistant {
-                                        model: self.model_id.clone(),
-                                        timestamp: SystemTime::now(),
-                                        usage: empty_usage_report(),
-                                        content: ModelOutput::Text(TextContent {
-                                            content: self.accumulated_text.clone(),
-                                            signature: None,
-                                        }),
-                                        stop_reason: StopReason::Stop,
-                                        provider: ModelProviders::ANTHROPIC,
-                                        error_detail: None,
+                        };
+                        match delta {
+                            AnthropicDelta::TextDelta { text } => {
+                                self.accumulated_text.push_str(&text);
+                                Some(Stream::Next(Messages::Assistant {
+                                    model: self.model_id.clone(),
+                                    timestamp: SystemTime::now(),
+                                    usage: empty_usage_report(),
+                                    content: ModelOutput::Text(TextContent {
+                                        content: self.accumulated_text.clone(),
                                         signature: None,
-                                        metadata: None,
-                                    }));
-                                }
-                                AnthropicDelta::ThinkingDelta { thinking } => {
-                                    self.accumulated_thinking.push_str(&thinking);
-                                    return Some(Stream::Next(Messages::Assistant {
-                                        model: self.model_id.clone(),
-                                        timestamp: SystemTime::now(),
-                                        usage: empty_usage_report(),
-                                        content: ModelOutput::ThinkingContent {
-                                            thinking: self.accumulated_thinking.clone(),
-                                            signature: None,
-                                        },
-                                        stop_reason: StopReason::Stop,
-                                        provider: ModelProviders::ANTHROPIC,
-                                        error_detail: None,
+                                    }),
+                                    stop_reason: StopReason::Stop,
+                                    provider: ModelProviders::ANTHROPIC,
+                                    error_detail: None,
+                                    signature: None,
+                                    metadata: None,
+                                }))
+                            }
+                            AnthropicDelta::ThinkingDelta { thinking } => {
+                                self.accumulated_thinking.push_str(&thinking);
+                                Some(Stream::Next(Messages::Assistant {
+                                    model: self.model_id.clone(),
+                                    timestamp: SystemTime::now(),
+                                    usage: empty_usage_report(),
+                                    content: ModelOutput::ThinkingContent {
+                                        thinking: self.accumulated_thinking.clone(),
                                         signature: None,
-                                        metadata: None,
-                                    }));
-                                }
-                                AnthropicDelta::InputJsonDelta { partial_json } => {
-                                    // Append to last tool call arguments
-                                    if let Some(tc) = self.tool_calls.last_mut() {
-                                        tc.arguments.push_str(&partial_json);
-                                    }
-                                    return Some(Stream::Ignore);
-                                }
+                                    },
+                                    stop_reason: StopReason::Stop,
+                                    provider: ModelProviders::ANTHROPIC,
+                                    error_detail: None,
+                                    signature: None,
+                                    metadata: None,
+                                }))
                             }
-                        }
-                        "content_block_stop" => {
-                            return Some(Stream::Ignore);
-                        }
-                        "message_delta" => {
-                            let Ok(StreamEvent::MessageDelta { delta, usage }) =
-                                serde_json::from_str::<StreamEvent>(data)
-                            else {
-                                continue;
-                            };
-                            if let Some(reason) = delta.stop_reason {
-                                self.stop_reason = Some(reason);
+                            AnthropicDelta::InputJsonDelta { partial_json } => {
+                                if let Some(tc) = self.tool_calls.last_mut() {
+                                    tc.arguments.push_str(&partial_json);
+                                }
+                                Some(Stream::Ignore)
                             }
-                            self.usage = Some(usage);
-                            return Some(Stream::Ignore);
-                        }
-                        "message_stop" => {
-                            self.done = true;
-                            return Some(Stream::Next(self.build_final_message()));
-                        }
-                        "ping" => {
-                            return Some(Stream::Ignore);
-                        }
-                        _ => {
-                            // Unknown event, ignore
-                            return Some(Stream::Ignore);
                         }
                     }
+                    "content_block_stop" => Some(Stream::Ignore),
+                    "message_delta" => {
+                        let Ok(StreamEvent::MessageDelta { delta, usage }) =
+                            serde_json::from_str::<StreamEvent>(data)
+                        else {
+                            return Some(Stream::Ignore);
+                        };
+                        if let Some(reason) = delta.stop_reason {
+                            self.stop_reason = Some(reason);
+                        }
+                        self.usage = Some(usage);
+                        Some(Stream::Ignore)
+                    }
+                    "message_stop" => {
+                        self.final_messages = self.build_final_messages();
+                        self.final_message_index = 0;
+                        Some(Stream::Ignore)
+                    }
+                    "ping" | _ => Some(Stream::Ignore),
                 }
-                Stream::Pending(_) => {
-                    return Some(Stream::Pending(ModelState::GeneratingTokens(None)));
-                }
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => {}
             }
+            Stream::Pending(_) => {
+                Some(Stream::Pending(ModelState::GeneratingTokens(None)))
+            }
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
         }
     }
 }
 
 impl<R: DnsResolver + 'static> AnthropicStream<R> {
-    fn build_final_message(&self) -> Messages {
+    fn build_final_messages(&self) -> Vec<Messages> {
         #[allow(clippy::cast_precision_loss)]
         let usage_report = self
             .usage
@@ -999,8 +910,46 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 
         let stop_reason = map_stop_reason(&self.stop_reason);
 
-        let content = if !self.tool_calls.is_empty() {
-            let tc = &self.tool_calls[0];
+        let mut messages = Vec::new();
+
+        // Emit thinking as a separate message if accumulated.
+        if !self.accumulated_thinking.is_empty() {
+            messages.push(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: usage_report.clone(),
+                content: ModelOutput::ThinkingContent {
+                    thinking: self.accumulated_thinking.clone(),
+                    signature: None,
+                },
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            });
+        }
+
+        // Emit text as a separate message if accumulated.
+        if !self.accumulated_text.is_empty() {
+            messages.push(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: usage_report.clone(),
+                content: ModelOutput::Text(TextContent {
+                    content: self.accumulated_text.clone(),
+                    signature: None,
+                }),
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            });
+        }
+
+        // Emit each tool call as a separate message.
+        for tc in &self.tool_calls {
             let arguments: Option<HashMap<String, crate::types::ArgType>> =
                 serde_json::from_str(&tc.arguments)
                     .ok()
@@ -1014,35 +963,43 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                             .unwrap_or_default()
                     });
 
-            ModelOutput::ToolCall {
-                id: tc.id.clone(),
-                name: tc.name.clone(),
-                arguments,
+            messages.push(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: usage_report.clone(),
+                content: ModelOutput::ToolCall {
+                    id: tc.id.clone(),
+                    name: tc.name.clone(),
+                    arguments,
+                    signature: None,
+                },
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
                 signature: None,
-            }
-        } else if !self.accumulated_thinking.is_empty() {
-            ModelOutput::ThinkingContent {
-                thinking: self.accumulated_thinking.clone(),
-                signature: None,
-            }
-        } else {
-            ModelOutput::Text(TextContent {
-                content: self.accumulated_text.clone(),
-                signature: None,
-            })
-        };
-
-        Messages::Assistant {
-            model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
-            usage: usage_report,
-            content,
-            stop_reason,
-            provider: ModelProviders::ANTHROPIC,
-            error_detail: None,
-            signature: None,
-            metadata: None,
+                metadata: None,
+            });
         }
+
+        // If nothing accumulated, return a single empty text message.
+        if messages.is_empty() {
+            messages.push(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: usage_report,
+                content: ModelOutput::Text(TextContent {
+                    content: String::new(),
+                    signature: None,
+                }),
+                stop_reason,
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            });
+        }
+
+        messages
     }
 }
 
@@ -1050,7 +1007,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 // Helpers
 // ============================================================================
 
-fn build_anthropic_request(
+pub fn build_anthropic_request(
     model_name: &str,
     interaction: &ModelInteraction,
     params: &ModelParams,
@@ -1239,53 +1196,47 @@ fn build_anthropic_request(
     }
 }
 
-fn parse_response(
+pub fn parse_response(
     response: &MessagesResponse,
     model_id: &ModelId,
-) -> GenerationResult<Messages> {
+) -> GenerationResult<Vec<Messages>> {
     let stop_reason = map_stop_reason(&response.stop_reason);
 
     #[allow(clippy::cast_precision_loss)]
-    let usage_report = UsageReport {
-        input: response.usage.input_tokens as f64,
-        output: response.usage.output_tokens as f64,
-        cache_read: response.usage.cache_read_input_tokens as f64,
-        cache_write: response.usage.cache_creation_input_tokens as f64,
-        total_tokens: (response.usage.input_tokens + response.usage.output_tokens) as f64,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: (response.usage.input_tokens + response.usage.output_tokens) as f64,
-        },
-    };
+    let usage_total = (response.usage.input_tokens + response.usage.output_tokens) as f64;
 
-    let content = extract_content(&response.content);
+    let mut messages = Vec::new();
 
-    Ok(Messages::Assistant {
-        model: model_id.clone(),
-        timestamp: SystemTime::now(),
-        usage: usage_report,
-        content,
-        stop_reason,
-        provider: ModelProviders::ANTHROPIC,
-        error_detail: None,
-        signature: None,
-        metadata: None,
-    })
-}
-
-fn extract_content(blocks: &[AnthropicContentBlock]) -> ModelOutput {
-    for block in blocks {
-        match block {
-            AnthropicContentBlock::Text { text } => {
-                return ModelOutput::Text(TextContent {
+    for block in &response.content {
+        let msg = match block {
+            AnthropicContentBlock::Text { text } => Messages::Assistant {
+                model: model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: UsageReport {
+                    input: response.usage.input_tokens as f64,
+                    output: response.usage.output_tokens as f64,
+                    cache_read: response.usage.cache_read_input_tokens as f64,
+                    cache_write: response.usage.cache_creation_input_tokens as f64,
+                    total_tokens: usage_total,
+                    cost: UsageCosting {
+                        currency: String::from("USD"),
+                        input: 0.0,
+                        output: 0.0,
+                        cache_read: 0.0,
+                        cache_write: 0.0,
+                        total_tokens: 0.0,
+                    },
+                },
+                content: ModelOutput::Text(TextContent {
                     content: text.clone(),
                     signature: None,
-                });
-            }
+                }),
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
             AnthropicContentBlock::ToolUse {
                 id,
                 name,
@@ -1304,40 +1255,140 @@ fn extract_content(blocks: &[AnthropicContentBlock]) -> ModelOutput {
                                 .unwrap_or_default()
                         });
 
-                return ModelOutput::ToolCall {
-                    id: id.clone(),
-                    name: name.clone(),
-                    arguments,
+                Messages::Assistant {
+                    model: model_id.clone(),
+                    timestamp: SystemTime::now(),
+                    usage: UsageReport {
+                        input: response.usage.input_tokens as f64,
+                        output: response.usage.output_tokens as f64,
+                        cache_read: response.usage.cache_read_input_tokens as f64,
+                        cache_write: response.usage.cache_creation_input_tokens as f64,
+                        total_tokens: usage_total,
+                        cost: UsageCosting {
+                            currency: String::from("USD"),
+                            input: 0.0,
+                            output: 0.0,
+                            cache_read: 0.0,
+                            cache_write: 0.0,
+                            total_tokens: 0.0,
+                        },
+                    },
+                    content: ModelOutput::ToolCall {
+                        id: id.clone(),
+                        name: name.clone(),
+                        arguments,
+                        signature: None,
+                    },
+                    stop_reason: stop_reason.clone(),
+                    provider: ModelProviders::ANTHROPIC,
+                    error_detail: None,
                     signature: None,
-                };
+                    metadata: None,
+                }
             }
             AnthropicContentBlock::Thinking {
                 thinking,
                 signature,
-            } => {
-                return ModelOutput::ThinkingContent {
+            } => Messages::Assistant {
+                model: model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: UsageReport {
+                    input: response.usage.input_tokens as f64,
+                    output: response.usage.output_tokens as f64,
+                    cache_read: response.usage.cache_read_input_tokens as f64,
+                    cache_write: response.usage.cache_creation_input_tokens as f64,
+                    total_tokens: usage_total,
+                    cost: UsageCosting {
+                        currency: String::from("USD"),
+                        input: 0.0,
+                        output: 0.0,
+                        cache_read: 0.0,
+                        cache_write: 0.0,
+                        total_tokens: 0.0,
+                    },
+                },
+                content: ModelOutput::ThinkingContent {
                     thinking: thinking.clone(),
                     signature: Some(signature.clone()),
-                };
-            }
-            AnthropicContentBlock::RedactedThinking { .. } => {
-                return ModelOutput::ThinkingContent {
+                },
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
+            AnthropicContentBlock::RedactedThinking { .. } => Messages::Assistant {
+                model: model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: UsageReport {
+                    input: response.usage.input_tokens as f64,
+                    output: response.usage.output_tokens as f64,
+                    cache_read: response.usage.cache_read_input_tokens as f64,
+                    cache_write: response.usage.cache_creation_input_tokens as f64,
+                    total_tokens: usage_total,
+                    cost: UsageCosting {
+                        currency: String::from("USD"),
+                        input: 0.0,
+                        output: 0.0,
+                        cache_read: 0.0,
+                        cache_write: 0.0,
+                        total_tokens: 0.0,
+                    },
+                },
+                content: ModelOutput::ThinkingContent {
                     thinking: String::from("[redacted]"),
                     signature: None,
-                };
-            }
+                },
+                stop_reason: stop_reason.clone(),
+                provider: ModelProviders::ANTHROPIC,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
             AnthropicContentBlock::Image { .. } | AnthropicContentBlock::ToolResult { .. } => {
-                // Skip non-assistant blocks
+                // Non-assistant blocks, skip
+                continue;
             }
-        }
+        };
+        messages.push(msg);
     }
-    ModelOutput::Text(TextContent {
-        content: String::new(),
-        signature: None,
-    })
+
+    // If response had no parseable content blocks, return empty text.
+    if messages.is_empty() {
+        messages.push(Messages::Assistant {
+            model: model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: UsageReport {
+                input: response.usage.input_tokens as f64,
+                output: response.usage.output_tokens as f64,
+                cache_read: response.usage.cache_read_input_tokens as f64,
+                cache_write: response.usage.cache_creation_input_tokens as f64,
+                total_tokens: usage_total,
+                cost: UsageCosting {
+                    currency: String::from("USD"),
+                    input: 0.0,
+                    output: 0.0,
+                    cache_read: 0.0,
+                    cache_write: 0.0,
+                    total_tokens: 0.0,
+                },
+            },
+            content: ModelOutput::Text(TextContent {
+                content: String::new(),
+                signature: None,
+            }),
+            stop_reason: stop_reason.clone(),
+            provider: ModelProviders::ANTHROPIC,
+            error_detail: None,
+            signature: None,
+            metadata: None,
+        });
+    }
+
+    Ok(messages)
 }
 
-fn map_stop_reason(reason: &Option<String>) -> StopReason {
+pub fn map_stop_reason(reason: &Option<String>) -> StopReason {
     match reason.as_deref() {
         Some("end_turn") => StopReason::Stop,
         Some("stop_sequence") => StopReason::Stop,
@@ -1348,7 +1399,7 @@ fn map_stop_reason(reason: &Option<String>) -> StopReason {
     }
 }
 
-fn empty_usage_report() -> UsageReport {
+pub fn empty_usage_report() -> UsageReport {
     UsageReport {
         input: 0.0,
         output: 0.0,
@@ -1391,24 +1442,17 @@ fn model_id_to_string(id: &ModelId) -> String {
     }
 }
 
-fn is_retryable_status(status: u16) -> bool {
+pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
-fn exponential_backoff(attempt: u32) -> u64 {
+pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5);
     base_secs.min(30)
 }
 
-fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
-    let header = SimpleHeader::from("Retry-After".to_string());
-    headers
-        .get(&header)
-        .and_then(|values| values.first())
-        .and_then(|v| v.parse::<u64>().ok())
-}
 
-fn parse_anthropic_error(body: &str) -> Option<String> {
+pub fn parse_anthropic_error(body: &str) -> Option<String> {
     #[derive(Deserialize)]
     struct AnthropicErrorResponse {
         error: AnthropicErrorDetail,
@@ -1431,7 +1475,7 @@ fn parse_anthropic_error(body: &str) -> Option<String> {
         })
 }
 
-fn format_http_error(status_code: usize, detail: &str) -> String {
+pub fn format_http_error(status_code: usize, detail: &str) -> String {
     match status_code {
         401 => format!("Authentication failed: {detail}"),
         403 => format!("Permission denied: {detail}"),
@@ -1439,620 +1483,5 @@ fn format_http_error(status_code: usize, detail: &str) -> String {
         429 => format!("Rate limit exceeded: {detail}"),
         500..=503 => format!("Server error (HTTP {status_code}): {detail}"),
         _ => format!("HTTP {status_code}: {detail}"),
-    }
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_anthropic_config_defaults() {
-        let config = AnthropicConfig::default();
-        assert_eq!(config.base_url, "https://api.anthropic.com");
-        assert_eq!(config.api_version, "2023-06-01");
-        assert_eq!(config.timeout_secs, 120);
-        assert_eq!(config.max_retries, 3);
-        assert!(config.proxy_url.is_none());
-        assert!(config.streaming);
-    }
-
-    #[test]
-    fn test_anthropic_config_builder() {
-        let config = AnthropicConfig::new()
-            .with_base_url("http://localhost:8080")
-            .with_api_version("2024-01-01")
-            .with_timeout_secs(60)
-            .with_streaming(false);
-        assert_eq!(config.base_url, "http://localhost:8080");
-        assert_eq!(config.api_version, "2024-01-01");
-        assert_eq!(config.timeout_secs, 60);
-        assert!(!config.streaming);
-    }
-
-    #[test]
-    fn test_build_url() {
-        let config = AnthropicConfig::new()
-            .with_base_url("http://localhost:8080")
-            .with_api_version("v1");
-        assert_eq!(
-            config.build_url("messages"),
-            "http://localhost:8080/v1/messages"
-        );
-    }
-
-    #[test]
-    fn test_messages_request_serialization() {
-        let request = MessagesRequest {
-            model: "claude-3-5-sonnet-20241022".into(),
-            system: Some(AnthropicSystemContent::Text("Be helpful".into())),
-            messages: vec![AnthropicMessage {
-                role: AnthropicRole::User,
-                content: vec![AnthropicContentBlock::Text {
-                    text: "Hello".into(),
-                }],
-            }],
-            max_tokens: 1024,
-            temperature: Some(0.7),
-            top_p: Some(0.9),
-            top_k: None,
-            stream: Some(false),
-            stop_sequences: None,
-            tools: None,
-            tool_choice: None,
-            thinking: None,
-        };
-
-        let json = serde_json::to_string(&request).unwrap();
-        assert!(json.contains(r#""model":"claude-3-5-sonnet-20241022""#));
-        assert!(json.contains(r#""max_tokens":1024"#));
-        assert!(json.contains(r#""temperature":0.7"#));
-        assert!(json.contains(r#""stream":false"#));
-        assert!(json.contains(r#""text":"Hello""#));
-    }
-
-    #[test]
-    fn test_system_content_blocks() {
-        let request = MessagesRequest {
-            model: "claude-3-5-sonnet-20241022".into(),
-            system: Some(AnthropicSystemContent::Blocks(vec![
-                AnthropicSystemBlock::Text {
-                    text: "You are an expert".into(),
-                },
-            ])),
-            messages: vec![],
-            max_tokens: 1024,
-            temperature: None,
-            top_p: None,
-            top_k: None,
-            stream: Some(false),
-            stop_sequences: None,
-            tools: None,
-            tool_choice: None,
-            thinking: None,
-        };
-
-        let json = serde_json::to_string(&request).unwrap();
-        assert!(json.contains(r#""type":"text""#));
-        assert!(json.contains("You are an expert"));
-    }
-
-    #[test]
-    fn test_message_content_block_serialization() {
-        let msg = AnthropicMessage {
-            role: AnthropicRole::User,
-            content: vec![AnthropicContentBlock::Text {
-                text: "Hello".into(),
-            }],
-        };
-        let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains(r#""role":"user""#));
-        assert!(json.contains(r#""type":"text""#));
-        assert!(json.contains(r#""text":"Hello""#));
-    }
-
-    #[test]
-    fn test_image_content_block() {
-        let msg = AnthropicMessage {
-            role: AnthropicRole::User,
-            content: vec![AnthropicContentBlock::Image {
-                source: AnthropicImageSource {
-                    source_type: "base64".into(),
-                    media_type: "image/png".into(),
-                    data: "iVBORw0KGgo".into(),
-                },
-            }],
-        };
-        let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains(r#""type":"image""#));
-        assert!(json.contains(r#""media_type":"image/png""#));
-        assert!(json.contains("iVBORw0KGgo"));
-    }
-
-    #[test]
-    fn test_tool_use_content_block() {
-        let msg = AnthropicMessage {
-            role: AnthropicRole::Assistant,
-            content: vec![AnthropicContentBlock::ToolUse {
-                id: "tool_123".into(),
-                name: "get_weather".into(),
-                input: serde_json::json!({"location": "Paris"}),
-            }],
-        };
-        let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains(r#""type":"tool_use""#));
-        assert!(json.contains(r#""name":"get_weather""#));
-        assert!(json.contains("Paris"));
-    }
-
-    #[test]
-    fn test_tool_result_content_block() {
-        let msg = AnthropicMessage {
-            role: AnthropicRole::User,
-            content: vec![AnthropicContentBlock::ToolResult {
-                tool_use_id: "tool_123".into(),
-                content: "Sunny, 25°C".into(),
-                is_error: None,
-            }],
-        };
-        let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains(r#""type":"tool_result""#));
-        assert!(json.contains(r#""tool_use_id":"tool_123""#));
-        assert!(json.contains("Sunny"));
-    }
-
-    #[test]
-    fn test_anthropic_tool_choice_serialization() {
-        let tc = AnthropicToolChoice::Auto;
-        let json = serde_json::to_string(&tc).unwrap();
-        assert_eq!(json, r#"{"type":"auto"}"#);
-
-        let tc = AnthropicToolChoice::Any;
-        let json = serde_json::to_string(&tc).unwrap();
-        assert_eq!(json, r#"{"type":"any"}"#);
-
-        let tc = AnthropicToolChoice::Tool {
-            name: "get_weather".into(),
-        };
-        let json = serde_json::to_string(&tc).unwrap();
-        assert!(json.contains(r#""type":"tool""#));
-        assert!(json.contains(r#""name":"get_weather""#));
-    }
-
-    #[test]
-    fn test_anthropic_tool_definition() {
-        let tool = AnthropicTool {
-            name: "get_weather".into(),
-            description: "Get weather for a location".into(),
-            input_schema: serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "location": {"type": "string"}
-                }
-            }),
-        };
-        let json = serde_json::to_string(&tool).unwrap();
-        assert!(json.contains(r#""name":"get_weather""#));
-        assert!(json.contains("Get weather"));
-        assert!(json.contains("location"));
-    }
-
-    #[test]
-    fn test_messages_response_deserialization() {
-        let json = r#"{
-            "id": "msg_abc123",
-            "type": "message",
-            "role": "assistant",
-            "content": [{"type": "text", "text": "Hello!"}],
-            "model": "claude-3-5-sonnet-20241022",
-            "stop_reason": "end_turn",
-            "stop_sequence": null,
-            "usage": {"input_tokens": 10, "output_tokens": 5, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
-        }"#;
-
-        let response: MessagesResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response.id, "msg_abc123");
-        assert_eq!(response.role, "assistant");
-        assert_eq!(response.stop_reason.as_deref(), Some("end_turn"));
-        assert_eq!(response.usage.input_tokens, 10);
-        assert_eq!(response.usage.output_tokens, 5);
-    }
-
-    #[test]
-    fn test_response_with_tool_use() {
-        let json = r#"{
-            "id": "msg_abc123",
-            "type": "message",
-            "role": "assistant",
-            "content": [{"type": "tool_use", "id": "tool_1", "name": "get_weather", "input": {"location": "Paris"}}],
-            "model": "claude-3-5-sonnet-20241022",
-            "stop_reason": "tool_use",
-            "stop_sequence": null,
-            "usage": {"input_tokens": 50, "output_tokens": 20, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
-        }"#;
-
-        let response: MessagesResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response.stop_reason.as_deref(), Some("tool_use"));
-        match &response.content[0] {
-            AnthropicContentBlock::ToolUse { id, name, input } => {
-                assert_eq!(id, "tool_1");
-                assert_eq!(name, "get_weather");
-                assert!(input.get("location").is_some());
-            }
-            _ => panic!("Expected ToolUse content block"),
-        }
-    }
-
-    #[test]
-    fn test_stream_event_deserialization() {
-        let json = r#"{
-            "type": "message_start",
-            "message": {
-                "id": "msg_abc",
-                "type": "message",
-                "role": "assistant",
-                "content": [],
-                "model": "claude-3-5-sonnet-20241022",
-                "stop_reason": null,
-                "stop_sequence": null,
-                "usage": {"input_tokens": 10, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
-            }
-        }"#;
-
-        let event: StreamEvent = serde_json::from_str(json).unwrap();
-        match event {
-            StreamEvent::MessageStart { message } => {
-                assert_eq!(message.id, "msg_abc");
-            }
-            _ => panic!("Expected MessageStart"),
-        }
-    }
-
-    #[test]
-    fn test_content_block_delta_deserialization() {
-        let json = r#"{
-            "type": "content_block_delta",
-            "index": 0,
-            "delta": {"type": "text_delta", "text": "Hello"}
-        }"#;
-
-        let event: StreamEvent = serde_json::from_str(json).unwrap();
-        match event {
-            StreamEvent::ContentBlockDelta { delta, .. } => match delta {
-                AnthropicDelta::TextDelta { text } => {
-                    assert_eq!(text, "Hello");
-                }
-                _ => panic!("Expected TextDelta"),
-            },
-            _ => panic!("Expected ContentBlockDelta"),
-        }
-    }
-
-    #[test]
-    fn test_message_delta_deserialization() {
-        let json = r#"{
-            "type": "message_delta",
-            "delta": {"stop_reason": "end_turn"},
-            "usage": {"input_tokens": 10, "output_tokens": 15, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
-        }"#;
-
-        let event: StreamEvent = serde_json::from_str(json).unwrap();
-        match event {
-            StreamEvent::MessageDelta { delta, usage } => {
-                assert_eq!(delta.stop_reason.as_deref(), Some("end_turn"));
-                assert_eq!(usage.output_tokens, 15);
-            }
-            _ => panic!("Expected MessageDelta"),
-        }
-    }
-
-    #[test]
-    fn test_parse_response_text() {
-        let response = MessagesResponse {
-            id: "msg_123".into(),
-            response_type: "message".into(),
-            role: "assistant".into(),
-            content: vec![AnthropicContentBlock::Text {
-                text: "Hello!".into(),
-            }],
-            model: "claude-3-5-sonnet-20241022".into(),
-            stop_reason: Some("end_turn".into()),
-            stop_sequence: None,
-            usage: AnthropicUsage {
-                input_tokens: 10,
-                output_tokens: 5,
-                cache_creation_input_tokens: 0,
-                cache_read_input_tokens: 0,
-            },
-        };
-
-        let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-        let msg = parse_response(&response, &model_id).unwrap();
-
-        match &msg {
-            Messages::Assistant {
-                content,
-                stop_reason,
-                provider,
-                ..
-            } => {
-                assert_eq!(*stop_reason, StopReason::Stop);
-                assert_eq!(*provider, ModelProviders::ANTHROPIC);
-                if let ModelOutput::Text(tc) = content {
-                    assert_eq!(tc.content, "Hello!");
-                } else {
-                    panic!("Expected Text output");
-                }
-            }
-            _ => panic!("Expected Assistant message"),
-        }
-    }
-
-    #[test]
-    fn test_parse_response_tool_use() {
-        let response = MessagesResponse {
-            id: "msg_123".into(),
-            response_type: "message".into(),
-            role: "assistant".into(),
-            content: vec![AnthropicContentBlock::ToolUse {
-                id: "tool_1".into(),
-                name: "get_weather".into(),
-                input: serde_json::json!({"location": "Paris"}),
-            }],
-            model: "claude-3-5-sonnet-20241022".into(),
-            stop_reason: Some("tool_use".into()),
-            stop_sequence: None,
-            usage: AnthropicUsage {
-                input_tokens: 50,
-                output_tokens: 20,
-                cache_creation_input_tokens: 0,
-                cache_read_input_tokens: 0,
-            },
-        };
-
-        let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-        let msg = parse_response(&response, &model_id).unwrap();
-
-        match &msg {
-            Messages::Assistant {
-                content,
-                stop_reason,
-                ..
-            } => {
-                assert_eq!(*stop_reason, StopReason::ToolUse);
-                if let ModelOutput::ToolCall { id, name, .. } = content {
-                    assert_eq!(id, "tool_1");
-                    assert_eq!(name, "get_weather");
-                } else {
-                    panic!("Expected ToolCall output");
-                }
-            }
-            _ => panic!("Expected Assistant message"),
-        }
-    }
-
-    #[test]
-    fn test_stop_reason_mapping() {
-        assert_eq!(map_stop_reason(&Some("end_turn".into())), StopReason::Stop);
-        assert_eq!(
-            map_stop_reason(&Some("stop_sequence".into())),
-            StopReason::Stop
-        );
-        assert_eq!(
-            map_stop_reason(&Some("max_tokens".into())),
-            StopReason::Length
-        );
-        assert_eq!(
-            map_stop_reason(&Some("tool_use".into())),
-            StopReason::ToolUse
-        );
-        assert_eq!(
-            map_stop_reason(&Some("unknown_reason".into())),
-            StopReason::Message("unknown_reason".into())
-        );
-        assert_eq!(map_stop_reason(&None), StopReason::Stop);
-    }
-
-    #[test]
-    fn test_build_anthropic_request_basic() {
-        let interaction = ModelInteraction {
-            system_prompt: Some("You are helpful".into()),
-            messages: vec![Messages::User {
-                role: "user".into(),
-                content: crate::types::UserModelContent::Text(TextContent {
-                    content: "Hello".into(),
-                    signature: None,
-                }),
-                signature: None,
-            }],
-            tools: vec![],
-            chat_template: None,
-            tool_choice: None,
-        };
-        let params = ModelParams::default();
-
-        let request = build_anthropic_request("claude-3-5-sonnet", &interaction, &params, false);
-
-        assert_eq!(request.model, "claude-3-5-sonnet");
-        assert!(request.system.is_some());
-        assert_eq!(request.messages.len(), 1);
-        assert!(matches!(request.messages[0].role, AnthropicRole::User));
-        assert_eq!(request.max_tokens, 2048);
-        assert_eq!(request.stream, Some(false));
-    }
-
-    #[test]
-    fn test_build_anthropic_request_with_tools() {
-        use crate::types::{ArgType, Tool};
-
-        let interaction = ModelInteraction {
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![Tool {
-                id: "tool_1".into(),
-                name: "get_weather".into(),
-                description: "Get weather info".into(),
-                arguments: Some(HashMap::from([(
-                    "location".into(),
-                    ArgType::Text("Paris".into()),
-                )])),
-                returns: None,
-            }],
-            chat_template: None,
-            tool_choice: None,
-        };
-        let params = ModelParams::default();
-
-        let request = build_anthropic_request("claude-3-5-sonnet", &interaction, &params, false);
-
-        assert!(request.tools.is_some());
-        let tools = request.tools.unwrap();
-        assert_eq!(tools.len(), 1);
-        assert_eq!(tools[0].name, "get_weather");
-        assert_eq!(tools[0].description, "Get weather info");
-    }
-
-    #[test]
-    fn test_build_anthropic_request_image() {
-        use crate::types::{ImageContent, MimeType, UserModelContent};
-
-        let interaction = ModelInteraction {
-            system_prompt: None,
-            messages: vec![Messages::User {
-                role: "user".into(),
-                content: UserModelContent::Image(ImageContent {
-                    b64: "base64data".into(),
-                    mime_type: MimeType::ImagePng,
-                }),
-                signature: None,
-            }],
-            tools: vec![],
-            chat_template: None,
-            tool_choice: None,
-        };
-        let params = ModelParams::default();
-
-        let request = build_anthropic_request("claude-3-5-sonnet", &interaction, &params, false);
-
-        assert_eq!(request.messages.len(), 1);
-        match &request.messages[0].content[0] {
-            AnthropicContentBlock::Image { source } => {
-                assert_eq!(source.media_type, "image/png");
-                assert_eq!(source.data, "base64data");
-            }
-            _ => panic!("Expected Image content block"),
-        }
-    }
-
-    #[test]
-    fn test_build_anthropic_request_tool_result() {
-        use crate::types::{Messages, UserModelContent};
-
-        let interaction = ModelInteraction {
-            system_prompt: None,
-            messages: vec![
-                Messages::Assistant {
-                    model: ModelId::Name("test".into(), None),
-                    timestamp: SystemTime::now(),
-                    usage: empty_usage_report(),
-                    content: ModelOutput::ToolCall {
-                        id: "tool_1".into(),
-                        name: "get_weather".into(),
-                        arguments: None,
-                        signature: None,
-                    },
-                    stop_reason: StopReason::ToolUse,
-                    provider: ModelProviders::ANTHROPIC,
-                    error_detail: None,
-                    signature: None,
-                    metadata: None,
-                },
-                Messages::ToolResult {
-                    id: "tool_1".into(),
-                    name: "get_weather".into(),
-                    timestamp: SystemTime::now(),
-                    details: None,
-                    content: UserModelContent::Text(TextContent {
-                        content: "Sunny".into(),
-                        signature: None,
-                    }),
-                    error_detail: None,
-                    signature: None,
-                },
-            ],
-            tools: vec![],
-            chat_template: None,
-            tool_choice: None,
-        };
-        let params = ModelParams::default();
-
-        let request = build_anthropic_request("claude-3-5-sonnet", &interaction, &params, false);
-
-        assert_eq!(request.messages.len(), 2);
-        // First message should be assistant with ToolUse
-        assert!(matches!(
-            request.messages[0].content[0],
-            AnthropicContentBlock::ToolUse { .. }
-        ));
-        // Second message should be user with ToolResult
-        assert!(matches!(
-            request.messages[1].content[0],
-            AnthropicContentBlock::ToolResult { .. }
-        ));
-    }
-
-    #[test]
-    fn test_anthropic_error_parsing() {
-        let body = r#"{"error":{"type":"invalid_request_error","message":"Invalid API key"}}"#;
-        let detail = parse_anthropic_error(body).expect("Should parse Anthropic error");
-        assert!(detail.contains("invalid_request_error"));
-        assert!(detail.contains("Invalid API key"));
-    }
-
-    #[test]
-    fn test_anthropic_error_parsing_no_type() {
-        let body = r#"{"error":{"message":"Something went wrong"}}"#;
-        let detail = parse_anthropic_error(body).expect("Should parse Anthropic error");
-        assert_eq!(detail, "Something went wrong");
-    }
-
-    #[test]
-    fn test_anthropic_error_plain_text_fallback() {
-        let detail = parse_anthropic_error("Internal Server Error");
-        assert!(detail.is_none());
-    }
-
-    #[test]
-    fn test_is_retryable_status() {
-        assert!(is_retryable_status(429));
-        assert!(is_retryable_status(500));
-        assert!(is_retryable_status(502));
-        assert!(is_retryable_status(503));
-        assert!(!is_retryable_status(400));
-        assert!(!is_retryable_status(401));
-        assert!(!is_retryable_status(404));
-        assert!(!is_retryable_status(200));
-    }
-
-    #[test]
-    fn test_exponential_backoff() {
-        assert_eq!(exponential_backoff(0), 1);
-        assert_eq!(exponential_backoff(1), 2);
-        assert_eq!(exponential_backoff(2), 4);
-        assert_eq!(exponential_backoff(3), 8);
-        assert_eq!(exponential_backoff(5), 30); // capped
-        assert_eq!(exponential_backoff(10), 30); // capped
-    }
-
-    #[test]
-    fn test_format_http_errors() {
-        assert!(format_http_error(401, "bad").contains("Authentication"));
-        assert!(format_http_error(403, "bad").contains("Permission"));
-        assert!(format_http_error(429, "bad").contains("Rate limit"));
-        assert!(format_http_error(500, "bad").contains("Server error"));
     }
 }

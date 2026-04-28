@@ -28,9 +28,9 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 5  | [agentic-coding-reference](./features/05-agentic-coding-reference/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
-| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 32 / 32 | 100% |
+| 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | 🔄 In Progress | 35 / 39 | 90% |
 
-**Totals:** 239 / ~334 tasks complete (~72%). 9 features complete, 0 in progress, 5 pending.
+**Totals:** 239 / ~341 tasks complete (~70%). 8 features complete, 1 in progress, 5 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -104,7 +104,7 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - Centralized model path config in `mise.toml` `[env]` section
 - `multi` feature gating fixed: no longer forced on by default via `foundation_deployment`
 
-### 07 Anthropic Messages Provider (100% ✅)
+### 07 Anthropic Messages Provider (90% 🔄)
 - `AnthropicMessagesProvider` implementing `ModelProvider` trait — connects to Anthropic's `/v1/messages` endpoint
 - `AnthropicConfig` with builder pattern (base_url, api_version, timeout_secs, max_retries, proxy_url, streaming, auth)
 - Native Anthropic protocol: `x-api-key` + `anthropic-version` headers (no Bearer token)
@@ -116,10 +116,17 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 - `AnthropicModel` implementing `Model` trait with generate() and stream()
 - `AnthropicStream` iterator accumulating text, thinking, and tool call arguments from SSE events
 - `build_anthropic_request`: maps `ModelInteraction` → `MessagesRequest` with proper content block conversion
-- `parse_response`: maps `MessagesResponse` → `Messages` with content extraction
 - Stop reason mapping: end_turn→Stop, stop_sequence→Stop, max_tokens→Length, tool_use→ToolUse
 - Error handling: parse_anthropic_error, format_http_error, retry with exponential backoff, Retry-After header parsing
-- 29 unit tests passing (config, serialization, deserialization, request building, error parsing, stop reason mapping)
+- 5 mock integration tests passing (TestHttpServer: generate, streaming text, tool calls, thinking, multimodal)
+- 5 llama-server integration tests (#[ignore]-gated): generate, streaming, multi-turn, max_tokens, resolve
+
+**Remaining tasks:**
+- Add `Messages::Thinking` variant to separate thinking from assistant text output
+- `parse_response` → return `Vec<Messages>` (one per content block, no discarding)
+- `build_final_message` → emit multiple messages sequentially via Stream
+- Delete `extract_content` helper (collapsing helper no longer needed)
+- Update `build_anthropic_request` to handle `Messages::Thinking` as round-trip
 
 ### 00g OpenAI Provider Enhancements (100% ✅)
 - `ResponsesProvider` / `ResponsesModel` implementing `ModelProvider` for `/v1/responses`

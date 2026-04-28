@@ -15,46 +15,6 @@ use serde::{Deserialize, Serialize};
 use crate::errors::GenerationResult;
 use crate::errors::ModelProviderResult;
 
-/// Regex patterns to detect context overflow errors from different providers.
-///
-/// These patterns match error messages returned when the input exceeds
-/// the model's context window.
-///
-/// Provider-specific patterns (with example error messages):
-///
-/// - Anthropic: "prompt is too long: 213462 tokens > 200000 maximum"
-/// - `OpenAI`: "Your input exceeds the context window of this model"
-/// - Google: "The input token count (1196265) exceeds the maximum number of tokens allowed (1048575)"
-/// - xAI: "This model's maximum prompt length is 131072 but the request contains 537812 tokens"
-/// - Groq: "Please reduce the length of the messages or completion"
-/// - `OpenRouter`: "This endpoint's maximum context length is X tokens. However, you requested about Y tokens"
-/// - `llama.cpp`: "the request exceeds the available context size, try increasing it"
-/// - LM Studio: "tokens to keep from the initial prompt is greater than the context length"
-/// - GitHub Copilot: "prompt token count of X exceeds the limit of Y"
-/// - `MiniMax`: "invalid params, context window exceeds limit"
-/// - Kimi For Coding: "Your request exceeded model token limit: X (requested: Y)"
-/// - Cerebras: Returns "400/413 status code (no body)" - handled separately below
-/// - Mistral: Returns "400/413 status code (no body)" - handled separately below
-/// - z.ai: Does NOT error, accepts overflow silently - handled via usage.input > contextWindow
-/// - Ollama: Silently truncates input - not detectable via error message
-const OVERFLOW_PATTERNS: &[&str] = &[
-    r"(?i)prompt is too long",                     // Anthropic
-    r"(?i)input is too long for requested model",  // Amazon Bedrock
-    r"(?i)exceeds the context window",             // OpenAI (Completions & Responses API)
-    r"(?i)input token count.*exceeds the maximum", // Google (Gemini)
-    r"(?i)maximum prompt length is \d+",           // xAI (Grok)
-    r"(?i)reduce the length of the messages",      // Groq
-    r"(?i)maximum context length is \d+ tokens",   // OpenRouter (all backends)
-    r"(?i)exceeds the limit of \d+",               // GitHub Copilot
-    r"(?i)exceeds the available context size",     // llama.cpp server
-    r"(?i)greater than the context length",        // LM Studio
-    r"(?i)context window exceeds limit",           // MiniMax
-    r"(?i)exceeded model token limit",             // Kimi For Coding
-    r"(?i)context[_ ]length[_ ]exceeded",          // Generic fallback
-    r"(?i)too many tokens",                        // Generic fallback
-    r"(?i)token limit exceeded",                   // Generic fallback
-];
-
 #[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct DeviceId(u16);
 
@@ -831,6 +791,46 @@ pub enum Messages {
         signature: Option<String>,
     },
 }
+
+/// Regex patterns to detect context overflow errors from different providers.
+///
+/// These patterns match error messages returned when the input exceeds
+/// the model's context window.
+///
+/// Provider-specific patterns (with example error messages):
+///
+/// - Anthropic: "prompt is too long: 213462 tokens > 200000 maximum"
+/// - `OpenAI`: "Your input exceeds the context window of this model"
+/// - Google: "The input token count (1196265) exceeds the maximum number of tokens allowed (1048575)"
+/// - xAI: "This model's maximum prompt length is 131072 but the request contains 537812 tokens"
+/// - Groq: "Please reduce the length of the messages or completion"
+/// - `OpenRouter`: "This endpoint's maximum context length is X tokens. However, you requested about Y tokens"
+/// - `llama.cpp`: "the request exceeds the available context size, try increasing it"
+/// - LM Studio: "tokens to keep from the initial prompt is greater than the context length"
+/// - GitHub Copilot: "prompt token count of X exceeds the limit of Y"
+/// - `MiniMax`: "invalid params, context window exceeds limit"
+/// - Kimi For Coding: "Your request exceeded model token limit: X (requested: Y)"
+/// - Cerebras: Returns "400/413 status code (no body)" - handled separately below
+/// - Mistral: Returns "400/413 status code (no body)" - handled separately below
+/// - z.ai: Does NOT error, accepts overflow silently - handled via usage.input > contextWindow
+/// - Ollama: Silently truncates input - not detectable via error message
+const OVERFLOW_PATTERNS: &[&str] = &[
+    r"(?i)prompt is too long",                     // Anthropic
+    r"(?i)input is too long for requested model",  // Amazon Bedrock
+    r"(?i)exceeds the context window",             // OpenAI (Completions & Responses API)
+    r"(?i)input token count.*exceeds the maximum", // Google (Gemini)
+    r"(?i)maximum prompt length is \d+",           // xAI (Grok)
+    r"(?i)reduce the length of the messages",      // Groq
+    r"(?i)maximum context length is \d+ tokens",   // OpenRouter (all backends)
+    r"(?i)exceeds the limit of \d+",               // GitHub Copilot
+    r"(?i)exceeds the available context size",     // llama.cpp server
+    r"(?i)greater than the context length",        // LM Studio
+    r"(?i)context window exceeds limit",           // MiniMax
+    r"(?i)exceeded model token limit",             // Kimi For Coding
+    r"(?i)context[_ ]length[_ ]exceeded",          // Generic fallback
+    r"(?i)too many tokens",                        // Generic fallback
+    r"(?i)token limit exceeded",                   // Generic fallback
+];
 
 static OVERFLOW_SILENT_PATTERN: std::sync::LazyLock<Regex> = std::sync::LazyLock::new(|| {
     regex::Regex::new(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)").unwrap()
