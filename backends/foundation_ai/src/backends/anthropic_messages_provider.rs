@@ -38,6 +38,10 @@ pub struct AnthropicConfig {
     pub proxy_url: Option<String>,
     pub streaming: bool,
     pub auth: Option<AuthCredential>,
+    /// Override the default `/{api_version}/messages` endpoint path.
+    /// When set, this path is appended directly to `base_url` (with a `/` separator).
+    /// Useful for proxies that expose a different path, e.g. `/v1/messages`.
+    pub messages_endpoint: Option<String>,
 }
 
 impl Default for AnthropicConfig {
@@ -50,6 +54,7 @@ impl Default for AnthropicConfig {
             proxy_url: None,
             streaming: true,
             auth: None,
+            messages_endpoint: None,
         }
     }
 }
@@ -103,13 +108,34 @@ impl AnthropicConfig {
     }
 
     #[must_use]
+    pub fn with_messages_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.messages_endpoint = Some(endpoint.into());
+        self
+    }
+
+    #[must_use]
     pub fn build_url(&self, endpoint: &str) -> String {
-        format!(
-            "{}/{}/{}",
-            self.base_url.trim_end_matches('/'),
-            self.api_version,
-            endpoint.trim_start_matches('/')
-        )
+        let path = self
+            .messages_endpoint
+            .as_deref()
+            .unwrap_or(endpoint)
+            .trim_start_matches('/');
+        if self.messages_endpoint.is_some() {
+            // Custom endpoint: append directly to base_url.
+            format!(
+                "{}/{}",
+                self.base_url.trim_end_matches('/'),
+                path
+            )
+        } else {
+            // Default: /{api_version}/{endpoint}
+            format!(
+                "{}/{}/{}",
+                self.base_url.trim_end_matches('/'),
+                self.api_version,
+                path
+            )
+        }
     }
 }
 
@@ -123,6 +149,7 @@ impl Clone for AnthropicConfig {
             proxy_url: self.proxy_url.clone(),
             streaming: self.streaming,
             auth: None,
+            messages_endpoint: self.messages_endpoint.clone(),
         }
     }
 }
