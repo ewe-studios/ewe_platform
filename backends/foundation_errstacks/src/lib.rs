@@ -38,14 +38,20 @@
 //! ```rust
 //! # #[cfg(feature = "std")] {
 //! use foundation_errstacks::{ErrorTrace, PlainResultExt};
-//! use derive_more::{Display, Error};
+//! use derive_more::{Display, Error, From};
 //!
-//! #[derive(Debug, Display, Error)]
-//! #[display("database connection failed")]
-//! struct DbError;
+//! // Enum is the preferred default — each variant carries its own context.
+//! // Structs work too; use whichever fits your error domain.
+//! #[derive(Debug, Display, Error, From)]
+//! enum DbError {
+//!     #[display("database connection failed")]
+//!     Connect,
+//!     #[display("query failed on table '{table}': {reason}")]
+//!     Query { table: String, reason: String },
+//! }
 //!
 //! fn connect() -> Result<(), ErrorTrace<DbError>> {
-//!     Err(DbError).attach("host=db.example.com")
+//!     Err(DbError::Connect).attach("host=db.example.com")
 //! }
 //! # }
 //! ```
@@ -74,25 +80,27 @@
 //!
 //! // Simple error with Display and Error derived
 //! #[derive(Debug, Display, Error)]
+//! #[display("file not found")]
 //! struct FileNotFound;
 //!
-//! // Error with multiple fields
-//! #[derive(Debug, Display, Error)]
-//! #[display("parse error at line {line}, column {col}: {message}")]
-//! struct ParseError {
-//!     line: u32,
-//!     col: u32,
-//!     message: &'static str,
+//! // Enum is the preferred default — each variant carries its own context.
+//! // Structs work too; use whichever fits your error domain.
+//! #[derive(Debug, Display, Error, From)]
+//! enum ApiError {
+//!     #[display("file not found")]
+//!     FileNotFound,
+//!     #[display("parse error at line {line}, column {col}: {message}")]
+//!     ParseError { line: u32, col: u32, message: &'static str },
 //! }
 //!
 //! // Using ErrorTrace with derived error types
-//! fn read_config() -> Result<(), ErrorTrace<FileNotFound>> {
-//!     Err(FileNotFound).attach("path=/etc/config.toml")
+//! fn read_config() -> Result<(), ErrorTrace<ApiError>> {
+//!     Err(ApiError::FileNotFound).attach("path=/etc/config.toml")
 //! }
 //!
-//! fn process_file() -> Result<(), ErrorTrace<ParseError>> {
+//! fn process_file() -> Result<(), ErrorTrace<ApiError>> {
 //!     read_config()
-//!         .map_err(|trace| trace.change_context(ParseError { line: 1, col: 5, message: "expected '='" }))
+//!         .map_err(|trace| trace.change_context(ApiError::ParseError { line: 1, col: 5, message: "expected '='" }))
 //! }
 //! # }
 //! ```
@@ -104,20 +112,20 @@
 //! use derive_more::{Display, Error};
 //! use foundation_errstacks::{ErrorTrace, PlainResultExt, ErrorTraceResultExt};
 //!
-//! #[derive(Debug, Display, Error)]
-//! #[display("lower level error")]
-//! struct LowerError;
-//!
-//! #[derive(Debug, Display, Error)]
-//! #[display("higher level context")]
-//! struct HigherError;
-//!
-//! fn inner() -> Result<(), ErrorTrace<LowerError>> {
-//!     Err(LowerError).attach("debug info")
+//! #[derive(Debug, Display, Error, From)]
+//! enum AppError {
+//!     #[display("lower level error")]
+//!     Lower,
+//!     #[display("higher level context")]
+//!     Higher,
 //! }
 //!
-//! fn outer() -> Result<(), ErrorTrace<HigherError>> {
-//!     ErrorTraceResultExt::change_context(inner(), HigherError)
+//! fn inner() -> Result<(), ErrorTrace<AppError>> {
+//!     Err(AppError::Lower).attach("debug info")
+//! }
+//!
+//! fn outer() -> Result<(), ErrorTrace<AppError>> {
+//!     ErrorTraceResultExt::change_context(inner(), AppError::Higher)
 //! }
 //!
 //! // The resulting trace contains both contexts:
@@ -155,9 +163,11 @@
 //! # use derive_more::{Display, Error};
 //! # use foundation_errstacks::ErrorTrace;
 //! # #[derive(Debug, Display, Error)]
-//! # #[display("alert!")]
-//! # struct AlertError;
-//! let trace = ErrorTrace::new(AlertError).attach("severity=critical");
+//! # enum AlertError {
+//! #     #[display("alert!")]
+//! #     Critical,
+//! # }
+//! let trace = ErrorTrace::new(AlertError::Critical).attach("severity=critical");
 //! let structured = trace.to_structured();
 //! let slack_json = structured.to_slack_json().unwrap();
 //! // Send `slack_json` to your Slack webhook

@@ -17,11 +17,13 @@ use foundation_core::wire::simple_http::client::{
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
+use foundation_errstacks::ErrorTrace;
+
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    Args, AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, UsageCosting, UsageReport,
+    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -662,7 +664,161 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
     }
 }
 
+// ============================================================================
+// Tool Formatter
+// ============================================================================
+
+/// Formatter for Anthropic's native tool calling format.
+///
+/// Tool defs: `[{name, description, input_schema: {type: "object", properties}}]`
+/// Tool calls: `{"type":"tool_use","id":"...","name":"...","input":{...}}`
+#[derive(Default, Clone, Copy)]
+pub struct AnthropicFormatter;
+
+impl ToolFormatter for AnthropicFormatter {
+    fn format_tools(
+        &self,
+        tools: &[Tool],
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        Ok(serde_json::Value::Array(
+            tools
+                .iter()
+                .map(|tool| {
+                    let mut properties = serde_json::Map::new();
+                    if let Some(args) = &tool.arguments {
+                        for arg in args {
+                            if let Args::Named(key, value) = arg {
+                                let schema_type = match value {
+                                    crate::types::ArgType::Float32(_)
+                                    | crate::types::ArgType::Float64(_) => "number",
+                                    crate::types::ArgType::Usize(_)
+                                    | crate::types::ArgType::U8(_)
+                                    | crate::types::ArgType::U16(_)
+                                    | crate::types::ArgType::U32(_)
+                                    | crate::types::ArgType::U64(_)
+                                    | crate::types::ArgType::Isize(_)
+                                    | crate::types::ArgType::I8(_)
+                                    | crate::types::ArgType::I16(_)
+                                    | crate::types::ArgType::I32(_)
+                                    | crate::types::ArgType::I64(_) => "integer",
+                                    _ => "string",
+                                };
+                                properties.insert(
+                                    key.clone(),
+                                    serde_json::json!({ "type": schema_type }),
+                                );
+                            }
+                        }
+                    }
+                    serde_json::json!({
+                        "name": &tool.name,
+                        "description": tool.description,
+                        "input_schema": {
+                            "type": "object",
+                            "properties": properties,
+                        },
+                    })
+                })
+                .collect(),
+        ))
+    }
+
+    fn tool_calling_instructions(&self) -> Option<String> {
+        None
+    }
+
+    fn extract_tool_calls(
+        &self,
+        response: &str,
+    ) -> Result<crate::types::ExtractResult, ErrorTrace<ToolCallingError>> {
+        let parsed: serde_json::Value =
+            serde_json::from_str(response).map_err(|e| {
+                ErrorTrace::new(ToolCallingError::Extract { reason: e.to_string() })
+                    .attach("source=anthropic_response")
+            })?;
+
+        let mut calls = Vec::new();
+        let mut text_parts = Vec::new();
+
+        if let Some(content) = parsed.get("content").and_then(|v| v.as_array()) {
+            for block in content {
+                match block.get("type").and_then(|v| v.as_str()) {
+                    Some("tool_use") => {
+                        let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let input = block.get("input").cloned().unwrap_or(serde_json::Value::Null);
+                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                            serde_json::from_value(input.clone()).ok();
+                        calls.push(ModelOutput::ToolCall {
+                            id,
+                            name,
+                            arguments,
+                            signature: None,
+                        });
+                    }
+                    Some("text") => {
+                        if let Some(t) = block.get("text").and_then(|v| v.as_str()) {
+                            text_parts.push(t.to_string());
+                        }
+                    }
+                    Some("thinking") => {
+                        if let Some(t) = block.get("thinking").and_then(|v| v.as_str()) {
+                            text_parts.push(format!("<thinking>{t}</thinking>"));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        let has_tool_calls = !calls.is_empty();
+        let remaining_text = if text_parts.is_empty() {
+            None
+        } else {
+            Some(text_parts.join("\n"))
+        };
+
+        Ok(crate::types::ExtractResult {
+            calls,
+            remaining_text,
+            has_tool_calls,
+        })
+    }
+
+    fn format_tool_response(
+        &self,
+        result: &Messages,
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        let Messages::ToolResult {
+            id,
+            name: _,
+            content,
+            error_detail,
+            ..
+        } = result
+        else {
+            return Err(ErrorTrace::new(ToolCallingError::Response {
+                tool_name: String::new(),
+                reason: "expected Messages::ToolResult".to_string(),
+            }).attach("source=anthropic_formatter"));
+        };
+
+        let content_str = match content {
+            crate::types::UserModelContent::Text(t) => t.content.clone(),
+            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+        };
+
+        Ok(serde_json::json!({
+            "type": "tool_result",
+            "tool_use_id": id,
+            "content": [{"type": "text", "text": content_str}],
+            "is_error": error_detail.is_some(),
+        }))
+    }
+}
+
 impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
+    type Formatter = AnthropicFormatter;
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),

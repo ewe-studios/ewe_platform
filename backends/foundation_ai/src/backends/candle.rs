@@ -22,8 +22,8 @@ use crate::errors::{
 };
 use crate::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviders, ModelSpec, ModelState, StopReason, TextContent, UsageCosting, UsageReport,
-    UserModelContent,
+    ModelProviders, ModelSpec, ModelState, StopReason, TextBasedFormatter, TextContent,
+    UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -558,6 +558,7 @@ impl CandleModels {
 }
 
 impl Model for CandleModels {
+    type Formatter = TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
         self.inner.borrow().spec.clone()
     }

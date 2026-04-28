@@ -18,6 +18,7 @@ foundation_auth = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
 foundation_deployment = { workspace = true, features = ["huggingface"] }
+foundation_errstacks = { workspace = true }
 
 infrastructure_llama_cpp = { workspace = true }
 

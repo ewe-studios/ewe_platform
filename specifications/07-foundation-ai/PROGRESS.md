@@ -25,13 +25,13 @@ full OpenAI API compatibility (Chat Completions + Responses API).
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | ✅ Complete | 27 / 27 | 100% |
 | 2  | [huggingface-gguf-provider](./features/02-huggingface-provider/feature.md) | ✅ Complete | 5 / 5 | 100% |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | ✅ Complete | 18 / 18 | 100% |
-| 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | ⬜ Pending | 0 / ? | 0% |
+| 4  | [tool-calling-formatter](./features/04-tool-calling-formatter/feature.md) | 🔄 In Progress | 0 / 6 | 0% |
 | 5  | [agentic-coding-reference](./features/05-agentic-coding-reference/feature.md) | ⬜ Pending | 0 / ? | 0% |
 | 06 | [llama-server-testing](./features/06-llama-server-testing/feature.md) | ✅ Complete | 16 / 16 | 100% |
 | 07 | [anthropic-provider](./features/07-anthropic-provider/feature.md) | ✅ Complete | 39 / 39 | 100% |
 | 08 | [tool-arguments-refactor](./features/08-tool-arguments-refactor/feature.md) | ✅ Complete | 4 / 4 | 100% |
 
-**Totals:** 247 / ~345 tasks complete (~72%). 10 features complete, 0 in progress, 5 pending.
+**Totals:** 247 / ~351 tasks complete (~70%). 10 features complete, 1 in progress, 5 pending.
 
 Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
@@ -152,8 +152,9 @@ Status key: ⬜ Pending 🔄 In Progress ✅ Complete
 
 ### Immediate (next features to implement)
 
-**04 tool-calling-formatter — 18 tasks** — plugin-based ToolFormatter for
-OpenAI, Anthropic, llama.cpp, open-source tool calling formats.
+**04 tool-calling-formatter — 6 tasks** — stateless `ToolFormatter` trait as
+`Model::Formatter` associated type. Each provider uses its own formatter;
+OpenAI accepts a generic `F: ToolFormatter` for proxy flexibility.
 Depends on 00c (complete) and 07 (complete) — can start immediately.
 
 **05 agentic-coding-reference — reference only** — documentary analysis of
@@ -200,7 +201,7 @@ specifications/07-foundation-ai/
     ├── 05-agentic-coding-reference/(0%   ⬜)
     ├── 06-llama-server-testing/   (100% ✅)
     ├── 07-anthropic-provider/     (100% ✅)
-    └── 08-tool-arguments-refactor/ (0%   ⬜)
+    └── 08-tool-arguments-refactor/ (100% ✅)
 ```
 
 Each feature directory contains its own `PROGRESS.md` with the detailed

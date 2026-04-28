@@ -35,7 +35,7 @@ use crate::errors::{
 use crate::types::{
     KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviders, ModelSpec, ModelState, SplitMode, StopReason, TextContent,
-    UsageCosting, UsageReport, UserModelContent,
+    TextBasedFormatter, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -289,6 +289,7 @@ impl LlamaModels {
 }
 
 impl Model for LlamaModels {
+    type Formatter = TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
         self.inner.borrow().spec.clone()
     }

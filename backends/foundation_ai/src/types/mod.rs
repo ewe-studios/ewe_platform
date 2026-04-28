@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use derive_more::From;
+use derive_more::{Display, Error, From};
+use foundation_errstacks::ErrorTrace;
+use lazy_regex::regex;
 use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
@@ -973,7 +975,217 @@ pub enum ModelState {
     Error(String),
 }
 
+/// Error type for tool calling formatting operations.
+///
+/// Enum-first design: each variant carries the fields relevant to that
+/// failure mode. Used with `foundation_errstacks` for context-aware
+/// error traces.
+#[derive(Debug, Display, Error)]
+pub enum ToolCallingError {
+    /// Failed to parse a tool call from provider output.
+    #[display("failed to extract tool calls: {reason}")]
+    Extract { reason: String },
+    /// Failed to format a tool definition for a provider.
+    #[display("failed to format tool '{tool_name}': {reason}")]
+    Format { tool_name: String, reason: String },
+    /// Failed to format a tool result for round-trip.
+    #[display("failed to format result for '{tool_name}': {reason}")]
+    Response { tool_name: String, reason: String },
+}
+
+/// Stateless formatter for tool calling format conversion.
+///
+/// Each provider implements this to translate between our internal tool
+/// representation and the format expected by its API.
+pub trait ToolFormatter: Default + Send + Sync {
+    /// Convert internal `Tool[]` definitions to provider-specific tool schema.
+    fn format_tools(&self, tools: &[Tool])
+        -> Result<serde_json::Value, ErrorTrace<ToolCallingError>>;
+
+    /// System prompt instructions for tool calling format.
+    ///
+    /// Returns `Some(instructions)` when the model needs guidance on how to
+    /// format tool calls (text-based models, no tool-aware template).
+    /// Returns `None` for API providers since their native tool format handles it.
+    fn tool_calling_instructions(&self) -> Option<String>;
+
+    /// Extract tool calls from provider response text.
+    fn extract_tool_calls(&self, response: &str)
+        -> Result<ExtractResult, ErrorTrace<ToolCallingError>>;
+
+    /// Format a tool execution result into provider message structure.
+    fn format_tool_response(
+        &self,
+        result: &Messages,
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>>;
+}
+
+/// Output of `extract_tool_calls()` — extracted tool calls plus remaining text.
+pub struct ExtractResult {
+    /// Extracted tool calls in unified `ModelOutput::ToolCall` format.
+    pub calls: Vec<ModelOutput>,
+    /// Non-tool-call portions of the response.
+    pub remaining_text: Option<String>,
+    /// Whether the model intends to use tools.
+    pub has_tool_calls: bool,
+}
+
+/// XML tag used by text-based models for tool calling.
+const TOOL_CALL_OPEN: &str = "<ToolCall>";
+const TOOL_CALL_CLOSE: &str = "</ToolCall>";
+
+/// Shared formatter for text-based models (llama.cpp, Candle).
+///
+/// Produces system prompt instructions and parses `<ToolCall>...</ToolCall>`
+/// XML-wrapped JSON from model output.
+#[derive(Default, Clone, Copy)]
+pub struct TextBasedFormatter;
+
+impl ToolFormatter for TextBasedFormatter {
+    fn format_tools(
+        &self,
+        tools: &[Tool],
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        Ok(serde_json::Value::Array(
+            tools
+                .iter()
+                .map(|tool| {
+                    let mut properties = serde_json::Map::new();
+                    if let Some(args) = &tool.arguments {
+                        for arg in args {
+                            if let Args::Named(key, value) = arg {
+                                let schema_type = match value {
+                                    crate::types::ArgType::Float32(_)
+                                    | crate::types::ArgType::Float64(_) => "number",
+                                    crate::types::ArgType::Usize(_)
+                                    | crate::types::ArgType::U8(_)
+                                    | crate::types::ArgType::U16(_)
+                                    | crate::types::ArgType::U32(_)
+                                    | crate::types::ArgType::U64(_)
+                                    | crate::types::ArgType::Isize(_)
+                                    | crate::types::ArgType::I8(_)
+                                    | crate::types::ArgType::I16(_)
+                                    | crate::types::ArgType::I32(_)
+                                    | crate::types::ArgType::I64(_) => "integer",
+                                    _ => "string",
+                                };
+                                properties.insert(
+                                    key.clone(),
+                                    serde_json::json!({ "type": schema_type }),
+                                );
+                            }
+                        }
+                    }
+                    serde_json::json!({
+                        "name": &tool.name,
+                        "description": tool.description,
+                        "parameters": {
+                            "type": "object",
+                            "properties": properties,
+                        },
+                    })
+                })
+                .collect(),
+        ))
+    }
+
+    fn tool_calling_instructions(&self) -> Option<String> {
+        Some(format!(
+            "To use a tool, wrap your call in {TOOL_CALL_OPEN} tags with valid JSON inside:\n\
+            {TOOL_CALL_OPEN}{{\"name\":\"tool_name\",\"arguments\":{{\"param\":\"value\"}}}}{TOOL_CALL_CLOSE}\n\n\
+            Only output tool calls when necessary. Do not invent tool calls."
+        ))
+    }
+
+    fn extract_tool_calls(
+        &self,
+        response: &str,
+    ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
+        let pattern = regex!(r"<ToolCall>\s*(\{.*?\})\s*</ToolCall>");
+        let mut calls = Vec::new();
+        let mut remaining_parts = Vec::new();
+        let mut last_end = 0;
+
+        for cap in pattern.captures_iter(response) {
+            let full = cap.get(0).unwrap();
+            let json_str = cap.get(1).unwrap().as_str();
+
+            // Collect text before this match as remaining
+            if full.start() > last_end {
+                remaining_parts.push(&response[last_end..full.start()]);
+            }
+            last_end = full.end();
+
+            // Try to parse the JSON
+            let parsed: Result<HashMap<String, ArgType>, _> = serde_json::from_str(json_str);
+            match parsed {
+                Ok(arguments) => {
+                    let name = arguments.get("name").and_then(|v| match v {
+                        ArgType::Text(s) => Some(s.clone()),
+                        _ => None,
+                    }).unwrap_or_default();
+                    if !name.is_empty() {
+                        calls.push(ModelOutput::ToolCall {
+                            id: format!("tool_{}", calls.len()),
+                            name,
+                            arguments: Some(arguments),
+                            signature: None,
+                        });
+                    }
+                }
+                Err(_) => {
+                    // Malformed JSON — keep as text
+                    remaining_parts.push(full.as_str());
+                }
+            }
+        }
+
+        // Remaining text after last match
+        if last_end < response.len() {
+            remaining_parts.push(&response[last_end..]);
+        }
+
+        let has_tool_calls = !calls.is_empty();
+        let remaining_text = if remaining_parts.is_empty() {
+            None
+        } else {
+            Some(remaining_parts.concat())
+        };
+
+        Ok(ExtractResult { calls, remaining_text, has_tool_calls })
+    }
+
+    fn format_tool_response(
+        &self,
+        result: &Messages,
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
+        let Messages::ToolResult {
+            id: _, name, content, error_detail, ..
+        } = result
+        else {
+            return Err(ErrorTrace::new(ToolCallingError::Response {
+                tool_name: String::new(),
+                reason: "expected Messages::ToolResult".to_string(),
+            }).attach("source=text_based_formatter"));
+        };
+
+        let content_str = match content {
+            crate::types::UserModelContent::Text(t) => t.content.clone(),
+            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+        };
+
+        let error_note = if error_detail.is_some() { " (error)" } else { "" };
+        Ok(serde_json::json!({
+            "role": "tool",
+            "name": name,
+            "content": format!("[{name}] {content_str}{error_note}"),
+        }))
+    }
+}
+
 pub trait Model {
+    /// The tool formatter type used by this model.
+    type Formatter: ToolFormatter;
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
 
