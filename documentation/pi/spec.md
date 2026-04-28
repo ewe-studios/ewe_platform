@@ -105,9 +105,9 @@ pi/
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 24 | Model providers: 20+ providers, OpenAI-compatible, Anthropic, local models, model fallbacks | TODO | `14-model-providers.md` |
-| 25 | Memory expansion: deep dive into memory types, context management, compaction | TODO | `15-memory-deep.md` |
-| 26 | Multi-model execution: background work, parallel model calls, model routing | TODO | `16-multi-model.md` |
+| 24 | Model providers: 20+ providers, OpenAI-compatible, Anthropic, local models, model fallbacks | DONE | `14-model-providers.md` |
+| 25 | Memory expansion: deep dive into memory types, context management, compaction | DONE | `15-memory-deep.md` |
+| 26 | Multi-model execution: background work, parallel model calls, model routing | DONE | `16-multi-model.md` |
 
 ## Build System
 
@@ -140,8 +140,8 @@ python3 build.py hermes
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 18 |
-| Generated HTML files | 19 (18 docs + 1 index) |
+| Markdown source files | 21 |
+| Generated HTML files | 22 (21 docs + 1 index) |
 | CSS files | 1 (shared) |
 | Total HTML output | 14 files + styles.css |
 
@@ -154,6 +154,19 @@ A developer unfamiliar with Pi can:
 4. Follow data flow diagrams to understand what happens during a user interaction
 5. Understand how to extend Pi with custom tools, extensions, and skills
 6. View the documentation as rendered HTML locally or deploy to GitHub Pages
+
+## Quality Requirements (Iron Rules)
+
+All documentation MUST meet these standards:
+
+1. **Detailed sections with code snippets** — Every concept must be grounded in actual source code. Include real function signatures, class structures, and key logic snippets. No vague hand-waving.
+2. **Teach key facts, principles, and ideas quickly** — Each section should deliver insight density. A reader should learn the core concept within the first paragraph, then get progressively deeper detail.
+3. **Clear articulation** — Non-overly-complex sentences. Clearly articulated ideas and processes. Every section should flow logically from one idea to the next.
+4. **Mermaid diagrams** — Use mermaid flowcharts, sequence diagrams, and class diagrams to illustrate architecture, data flow, and lifecycle. Minimum 2 diagrams per document.
+5. **Good visual assets** — Tables for comparisons, ASCII art for quick structure overviews, mermaid for complex flows. Diagrams should stand alone as learning aids.
+6. **Generated HTML** — All markdown must build to HTML with the shared build.py. Well-aligned headers, text, and menu structure. Modeled after markdown.engineering/learn-claude-code style: organized, insightful units with clear navigation.
+7. **Cross-references** — Every document should link to related documents. No orphan pages.
+8. **Source path references** — Include actual file paths from the source codebase so readers can verify claims.
 
 ## Resume Point
 

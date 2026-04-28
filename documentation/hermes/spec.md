@@ -89,9 +89,9 @@ hermes/
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 18 | Model providers: LiteLLM integration, OpenAI-compatible, Anthropic, local models, model fallbacks | TODO | `16-model-providers.md` |
-| 19 | Memory expansion: deep dive into memory providers, context engines, compression strategies | TODO | `17-memory-deep.md` |
-| 20 | Multi-model execution: background tasks, parallel model calls, model routing, credential pools | TODO | `18-multi-model.md` |
+| 18 | Model providers: 30+ providers, transport abstraction, context detection, credential management | DONE | `16-model-providers.md` |
+| 19 | Memory expansion: MemoryManager, 8+ providers, context compression, DAG context, session search | DONE | `17-memory-deep.md` |
+| 20 | Multi-model execution: credential pool, fallback chain, error classification, auxiliary models | DONE | `18-multi-model.md` |
 
 ### Phase 2: HTML Rendering -- COMPLETE
 
@@ -150,8 +150,8 @@ python3 build.py pi
 
 | Type | Count |
 |------|-------|
-| Markdown source files | 17 |
-| Generated HTML files | 18 (17 docs + 1 index) |
+| Markdown source files | 20 |
+| Generated HTML files | 21 (20 docs + 1 index) |
 | CSS files | 1 (shared) |
 | Total HTML output | 16 files + styles.css |
 
@@ -164,6 +164,19 @@ A developer unfamiliar with Hermes can:
 4. Follow data flow diagrams to understand what happens when a message arrives
 5. Understand how to extend Hermes with custom tools, memory providers, and plugins
 6. View the documentation as rendered HTML locally or deploy to GitHub Pages
+
+## Quality Requirements (Iron Rules)
+
+All documentation MUST meet these standards:
+
+1. **Detailed sections with code snippets** — Every concept must be grounded in actual source code. Include real function signatures, class structures, and key logic snippets. No vague hand-waving.
+2. **Teach key facts, principles, and ideas quickly** — Each section should deliver insight density. A reader should learn the core concept within the first paragraph, then get progressively deeper detail.
+3. **Clear articulation** — Non-overly-complex sentences. Clearly articulated ideas and processes. Every section should flow logically from one idea to the next.
+4. **Mermaid diagrams** — Use mermaid flowcharts, sequence diagrams, and class diagrams to illustrate architecture, data flow, and lifecycle. Minimum 2 diagrams per document.
+5. **Good visual assets** — Tables for comparisons, ASCII art for quick structure overviews, mermaid for complex flows. Diagrams should stand alone as learning aids.
+6. **Generated HTML** — All markdown must build to HTML with the shared build.py. Well-aligned headers, text, and menu structure. Modeled after markdown.engineering/learn-claude-code style: organized, insightful units with clear navigation.
+7. **Cross-references** — Every document should link to related documents. No orphan pages.
+8. **Source path references** — Include actual file paths from the source codebase so readers can verify claims.
 
 ## Resume Point
 

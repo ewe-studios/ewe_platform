@@ -33,6 +33,14 @@
 | [12-sessions.md](./12-sessions.md) | Pi JSONL tree + Hermes SQLite + comparison |
 | [13-agent-loop.md](./13-agent-loop.md) | Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling |
 
+### Model Interop & Memory Expansion
+
+| Document | What It Covers |
+|----------|---------------|
+| [14-model-providers.md](./14-model-providers.md) | 20+ providers, API registry, lazy loading, OpenAI-compatible endpoints, streaming |
+| [15-memory-deep.md](./15-memory-deep.md) | Message-based memory, context window management, compaction, session persistence |
+| [16-multi-model.md](./16-multi-model.md) | Model switching, parallel tool execution, background runs, extension-driven routing |
+
 ## Quick Orientation
 
 ```

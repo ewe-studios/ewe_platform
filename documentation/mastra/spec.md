@@ -101,6 +101,19 @@ mastra/
 cd documentation && python3 build.py mastra
 ```
 
+## Quality Requirements (Iron Rules)
+
+All documentation MUST meet these standards:
+
+1. **Detailed sections with code snippets** — Every concept must be grounded in actual source code. Include real function signatures, class structures, and key logic snippets. No vague hand-waving.
+2. **Teach key facts, principles, and ideas quickly** — Each section should deliver insight density. A reader should learn the core concept within the first paragraph, then get progressively deeper detail.
+3. **Clear articulation** — Non-overly-complex sentences. Clearly articulated ideas and processes. Every section should flow logically from one idea to the next.
+4. **Mermaid diagrams** — Use mermaid flowcharts, sequence diagrams, and class diagrams to illustrate architecture, data flow, and lifecycle. Minimum 2 diagrams per document.
+5. **Good visual assets** — Tables for comparisons, ASCII art for quick structure overviews, mermaid for complex flows. Diagrams should stand alone as learning aids.
+6. **Generated HTML** — All markdown must build to HTML with the shared build.py. Well-aligned headers, text, and menu structure. Modeled after markdown.engineering/learn-claude-code style: organized, insightful units with clear navigation.
+7. **Cross-references** — Every document should link to related documents. No orphan pages.
+8. **Source path references** — Include actual file paths from the source codebase so readers can verify claims.
+
 ## Expected Outcome
 
 A developer unfamiliar with Mastra can:

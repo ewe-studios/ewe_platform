@@ -47,7 +47,7 @@
     <span class="nav-brand">~/hermes/docs</span>
     <div class="nav-links">
       <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-function-calling.html">Hermes -- Function Calling & JSON Mode</a> <a href="13-self-evolution.html">Hermes -- Self-Evolution (GEPA Prompt Evolution)</a> <a href="15-agent-loop.html">Hermes Agent -- Agent Loop Deep Dive</a></span> <a href="15-agent-loop.html">← Hermes Agent -- Agent Loop Deep Dive</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="16-model-providers.html">Hermes Agent -- Model Providers Deep Dive</a> <a href="17-memory-deep.html">Hermes Agent -- Memory System Deep Dive</a> <a href="18-multi-model.html">Hermes Agent -- Multi-Model Execution</a></span> <a href="18-multi-model.html">← Hermes Agent -- Multi-Model Execution</a>
       <button class="theme-toggle" onclick="toggleTheme()">theme</button>
     </div>
   </nav>
@@ -63,6 +63,8 @@
 <table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[07-cli-tui.md](./07-cli-tui.md)</td><td>CLI entry points, TUI, commands, configuration</td></tr><tr><td>[08-cron.md](./08-cron.md)</td><td>Scheduling, jobs, automation</td></tr><tr><td>[09-plugins.md](./09-plugins.md)</td><td>Plugin architecture and extension points</td></tr><tr><td>[10-platform-adapters.md](./10-platform-adapters.md)</td><td>Per-platform messaging adapter details</td></tr><tr><td>[11-data-flow.md](./11-data-flow.md)</td><td>End-to-end message flows with sequence diagrams</td></tr></table>
 <h3>Extended Deep Dives</h3>
 <table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[12-cost-tracking.md](./12-cost-tracking.md)</td><td>Token usage, pricing, cost estimation, account monitoring</td></tr><tr><td>[13-self-evolution.md](./13-self-evolution.md)</td><td>GEPA-based prompt/skill evolution</td></tr><tr><td>[14-function-calling.md](./14-function-calling.md)</td><td>Hermes 2 Pro / 3 function calling + JSON mode</td></tr><tr><td>[15-agent-loop.md](./15-agent-loop.md)</td><td>Agent loop deep dive: loop mechanics, multi-turn, session, message, tool handling</td></tr></table>
+<h3>Model Interop & Memory Expansion</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[16-model-providers.md](./16-model-providers.md)</td><td>30+ providers, transport abstraction, context length detection, credential management</td></tr><tr><td>[17-memory-deep.md](./17-memory-deep.md)</td><td>MemoryManager, 8+ providers, context compression, DAG-based context, session search</td></tr><tr><td>[18-multi-model.md](./18-multi-model.md)</td><td>Credential pool, fallback chain, error classification, auxiliary models, cost routing</td></tr></table>
 <h2>Quick Orientation</h2>
 <pre><code class="language-">CLI/TUI ──→ AIAgent ──→ LLM Adapter ──→ Provider API
                 │
