@@ -356,6 +356,7 @@ fn setup_llama_server_provider() -> impl Model {
 
     let config = AnthropicConfig::new()
         .with_base_url(base_url)
+        .with_messages_endpoint("/v1/messages")
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
     let provider = AnthropicMessagesProvider::new().create(Some(config)).unwrap();
