@@ -191,7 +191,7 @@ CREATE TABLE promises (
     target TEXT GENERATED ALWAYS AS (json_extract(tags, '$."resonate:target"')),
     origin TEXT GENERATED ALWAYS AS (json_extract(tags, '$."resonate:origin"')),
     branch TEXT GENERATED ALWAYS AS (json_extract(tags, '$."resonate:branch"')),
-    timer TEXT GENERATED ALWAYS AS (json_extract(tags, '$."resonate:timer"'))
+    timer BOOLEAN NOT NULL GENERATED ALWAYS AS (COALESCE(json_extract(tags, '$."resonate:timer'), '') = 'true') STORED
 );
 
 CREATE INDEX idx_promises_target ON promises(target);
@@ -308,6 +308,19 @@ FROM tasks_resumed tr
 JOIN tasks t ON t.id = tr.id
 JOIN promises p ON p.id = t.id;
 ```
+
+### Row-Level Locking (FOR UPDATE)
+
+PostgreSQL uses `SELECT ... FOR UPDATE` to lock tasks during acquisition, preventing concurrent workers from acquiring the same task:
+
+```sql
+-- Acquire: lock the task row, bump version, set timeout
+UPDATE tasks SET state = 'acquired', version = version + 1
+WHERE id = $1 AND state = 'pending' AND version = $2
+RETURNING *;
+```
+
+The version check acts as an optimistic lock — if another worker already bumped the version, the UPDATE returns zero rows and acquisition fails.
 
 ### Serialization Conflict Retry
 

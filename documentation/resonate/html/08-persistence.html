@@ -304,7 +304,7 @@ PRAGMA synchronous = NORMAL;    -- Balance safety and performance
     target TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:target&quot;&#x27;)),
     origin TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:origin&quot;&#x27;)),
     branch TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:branch&quot;&#x27;)),
-    timer TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:timer&quot;&#x27;))
+    timer BOOLEAN NOT NULL GENERATED ALWAYS AS (COALESCE(json_extract(tags, &#x27;$.&quot;resonate:timer&#x27;), &#x27;&#x27;) = &#x27;true&#x27;) STORED
 );
 
 CREATE INDEX idx_promises_target ON promises(target);
@@ -404,6 +404,14 @@ FROM tasks_resumed tr
 JOIN tasks t ON t.id = tr.id
 JOIN promises p ON p.id = t.id;
 </code></pre>
+<h3>Row-Level Locking (FOR UPDATE)</h3>
+<p>PostgreSQL uses <code>SELECT ... FOR UPDATE</code> to lock tasks during acquisition, preventing concurrent workers from acquiring the same task:</p>
+<pre><code class="language-sql">-- Acquire: lock the task row, bump version, set timeout
+UPDATE tasks SET state = &#x27;acquired&#x27;, version = version + 1
+WHERE id = $1 AND state = &#x27;pending&#x27; AND version = $2
+RETURNING *;
+</code></pre>
+<p>The version check acts as an optimistic lock — if another worker already bumped the version, the UPDATE returns zero rows and acquisition fails.</p>
 <h3>Serialization Conflict Retry</h3>
 <pre><code class="language-rust">const MAX_RETRIES: u32 = 3;
 

@@ -24,11 +24,8 @@ graph LR
 ```rust
 #[resonate_sdk::function]
 async fn order_saga(ctx: &Context, order: Order) -> Result<Receipt> {
-    let mut compensations: Vec<Box<dyn Fn(&Context) -> _>> = vec![];
-    
     // Step 1: Reserve inventory
     let reservation = ctx.run(reserve_inventory, order.items.clone()).await?;
-    compensations.push(Box::new(|ctx| ctx.run(release_inventory, reservation.id)));
     
     // Step 2: Charge payment
     let charge = match ctx.run(charge_card, order.payment.clone()).await {
@@ -39,7 +36,6 @@ async fn order_saga(ctx: &Context, order: Order) -> Result<Receipt> {
             return Err(e);
         }
     };
-    compensations.push(Box::new(|ctx| ctx.run(refund_charge, charge.id)));
     
     // Step 3: Create shipment
     let shipment = match ctx.run(create_shipment, order.address.clone()).await {

@@ -132,7 +132,7 @@
   <article class="prose">
 <h1>Resonate -- Server Internals</h1>
 <h2>Overview</h2>
-<p>The Resonate server is a single Rust binary (~22 source files) that provides a durable promise engine with HTTP API, multi-backend persistence, and pluggable transport delivery. Built on tokio + axum, it handles concurrent requests while running background processing loops for timeouts, message delivery, and scheduled work.</p>
+<p>The Resonate server is a single Rust binary (~27 source files) that provides a durable promise engine with HTTP API, multi-backend persistence, and pluggable transport delivery. Built on tokio + axum, it handles concurrent requests while running background processing loops for timeouts, message delivery, and scheduled work.</p>
 <h2>Entry Point</h2>
 <p><code>src/main.rs</code> bootstraps the server:</p>
 <pre><code class="language-rust">// Simplified startup sequence
@@ -190,7 +190,7 @@ stateDiagram-v2
 
 </div>
 <h3>State Transitions Summary</h3>
-<table><tr><th>Operation</th><th>From State</th><th>To State</th><th>Side Effects</th></tr><tr><td>promise.create</td><td>—</td><td>pending</td><td>Create timeout, optional task</td></tr><tr><td>promise.settle</td><td>pending</td><td>resolved/rejected</td><td>Fire callbacks, notify listeners</td></tr><tr><td>task.acquire</td><td>pending</td><td>acquired</td><td>Set lease timeout, bump version</td></tr><tr><td>task.release</td><td>acquired</td><td>pending</td><td>Set retry timeout</td></tr><tr><td>task.suspend</td><td>acquired</td><td>suspended</td><td>Register callbacks on awaited promises</td></tr><tr><td>task.fulfill</td><td>acquired</td><td>fulfilled</td><td>Settle associated promise</td></tr><tr><td>task.halt</td><td>acquired/suspended</td><td>halted</td><td>Cancel associated promise</td></tr></table>
+<table><tr><th>Operation</th><th>From State</th><th>To State</th><th>Side Effects</th></tr><tr><td>promise.create</td><td>—</td><td>pending</td><td>Create timeout, optional task (via task.create)</td></tr><tr><td>promise.settle</td><td>pending</td><td>resolved/rejected</td><td>Fire callbacks, notify listeners</td></tr><tr><td>task.acquire</td><td>pending</td><td>acquired</td><td>Set lease timeout, bump version</td></tr><tr><td>task.release</td><td>acquired</td><td>pending</td><td>Set retry timeout</td></tr><tr><td>task.suspend</td><td>acquired</td><td>suspended</td><td>Register callback actions on awaited promises</td></tr><tr><td>task.fulfill</td><td>acquired</td><td>fulfilled</td><td>Settle associated promise</td></tr><tr><td>task.halt</td><td>acquired/suspended</td><td>halted</td><td>Cancel associated promise</td></tr><tr><td>task.fence</td><td>acquired</td><td>acquired</td><td>Version-checked sub-ops (promise.create/settle)</td></tr><tr><td>task.continue</td><td>halted</td><td>pending</td><td>Re-enable halted task for execution</td></tr></table>
 <h2>HTTP API</h2>
 <p><code>src/server.rs</code> implements the Axum HTTP handler.</p>
 <h3>Endpoints</h3>
@@ -219,44 +219,80 @@ stateDiagram-v2
 }
 </code></pre>
 <h3>Key Operation Handlers</h3>
-<p><strong>promise.create</strong> — Creates a promise and optionally a task for execution:</p>
-<pre><code class="language-rust">// If tags contain &quot;resonate:invoke&quot;, create task alongside promise
-// Task address comes from &quot;resonate:target&quot; tag or registered listener
+<p><strong>promise.create</strong> — Creates a promise; a separate task is created if the request includes an action with <code>resonate:target</code> tag:</p>
+<pre><code class="language-rust">// Task creation is a separate operation from promise creation
+// When the client sends a task.create alongside promise.create,
+// the task has an action with PromiseCreateData and a resonate:target tag
 async fn op_promise_create(server: &amp;Server, data: &amp;Value) -&gt; ResponseEnvelope {
     let id = data[&quot;id&quot;].as_str()?;
     let timeout = data[&quot;timeout&quot;].as_i64()?;
     let param = &amp;data[&quot;param&quot;];
     let tags = &amp;data[&quot;tags&quot;];
     
-    let result = server.storage.promise_create(id, timeout, param, tags).await?;
-    // If new promise created AND has invoke tag → create task
-    if result.was_created &amp;&amp; has_invoke_tag(tags) {
-        server.storage.task_create(id, address).await?;
-    }
+    server.storage.promise_create(id, timeout, param, tags).await?;
+    // Task is created separately via task.create operation
+    // when the envelope includes a task action with resonate:target
     
     ResponseEnvelope::new(result.status, result.promise)
 }
 </code></pre>
-<p><strong>task.suspend</strong> — Registers callbacks on awaited promises:</p>
+<p><strong>task.suspend</strong> — Registers callback actions on awaited promises:</p>
 <pre><code class="language-rust">async fn op_task_suspend(server: &amp;Server, data: &amp;Value) -&gt; ResponseEnvelope {
     let id = data[&quot;id&quot;].as_str()?;
     let version = data[&quot;version&quot;].as_i64()?;
-    let awaited: Vec&lt;String&gt; = data[&quot;awaited&quot;].as_array()?;
+    // actions: Vec&lt;TaskSuspendAction&gt; — each action contains:
+    //   { kind: &quot;promise.register_callback&quot;, head: {...}, data: { awaited, awaiter, ready } }
+    let actions: Vec&lt;TaskSuspendAction&gt; = data[&quot;actions&quot;].as_array()?;
     
     // Validate: all awaited promises must exist
     // Validate: awaiter != awaited (no self-suspension)
-    // Register callback: when awaited settles, check if all callbacks ready
-    server.storage.task_suspend(id, version, &amp;awaited).await?;
+    // Validate: all action awaiter IDs must match the task ID
+    // Register callback for each action
+    server.storage.task_suspend(id, version, &amp;actions).await?;
 }
+</code></pre>
+<p><strong>task.fence</strong> — Version-checked sub-operations within a task execution. Allows a worker to perform promise.create/promise.settle operations that are tied to the parent task's version. If the task version changes (e.g., crash recovery), fence operations are invalidated:</p>
+<pre><code class="language-rust">async fn op_task_fence(server: &amp;Server, data: &amp;Value) -&gt; ResponseEnvelope {
+    let id = data[&quot;id&quot;].as_str()?;
+    let version = data[&quot;version&quot;].as_i64()?;
+    let actions: Vec&lt;TaskFenceAction&gt; = data[&quot;actions&quot;].as_array()?;
+    
+    // Validate task exists and version matches
+    // Execute each fence action atomically:
+    //   - promise.create: create child promise + task
+    //   - promise.settle: settle a child promise
+    // All within a single transaction
+    server.storage.task_fence(id, version, &amp;actions).await?;
+}
+</code></pre>
+<p><strong>task.continue</strong> — Resumes a halted task, transitioning it back to pending for re-execution:</p>
+<pre><code class="language-rust">async fn op_task_continue(server: &amp;Server, data: &amp;Value) -&gt; ResponseEnvelope {
+    let id = data[&quot;id&quot;].as_str()?;
+    let version = data[&quot;version&quot;].as_i64()?;
+    
+    // Only halted tasks can be continued
+    // Transitions: halted → pending, bumps version
+    server.storage.task_continue(id, version).await?;
+}
+</code></pre>
+<p><strong>task.suspend (immediate resume)</strong> — When a task suspends with no awaited promises (empty actions), the server returns status 300 with preloaded resolved promises, allowing the worker to continue immediately without a round-trip:</p>
+<pre><code class="language-">Worker → task.suspend { id: &quot;job.1&quot;, actions: [] }
+Server → 300: task resumed immediately with preload
 </code></pre>
 <h2>Configuration</h2>
 <p><code>src/config.rs</code> uses Figment for hierarchical config:</p>
 <pre><code class="language-toml"># resonate.toml
+
+level = &quot;info&quot;          # Log level: debug, info, warn, error
+debug = false           # Enable debug mode
+
 [server]
 host = &quot;0.0.0.0&quot;
 port = 8001
-shutdown_timeout = &quot;30s&quot;
-cors_origins = [&quot;*&quot;]
+shutdown_timeout = &quot;10s&quot;  # Graceful shutdown timeout (ms)
+
+[server.cors]
+allow_origins = [&quot;*&quot;]
 
 [storage]
 type = &quot;sqlite&quot;         # sqlite | postgres | mysql
@@ -310,7 +346,9 @@ root_dir = &quot;/opt/resonate/scripts&quot;
 metrics_port = 9090
 </code></pre>
 <h3>Environment Variable Mapping</h3>
-<pre><code class="language-bash">RESONATE_SERVER__PORT=9001
+<pre><code class="language-bash">RESONATE_LEVEL=debug
+RESONATE_DEBUG=true
+RESONATE_SERVER__PORT=9001
 RESONATE_STORAGE__TYPE=postgres
 RESONATE_STORAGE__POSTGRES__URL=postgres://...
 RESONATE_TRANSPORTS__HTTP_PUSH__AUTH__MODE=gcp
@@ -340,7 +378,7 @@ RESONATE_AUTH__PUBLICKEY=/etc/resonate/key.pem
 <p><code>src/util.rs</code> provides:</p>
 <ul><li><strong>Monotonic time:</strong> <code>system_time_ms()</code> guarantees time never goes backward (uses AtomicI64 high-water mark)</li><li><strong>Cron parsing:</strong> Normalizes 5-field cron to 6-field, computes next occurrence</li><li><strong>Duration parsing:</strong> Converts "1h30m" strings to milliseconds for CLI</li></ul>
 <h2>Source Paths</h2>
-<table><tr><th>File</th><th>Lines</th><th>Purpose</th></tr><tr><td>`src/main.rs`</td><td>~400</td><td>Entry point, startup, CLI dispatch</td></tr><tr><td>`src/server.rs`</td><td>~1200</td><td>HTTP handler, all 30 operation handlers</td></tr><tr><td>`src/oracle.rs`</td><td>~800</td><td>In-memory state machine (testing)</td></tr><tr><td>`src/types.rs`</td><td>~300</td><td>Protocol types, validation</td></tr><tr><td>`src/config.rs`</td><td>~200</td><td>Configuration structs</td></tr><tr><td>`src/cli.rs`</td><td>~2000</td><td>CLI commands and tests</td></tr><tr><td>`src/auth.rs`</td><td>~250</td><td>JWT verification, prefix auth</td></tr><tr><td>`src/metrics.rs`</td><td>~80</td><td>Prometheus metric definitions</td></tr><tr><td>`src/util.rs`</td><td>~100</td><td>Time, cron, duration utilities</td></tr></table>
+<table><tr><th>File</th><th>Lines</th><th>Purpose</th></tr><tr><td>`src/main.rs`</td><td>~400</td><td>Entry point, startup, CLI dispatch</td></tr><tr><td>`src/server.rs`</td><td>~2600</td><td>HTTP handler, all 26 operation handlers</td></tr><tr><td>`src/oracle.rs`</td><td>~800</td><td>In-memory state machine (testing)</td></tr><tr><td>`src/types.rs`</td><td>~736</td><td>Protocol types, validation</td></tr><tr><td>`src/config.rs`</td><td>~602</td><td>Configuration structs (Figment)</td></tr><tr><td>`src/cli.rs`</td><td>~2000</td><td>CLI commands and tests</td></tr><tr><td>`src/auth.rs`</td><td>~250</td><td>JWT verification, prefix auth</td></tr><tr><td>`src/metrics.rs`</td><td>~80</td><td>Prometheus metric definitions</td></tr><tr><td>`src/util.rs`</td><td>~100</td><td>Time, cron, duration utilities</td></tr></table>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

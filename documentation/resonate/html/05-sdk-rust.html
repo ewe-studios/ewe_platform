@@ -182,6 +182,20 @@ async fn process_order(ctx: &amp;Context, order: Order) -&gt; Result&lt;Receipt&
 <p>The <code>#[resonate_sdk::function]</code> macro detects the function kind from the first parameter:</p>
 <table><tr><th>First Parameter</th><th>Kind</th><th>Capability</th></tr><tr><td>`&Context`</td><td>Workflow</td><td>Can orchestrate sub-tasks via `ctx.run()`, `ctx.rpc()`, `ctx.sleep()`</td></tr><tr><td>`&Info`</td><td>Leaf with metadata</td><td>Read-only access to execution metadata (ID, tags)</td></tr><tr><td>*(anything else)*</td><td>Pure leaf</td><td>Stateless computation, no Context needed</td></tr></table>
 <p>The macro generates a <code>Durable</code> trait implementation that wraps the function for type-erased registration.</p>
+<h3>The Info Struct</h3>
+<p>Functions that take <code>&Info</code> instead of <code>&Context</code> get read-only access to execution metadata without orchestration capabilities:</p>
+<pre><code class="language-rust">#[resonate_sdk::function]
+fn leaf_with_info(info: &amp;Info, data: Input) -&gt; Result&lt;Output&gt; {
+    let task_id = info.id();           // Current task/promise ID
+    let tags = info.tags();            // Tags from the promise
+    let attempt = info.attempt();      // Retry attempt number
+    let created_at = info.created_at(); // When this promise was created
+    
+    // Pure computation — no durable operations available
+    process(data, tags)
+}
+</code></pre>
+<table><tr><th>Method</th><th>Returns</th></tr><tr><td>`id()`</td><td>Task/promise ID</td></tr><tr><td>`tags()`</td><td>Promise tags map</td></tr><tr><td>`attempt()`</td><td>Current retry attempt</td></tr><tr><td>`created_at()`</td><td>Creation timestamp</td></tr></table>
 <h2>Context API (Durable World)</h2>
 <h3>Sequential Execution</h3>
 <pre><code class="language-rust">#[resonate_sdk::function]

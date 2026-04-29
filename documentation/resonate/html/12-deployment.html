@@ -198,8 +198,10 @@ CMD [&quot;resonate&quot;, &quot;serve&quot;]
 host = &quot;0.0.0.0&quot;
 port = 8001
 url = &quot;https://resonate.mycompany.com&quot;  # Public URL for callbacks
-shutdown_timeout = &quot;30s&quot;
-cors_origins = [&quot;https://app.mycompany.com&quot;]
+shutdown_timeout = &quot;10s&quot;
+
+[server.cors]
+allow_origins = [&quot;https://app.mycompany.com&quot;]
 
 [storage]
 type = &quot;postgres&quot;
@@ -237,6 +239,7 @@ buffer_size = 100
 
 [observability]
 metrics_port = 9090
+# otlp_endpoint = &quot;http://localhost:4317&quot;  # Future OTLP export
 </code></pre>
 <h3>Environment Variable Override</h3>
 <p>Every config field maps to an environment variable:</p>

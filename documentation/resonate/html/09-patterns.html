@@ -149,11 +149,8 @@ graph LR
 <h3>Implementation (Rust)</h3>
 <pre><code class="language-rust">#[resonate_sdk::function]
 async fn order_saga(ctx: &amp;Context, order: Order) -&gt; Result&lt;Receipt&gt; {
-    let mut compensations: Vec&lt;Box&lt;dyn Fn(&amp;Context) -&gt; _&gt;&gt; = vec![];
-    
     // Step 1: Reserve inventory
     let reservation = ctx.run(reserve_inventory, order.items.clone()).await?;
-    compensations.push(Box::new(|ctx| ctx.run(release_inventory, reservation.id)));
     
     // Step 2: Charge payment
     let charge = match ctx.run(charge_card, order.payment.clone()).await {
@@ -164,7 +161,6 @@ async fn order_saga(ctx: &amp;Context, order: Order) -&gt; Result&lt;Receipt&gt;
             return Err(e);
         }
     };
-    compensations.push(Box::new(|ctx| ctx.run(refund_charge, charge.id)));
     
     // Step 3: Create shipment
     let shipment = match ctx.run(create_shipment, order.address.clone()).await {

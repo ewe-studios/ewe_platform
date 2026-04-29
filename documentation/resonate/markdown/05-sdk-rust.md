@@ -72,6 +72,30 @@ The `#[resonate_sdk::function]` macro detects the function kind from the first p
 
 The macro generates a `Durable` trait implementation that wraps the function for type-erased registration.
 
+### The Info Struct
+
+Functions that take `&Info` instead of `&Context` get read-only access to execution metadata without orchestration capabilities:
+
+```rust
+#[resonate_sdk::function]
+fn leaf_with_info(info: &Info, data: Input) -> Result<Output> {
+    let task_id = info.id();           // Current task/promise ID
+    let tags = info.tags();            // Tags from the promise
+    let attempt = info.attempt();      // Retry attempt number
+    let created_at = info.created_at(); // When this promise was created
+    
+    // Pure computation — no durable operations available
+    process(data, tags)
+}
+```
+
+| Method | Returns |
+|--------|---------|
+| `id()` | Task/promise ID |
+| `tags()` | Promise tags map |
+| `attempt()` | Current retry attempt |
+| `created_at()` | Creation timestamp |
+
 ## Context API (Durable World)
 
 ### Sequential Execution
