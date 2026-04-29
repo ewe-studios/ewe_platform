@@ -1,5 +1,5 @@
 //! Stub: `unevaluatedProperties` — validates non-evaluated properties.
-//! Requires SchemaNode (Feature 3).
+//! Requires `SchemaNode` (Feature 3).
 
 use alloc::boxed::Box;
 

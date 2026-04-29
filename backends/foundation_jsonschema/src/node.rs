@@ -1,6 +1,6 @@
-//! SchemaNode — compiled representation of a single schema.
+//! `SchemaNode` — compiled representation of a single schema.
 //!
-//! WHY: After compilation, validation operates on SchemaNode trees rather
+//! WHY: After compilation, validation operates on `SchemaNode` trees rather
 //! than raw JSON. This separates the cost of schema analysis from validation.
 
 use alloc::boxed::Box;
@@ -15,16 +15,18 @@ use serde_json::Value;
 
 /// A compiled schema node — the fundamental unit of the validator tree.
 ///
-/// WHY: After compilation, validation operates on SchemaNode trees rather
+/// WHY: After compilation, validation operates on `SchemaNode` trees rather
 /// than raw JSON. This separates the cost of schema analysis from validation.
 pub enum SchemaNode {
     /// Schema is boolean `true` — validates everything.
     AlwaysValid,
     /// Schema is boolean `false` — validates nothing.
+    #[allow(dead_code)]
     AlwaysInvalid { schema_path: Location },
     /// Schema with one or more keyword validators.
     Validators {
         validators: Vec<BoxedValidator>,
+        #[allow(dead_code)]
         schema_path: Location,
     },
 }
@@ -50,7 +52,7 @@ impl SchemaNode {
     ) -> Result<(), ValidationError> {
         match self {
             Self::AlwaysValid => Ok(()),
-            Self::AlwaysInvalid { schema_path } => Err(
+            Self::AlwaysInvalid { schema_path: _ } => Err(
                 crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
             ),
             Self::Validators { validators, .. } => {
@@ -71,7 +73,7 @@ impl SchemaNode {
     ) -> ErrorIterator {
         match self {
             Self::AlwaysValid => Box::new(core::iter::empty()),
-            Self::AlwaysInvalid { schema_path } => {
+            Self::AlwaysInvalid { schema_path: _ } => {
                 Box::new(core::iter::once(
                     crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
                 ))

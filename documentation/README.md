@@ -44,3 +44,5 @@ The build script:
 |------|-------|
 | [aws-lc-sys-linker-fix.md](./aws-lc-sys-linker-fix.md) | AWS-LC linker fix for OpenSSL migration |
 | [mtls-fundamentals.md](./mtls-fundamentals.md) | mTLS fundamentals and implementation |
+| [fuzz-testing-rust/markdown/00-overview.md](./fuzz-testing-rust/markdown/00-overview.md) | Fuzz testing in Rust — from setup to advanced techniques |
+| [property-based-testing-rust/markdown/00-overview.md](./property-based-testing-rust/markdown/00-overview.md) | Property-based testing in Rust — from setup to advanced techniques |

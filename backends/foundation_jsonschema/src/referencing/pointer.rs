@@ -68,12 +68,12 @@ pub fn resolve_pointer<'a>(document: &'a Value, pointer: &str) -> Result<&'a Val
         current = match current {
             Value::Object(map) => map.get(decoded.as_ref()).ok_or_else(|| PointerError {
                 pointer: original_pointer.into(),
-                reason: alloc::format!("key '{}' not found", decoded),
+                reason: alloc::format!("key '{decoded}' not found"),
             })?,
             Value::Array(arr) => {
                 let idx = parse_index(&decoded).ok_or_else(|| PointerError {
                     pointer: original_pointer.into(),
-                    reason: alloc::format!("invalid array index '{}'", decoded),
+                    reason: alloc::format!("invalid array index '{decoded}'"),
                 })?;
                 arr.get(idx).ok_or_else(|| PointerError {
                     pointer: original_pointer.into(),

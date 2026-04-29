@@ -59,9 +59,9 @@ pub(crate) mod enum_;
 ///
 /// WHY: Each JSON Schema keyword defines a constraint on the instance.
 /// The Validate trait provides three levels of validation output:
-/// - is_valid: fast boolean (no error details, no allocation)
+/// - `is_valid`: fast boolean (no error details, no allocation)
 /// - validate: first error only (early exit on first failure)
-/// - iter_errors: all errors (for comprehensive reporting)
+/// - `iter_errors`: all errors (for comprehensive reporting)
 ///
 /// WHAT: A trait with three methods covering all validation output modes.
 ///
@@ -92,66 +92,104 @@ pub trait Validate: Send + Sync {
 pub type BoxedValidator = Box<dyn Validate>;
 
 /// Enum of all recognized JSON Schema keywords for lookup during compilation.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BuiltinKeyword {
-    // Type
+    /// `type` keyword.
     Type,
+    /// `const` keyword.
     Const,
+    /// `enum` keyword.
     Enum,
-    // Logical
+    /// `allOf` keyword.
     AllOf,
+    /// `anyOf` keyword.
     AnyOf,
+    /// `oneOf` keyword.
     OneOf,
+    /// `not` keyword.
     Not,
+    /// `if` keyword.
     If,
+    /// `then` keyword.
     Then,
+    /// `else` keyword.
     Else,
-    // Reference
+    /// `$ref` keyword.
     Ref,
+    /// `$dynamicRef` keyword.
     DynamicRef,
+    /// `$recursiveRef` keyword.
     RecursiveRef,
-    // Object
+    /// `properties` keyword.
     Properties,
+    /// `required` keyword.
     Required,
+    /// `additionalProperties` keyword.
     AdditionalProperties,
+    /// `patternProperties` keyword.
     PatternProperties,
+    /// `propertyNames` keyword.
     PropertyNames,
+    /// `minProperties` keyword.
     MinProperties,
+    /// `maxProperties` keyword.
     MaxProperties,
+    /// `dependentRequired` keyword.
     DependentRequired,
+    /// `dependentSchemas` keyword.
     DependentSchemas,
+    /// `unevaluatedProperties` keyword.
     UnevaluatedProperties,
+    /// `dependencies` keyword.
     Dependencies,
-    // Array
+    /// `items` keyword.
     Items,
+    /// `additionalItems` keyword.
     AdditionalItems,
+    /// `prefixItems` keyword.
     PrefixItems,
+    /// `contains` keyword.
     Contains,
+    /// `minItems` keyword.
     MinItems,
+    /// `maxItems` keyword.
     MaxItems,
+    /// `uniqueItems` keyword.
     UniqueItems,
+    /// `unevaluatedItems` keyword.
     UnevaluatedItems,
-    // String
+    /// `minLength` keyword.
     MinLength,
+    /// `maxLength` keyword.
     MaxLength,
+    /// `pattern` keyword.
     Pattern,
+    /// `format` keyword.
     Format,
-    // Number
+    /// `minimum` keyword.
     Minimum,
+    /// `maximum` keyword.
     Maximum,
+    /// `exclusiveMinimum` keyword.
     ExclusiveMinimum,
+    /// `exclusiveMaximum` keyword.
     ExclusiveMaximum,
+    /// `multipleOf` keyword.
     MultipleOf,
-    // Content
+    /// `contentEncoding` keyword.
     ContentEncoding,
+    /// `contentMediaType` keyword.
     ContentMediaType,
+    /// `contentSchema` keyword.
     ContentSchema,
 }
 
+#[allow(dead_code)]
 impl BuiltinKeyword {
     /// Returns the keyword name as a string.
     #[must_use]
-    pub const fn as_str(&self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Type => "type",
             Self::Const => "const",
@@ -201,10 +239,8 @@ impl BuiltinKeyword {
     }
 
     /// Parse a keyword name into a `BuiltinKeyword`.
-    ///
-    /// WHY: The compiler needs to match schema object keys against known keywords.
     #[must_use]
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn from_keyword_name(s: &str) -> Option<Self> {
         Some(match s {
             "type" => Self::Type,
             "const" => Self::Const,
@@ -256,5 +292,4 @@ impl BuiltinKeyword {
 }
 
 // Re-export ValidationContext from the validation_context module.
-// This allows keyword validators to use it without a circular import.
 pub use crate::validation_context::ValidationContext;

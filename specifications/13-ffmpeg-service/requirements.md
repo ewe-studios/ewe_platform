@@ -1,6 +1,6 @@
 ---
 description: "Rust ffmpeg-based opus audio converter: library crate, CLI binary, and AWS Lambda worker with pluggable FileStore backends"
-status: "in-progress"
+status: "unapproved"
 priority: "high"
 created: 2026-04-10
 author: "Ewetumo Alexander"
@@ -39,23 +39,23 @@ features:
 Build a Rust workspace that uses `ffmpeg-sys-next` to convert opus audio files into selectable output formats (WAV, MP4, etc.).  
 The system is composed of three crates:
 
-| Crate | Path | Role |
-|---|---|---|
+| Crate              | Path                        | Role                                                               |
+| ------------------ | --------------------------- | ------------------------------------------------------------------ |
 | `ffmpeg-converter` | `packages/ffmpeg-converter` | Core library: `FileStore` trait, `OpusConverter`, `ConversionEnum` |
-| `converter` | `bin/converter` | CLI binary (clap) |
-| `lambda_worker` | `bin/lambda_worker` | AWS Lambda binary |
+| `converter`        | `bin/converter`             | CLI binary (clap)                                                  |
+| `lambda_worker`    | `bin/lambda_worker`         | AWS Lambda binary                                                  |
 
 ---
 
 ## Feature Index
 
-| # | Name | Description | Status |
-|---|---|---|---|
-| 00 | library-implementation | `FileStore` trait + `OpusConverter` + upload support in `packages/ffmpeg-converter` | ⬜ pending |
-| 01 | library-tests | Integration and unit tests for `packages/ffmpeg-converter` | ⬜ pending |
-| 02 | cli-binary | `bin/converter` CLI with clap: input path, `--format` flag, runs `OpusConverter` | ⬜ pending |
-| 03 | lambda-worker | `bin/lambda_worker` AWS Lambda: parses event, resolves `FileStore` from URL scheme, converts, delivers to SQS | ⬜ pending |
-| 05 | slack-alerter | `packages/slack-alerter` library: `SlackAlerter::send_alert(message, payload)` for reporting failures to Slack | ⬜ pending |
+| #   | Name                   | Description                                                                                                    | Status     |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
+| 00  | library-implementation | `FileStore` trait + `OpusConverter` + upload support in `packages/ffmpeg-converter`                            | ⬜ pending |
+| 01  | library-tests          | Integration and unit tests for `packages/ffmpeg-converter`                                                     | ⬜ pending |
+| 02  | cli-binary             | `bin/converter` CLI with clap: input path, `--format` flag, runs `OpusConverter`                               | ⬜ pending |
+| 03  | lambda-worker          | `bin/lambda_worker` AWS Lambda: parses event, resolves `FileStore` from URL scheme, converts, delivers to SQS  | ⬜ pending |
+| 05  | slack-alerter          | `packages/slack-alerter` library: `SlackAlerter::send_alert(message, payload)` for reporting failures to Slack | ⬜ pending |
 
 ---
 

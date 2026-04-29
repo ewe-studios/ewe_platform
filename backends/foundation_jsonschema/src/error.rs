@@ -9,7 +9,7 @@
 //!
 //! HOW: Errors are created via `ValidationErrorBuilder` which attaches instance
 //! and schema paths as opaque attachments. Display is provided by the
-//! ValidationErrorKind's Display impl.
+//! `ValidationErrorKind`'s Display impl.
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -37,7 +37,7 @@ pub type ErrorIterator = Box<dyn Iterator<Item = ValidationError>>;
 /// WHAT: A flat enum with one variant per validation failure type.
 ///
 /// HOW: Created during validation. Paths are attached as opaque attachments
-/// in the ErrorTrace wrapper, not stored here — this keeps the context
+/// in the `ErrorTrace` wrapper, not stored here — this keeps the context
 /// type minimal for pattern matching.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq)]
@@ -110,153 +110,42 @@ pub enum ValidationErrorKind {
 impl core::fmt::Display for ValidationErrorKind {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::InvalidType { expected, actual } => {
-                write!(f, "value is not of type(s) {expected}, got {actual}")
-            }
-            Self::InvalidConst { expected } => {
-                write!(f, "value does not match constant {expected}")
-            }
-            Self::InvalidEnum { options } => {
-                write!(f, "value is not one of the allowed options: {options:?}")
-            }
-            Self::MinLength { min, actual } => {
-                write!(
-                    f,
-                    "string is too short (length {actual}, minimum {min})"
-                )
-            }
-            Self::MaxLength { max, actual } => {
-                write!(
-                    f,
-                    "string is too long (length {actual}, maximum {max})"
-                )
-            }
-            Self::Pattern { pattern } => {
-                write!(f, "string does not match pattern '{pattern}'")
-            }
-            Self::Format { format } => {
-                write!(f, "value does not match format '{format}'")
-            }
-            Self::Minimum {
-                limit,
-                actual,
-                exclusive,
-            } => {
-                if *exclusive {
-                    write!(f, "value {actual} is less than or equal to minimum {limit}")
-                } else {
-                    write!(f, "value {actual} is less than minimum {limit}")
-                }
-            }
-            Self::Maximum {
-                limit,
-                actual,
-                exclusive,
-            } => {
-                if *exclusive {
-                    write!(f, "value {actual} is greater than or equal to maximum {limit}")
-                } else {
-                    write!(f, "value {actual} is greater than maximum {limit}")
-                }
-            }
-            Self::MultipleOf { multiple, actual } => {
-                write!(f, "value {actual} is not a multiple of {multiple}")
-            }
-            Self::Required { property } => {
-                write!(f, "'{property}' is a required property")
-            }
-            Self::MinProperties { min, actual } => {
-                write!(
-                    f,
-                    "object has too few properties (count {actual}, minimum {min})"
-                )
-            }
-            Self::MaxProperties { max, actual } => {
-                write!(
-                    f,
-                    "object has too many properties (count {actual}, maximum {max})"
-                )
-            }
-            Self::AdditionalProperties { unexpected } => {
-                write!(
-                    f,
-                    "additional properties are not allowed: {}",
-                    unexpected.join(", ")
-                )
-            }
-            Self::PropertyNames { invalid_name } => {
-                write!(f, "property name '{invalid_name}' is invalid")
-            }
-            Self::MinItems { min, actual } => {
-                write!(
-                    f,
-                    "array has too few items (count {actual}, minimum {min})"
-                )
-            }
-            Self::MaxItems { max, actual } => {
-                write!(
-                    f,
-                    "array has too many items (count {actual}, maximum {max})"
-                )
-            }
-            Self::UniqueItems { first, second } => {
-                write!(
-                    f,
-                    "array items at indices {first} and {second} are not unique"
-                )
-            }
+            Self::InvalidType { expected, actual } => write!(f, "value is not of type(s) {expected}, got {actual}"),
+            Self::InvalidConst { expected } => write!(f, "value does not match constant {expected}"),
+            Self::InvalidEnum { options } => write!(f, "value is not one of the allowed options: {options:?}"),
+            Self::MinLength { min, actual } => write!(f, "string is too short (length {actual}, minimum {min})"),
+            Self::MaxLength { max, actual } => write!(f, "string is too long (length {actual}, maximum {max})"),
+            Self::Pattern { pattern } => write!(f, "string does not match pattern '{pattern}'"),
+            Self::Format { format } => write!(f, "value does not match format '{format}'"),
+            Self::Minimum { limit, actual, exclusive: true } => write!(f, "value {actual} is less than or equal to minimum {limit}"),
+            Self::Minimum { limit, actual, exclusive: false } => write!(f, "value {actual} is less than minimum {limit}"),
+            Self::Maximum { limit, actual, exclusive: true } => write!(f, "value {actual} is greater than or equal to maximum {limit}"),
+            Self::Maximum { limit, actual, exclusive: false } => write!(f, "value {actual} is greater than maximum {limit}"),
+            Self::MultipleOf { multiple, actual } => write!(f, "value {actual} is not a multiple of {multiple}"),
+            Self::Required { property } => write!(f, "'{property}' is a required property"),
+            Self::MinProperties { min, actual } => write!(f, "object has too few properties (count {actual}, minimum {min})"),
+            Self::MaxProperties { max, actual } => write!(f, "object has too many properties (count {actual}, maximum {max})"),
+            Self::AdditionalProperties { unexpected } => write!(f, "additional properties are not allowed: {}", unexpected.join(", ")),
+            Self::PropertyNames { invalid_name } => write!(f, "property name '{invalid_name}' is invalid"),
+            Self::MinItems { min, actual } => write!(f, "array has too few items (count {actual}, minimum {min})"),
+            Self::MaxItems { max, actual } => write!(f, "array has too many items (count {actual}, maximum {max})"),
+            Self::UniqueItems { first, second } => write!(f, "array items at indices {first} and {second} are not unique"),
             Self::Contains => write!(f, "array does not contain any matching item"),
-            Self::MinContains { min, actual } => {
-                write!(
-                    f,
-                    "array contains too few matching items (count {actual}, minimum {min})"
-                )
-            }
-            Self::MaxContains { max, actual } => {
-                write!(
-                    f,
-                    "array contains too many matching items (count {actual}, maximum {max})"
-                )
-            }
-            Self::AdditionalItems { limit } => {
-                write!(f, "array has additional items beyond index {limit}")
-            }
+            Self::MinContains { min, actual } => write!(f, "array contains too few matching items (count {actual}, minimum {min})"),
+            Self::MaxContains { max, actual } => write!(f, "array contains too many matching items (count {actual}, maximum {max})"),
+            Self::AdditionalItems { limit } => write!(f, "array has additional items beyond index {limit}"),
             Self::Not => write!(f, "value matches the 'not' schema"),
             Self::AnyOf => write!(f, "value does not match any of the 'anyOf' schemas"),
-            Self::OneOfNotValid => {
-                write!(f, "value does not match exactly one of the 'oneOf' schemas")
-            }
-            Self::OneOfMultipleValid => {
-                write!(f, "value matches more than one of the 'oneOf' schemas")
-            }
+            Self::OneOfNotValid => write!(f, "value does not match exactly one of the 'oneOf' schemas"),
+            Self::OneOfMultipleValid => write!(f, "value matches more than one of the 'oneOf' schemas"),
             Self::IfThenElse => write!(f, "conditional validation failed (if/then/else)"),
-            Self::RefNotFound { reference } => {
-                write!(f, "reference '{reference}' could not be resolved")
-            }
-            Self::ContentEncoding { encoding } => {
-                write!(f, "content encoding '{encoding}' is invalid")
-            }
-            Self::ContentMediaType { media_type } => {
-                write!(f, "content media type '{media_type}' is invalid")
-            }
+            Self::RefNotFound { reference } => write!(f, "reference '{reference}' could not be resolved"),
+            Self::ContentEncoding { encoding } => write!(f, "content encoding '{encoding}' is invalid"),
+            Self::ContentMediaType { media_type } => write!(f, "content media type '{media_type}' is invalid"),
             Self::FalseSchema => write!(f, "false schema always fails validation"),
-            Self::UnevaluatedProperties { properties } => {
-                write!(
-                    f,
-                    "unevaluated properties: {}",
-                    properties.join(", ")
-                )
-            }
-            Self::UnevaluatedItems { index } => {
-                write!(f, "unevaluated item at index {index}")
-            }
-            Self::DependentRequired { property, missing } => {
-                write!(
-                    f,
-                    "property '{property}' requires: {}",
-                    missing.join(", ")
-                )
-            }
+            Self::UnevaluatedProperties { properties } => write!(f, "unevaluated properties: {}", properties.join(", ")),
+            Self::UnevaluatedItems { index } => write!(f, "unevaluated item at index {index}"),
+            Self::DependentRequired { property, missing } => write!(f, "property '{property}' requires: {}", missing.join(", ")),
             Self::Schema { reason } => write!(f, "schema error: {reason}"),
             Self::Custom { message } => write!(f, "{message}"),
         }
@@ -307,12 +196,10 @@ impl ValidationErrorKind {
             Self::RefNotFound { .. } => Some("$ref"),
             Self::ContentEncoding { .. } => Some("contentEncoding"),
             Self::ContentMediaType { .. } => Some("contentMediaType"),
-            Self::FalseSchema { .. } => None, // boolean schema, not a keyword
             Self::UnevaluatedProperties { .. } => Some("unevaluatedProperties"),
             Self::UnevaluatedItems { .. } => Some("unevaluatedItems"),
             Self::DependentRequired { .. } => Some("dependentRequired"),
-            Self::Schema { .. } => None,
-            Self::Custom { .. } => None,
+            Self::FalseSchema { .. } | Self::Schema { .. } | Self::Custom { .. } => None,
         }
     }
 }
@@ -322,11 +209,11 @@ impl core::error::Error for ValidationErrorKind {}
 /// A validation error bundled with instance and schema paths.
 ///
 /// WHY: Programmatic access to the error kind and paths without parsing
-/// Display output or traversing ErrorTrace frames.
+/// Display output or traversing `ErrorTrace` frames.
 ///
 /// WHAT: A simple struct holding the error kind plus both paths.
 ///
-/// HOW: Created via `to_failure()` which extracts paths from ErrorTrace
+/// HOW: Created via `to_failure()` which extracts paths from `ErrorTrace`
 /// frames.
 #[derive(Debug, Clone)]
 pub struct ValidationFailure {
@@ -340,13 +227,13 @@ pub struct ValidationFailure {
 
 /// Builder for creating validation errors with path attachments.
 ///
-/// WHY: Every validation error needs instance_path and schema_path attached.
+/// WHY: Every validation error needs `instance_path` and `schema_path` attached.
 /// This builder provides a clean, ergonomic construction pattern that
 /// replaces the old `ValidationError::new()` constructor.
 ///
 /// WHAT: Collects paths then builds a `ValidationError` (`ErrorTrace`).
 ///
-/// HOW: `build()` wraps the kind in an ErrorTrace and attaches both paths
+/// HOW: `build()` wraps the kind in an `ErrorTrace` and attaches both paths
 /// as opaque attachments for programmatic extraction.
 pub struct ValidationErrorBuilder {
     instance_path: Location,
@@ -364,6 +251,7 @@ impl ValidationErrorBuilder {
     }
 
     /// Build a `ValidationError` from a kind, attaching paths.
+    #[must_use]
     pub fn build(self, kind: ValidationErrorKind) -> ValidationError {
         kind.into_error_trace()
             .attach_opaque(self.instance_path)
@@ -383,17 +271,18 @@ impl ValidationErrorBuilder {
 /// Build a `ValidationFailure` from a `ValidationError`.
 ///
 /// WHY: Provides programmatic access to the error kind and paths without
-/// traversing ErrorTrace frames manually.
+/// traversing `ErrorTrace` frames manually.
 ///
 /// WHAT: Returns `Some(ValidationFailure)` if both path attachments are
 /// present, `None` otherwise.
 ///
-/// HOW: Extracts the ValidationErrorKind context and the first two Location
-/// attachments (instance_path, schema_path) from ErrorTrace frames.
+/// HOW: Extracts the `ValidationErrorKind` context and the first two Location
+/// attachments (`instance_path`, `schema_path`) from `ErrorTrace` frames.
 ///
 /// # Panics
 ///
 /// Never panics.
+#[must_use]
 pub fn to_failure(error: &ValidationError) -> Option<ValidationFailure> {
     let kind = error.current_context().clone();
     let mut locations: Vec<&Location> = error

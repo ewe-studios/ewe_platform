@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup and Tooling -- fuzz-testing-rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/fuzz-testing-rust/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Fuzz Testing in Rust — Overview</a></span> <a href="00-overview.html">← Fuzz Testing in Rust — Overview</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Setup and Tooling</h1>
+<h2>Prerequisites</h2>
+<p>Fuzzing with libFuzzer requires the nightly Rust compiler because libFuzzer is not part of the standard library and needs unstable flags for instrumentation.</p>
+<pre><code class="language-bash"># Install the nightly toolchain
+rustup toolchain install nightly
+
+# Add the rust-src component (needed by cargo-fuzz)
+rustup component add rust-src --toolchain nightly
+</code></pre>
+<p>If your project uses a <code>rust-toolchain.toml</code> file, you can add nightly as an override or create a fuzz-specific toolchain file inside the <code>fuzz/</code> directory.</p>
+<h2>Installing cargo-fuzz</h2>
+<pre><code class="language-bash">cargo install cargo-fuzz
+</code></pre>
+<p>Verify the installation:</p>
+<pre><code class="language-bash">cargo fuzz --version
+</code></pre>
+<h2>Initializing a fuzz target in an existing crate</h2>
+<p>From your crate root (the directory containing <code>Cargo.toml</code>):</p>
+<pre><code class="language-bash">cargo fuzz init
+</code></pre>
+<p>This creates:</p>
+<pre><code class="language-">fuzz/
+├── Cargo.toml
+├── fuzz_targets/
+│   └── my_fuzz_target.rs
+└── corpus/
+    └── my_fuzz_target/
+</code></pre>
+<p>The <code>fuzz/Cargo.toml</code> will look like:</p>
+<pre><code class="language-toml">[package]
+name = &quot;my_crate-fuzz&quot;
+version = &quot;0.0.0&quot;
+publish = false
+edition = &quot;2021&quot;
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = &quot;0.4&quot;
+my_crate = { path = &quot;..&quot; }
+
+[[bin]]
+name = &quot;my_fuzz_target&quot;
+path = &quot;fuzz_targets/my_fuzz_target.rs&quot;
+</code></pre>
+<h2>Standalone fuzz project structure</h2>
+<p>For larger crates, or when the fuzz target needs its own dependencies, create a standalone fuzz project:</p>
+<pre><code class="language-">my_crate/
+├── Cargo.toml
+├── src/
+│   └── lib.rs
+└── fuzz/
+    ├── Cargo.toml          # Separate Cargo project
+    ├── Cargo.lock          # Independent lockfile
+    ├── fuzz_targets/
+    │   ├── builder.rs
+    │   ├── validation.rs
+    │   └── parser.rs
+    ├── seeds/
+    │   ├── builder/
+    │   ├── validation/
+    │   └── parser/
+    └── dict                # Dictionary file
+</code></pre>
+<p>The standalone <code>fuzz/Cargo.toml</code>:</p>
+<pre><code class="language-toml">[package]
+name = &quot;my_crate-fuzz&quot;
+version = &quot;0.0.0&quot;
+publish = false
+edition = &quot;2021&quot;
+
+[workspace]          # Important: isolates from parent workspace
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = &quot;0.4&quot;
+serde_json = &quot;1.0&quot;
+my_crate = { path = &quot;..&quot; }
+
+[[bin]]
+name = &quot;builder&quot;
+path = &quot;fuzz_targets/builder.rs&quot;
+
+[[bin]]
+name = &quot;validation&quot;
+path = &quot;fuzz_targets/validation.rs&quot;
+</code></pre>
+<h2>Running the fuzzer</h2>
+<pre><code class="language-bash"># Enter the fuzz directory
+cd fuzz
+
+# Run a specific target
+cargo +nightly fuzz run my_fuzz_target
+
+# Run with a timeout (stops after 60 seconds)
+cargo +nightly fuzz run my_fuzz_target -- -max_total_time=60
+
+# Run with address sanitizer
+cargo +nightly fuzz run my_fuzz_target -- -sanitizer=address
+
+# Run with memory sanitizer (slower, catches use-after-free)
+cargo +nightly fuzz run my_fuzz_target -- -sanitizer=memory
+
+# Run with thread sanitizer (catches data races)
+cargo +nightly fuzz run my_fuzz_target -- -sanitizer=thread
+
+# Use the TUI for interactive monitoring
+cargo +nightly fuzz tui my_fuzz_target
+</code></pre>
+<h2>Understanding the output</h2>
+<p>When the fuzzer starts, you will see:</p>
+<pre><code class="language-">INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed        : 42
+INFO: Loaded      : 1 modules (17 guards)
+INFO: -max_len is not provided; libFuzzer will deterministically generate inputs
+#0      READ    units: 1
+#1      INIT    units: 1
+#2      NEW     units: 1  L: 52/52 MS: 2 ChangeBit-CrossOver-
+#5      NEW     units: 2  L: 8/52 MS: 1 CrossOver-
+#12     pulse   units: 2
+...
+</code></pre>
+<p>Key fields:</p>
+<ul><li><strong>READ</strong> — initial corpus was read</li><li><strong>INIT</strong> — initial corpus was processed</li><li><strong>NEW</strong> — a new unique code path was found (input added to corpus)</li><li><strong>pulse</strong> — periodic status update with current corpus count</li><li><strong>DONE</strong> — test complete (timeout reached or <code>max_total_time</code> exceeded)</li></ul>
+<h2>Stopping the fuzzer</h2>
+<ul><li><strong>Ctrl+C</strong> — sends SIGINT. libFuzzer prints statistics and saves the corpus before exiting.</li><li><strong><code>-max_total_time=N</code></strong> — stops automatically after N seconds.</li><li><strong><code>-runs=N</code></strong> — stops after N iterations.</li></ul>
+<p>The fuzzer always writes its corpus to disk before exiting, so Ctrl+C is safe.</p>
+<hr>
+<h2>Sanitizer comparison</h2>
+<table><tr><th>Sanitizer</th><th>What it catches</th><th>Overhead</th><th>When to use</th></tr><tr><td>Address (asan)</td><td>Buffer overflows, use-after-free, stack-use-after-scope</td><td>~2x</td><td>Default choice</td></tr><tr><td>Memory (msan)</td><td>Uninitialized memory reads</td><td>~3x</td><td>Deep investigation</td></tr><tr><td>Thread (tsan)</td><td>Data races</td><td>~5-15x</td><td>Multi-threaded targets</td></tr><tr><td>Undefined (ubsan)</td><td>UB per Rust spec (overflow, null deref)</td><td>~1x</td><td>Complementary to asan</td></tr></table>
+<hr>
+<h2>Common issues</h2>
+<p><strong>"command cargo-fuzz requires a nightly toolchain"</strong></p>
+<p>Run with <code>cargo +nightly fuzz ...</code> or set <code>RUSTUP_TOOLCHAIN=nightly</code>.</p>
+<p><strong>"no fuzz targets found"</strong></p>
+<p>Check that <code>fuzz_targets/*.rs</code> exists and <code>Cargo.toml</code> has <code>[[bin]]</code> entries for each.</p>
+<p><strong>"linker 'cc' not found" or "lld not found"</strong></p>
+<p>Install LLVM/Clang: <code>sudo apt install lld clang</code> (Debian/Ubuntu) or <code>brew install llvm</code> (macOS).</p>
+<p><strong>Build is extremely slow</strong></p>
+<p>Fuzz builds compile libFuzzer instrumentation into every crate dependency. This is normal — the first build takes longer than subsequent incremental builds.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

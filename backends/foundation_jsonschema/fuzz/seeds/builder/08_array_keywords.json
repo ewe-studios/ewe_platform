@@ -1,0 +1,1 @@
+{"type": "array", "prefixItems": [{"type": "string"}, {"type": "number"}], "items": {"type": "boolean"}, "minItems": 2, "maxItems": 10, "uniqueItems": true}

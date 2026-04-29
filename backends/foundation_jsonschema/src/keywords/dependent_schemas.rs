@@ -1,5 +1,5 @@
 //! Stub: `dependentSchemas` — property presence triggers schema validation.
-//! Requires SchemaNode (Feature 3).
+//! Requires `SchemaNode` (Feature 3).
 
 use alloc::boxed::Box;
 

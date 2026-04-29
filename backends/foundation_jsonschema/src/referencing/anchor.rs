@@ -92,7 +92,7 @@ impl<'a> Iterator for AnchorIter<'a> {
 /// Extract anchors from a Draft 2020-12 schema object.
 ///
 /// Recognizes `$anchor` (Default) and `$dynamicAnchor` (Dynamic).
-pub fn anchors_202012<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
+pub fn anchors_202012(draft: Draft, contents: &Value) -> AnchorIter<'_> {
     let Some(schema) = contents.as_object() else {
         return AnchorIter::Empty;
     };
@@ -125,7 +125,7 @@ pub fn anchors_202012<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
 ///
 /// Recognizes `$anchor` (Default) only. `$recursiveAnchor` is handled
 /// separately during recursive ref resolution.
-pub fn anchors_201909<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
+pub fn anchors_201909(draft: Draft, contents: &Value) -> AnchorIter<'_> {
     match contents
         .as_object()
         .and_then(|schema| schema.get("$anchor"))
@@ -142,7 +142,7 @@ pub fn anchors_201909<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
 /// Extract legacy anchors from Draft 6/7 schemas.
 ///
 /// In these drafts, `$id` values starting with '#' define anchors.
-pub fn legacy_anchor_in_dollar_id<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
+pub fn legacy_anchor_in_dollar_id(draft: Draft, contents: &Value) -> AnchorIter<'_> {
     match contents
         .as_object()
         .and_then(|schema| schema.get("$id"))
@@ -160,7 +160,7 @@ pub fn legacy_anchor_in_dollar_id<'a>(draft: Draft, contents: &'a Value) -> Anch
 /// Extract legacy anchors from Draft 4 schemas.
 ///
 /// In Draft 4, `id` values starting with '#' define anchors.
-pub fn legacy_anchor_in_id<'a>(draft: Draft, contents: &'a Value) -> AnchorIter<'a> {
+pub fn legacy_anchor_in_id(draft: Draft, contents: &Value) -> AnchorIter<'_> {
     match contents
         .as_object()
         .and_then(|schema| schema.get("id"))

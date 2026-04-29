@@ -5,13 +5,14 @@ use alloc::vec::Vec;
 
 use serde_json::Value;
 
-use crate::error::{ErrorIterator, ValidationError, ValidationErrorBuilder, ValidationErrorKind};
+use crate::error::{ErrorIterator, ValidationError};
 use crate::paths::{LazyLocation, Location};
 
 use super::{Validate, ValidationContext};
 
 pub struct PropertyNamesValidator {
     sub_validators: Vec<Box<dyn Validate>>,
+    #[allow(dead_code)]
     schema_path: Location,
 }
 

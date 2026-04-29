@@ -1,4 +1,4 @@
-//! Stub: `unevaluatedItems` requires SchemaNode.
+//! Stub: `unevaluatedItems` requires `SchemaNode`.
 
 use alloc::boxed::Box;
 

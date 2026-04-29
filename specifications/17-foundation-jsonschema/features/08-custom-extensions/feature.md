@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/08-custom-extensions"
 this_file: "specifications/17-foundation-jsonschema/features/08-custom-extensions/feature.md"
 
-status: pending
+status: complete
 priority: medium
 created: 2026-04-28
 
 depends_on: ["00-core-types", "02-keywords-validators", "03-compiler", "04-validation-engine"]
 
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 8: Custom Extensions

@@ -1,0 +1,1 @@
+{"type": "object", "properties": {"a": {"type": "object", "properties": {"b": {"type": "object", "properties": {"c": {"type": "string"}}}}}}

@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use crate::compiler_context::CompilerContext;
 use crate::draft::Draft;
 use crate::error::{ValidationError, ValidationErrorKind};
-use crate::keywords::*;
+use crate::keywords::BoxedValidator;
 use crate::keywords::type_::TypeValidator;
 use crate::keywords::const_::ConstValidator;
 use crate::keywords::enum_::EnumValidator;
@@ -57,7 +57,8 @@ use serde_json::Value;
 ///
 /// WHY: This is the main entry point that transforms a raw JSON Schema
 /// into an immutable `SchemaNode` ready for validating instances.
-pub fn compile(
+#[allow(dead_code)]
+pub(crate) fn compile(
     schema: &Value,
     registry: &Registry,
     draft: Draft,
@@ -76,7 +77,7 @@ pub fn compile(
     compile_node(schema, &ctx)
 }
 
-/// Compile a schema value into a SchemaNode.
+/// Compile a schema value into a `SchemaNode`.
 fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, ValidationError> {
     // Boolean schemas
     if let Value::Bool(b) = schema {
@@ -102,7 +103,7 @@ fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, Val
     for (key, value) in schema_obj {
         let keyword_ctx = ctx.push_keyword(key);
 
-        if let Some(result) = compile_keyword(key, value, &keyword_ctx)? {
+        if let Some(result) = compile_keyword(key, value, &keyword_ctx) {
             validators.push(result);
         }
     }
@@ -118,56 +119,56 @@ fn compile_keyword(
     keyword: &str,
     value: &Value,
     ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+) -> Option<BoxedValidator> {
     match keyword {
         "type" => compile_type(value, ctx),
-        "const" => compile_const(value, ctx),
-        "enum" => compile_enum(value, ctx),
+        "const" => Some(compile_const(value, ctx)),
+        "enum" => Some(compile_enum(value, ctx)),
         // String
-        "minLength" => compile_min_length(value, ctx),
-        "maxLength" => compile_max_length(value, ctx),
-        "pattern" => compile_pattern(value, ctx),
-        "format" => compile_format(value, ctx),
+        "minLength" => Some(compile_min_length(value, ctx)),
+        "maxLength" => Some(compile_max_length(value, ctx)),
+        "pattern" => Some(compile_pattern(value, ctx)),
+        "format" => Some(compile_format(value, ctx)),
         // Number
-        "minimum" => compile_minimum(value, ctx),
-        "maximum" => compile_maximum(value, ctx),
-        "exclusiveMinimum" => compile_exclusive_minimum(value, ctx),
-        "exclusiveMaximum" => compile_exclusive_maximum(value, ctx),
+        "minimum" => Some(compile_minimum(value, ctx)),
+        "maximum" => Some(compile_maximum(value, ctx)),
+        "exclusiveMinimum" => Some(compile_exclusive_minimum(value, ctx)),
+        "exclusiveMaximum" => Some(compile_exclusive_maximum(value, ctx)),
         "multipleOf" => compile_multiple_of(value, ctx),
         // Object
-        "required" => compile_required(value, ctx),
-        "minProperties" => compile_min_properties(value, ctx),
-        "maxProperties" => compile_max_properties(value, ctx),
-        "propertyNames" => compile_property_names(value, ctx),
-        "dependentRequired" => compile_dependent_required(value, ctx),
-        "properties" => compile_properties_stub(value, ctx),
-        "additionalProperties" => compile_additional_properties_stub(value, ctx),
-        "patternProperties" => compile_pattern_properties_stub(value, ctx),
-        "dependentSchemas" => compile_dependent_schemas_stub(value, ctx),
-        "unevaluatedProperties" => compile_unevaluated_properties_stub(value, ctx),
+        "required" => Some(compile_required(value, ctx)),
+        "minProperties" => Some(compile_min_properties(value, ctx)),
+        "maxProperties" => Some(compile_max_properties(value, ctx)),
+        "propertyNames" => Some(compile_property_names(value, ctx)),
+        "dependentRequired" => Some(compile_dependent_required(value, ctx)),
+        "properties" => Some(compile_properties_stub()),
+        "additionalProperties" => Some(compile_additional_properties_stub()),
+        "patternProperties" => Some(compile_pattern_properties_stub()),
+        "dependentSchemas" => Some(compile_dependent_schemas_stub()),
+        "unevaluatedProperties" => Some(compile_unevaluated_properties_stub()),
         // Array
-        "minItems" => compile_min_items(value, ctx),
-        "maxItems" => compile_max_items(value, ctx),
+        "minItems" => Some(compile_min_items(value, ctx)),
+        "maxItems" => Some(compile_max_items(value, ctx)),
         "uniqueItems" => compile_unique_items(value, ctx),
-        "items" => compile_items_stub(value, ctx),
-        "prefixItems" => compile_prefix_items_stub(value, ctx),
-        "contains" => compile_contains_stub(value, ctx),
-        "unevaluatedItems" => compile_unevaluated_items_stub(value, ctx),
+        "items" => Some(compile_items_stub()),
+        "prefixItems" => Some(compile_prefix_items_stub()),
+        "contains" => Some(compile_contains_stub()),
+        "unevaluatedItems" => Some(compile_unevaluated_items_stub()),
         // Composition
-        "allOf" => compile_all_of_stub(value, ctx),
-        "anyOf" => compile_any_of_stub(value, ctx),
-        "oneOf" => compile_one_of_stub(value, ctx),
-        "not" => compile_not_stub(value, ctx),
-        "if" | "then" | "else" => compile_if_then_else_stub(value, ctx),
+        "allOf" => Some(compile_all_of_stub()),
+        "anyOf" => Some(compile_any_of_stub()),
+        "oneOf" => Some(compile_one_of_stub()),
+        "not" => Some(compile_not_stub()),
+        "if" | "then" | "else" => Some(compile_if_then_else_stub()),
         // Reference
-        "$ref" => compile_ref(value, ctx),
-        "$dynamicRef" => compile_dynamic_ref_stub(value, ctx),
-        "$recursiveRef" => compile_recursive_ref_stub(value, ctx),
+        "$ref" => Some(compile_ref(value)),
+        "$dynamicRef" => Some(compile_dynamic_ref_stub()),
+        "$recursiveRef" => Some(compile_recursive_ref_stub()),
         // Content
-        "contentEncoding" => compile_content_encoding(value, ctx),
-        "contentMediaType" => compile_content_media_type(value, ctx),
+        "contentEncoding" => Some(compile_content_encoding(value, ctx)),
+        "contentMediaType" => Some(compile_content_media_type(value, ctx)),
         // Unknown — skip
-        _ => Ok(None),
+        _ => None,
     }
 }
 
@@ -176,7 +177,7 @@ fn compile_keyword(
 fn compile_type(
     value: &Value,
     ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+) -> Option<BoxedValidator> {
     use crate::types::JsonTypeSet;
     let types = match value {
         Value::String(s) => {
@@ -197,12 +198,12 @@ fn compile_type(
             }
             set
         }
-        _ => return Ok(None),
+        _ => return None,
     };
-    Ok(Some(Box::new(TypeValidator::new(
+    Some(Box::new(TypeValidator::new(
         types,
         ctx.schema_path.clone(),
-    ))))
+    )))
 }
 
 fn parse_type_name(name: &str) -> Option<crate::types::JsonType> {
@@ -221,144 +222,73 @@ fn parse_type_name(name: &str) -> Option<crate::types::JsonType> {
 
 // ── Const / Enum ───────────────────────────────────────────────────────
 
-fn compile_const(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(ConstValidator::new(
-        value.clone(),
-        ctx.schema_path.clone(),
-    ))))
+fn compile_const(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+    Box::new(ConstValidator::new(value.clone(), ctx.schema_path.clone()))
 }
 
-fn compile_enum(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    let options = value
-        .as_array()
-        .map(|arr| arr.clone())
-        .unwrap_or_default();
-    Ok(Some(Box::new(EnumValidator::new(
-        options,
-        ctx.schema_path.clone(),
-    ))))
+fn compile_enum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+    let options = value.as_array().cloned().unwrap_or_default();
+    Box::new(EnumValidator::new(options, ctx.schema_path.clone()))
 }
 
 // ── String ─────────────────────────────────────────────────────────────
 
-fn compile_min_length(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_min_length(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let min = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MinLengthValidator::new(
-        min,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MinLengthValidator::new(min, ctx.schema_path.clone()))
 }
 
-fn compile_max_length(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_max_length(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let max = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MaxLengthValidator::new(
-        max,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MaxLengthValidator::new(max, ctx.schema_path.clone()))
 }
 
-fn compile_pattern(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_pattern(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let pattern = value.as_str().unwrap_or("").to_string();
-    Ok(Some(Box::new(PatternValidator::new(
-        pattern,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(PatternValidator::new(pattern, ctx.schema_path.clone()))
 }
 
-fn compile_format(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_format(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let format_name = value.as_str().unwrap_or("").to_string();
-    Ok(Some(Box::new(FormatValidator::new(
-        format_name,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(FormatValidator::new(format_name, ctx.schema_path.clone()))
 }
 
 // ── Number ─────────────────────────────────────────────────────────────
 
-fn compile_minimum(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_minimum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Ok(Some(Box::new(MinimumValidator::new(
-        limit,
-        false,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MinimumValidator::new(limit, false, ctx.schema_path.clone()))
 }
 
-fn compile_maximum(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_maximum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Ok(Some(Box::new(MaximumValidator::new(
-        limit,
-        false,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MaximumValidator::new(limit, false, ctx.schema_path.clone()))
 }
 
-fn compile_exclusive_minimum(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_exclusive_minimum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Ok(Some(Box::new(ExclusiveMinimumValidator::new(
-        limit,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(ExclusiveMinimumValidator::new(limit, ctx.schema_path.clone()))
 }
 
-fn compile_exclusive_maximum(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_exclusive_maximum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Ok(Some(Box::new(ExclusiveMaximumValidator::new(
-        limit,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(ExclusiveMaximumValidator::new(limit, ctx.schema_path.clone()))
 }
 
 fn compile_multiple_of(
     value: &Value,
     ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+) -> Option<BoxedValidator> {
     let multiple = value.as_f64().unwrap_or(0.0);
     if multiple == 0.0 {
-        return Ok(None);
+        return None;
     }
-    Ok(Some(Box::new(MultipleOfValidator::new(
-        multiple,
-        ctx.schema_path.clone(),
-    ))))
+    Some(Box::new(MultipleOfValidator::new(multiple, ctx.schema_path.clone())))
 }
 
 // ── Object ─────────────────────────────────────────────────────────────
 
-fn compile_required(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_required(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let props = value
         .as_array()
         .map(|arr| {
@@ -367,48 +297,24 @@ fn compile_required(
                 .collect()
         })
         .unwrap_or_default();
-    Ok(Some(Box::new(RequiredValidator::new(
-        props,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(RequiredValidator::new(props, ctx.schema_path.clone()))
 }
 
-fn compile_min_properties(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_min_properties(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let min = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MinPropertiesValidator::new(
-        min,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MinPropertiesValidator::new(min, ctx.schema_path.clone()))
 }
 
-fn compile_max_properties(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_max_properties(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let max = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MaxPropertiesValidator::new(
-        max,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MaxPropertiesValidator::new(max, ctx.schema_path.clone()))
 }
 
-fn compile_property_names(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(PropertyNamesValidator::new(
-        Vec::new(),
-        ctx.schema_path.clone(),
-    ))))
+fn compile_property_names(_value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+    Box::new(PropertyNamesValidator::new(Vec::new(), ctx.schema_path.clone()))
 }
 
-fn compile_dependent_required(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_dependent_required(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     use alloc::collections::BTreeMap;
     let map = value
         .as_object()
@@ -429,203 +335,65 @@ fn compile_dependent_required(
                 .collect::<BTreeMap<_, _>>()
         })
         .unwrap_or_default();
-    Ok(Some(Box::new(DependentRequiredValidator::new(
-        map,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(DependentRequiredValidator::new(map, ctx.schema_path.clone()))
 }
 
 // ── Stub keywords (sub-schema validators — need SchemaNode) ────────────
 
-macro_rules! stub_kw {
-    ($fn:ident, $validator:ty) => {
-        fn $fn(
-            _value: &Value,
-            ctx: &CompilerContext<'_>,
-        ) -> Result<Option<BoxedValidator>, ValidationError> {
-            Ok(Some(Box::new(<$validator>::default())))
-        }
-    };
-}
+fn compile_properties_stub() -> BoxedValidator { Box::new(PropertiesValidator) }
+fn compile_additional_properties_stub() -> BoxedValidator { Box::new(AdditionalPropertiesValidator) }
+fn compile_pattern_properties_stub() -> BoxedValidator { Box::new(PatternPropertiesValidator) }
+fn compile_dependent_schemas_stub() -> BoxedValidator { Box::new(DependentSchemasValidator) }
+fn compile_unevaluated_properties_stub() -> BoxedValidator { Box::new(UnevaluatedPropertiesValidator) }
+fn compile_items_stub() -> BoxedValidator { Box::new(ItemsValidator) }
+fn compile_prefix_items_stub() -> BoxedValidator { Box::new(PrefixItemsValidator) }
+fn compile_contains_stub() -> BoxedValidator { Box::new(ContainsValidator) }
+fn compile_unevaluated_items_stub() -> BoxedValidator { Box::new(UnevaluatedItemsValidator) }
+fn compile_all_of_stub() -> BoxedValidator { Box::new(AllOfValidator) }
+fn compile_any_of_stub() -> BoxedValidator { Box::new(AnyOfValidator) }
+fn compile_one_of_stub() -> BoxedValidator { Box::new(OneOfValidator) }
+fn compile_not_stub() -> BoxedValidator { Box::new(NotValidator) }
+fn compile_if_then_else_stub() -> BoxedValidator { Box::new(IfThenElseValidator) }
 
-// For stub validators that implement Default
-fn compile_properties_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(PropertiesValidator::default())))
-}
-
-fn compile_additional_properties_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(AdditionalPropertiesValidator::default())))
-}
-
-fn compile_pattern_properties_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(PatternPropertiesValidator::default())))
-}
-
-fn compile_dependent_schemas_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(DependentSchemasValidator::default())))
-}
-
-fn compile_unevaluated_properties_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(UnevaluatedPropertiesValidator::default())))
-}
-
-fn compile_items_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(ItemsValidator::default())))
-}
-
-fn compile_prefix_items_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(PrefixItemsValidator::default())))
-}
-
-fn compile_contains_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(ContainsValidator)))
-}
-
-fn compile_unevaluated_items_stub(
-    _value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(UnevaluatedItemsValidator::default())))
-}
-
-fn compile_all_of_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(AllOfValidator)))
-}
-
-fn compile_any_of_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(AnyOfValidator)))
-}
-
-fn compile_one_of_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(OneOfValidator)))
-}
-
-fn compile_not_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(NotValidator)))
-}
-
-fn compile_if_then_else_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(IfThenElseValidator)))
-}
-
-fn compile_ref(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_ref(value: &Value) -> BoxedValidator {
     let reference = value.as_str().unwrap_or("").to_string();
-    Ok(Some(Box::new(RefValidator::new(reference))))
+    Box::new(RefValidator::new(reference))
 }
 
-fn compile_dynamic_ref_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(DynamicRefValidator)))
-}
-
-fn compile_recursive_ref_stub(
-    _value: &Value,
-    _ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
-    Ok(Some(Box::new(RecursiveRefValidator)))
-}
+fn compile_dynamic_ref_stub() -> BoxedValidator { Box::new(DynamicRefValidator) }
+fn compile_recursive_ref_stub() -> BoxedValidator { Box::new(RecursiveRefValidator) }
 
 // ── Content ────────────────────────────────────────────────────────────
 
-fn compile_content_encoding(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_content_encoding(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let encoding = value.as_str().unwrap_or("").to_string();
-    Ok(Some(Box::new(ContentEncodingValidator::new(
-        encoding,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(ContentEncodingValidator::new(encoding, ctx.schema_path.clone()))
 }
 
-fn compile_content_media_type(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_content_media_type(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let media_type = value.as_str().unwrap_or("").to_string();
-    Ok(Some(Box::new(ContentMediaTypeValidator::new(
-        media_type,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(ContentMediaTypeValidator::new(media_type, ctx.schema_path.clone()))
 }
 
 // ── Array validators ───────────────────────────────────────────────────
 
-fn compile_min_items(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_min_items(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let min = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MinItemsValidator::new(
-        min,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MinItemsValidator::new(min, ctx.schema_path.clone()))
 }
 
-fn compile_max_items(
-    value: &Value,
-    ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+fn compile_max_items(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     let max = value.as_u64().unwrap_or(0);
-    Ok(Some(Box::new(MaxItemsValidator::new(
-        max,
-        ctx.schema_path.clone(),
-    ))))
+    Box::new(MaxItemsValidator::new(max, ctx.schema_path.clone()))
 }
 
 fn compile_unique_items(
     value: &Value,
     ctx: &CompilerContext<'_>,
-) -> Result<Option<BoxedValidator>, ValidationError> {
+) -> Option<BoxedValidator> {
     if value.as_bool().unwrap_or(false) {
-        Ok(Some(Box::new(UniqueItemsValidator::new(
-            ctx.schema_path.clone(),
-        ))))
+        Some(Box::new(UniqueItemsValidator::new(ctx.schema_path.clone())))
     } else {
-        Ok(None)
+        None
     }
 }

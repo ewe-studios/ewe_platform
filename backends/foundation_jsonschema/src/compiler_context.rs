@@ -2,11 +2,9 @@
 
 use alloc::collections::BTreeSet;
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use crate::draft::Draft;
 use crate::error::ValidationError;
-use crate::keywords::BuiltinKeyword;
 use crate::paths::Location;
 use crate::referencing::{Resolver, Resolved, VocabularySet};
 
@@ -59,11 +57,13 @@ impl<'a> CompilerContext<'a> {
     }
 
     /// Resolve a $ref and return the resolved value + new resolver.
+    #[allow(dead_code)]
     pub fn resolve_ref(&self, reference: &str) -> Result<Resolved<'a>, ValidationError> {
         self.resolver.lookup(reference)
     }
 
     /// Check if a URI is already being compiled.
+    #[allow(dead_code)]
     pub fn is_in_progress(&self, uri: &str) -> bool {
         self.in_progress.contains(uri)
     }

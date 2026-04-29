@@ -138,7 +138,7 @@ impl<'r> Resolver<'r> {
                 .resolve_uri(&self.base_uri, uri_part)
                 .map_err(|e| {
                     ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve URI '{}': {}", reference, e),
+                        reason: alloc::format!("failed to resolve URI '{reference}': {e}"),
                     }
                     .into_error_trace()
                 })?;
@@ -149,7 +149,7 @@ impl<'r> Resolver<'r> {
                 .resolve_uri(&self.base_uri, reference)
                 .map_err(|e| {
                     ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve URI '{}': {}", reference, e),
+                        reason: alloc::format!("failed to resolve URI '{reference}': {e}"),
                     }
                     .into_error_trace()
                 })?;
@@ -159,8 +159,7 @@ impl<'r> Resolver<'r> {
         let resource = self.registry.get_resource(&target_uri).ok_or_else(|| {
             ValidationErrorKind::Schema {
                 reason: alloc::format!(
-                    "resource '{}' not found in registry",
-                    target_uri
+                    "resource '{target_uri}' not found in registry"
                 ),
             }
             .into_error_trace()
@@ -170,7 +169,7 @@ impl<'r> Resolver<'r> {
         if fragment.starts_with('/') {
             let target = pointer::resolve_pointer(resource.contents(), &fragment).map_err(|e| {
                 ValidationErrorKind::Schema {
-                    reason: alloc::format!("pointer resolution failed: {}", e),
+                    reason: alloc::format!("pointer resolution failed: {e}"),
                 }
                 .into_error_trace()
             })?;
@@ -182,14 +181,14 @@ impl<'r> Resolver<'r> {
         if !fragment.is_empty() {
             if fragment.contains('/') {
                 return Err(ValidationErrorKind::Schema {
-                    reason: alloc::format!("anchor '{}' is invalid", fragment),
+                    reason: alloc::format!("anchor '{fragment}' is invalid"),
                 }
                 .into_error_trace());
             }
 
             let anchor = self.registry.get_anchor(&target_uri, &fragment).ok_or_else(|| {
                 ValidationErrorKind::Schema {
-                    reason: alloc::format!("anchor '{}' does not exist", fragment),
+                    reason: alloc::format!("anchor '{fragment}' does not exist"),
                 }
                 .into_error_trace()
             })?;
@@ -303,7 +302,7 @@ impl<'r> Resolver<'r> {
                 .resolve_uri(&self.base_uri, id)
                 .map_err(|e| {
                     ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve subresource ID '{}': {}", id, e),
+                        reason: alloc::format!("failed to resolve subresource ID '{id}': {e}"),
                     }
                     .into_error_trace()
                 })?;

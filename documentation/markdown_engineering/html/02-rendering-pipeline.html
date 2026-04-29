@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>markdown.engineering -- Rendering Pipeline -- markdown_engineering</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/markdown_engineering/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">markdown.engineering -- Site Overview</a> <a href="01-site-analysis.html">markdown.engineering -- Technical Site Analysis</a></span> <a href="01-site-analysis.html">← markdown.engineering -- Technical Site Analysis</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>markdown.engineering -- Rendering Pipeline</h1>
+<h2>From Markdown to Browser</h2>
+<p>The rendering pipeline transforms authored Markdown files into themed, interactive HTML pages with diagrams, code highlighting, and animations. Here is the complete flow.</p>
+<h2>Pipeline Stages</h2>
+<pre><code class="language-">Stage 1: Authoring
+  Markdown files with YAML frontmatter
+  ├── Content: prose, headings, lists, tables
+  ├── Code blocks: fenced with language tags
+  ├── Mermaid blocks: fenced as ```mermaid
+  └── Custom components: callouts, quizzes, phase grids
+
+Stage 2: Astro Content Collections
+  Astro reads the content/ directory
+  ├── Parses YAML frontmatter (title, date, description, tags)
+  ├── Validates schema against collection definitions
+  └── Exposes typed data to page templates
+
+Stage 3: Markdown Processing (at build time)
+  Astro&#x27;s built-in markdown pipeline
+  ├── Converts markdown to HTML via remark/rehype
+  ├── Shiki processes code blocks → syntax-highlighted HTML
+  │   ├── Assigns dual-theme CSS variables (--shiki-light, --shiki-dark)
+  │   └── Wraps in &lt;pre class=&quot;astro-code&quot;&gt; elements
+  ├── Mermaid blocks are NOT processed here
+  │   └── They pass through as &lt;div class=&quot;mermaid&quot;&gt; or &lt;pre class=&quot;mermaid&quot;&gt;
+  └── Custom remark/rehype plugins handle extensions (callouts, etc.)
+
+Stage 4: Astro Page Generation (at build time)
+  .astro page templates receive processed content
+  ├── Layout components wrap content (header, nav, footer)
+  ├── Scoped CSS is generated (data-astro-cid-* attributes)
+  ├── Conditional scripts are injected:
+  │   ├── Theme toggle script (always, in &lt;head&gt;)
+  │   ├── Scroll reveal script (pages with .reveal elements)
+  │   └── Mermaid loader script (pages with .prose .mermaid blocks)
+  └── Static HTML files are written to dist/
+
+Stage 5: Client-Side Rendering (in browser)
+  Browser loads static HTML
+  ├── Theme script runs synchronously (prevents FOUC)
+  ├── CSS renders with correct theme variables
+  ├── Fonts load progressively (display=swap)
+  ├── IntersectionObserver triggers scroll animations
+  └── Mermaid.js (if present):
+      ├── Dynamic ESM import from CDN
+      ├── Reads CSS custom properties for theme colors
+      ├── Renders .mermaid blocks into SVG
+      └── MutationObserver watches data-theme for re-renders
+</code></pre>
+<h2>Detailed: Mermaid Rendering Flow</h2>
+<p>The Mermaid integration is the most interesting part of the pipeline because it bridges build-time and client-time processing.</p>
+<h3>Build Time</h3>
+<p>Mermaid code blocks in Markdown are NOT rendered at build time. They pass through Astro's markdown pipeline as raw <code><div class="mermaid"></code> elements containing the Mermaid source text. This is intentional -- Mermaid requires a DOM to render into SVG.</p>
+<h3>Client Time</h3>
+<pre><code class="language-javascript">// Pseudocode of the Mermaid loader (reconstructed from site behavior)
+
+// 1. Check if page has mermaid blocks
+const hasMermaid = document.querySelector(&#x27;.prose .mermaid&#x27;);
+if (!hasMermaid) return;  // Don&#x27;t load Mermaid at all
+
+// 2. Dynamic import from CDN
+const mermaid = await import(
+  &#x27;https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs&#x27;
+);
+
+// 3. Read current theme&#x27;s CSS custom properties
+const style = getComputedStyle(document.documentElement);
+const themeVars = {
+  primaryColor:     style.getPropertyValue(&#x27;--bg-strong&#x27;),
+  primaryTextColor: style.getPropertyValue(&#x27;--fg&#x27;),
+  lineColor:        style.getPropertyValue(&#x27;--line-strong&#x27;),
+  // ... maps all site tokens to Mermaid theme variables
+};
+
+// 4. Initialize with strict security and theme mapping
+mermaid.default.initialize({
+  startOnLoad: false,
+  securityLevel: &#x27;strict&#x27;,
+  htmlLabels: false,
+  flowchart: { curve: &#x27;linear&#x27; },
+  themeVariables: themeVars,
+});
+
+// 5. Render all mermaid blocks
+await mermaid.default.run({ nodes: document.querySelectorAll(&#x27;.prose .mermaid&#x27;) });
+
+// 6. Watch for theme changes and re-render
+const observer = new MutationObserver(async (mutations) =&gt; {
+  for (const mutation of mutations) {
+    if (mutation.attributeName === &#x27;data-theme&#x27;) {
+      // Re-read CSS properties, re-initialize, re-render
+      await reRenderMermaid();
+    }
+  }
+});
+observer.observe(document.documentElement, { attributes: true });
+</code></pre>
+<h3>Why Client-Side Rendering?</h3>
+<ol><li><strong>Theme reactivity</strong> -- Mermaid diagrams must re-render when the user toggles dark/light mode. Pre-rendered SVGs cannot change colors.</li><li><strong>DOM dependency</strong> -- Mermaid needs a real DOM to calculate layout and produce SVG paths.</li><li><strong>CDN efficiency</strong> -- Loading Mermaid from jsDelivr means the site's own static bundle stays small. Users who hit CDN-cached Mermaid pay near-zero cost.</li><li><strong>Conditional loading</strong> -- Pages without diagrams never load the Mermaid library at all.</li></ol>
+<h2>Detailed: Code Highlighting Flow</h2>
+<h3>Standard Code Blocks (Shiki)</h3>
+<pre><code class="language-">Markdown:        ```rust
+                 fn main() { println!(&quot;hello&quot;); }
+                 ```
+
+Shiki processes:  Tokenizes using TextMate grammar for Rust
+                  Assigns dual-theme colors as CSS variables
+
+HTML output:     &lt;pre class=&quot;astro-code&quot; style=&quot;--shiki-light:#24292e;--shiki-dark:#e1e4e8&quot;
+                   data-language=&quot;rust&quot;&gt;
+                   &lt;code&gt;
+                     &lt;span style=&quot;--shiki-light:#d73a49;--shiki-dark:#f97583&quot;&gt;fn&lt;/span&gt;
+                     &lt;span style=&quot;--shiki-light:#6f42c1;--shiki-dark:#b392f0&quot;&gt; main&lt;/span&gt;
+                     ...
+                   &lt;/code&gt;
+                 &lt;/pre&gt;
+
+CSS switches:    [data-theme=&quot;light&quot;] .astro-code span { color: var(--shiki-light); }
+                 [data-theme=&quot;dark&quot;]  .astro-code span { color: var(--shiki-dark); }
+</code></pre>
+<h3>Custom Code Blocks (Learn Lessons)</h3>
+<p>The Learn Claude Code lessons use hand-crafted HTML instead of Shiki, with semantic CSS classes:</p>
+<pre><code class="language-html">&lt;pre class=&quot;code-block&quot;&gt;
+  &lt;code&gt;
+    &lt;span class=&quot;kw&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;function&lt;/span&gt;
+    &lt;span class=&quot;fn&quot;&gt;processTools&lt;/span&gt;(&lt;span class=&quot;ty&quot;&gt;messages&lt;/span&gt;) {
+      &lt;span class=&quot;cm&quot;&gt;// Tool dispatch loop&lt;/span&gt;
+      &lt;span class=&quot;kw&quot;&gt;for&lt;/span&gt; (&lt;span class=&quot;kw&quot;&gt;const&lt;/span&gt; msg &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt; messages) {
+        &lt;span class=&quot;kw&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;fn&quot;&gt;dispatch&lt;/span&gt;(msg);
+      }
+    }
+  &lt;/code&gt;
+&lt;/pre&gt;
+</code></pre>
+<p>This approach gives full control over highlighting semantics but requires manual markup.</p>
+<h2>Detailed: Theme System Flow</h2>
+<pre><code class="language-">User toggles theme
+  → JavaScript sets data-theme=&quot;dark&quot; on &lt;html&gt;
+  → localStorage.setItem(&#x27;theme&#x27;, &#x27;dark&#x27;)
+  → CSS custom properties cascade:
+      [data-theme=&quot;dark&quot;] {
+        --bg: #13100f;
+        --fg: #f7efe4;
+        --accent: #d4a176;
+        ...
+      }
+  → All CSS-variable-based colors update instantly
+  → Shiki code blocks swap via var(--shiki-dark)
+  → MutationObserver fires
+  → Mermaid re-reads CSS properties and re-renders SVGs
+</code></pre>
+<h2>Key Architectural Decisions</h2>
+<ol><li><strong>Static-first</strong>: Everything that can be computed at build time is. Only theme-reactive elements (Mermaid, Shiki theme swap) need client JS.</li><li><strong>No hydration</strong>: No React/Vue/Svelte islands. The interactive elements (theme toggle, scroll reveal, quiz) are small enough for vanilla JS.</li><li><strong>Conditional loading</strong>: Mermaid JS is only loaded on pages that need it. No global bundle bloat.</li><li><strong>CSS custom properties as the integration layer</strong>: Both Shiki and Mermaid read CSS variables for theming, so the single source of truth is the CSS token system.</li></ol>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

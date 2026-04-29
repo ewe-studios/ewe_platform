@@ -104,7 +104,7 @@ pub fn analyze_object_classic<'a>(
 }
 
 /// Dispatch `analyze_object` to the correct draft-specific logic.
-pub fn analyze_object<'a>(draft: Draft, schema: &'a Map<String, Value>) -> ObjectAnalysis<'a> {
+pub fn analyze_object(draft: Draft, schema: &Map<String, Value>) -> ObjectAnalysis<'_> {
     match draft {
         Draft::Draft4 => analyze_object_classic(schema, "id"),
         Draft::Draft6 | Draft::Draft7 => analyze_object_classic(schema, "$id"),
@@ -136,7 +136,7 @@ pub fn anchors_of(draft: Draft, contents: &Value) -> AnchorIter<'_> {
 /// Iterate over child sub-schemas that should be traversed during registry building.
 ///
 /// Each draft defines which keywords contain sub-schemas.
-pub fn subresources_of<'a>(draft: Draft, contents: &'a Value) -> SubresourceIter<'a> {
+pub fn subresources_of(draft: Draft, contents: &Value) -> SubresourceIter<'_> {
     let Some(object) = contents.as_object() else {
         return SubresourceIter { items: alloc::vec::Vec::new() };
     };

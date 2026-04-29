@@ -33,7 +33,7 @@ impl Validate for MaxItemsValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if let Value::Array(arr) = instance {
             let actual = arr.len() as u64;

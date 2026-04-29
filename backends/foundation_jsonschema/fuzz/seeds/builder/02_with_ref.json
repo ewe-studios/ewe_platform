@@ -1,0 +1,1 @@
+{"$ref": "#/$defs/item", "$defs": {"item": {"type": "string"}}}

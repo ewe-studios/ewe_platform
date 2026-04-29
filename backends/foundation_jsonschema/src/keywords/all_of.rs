@@ -1,6 +1,6 @@
 //! Stub: `allOf` — all sub-schemas must validate.
 //!
-//! Requires SchemaNode (Feature 3) for sub-schema compilation.
+//! Requires `SchemaNode` (Feature 3) for sub-schema compilation.
 
 use alloc::boxed::Box;
 

@@ -1,6 +1,6 @@
 //! Stub: `patternProperties` — regex-matched property validation.
 //!
-//! Requires SchemaNode (Feature 3).
+//! Requires `SchemaNode` (Feature 3).
 
 use alloc::boxed::Box;
 
