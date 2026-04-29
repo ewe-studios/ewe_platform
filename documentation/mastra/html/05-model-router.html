@@ -160,7 +160,7 @@ flowchart TD
 sequenceDiagram
     participant Agent as Agent.getLLM()
     participant Router as ModelRouterLanguageModel
-    participant Reg as Provider Registry
+    participant Reg as PROVIDER_REGISTRY (static JSON)
     participant GW as Gateway
     participant SDK as AI SDK Provider
 
@@ -168,8 +168,8 @@ sequenceDiagram
     Router-&gt;&gt;Router: parseModelRouterId(&quot;openai/gpt-5&quot;)
     Router-&gt;&gt;GW: findGatewayForModel(&quot;openai/gpt-5&quot;)
     GW--&gt;&gt;Router: MastraGateway
-    Router-&gt;&gt;Reg: Load provider config for &quot;openai&quot;
-    Reg--&gt;&gt;Router: { baseURL, models, schema }
+    Router-&gt;&gt;PROVIDER_REGISTRY: Look up &quot;openai&quot; config from static JSON
+    PROVIDER_REGISTRY--&gt;&gt;Router: { baseURL, models, schema }
     Router-&gt;&gt;SDK: createOpenAI({ apiKey, baseURL })
     SDK--&gt;&gt;Router: OpenAI provider client
     Router-&gt;&gt;Agent: MastraLanguageModel wrapper
@@ -239,10 +239,11 @@ export interface MastraModelGateway {
 </code></pre>
 <p><strong>Aha moment:</strong> Gateways are self-enabling. If the required environment variables aren't set (e.g., <code>MASTRA_GATEWAY_URL</code> for Mastra Gateway), the gateway silently disables itself. This means the same code works in offline mode, local mode, or cloud mode without configuration changes.</p>
 <h2>Provider Registry</h2>
-<p>The registry is loaded from JSON:</p>
+<p>The provider registry is a <strong>static JSON file</strong> imported at module load time -- not a class with <code>has()</code> or <code>getConfig()</code> methods.</p>
 <pre><code class="language-typescript">// llm/model/provider-registry.ts
 import staticRegistry from &#x27;./provider-registry.json&#x27;;
 
+// The JSON file contains:
 interface RegistryData {
   providers: Record&lt;string, ProviderConfig&gt;;
   models: Record&lt;string, string[]&gt;;  // provider -&gt; [model names]
@@ -258,6 +259,7 @@ function sanitizeRegistryDataForRuntime(data: RegistryData, enabledGatewayIds: S
   return { providers, models, version: data.version };
 }
 </code></pre>
+<p>There is no <code>ProviderRegistry</code> class with <code>.has()</code> or <code>.getConfig()</code> methods. The registry is just a JSON object exported via <code>PROVIDER_REGISTRY</code> constant. Provider lookups happen via <code>parseModelRouterId()</code> which extracts the provider from the model ID string, then the gateway is found via <code>findGatewayForModel()</code>.</p>
 <p>The registry supports <strong>offline mode</strong>:</p>
 <pre><code class="language-typescript">export function isOfflineMode(): boolean {
   const value = process.env.MASTRA_OFFLINE;

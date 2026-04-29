@@ -29,8 +29,8 @@ export class Agent<TAgentId, TTools, TOutput, TRequestContext> extends MastraBas
   public id: TAgentId;
   public name: string;
 
-  // Model -- can be a single model, array with retries, or fallback chain
-  model: MastraModelConfig | ModelFallbacks;
+  // Model -- dynamic: single config, array with retries, or fallback chain
+  model: DynamicArgument<MastraModelConfig | ModelWithRetries[], TRequestContext> | ModelFallbacks;
   #originalModel: MastraModelConfig | ModelFallbacks;
   maxRetries?: number;
 
@@ -41,11 +41,18 @@ export class Agent<TAgentId, TTools, TOutput, TRequestContext> extends MastraBas
   #workflows?: DynamicArgument<Record<string, AnyWorkflow>, TRequestContext>;
   #agents: DynamicArgument<Record<string, Agent>, TRequestContext>;  // Sub-agents
 
-  // Processors
-  #inputProcessors?: InputProcessorOrWorkflow[];
-  #outputProcessors?: OutputProcessorOrWorkflow[];
-  #errorProcessors?: ErrorProcessorOrWorkflow[];
+  // Processors (all wrapped in DynamicArgument for context-aware resolution)
+  #inputProcessors?: DynamicArgument<InputProcessorOrWorkflow[], TRequestContext>;
+  #outputProcessors?: DynamicArgument<OutputProcessorOrWorkflow[], TRequestContext>;
+  #errorProcessors?: DynamicArgument<ErrorProcessorOrWorkflow[], TRequestContext>;
   #maxProcessorRetries?: number;
+
+  // Additional fields
+  #requestContextSchema?: z.ZodType<TRequestContext>;
+  #agentChannels?: AgentChannel[];
+  #skillsFormat?: SkillsFormat;
+  #scorers?: Record<string, Scorer>;
+  #legacyHandler?: AgentLegacyHandler;
 
   // Capabilities
   #voice: MastraVoice;
@@ -162,7 +169,7 @@ async getLLM(args?: { requestContext?: TRequestContext }): Promise<MastraLLM> {
 Tools are converted from the Agent's tool format to CoreTool format via `convertTools()`:
 
 ```typescript
-async convertTools({ requestContext, methodType }): Promise<CoreTool[]> {
+async convertTools({ requestContext, methodType }): Promise<Record<string, CoreTool>> {
   // 1. Resolve dynamic tools
   const tools = await resolveDynamicValue(this.#tools, { requestContext });
 
@@ -275,14 +282,11 @@ When a tool is dispatched as a background task:
 The Agent integrates with the processor pipeline:
 
 ```typescript
-// Input processors -- run before LLM
-#inputProcessors?: InputProcessorOrWorkflow[];
-
-// Output processors -- run after LLM
-#outputProcessors?: OutputProcessorOrWorkflow[];
-
-// Error processors -- run on failure
-#errorProcessors?: ErrorProcessorOrWorkflow[];
+// All processor fields are DynamicArgument — can be static arrays or functions
+// that receive requestContext and return arrays
+#inputProcessors?: DynamicArgument<InputProcessorOrWorkflow[], TRequestContext>;
+#outputProcessors?: DynamicArgument<OutputProcessorOrWorkflow[], TRequestContext>;
+#errorProcessors?: DynamicArgument<ErrorProcessorOrWorkflow[], TRequestContext>;
 
 // Retry count for processor failures
 #maxProcessorRetries?: number;
@@ -363,7 +367,7 @@ agent/utils.ts                    Utility functions (model validation, etc.)
 
 ```
 packages/core/src/agent/
-├── agent.ts                    ← Agent class (3600+ lines, generate/stream/#execute)
+├── agent.ts                    ← Agent class (6094 lines, generate/stream/#execute)
 ├── agent.types.ts              ← AgentConfig, DelegationConfig, IterationCompleteContext
 ├── message-list/               ← MessageList, message history management
 ├── trip-wire.ts                ← TripWire -- iteration control

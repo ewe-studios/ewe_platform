@@ -298,37 +298,27 @@ function generateTrace(opts: GenerateTraceOptions = {}): TracingEvent[] {
 
 This mimics real async execution: parent spans start first, children complete before parents.
 
-## Async Error Classification and Retry
+## Async Error Handling and Retries
 
-Mastra's model router handles async errors with classification:
+Mastra handles model errors through the `#execute()` pipeline's error processor workflow, not through inline retry logic. Each `ModelFallbacks` entry has a `maxRetries` field that controls per-model retry attempts:
 
 ```typescript
-// packages/core/src/llm/model/router.ts (simplified)
-async generateWithRetry(messages, options) {
-  const maxRetries = options.maxRetries ?? 3;
+// packages/core/src/agent/agent.ts (lines 121-129)
+type ModelFallbacks = {
+  id: string;
+  model: DynamicArgument<MastraModelConfig>;
+  maxRetries: number;      // Retries per fallback entry
+  enabled: boolean;
+  // ...
+}[];
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await gateway.generate(messages, options);
-    } catch (error) {
-      if (isRetryableError(error)) {
-        // Rate limit, timeout, 5xx -- retry
-        await new Promise(r => setTimeout(r, exponentialBackoff(attempt)));
-        continue;
-      }
-      // Authentication, bad request -- fail immediately
-      throw error;
-    }
-  }
-
-  // Exhaust retries -- try fallback model
-  if (this.fallbackModel) {
-    return await this.fallbackGateway.generate(messages, options);
-  }
-
-  throw new Error('All models exhausted');
-}
+// On failure in #execute(), error processors run.
+// If configured, the next enabled fallback model is tried.
+// Tool isolation via Promise.allSettled prevents one tool failure
+// from killing the entire execution.
 ```
+
+The model router itself (`ModelRouterLanguageModel`) is stateless — it delegates `doGenerate`/`doStream` to the gateway's underlying SDK client and lets errors propagate up to the Agent's `#execute()` pipeline.
 
 ## Key Optimizations
 
