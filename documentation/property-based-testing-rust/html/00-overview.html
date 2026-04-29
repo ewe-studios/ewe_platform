@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Property-Based Testing in Rust — Overview -- property-based-testing-rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/property-based-testing-rust/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Property-Based Testing in Rust — Overview</h1>
+<h2>What property-based testing is</h2>
+<p>Property-based testing (PBT) shifts your testing mindset from <strong>examples</strong> to <strong>invariants</strong>.</p>
+<p>In traditional example-based testing, you write individual test cases:</p>
+<pre><code class="language-rust">#[test]
+fn test_reverse() {
+    assert_eq!(reverse(&amp;vec![1, 2, 3]), vec![3, 2, 1]);
+    assert_eq!(reverse(&amp;vec![]), vec![]);
+    assert_eq!(reverse(&amp;vec![42]), vec![42]);
+}
+</code></pre>
+<p>In property-based testing, you state a general truth about your code, and the framework generates thousands of inputs to try to falsify it:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn test_reverse(ref input in any::&lt;Vec&lt;i32&gt;&gt;()) {
+        let reversed = reverse(&amp;input);
+        let double_reversed = reverse(&amp;reversed);
+        prop_assert_eq!(double_reversed, input);  // invariant: reverse(reverse(x)) == x
+    }
+}
+</code></pre>
+<p>The framework generates random vectors of integers — empty, single-element, huge, negative, zero, sorted, reverse-sorted, and every weird shape it can think of — and verifies your invariant holds for all of them.</p>
+<h2>Why property-based testing matters</h2>
+<h3>Example tests miss edge cases</h3>
+<p>When you write example-based tests, you test what you already think of. Properties force you to test what you didn't. The framework's random generator explores combinations you would never have written by hand: vectors with 10,000 elements, strings with embedded null bytes, deeply nested structures, boundary values at exactly <code>i32::MIN</code> and <code>i32::MAX</code>.</p>
+<h3>Properties document intent</h3>
+<p>A test case says "this specific input produces this specific output." A property says "this is what my code guarantees, regardless of input." The property is a specification — readable, verifiable, and impossible to drift out of sync with the implementation.</p>
+<h3>Shrinking saves debugging time</h3>
+<p>When a property-based test finds a failing input, the framework automatically <strong>shrinks</strong> it — repeatedly tries smaller inputs until it finds the minimal failing case. Instead of a crash on a 500-element vector, you get a clean report on <code>vec![3, -1]</code>. This eliminates hours of manual reproduction.</p>
+<h3>Coverage scales with time</h3>
+<p>Run an example test once — it passes or fails. Run a property test — it generates thousands of inputs. Run it longer — it generates more. The <code>proptest</code> default is 256 successful cases per property; you can increase it to 100,000 in CI or 1,000,000 overnight. More time = more confidence.</p>
+<h2>The three core concepts</h2>
+<h3>Properties</h3>
+<p>A property is an assertion about your code that must hold for all valid inputs. Examples:</p>
+<ul><li><strong>Idempotence</strong>: <code>compress(decompress(x)) == x</code> for all <code>x</code></li><li><strong>Round-trip</strong>: <code>parse(format(x)) == Some(x)</code> for all <code>x</code></li><li><strong>Inverse</strong>: <code>encode(decode(x)) == x</code> for all <code>x</code></li><li><strong>Consistency</strong>: Two implementations produce the same output for all inputs</li><li><strong>Error handling</strong>: Invalid inputs always return <code>Err</code>, never panic</li><li><strong>Monotonicity</strong>: Adding constraints never increases the set of valid instances</li></ul>
+<h3>Generators</h3>
+<p>A generator (<code>Strategy</code> in proptest) produces random values of a specific type. proptest provides generators for primitives (<code>any::<i32>()</code>), collections (<code>vec(any::<String>(), 0..10)</code>), and combinators (<code>prop_oneof![..., ...]</code>). You build generators for your own types by combining these primitives.</p>
+<h3>Assertions</h3>
+<p>Property assertions are like regular assertions but with shrinking support. When they fail, proptest finds the smallest input that still fails. Use <code>prop_assert!</code>, <code>prop_assert_eq!</code>, <code>prop_assert_ne!</code> instead of <code>assert!</code>, <code>assert_eq!</code>, <code>assert_ne!</code>.</p>
+<h2>proptest vs quickcheck</h2>
+<table><tr><th>Feature</th><th>proptest</th><th>quickcheck</th></tr><tr><td>Maturity</td><td>Very mature, actively maintained</td><td>Mature, stable</td></tr><tr><td>Shrinking</td><td>Deep, configurable, multi-pass</td><td>Basic</td></tr><tr><td>Type system</td><td>`Strategy` trait with composition</td><td>`Arbitrary` trait</td></tr><tr><td>Custom generators</td><td>Ergonomic combinators</td><td>Manual `Arbitrary` impls</td></tr><tr><td>Integration</td><td>`#[test]` macro, works with test harness</td><td>`quickcheck!` macro</td></tr><tr><td>Documentation</td><td>Excellent, many examples</td><td>Good, fewer examples</td></tr><tr><td>Performance</td><td>Good</td><td>Good</td></tr></table>
+<p><strong>Recommendation</strong>: Use proptest. It has better shrinking, more ergonomic generators, and the <code>Strategy</code> trait composes naturally for complex types. This guide focuses on proptest.</p>
+<h2>Property-based testing is not fuzzing</h2>
+<p>Property-based testing and fuzzing are complementary:</p>
+<table><tr><th>Aspect</th><th>Property-Based Testing</th><th>Fuzzing</th></tr><tr><td>Input type</td><td>Typed, generated by strategies</td><td>Untyped, raw bytes</td></tr><tr><td>Check</td><td>User-defined invariants (assertions)</td><td>Crashes, panics, sanitizer violations</td></tr><tr><td>Generation</td><td>Smart generators with semantic knowledge</td><td>Coverage-guided mutations</td></tr><tr><td>Shrinking</td><td>Deep, multi-pass automatic shrinking</td><td>Basic minimization</td></tr><tr><td>Best for</td><td>Logic correctness, round-trips, consistency</td><td>Memory safety, panic-free guarantees</td></tr><tr><td>Runtime</td><td>Fast per case, limited cases (256 default)</td><td>Slower per case, massive cases (millions)</td></tr><tr><td>Coverage</td><td>Depends on generators</td><td>Edge-driven, systematic</td></tr></table>
+<p><strong>Use property tests</strong> to verify your code's logic: round-trips, invariants, consistency between implementations.</p>
+<p><strong>Use fuzzing</strong> to verify your code's safety: no panics, no memory corruption, no undefined behaviour on arbitrary input.</p>
+<p>Both should be in your test suite.</p>
+<h2>When to use property-based testing</h2>
+<p><strong>Always use for:</strong></p>
+<ul><li>Parsing/formatting round-trips: <code>format(parse(x))</code> must recover <code>x</code></li><li>Compression/decompression: <code>decompress(compress(x))</code> must equal <code>x</code></li><li>Serialization/deserialization: <code>to_json(from_json(x))</code> must recover <code>x</code></li><li>Inverse operations: <code>decode(encode(x))</code> must equal <code>x</code></li><li>Ordering and sorting: <code>sort(sort(x)) == sort(x)</code> (idempotence)</li><li>Constraint satisfaction: valid inputs satisfy all constraints</li><li>Consistency between two implementations</li></ul>
+<p><strong>Consider for:</strong></p>
+<ul><li>Any function with multiple branches — properties explore all paths</li><li>Complex data transformations — properties catch edge cases</li><li>Input validation — properties verify that invalid inputs are rejected</li></ul>
+<p><strong>Skip for:</strong></p>
+<ul><li>UI rendering, graphics, or anything with visual output</li><li>Code with external side effects (network, filesystem) — use mocks</li><li>Performance benchmarks — use criterion</li></ul>
+<hr>
+<h2>Further Reading</h2>
+<ul><li><a href="https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quickcheck.pdf">The QuickCheck Paper</a> — Original paper (2000)</li><li><a href="https://altsysrq.github.io/proptest/book/intro.html">proptest book</a> — Official proptest guide</li><li><a href="https://hackage.haskell.org/package/QuickCheck">Haskell QuickCheck</a> — Original implementation</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+[package]
+name = "foundation_jsonschema-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde_json = "1.0"
+foundation_jsonschema = { path = ".." }
+
+[[bin]]
+name = "builder"
+path = "fuzz_targets/builder.rs"
+
+[[bin]]
+name = "validation"
+path = "fuzz_targets/validation.rs"
+
+[[bin]]
+name = "referencing"
+path = "fuzz_targets/referencing.rs"

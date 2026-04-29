@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>markdown.engineering -- Content Architecture -- markdown_engineering</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/markdown_engineering/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="01-site-analysis.html">markdown.engineering -- Technical Site Analysis</a> <a href="02-rendering-pipeline.html">markdown.engineering -- Rendering Pipeline</a> <a href="03-design-system.html">markdown.engineering -- Design System</a></span> <a href="03-design-system.html">← markdown.engineering -- Design System</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>markdown.engineering -- Content Architecture</h1>
+<h2>URL Structure and Information Hierarchy</h2>
+<p>The site organizes ~140 pages into a clear hierarchy that mirrors the six-layer agentic engineering stack.</p>
+<h3>Top-Level Navigation</h3>
+<pre><code class="language-">/                       Landing page
+/stack                  Architecture overview (the six-layer model)
+/essays                 Long-form essays (index)
+/blog                   Blog posts (index)
+/play                   Terminal Quest game (landing)
+/learn-claude-code      50-lesson architecture course (landing)
+/about                  About the author
+</code></pre>
+<h3>Stack Layer Pages</h3>
+<p>Each layer of the agentic stack gets its own section:</p>
+<pre><code class="language-">/primitives/
+  /primitives/markdown
+  /primitives/cli
+  /primitives/bash
+  /primitives/git
+
+/models/
+  /models/claude
+  /models/gpt
+  /models/gemini
+
+/tools/
+  /tools/built-in-tools
+
+/mcps/
+  /mcps/what-are-mcps
+  /mcps/mcp-servers
+
+/skills/
+  /skills/what-are-skills
+
+/agents/
+  /agents/claude-code
+  /agents/codex
+  /agents/pi
+</code></pre>
+<h3>Content URLs</h3>
+<pre><code class="language-">/essays/{slug}                    e.g., /essays/the-markdown-is-the-message
+/blog/{YYYY-MM-DD-slug}           e.g., /blog/2026-04-12-agent-engineering-2026
+/learn-claude-code/{NN-slug}      e.g., /learn-claude-code/01-boot-sequence
+/play/{layer}/{NN}                e.g., /play/primitives/01
+</code></pre>
+<h2>Content Collections (Astro)</h2>
+<p>Astro's content collections system is the backbone of content organization. Each content type lives in a directory under <code>src/content/</code> with a schema definition.</p>
+<h3>Likely Directory Structure</h3>
+<pre><code class="language-">src/
+  content/
+    config.ts                     # Collection schemas
+    essays/
+      the-markdown-is-the-message.md
+    blog/
+      2026-04-12-agent-engineering-2026.md
+    stack/
+      primitives/
+        markdown.md
+        cli.md
+        bash.md
+        git.md
+      models/
+        claude.md
+        gpt.md
+        gemini.md
+      tools/
+        built-in-tools.md
+      mcps/
+        what-are-mcps.md
+        mcp-servers.md
+      skills/
+        what-are-skills.md
+      agents/
+        claude-code.md
+        codex.md
+        pi.md
+    lessons/
+      01-boot-sequence.md
+      02-...md
+      ...
+      50-architecture-overview.md
+    play/
+      primitives/
+        01.md ... 12.md
+      models/
+        01.md ... 12.md
+      ...
+</code></pre>
+<h3>Frontmatter Schema (Inferred)</h3>
+<p>Each content type uses YAML frontmatter for metadata:</p>
+<pre><code class="language-yaml"># Essays/Blog
+---
+title: &quot;The Markdown is the Message&quot;
+description: &quot;How markdown became the medium of software engineering&quot;
+date: 2026-02-23
+author: &quot;Noah Green Snow&quot;
+tags: [&quot;philosophy&quot;, &quot;markdown&quot;, &quot;mcluhan&quot;]
+og_image: &quot;/images/essays/the-markdown-is-the-message.png&quot;
+---
+
+# Lessons
+---
+title: &quot;Boot Sequence&quot;
+lesson: 1
+chapter: &quot;Core Architecture&quot;
+chapter_tag: &quot;arch&quot;
+description: &quot;How Claude Code initializes&quot;
+---
+
+# Stack Pages
+---
+title: &quot;Markdown&quot;
+layer: &quot;primitives&quot;
+status: &quot;complete&quot;        # or &quot;in-progress&quot;
+description: &quot;The foundation of agent communication&quot;
+---
+</code></pre>
+<h2>Content Status System</h2>
+<p>Many stack pages use a status badge system:</p>
+<ul><li><strong>Complete</strong>: Full content, published</li><li><strong>In progress</strong>: Stub with placeholder text directing readers to @NoahGreenSnow for updates</li></ul>
+<p>This is a pragmatic approach -- ship the structure first, fill in content iteratively. The URL structure and navigation are stable even when individual pages are stubs.</p>
+<h2>Learn Claude Code Course Structure</h2>
+<p>The 50-lesson course is organized into 8 chapters, each color-coded:</p>
+<pre><code class="language-">Chapter 1: Core Architecture (arch, orange)
+  Lessons covering boot sequence, initialization, configuration
+
+Chapter 2: Tool System (tools, green)
+  Lessons covering built-in tools, tool dispatch, permissions
+
+Chapter 3: Agent Intelligence (agents, blue)
+  Lessons covering agent loop, decision making, context management
+
+Chapter 4: The Interface (ui, gold)
+  Lessons covering Ink/React UI, terminal rendering, user interaction
+
+Chapter 5: Infrastructure (infra, brown)
+  Lessons covering session management, storage, caching
+
+Chapter 6: Connectivity (net, teal)
+  Lessons covering MCP integration, external services
+
+Chapter 7: Unreleased (leak, red)
+  Lessons covering BUDDY companion, ULTRAPLAN, KAIROS, desktop app
+
+Chapter 8: The Big Picture (meta, gray)
+  Lessons covering architecture overview, design philosophy
+</code></pre>
+<p>Each lesson page includes:</p>
+<ul><li>Phase grids showing key concepts</li><li>Code blocks with syntax highlighting</li><li>Mermaid flowcharts showing system interactions</li><li>Callout boxes (info, tip, warn) for key points</li><li>Details/summary expandable "Deep dive" sections</li><li>Interactive quizzes with answer checking</li></ul>
+<h2>Terminal Quest Game Structure</h2>
+<p>The game maps to the six-layer stack:</p>
+<pre><code class="language-">6 chapters (one per stack layer)
+× 12 levels per chapter
+= 72 total game levels
+</code></pre>
+<p>Each level teaches concepts from its corresponding stack layer through an interactive terminal-based game interface.</p>
+<h2>RSS Feed</h2>
+<p>Available at <code>/rss.xml</code>, enabling syndication of blog posts and essays.</p>
+<h2>Open Graph / Social Metadata</h2>
+<p>Every page includes full OG and Twitter Card metadata with custom images per article, ensuring rich previews when shared on social media.</p>
+<h2>Key Architectural Takeaways</h2>
+<ol><li><strong>URL structure mirrors the conceptual model</strong> -- The six-layer stack is reflected directly in the URL hierarchy. Navigation is self-documenting.</li><li><strong>Content collections enforce consistency</strong> -- Astro's typed schemas ensure every piece of content has the required metadata.</li><li><strong>Progressive content</strong> -- Ship the structure, fill in content over time. Stub pages with status badges set expectations without breaking navigation.</li><li><strong>Multiple content formats</strong> -- Essays (deep), blog (timely), lessons (structured), game (interactive) serve different learning styles and entry points.</li><li><strong>Flat lesson numbering</strong> -- Lessons use sequential numbers (01-50) rather than nested chapter/lesson numbers. Simple, predictable, easy to reference.</li></ol>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

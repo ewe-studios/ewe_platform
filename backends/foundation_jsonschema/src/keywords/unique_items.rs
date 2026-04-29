@@ -4,7 +4,6 @@
 //! the array may be equal. Equality uses JSON Schema semantics (1 == 1.0).
 
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 
 use serde_json::Value;
 

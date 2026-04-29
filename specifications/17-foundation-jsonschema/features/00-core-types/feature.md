@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/00-core-types"
 this_file: "specifications/17-foundation-jsonschema/features/00-core-types/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-04-28
 
 depends_on: []
 
 tasks:
-  completed: 0
-  uncompleted: 28
+  completed: 28
+  uncompleted: 0
   total: 28
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 0: Core Types

@@ -33,7 +33,7 @@ impl Validate for MaxPropertiesValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if let Value::Object(obj) = instance {
             let actual = obj.len() as u64;

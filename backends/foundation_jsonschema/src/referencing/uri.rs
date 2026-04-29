@@ -3,7 +3,7 @@
 //! WHY: JSON Schema reference resolution requires RFC 3986 URI parsing and
 //! relative-to-absolute URI resolution. We implement the minimal subset needed
 //! rather than pulling in a full URI crate (e.g., `url` or `fluent-uri`) to
-//! keep the dependency footprint small and no_std compatible.
+//! keep the dependency footprint small and `no_std` compatible.
 //!
 //! WHAT: `Uri` struct that decomposes a URI into scheme, authority, path,
 //! query, and fragment. Supports `resolve()` for RFC 3986 §5 reference
@@ -37,7 +37,9 @@ pub struct Uri {
 /// URI parsing error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UriError {
+    /// The URI that failed to parse.
     pub uri: String,
+    /// The reason parsing failed.
     pub reason: &'static str,
 }
 
@@ -51,6 +53,10 @@ impl fmt::Debug for Uri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Uri")
             .field("raw", &self.raw)
+            .field("scheme_end", &self.scheme_end)
+            .field("authority_end", &self.authority_end)
+            .field("path_end", &self.path_end)
+            .field("query_end", &self.query_end)
             .field("scheme", &self.scheme())
             .field("authority", &self.authority())
             .field("path", &self.path())
@@ -345,6 +351,11 @@ pub fn resolve_against(base: &str, reference: &str) -> Result<Uri, UriError> {
 /// # Errors
 ///
 /// Returns `UriError` if the URI is malformed.
+///
+/// # Panics
+///
+/// Panics if `DEFAULT_ROOT_URI` fails to parse (this is a compile-time constant
+/// and will never fail in practice).
 pub fn from_str(uri: &str) -> Result<Uri, UriError> {
     let trimmed = uri.strip_suffix('#').unwrap_or(uri);
     let parsed = Uri::parse(trimmed)?;
@@ -418,8 +429,8 @@ fn remove_dot_segments(path: &str) -> String {
         }
 
         // E: Move first path segment to output
-        let seg_end = if input.starts_with('/') {
-            match input[1..].find('/') {
+        let seg_end = if let Some(rest) = input.strip_prefix('/') {
+            match rest.find('/') {
                 Some(pos) => pos + 1,
                 None => input.len(),
             }

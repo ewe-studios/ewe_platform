@@ -4,10 +4,9 @@
 //! This module provides the types and methods to produce each format.
 
 use alloc::collections::BTreeMap;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::paths::Location;
 
 /// The result of evaluating a JSON instance against a compiled schema.
 ///
@@ -21,17 +20,25 @@ pub struct Evaluation {
 /// A single node in the evaluation tree.
 #[derive(Debug, Clone)]
 pub struct EvaluationNode {
+    /// Whether this node passed validation.
     pub valid: bool,
+    /// JSON Pointer path to the evaluation node.
     pub evaluation_path: String,
+    /// JSON Pointer path to the schema location.
     pub schema_location: String,
+    /// JSON Pointer path to the instance location.
     pub instance_location: String,
+    /// Validation errors found at this node.
     pub errors: Vec<String>,
+    /// Annotation values collected at this node.
     pub annotations: BTreeMap<String, String>,
+    /// Child evaluation nodes.
     pub children: Vec<EvaluationNode>,
 }
 
 impl Evaluation {
     /// Create an evaluation from a root node.
+    #[must_use]
     pub fn new(root: EvaluationNode) -> Self {
         Self { root }
     }
@@ -84,34 +91,48 @@ impl EvaluationNode {
 /// Flag output — simple boolean.
 #[derive(Debug, Clone)]
 pub struct FlagOutput {
+    /// Whether the overall evaluation passed.
     pub valid: bool,
 }
 
 /// List output — flat list of evaluation entries.
 #[derive(Debug, Clone)]
 pub struct ListOutput {
+    /// Whether the overall evaluation passed.
     pub valid: bool,
+    /// The flat list of evaluation entries.
     pub entries: Vec<ListEntry>,
 }
 
 /// A single entry in the list output.
 #[derive(Debug, Clone)]
 pub struct ListEntry {
+    /// Whether this entry passed validation.
     pub valid: bool,
+    /// JSON Pointer path to the evaluation node.
     pub evaluation_path: String,
+    /// JSON Pointer path to the schema location.
     pub schema_location: String,
+    /// JSON Pointer path to the instance location.
     pub instance_location: String,
+    /// Validation errors found at this entry.
     pub errors: Vec<String>,
 }
 
 /// Hierarchical output — nested tree.
 #[derive(Debug, Clone)]
 pub struct HierarchicalOutput {
+    /// Whether this node passed validation.
     pub valid: bool,
+    /// JSON Pointer path to the evaluation node.
     pub evaluation_path: String,
+    /// JSON Pointer path to the schema location.
     pub schema_location: String,
+    /// JSON Pointer path to the instance location.
     pub instance_location: String,
+    /// Validation errors found at this node.
     pub errors: Vec<String>,
+    /// Nested child output nodes.
     pub children: Vec<HierarchicalOutput>,
 }
 

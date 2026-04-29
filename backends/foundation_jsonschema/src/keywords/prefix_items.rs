@@ -1,4 +1,4 @@
-//! Stub: `prefixItems` (Draft 2020-12) requires SchemaNode.
+//! Stub: `prefixItems` (Draft 2020-12) requires `SchemaNode`.
 
 use alloc::boxed::Box;
 

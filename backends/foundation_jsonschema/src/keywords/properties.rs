@@ -1,6 +1,6 @@
 //! Stub: `properties` — validates named properties against their sub-schemas.
 //!
-//! Requires SchemaNode (Feature 3).
+//! Requires `SchemaNode` (Feature 3).
 
 use alloc::boxed::Box;
 

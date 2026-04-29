@@ -4,7 +4,7 @@ use alloc::boxed::Box;
 
 use serde_json::Value;
 
-use crate::error::{ErrorIterator, ValidationError, ValidationErrorBuilder, ValidationErrorKind};
+use crate::error::{ErrorIterator, ValidationError};
 use crate::paths::LazyLocation;
 
 use super::{Validate, ValidationContext};

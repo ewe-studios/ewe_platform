@@ -102,8 +102,8 @@ impl Location {
             match seg {
                 LocationSegment::Property(name) => {
                     // RFC 6901 escaping: ~ → ~0, / → ~1
-                    let mut chars = name.chars();
-                    while let Some(c) = chars.next() {
+                    let chars = name.chars();
+                    for c in chars {
                         match c {
                             '~' => result.push_str("~0"),
                             '/' => result.push_str("~1"),
@@ -237,7 +237,7 @@ impl<'a> LazyLocation<'a> {
     }
 }
 
-impl<'a> Default for LazyLocation<'a> {
+impl Default for LazyLocation<'_> {
     fn default() -> Self {
         Self::new()
     }

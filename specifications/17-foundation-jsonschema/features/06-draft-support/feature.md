@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/06-draft-support"
 this_file: "specifications/17-foundation-jsonschema/features/06-draft-support/feature.md"
 
-status: pending
+status: complete
 priority: medium
 created: 2026-04-28
 
 depends_on: ["00-core-types", "01-referencing", "02-keywords-validators"]
 
 tasks:
-  completed: 0
-  uncompleted: 18
+  completed: 18
+  uncompleted: 0
   total: 18
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 6: Draft Support

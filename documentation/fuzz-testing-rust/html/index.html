@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fuzz-testing-rust -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/fuzz-testing-rust/docs</span>
+    <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+  </nav>
+
+  <h1>fuzz-testing-rust Documentation</h1>
+  <p>Documentation for fuzz-testing-rust.</p>
+  <ul class="doc-index">
+    <li><a href="00-overview.html">Fuzz Testing in Rust — Overview</a></li>
+<li><a href="01-setup.html">Setup and Tooling</a></li>
+<li><a href="02-first-target.html">Your First Fuzz Target</a></li>
+<li><a href="03-input-strategies.html">Input Strategies</a></li>
+<li><a href="04-corpus-and-dict.html">Seed Corpus and Dictionaries</a></li>
+<li><a href="05-interpretation.html">Interpreting Results</a></li>
+<li><a href="06-advanced.html">Advanced Techniques</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

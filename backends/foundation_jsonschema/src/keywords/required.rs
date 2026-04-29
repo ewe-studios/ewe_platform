@@ -35,7 +35,7 @@ impl Validate for RequiredValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if let Value::Object(obj) = instance {
             for prop in &self.properties {
@@ -57,7 +57,7 @@ impl Validate for RequiredValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> ErrorIterator {
         if let Value::Object(obj) = instance {
             let mut missing = Vec::new();

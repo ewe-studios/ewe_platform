@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>markdown.engineering -- Design System -- markdown_engineering</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/markdown_engineering/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">markdown.engineering -- Site Overview</a> <a href="01-site-analysis.html">markdown.engineering -- Technical Site Analysis</a> <a href="02-rendering-pipeline.html">markdown.engineering -- Rendering Pipeline</a></span> <a href="02-rendering-pipeline.html">← markdown.engineering -- Rendering Pipeline</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>markdown.engineering -- Design System</h1>
+<h2>Visual Identity</h2>
+<p>The site deliberately avoids the standard blue/purple tech palette. Instead, it uses warm, earthy tones that evoke parchment, leather, and wood -- a nod to the "engineering" in the name, suggesting craft and materiality rather than sterile digital aesthetics.</p>
+<p>The <code>~/</code> glyph is used as the site's brand prefix, evoking a terminal home directory path. This ties the visual identity back to the CLI-centric philosophy.</p>
+<h2>Color Tokens</h2>
+<h3>Light Theme</h3>
+<pre><code class="language-css">[data-theme=&quot;light&quot;] {
+  /* Backgrounds */
+  --bg:        #f8f1e6;   /* Warm parchment */
+  --bg-strong: #fff8ef;   /* Lighter parchment for elevated surfaces */
+  --bg-muted:  #f0e2cd;   /* Deeper parchment for recessed areas */
+
+  /* Foregrounds */
+  --fg:        #2b2018;   /* Dark brown, primary text */
+  --fg-muted:  #5f4d40;   /* Medium brown, secondary text */
+  --fg-soft:   #8f7a67;   /* Light brown, tertiary text */
+
+  /* Accent */
+  --accent:    #a36540;   /* Burnt sienna, links and highlights */
+
+  /* Lines */
+  --line:        #ddcbb4; /* Light borders */
+  --line-strong: #c1a78a; /* Emphasized borders */
+}
+</code></pre>
+<h3>Dark Theme</h3>
+<pre><code class="language-css">[data-theme=&quot;dark&quot;] {
+  /* Backgrounds */
+  --bg:        #13100f;   /* Near-black with warm undertone */
+  --bg-strong: #1f1a17;   /* Slightly elevated dark surface */
+  --bg-muted:  #29231f;   /* Recessed dark surface */
+
+  /* Foregrounds */
+  --fg:        #f7efe4;   /* Warm white, primary text */
+  --fg-muted:  #d8c5b0;   /* Muted warm, secondary text */
+  --fg-soft:   #b19780;   /* Soft warm, tertiary text */
+
+  /* Accent */
+  --accent:    #d4a176;   /* Gold/amber, links and highlights */
+
+  /* Lines */
+  --line:        #3d332c; /* Subtle dark borders */
+  --line-strong: #5a493f; /* Visible dark borders */
+}
+</code></pre>
+<h3>Background Effect</h3>
+<p>The body background uses radial gradient overlays from the accent color at low opacity, creating a subtle ambient glow:</p>
+<pre><code class="language-css">body {
+  background:
+    radial-gradient(ellipse at 8%  50%, var(--accent) / 0.04, transparent 50%),
+    radial-gradient(ellipse at 92% 50%, var(--accent) / 0.03, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, var(--accent) / 0.02, transparent 70%),
+    var(--bg);
+}
+</code></pre>
+<h2>Typography</h2>
+<h3>Font Stack</h3>
+<pre><code class="language-css">/* Headings */
+h1, h2, h3 {
+  font-family: &#x27;Fraunces&#x27;, serif;
+  font-optical-sizing: auto;
+}
+
+/* Body */
+body {
+  font-family: &#x27;Manrope&#x27;, sans-serif;
+}
+
+/* Code */
+code, pre {
+  font-family: &#x27;IBM Plex Mono&#x27;, monospace;
+}
+
+/* Learn/Play sections use alternate fonts */
+.learn-page, .play-page {
+  font-family: &#x27;Space Grotesk&#x27;, sans-serif;
+}
+.learn-page code, .play-page code {
+  font-family: &#x27;JetBrains Mono&#x27;, monospace;
+}
+</code></pre>
+<h3>Type Scale and Weight</h3>
+<table><tr><th>Element</th><th>Font</th><th>Weight</th><th>Purpose</th></tr><tr><td>h1</td><td>Fraunces</td><td>700</td><td>Page titles</td></tr><tr><td>h2</td><td>Fraunces</td><td>600</td><td>Section heads</td></tr><tr><td>h3</td><td>Fraunces</td><td>500</td><td>Subsection heads</td></tr><tr><td>Body</td><td>Manrope</td><td>400</td><td>Paragraph text</td></tr><tr><td>Bold body</td><td>Manrope</td><td>700</td><td>Emphasis</td></tr><tr><td>Code</td><td>IBM Plex Mono</td><td>400</td><td>Inline code</td></tr><tr><td>Code labels</td><td>IBM Plex Mono</td><td>500</td><td>Code block headers</td></tr></table>
+<h2>Component Patterns</h2>
+<h3>Surface</h3>
+<p>The <code>.surface</code> class is the primary container pattern:</p>
+<pre><code class="language-css">.surface {
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bg-strong), transparent 10%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+</code></pre>
+<h3>Terminal Hero</h3>
+<p>A macOS-style terminal window header component used on the main page:</p>
+<pre><code class="language-html">&lt;terminal-hero&gt;
+  &lt;div class=&quot;terminal-header&quot;&gt;
+    &lt;span class=&quot;dot red&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;dot yellow&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;dot green&quot;&gt;&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;terminal-body&quot;&gt;
+    &lt;!-- Content rendered inside terminal chrome --&gt;
+  &lt;/div&gt;
+&lt;/terminal-hero&gt;
+</code></pre>
+<h3>Callout Boxes (Learn Lessons)</h3>
+<p>Three variants used in the course content:</p>
+<pre><code class="language-html">&lt;!-- Info callout --&gt;
+&lt;div class=&quot;callout info&quot;&gt;
+  &lt;strong&gt;Key concept:&lt;/strong&gt; Explanation text here.
+&lt;/div&gt;
+
+&lt;!-- Tip callout --&gt;
+&lt;div class=&quot;callout tip&quot;&gt;
+  &lt;strong&gt;Tip:&lt;/strong&gt; Helpful suggestion here.
+&lt;/div&gt;
+
+&lt;!-- Warning callout --&gt;
+&lt;div class=&quot;callout warn&quot;&gt;
+  &lt;strong&gt;Warning:&lt;/strong&gt; Important caveat here.
+&lt;/div&gt;
+</code></pre>
+<h3>Phase Grids</h3>
+<p>Card-based layouts for presenting multi-step concepts:</p>
+<pre><code class="language-html">&lt;div class=&quot;phase-grid&quot;&gt;
+  &lt;div class=&quot;phase-card&quot;&gt;
+    &lt;h4&gt;Phase 1: Discovery&lt;/h4&gt;
+    &lt;p&gt;Description of what happens in this phase.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;phase-card&quot;&gt;
+    &lt;h4&gt;Phase 2: Analysis&lt;/h4&gt;
+    &lt;p&gt;Description of analysis phase.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<h3>Chapter Tags (Learn Lessons)</h3>
+<p>Color-coded tags for organizing the 50-lesson course:</p>
+<pre><code class="language-css">.tag-arch   { color: orange; }    /* Core Architecture */
+.tag-tools  { color: green;  }    /* Tool System */
+.tag-agents { color: blue;   }    /* Agent Intelligence */
+.tag-ui     { color: gold;   }    /* The Interface */
+.tag-infra  { color: brown;  }    /* Infrastructure */
+.tag-net    { color: teal;   }    /* Connectivity */
+.tag-leak   { color: red;    }    /* Unreleased */
+.tag-meta   { color: gray;   }    /* The Big Picture */
+</code></pre>
+<h2>Responsive Breakpoints</h2>
+<pre><code class="language-css">/* Mobile-first, key breakpoints */
+@media (min-width: 640px)  { /* Tablet: show/hide elements */ }
+@media (min-width: 760px)  { /* Small desktop: grid layout shifts */ }
+@media (min-width: 1040px) { /* Desktop: full layout */ }
+</code></pre>
+<h2>Accessibility</h2>
+<ul><li>Skip-to-content link on every page</li><li>Animations respect <code>prefers-reduced-motion</code></li><li>Theme toggle respects <code>prefers-color-scheme</code> as default</li><li>Semantic HTML throughout (nav, main, article, aside, footer)</li><li>Font <code>display=swap</code> prevents invisible text during load</li></ul>
+<h2>What Makes This Design System Replicable</h2>
+<ol><li><strong>CSS custom properties as the single source of truth</strong> -- Every color, spacing, and border value flows from a small set of tokens. Changing 12 variables transforms the entire site.</li><li><strong>No component library dependency</strong> -- Everything is plain CSS. No styled-components, no CSS-in-JS, no Chakra/MUI.</li><li><strong>Progressive enhancement</strong> -- The site works without JavaScript. Themes, animations, and Mermaid are enhancements layered on top.</li><li><strong>Warm, distinctive palette</strong> -- Proves that documentation sites don't need to look like every other tech site. The earthy tones create a memorable identity with minimal effort.</li></ol>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

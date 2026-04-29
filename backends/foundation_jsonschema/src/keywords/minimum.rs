@@ -35,7 +35,7 @@ impl Validate for MinimumValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if let Value::Number(n) = instance {
             if let Some(v) = n.as_f64() {

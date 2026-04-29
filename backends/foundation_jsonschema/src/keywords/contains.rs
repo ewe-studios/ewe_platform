@@ -1,4 +1,4 @@
-//! Stub: `contains` requires sub-schema validation via SchemaNode.
+//! Stub: `contains` requires sub-schema validation via `SchemaNode`.
 
 use alloc::boxed::Box;
 
@@ -15,17 +15,13 @@ pub struct ContainsValidator;
 
 impl Validate for ContainsValidator {
     fn is_valid(&self, instance: &Value, _ctx: &mut ValidationContext) -> bool {
-        if let Value::Array(_) = instance {
-            false
-        } else {
-            true
-        }
+        !matches!(instance, Value::Array(_))
     }
 
     fn validate(
         &self,
         instance: &Value,
-        instance_path: &LazyLocation<'_>,
+        _instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if self.is_valid(instance, ctx) {

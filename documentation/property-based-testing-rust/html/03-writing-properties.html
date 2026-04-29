@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Writing Properties -- property-based-testing-rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/property-based-testing-rust/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Property-Based Testing in Rust — Overview</a> <a href="01-setup.html">Setup and Quick Start</a> <a href="02-generators.html">Generators and Strategies</a></span> <a href="02-generators.html">← Generators and Strategies</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Writing Properties</h1>
+<p>A property is an assertion about your code that must hold for all valid inputs. Writing good properties is the hardest part of property-based testing. This document covers the most effective property patterns.</p>
+<h2>Round-trip properties</h2>
+<p>The most reliable and useful property: transform A to B and back to A. If the round-trip succeeds, the forward and inverse transformations are correct.</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn json_roundtrip(ref original in any::&lt;serde_json::Value&gt;()) {
+        let serialized = serde_json::to_string(&amp;original).unwrap();
+        let deserialized: serde_json::Value = serde_json::from_str(&amp;serialized).unwrap();
+        prop_assert_eq!(deserialized, original);
+    }
+}
+</code></pre>
+<p>Other round-trips:</p>
+<pre><code class="language-rust">// Compression
+fn roundtrip_compress(ref data in any::&lt;Vec&lt;u8&gt;&gt;()) {
+    let compressed = compress(data);
+    let decompressed = decompress(&amp;compressed).unwrap();
+    prop_assert_eq!(decompressed, data);
+}
+
+// Encoding/decoding
+fn roundtrip_base64(ref data in any::&lt;Vec&lt;u8&gt;&gt;()) {
+    let encoded = base64::encode(data);
+    let decoded = base64::decode(&amp;encoded).unwrap();
+    prop_assert_eq!(decoded, data);
+}
+
+// Parsing/formatting
+fn roundtrip_format_parse(ref input in any::&lt;i64&gt;()) {
+    let formatted = format!(&quot;{}&quot;, input);
+    let parsed: i64 = formatted.parse().unwrap();
+    prop_assert_eq!(parsed, input);
+}
+</code></pre>
+<p>Round-trip properties catch: serialization bugs, encoding errors, precision loss, truncation, and character handling issues.</p>
+<h2>Idempotence properties</h2>
+<p>Applying a function twice should be the same as applying it once:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn sort_is_idempotent(ref input in any::&lt;Vec&lt;i32&gt;&gt;()) {
+        let mut sorted = input.clone();
+        sorted.sort();
+        let mut sorted_again = sorted.clone();
+        sorted_again.sort();
+        prop_assert_eq!(sorted, sorted_again);
+    }
+
+    #[test]
+    fn trim_is_idempotent(ref input in &quot;[\\s\\S]*&quot;) {
+        let trimmed1 = input.trim();
+        let trimmed2 = trimmed1.trim();
+        prop_assert_eq!(trimmed1, trimmed2);
+    }
+
+    #[test]
+    fn normalize_whitespace_is_idempotent(ref input in any::&lt;String&gt;()) {
+        let norm1 = normalize_whitespace(&amp;input);
+        let norm2 = normalize_whitespace(&amp;norm1);
+        prop_assert_eq!(norm1, norm2);
+    }
+}
+</code></pre>
+<p>Idempotence properties catch: incomplete transformations, state-dependent bugs, and side effects.</p>
+<h2>Consistency properties</h2>
+<p>Two implementations should produce the same result:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn fast_sort_matches_slow_sort(ref input in any::&lt;Vec&lt;i32&gt;&gt;()) {
+        let mut a = input.clone();
+        let mut b = input.clone();
+        fast_sort(&amp;mut a);
+        slow_sort(&amp;mut b);
+        prop_assert_eq!(a, b);
+    }
+
+    #[test]
+    fn custom_validate_matches_regex(ref input in any::&lt;String&gt;()) {
+        let custom_result = custom_validate(&amp;input);
+        let regex_result = regex_is_match(&quot;^[a-z]+$&quot;, &amp;input);
+        prop_assert_eq!(custom_result, regex_result);
+    }
+}
+</code></pre>
+<p>Consistency properties catch: implementation drift, edge case handling differences, and regression bugs.</p>
+<h2>Inverse properties</h2>
+<p>Two functions are inverses if applying one then the other returns the original:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn encode_decode_inverse(ref input in any::&lt;Vec&lt;u8&gt;&gt;()) {
+        let encoded = encode(input);
+        let decoded = decode(&amp;encoded).unwrap();
+        prop_assert_eq!(decoded, input);
+    }
+
+    #[test]
+    fn uri_encode_decode_inverse(ref input in &quot;[a-zA-Z0-9_.!~*&#x27;()-]*&quot;) {
+        let encoded = url_encode(input);
+        let decoded = url_decode(&amp;encoded).unwrap();
+        prop_assert_eq!(decoded, input);
+    }
+}
+</code></pre>
+<h2>Monotonicity properties</h2>
+<p>Adding constraints should never increase the valid set:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn additional_constraints_never_widen(ref schema in any::&lt;Schema&gt;(), ref instance in any::&lt;Value&gt;()) {
+        let base_valid = validate(&amp;schema, &amp;instance);
+        let extended_schema = schema.with_min_length(5);
+        let extended_valid = validate(&amp;extended_schema, &amp;instance);
+        // If the extended schema validates, the base schema must also validate
+        if extended_valid {
+            prop_assert!(base_valid);
+        }
+    }
+}
+</code></pre>
+<h2>Error handling properties</h2>
+<p>Invalid inputs should always return errors, never panic:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn invalid_json_always_errors(ref input in any::&lt;String&gt;()) {
+        // Skip valid JSON — those are tested in round-trip
+        prop_assume!(serde_json::from_str::&lt;serde_json::Value&gt;(&amp;input).is_err());
+        let result = my_parse(&amp;input);
+        prop_assert!(result.is_err());
+    }
+}
+</code></pre>
+<h2>State machine properties</h2>
+<p>For code with mutable state, model the state machine and verify transitions:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn counter_invariant(ref ops in prop::collection::vec(
+        prop_oneof![CounterOp::Increment, CounterOp::Decrement, CounterOp::Reset],
+        0..20
+    )) {
+        let mut counter = Counter::new();
+        let mut expected = 0i32;
+
+        for op in ops {
+            match op {
+                CounterOp::Increment =&gt; {
+                    counter.increment();
+                    expected += 1;
+                }
+                CounterOp::Decrement =&gt; {
+                    counter.decrement();
+                    expected -= 1;
+                }
+                CounterOp::Reset =&gt; {
+                    counter.reset();
+                    expected = 0;
+                }
+            }
+            prop_assert_eq!(counter.value(), expected);
+        }
+    }
+}
+</code></pre>
+<h2>Equivalence properties</h2>
+<p>Different input orderings should produce the same result:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn commutativity(ref a in any::&lt;i64&gt;(), ref b in any::&lt;i64&gt;()) {
+        prop_assert_eq!(add(a, b), add(b, a));
+        prop_assert_eq!(multiply(a, b), multiply(b, a));
+    }
+
+    #[test]
+    fn associativity(
+        ref a in any::&lt;i64&gt;(),
+        ref b in any::&lt;i64&gt;(),
+        ref c in any::&lt;i64&gt;()
+    ) {
+        prop_assert_eq!(
+            add(add(a, b), c),
+            add(a, add(b, c))
+        );
+    }
+}
+</code></pre>
+<h2>Invariants on output structure</h2>
+<p>The output should have specific structural properties:</p>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn sort_output_is_sorted(ref input in any::&lt;Vec&lt;i32&gt;&gt;()) {
+        let sorted = sort(&amp;input);
+        for window in sorted.windows(2) {
+            prop_assert!(window[0] &lt;= window[1]);
+        }
+    }
+
+    #[test]
+    fn compress_output_is_smaller(ref input in any::&lt;Vec&lt;u8&gt;&gt;()) {
+        let compressed = compress(&amp;input);
+        // At minimum, compression should not increase size for large inputs
+        if input.len() &gt; 1000 {
+            prop_assert!(compressed.len() &lt;= input.len());
+        }
+    }
+}
+</code></pre>
+<h2>Combining properties</h2>
+<p>Multiple properties on the same function:</p>
+<pre><code class="language-rust">proptest! {
+    // Property 1: round-trip
+    #[test]
+    fn json_parse_format_roundtrip(ref original in any::&lt;serde_json::Value&gt;()) {
+        let formatted = serde_json::to_string(&amp;original).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&amp;formatted).unwrap();
+        prop_assert_eq!(parsed, original);
+    }
+
+    // Property 2: invalid input returns error
+    #[test]
+    fn json_parse_rejects_invalid(ref input in any::&lt;String&gt;()) {
+        prop_assume!(serde_json::from_str::&lt;serde_json::Value&gt;(&amp;input).is_err());
+        let result = my_json_parse(&amp;input);
+        prop_assert!(result.is_err());
+    }
+
+    // Property 3: parse is idempotent on valid JSON
+    #[test]
+    fn json_parse_idempotent(ref input in any::&lt;serde_json::Value&gt;()) {
+        let json1 = serde_json::to_string(&amp;input).unwrap();
+        let parsed1: serde_json::Value = serde_json::from_str(&amp;json1).unwrap();
+        let json2 = serde_json::to_string(&amp;parsed1).unwrap();
+        let parsed2: serde_json::Value = serde_json::from_str(&amp;json2).unwrap();
+        prop_assert_eq!(parsed1, parsed2);
+    }
+}
+</code></pre>
+<hr>
+<h2>Checklist for writing a new property</h2>
+<ul><li>[ ] Identify what the function is supposed to guarantee (round-trip, invariance, consistency)</li><li>[ ] Choose the simplest property that tests the guarantee</li><li>[ ] Write a generator that covers the input domain (not just common cases)</li><li>[ ] Use <code>prop_assert!</code> for assertions (with shrinking)</li><li>[ ] Run the test and verify it passes</li><li>[ ] Intentionally break the code to verify the property catches the bug</li><li>[ ] Add the minimal failing case as a regression test if discovered</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>markdown.engineering -- Features Deep Dive -- markdown_engineering</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/markdown_engineering/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="02-rendering-pipeline.html">markdown.engineering -- Rendering Pipeline</a> <a href="03-design-system.html">markdown.engineering -- Design System</a> <a href="04-content-architecture.html">markdown.engineering -- Content Architecture</a></span> <a href="04-content-architecture.html">← markdown.engineering -- Content Architecture</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>markdown.engineering -- Features Deep Dive</h1>
+<h2>Interactive Features Analysis</h2>
+<p>This document examines every interactive and dynamic feature on the site, how each is implemented, and what makes it work.</p>
+<hr>
+<h2>1. Theme System (Dark/Light Mode)</h2>
+<h3>What Users See</h3>
+<p>A toggle button in the header switches between light and dark themes. The transition is instant across all elements including code blocks and diagrams.</p>
+<h3>How It Works</h3>
+<p><strong>Initialization (synchronous, in <code><head></code>):</strong></p>
+<pre><code class="language-html">&lt;script&gt;
+  // Runs before any content paints -- prevents flash of wrong theme
+  (function() {
+    const saved = localStorage.getItem(&#x27;theme&#x27;);
+    const preferred = window.matchMedia(&#x27;(prefers-color-scheme: dark)&#x27;).matches
+      ? &#x27;dark&#x27; : &#x27;light&#x27;;
+    document.documentElement.setAttribute(&#x27;data-theme&#x27;, saved || preferred);
+  })();
+&lt;/script&gt;
+</code></pre>
+<p><strong>Toggle handler:</strong></p>
+<pre><code class="language-javascript">function toggleTheme() {
+  const current = document.documentElement.getAttribute(&#x27;data-theme&#x27;);
+  const next = current === &#x27;dark&#x27; ? &#x27;light&#x27; : &#x27;dark&#x27;;
+  document.documentElement.setAttribute(&#x27;data-theme&#x27;, next);
+  localStorage.setItem(&#x27;theme&#x27;, next);
+}
+</code></pre>
+<p><strong>CSS cascades from there:</strong></p>
+<pre><code class="language-css">[data-theme=&quot;light&quot;] { --bg: #f8f1e6; --fg: #2b2018; /* ... */ }
+[data-theme=&quot;dark&quot;]  { --bg: #13100f; --fg: #f7efe4; /* ... */ }
+
+body { background: var(--bg); color: var(--fg); }
+</code></pre>
+<p><strong>Why this approach:</strong></p>
+<ul><li><code>data-theme</code> attribute on <code><html></code> is the single source of truth</li><li>CSS custom properties cascade automatically -- no JS needed to update individual elements</li><li>Mermaid watches <code>data-theme</code> via MutationObserver to re-render</li><li>Shiki uses CSS variable selectors to swap code colors</li><li>Zero layout shift because the script runs before first paint</li></ul>
+<hr>
+<h2>2. Mermaid Diagram Integration</h2>
+<h3>What Users See</h3>
+<p>Flowcharts, sequence diagrams, and other Mermaid diagrams that match the site's color scheme and respond to theme changes.</p>
+<h3>How It Works</h3>
+<p><strong>Conditional loading -- only pages with diagrams load Mermaid:</strong></p>
+<pre><code class="language-javascript">const mermaidBlocks = document.querySelectorAll(&#x27;.prose .mermaid&#x27;);
+if (mermaidBlocks.length === 0) return;
+</code></pre>
+<p><strong>Dynamic ESM import from CDN:</strong></p>
+<pre><code class="language-javascript">const { default: mermaid } = await import(
+  &#x27;https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs&#x27;
+);
+</code></pre>
+<p><strong>Theme-aware configuration:</strong></p>
+<pre><code class="language-javascript">function getMermaidConfig() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    startOnLoad: false,
+    securityLevel: &#x27;strict&#x27;,
+    htmlLabels: false,
+    flowchart: { curve: &#x27;linear&#x27; },
+    theme: &#x27;base&#x27;,
+    themeVariables: {
+      primaryColor:       s.getPropertyValue(&#x27;--bg-strong&#x27;).trim(),
+      primaryTextColor:   s.getPropertyValue(&#x27;--fg&#x27;).trim(),
+      primaryBorderColor: s.getPropertyValue(&#x27;--line-strong&#x27;).trim(),
+      lineColor:          s.getPropertyValue(&#x27;--line-strong&#x27;).trim(),
+      secondaryColor:     s.getPropertyValue(&#x27;--bg-muted&#x27;).trim(),
+      tertiaryColor:      s.getPropertyValue(&#x27;--bg&#x27;).trim(),
+      fontFamily:         &quot;&#x27;IBM Plex Mono&#x27;, monospace&quot;,
+    },
+  };
+}
+</code></pre>
+<p><strong>Render and watch for theme changes:</strong></p>
+<pre><code class="language-javascript">mermaid.initialize(getMermaidConfig());
+await mermaid.run({ nodes: mermaidBlocks });
+
+// Re-render when theme toggles
+new MutationObserver(async () =&gt; {
+  mermaid.initialize(getMermaidConfig());
+  // Clear and re-render each block
+  for (const block of mermaidBlocks) {
+    const source = block.getAttribute(&#x27;data-mermaid-source&#x27;);
+    block.innerHTML = source;
+  }
+  await mermaid.run({ nodes: mermaidBlocks });
+}).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: [&#x27;data-theme&#x27;],
+});
+</code></pre>
+<p><strong>In Markdown, authors write:</strong></p>
+<pre><code class="language-markdown">```mermaid
+flowchart TD
+    A[User writes CLAUDE.md] --&gt; B[Agent reads rules]
+    B --&gt; C[Agent generates code]
+    C --&gt; D[Code follows rules]
+    D --&gt; A
+`` `
+</code></pre>
+<h3>Why This Approach</h3>
+<ul><li><strong>No build-time Mermaid plugin needed</strong> -- simpler build, fewer dependencies</li><li><strong>Theme-reactive</strong> -- diagrams always match the current color scheme</li><li><strong>Zero cost for non-diagram pages</strong> -- conditional loading</li><li><strong>CDN-hosted</strong> -- Mermaid.js is ~2MB; loading from jsDelivr means browser caching across sites</li></ul>
+<hr>
+<h2>3. Code Block Highlighting</h2>
+<h3>Shiki (Standard Pages)</h3>
+<p><strong>What happens at build time:</strong></p>
+<p>Astro processes fenced code blocks through Shiki, which tokenizes the code using TextMate grammars and assigns dual-theme colors:</p>
+<pre><code class="language-html">&lt;!-- Input markdown --&gt;
+```rust
+fn main() {
+    println!(&quot;hello&quot;);
+}
+`` `
+
+&lt;!-- Output HTML --&gt;
+&lt;pre class=&quot;astro-code&quot; style=&quot;background-color:var(--shiki-light-bg);...&quot;&gt;
+  &lt;code&gt;
+    &lt;span class=&quot;line&quot;&gt;
+      &lt;span style=&quot;--shiki-light:#D73A49;--shiki-dark:#F97583&quot;&gt;fn&lt;/span&gt;
+      &lt;span style=&quot;--shiki-light:#6F42C1;--shiki-dark:#B392F0&quot;&gt; main&lt;/span&gt;
+      &lt;span style=&quot;--shiki-light:#24292E;--shiki-dark:#E1E4E8&quot;&gt;()&lt;/span&gt;
+      &lt;span style=&quot;--shiki-light:#24292E;--shiki-dark:#E1E4E8&quot;&gt; {&lt;/span&gt;
+    &lt;/span&gt;
+    &lt;!-- ... more lines ... --&gt;
+  &lt;/code&gt;
+&lt;/pre&gt;
+</code></pre>
+<p><strong>CSS switches the active color set:</strong></p>
+<pre><code class="language-css">[data-theme=&quot;light&quot;] .astro-code span {
+  color: var(--shiki-light) !important;
+}
+[data-theme=&quot;dark&quot;] .astro-code span {
+  color: var(--shiki-dark) !important;
+}
+</code></pre>
+<h3>Custom Highlighting (Learn Lessons)</h3>
+<p>The lesson pages use manually crafted HTML with semantic CSS classes:</p>
+<pre><code class="language-html">&lt;pre class=&quot;code-block&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;kw&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;fn&quot;&gt;bootSequence&lt;/span&gt; = &lt;span class=&quot;kw&quot;&gt;async&lt;/span&gt; () =&gt; {
+  &lt;span class=&quot;cm&quot;&gt;// Load configuration&lt;/span&gt;
+  &lt;span class=&quot;kw&quot;&gt;const&lt;/span&gt; config = &lt;span class=&quot;kw&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;fn&quot;&gt;loadConfig&lt;/span&gt;();
+  &lt;span class=&quot;kw&quot;&gt;return&lt;/span&gt; config.&lt;span class=&quot;fn&quot;&gt;initialize&lt;/span&gt;();
+};
+&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
+
+<pre><code class="language-css">.code-block .kw  { color: var(--code-keyword); }    /* Keywords */
+.code-block .fn  { color: var(--code-function); }   /* Functions */
+.code-block .str { color: var(--code-string); }     /* Strings */
+.code-block .num { color: var(--code-number); }     /* Numbers */
+.code-block .cm  { color: var(--code-comment); }    /* Comments */
+.code-block .op  { color: var(--code-operator); }   /* Operators */
+.code-block .ty  { color: var(--code-type); }       /* Types */
+</code></pre>
+<p><strong>Why two systems?</strong> The lessons needed precise control over which tokens are highlighted and how. Shiki is automatic but opinionated. Manual classes let the author highlight exactly the parts that matter for teaching.</p>
+<hr>
+<h2>4. Scroll Reveal Animations</h2>
+<h3>What Users See</h3>
+<p>Page elements fade and slide into view as the user scrolls down.</p>
+<h3>How It Works</h3>
+<pre><code class="language-javascript">// Elements opt in with the .reveal class
+const reveals = document.querySelectorAll(&#x27;.reveal&#x27;);
+
+// Respect user preference
+if (window.matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;).matches) {
+  reveals.forEach(el =&gt; el.classList.add(&#x27;revealed&#x27;));
+  return;
+}
+
+const observer = new IntersectionObserver((entries) =&gt; {
+  entries.forEach((entry, index) =&gt; {
+    if (entry.isIntersecting) {
+      // Staggered delay: 70ms per element, capped at 8
+      const delay = Math.min(index, 8) * 70;
+      setTimeout(() =&gt; {
+        entry.target.classList.add(&#x27;revealed&#x27;);
+      }, delay);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+reveals.forEach(el =&gt; observer.observe(el));
+</code></pre>
+
+<pre><code class="language-css">.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+</code></pre>
+<hr>
+<h2>5. Interactive Quizzes (Learn Lessons)</h2>
+<h3>What Users See</h3>
+<p>Multiple-choice questions with radio buttons. A "Check Answer" button reveals whether the selection is correct.</p>
+<h3>How It Works</h3>
+<pre><code class="language-html">&lt;div class=&quot;quiz&quot; data-correct=&quot;2&quot;&gt;
+  &lt;p class=&quot;quiz-question&quot;&gt;What file does Claude Code read first on startup?&lt;/p&gt;
+  &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;q1&quot; value=&quot;1&quot;&gt; package.json&lt;/label&gt;
+  &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;q1&quot; value=&quot;2&quot;&gt; CLAUDE.md&lt;/label&gt;
+  &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;q1&quot; value=&quot;3&quot;&gt; .env&lt;/label&gt;
+  &lt;button class=&quot;quiz-check&quot;&gt;Check Answer&lt;/button&gt;
+  &lt;p class=&quot;quiz-feedback correct&quot; hidden&gt;Correct! CLAUDE.md is loaded during boot.&lt;/p&gt;
+  &lt;p class=&quot;quiz-feedback incorrect&quot; hidden&gt;Not quite. Try again.&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+
+<pre><code class="language-javascript">document.querySelectorAll(&#x27;.quiz&#x27;).forEach(quiz =&gt; {
+  const correct = quiz.dataset.correct;
+  const btn = quiz.querySelector(&#x27;.quiz-check&#x27;);
+
+  btn.addEventListener(&#x27;click&#x27;, () =&gt; {
+    const selected = quiz.querySelector(&#x27;input:checked&#x27;);
+    if (!selected) return;
+
+    const isCorrect = selected.value === correct;
+    quiz.querySelector(&#x27;.correct&#x27;).hidden = !isCorrect;
+    quiz.querySelector(&#x27;.incorrect&#x27;).hidden = isCorrect;
+  });
+});
+</code></pre>
+<hr>
+<h2>6. Terminal Boot Animation (Learn Landing Page)</h2>
+<h3>What Users See</h3>
+<p>A simulated terminal boot sequence with text appearing line by line, mimicking a system startup.</p>
+<h3>How It Works</h3>
+<p>Sequential <code>setTimeout</code> calls reveal pre-rendered HTML lines with a typewriter-like stagger effect. The animation runs once on page load and does not repeat.</p>
+<hr>
+<h2>7. Expandable Deep Dives</h2>
+<h3>What Users See</h3>
+<p>Collapsible sections labeled "Deep dive" that expand to show additional detail.</p>
+<h3>Implementation</h3>
+<p>Native HTML <code><details></code> / <code><summary></code> -- no JavaScript needed:</p>
+<pre><code class="language-html">&lt;details class=&quot;deep-dive&quot;&gt;
+  &lt;summary&gt;Deep dive: How tool dispatch works&lt;/summary&gt;
+  &lt;div class=&quot;deep-dive-content&quot;&gt;
+    &lt;p&gt;The tool dispatch system uses a registry pattern...&lt;/p&gt;
+    &lt;!-- Can contain code blocks, Mermaid diagrams, etc. --&gt;
+  &lt;/div&gt;
+&lt;/details&gt;
+</code></pre>
+<hr>
+<h2>Summary: Feature Complexity Budget</h2>
+<table><tr><th>Feature</th><th>Build-time</th><th>Client JS</th><th>Library</th></tr><tr><td>Theme toggle</td><td>CSS variables</td><td>~20 lines</td><td>None</td></tr><tr><td>Code highlighting</td><td>Shiki</td><td>0 lines (CSS only)</td><td>Astro built-in</td></tr><tr><td>Mermaid diagrams</td><td>Pass-through</td><td>~50 lines</td><td>Mermaid CDN</td></tr><tr><td>Scroll reveal</td><td>CSS classes</td><td>~20 lines</td><td>None</td></tr><tr><td>Quizzes</td><td>HTML structure</td><td>~15 lines</td><td>None</td></tr><tr><td>Boot animation</td><td>HTML</td><td>~30 lines</td><td>None</td></tr><tr><td>Deep dives</td><td>`<details>`</td><td>0 lines</td><td>None</td></tr></table>
+<p>Total custom JavaScript on any given page: <strong>under 150 lines</strong>. The site achieves rich interactivity with minimal client-side code by leveraging CSS custom properties, native HTML elements, and build-time processing.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

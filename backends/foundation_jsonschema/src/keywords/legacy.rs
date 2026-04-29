@@ -15,6 +15,7 @@ use crate::paths::LazyLocation;
 
 use super::{Validate, ValidationContext};
 
+#[allow(dead_code)]
 pub struct DependenciesValidator;
 
 impl Validate for DependenciesValidator {

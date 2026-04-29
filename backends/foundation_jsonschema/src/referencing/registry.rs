@@ -9,7 +9,7 @@
 //!
 //! HOW: Built via `RegistryBuilder`. The build phase crawls all schemas,
 //! discovers sub-resources via `$id`, resolves external refs via `JsonResolver`,
-//! and creates a URI → Resource index plus a (URI, anchor_name) → Anchor index.
+//! and creates a URI → Resource index plus a (URI, `anchor_name`) → Anchor index.
 //! After build, the registry is immutable.
 
 use alloc::boxed::Box;
@@ -33,7 +33,7 @@ use super::uri;
 /// WHY: During schema compilation, `$ref` keywords need O(log n) lookup of
 /// other schemas by URI.
 ///
-/// WHAT: Immutable map of URI → `Resource` plus (URI, anchor_name) → `AnchorEntry`.
+/// WHAT: Immutable map of URI → `Resource` plus (URI, `anchor_name`) → `AnchorEntry`.
 ///
 /// HOW: Built via `RegistryBuilder::build()`. All mutations happen during
 /// the build phase.
@@ -107,7 +107,7 @@ impl RegistryBuilder {
     /// 2. Extract `$id` to discover sub-resources
     /// 3. Extract anchors (`$anchor`, `$dynamicAnchor`, legacy)
     /// 4. Collect `$ref` targets; resolve external ones via `JsonResolver`
-    /// 5. Index everything by URI and (URI, anchor_name)
+    /// 5. Index everything by URI and (URI, `anchor_name`)
     ///
     /// # Errors
     ///
@@ -141,14 +141,12 @@ impl RegistryBuilder {
 
             crawl_schema(
                 &base_uri,
-                &resource_uri,
                 &contents,
                 draft,
                 &mut resources,
                 &mut anchors,
                 &mut external_refs,
                 &mut known_uris,
-                &mut queue,
             );
         }
 
@@ -156,7 +154,7 @@ impl RegistryBuilder {
         let mut iteration = 0;
         while !external_refs.is_empty() && iteration < 100 {
             iteration += 1;
-            let refs: Vec<String> = external_refs.drain(..).collect();
+            let refs: Vec<String> = std::mem::take(&mut external_refs);
             for ext_uri in refs {
                 let fragmentless = ext_uri.split('#').next().unwrap_or(&ext_uri).to_string();
                 if known_uris.contains(&fragmentless) {
@@ -166,7 +164,7 @@ impl RegistryBuilder {
                 let resolved_value = self.resolver.resolve(&fragmentless).map_err(|e| {
                     use foundation_errstacks::IntoErrorTrace;
                     crate::error::ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve external reference: {}", fragmentless),
+                        reason: alloc::format!("failed to resolve external reference: {fragmentless}"),
                     }
                     .into_error_trace()
                 })?;
@@ -182,21 +180,19 @@ impl RegistryBuilder {
                 let mut sub_queue = alloc::collections::VecDeque::new();
                 sub_queue.push_back((fragmentless.clone(), fragmentless.clone()));
                 while let Some((base, res_uri)) = sub_queue.pop_front() {
-                    let Some(res) = resources.get(&res_uri) else {
+                    let Some(resource) = resources.get(&res_uri) else {
                         continue;
                     };
-                    let d = res.draft();
-                    let c = res.contents().clone();
+                    let d = resource.draft();
+                    let c = resource.contents().clone();
                     crawl_schema(
                         &base,
-                        &res_uri,
                         &c,
                         d,
                         &mut resources,
                         &mut anchors,
                         &mut external_refs,
                         &mut known_uris,
-                        &mut sub_queue,
                     );
                 }
             }
@@ -216,14 +212,12 @@ impl Default for RegistryBuilder {
 #[allow(clippy::too_many_arguments)]
 fn crawl_schema(
     base_uri: &str,
-    _resource_uri: &str,
     contents: &Value,
     draft: Draft,
     resources: &mut BTreeMap<String, Resource>,
     anchors: &mut BTreeMap<(String, String), AnchorEntry>,
     external_refs: &mut Vec<String>,
     known_uris: &mut alloc::collections::BTreeSet<String>,
-    queue: &mut alloc::collections::VecDeque<(String, String)>,
 ) {
     let Some(object) = contents.as_object() else {
         return;
@@ -272,14 +266,12 @@ fn crawl_schema(
         let child_draft = Draft::detect(child).unwrap_or(draft);
         crawl_schema(
             &effective_base,
-            &effective_base,
             child,
             child_draft,
             resources,
             anchors,
             external_refs,
             known_uris,
-            queue,
         );
     }
 }
@@ -322,6 +314,7 @@ impl Registry {
     }
 
     /// Look up an anchor by base URI and anchor name.
+    #[must_use]
     pub fn get_anchor<'a>(&'a self, base_uri: &str, name: &str) -> Option<Anchor<'a>> {
         let entry = self
             .anchors
@@ -364,6 +357,7 @@ impl Registry {
     }
 
     /// Resolve a URI reference against a base, using the registry's knowledge.
+    #[allow(clippy::unused_self)]
     pub(crate) fn resolve_uri(&self, base: &str, reference: &str) -> Result<String, super::uri::UriError> {
         let resolved = uri::resolve_against(base, reference)?;
         Ok(resolved.without_fragment().to_string())

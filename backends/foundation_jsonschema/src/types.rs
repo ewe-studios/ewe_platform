@@ -193,6 +193,15 @@ impl Default for JsonTypeSet {
     }
 }
 
+impl IntoIterator for &JsonTypeSet {
+    type Item = JsonType;
+    type IntoIter = JsonTypeSetIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl fmt::Display for JsonTypeSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let types: Vec<&str> = self.iter().map(|t| t.as_str()).collect();

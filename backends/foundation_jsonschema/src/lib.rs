@@ -1,11 +1,11 @@
-//! Self-contained JSON Schema validation for ewe_platform.
+//! Self-contained JSON Schema validation for `ewe_platform`.
 //!
 //! Validates JSON instances against JSON Schema documents supporting
 //! Draft 4, Draft 6, Draft 7, Draft 2019-09, and Draft 2020-12.
 //!
 //! # Overview
 //!
-//! WHY: The ewe_platform needs a JSON Schema validator that works in `std` and
+//! WHY: The `ewe_platform` needs a JSON Schema validator that works in `std` and
 //! `no_std + alloc` environments without pulling in network dependencies like
 //! reqwest, tokio, or wasm-bindgen. External reference resolution is handled via
 //! a pluggable `JsonResolver` trait.
@@ -92,25 +92,47 @@ mod options;
 
 mod validator;
 mod validation_context;
-mod evaluation;
+
+/// Evaluation output — structured validation results (planned API).
+///
+/// This module provides the types for the three JSON Schema output formats:
+/// flag, list, and hierarchical. These types represent the structured result
+/// of evaluating a JSON instance against a compiled schema.
+///
+/// # Planned Usage
+///
+/// In a future release, the `Validator` will produce an `Evaluation` tree
+/// that can be queried via `to_list()` or `to_hierarchical()` for detailed
+/// reporting, or via `valid()` for the simple boolean flag output.
+pub mod evaluation;
 
 // ── In-Memory Fetcher (Meta-schema bundle) ───────────────────────────
 
 mod in_memory_fetcher;
+
+// ── Meta-Schema Validation ───────────────────────────────────────────
+
+mod meta;
 
 // ── Public API ──────────────────────────────────────────────────────
 
 pub use draft::Draft;
 pub use error::{
     ErrorIterator, ValidationFailure, ValidationError, ValidationErrorBuilder, ValidationErrorKind,
+    to_failure,
 };
 pub use paths::{LazyLocation, Location, LocationSegment};
-pub use resolver_trait::{JsonResolver, ResolveError};
+pub use resolver_trait::{JsonResolver, MapResolver, ResolveError};
 pub use types::{JsonType, JsonTypeSet};
 pub use validator::Validator;
 
 pub use options::ValidationOptions;
 pub use in_memory_fetcher::InMemoryFetcher;
+
+// Re-export meta-schema validation
+pub use meta::{is_schema_valid, validate_schema};
+pub use meta::{draft4 as meta_draft4, draft6 as meta_draft6, draft7 as meta_draft7};
+pub use meta::{draft201909 as meta_draft201909, draft202012 as meta_draft202012};
 
 /// Validate an instance against a schema (boolean result).
 ///
@@ -154,7 +176,7 @@ pub fn validate(
 /// Compile a JSON Schema into a reusable validator.
 ///
 /// WHY: The most common entry point for schema validation. Compiles the schema
-/// with default options (NoopResolver, draft auto-detection).
+/// with default options (`NoopResolver`, draft auto-detection).
 ///
 /// WHAT: Returns a `Validator` that can validate many instances against the schema.
 ///
@@ -171,9 +193,13 @@ pub fn validator_for(schema: &serde_json::Value) -> Result<Validator, Validation
 // Draft-specific convenience modules
 /// Draft 4 validation convenience functions.
 pub mod draft4 {
-    use super::*;
+    use super::{Validator, ValidationError, ValidationOptions, Draft};
 
     /// Compile a schema with Draft 4 rules.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails.
     pub fn compile(schema: &serde_json::Value) -> Result<Validator, ValidationError> {
         ValidationOptions::new().with_draft(Draft::Draft4).build(schema)
     }
@@ -181,9 +207,13 @@ pub mod draft4 {
 
 /// Draft 6 validation convenience functions.
 pub mod draft6 {
-    use super::*;
+    use super::{Validator, ValidationError, ValidationOptions, Draft};
 
     /// Compile a schema with Draft 6 rules.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails.
     pub fn compile(schema: &serde_json::Value) -> Result<Validator, ValidationError> {
         ValidationOptions::new().with_draft(Draft::Draft6).build(schema)
     }
@@ -191,9 +221,13 @@ pub mod draft6 {
 
 /// Draft 7 validation convenience functions.
 pub mod draft7 {
-    use super::*;
+    use super::{Validator, ValidationError, ValidationOptions, Draft};
 
     /// Compile a schema with Draft 7 rules.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails.
     pub fn compile(schema: &serde_json::Value) -> Result<Validator, ValidationError> {
         ValidationOptions::new().with_draft(Draft::Draft7).build(schema)
     }
@@ -201,9 +235,13 @@ pub mod draft7 {
 
 /// Draft 2019-09 validation convenience functions.
 pub mod draft201909 {
-    use super::*;
+    use super::{Validator, ValidationError, ValidationOptions, Draft};
 
     /// Compile a schema with Draft 2019-09 rules.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails.
     pub fn compile(schema: &serde_json::Value) -> Result<Validator, ValidationError> {
         ValidationOptions::new().with_draft(Draft::Draft201909).build(schema)
     }
@@ -211,9 +249,13 @@ pub mod draft201909 {
 
 /// Draft 2020-12 validation convenience functions.
 pub mod draft202012 {
-    use super::*;
+    use super::{Validator, ValidationError, ValidationOptions, Draft};
 
     /// Compile a schema with Draft 2020-12 rules.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails.
     pub fn compile(schema: &serde_json::Value) -> Result<Validator, ValidationError> {
         ValidationOptions::new().with_draft(Draft::Draft202012).build(schema)
     }

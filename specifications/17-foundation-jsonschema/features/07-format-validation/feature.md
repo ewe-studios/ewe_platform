@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/07-format-validation"
 this_file: "specifications/17-foundation-jsonschema/features/07-format-validation/feature.md"
 
-status: pending
+status: complete
 priority: medium
 created: 2026-04-28
 
 depends_on: ["00-core-types", "02-keywords-validators"]
 
 tasks:
-  completed: 0
-  uncompleted: 22
+  completed: 22
+  uncompleted: 0
   total: 22
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 7: Format Validation

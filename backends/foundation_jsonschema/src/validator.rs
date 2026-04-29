@@ -1,15 +1,13 @@
-//! Validator — public wrapper around a compiled SchemaNode.
+//! Validator — public wrapper around a compiled `SchemaNode`.
 //!
 //! WHY: Users interact with the `Validator` type, not `SchemaNode` directly.
 //! This wraps the compiled tree with the public API.
 
-use alloc::boxed::Box;
 
 use crate::draft::Draft;
 use crate::error::{ErrorIterator, ValidationError};
 use crate::node::SchemaNode;
 use crate::paths::LazyLocation;
-use crate::referencing::Registry;
 use serde_json::Value;
 
 /// A compiled JSON Schema validator.
@@ -25,17 +23,23 @@ pub struct Validator {
 
 impl Validator {
     /// Create a new validator from a schema node and draft.
+    #[allow(dead_code)]
     pub(crate) fn new(root: SchemaNode, draft: Draft) -> Self {
         Self { root, draft }
     }
 
     /// Check if the instance is valid. Fast boolean result, no error details.
+    #[must_use]
     pub fn is_valid(&self, instance: &Value) -> bool {
         let mut ctx = crate::keywords::ValidationContext::new();
         self.root.is_valid(instance, &mut ctx)
     }
 
     /// Validate and return the first error.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the instance fails validation.
     pub fn validate(&self, instance: &Value) -> Result<(), ValidationError> {
         let mut ctx = crate::keywords::ValidationContext::new();
         let path = LazyLocation::new();
@@ -43,6 +47,7 @@ impl Validator {
     }
 
     /// Return an iterator over all validation errors.
+    #[must_use]
     pub fn iter_errors(&self, instance: &Value) -> ErrorIterator {
         let mut ctx = crate::keywords::ValidationContext::new();
         let path = LazyLocation::new();

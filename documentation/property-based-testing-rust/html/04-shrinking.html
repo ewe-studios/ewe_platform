@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shrinking and Debugging -- property-based-testing-rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/property-based-testing-rust/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="01-setup.html">Setup and Quick Start</a> <a href="02-generators.html">Generators and Strategies</a> <a href="03-writing-properties.html">Writing Properties</a></span> <a href="03-writing-properties.html">← Writing Properties</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Shrinking and Debugging</h1>
+<h2>What shrinking is</h2>
+<p>When a property test fails, proptest doesn't just give you the first failing input it found. It systematically reduces the input to find the smallest value that still triggers the failure. This process is called <strong>shrinking</strong>.</p>
+<p>For example, if a function panics on <code>vec![1000, -500, 0, 999, -1]</code>, proptest might shrink it to <code>vec![3, -1]</code> — the minimal case that still causes the panic.</p>
+<h2>How shrinking works</h2>
+<p>For each type, proptest has a type-specific shrinking strategy:</p>
+<ul><li><strong>Integers</strong>: tries 0, then values closer to 0, then boundary values (MIN, MAX)</li><li><strong>Vectors</strong>: tries shorter vectors, then removes elements, then shrinks individual elements</li><li><strong>Strings</strong>: tries empty string, then shorter strings, then removes non-ASCII characters</li><li><strong>Options</strong>: tries None, then shrinks the inner value</li><li><strong>Results</strong>: tries Ok, then shrinks the inner value</li><li><strong>Tuples</strong>: shrinks each element independently</li><li><strong>Structs</strong>: shrinks each field independently</li></ul>
+<p>The shrinking algorithm works in passes:</p>
+<ol><li><strong>Coarse shrinking</strong>: remove or zero out entire fields/elements</li><li><strong>Fine shrinking</strong>: reduce values within each field to their minimal form</li><li><strong>Verification</strong>: each shrunk value is re-tested; only values that still fail are kept</li></ol>
+<h2>Reading a shrink report</h2>
+<pre><code class="language-">thread &#x27;my_test&#x27; panicked at &#x27;assertion failed&#x27;, src/lib.rs:42
+---
+Failed 1 cases in 15 tests
+Case: (a = 1000, b = -500, c = &quot;hello world&quot;)
+Shrunk to: (a = 3, b = -1, c = &quot;&quot;)
+Reproduce with: my_test(3, -1, &quot;&quot;)
+</code></pre>
+<p>Key fields:</p>
+<ul><li><strong>Failed 1 cases in N tests</strong>: the number of test cases that passed before the failure was found</li><li><strong>Case</strong>: the first failing input found (random, not minimal)</li><li><strong>Shrunk to</strong>: the minimal failing input (this is what you care about)</li><li><strong>Reproduce with</strong>: code to regenerate the exact failing case</li></ul>
+<h2>Shrinking limits</h2>
+<p>By default, proptest performs up to 10,000 shrink steps. You can adjust this:</p>
+<pre><code class="language-rust">proptest! {
+    #![proptest_config(ProptestConfig {
+        max_shrink_steps: 50000,  // allow more shrinking steps
+        ..Default::default()
+    })]
+
+    #[test]
+    fn complex_property(ref input in any::&lt;MyComplexType&gt;()) {
+        // ...
+    }
+}
+</code></pre>
+<p>Increase <code>max_shrink_steps</code> when:</p>
+<ul><li>The input type is deeply nested</li><li>The failing condition is subtle (only triggers on very specific values)</li><li>Shrinking is terminating too early with a sub-optimal case</li></ul>
+<p>Decrease <code>max_shrink_steps</code> when:</p>
+<ul><li>Shrinking takes too long (hundreds of seconds per failure)</li><li>You are doing rapid development and want faster feedback</li></ul>
+<h2>Custom shrinking</h2>
+<p>For custom types, proptest's derived <code>Arbitrary</code> provides default shrinking. To customize:</p>
+<pre><code class="language-rust">impl Arbitrary for MyType {
+    type Parameters = ();
+    type Strategy = BoxedStrategy&lt;Self&gt;;
+    type Tree = BoxedTree&lt;Self&gt;;
+
+    fn arbitrary_with(_: Self::Parameters) -&gt; Self::Strategy {
+        // ...
+    }
+
+    fn shrink(&amp;self) -&gt; Self::Tree {
+        // Custom shrinker: only shrink specific fields
+        let mut trees = Vec::new();
+
+        // Try zeroing the numeric field
+        trees.push(MyType { value: 0, ..self.clone() });
+
+        // Try emptying the string field
+        trees.push(MyType { name: String::new(), ..self.clone() });
+
+        // Combine: try both at once
+        trees.push(MyType { value: 0, name: String::new() });
+
+        trees.into_iter().boxed()
+    }
+}
+</code></pre>
+<h2>Reproducing failures</h2>
+<h3>From the shrink report</h3>
+<p>Copy the "Reproduce with" code:</p>
+<pre><code class="language-rust">#[test]
+fn regression_my_bug() {
+    my_test(3, -1, &quot;&quot;);
+}
+</code></pre>
+<p>This runs the exact failing case without the property test overhead.</p>
+<h3>From the proptest <code>rng_seed</code></h3>
+<p>Each property test run uses a random seed. If a test passes, proptest prints the seed used:</p>
+<pre><code class="language-">prop_verbose: ... rng_seed: Some(Seed(1234567890abcdef))
+</code></pre>
+<p>Replay the exact same sequence:</p>
+<pre><code class="language-bash">PROPTEST_RNG_SEED=1234567890abcdef cargo test my_test
+</code></pre>
+<h3>From the <code>proptest-errors</code> directory</h3>
+<p>When a property fails, proptest saves the case to <code>proptest-errors/</code>:</p>
+<pre><code class="language-">proptest-errors/
+└── my_test
+    └── 12345678-abcdef-proptest-case
+</code></pre>
+<p>Replay it:</p>
+<pre><code class="language-bash">cargo test my_test -- --exact proptest_errors::my_test
+</code></pre>
+<h2>Debugging failed properties</h2>
+<h3>Step 1: Read the shrunk case</h3>
+<p>The shrunk case is your smallest reproduction. Study it carefully — it is usually the simplest input that exposes the bug.</p>
+<h3>Step 2: Run the regression test</h3>
+<p>Create a test case with the shrunk input:</p>
+<pre><code class="language-rust">#[test]
+fn debug_my_bug() {
+    let result = my_function(3, -1, &quot;&quot;);
+    println!(&quot;{:?}&quot;, result);
+    // Add assertions to understand the failure
+}
+</code></pre>
+<p>Run with <code>--nocapture</code> to see println output:</p>
+<pre><code class="language-bash">cargo test debug_my_bug -- --nocapture
+</code></pre>
+<h3>Step 3: Trace through the code</h3>
+<p>Add <code>println!</code> or use a debugger to trace through the code with the shrunk input. The small input makes this manageable.</p>
+<h3>Step 4: Identify the root cause</h3>
+<p>Look for:</p>
+<ul><li>Off-by-one errors in index calculations</li><li>Missing boundary checks (MIN, MAX, 0, empty)</li><li>Integer overflow in release mode</li><li>Division by zero</li><li>Pattern matching that doesn't cover all cases</li><li>Floating-point edge cases (NaN, Inf)</li></ul>
+<h3>Step 5: Fix and verify</h3>
+<p>Fix the bug. Run the property test again to confirm it passes:</p>
+<pre><code class="language-bash">cargo test my_test
+</code></pre>
+<p>Then add the shrunk case as a regression test:</p>
+<pre><code class="language-rust">#[test]
+fn regression_my_bug() {
+    my_test(3, -1, &quot;&quot;);
+}
+</code></pre>
+<h2>Verbosity levels</h2>
+<p>Control output with <code>PROPTEST_VERBOSITY</code>:</p>
+<pre><code class="language-bash"># Minimal (only failures and summary)
+PROPTEST_VERBOSITY=low cargo test
+
+# Standard (shows each case)
+PROPTEST_VERBOSITY=normal cargo test
+
+# Verbose (shows each case with generated values)
+PROPTEST_VERBOSITY=verbose cargo test
+
+# Full (shows shrink steps)
+PROPTEST_VERBOSITY=full cargo test
+</code></pre>
+<p>In the test config:</p>
+<pre><code class="language-rust">proptest! {
+    #![proptest_config(ProptestConfig {
+        verbosity: Verbosity::Verbose,
+        ..Default::default()
+    })]
+
+    #[test]
+    fn my_test(ref x in any::&lt;i32&gt;()) {
+        // ...
+    }
+}
+</code></pre>
+<h2>Common shrinking problems</h2>
+<h3>Shrinking doesn't find the minimal case</h3>
+<p>Possible causes:</p>
+<ul><li><code>max_shrink_steps</code> too low (increase it)</li><li>Custom <code>Arbitrary</code> with poor shrink implementation (implement <code>shrink()</code> manually)</li><li>The failure condition is extremely specific (use <code>prop_assume!</code> to narrow the generator)</li></ul>
+<h3>Shrinking is too slow</h3>
+<p>Possible causes:</p>
+<ul><li>The test function is slow (each shrink step re-runs the test)</li><li><code>max_shrink_steps</code> too high (reduce it)</li><li>Deeply nested structures (reduce nesting depth in the generator)</li></ul>
+<p>Fix: reduce test function cost, or accept a non-minimal case and add the regression test.</p>
+<h3>Shrinking produces an input that doesn't reproduce the failure</h3>
+<p>This is a bug in proptest's shrinker. Report it at https://github.com/AltSysrq/proptest</p>
+<h3>The shrunk case is too complex to understand</h3>
+<p>The input type may be too large for meaningful shrinking. Simplify the generator:</p>
+<pre><code class="language-rust">// Too complex for shrinking: deeply nested structures
+any::&lt;Vec&lt;HashMap&lt;String, Vec&lt;Option&lt;Result&lt;i32, String&gt;&gt;&gt;&gt;&gt;&gt;()
+
+// Better: use a simpler type and map to the complex type
+any::&lt;Vec&lt;(String, i32)&gt;&gt;().prop_map(|v| /* convert */)
+</code></pre>
+<hr>
+<h2>Checklist for debugging a failed property</h2>
+<ul><li>[ ] Read the "Shrunk to" line for the minimal failing case</li><li>[ ] Create a regression test with the shrunk input</li><li>[ ] Run with <code>--nocapture</code> to see debug output</li><li>[ ] Trace through the code with the shrunk input</li><li>[ ] Fix the bug</li><li>[ ] Verify the property test passes</li><li>[ ] Keep the regression test as permanent documentation</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

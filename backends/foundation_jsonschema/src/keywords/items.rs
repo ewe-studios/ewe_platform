@@ -1,6 +1,6 @@
-//! Stub: `items` / `additionalItems` require SchemaNode for sub-schema validation.
+//! Stub: `items` / `additionalItems` require `SchemaNode` for sub-schema validation.
 //!
-//! These will be fully implemented when SchemaNode is available (Feature 3).
+//! These will be fully implemented when `SchemaNode` is available (Feature 3).
 
 use alloc::boxed::Box;
 

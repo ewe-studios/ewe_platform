@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/05-error-reporting"
 this_file: "specifications/17-foundation-jsonschema/features/05-error-reporting/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-04-28
 
 depends_on: ["00-core-types"]
 
 tasks:
-  completed: 0
-  uncompleted: 20
+  completed: 20
+  uncompleted: 0
   total: 20
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 5: Error Reporting

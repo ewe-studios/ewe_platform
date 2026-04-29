@@ -4,7 +4,7 @@ spec_directory: "specifications/17-foundation-jsonschema"
 this_file: "specifications/17-foundation-jsonschema/LEARNINGS.md"
 
 created: 2026-04-28
-last_updated: 2026-04-28
+last_updated: 2026-04-29
 ---
 
 # Learnings: Foundation JSON Schema
@@ -33,7 +33,11 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 
 ## Common Failures and Fixes
 
-- (none yet — will be populated during implementation)
+- Keyword compilation ordering: `additionalProperties` runs before `properties` if iterated by BTreeMap (alphabetical). Fixed by sorting keywords with priority — late-phase validators (`additionalProperties`, `unevaluatedProperties`, `unevaluatedItems`) get priority 2, others priority 1.
+- if/then/else must be compiled as a group from the parent schema object, not individually per keyword value. Detection of any of the three triggers reading all three.
+- FormatChecker trait requires `clone_box()` for trait object cloning — `Box<dyn FormatChecker>` does not implement `Clone` natively. Added `clone_box(&self) -> Box<dyn FormatChecker>` to trait and `impl Clone for Box<dyn FormatChecker>` delegation.
+- Custom format lookup in `compile_format` must clone from `ctx.custom_formats`, not from builtins. Using `builtin_format` for custom names returns `None`, making all validation pass.
+- Test helpers for `CompilerContext::new()` need 7 arguments: `resolver`, `schema_path`, `vocabulary`, `draft`, `assert_format`, `custom_keywords`, `custom_formats`. All 3 test helper functions across 9 keyword test modules need updating together.
 
 ## Testing Insights
 
@@ -57,4 +61,4 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 
 ---
 
-_Last Updated: 2026-04-28_
+_Last Updated: 2026-04-29_

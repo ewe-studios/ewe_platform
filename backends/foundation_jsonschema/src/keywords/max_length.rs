@@ -33,7 +33,7 @@ impl Validate for MaxLengthValidator {
         &self,
         instance: &Value,
         instance_path: &LazyLocation<'_>,
-        ctx: &mut ValidationContext,
+        _ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if let Value::String(s) = instance {
             let len = s.chars().count() as u64;

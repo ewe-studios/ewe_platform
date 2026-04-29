@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup and Quick Start -- property-based-testing-rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/property-based-testing-rust/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Property-Based Testing in Rust — Overview</a></span> <a href="00-overview.html">← Property-Based Testing in Rust — Overview</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Setup and Quick Start</h1>
+<h2>Installation</h2>
+<p>Add proptest to your <code>Cargo.toml</code>:</p>
+<pre><code class="language-bash">cargo add --dev proptest
+</code></pre>
+<p>Or manually:</p>
+<pre><code class="language-toml">[dev-dependencies]
+proptest = &quot;1.5&quot;
+</code></pre>
+<p>proptest has no unstable features and works on stable Rust. It does not require nightly.</p>
+<h2>First property test</h2>
+<p>Create a test file:</p>
+<pre><code class="language-rust">// tests/property_tests.rs
+use proptest::prelude::*;
+
+// The function under test
+fn reverse(input: &amp;[i32]) -&gt; Vec&lt;i32&gt; {
+    let mut out = input.to_vec();
+    out.reverse();
+    out
+}
+
+proptest! {
+    #[test]
+    fn reverse_is_involutive(ref input in any::&lt;Vec&lt;i32&gt;&gt;()) {
+        let reversed = reverse(input);
+        let double = reverse(&amp;reversed);
+        prop_assert_eq!(double, *input);
+    }
+}
+</code></pre>
+<p>Run it:</p>
+<pre><code class="language-bash">cargo test reverse_is_involutive
+</code></pre>
+<p>You will see:</p>
+<pre><code class="language-">running 1 test
+  case: 0; result: Ok; steps: 0
+  case: 1; result: Ok; steps: 0
+  case: 2; result: Ok; steps: 0
+  ...
+  case: 255; result: Ok; steps: 0
+test reverse_is_involutive ... ok
+</code></pre>
+<p>The framework ran 256 test cases, each with a different random <code>Vec<i32></code>. Every case passed, so the test succeeded.</p>
+<h2>Understanding the output</h2>
+<p>Each line is one test case:</p>
+<ul><li><strong>case</strong>: the test case number</li><li><strong>result</strong>: <code>Ok</code> (passed), <code>Err</code> (failed), or <code>Abort</code> (too many discarded cases)</li><li><strong>steps</strong>: shrinking steps taken (0 when the case passed)</li></ul>
+<p>The default 256 cases per property comes from <code>Config::num_cases</code>. You can change it:</p>
+<pre><code class="language-rust">proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 1024,        // run 1024 cases instead of 256
+        max_shrink_steps: 5000,  // shrinking iterations
+        verbosity: Verbosity::Verbose,
+        ..Default::default()
+    })]
+
+    #[test]
+    fn my_property(ref x in any::&lt;u64&gt;()) {
+        prop_assert!(x.wrapping_add(1) != 0 || *x == u64::MAX);
+    }
+}
+</code></pre>
+<h2>Inline vs. module-level tests</h2>
+<p>You can put property tests in the same file as your code:</p>
+<pre><code class="language-rust">// src/lib.rs
+pub fn clamp(value: i32, min: i32, max: i32) -&gt; i32 {
+    if value &lt; min { min } else if value &gt; max { max } else { value }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn clamp_in_bounds(
+            ref value in any::&lt;i32&gt;(),
+            ref min in any::&lt;i32&gt;(),
+            ref max in any::&lt;i32&gt;()
+        ) {
+            prop_assume!(*min &lt;= *max);
+            let result = clamp(*value, *min, *max);
+            prop_assert!(result &gt;= *min);
+            prop_assert!(result &lt;= *max);
+        }
+    }
+}
+</code></pre>
+<p><code>prop_assume!</code> discards cases that don't satisfy the precondition (<code>min <= max</code>). Without it, proptest would try cases where <code>min > max</code>, which would trigger the assertion failure but then discard them — wasting test cycles.</p>
+<h2>The prelude</h2>
+<p><code>use proptest::prelude::*</code> imports:</p>
+<ul><li><code>proptest!</code> — the main macro</li><li><code>any::<T>()</code> — generator for any value of type T</li><li><code>prop_assert!</code>, <code>prop_assert_eq!</code>, <code>prop_assert_ne!</code> — assertions with shrinking</li><li><code>ProptestConfig</code>, <code>Strategy</code>, <code>TestCaseResult</code> — configuration and trait types</li><li><code>prop_compose!</code> — macro for building custom generators</li><li><code>prop_oneof!</code>, <code>prop_fold!</code>, <code>prop_map!</code> — combinator macros</li></ul>
+<h2>Running property tests</h2>
+<pre><code class="language-bash"># Run all property tests
+cargo test
+
+# Run a specific property test
+cargo test clamp_in_bounds
+
+# Run with verbose output (every case printed)
+PROPTEST_VERBOSITY=full cargo test clamp_in_bounds
+
+# Run with a specific seed for reproducibility
+PROPTEST_CASES=1000 cargo test clamp_in_bounds
+
+# Run only failing tests (shows shrunk minimal cases)
+cargo test -- --ignored
+</code></pre>
+<h2>The failure report</h2>
+<p>When a property fails, proptest gives you a complete diagnosis:</p>
+<pre><code class="language-">thread &#x27;tests::clamp_in_bounds&#x27; panicked at &#x27;assertion failed: result &gt;= *min&#x27;, tests/property_tests.rs:42
+---
+Failed 1 cases in 12 tests
+Case: (value = 0, min = 2, max = 1)
+Shrunk to: (value = 0, min = 2, max = 2)
+Reproduce with: prop_assert!(*min &lt;= *max); // this was filtered by prop_assume!
+</code></pre>
+<p>Key information:</p>
+<ul><li><strong>Original case</strong>: the first failing input found</li><li><strong>Shrunk case</strong>: the minimal failing input (after proptest's shrinking algorithm)</li><li><strong>Reproduce with</strong>: code to regenerate the exact failing case</li></ul>
+<p>The shrunk case is usually the smallest input that triggers the bug. Use it as a regression test.</p>
+<h2>Common errors</h2>
+<p><strong>"cannot find macro <code>proptest</code> in this scope"</strong></p>
+<p>Add <code>use proptest::prelude::*;</code> to the test module.</p>
+<p><strong>"the trait <code>Strategy</code> is not implemented"</strong></p>
+<p>The type inside <code>any::<T>()</code> must implement <code>Arbitrary</code>, which most standard library types do. For custom types, derive or implement <code>Arbitrary</code>.</p>
+<p><strong>"test panicked" with "too many rejections"</strong></p>
+<p>Your <code>prop_assume!</code> filter is discarding too many cases. By default, proptest allows at most 10,000 rejections per property. If your precondition is too restrictive, use a more targeted generator instead:</p>
+<pre><code class="language-rust">// Bad: too many rejections
+proptest! {
+    #[test]
+    fn test(ref x in any::&lt;i32&gt;(), ref y in any::&lt;i32&gt;()) {
+        prop_assume!(x &gt; 0 &amp;&amp; y &gt; 0);
+        prop_assume!(x &lt; y);
+        // ...
+    }
+}
+
+// Good: generate only valid inputs
+proptest! {
+    #[test]
+    fn test((ref x, ref y) in (1..1000i32, 1..1000i32).prop_flat_map(|(a, b)| (a..=b).prop_map(move |c| (a, c)))) {
+        // x and y are always positive and x &lt; y
+    }
+}
+</code></pre>
+<hr>
+<h2>Checklist for a new property test</h2>
+<ul><li>[ ] Install <code>proptest</code> in <code>[dev-dependencies]</code></li><li>[ ] <code>use proptest::prelude::*;</code> in the test module</li><li>[ ] Write the <code>proptest!</code> macro block</li><li>[ ] Use <code>ref</code> in generator bindings to borrow generated values</li><li>[ ] Use <code>prop_assert!</code> instead of <code>assert!</code></li><li>[ ] Use <code>prop_assume!</code> to filter invalid cases (sparingly)</li><li>[ ] Run with <code>cargo test</code> and verify it passes</li><li>[ ] Verify shrinking works by introducing a deliberate bug</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

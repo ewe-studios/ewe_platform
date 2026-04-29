@@ -1,18 +1,20 @@
 //! Stub: `$ref` — delegates to the referenced schema.
 //!
-//! Requires SchemaNode (Feature 3) for compiled sub-schema resolution.
+//! Requires `SchemaNode` (Feature 3) for compiled sub-schema resolution.
 
 use alloc::boxed::Box;
 use alloc::string::String;
 
 use serde_json::Value;
 
-use crate::error::{ErrorIterator, ValidationError, ValidationErrorBuilder, ValidationErrorKind};
-use crate::paths::{LazyLocation, Location};
+use crate::error::{ErrorIterator, ValidationError};
+use crate::paths::LazyLocation;
 
 use super::{Validate, ValidationContext};
 
+#[derive(Debug)]
 pub struct RefValidator {
+    #[allow(dead_code)]
     reference: String,
 }
 

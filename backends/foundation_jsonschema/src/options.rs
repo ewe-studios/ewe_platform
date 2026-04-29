@@ -1,10 +1,9 @@
-//! ValidationOptions builder — configure schema compilation and validation.
+//! `ValidationOptions` builder — configure schema compilation and validation.
 
 use crate::draft::Draft;
 use crate::error::ValidationError;
 use crate::in_memory_fetcher::InMemoryFetcher;
 use crate::referencing::Registry;
-use crate::resolver_trait::{JsonResolver, NoopResolver};
 use crate::validator::Validator;
 use serde_json::Value;
 
@@ -57,6 +56,11 @@ impl ValidationOptions {
     ///
     /// HOW: Builds a `Registry` from the schema, creates a `CompilerContext`,
     /// and compiles the schema into a `SchemaNode`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if schema compilation fails (invalid schema structure,
+    /// unresolvable references, etc.).
     pub fn build(self, schema: &Value) -> Result<Validator, ValidationError> {
         let draft = Draft::detect(schema).unwrap_or(self.default_draft);
 

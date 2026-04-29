@@ -4,17 +4,17 @@ spec_directory: "specifications/17-foundation-jsonschema"
 feature_directory: "specifications/17-foundation-jsonschema/features/09-test-suite"
 this_file: "specifications/17-foundation-jsonschema/features/09-test-suite/feature.md"
 
-status: pending
+status: in_progress
 priority: high
 created: 2026-04-28
 
 depends_on: ["00-core-types", "01-referencing", "02-keywords-validators", "03-compiler", "04-validation-engine", "05-error-reporting", "06-draft-support", "07-format-validation", "08-custom-extensions"]
 
 tasks:
-  completed: 0
-  uncompleted: 30
+  completed: 24
+  uncompleted: 6
   total: 30
-  completion_percentage: 0
+  completion_percentage: 80
 ---
 
 # Feature 9: Test Suite

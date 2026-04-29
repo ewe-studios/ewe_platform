@@ -2,7 +2,7 @@
 //!
 //! WHY: JSON Schema allows `$ref` to point to external URIs. Rather than
 //! building in HTTP/file resolution, we let the caller provide their own
-//! strategy. This keeps the crate dependency-free and works in no_std.
+//! strategy. This keeps the crate dependency-free and works in `no_std`.
 //!
 //! WHAT: `JsonResolver` trait with `NoopResolver` (default, always fails)
 //! and `MapResolver` (pre-loaded URI-to-schema map).
@@ -28,7 +28,7 @@ use serde_json::Value;
 ///
 /// WHAT: A minimal error type carrying only the URI that failed.
 ///
-/// HOW: Wrapped in ErrorTrace; attachments added by the registry.
+/// HOW: Wrapped in `ErrorTrace`; attachments added by the registry.
 #[derive(Debug, Display, Error)]
 #[display("failed to resolve external reference: {uri}")]
 pub struct ResolveError {
@@ -116,7 +116,7 @@ impl JsonResolver for NoopResolver {
 /// WHAT: A `BTreeMap<String, Value>` that maps URIs to JSON Schema documents.
 ///
 /// HOW: `insert()` populates the map. `resolve()` does a lookup. Uses
-/// `BTreeMap` instead of `HashMap` for no_std compatibility.
+/// `BTreeMap` instead of `HashMap` for `no_std` compatibility.
 #[derive(Debug, Clone)]
 pub struct MapResolver {
     schemas: BTreeMap<String, Value>,
@@ -147,7 +147,7 @@ impl MapResolver {
     ///
     /// Never panics.
     #[must_use]
-    pub fn from_iter(iter: impl IntoIterator<Item = (String, Value)>) -> Self {
+    pub fn from_pairs(iter: impl IntoIterator<Item = (String, Value)>) -> Self {
         Self {
             schemas: BTreeMap::from_iter(iter),
         }
@@ -201,8 +201,8 @@ mod tests {
     }
 
     #[test]
-    fn test_map_resolver_from_iter() {
-        let resolver = MapResolver::from_iter(vec![
+    fn test_map_resolver_from_pairs() {
+        let resolver = MapResolver::from_pairs(vec![
             ("https://a.json".into(), json!({"type": "string"})),
             ("https://b.json".into(), json!({"type": "number"})),
         ]);
