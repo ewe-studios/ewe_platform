@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mastra -- Examples -- mastra</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mastra/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="14-rl-training-traces.html">Mastra -- Observability, Tracing, and Training Traces</a> <a href="15-ecosystem.html">Mastra -- Production Services, Applications, and Ecosystem</a> <a href="16-plugin-ecosystem.html">Mastra -- Core Sub-Packages and Plugin Ecosystem</a></span> <a href="16-plugin-ecosystem.html">← Mastra -- Core Sub-Packages and Plugin Ecosystem</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Mastra -- Examples</h1>
+<h2>Overview</h2>
+<p>The <code>examples/</code> directory contains standalone projects demonstrating key Mastra APIs that aren't covered by the templates (which focus on end-user agent patterns). These are developer-facing examples showing how to use Mastra programmatically.</p>
+<p><strong>Two examples:</strong></p>
+<ol><li><strong>agent/</strong> — Demonstrates request context presets, MCP client elicitation, Mastra primitive validation, trace seeding, and model middleware</li><li><strong>agent-v6/</strong> — Demonstrates structured output with the v6 API</li></ol>
+<h2>examples/agent: Comprehensive Feature Demo</h2>
+<h3>Purpose</h3>
+<p>The <code>agent/</code> example serves as a <strong>kitchen-sink demonstration</strong> of Mastra's core APIs. It includes multiple entry points, each focusing on a different feature:</p>
+<pre><code class="language-">examples/agent/src/
+├── index.ts                  ← Mastra primitive validation (get, getById, list)
+├── client.ts                 ← MCP client with elicitation (human-in-the-loop prompts)
+├── model-middleware.ts       ← Model middleware for logging raw responses
+└── mastra/                   ← Mastra instance with agents, workflows, tools
+</code></pre>
+<h3>1. Primitive Validation (<code>index.ts</code>)</h3>
+<p>Validates every Mastra primitive's three access patterns:</p>
+<pre><code class="language-typescript">// Each primitive supports: get(key), getById(id), list()
+mastra.getAgent(&quot;chefAgent&quot;);        // get by key
+mastra.getAgentById(agent.id);       // get by ID
+mastra.listAgents();                 // list all
+
+// Applies to: Agents, Workflows, Scorers, MCP Servers,
+//             Vectors, Tools, Processors
+</code></pre>
+<p>This is a diagnostic script that confirms all CRUD operations work correctly across the Mastra instance.</p>
+<h3>2. MCP Client Elicitation (<code>client.ts</code>)</h3>
+<p>Demonstrates the <strong>elicitation pattern</strong> -- when an MCP server requests structured information from the user mid-tool-execution:</p>
+<pre><code class="language-typescript">const mcpClient = new MCPClient({
+  servers: {
+    myMcpServerTwo: {
+      url: new URL(&#x27;http://localhost:4111/api/mcp/myMcpServerTwo/mcp&#x27;),
+    },
+  },
+});
+
+mcpClient.elicitation.onRequest(&#x27;myMcpServerTwo&#x27;, elicitationHandler);
+</code></pre>
+<p>The elicitation handler prompts the user via readline for each required field, then asks for confirmation before submitting. This is how Mastra implements human-in-the-loop data collection from MCP tools.</p>
+<h3>3. Request Context Presets</h3>
+<p>Request context presets are named JSON configurations selectable in the Mastra Studio Playground:</p>
+<pre><code class="language-bash">mastra dev --request-context-presets ./request-context-presets.json
+</code></pre>
+<p>The example includes presets for:</p>
+<ul><li><strong>Environments</strong>: development, staging, production</li><li><strong>Roles</strong>: admin-user, guest-user</li></ul>
+<p>The agent dynamically adapts its model selection, tool availability, and instructions based on the active preset.</p>
+<h3>4. Trace Seeding (<code>seed-traces.mjs</code>)</h3>
+<p>A script that generates test data for the observability system:</p>
+<pre><code class="language-typescript">// Step 1: Send 15 prompts to an agent via API
+const res = await fetch(`${BASE}/api/agents/simple-assistant/generate`, {...});
+
+// Step 2: Fetch trace IDs from observability API
+const traceIds = await fetchTraceIds(runStartTime);
+
+// Step 3: Score each trace with answer-relevancy-scorer
+await seedScore(traceId, &#x27;answer-relevancy-scorer&#x27;, scoreValue, reason);
+</code></pre>
+<p>This demonstrates the full eval pipeline: agent call → trace creation → scoring.</p>
+<h3>5. Model Middleware (<code>model-middleware.ts</code>)</h3>
+<p>A <code>LanguageModelV2Middleware</code> that intercepts raw model responses for fixture generation:</p>
+<pre><code class="language-typescript">export const logDataMiddleware: LanguageModelV2Middleware = {
+  wrapGenerate: async ({ doGenerate, params }) =&gt; {
+    const result = await doGenerate();
+    console.log(JSON.stringify(result, null, 2));
+    return result;
+  },
+  wrapStream: async ({ doStream, params }) =&gt; {
+    const { stream, ...rest } = await doStream();
+    const chunks: LanguageModelV2StreamPart[] = [];
+    const transformStream = new TransformStream({
+      transform(chunk, controller) {
+        chunks.push(chunk);
+        controller.enqueue(chunk);
+      },
+      flush() {
+        fs.writeFileSync(`stream-${i}.json`, JSON.stringify(chunks, null, 2));
+      },
+    });
+    return { stream: stream.pipeThrough(transformStream), ...rest };
+  },
+};
+</code></pre>
+<p>This is used to capture raw responses for e2e test fixtures in the <code>e2e-tests/</code> directory.</p>
+<h2>examples/agent-v6: Structured Output</h2>
+<h3>Purpose</h3>
+<p>Demonstrates Mastra's structured output capabilities with the v6 API -- generating typed JSON responses from LLM calls.</p>
+<pre><code class="language-">examples/agent-v6/src/
+├── structured-output-example.ts      ← Agent structured output
+└── js-client-structured-output-example.ts ← JavaScript client structured output
+</code></pre>
+<p>These examples show how to define Zod schemas and have LLMs produce conforming JSON output, both through the Mastra server API and the JavaScript client SDK.</p>
+<h2>Related Documents</h2>
+<ul><li><a href="./04-tool-system.md">04-tool-system.md</a> -- Tool system with MCP integration</li><li><a href="./06-memory-system.md">06-memory-system.md</a> -- Memory system</li><li><a href="./07-processors.md">07-processors.md</a> -- Processor pipeline</li><li><a href="./14-rl-training-traces.md">14-rl-training-traces.md</a> -- Observability and trace seeding</li></ul>
+<h2>Source Paths</h2>
+<pre><code class="language-">examples/
+├── agent/
+│   ├── src/
+│   │   ├── index.ts                      ← Primitive validation (get, getById, list)
+│   │   ├── client.ts                     ← MCP client with elicitation
+│   │   └── model-middleware.ts           ← Model response logging middleware
+│   ├── seed-traces.mjs                   ← Trace + score seeding script
+│   └── request-context-presets.json      ← Named context configurations
+└── agent-v6/
+    └── src/
+        ├── structured-output-example.ts  ← Server-side structured output
+        └── js-client-structured-output-example.ts ← Client SDK structured output
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

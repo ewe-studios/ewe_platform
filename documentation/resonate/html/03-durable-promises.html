@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonate -- Durable Promises -- resonate</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/resonate/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Resonate -- Overview</a> <a href="01-architecture.html">Resonate -- Architecture</a> <a href="02-server.html">Resonate -- Server Internals</a></span> <a href="02-server.html">← Resonate -- Server Internals</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Resonate -- Durable Promises</h1>
+<h2>What Is a Durable Promise</h2>
+<p>A durable promise extends the concept of an in-memory promise (JavaScript <code>Promise</code>, Rust <code>Future</code>) to distributed, persistent storage. It is a named, persistent container that transitions through states and coordinates work across process boundaries.</p>
+<table><tr><th>Property</th><th>Ephemeral Promise</th><th>Durable Promise</th></tr><tr><td>Lifetime</td><td>Process memory</td><td>Persistent storage</td></tr><tr><td>Identity</td><td>Anonymous (reference)</td><td>Named (string ID)</td></tr><tr><td>Visibility</td><td>Single process</td><td>Global (any worker)</td></tr><tr><td>Crash behavior</td><td>Lost</td><td>Survives</td></tr><tr><td>Resolution</td><td>Same process</td><td>Any process</td></tr><tr><td>Observation</td><td>`.then()` / `await`</td><td>Callbacks + listeners</td></tr></table>
+<h2>Promise Structure</h2>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;order.123.0&quot;,
+  &quot;state&quot;: &quot;pending&quot;,
+  &quot;param&quot;: {
+    &quot;headers&quot;: {&quot;Content-Type&quot;: &quot;application/json&quot;},
+    &quot;data&quot;: &quot;eyJhbW91bnQiOjk5OTl9&quot;
+  },
+  &quot;value&quot;: null,
+  &quot;tags&quot;: {
+    &quot;resonate:invoke&quot;: &quot;charge_card&quot;,
+    &quot;resonate:target&quot;: &quot;payment-workers&quot;,
+    &quot;resonate:origin&quot;: &quot;order.123&quot;
+  },
+  &quot;timeout_at&quot;: 1714486400000,
+  &quot;created_at&quot;: 1714400000000,
+  &quot;settled_at&quot;: null
+}
+</code></pre>
+<h3>Fields</h3>
+<table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>`id`</td><td>string</td><td>Globally unique identifier</td></tr><tr><td>`state`</td><td>enum</td><td>pending, resolved, rejected, rejected_canceled, rejected_timedout</td></tr><tr><td>`param`</td><td>object</td><td>Input data (headers + base64-encoded body)</td></tr><tr><td>`value`</td><td>object</td><td>Output data (set on settlement)</td></tr><tr><td>`tags`</td><td>map</td><td>Metadata: function name, target, origin, custom tags</td></tr><tr><td>`timeout_at`</td><td>i64</td><td>Unix ms when promise auto-rejects if still pending</td></tr><tr><td>`created_at`</td><td>i64</td><td>Unix ms when created</td></tr><tr><td>`settled_at`</td><td>i64</td><td>Unix ms when settled (null if pending)</td></tr></table>
+<h3>Reserved Tags</h3>
+<table><tr><th>Tag</th><th>Purpose</th></tr><tr><td>`resonate:invoke`</td><td>Function name to execute</td></tr><tr><td>`resonate:target`</td><td>Worker group that should acquire</td></tr><tr><td>`resonate:origin`</td><td>Parent promise ID (call graph)</td></tr><tr><td>`resonate:timer`</td><td>If present, promise is a durable sleep</td></tr></table>
+<h2>Promise Lifecycle</h2>
+<div class="mermaid">
+stateDiagram-v2
+    direction LR
+    [*] --&gt; pending: promise.create
+    pending --&gt; resolved: promise.settle(resolved)
+    pending --&gt; rejected: promise.settle(rejected)
+    pending --&gt; rejected_canceled: promise.settle(canceled)
+    pending --&gt; rejected_timedout: [timeout expires]
+    
+    resolved --&gt; [*]: terminal
+    rejected --&gt; [*]: terminal
+    rejected_canceled --&gt; [*]: terminal
+    rejected_timedout --&gt; [*]: terminal
+
+</div>
+<h3>State Descriptions</h3>
+<table><tr><th>State</th><th>Meaning</th></tr><tr><td>`pending`</td><td>Created but not yet settled. Work may be in progress.</td></tr><tr><td>`resolved`</td><td>Successfully completed. `value` contains the result.</td></tr><tr><td>`rejected`</td><td>Failed with an error. `value` contains error details.</td></tr><tr><td>`rejected_canceled`</td><td>Explicitly canceled before completion.</td></tr><tr><td>`rejected_timedout`</td><td>Timed out before settling. Automatic transition.</td></tr></table>
+<h2>Idempotent Creation</h2>
+<p>Promise creation is idempotent on ID. If you call <code>promise.create</code> with an ID that already exists:</p>
+<ul><li>If the promise is still pending → return existing promise (status 200, not 201)</li><li>If the promise is settled → return settled promise</li></ul>
+<p>This enables safe retries: a client can re-invoke after a network timeout without creating duplicates.</p>
+<h2>Callbacks (Promise-to-Promise Coordination)</h2>
+<p>A callback links an <strong>awaiter</strong> (suspended task's promise) to an <strong>awaited</strong> (dependency promise). When the awaited promise settles, the callback fires and potentially resumes the awaiter.</p>
+<div class="mermaid">
+sequenceDiagram
+    participant A as Awaiter (order.123)
+    participant S as Server
+    participant B as Awaited (order.123.0)
+
+    A-&gt;&gt;S: task.suspend(awaited=[order.123.0])
+    S-&gt;&gt;S: Register callback: order.123 waits on order.123.0
+    Note over A: Task released, worker freed
+
+    B-&gt;&gt;S: task.fulfill(order.123.0, resolved)
+    S-&gt;&gt;S: Mark callback ready
+    S-&gt;&gt;S: All callbacks for order.123 ready?
+    alt All ready
+        S-&gt;&gt;S: Resume task → insert outgoing execute
+        S-&gt;&gt;A: Execute message (re-dispatch)
+    else Some still pending
+        Note over S: Task stays suspended
+    end
+
+</div>
+<h3>Callback Rules</h3>
+<ol><li>A task can await multiple promises simultaneously</li><li>The task resumes only when ALL awaited promises settle</li><li>Awaiter and awaited must be different promises (no self-suspension)</li><li>Callbacks are stored in a <code>callbacks</code> table with a <code>ready</code> boolean flag</li></ol>
+<h3>Database Representation</h3>
+<pre><code class="language-sql">CREATE TABLE callbacks (
+    awaited_id TEXT NOT NULL REFERENCES promises(id),
+    awaiter_id TEXT NOT NULL REFERENCES promises(id),
+    ready INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (awaited_id, awaiter_id)
+);
+</code></pre>
+<h2>Listeners (Push Notifications)</h2>
+<p>A listener is an address registered on a promise. When the promise settles, the server sends an unblock message to that address.</p>
+<p>Unlike callbacks (which coordinate tasks), listeners notify external systems — useful for clients waiting on a result.</p>
+<pre><code class="language-rust">// Register a listener
+{
+  &quot;kind&quot;: &quot;promise.register_listener&quot;,
+  &quot;data&quot;: {
+    &quot;awaited&quot;: &quot;order.123&quot;,
+    &quot;address&quot;: &quot;http://my-service.com/webhook/order-done&quot;
+  }
+}
+</code></pre>
+<p>When <code>order.123</code> settles, the server POSTs the settled promise to the webhook URL.</p>
+<h3>Listener vs Callback</h3>
+<table><tr><th>Aspect</th><th>Callback</th><th>Listener</th></tr><tr><td>Target</td><td>Another promise/task</td><td>External address</td></tr><tr><td>Fires</td><td>Marks callback ready, resumes task</td><td>Sends HTTP/message to address</td></tr><tr><td>Multiplicity</td><td>Many-to-one (many deps per task)</td><td>Many-to-one (many listeners per promise)</td></tr><tr><td>Use case</td><td>Internal: workflow suspension</td><td>External: webhook, client notification</td></tr></table>
+<h2>Settlement Chain</h2>
+<p>When a promise settles, the server fires a cascade of effects in a single atomic transaction:</p>
+<pre><code class="language-">┌─────────────────────────────────────────────────────────────┐
+│ TRANSACTION START                                            │
+│                                                              │
+│ 1. Update promise: state → settled, value → result           │
+│                                                              │
+│ 2. Delete promise_timeout entry                              │
+│                                                              │
+│ 3. SettlementEnqueued:                                       │
+│    - Find tasks depending on this promise                    │
+│    - Transition them to fulfilled                            │
+│    - Delete their task_timeout entries                       │
+│    - Delete callbacks where awaiter_id = settled promise     │
+│                                                              │
+│ 4. ResumptionEnqueued:                                       │
+│    - Mark callbacks ready (awaited_id = settled promise)     │
+│    - For each suspended task with ALL callbacks ready:       │
+│      → Transition task to pending                            │
+│      → Insert into outgoing_execute table                    │
+│                                                              │
+│ 5. ListenerUnblocked:                                        │
+│    - Insert into outgoing_unblock for each listener          │
+│    - Delete listener entries                                 │
+│                                                              │
+│ TRANSACTION COMMIT                                           │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>This atomicity guarantees that no state is left inconsistent — either the entire settlement chain fires or none of it does.</p>
+<h2>Promise Timeouts</h2>
+<p>Every promise has a <code>timeout_at</code> field. A background loop scans for expired timeouts:</p>
+<pre><code class="language-rust">// Simplified timeout processing
+loop {
+    let expired = storage.get_expired_promise_timeouts(now).await?;
+    for promise_id in expired {
+        // Settle as rejected_timedout
+        storage.promise_settle(promise_id, &quot;rejected_timedout&quot;, timeout_value).await?;
+        // Settlement chain fires (callbacks, listeners, etc.)
+    }
+    sleep(config.timeouts.poll_interval).await;
+}
+</code></pre>
+<h3>Timeout Semantics</h3>
+<ul><li>Timeout is absolute (Unix ms), not relative</li><li>Expired promises transition to <code>rejected_timedout</code></li><li>This fires the full settlement chain (callbacks resume, listeners notify)</li><li>Tasks depending on a timed-out promise receive the timeout as a rejection</li></ul>
+<h2>ID Conventions</h2>
+<p>Promise IDs form a hierarchical tree that represents the call graph:</p>
+<pre><code class="language-">order.123           ← root invocation
+order.123.0         ← first child (charge_card)
+order.123.1         ← second child (ship_items)
+order.123.1.0       ← grandchild (check_inventory)
+order.123.1.1       ← grandchild (create_shipment)
+order.123.2         ← third child (send_confirmation)
+</code></pre>
+<p>This convention is enforced by the SDKs (deterministic ID generation from parent + child index), not the server. The server treats IDs as opaque strings.</p>
+<h2>Durable Timers (Sleep)</h2>
+<p>A durable sleep is a promise with a <code>resonate:timer</code> tag and a <code>timeout_at</code> set to the wake time. When the timeout expires, it settles as <code>resolved</code> (not rejected), which resumes the sleeping workflow.</p>
+<pre><code class="language-rust">// SDK creates a timer promise
+ctx.sleep(Duration::from_secs(3600)).await?;
+// Creates: { id: &quot;wf.123.2&quot;, tags: {&quot;resonate:timer&quot;: &quot;true&quot;}, timeout_at: now + 3600000 }
+// When timeout fires: settled as resolved → workflow resumes
+</code></pre>
+<h2>Promise Search</h2>
+<p>Promises can be searched by ID pattern:</p>
+<pre><code class="language-bash">resonate promises search --id &quot;order.*&quot; --state pending --limit 50
+</code></pre>
+<p>The server supports glob-style patterns and filtering by state. Useful for monitoring and debugging active workflows.</p>
+<h2>Source Paths</h2>
+<table><tr><th>Concept</th><th>File</th></tr><tr><td>Promise types</td><td>`resonate/src/types.rs`</td></tr><tr><td>Promise operations (oracle)</td><td>`resonate/src/oracle.rs`</td></tr><tr><td>Promise persistence (SQLite)</td><td>`resonate/src/persistence/persistence_sqlite.rs`</td></tr><tr><td>Settlement chain</td><td>`resonate/src/persistence/persistence_sqlite.rs` (settle function)</td></tr><tr><td>Timeout processing</td><td>`resonate/src/processing/processing_timeouts.rs`</td></tr><tr><td>Promise HTTP handlers</td><td>`resonate/src/server.rs`</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

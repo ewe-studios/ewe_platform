@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>foundation_runtimes (runtimes) - Documentation -- runtimes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/runtimes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>foundation_runtimes (runtimes) - Documentation</h1>
+<h2>Overview</h2>
+<p><code>foundation_runtimes</code> is a central crate that embeds runtime assets (JavaScript files, CSS, HTML, etc.) as static data within the binary using compile-time embedding. It serves as the single source of truth for all runtime assets that need to be accessible to the ewe-platform at runtime, particularly for WebAssembly and browser-based applications.</p>
+<h2>Purpose and Responsibility</h2>
+<p>This crate serves as the embedded asset repository for the ewe-platform, providing:</p>
+<ul><li>Compile-time embedding of JavaScript runtime files</li><li>Compile-time embedding of reloader/hot-reload utilities</li><li>Static access to runtime assets without filesystem I/O</li><li>Compressed asset storage (optional gzip or brotli)</li><li>Asset metadata (hashes, ETags, MIME types, timestamps)</li><li>No-std compatible asset access</li><li>Single centralized location for all runtime assets</li></ul>
+<h2>Module Location</h2>
+<ul><li><strong>Path</strong>: <code>backends/runtimes/</code></li><li><strong>Entry Point</strong>: <code>src/lib.rs</code></li><li><strong>Language</strong>: Rust 2021 edition</li><li><strong>Package Manager</strong>: Cargo</li><li><strong>Version</strong>: 0.0.3</li></ul>
+<h2>What It Implements</h2>
+<h3>Core Modules</h3>
+<h4>1. <strong>js_runtimes</strong> (Lines 3-13 in lib.rs)</h4>
+<ul><li><strong>What</strong>: Module containing embedded JavaScript runtime assets</li><li><strong>Why</strong>: Provides JavaScript runtime code for WASM/browser interop</li><li><strong>How</strong>: Uses <code>EmbedDirectoryAs</code> macro to embed directories at compile-time</li><li><strong>Key Structs</strong>:</li><li><strong><code>AssetReloader</code></strong>: Embeds <code>sdk/web/reloader</code> directory</li><li>Source: <code>$CRATE/../../sdk/web/reloader</code></li><li>Purpose: Hot-reload functionality for development</li><li>Contents: <code>reloader.js</code> and related files</li><li>Implements: <code>EmbeddableDirectory</code>, <code>DirectoryData</code>, <code>HasCompression</code></li><li><strong><code>AssetHostRuntimes</code></strong>: Embeds <code>sdk/web/jsruntime</code> directory</li><li>Source: <code>$CRATE/../../sdk/web/jsruntime</code></li><li>Purpose: Core JavaScript runtime for WASM host environment</li><li>Contents: <code>megatron.js</code> and related files</li><li>Implements: <code>EmbeddableDirectory</code>, <code>DirectoryData</code>, <code>HasCompression</code></li></ul>
+<h2>What It Imports</h2>
+<h3>Workspace Dependencies</h3>
+<ul><li><strong>foundation_nostd</strong> (workspace): Provides embeddable traits</li><li><strong>foundation_macros</strong> (workspace): Provides <code>EmbedDirectoryAs</code> macro</li></ul>
+<h3>External Dependencies</h3>
+<ul><li><strong>brotli</strong> (v8.0.2): Brotli compression support (used by macros)</li><li><strong>flate2</strong> (v1.1.5): Gzip/zlib compression support (used by macros)</li></ul>
+<p>Note: Compression dependencies are declared but only used if compression attributes are specified in the embed macros.</p>
+<h2>Public API</h2>
+<h3>Re-exported Macro</h3>
+<pre><code class="language-rust">use foundation_macros::EmbedDirectoryAs;
+</code></pre>
+<h3>Public Module</h3>
+<pre><code class="language-rust">pub mod js_runtimes {
+    pub struct AssetReloader;      // Implements EmbeddableDirectory
+    pub struct AssetHostRuntimes;  // Implements EmbeddableDirectory
+}
+</code></pre>
+<h3>Available Methods (via EmbeddableDirectory trait)</h3>
+<h4>AssetReloader</h4>
+<pre><code class="language-rust">impl EmbeddableDirectory for AssetReloader {
+    // Iterate over all files in reloader directory
+    fn info_iter(&amp;self) -&gt; core::slice::Iter&lt;&#x27;_, FileInfo&gt;;
+
+    // Get file info by path
+    fn info_for(&amp;self, source: &amp;str) -&gt; Option&lt;FileInfo&gt;;
+
+    // Get files under a subdirectory
+    fn info_under_directory(&amp;self, directory: &amp;str) -&gt; Vec&lt;FileInfo&gt;;
+
+    // Read UTF-8 file data
+    fn request_utf8(&amp;self, source: &amp;str) -&gt; Option&lt;(Vec&lt;u8&gt;, Option&lt;FileInfo&gt;)&gt;;
+
+    // Read UTF-16 file data
+    fn request_utf16(&amp;self, source: &amp;str) -&gt; Option&lt;(Vec&lt;u8&gt;, Option&lt;FileInfo&gt;)&gt;;
+}
+
+impl DirectoryData for AssetReloader {
+    const FILES_DATA: &amp;&#x27;static [StaticDirectoryData];
+    const FILES_METADATA: &amp;&#x27;static [FileInfo];
+
+    // Get UTF-8 data by index
+    fn get_utf8_for(&amp;self, index: usize) -&gt; Option&lt;Vec&lt;u8&gt;&gt;;
+
+    // Read UTF-8 data by path
+    fn read_utf8_for(&amp;self, source: &amp;str) -&gt; Option&lt;Vec&lt;u8&gt;&gt;;
+
+    // Get UTF-16 data by index
+    fn get_utf16_for(&amp;self, index: usize) -&gt; Option&lt;Vec&lt;u8&gt;&gt;;
+
+    // Read UTF-16 data by path
+    fn read_utf16_for(&amp;self, source: &amp;str) -&gt; Option&lt;Vec&lt;u8&gt;&gt;;
+}
+
+impl HasCompression for AssetReloader {
+    fn compression(&amp;self) -&gt; DataCompression;
+}
+</code></pre>
+<h4>AssetHostRuntimes</h4>
+<p>Implements the same trait methods as AssetReloader, but for the jsruntime directory.</p>
+<h3>Usage Example</h3>
+<pre><code class="language-rust">use foundation_runtimes::js_runtimes::{AssetReloader, AssetHostRuntimes};
+
+// Access reloader assets
+let reloader = AssetReloader::default();
+if let Some((data, info)) = reloader.request_utf8(&quot;reloader.js&quot;) {
+    let js_code = String::from_utf8(data).unwrap();
+    println!(&quot;Reloader JS: {} bytes&quot;, js_code.len());
+}
+
+// Access host runtime assets
+let host_runtime = AssetHostRuntimes::default();
+if let Some((data, info)) = host_runtime.request_utf8(&quot;megatron.js&quot;) {
+    let runtime_code = String::from_utf8(data).unwrap();
+    println!(&quot;Runtime JS: {} bytes&quot;, runtime_code.len());
+}
+
+// Iterate over all reloader files
+for file_info in reloader.info_iter() {
+    println!(&quot;File: {}&quot;, file_info.source_name);
+    println!(&quot;  Path: {}&quot;, file_info.source_path);
+    println!(&quot;  Hash: {}&quot;, file_info.hash);
+    println!(&quot;  MIME: {:?}&quot;, file_info.mime_type);
+}
+</code></pre>
+<h2>Feature Flags</h2>
+<p>This crate has no feature flags - it provides a fixed set of embedded assets.</p>
+<h2>Architecture</h2>
+<h3>Design Patterns Used</h3>
+<ul><li><strong>Repository Pattern</strong>: Centralized asset storage</li><li><strong>Facade Pattern</strong>: Simple interface over complex embedding mechanism</li><li><strong>Compile-Time Evaluation</strong>: All embedding happens at compile-time</li><li><strong>Static Data Pattern</strong>: Assets stored as <code>&'static</code> data</li></ul>
+<h3>Module Structure</h3>
+<pre><code class="language-">foundation_runtimes/
+├── src/
+│   └── lib.rs                    # Crate entry point (14 lines)
+│       ├── use foundation_macros::EmbedDirectoryAs
+│       └── pub mod js_runtimes
+│           ├── AssetReloader (embeds sdk/web/reloader/)
+│           └── AssetHostRuntimes (embeds sdk/web/jsruntime/)
+├── Cargo.toml
+└── Referenced Assets (not in crate):
+    └── ../../sdk/web/
+        ├── reloader/
+        │   └── reloader.js         # Hot-reload functionality
+        └── jsruntime/
+            └── megatron.js          # Core JS runtime
+</code></pre>
+<h2>Key Implementation Details</h2>
+<h3>Compile-Time Embedding</h3>
+<ol><li><strong>Build Time</strong>: During compilation, <code>EmbedDirectoryAs</code> macro:</li></ol>
+<ul><li>Resolves <code>$CRATE</code> placeholder to crate directory</li><li>Constructs absolute paths to <code>sdk/web/reloader</code> and <code>sdk/web/jsruntime</code></li><li>Recursively reads all files in these directories</li><li>Generates static byte arrays with file contents</li><li>Generates FileInfo metadata (hash, ETag, MIME type, timestamps)</li><li>Generates trait implementations for data access</li></ul>
+<ol><li><strong>Generated Code</strong>: For each directory, generates:</li></ol>
+<ul><li><code>const FILES_DATA: &'static [StaticDirectoryData]</code></li><li><code>const FILES_METADATA: &'static [FileInfo]</code></li><li>Implementations of HasCompression, DirectoryData, EmbeddableDirectory</li></ul>
+<ol><li><strong>Runtime Access</strong>: Applications access embedded data via trait methods:</li></ol>
+<ul><li>Zero-cost abstraction - just pointer dereferencing</li><li>No file I/O at runtime</li><li>No dynamic allocation for file data (uses static slices)</li></ul>
+<h3>Asset Organization</h3>
+<ul><li><strong>Reloader Assets</strong> (<code>AssetReloader</code>):</li><li>Development-time utilities</li><li>Hot-reload functionality</li><li>Browser refresh coordination</li><li>Typically used in development builds</li></ul>
+<ul><li><strong>Host Runtime Assets</strong> (<code>AssetHostRuntimes</code>):</li><li>Core JavaScript runtime (<code>megatron.js</code>)</li><li>WASM-to-JS bridge functionality</li><li>Browser API wrappers</li><li>Memory management helpers</li><li>Used in both development and production</li></ul>
+<h3>Performance Considerations</h3>
+<ul><li><strong>Zero Runtime Cost</strong>: All data is static, no allocation/deallocation</li><li><strong>Compile-Time Overhead</strong>: Embedding large files increases compile time</li><li><strong>Binary Size</strong>: Embedded assets increase binary size</li><li><strong>No I/O Latency</strong>: Instant access without filesystem operations</li><li><strong>Cache-Friendly</strong>: Static data is optimally cached by CPU</li></ul>
+<h3>Security Considerations</h3>
+<ul><li><strong>Immutable Assets</strong>: Embedded data cannot be modified at runtime</li><li><strong>Hash Verification</strong>: SHA-256 hashes for integrity checking</li><li><strong>Controlled Embedding</strong>: Only explicitly embedded directories are included</li><li><strong>No Path Traversal</strong>: Assets are embedded, not accessed via filesystem</li></ul>
+<h3>Compression Strategy</h3>
+<p>Currently, no compression attributes are specified in the macros, meaning:</p>
+<ul><li><strong>DataCompression::NONE</strong>: Assets stored uncompressed</li><li><strong>Trade-off</strong>: Larger binary size but no decompression overhead at runtime</li><li><strong>Future</strong>: Can add <code>#[gzip_compression]</code> or <code>#[brottli_compression]</code> to reduce binary size</li></ul>
+<h2>Dependencies and Relationships</h2>
+<h3>Depends On</h3>
+<ul><li><strong>foundation_nostd</strong> (workspace): Embeddable traits (HasCompression, DirectoryData, etc.)</li><li><strong>foundation_macros</strong> (workspace): <code>EmbedDirectoryAs</code> procedural macro</li><li><strong>brotli</strong> (v8.0.2): Compression support (if enabled)</li><li><strong>flate2</strong> (v1.1.5): Compression support (if enabled)</li></ul>
+<h3>Used By</h3>
+<ul><li><strong>Web-based applications</strong>: Any application needing JS runtime or reloader</li><li><strong>WASM modules</strong>: Access embedded JS for browser interop</li><li><strong>Development tools</strong>: Hot-reload infrastructure</li></ul>
+<h3>Sibling Modules</h3>
+<ul><li><strong>foundation_macros</strong>: Provides the embedding mechanism</li><li><strong>foundation_nostd</strong>: Provides trait definitions</li><li><strong>foundation_wasm</strong>: May use runtime assets for JS interop</li></ul>
+<h2>Configuration</h2>
+<h3>Feature Flags</h3>
+<p>None currently defined.</p>
+<h3>Build Configuration</h3>
+<ul><li><strong>Edition</strong>: Rust 2021</li><li><strong>Asset Paths</strong>: Hardcoded relative to crate location</li><li><code>$CRATE/../../sdk/web/reloader</code></li><li><code>$CRATE/../../sdk/web/jsruntime</code></li></ul>
+<h3>Compression Configuration</h3>
+<p>To enable compression, modify the struct attributes in <code>lib.rs</code>:</p>
+<pre><code class="language-rust">// Example: Add gzip compression
+#[derive(EmbedDirectoryAs, Default)]
+#[source = &quot;$CRATE/../../sdk/web/reloader&quot;]
+#[gzip_compression]  // Add this line
+pub struct AssetReloader;
+</code></pre>
+<h2>Known Issues and Limitations</h2>
+<h3>Current Limitations</h3>
+<ol><li><strong>No Compression</strong>: Assets embedded uncompressed (increases binary size)</li><li><strong>Static Asset List</strong>: Cannot dynamically add/remove assets at runtime</li><li><strong>No Hot Reload of Embedded</strong>: Changes to JS files require recompilation</li><li><strong>Fixed Paths</strong>: Asset paths hardcoded, cannot be configured</li><li><strong>No Filtering</strong>: All files in directories are embedded</li><li><strong>No UTF-16</strong>: No <code>#[with_utf16]</code> attribute specified</li></ol>
+<h3>Technical Debt</h3>
+<ul><li><strong>Missing Compression</strong>: Should evaluate gzip vs brotli for binary size reduction</li><li><strong>No Documentation</strong>: Structs lack doc comments explaining their purpose</li><li><strong>Single Module</strong>: Could organize assets into more granular modules</li><li><strong>No Asset Registry</strong>: No central list of available assets</li></ul>
+<h2>Future Improvements</h2>
+<h3>Planned Enhancements</h3>
+<ul><li><strong>Compression</strong>: Add <code>#[gzip_compression]</code> or <code>#[brottli_compression]</code> to reduce binary size</li><li><strong>More Asset Types</strong>: Embed CSS, HTML, WASM modules, images, etc.</li><li><strong>Configurable Paths</strong>: Allow asset paths to be configured via features or env vars</li><li><strong>Asset Registry</strong>: Provide a registry of all available assets</li><li><strong>Lazy Decompression</strong>: Decompress on first access, cache results</li><li><strong>Conditional Embedding</strong>: Embed different assets based on build profiles</li></ul>
+<h3>Refactoring Opportunities</h3>
+<ul><li><strong>Documentation</strong>: Add comprehensive doc comments with usage examples</li><li><strong>Module Organization</strong>: Split into development vs production asset modules</li><li><strong>Versioning</strong>: Track runtime asset versions</li><li><strong>Testing</strong>: Add tests verifying embedded assets can be accessed</li></ul>
+<h2>Testing</h2>
+<h3>Current Tests</h3>
+<p>None - this is a pure data crate with no logic to test.</p>
+<h3>Future Testing Strategy</h3>
+<ul><li><strong>Integration Tests</strong>: Verify assets can be accessed and have correct metadata</li><li><strong>Size Tests</strong>: Ensure binary size impact is reasonable</li><li><strong>Compression Tests</strong>: Verify compressed assets decompress correctly</li><li><strong>Checksum Tests</strong>: Validate embedded hashes match actual content</li></ul>
+<h2>Related Documentation</h2>
+<h3>Specifications</h3>
+<ul><li>No specific specifications currently documented</li><li>Asset embedding behavior documented in foundation_macros</li></ul>
+<h3>External Resources</h3>
+<ul><li><a href="./foundation_macros/doc.md">Foundation Macros Documentation</a></li><li><a href="./foundation_nostd/doc.md">Foundation Nostd Documentation</a></li></ul>
+<h3>Related Modules</h3>
+<ul><li><code>documentation/foundation_macros/doc.md</code> - Embedding mechanism</li><li><code>documentation/foundation_nostd/doc.md</code> - Trait definitions</li><li><code>documentation/foundation_wasm/doc.md</code> - JS runtime consumer</li></ul>
+<h2>Embedded Assets</h2>
+<h3>AssetReloader (sdk/web/reloader/)</h3>
+<ul><li><strong>reloader.js</strong>: Hot-reload functionality for development</li><li>Purpose: Enables live reload of code changes without full page refresh</li><li>Usage: Development builds only</li></ul>
+<h3>AssetHostRuntimes (sdk/web/jsruntime/)</h3>
+<ul><li><strong>megatron.js</strong>: Core JavaScript runtime for WASM host environment</li><li>Purpose: Provides JS bridge for WASM modules to interact with browser APIs</li><li>Features:</li><li>WASM memory management</li><li>Function call marshalling</li><li>Event handling</li><li>DOM manipulation wrappers</li><li>Browser API abstractions</li><li>Usage: Production and development builds</li></ul>
+<h2>Version History</h2>
+<h3>[0.0.3] - Current</h3>
+<ul><li>Central crate for runtime assets</li><li>Embeds reloader directory (AssetReloader)</li><li>Embeds jsruntime directory (AssetHostRuntimes)</li><li>No compression enabled</li><li>Uses EmbedDirectoryAs macro</li><li>Provides EmbeddableDirectory interface</li></ul>
+<hr>
+<p><em>Last Updated: 2026-01-14</em> <em>Documentation Version: 1.0</em></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

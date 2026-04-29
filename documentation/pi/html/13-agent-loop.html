@@ -39,6 +39,84 @@
       }
       await render();
       new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
     })();
   </script>
 </head>
@@ -60,6 +138,32 @@
       └─ streamSimple (pi-ai)  ── Provider-agnostic streaming
 </code></pre>
 <h2>Three-Layer Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Layer 1: Agent (agent.ts)&quot;
+        A1[Agent class&lt;br/&gt;State, events, queues]
+        A1 --&gt; STEER[SteeringQueue&lt;br/&gt;mid-run message injection]
+        A1 --&gt; FOLLOW[FollowUpQueue&lt;br/&gt;post-run continuation]
+        A1 --&gt; EVENTS[EventEmitter&lt;br/&gt;agent_start/end, turn_start/end]
+    end
+
+    subgraph &quot;Layer 2: runLoop (agent-loop.ts)&quot;
+        A2[runLoop function&lt;br/&gt;LLM call → tool exec → repeat]
+        A2 --&gt; TOOLS[Tool execution&lt;br/&gt;sequential or parallel]
+        A2 --&gt; PARALLEL[Promise.all&lt;br/&gt;concurrent tool calls]
+    end
+
+    subgraph &quot;Layer 3: streamSimple (pi-ai)&quot;
+        A3[streamSimple&lt;br/&gt;Provider-agnostic SSE]
+        A3 --&gt; ANTHROPIC[AnthropicAdapter&lt;br/&gt;SSE → chunks]
+        A3 --&gt; OPENAI[OpenAIAdapter&lt;br/&gt;streaming iter]
+        A3 --&gt; OTHER[20+ providers]
+    end
+
+    A1 --&gt; A2
+    A2 --&gt; A3
+
+</div>
 <h3>Layer 1: <code>Agent</code> Class (<code>agent.ts</code>)</h3>
 <p>The <code>Agent</code> class is the <strong>stateful wrapper</strong> that UI layers (TUI, web, Slack bot) interact with. It owns the conversation transcript, emits lifecycle events, manages queues, and provides the public API.</p>
 <pre><code class="language-typescript">const agent = new Agent({
@@ -106,6 +210,42 @@ async function runLoop(
   9. No messages → break, emit agent_end
 </code></pre>
 <p>The <strong>inner loop</strong> handles tool-call chains within a single conversational turn. The <strong>outer loop</strong> handles continuation after the agent would naturally stop — used for steering/follow-up that arrives while the agent was working.</p>
+<h3>Steering Queue Interaction with the Loop</h3>
+<div class="mermaid">
+sequenceDiagram
+    participant User
+    participant TUI as TUI/UI
+    participant Agent as Agent class
+    participant Loop as runLoop (inner)
+    participant LLM as streamSimple
+    participant Tools as Tool executor
+
+    User-&gt;&gt;TUI: &quot;Fix the bug&quot;
+    TUI-&gt;&gt;Agent: agent.prompt(&quot;Fix the bug&quot;)
+    Agent-&gt;&gt;Agent: emit agent_start
+    Agent-&gt;&gt;Loop: runLoop(messages)
+
+    Loop-&gt;&gt;LLM: streamAssistantResponse()
+    LLM--&gt;&gt;Loop: text chunks
+    Loop-&gt;&gt;TUI: emit message_update
+    LLM--&gt;&gt;Loop: tool call: read_file
+    Loop-&gt;&gt;Tools: execute(read_file)
+    Tools--&gt;&gt;Loop: content
+    Loop-&gt;&gt;Loop: append tool result
+
+    User-&gt;&gt;TUI: &quot;Also check config.py&quot;
+    TUI-&gt;&gt;Agent: agent.enqueueSteering(&quot;Also check config.py&quot;)
+
+    Loop-&gt;&gt;Loop: check steering queue
+    Loop-&gt;&gt;Loop: drain steering message
+    Loop-&gt;&gt;LLM: streamAssistantResponse(+steering)
+    LLM--&gt;&gt;Loop: text response
+    Loop-&gt;&gt;TUI: emit turn_end
+
+    Loop-&gt;&gt;Agent: return
+    Agent-&gt;&gt;TUI: emit agent_end
+
+</div>
 <h3>Turn Definition</h3>
 <p>A <strong>turn</strong> is one assistant response + any tool calls/results that follow. Each inner loop iteration emits:</p>
 <ul><li><code>turn_start</code> → <code>message_start</code> → (streaming events) → <code>message_end</code> → <code>tool_execution_start</code>/<code>tool_execution_end</code> → <code>turn_end</code></li></ul>

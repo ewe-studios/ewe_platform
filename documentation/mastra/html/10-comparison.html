@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mastra vs Pi vs Hermes -- Comparison -- mastra</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mastra/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-processors.html">Mastra -- Processor Pipeline</a> <a href="08-multi-model.html">Mastra -- Multi-Model Execution</a> <a href="09-data-flow.html">Mastra -- Data Flow</a></span> <a href="09-data-flow.html">← Mastra -- Data Flow</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Mastra vs Pi vs Hermes -- Comparison</h1>
+<h2>At a Glance</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Language</td><td>TypeScript</td><td>Python</td><td>TypeScript</td></tr><tr><td>Runtime</td><td>Node.js (ESM)</td><td>Python 3.11+</td><td>Node.js (ESM)</td></tr><tr><td>License</td><td>Open source</td><td>MIT</td><td>Apache-2.0</td></tr><tr><td>Author</td><td>Mario Zechner</td><td>Nous Research</td><td>Mastra AI</td></tr><tr><td>Packages</td><td>7 npm packages</td><td>Single Python package</td><td>pnpm monorepo (20+ packages)</td></tr><tr><td>Focus</td><td>Coding agent (terminal-first)</td><td>Multi-platform conversational agent</td><td>Framework for building agents</td></tr></table>
+<h2>Architecture</h2>
+<h3>Pi</h3>
+<p>Pi is a <strong>7-package monorepo</strong> with clear layering:</p>
+<pre><code class="language-">pi-ai (foundation: LLM API)
+  ↓
+pi-agent-core (runtime: agent loop)
+  ↓
+pi-coding-agent (flagship app)  pi-tui (UI)  pi-mom (Slack)  pi-pods (GPU)  pi-web-ui
+</code></pre>
+<p>Each package is independently usable. The coding agent is the flagship application.</p>
+<h3>Hermes</h3>
+<p>Hermes is a <strong>single Python package</strong> with internal module separation:</p>
+<pre><code class="language-">run_agent.py (AIAgent class)
+  ├── agent/ (LLM adapters, prompt builder, error classifier)
+  ├── tools/ (40+ tools)
+  ├── gateway/ (10+ platform adapters)
+  ├── memory/ (8+ providers)
+  └── plugins/ (memory, context, image gen)
+</code></pre>
+<p>Everything ships together. The agent is designed to run standalone on any infrastructure.</p>
+<h3>Mastra</h3>
+<p>Mastra is a <strong>pnpm workspace monorepo</strong> with <code>@mastra/core</code> at the center:</p>
+<pre><code class="language-">@mastra/core (agent, loop, LLM, memory, tools, processors)
+  ↓
+@mastra/memory  @mastra/rag  @mastra/server  @mastra/cli  @mastra/deployer  @mastra/playground
+  ↓
+integrations/ (provider-specific integrations)
+</code></pre>
+<p>It's a framework -- you compose the pieces for your use case. No flagship application.</p>
+<h2>Agent Loop</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Pattern</td><td>Async while-loop</td><td>Sync while-loop</td><td>Workflow-based stream</td></tr><tr><td>File</td><td>`agent-loop.ts`</td><td>`run_agent.py:run_conversation()`</td><td>`loop/loop.ts`</td></tr><tr><td>Pause/resume</td><td>No</td><td>No</td><td>Yes (workflow suspension)</td></tr><tr><td>Streaming</td><td>Native async/await SSE</td><td>Sync OpenAI SDK</td><td>Workflow stream transform</td></tr><tr><td>Tool concurrency</td><td>`Promise.all()` (unbounded)</td><td>`ThreadPoolExecutor` (max 8)</td><td>`toolCallConcurrency` param</td></tr></table>
+<p><strong>Pi's loop</strong> is a straightforward async loop:</p>
+<pre><code class="language-typescript">// Pi
+async function agentLoop() {
+  while (true) {
+    const response = await llm.stream(messages);
+    if (response.toolCalls) {
+      await Promise.all(response.toolCalls.map(execute));
+    } else break;
+  }
+}
+</code></pre>
+<p><strong>Hermes's loop</strong> is sync with async wrappers:</p>
+<pre><code class="language-python"># Hermes
+def run_conversation():
+    while True:
+        response = client.chat.completions.create(...)  # Sync SDK
+        if response.tool_calls:
+            with ThreadPoolExecutor(max_workers=8) as exec:
+                results = list(exec.map(execute, tool_calls))
+        else: break
+</code></pre>
+<p><strong>Mastra's loop</strong> is workflow-based:</p>
+<pre><code class="language-typescript">// Mastra
+function loop({ models, messageList, tools }) {
+  return workflowLoopStream({
+    // MODEL_STEP → TOOL_STEP → MODEL_STEP → ... → OUTPUT_PROC
+  });
+}
+</code></pre>
+<h2>Tool System</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Definition</td><td>TypeScript functions</td><td>Python functions</td><td>`createTool()` with schemas</td></tr><tr><td>Schema</td><td>TypeBox</td><td>Custom JSON schema</td><td>Zod / JSON Schema / AI SDK</td></tr><tr><td>Validation</td><td>Runtime validation</td><td>Manual validation</td><td>Schema-based validation</td></tr><tr><td>Approval</td><td>Not built-in</td><td>Not built-in</td><td>`requireApproval: true`</td></tr><tr><td>Suspension</td><td>Not built-in</td><td>Not built-in</td><td>`suspend()` / `resume()`</td></tr><tr><td>Background</td><td>`Promise.all()` concurrent</td><td>`ThreadPoolExecutor` parallel</td><td>Pubsub-based distributed</td></tr><tr><td>Provider tools</td><td>Via AI package</td><td>Via adapter</td><td>Via router passthrough</td></tr></table>
+<p><strong>Mastra's suspension</strong> is unique:</p>
+<pre><code class="language-typescript">const approvalTool = createTool({
+  suspendSchema: z.object({ action: z.string() }),
+  resumeSchema: z.object({ approved: z.boolean() }),
+  execute: async (input, context) =&gt; {
+    if (!context.isSuspended) {
+      context.suspend({ action: input.action });
+      return;  // Pauses here, waits for user
+    }
+    return { approved: context.getResumeData().approved };
+  },
+});
+</code></pre>
+<h2>Model Routing</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Approach</td><td>AI package provider map</td><td>Per-provider adapter class</td><td>Model router with gateways</td></tr><tr><td>Providers</td><td>20+</td><td>30+</td><td>200+</td></tr><tr><td>Resolution</td><td>`getProvider(providerId)`</td><td>`get_adapter(model_name)`</td><td>`findGatewayForModel("openai/gpt-5")`</td></tr><tr><td>Fallbacks</td><td>Model switching in AI package</td><td>Credential pool rotation</td><td>Agent-level fallback chain</td></tr><tr><td>Offline mode</td><td>No</td><td>No</td><td>Yes (`MASTRA_OFFLINE=true`)</td></tr><tr><td>Gateway plugins</td><td>No</td><td>No</td><td>Yes (Mastra, Netlify, models.dev)</td></tr></table>
+<p><strong>Mastra's gateway architecture</strong> is the most flexible:</p>
+<pre><code class="language-">&quot;openai/gpt-5&quot; → findGatewayForModel() → MastraGateway → createOpenAI()
+&quot;anthropic/claude&quot; → findGatewayForModel() → ModelsDevGateway → createAnthropic()
+&quot;local/llama&quot; → findGatewayForModel() → Custom Gateway → createOpenAI({ baseURL })
+</code></pre>
+<h2>Memory</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Model</td><td>Message history + compaction</td><td>Multi-provider (Honcho, Mem0)</td><td>Thread-based + semantic recall</td></tr><tr><td>Working memory</td><td>N/A</td><td>MemoryManager.get_context()</td><td>Template-based, LLM-updated</td></tr><tr><td>Semantic search</td><td>N/A</td><td>Provider-dependent</td><td>Built-in vector integration</td></tr><tr><td>Compaction</td><td>Token-budget model</td><td>4-phase compression</td><td>Token limiting via processors</td></tr><tr><td>Storage</td><td>JSONL files</td><td>SQLite/JSON/Provider</td><td>Storage ABC (pluggable)</td></tr><tr><td>Processor integration</td><td>N/A</td><td>N/A</td><td>Memory as input processor</td></tr></table>
+<h2>Processing Pipeline</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Concept</td><td>Extensions/skills</td><td>Plugins</td><td>Processor pipeline</td></tr><tr><td>Pre-LLM</td><td>Prompt templates</td><td>Prompt builder</td><td>Input processors</td></tr><tr><td>Post-LLM</td><td>Response parsing</td><td>Tool result handling</td><td>Output processors</td></tr><tr><td>Error recovery</td><td>Retry in loop</td><td>Error classifier + retry</td><td>Error processors</td></tr><tr><td>Workflow integration</td><td>N/A</td><td>N/A</td><td>Processors can be workflows</td></tr></table>
+<p><strong>Mastra's processor pipeline</strong> is unique -- each processor is a first-class citizen:</p>
+<pre><code class="language-">Input: Memory → Skills → Workspace Instructions → LLM
+Output: Structured Output → Custom Formatter → Tool Result Reminder → Client
+Error: Prefill Handler → Fallback Handler → Retry/Fail
+</code></pre>
+<h2>Background Execution</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Model</td><td>Concurrent execution</td><td>Parallel execution</td><td>Distributed execution</td></tr><tr><td>Mechanism</td><td>`Promise.all()`</td><td>`ThreadPoolExecutor`</td><td>Pubsub + worker processes</td></tr><tr><td>Task tracking</td><td>N/A</td><td>N/A</td><td>BackgroundTaskManager</td></tr><tr><td>Status checking</td><td>N/A</td><td>N/A</td><td>Built-in `check_background_task` tool</td></tr><tr><td>Cancellation</td><td>N/A</td><td>N/A</td><td>AbortController + timeout</td></tr></table>
+<h2>Sub-Agent Delegation</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Support</td><td>Not native</td><td>Sub-agent patterns</td><td>First-class with hooks</td></tr><tr><td>Message filtering</td><td>N/A</td><td>Manual</td><td>`onMessageFilter` hook</td></tr><tr><td>Pre-delegation hook</td><td>N/A</td><td>N/A</td><td>`onDelegationStart`</td></tr><tr><td>Post-delegation hook</td><td>N/A</td><td>N/A</td><td>`onDelegationComplete`</td></tr><tr><td>Cancellation</td><td>N/A</td><td>N/A</td><td>`bail()` function</td></tr></table>
+<h2>Strengths</h2>
+<h3>Pi</h3>
+<ul><li><strong>Simple and focused</strong>: 7 packages, each does one thing well</li><li><strong>Terminal-first</strong>: Excellent TUI with differential rendering</li><li><strong>Compaction</strong>: Built-in context management with token budgets</li><li><strong>Extensions</strong>: Rich extension ecosystem (skills, themes, prompts)</li><li><strong>Learning resources</strong>: Well-documented with clear code examples</li></ul>
+<h3>Hermes</h3>
+<ul><li><strong>Multi-platform</strong>: 10+ messaging platforms out of the box</li><li><strong>Self-improving</strong>: GEPA-based prompt/skill evolution</li><li><strong>Memory</strong>: 8+ memory providers with context compression</li><li><strong>RL training</strong>: Built-in trajectory generation for reinforcement learning</li><li><strong>Cost tracking</strong>: Detailed token usage and pricing across providers</li><li><strong>Prompt caching</strong>: Sophisticated Anthropic cache optimization</li></ul>
+<h3>Mastra</h3>
+<ul><li><strong>Workflow-based loop</strong>: Pause/resume conversations, suspension points</li><li><strong>200+ providers</strong>: Model router with gateway plugins</li><li><strong>Processor pipeline</strong>: Input/output/error transformation chain</li><li><strong>Background tasks</strong>: Pubsub-based distributed execution</li><li><strong>Sub-agent delegation</strong>: Rich hooks for message filtering and feedback</li><li><strong>Type safety</strong>: End-to-end TypeScript generics from Agent to tools to processors</li></ul>
+<h2>When to Use Which</h2>
+<table><tr><th>Use Case</th><th>Recommendation</th></tr><tr><td>Interactive terminal coding agent</td><td>Pi</td></tr><tr><td>Multi-platform chatbot (Telegram, Discord, etc.)</td><td>Hermes</td></tr><tr><td>Custom agent with workflow orchestration</td><td>Mastra</td></tr><tr><td>RL training data generation</td><td>Hermes</td></tr><tr><td>Enterprise agent with approval workflows</td><td>Mastra</td></tr><tr><td>Simple, composable LLM API wrapper</td><td>Pi</td></tr><tr><td>Agent with semantic memory search</td><td>Mastra</td></tr><tr><td>Agent that runs on any infrastructure</td><td>Hermes</td></tr><tr><td>Agent with background async tasks</td><td>Mastra</td></tr><tr><td>Agent with context compression</td><td>Pi or Hermes</td></tr><tr><td>Agent with sub-agent delegation</td><td>Mastra</td></tr></table>
+<h2>Shared Concepts</h2>
+<p>All three frameworks share these fundamental patterns:</p>
+<ol><li><strong>Agent class as orchestrator</strong>: Central class managing LLM calls, tools, memory</li><li><strong>Tool calling</strong>: LLM can call external tools with validated schemas</li><li><strong>Streaming</strong>: Support for streaming LLM responses</li><li><strong>Model fallbacks</strong>: Automatic failover to backup models</li><li><strong>Observability</strong>: Token tracking, cost estimation, logging</li><li><strong>Multi-provider</strong>: Support for OpenAI, Anthropic, Google, local models</li><li><strong>Type safety</strong>: TypeScript (Pi, Mastra) or type hints (Hermes)</li></ol>
+<h2>Related Documents</h2>
+<ul><li><a href="./00-overview.md">00-overview.md</a> -- Mastra overview</li><li><a href="../pi/markdown/00-overview.md">../pi/markdown/00-overview.md</a> -- Pi overview</li><li><a href="../hermes/markdown/00-overview.md">../hermes/markdown/00-overview.md</a> -- Hermes overview</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

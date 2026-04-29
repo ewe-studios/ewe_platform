@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Production Tracing Setup Guide -- tracing</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/tracing/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="README.html">Tracing Documentation - EWE Platform</a> <a href="beyond-logging.html">Tracing in Rust - Beyond Logging</a> <a href="examples.html">Tracing Examples - EWE Platform</a></span> <a href="examples.html">← Tracing Examples - EWE Platform</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Production Tracing Setup Guide</h1>
+<p>This guide covers setting up <code>tracing</code> for production environments with proper log aggregation, performance monitoring, and debugging capabilities.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol><li><a href="#production-subscriber-setup">Production Subscriber Setup</a></li><li><a href="#log-aggregation-integration">Log Aggregation Integration</a></li><li><a href="#metrics-and-alerting">Metrics and Alerting</a></li><li><a href="#distributed-tracing">Distributed Tracing</a></li><li><a href="#security-considerations">Security Considerations</a></li><li><a href="#troubleshooting">Troubleshooting</a></li></ol>
+<hr>
+<h2>Production Subscriber Setup</h2>
+<h3>Complete Production Configuration</h3>
+<pre><code class="language-rust">// src/tracing/production.rs
+use anyhow::Context;
+use tracing_appender::{non_blocking, rolling};
+use tracing_subscriber::{
+    fmt,
+    layer::SubscriberExt,
+    prelude::*,
+    registry,
+    EnvFilter,
+};
+use std::sync::Arc;
+
+pub struct ProductionTracingConfig {
+    pub service_name: String,
+    pub log_directory: String,
+    pub max_log_files: usize,
+    pub json_logs: bool,
+}
+
+impl Default for ProductionTracingConfig {
+    fn default() -&gt; Self {
+        Self {
+            service_name: &quot;application&quot;.to_string(),
+            log_directory: &quot;/var/log/application&quot;.to_string(),
+            max_log_files: 7,
+            json_logs: true,
+        }
+    }
+}
+
+pub fn init_production_tracing(config: ProductionTracingConfig) -&gt; anyhow::Result&lt;TracingGuard&gt; {
+    // Ensure log directory exists
+    std::fs::create_dir_all(&amp;config.log_directory)
+        .context(&quot;Failed to create log directory&quot;)?;
+
+    // Rotating file appender (daily rotation)
+    let file_appender = rolling::daily(&amp;config.log_directory, &quot;application.log&quot;);
+
+    // Non-blocking writer with overflow handling
+    let (non_blocking, guard) = non_blocking(file_appender);
+
+    // JSON layer for log aggregation
+    let json_layer = fmt::layer()
+        .json()
+        .with_writer(non_blocking)
+        .with_target(true)
+        .with_thread_ids(true)
+        .with_thread_names(true)
+        .with_file(true)
+        .with_line_number(true)
+        .with_current_span(true)
+        .with_span_list(true);
+
+    // Optional console output for debugging
+    let console_layer = std::env::var(&quot;ENABLE_CONSOLE_LOGS&quot;)
+        .ok()
+        .filter(|v| v == &quot;true&quot; || v == &quot;1&quot;)
+        .map(|_| {
+            fmt::layer()
+                .pretty()
+                .with_ansi(true)
+                .with_target(false)
+                .with_thread_ids(false)
+                .with_thread_names(false)
+        });
+
+    // Environment-based filtering with sensible defaults
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| {
+            EnvFilter::new(format!(
+                &quot;info,{}=debug,hyper=warn,reqwest=warn,sqlx=warn,tower=warn&quot;,
+                config.service_name
+            ))
+        });
+
+    // Build subscriber
+    let subscriber = registry::Registry::default()
+        .with(env_filter)
+        .with(json_layer);
+
+    let subscriber = if let Some(console) = console_layer {
+        subscriber.with(console).boxed()
+    } else {
+        subscriber.boxed()
+    };
+
+    tracing::subscriber::set_global_default(subscriber)
+        .context(&quot;Failed to set global tracing subscriber&quot;)?;
+
+    // Return guard to keep non_blocking writer alive
+    Ok(TracingGuard { _guard: guard })
+}
+
+/// Guard that keeps tracing resources alive
+pub struct TracingGuard {
+    _guard: tracing_appender::non_blocking::WorkerGuard,
+}
+
+impl Drop for TracingGuard {
+    fn drop(&amp;mut self) {
+        // Ensure all logs are flushed
+        tracing::info!(&quot;Tracing guard dropped, flushing logs&quot;);
+    }
+}
+</code></pre>
+<h3>Usage in Application</h3>
+<pre><code class="language-rust">// src/main.rs
+mod tracing;
+
+use anyhow::Context;
+use tracing::{error, info};
+
+fn main() -&gt; anyhow::Result&lt;()&gt; {
+    // Initialize production tracing
+    let config = tracing::ProductionTracingConfig {
+        service_name: &quot;my_service&quot;.to_string(),
+        log_directory: std::env::var(&quot;LOG_DIR&quot;)
+            .unwrap_or_else(|_| &quot;/var/log/my_service&quot;.to_string()),
+        ..Default::default()
+    };
+
+    let _guard = tracing::init_production_tracing(config)?;
+
+    info!(
+        service = &quot;my_service&quot;,
+        version = env!(&quot;CARGO_PKG_VERSION&quot;),
+        &quot;Service starting&quot;
+    );
+
+    // Your application code
+    if let Err(e) = run_application() {
+        error!(error = %e, &quot;Application failed&quot;);
+        return Err(e);
+    }
+
+    info!(&quot;Service shutdown complete&quot;);
+    Ok(())
+}
+</code></pre>
+<hr>
+<h2>Log Aggregation Integration</h2>
+<h3>Structured Logging for Logstash/Fluentd</h3>
+<pre><code class="language-rust">use serde::Serialize;
+use tracing::field::Visit;
+use tracing_subscriber::fmt::{format, JsonStorageFields};
+
+#[derive(Serialize)]
+pub struct LogEntry {
+    pub timestamp: String,
+    pub level: String,
+    pub service: String,
+    pub message: String,
+    pub span: Option&lt;SpanContext&gt;,
+    pub fields: serde_json::Map&lt;String, serde_json::Value&gt;,
+}
+
+#[derive(Serialize)]
+pub struct SpanContext {
+    pub trace_id: String,
+    pub span_id: String,
+    pub parent_span_id: Option&lt;String&gt;,
+}
+
+// Use with tracing-subscriber&#x27;s JSON formatter
+let subscriber = Registry::default()
+    .with(EnvFilter::from_default_env())
+    .with(
+        fmt::layer()
+            .json()
+            .with_writer(std::io::stdout)
+            .with_current_span(true)
+            .with_span_list(true)
+    );
+</code></pre>
+<h3>Datadog Integration</h3>
+<pre><code class="language-rust">use tracing_subscriber::{fmt, layer::SubscriberExt, Registry, EnvFilter};
+
+// Datadog expects specific field names
+let datadog_layer = fmt::layer()
+    .json()
+    .with_writer(std::io::stdout)
+    .flatten_event(true)
+    .with_current_span(true)
+    .with_span_list(true);
+
+// Add Datadog-specific fields via a custom layer
+use tracing_core::{Event, Subscriber};
+use tracing_subscriber::layer::{Context, Layer};
+
+pub struct DatadogLayer {
+    service: String,
+    version: String,
+    environment: String,
+}
+
+impl&lt;S: Subscriber&gt; Layer&lt;S&gt; for DatadogLayer {
+    fn on_event(&amp;self, event: &amp;Event&lt;&#x27;_&gt;, ctx: Context&lt;&#x27;_&gt;) {
+        // Datadog expects: service, version, env
+        // These can be added as additional fields
+    }
+}
+
+let subscriber = Registry::default()
+    .with(EnvFilter::from_default_env())
+    .with(DatadogLayer {
+        service: std::env::var(&quot;DD_SERVICE&quot;).unwrap_or_else(|_| &quot;app&quot;.to_string()),
+        version: std::env::var(&quot;DD_VERSION&quot;).unwrap_or_else(|_| &quot;unknown&quot;.to_string()),
+        environment: std::env::var(&quot;DD_ENV&quot;).unwrap_or_else(|_| &quot;production&quot;.to_string()),
+    })
+    .with(datadog_layer);
+</code></pre>
+<h3>ELK Stack (Elasticsearch, Logstash, Kibana)</h3>
+<pre><code class="language-rust">// For ECS (Elastic Common Schema) compatibility
+use tracing_subscriber::fmt::format::JsonFields;
+
+let ecs_layer = fmt::layer()
+    .json()
+    .with_writer(std::io::stdout)
+    .with_target(false)  // ECS uses different field structure
+    .with_thread_ids(true)
+    .with_thread_names(true);
+
+// Add ECS-compatible fields
+use tracing::field::{debug, display};
+
+info!(
+    ecs.version = &quot;1.6.0&quot;,
+    service.name = &quot;my-service&quot;,
+    event.action = &quot;request_processed&quot;,
+    http.request.method = &quot;GET&quot;,
+    http.response.status_code = 200,
+    &quot;Request processed&quot;
+);
+</code></pre>
+<hr>
+<h2>Metrics and Alerting</h2>
+<h3>Integrating with Prometheus</h3>
+<pre><code class="language-rust">use std::sync::Arc;
+use metrics_exporter_prometheus::PrometheusBuilder;
+use tracing::info;
+use tracing_subscriber::layer::SubscriberExt;
+
+// Set up metrics
+let recorder = PrometheusBuilder::new()
+    .set_quantiles(&amp;[0.0, 0.5, 0.9, 0.95, 0.99, 1.0])
+    .unwrap()
+    .build();
+
+metrics::set_global_recorder(recorder).unwrap();
+
+// Create histogram for span durations
+let duration_histogram = metrics::histogram!(&quot;span_duration_seconds&quot;);
+
+// Custom layer to record metrics
+use tracing_subscriber::layer::{Context, Layer};
+use tracing::{span, Id, Subscriber};
+use std::time::Instant;
+use dashmap::DashMap;
+
+pub struct MetricsLayer {
+    span_starts: Arc&lt;DashMap&lt;Id, Instant&gt;&gt;,
+}
+
+impl&lt;S: Subscriber&gt; Layer&lt;S&gt; for MetricsLayer {
+    fn on_new_span(&amp;self, attrs: &amp;span::Attributes&lt;&#x27;_&gt;, id: &amp;Id, ctx: Context&lt;&#x27;_&gt;) {
+        self.span_starts.insert(id.clone(), Instant::now());
+    }
+
+    fn on_close(&amp;self, id: Id, ctx: Context&lt;&#x27;_&gt;) {
+        if let Some(start) = self.span_starts.remove(&amp;id) {
+            let duration = start.1.elapsed();
+            duration_histogram.record(duration.as_secs_f64());
+        }
+    }
+}
+</code></pre>
+<h3>Alerting on Error Rates</h3>
+<pre><code class="language-rust">use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, Instant};
+
+pub struct ErrorRateTracker {
+    error_count: AtomicU64,
+    window_start: Instant,
+    window_duration: Duration,
+    threshold: u64,
+}
+
+impl ErrorRateTracker {
+    pub fn new(window_duration: Duration, threshold: u64) -&gt; Self {
+        Self {
+            error_count: AtomicU64::new(0),
+            window_start: Instant::now(),
+            window_duration,
+            threshold,
+        }
+    }
+
+    pub fn record_error(&amp;self) {
+        let count = self.error_count.fetch_add(1, Ordering::Relaxed) + 1;
+
+        // Check if we exceeded threshold
+        if count &gt;= self.threshold {
+            let elapsed = self.window_start.elapsed();
+            if elapsed &lt; self.window_duration {
+                // ALERT: Error rate exceeded!
+                tracing::error!(
+                    error_rate_alert = true,
+                    errors = count,
+                    window_seconds = elapsed.as_secs(),
+                    threshold = self.threshold,
+                    &quot;Error rate exceeded threshold!&quot;
+                );
+            }
+        }
+
+        // Reset window if expired
+        if self.window_start.elapsed() &gt; self.window_duration {
+            self.error_count.store(0, Ordering::Relaxed);
+            self.window_start = Instant::now();
+        }
+    }
+}
+
+// Use in error handling
+lazy_static! {
+    static ref ERROR_TRACKER: ErrorRateTracker =
+        ErrorRateTracker::new(Duration::from_secs(60), 100);
+}
+
+fn handle_request() -&gt; Result&lt;()&gt; {
+    process().map_err(|e| {
+        ERROR_TRACKER.record_error();
+        e
+    })
+}
+</code></pre>
+<hr>
+<h2>Distributed Tracing</h2>
+<h3>OpenTelemetry Setup</h3>
+<pre><code class="language-rust">use opentelemetry::{global, sdk::trace as sdktrace, Context, KeyValue};
+use opentelemetry_otlp::{OtlpTracePipeline, WithExportConfig};
+use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_subscriber::{layer::SubscriberExt, Registry};
+
+pub fn init_otel_tracing(service_name: &amp;str) -&gt; anyhow::Result&lt;()&gt; {
+    // Create OTLP pipeline
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_endpoint(&quot;http://localhost:4317&quot;)
+        )
+        .with_trace_config(
+            sdktrace::config()
+                .with_sampler(sdktrace::Sampler::AlwaysOn)
+                .with_resource(opentelemetry::sdk::Resource::new(vec![
+                    KeyValue::new(&quot;service.name&quot;, service_name),
+                    KeyValue::new(&quot;service.version&quot;, env!(&quot;CARGO_PKG_VERSION&quot;)),
+                ]))
+        )
+        .install_batch(opentelemetry::runtime::Tokio)?;
+
+    let otel_layer = OpenTelemetryLayer::new(tracer);
+
+    let subscriber = Registry::default()
+        .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(otel_layer);
+
+    tracing::subscriber::set_global_default(subscriber)?;
+
+    Ok(())
+}
+
+// Don&#x27;t forget to shutdown on exit
+pub fn shutdown() {
+    global::shutdown_tracer_provider();
+}
+</code></pre>
+<h3>Propagating Context in HTTP Requests</h3>
+<pre><code class="language-rust">use tracing_opentelemetry::OpenTelemetrySpanExt;
+use reqwest::header::HeaderMap;
+
+// Extract from incoming request
+fn extract_trace_context(headers: &amp;HeaderMap) -&gt; Context {
+    let extractor = HeaderExtractor(headers);
+    global::get_text_map_propagator(|propagator| {
+        propagator.extract(&amp;extractor)
+    })
+}
+
+// Inject into outgoing request
+async fn make_request(client: &amp;reqwest::Client, url: &amp;str) -&gt; Result&lt;String&gt; {
+    let mut req = client.get(url);
+
+    // Inject current span context into headers
+    let context = Span::current().context();
+    global::get_text_map_propagator(|propagator| {
+        propagator.inject_context(&amp;context, &amp;mut HeaderInjector(&amp;mut req.headers_mut()?));
+    });
+
+    let response = req.send().await?;
+    Ok(response.text().await?)
+}
+
+struct HeaderExtractor&lt;&#x27;a&gt;(&amp;&#x27;a HeaderMap);
+impl&lt;&#x27;a&gt; opentelemetry::propagation::Extractor for HeaderExtractor&lt;&#x27;a&gt; {
+    fn get(&amp;self, key: &amp;str) -&gt; Option&lt;&amp;str&gt; {
+        self.0.get(key).and_then(|v| v.to_str().ok())
+    }
+    fn keys(&amp;self) -&gt; Vec&lt;&amp;str&gt; {
+        self.0.keys().map(|k| k.as_str()).collect()
+    }
+}
+
+struct HeaderInjector&lt;&#x27;a&gt;(&amp;&#x27;a mut HeaderMap);
+impl&lt;&#x27;a&gt; opentelemetry::propagation::Injector for HeaderInjector&lt;&#x27;a&gt; {
+    fn set(&amp;mut self, key: &amp;str, value: String) {
+        if let Ok(v) = value.parse() {
+            self.0.insert(key, v);
+        }
+    }
+}
+</code></pre>
+<h3>W3C Trace Context Support</h3>
+<pre><code class="language-rust">// Cargo.toml
+[dependencies]
+opentelemetry = { version = &quot;0.21&quot;, features = [&quot;trace&quot;] }
+opentelemetry-http = &quot;0.10&quot;
+
+// The default propagator supports W3C trace context
+use opentelemetry::global;
+use opentelemetry::sdk::propagation::TraceContextPropagator;
+
+fn init() {
+    global::set_text_map_propagator(TraceContextPropagator::new());
+}
+
+// Trace context headers are automatically handled:
+// - traceparent: 00-{trace-id}-{parent-id}-{trace-flags}
+// - tracestate: vendor-specific trace info
+</code></pre>
+<hr>
+<h2>Security Considerations</h2>
+<h3>Filtering Sensitive Data</h3>
+<pre><code class="language-rust">use tracing::field::{debug, display};
+use std::fmt;
+
+/// Wrapper that redacts sensitive data for logging
+pub struct Redacted&lt;T&gt;(pub T);
+
+impl&lt;T: fmt::Debug&gt; fmt::Debug for Redacted&lt;T&gt; {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter&lt;&#x27;_&gt;) -&gt; fmt::Result {
+        write!(f, &quot;[REDACTED]&quot;)
+    }
+}
+
+impl&lt;T: fmt::Display&gt; fmt::Display for Redacted&lt;T&gt; {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter&lt;&#x27;_&gt;) -&gt; fmt::Result {
+        write!(f, &quot;[REDACTED]&quot;)
+    }
+}
+
+// Usage
+let password = &quot;secret123&quot;;
+info!(password = debug(&amp;Redacted(password)), &quot;Processing login&quot;);
+
+// Or use a custom type
+pub struct Credential {
+    pub username: String,
+    pub password: String,
+}
+
+impl fmt::Debug for Credential {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter&lt;&#x27;_&gt;) -&gt; fmt::Result {
+        f.debug_struct(&quot;Credential&quot;)
+            .field(&quot;username&quot;, &amp;self.username)
+            .field(&quot;password&quot;, &amp;&quot;[REDACTED]&quot;)
+            .finish()
+    }
+}
+</code></pre>
+<h3>Field Filtering by Span</h3>
+<pre><code class="language-rust">use tracing_subscriber::{
+    filter::filter_fn,
+    layer::SubscriberExt,
+    Registry,
+};
+
+// Filter out spans containing sensitive data
+let safe_layer = tracing_subscriber::fmt::layer()
+    .with_filter(filter_fn::with_max_level(tracing::Level::INFO))
+    .with_filter(filter_fn::exclude_any(vec![
+        filter_fn::has_field(&quot;password&quot;),
+        filter_fn::has_field(&quot;token&quot;),
+        filter_fn::has_field(&quot;secret&quot;),
+        filter_fn::has_field(&quot;api_key&quot;),
+    ]));
+
+let subscriber = Registry::default().with(safe_layer);
+</code></pre>
+<h3>Audit Logging</h3>
+<pre><code class="language-rust">use tracing::instrument;
+use chrono::Utc;
+
+#[instrument(
+    skip(password),
+    fields(
+        username = %username,
+        source_ip = %source_ip,
+        timestamp = %Utc::now(),
+        event_type = &quot;authentication_attempt&quot;
+    )
+)]
+fn audit_login(username: &amp;str, password: &amp;str, source_ip: &amp;str) -&gt; bool {
+    let success = verify_credentials(username, password);
+
+    if success {
+        info!(event_type = &quot;authentication_success&quot;);
+    } else {
+        warn!(event_type = &quot;authentication_failure&quot;);
+    }
+
+    success
+}
+</code></pre>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>Diagnosing Missing Logs</h3>
+<pre><code class="language-rust">// Check if subscriber is set
+if tracing::subscriber::get_default().is::&lt;tracing::subscriber::NoSubscriber&gt;() {
+    eprintln!(&quot;WARNING: No tracing subscriber configured!&quot;);
+}
+
+// Enable all logs temporarily for debugging
+std::env::set_var(&quot;RUST_LOG&quot;, &quot;trace&quot;);
+
+// Reinitialize with verbose output
+use tracing_subscriber::{fmt, EnvFilter};
+
+let subscriber = Registry::default()
+    .with(EnvFilter::new(&quot;trace&quot;))
+    .with(fmt::layer().pretty());
+
+tracing::subscriber::set_default(subscriber);
+</code></pre>
+<h3>Checking Span Hierarchy</h3>
+<pre><code class="language-rust">use tracing_subscriber::{
+    fmt::format::FmtSpan,
+    layer::SubscriberExt,
+    Registry,
+};
+
+// Enable span lifecycle logging
+let layer = fmt::layer()
+    .pretty()
+    .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
+    .with_filter(EnvFilter::from_default_env());
+
+let subscriber = Registry::default().with(layer);
+tracing::subscriber::set_global_default(subscriber)?;
+</code></pre>
+<h3>Performance Profiling</h3>
+<pre><code class="language-rust">// Add timing layer
+use tracing_subscriber::fmt::format::FmtSpan;
+
+let timing_layer = fmt::layer()
+    .pretty()
+    .with_span_events(FmtSpan::CLOSE)  // Log span duration on close
+    .with_filter(EnvFilter::new(&quot;info&quot;));
+
+// Or use a custom timing layer
+pub struct TimingLayer;
+
+impl&lt;S: Subscriber&gt; Layer&lt;S&gt; for TimingLayer {
+    fn on_close(&amp;self, id: Id, ctx: Context&lt;&#x27;_&gt;) {
+        if let Some(span) = ctx.span(&amp;id) {
+            let metadata = span.metadata();
+            tracing::info!(
+                span_name = metadata.name(),
+                span_duration_ms = span.extensions()
+                    .get::&lt;Instant&gt;()
+                    .map(|i| i.elapsed().as_millis())
+                    .unwrap_or(0),
+                &quot;Span closed&quot;
+            );
+        }
+    }
+}
+</code></pre>
+<h3>Common Issues</h3>
+<table><tr><th>Issue</th><th>Solution</th></tr><tr><td>Logs not appearing</td><td>Check `RUST_LOG` environment variable</td></tr><tr><td>Spans not nested</td><td>Ensure `span.enter()` or `in_current_span()` is used</td></tr><tr><td>Missing fields in logs</td><td>Verify fields are recorded before span closes</td></tr><tr><td>Performance degradation</td><td>Use `if enabled!()` checks for expensive operations</td></tr><tr><td>Logs not flushed</td><td>Keep `WorkerGuard` alive, call `shutdown_tracer_provider()`</td></tr></table>
+<hr>
+<h2>Resources</h2>
+<ul><li><a href="https://docs.rs/tracing-appender">tracing-appender</a> - Non-blocking appenders</li><li><a href="https://docs.rs/tracing-opentelemetry">tracing-opentelemetry</a> - OpenTelemetry integration</li><li><a href="https://docs.rs/tracing-subscriber">tracing-subscriber</a> - Subscriber implementations</li><li><a href="https://github.com/open-telemetry/opentelemetry-rust">OpenTelemetry Rust</a></li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

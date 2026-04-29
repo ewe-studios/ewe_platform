@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mastra -- Overview -- mastra</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mastra/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Mastra -- Overview</h1>
+<h2>What Mastra Is</h2>
+<p>Mastra is a <strong>TypeScript-first AI agent framework</strong> built as a pnpm workspace monorepo. It provides a unified model router supporting 200+ providers (OpenAI, Anthropic, Google, local models, and any OpenAI-compatible endpoint), a workflow-based agentic loop with tool execution, built-in memory with semantic recall and working memory, background task execution, and a processor pipeline system for input/output/error transformation. It supports multi-model fallbacks, human-in-the-loop tool approval, sub-agent delegation, and structured output generation.</p>
+<p><strong>Version:</strong> 1.26.0-alpha.7 (<code>@mastra/core</code>) <strong>Author:</strong> Mastra AI <strong>License:</strong> Apache-2.0 <strong>Runtime:</strong> Node.js (TypeScript, ESM)</p>
+<h2>Key Capabilities</h2>
+<ul><li><strong>200+ Model Providers:</strong> Model router with automatic provider detection, OpenAI-compatible gateway support, custom gateway plugins, and embedding model routing</li><li><strong>Workflow-Based Agent Loop:</strong> The core interaction loop is built on Mastra workflows, enabling suspension, resumption, and streaming at every step</li><li><strong>Tool System:</strong> Create tools with Zod schemas, human-in-the-loop approval, background async execution, tool suspension and resumption, and provider tool integration</li><li><strong>Memory System:</strong> Thread-based message history, semantic recall (vector similarity search), working memory (agent-maintained context), and observational memory</li><li><strong>Processor Pipeline:</strong> Input processors transform messages before the LLM, output processors transform responses after, error processors handle failures -- all pluggable and chainable</li><li><strong>Background Tasks:</strong> Dispatch tools to run asynchronously, check status later, no blocking the agent loop</li><li><strong>Sub-Agent Delegation:</strong> Agents can delegate to other agents or workflows with message filtering hooks, iteration limits, and feedback collection</li><li><strong>Multi-Model Fallbacks:</strong> Automatic failover to backup models on error, configurable retry counts per fallback, dynamic model selection</li><li><strong>Structured Output:</strong> Generate typed objects with Zod schema validation, streaming object generation</li><li><strong>Voice Integration:</strong> Built-in voice input/output with default voice adapter</li><li><strong>Browser Automation:</strong> Browser tools for web scraping and automation</li><li><strong>Evals & Scoring:</strong> Built-in evaluation framework with scorer sampling</li></ul>
+<h2>Architecture at a Glance</h2>
+<pre><code class="language-">@mastra/core (foundation)
+├── agent/          ← Agent class, message list, trip wire, save queue
+├── loop/           ← Workflow-based agentic loop
+├── llm/            ← Model router, provider registry, AI SDK adapters
+├── memory/         ← Message processors, semantic recall, working memory
+├── tools/          ← Tool builder, provider tools, validation
+├── processors/     ← Input/output/error processor pipeline + runner
+├── workflows/      ← Workflow engine (steps, triggers, outputs)
+├── background-tasks/ ← Async task manager and dispatcher
+├── storage/        ← Storage ABC and implementations
+├── stream/         ← Streaming output management
+├── observability/  ← Spans, traces, telemetry
+├── error/          ← Error classification and tracking
+└── evaluators/     ← Evals and scoring framework
+
+Supporting packages:
+├── @mastra/memory      ← Memory implementations
+├── @mastra/rag         ← RAG pipeline
+├── @mastra/server      ← HTTP server and API
+├── @mastra/cli         ← CLI tooling
+├── @mastra/deployer    ← Deployment infrastructure
+├── @mastra/playground  ← Development UI
+└── integrations/       ← Provider-specific integrations
+</code></pre>
+<h2>Quick Start</h2>
+<pre><code class="language-typescript">import { Agent } from &#x27;@mastra/core/agent&#x27;;
+import { Memory } from &#x27;@mastra/memory&#x27;;
+
+const agent = new Agent({
+  id: &#x27;my-agent&#x27;,
+  name: &#x27;My Agent&#x27;,
+  instructions: &#x27;You are a helpful assistant&#x27;,
+  model: &#x27;openai/gpt-5&#x27;,
+  tools: { calculator },
+  memory: new Memory(),
+});
+
+// Generate a response
+const result = await agent.generate(&#x27;What is 2+2?&#x27;);
+console.log(result.text);
+
+// Stream a response
+const stream = await agent.stream(&#x27;Tell me a story&#x27;);
+for await (const chunk of stream.textStream) {
+  process.stdout.write(chunk);
+}
+</code></pre>
+<h2>How It Differs from Pi and Hermes</h2>
+<table><tr><th>Aspect</th><th>Pi</th><th>Hermes</th><th>Mastra</th></tr><tr><td>Language</td><td>TypeScript</td><td>Python</td><td>TypeScript</td></tr><tr><td>Agent Loop</td><td>Async `async run()`</td><td>Sync `def run_conversation()`</td><td>Workflow-based stream</td></tr><tr><td>Model Routing</td><td>AI package provider</td><td>Adapter per provider</td><td>Model router with gateway plugins</td></tr><tr><td>Memory</td><td>Message-based compaction</td><td>Multi-provider + DAG</td><td>Semantic recall + working memory</td></tr><tr><td>Tool Execution</td><td>`Promise.all()` concurrent</td><td>`ThreadPoolExecutor`</td><td>Workflow steps with suspension</td></tr><tr><td>Background Tasks</td><td>Extension-based</td><td>Not native</td><td>First-class `BackgroundTaskManager`</td></tr><tr><td>Processors</td><td>Not a concept</td><td>Not a concept</td><td>Input/output/error pipeline</td></tr><tr><td>Delegation</td><td>Not native</td><td>Sub-agent patterns</td><td>First-class with hooks</td></tr></table>
+<h2>Key Design Decisions</h2>
+<p><strong>Workflow as Loop:</strong> Instead of a traditional while loop, Mastra's agent loop is built on its workflow engine. This enables suspension (pause mid-conversation), resumption (continue later), and streaming at every step. The tradeoff is complexity -- every loop iteration is a workflow step with its own lifecycle.</p>
+<p><strong>Model Router over Adapters:</strong> Rather than one adapter class per provider (like Hermes), Mastra uses a model router that auto-resolves providers from model IDs (e.g., <code>openai/gpt-5</code> → OpenAI SDK). A built-in provider registry maps 200+ models to their SDKs and configurations.</p>
+<p><strong>Processor Pipeline:</strong> Mastra introduces a unique concept -- processors that run before and after every LLM interaction. Input processors can transform, filter, or enrich messages. Output processors can format, validate, or chunk responses. Error processors handle failures with custom recovery logic. This is unlike both Pi and Hermes.</p>
+<p><strong>Background Tasks as First-Class:</strong> Tools can be dispatched to run in the background without blocking the agent loop. The agent can check task status later via a built-in tool. This is different from Hermes (which uses ThreadPoolExecutor for parallel execution) and Pi (which uses Promise.all for concurrent execution).</p>
+<h2>Request Lifecycle</h2>
+<div class="mermaid">
+flowchart TD
+    USER[User message] --&gt; AGENT[Agent.generate/stream]
+    AGENT --&gt; EXEC[&quot;#execute internal pipeline&quot;]
+    EXEC --&gt; MEM[Memory query&lt;br/&gt;thread history + working memory]
+    MEM --&gt; INPROC[Input processors&lt;br/&gt;memory, skills, workspace]
+    INPROC --&gt; ROUTER[Model router&lt;br/&gt;resolve provider from model ID]
+    ROUTER --&gt; LOOP[workflowLoopStream&lt;br/&gt;MODEL_STEP → TOOL_STEP → MODEL_STEP]
+    LOOP --&gt; OUTPROC[Output processors&lt;br/&gt;structured output, formatting]
+    OUTPROC --&gt; RESULT[Return FullOutput or stream]
+
+    LOOP -.-&gt;|error| ERRPROC[Error processors&lt;br/&gt;retry, fallback, fail]
+    ERRPROC --&gt;|retry| LOOP
+    ERRPROC -.-&gt;|fail| RESULT
+
+</div>
+<h2>Monorepo Package Map</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Core (@mastra/core)&quot;
+        AGENT[Agent]
+        LOOP[Loop]
+        LLM[Model Router]
+        MEM[Memory]
+        TOOLS[Tools]
+        PROC[Processors]
+        WF[Workflows]
+        BG[Background Tasks]
+    end
+
+    subgraph &quot;Implementations&quot;
+        MEMPKG[&quot;@mastra/memory&quot;]
+        RAG[&quot;@mastra/rag&quot;]
+        SRV[&quot;@mastra/server&quot;]
+        CLI[&quot;@mastra/cli&quot;]
+        DEP[&quot;@mastra/deployer&quot;]
+        PG[&quot;@mastra/playground&quot;]
+    end
+
+    subgraph &quot;Integrations&quot;
+        PROVIDERS[&quot;Provider integrations&lt;br/&gt;OpenAI, Anthropic, Google, etc.&quot;]
+    end
+
+    AGENT --&gt; LOOP
+    AGENT --&gt; LLM
+    AGENT --&gt; MEM
+    AGENT --&gt; TOOLS
+    AGENT --&gt; PROC
+
+    LOOP --&gt; LLM
+    LOOP --&gt; TOOLS
+
+    MEMPKG --&gt; MEM
+    RAG --&gt; MEM
+    SRV --&gt; AGENT
+    CLI --&gt; SRV
+    DEP --&gt; SRV
+    PG --&gt; SRV
+
+    LLM --&gt; PROVIDERS
+
+</div>
+<h2>Source</h2>
+<p><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.mastra-ai/mastra/</code></p>
+<h2>Related Documents</h2>
+<ul><li><a href="./01-architecture.md">01-architecture.md</a> -- Package map, dependency graph, layers</li><li><a href="./02-agent-core.md">02-agent-core.md</a> -- Agent class, generate/stream, execution</li><li><a href="./03-agent-loop.md">03-agent-loop.md</a> -- Workflow-based agentic loop deep dive</li><li><a href="./05-model-router.md">05-model-router.md</a> -- Provider resolution, OpenAI-compatible, gateway plugins</li><li><a href="./10-comparison.md">10-comparison.md</a> -- Mastra vs Pi vs Hermes detailed comparison</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

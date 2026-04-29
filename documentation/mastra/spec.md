@@ -41,7 +41,11 @@ mastra/
 │   ├── 07-processors.md            ← Input/output/error processor pipeline
 │   ├── 08-multi-model.md           ← Model fallbacks, background tasks, delegation
 │   ├── 09-data-flow.md             ← End-to-end flows with sequence diagrams
-│   └── 10-comparison.md            ← Mastra vs Pi vs Hermes comparison
+│   ├── 10-comparison.md            ← Mastra vs Pi vs Hermes comparison
+│   ├── 11-context-compression.md   ← Context management, memory-driven selection, no post-hoc compression
+│   ├── 12-async-typescript.md      ← TransformStream, Promise.allSettled, pubsub, LLM recorder
+│   ├── 13-multi-model-deep.md      ← Model fallbacks, credential management, error classification
+│   └── 14-rl-training-traces.md    ← Observability spans, LLM recording, training data comparison
 ├── html/                           ← Rendered HTML (viewable locally + GitHub Pages)
 │   ├── index.html                  ← Auto-generated index + navigation
 │   ├── styles.css                  ← Shared CSS (dark/light, responsive)
@@ -90,6 +94,24 @@ mastra/
 | 18 | Cross-reference links between documents | TODO | Relative md links auto-converted |
 | 19 | Code snippet rendering | TODO | Escaped, syntax-tagged, scrollable |
 | 20 | Mobile-responsive HTML layout | TODO | Media query at 600px |
+
+### Phase 6: Ecosystem and Plugin Coverage
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 25 | Ecosystem: production services, applications, workshops, templates, and all 27 directories outside mastra/core | DONE | `15-ecosystem.md` |
+| 26 | Plugin ecosystem: auth, browser, client-sdks, deployers, observability, stores, voice, server-adapters, workflows, pubsub, workspaces, integrations, mastracode | DONE | `16-plugin-ecosystem.md` |
+| 27 | Examples: agent/ (primitives, elicitation, presets, trace seeding) and agent-v6/ (structured output) | DONE | `17-examples.md` |
+| 28 | Official docs/: Docusaurus site, 5 collections, 18 doc sections, 13 tutorials, migrations | DONE | `18-docs.md` |
+
+### Phase 5: Deep Dives (Compression, Async, Multi-Model, RL)
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 21 | Context compression: Mastra uses memory-driven selection (semantic recall + working memory) instead of post-hoc compression. Compare Pi's token reserve vs Hermes's percentage trigger vs Mastra's proactive approach | DONE | `11-context-compression.md` |
+| 22 | Async/TypeScript patterns: TransformStream streaming, Promise.allSettled tool isolation, pubsub background tasks, MSW LLM recorder/replay. Compare Hermes's sync-first + asyncio bridges vs Pi's async run() vs Mastra's workflow async | DONE | `12-async-typescript.md` |
+| 23 | Multi-model execution: ModelRouterLanguageModel provider resolution, fallback chains, error classification, usage metrics extraction. Compare Hermes's credential pool + NousRateGuard vs Pi's provider adapters vs Mastra's gateway plugins | DONE | `13-multi-model-deep.md` |
+| 24 | Observability/traces: OpenTelemetry span hierarchy (MODEL_GENERATION → MODEL_STEP → MODEL_CHUNK), LLM recorder with MSW interception, content summarization for bounded spans. Compare Hermes's ShareGPT trajectory recording vs Mastra's observability-first approach | DONE | `14-rl-training-traces.md` |
 
 ## Build System
 

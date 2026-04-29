@@ -67,6 +67,39 @@ flowchart TD
 
 **Follow-up Queue**: Similar to steering but lower priority. Used for appending context after a tool execution.
 
+## Event Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant UI as TUI/Web UI
+    participant Agent as Agent class
+    participant LLM as pi-ai provider
+    participant Tools as Tool executor
+
+    UI->>Agent: agent.run("Fix the bug")
+    Agent->>Agent: emit agent_start
+    Agent->>Agent: add user message to history
+    Agent->>UI: emit turn_start
+
+    Agent->>LLM: stream(messages)
+    LLM-->>Agent: text chunks
+    Agent->>UI: emit message_update (each chunk)
+    LLM-->>Agent: tool call
+    Agent->>UI: emit tool_call
+
+    Agent->>Tools: execute(tool, args)
+    Agent->>UI: emit tool_execution_start
+    Tools-->>Agent: result
+    Agent->>UI: emit tool_execution_end
+    Agent->>Agent: append tool result to history
+
+    Agent->>LLM: stream(messages + tool results)
+    LLM-->>Agent: final text (no more tools)
+    Agent->>UI: emit message_update (final)
+    Agent->>UI: emit turn_end (with usage)
+    Agent->>UI: emit agent_end (with result)
+```
+
 ## Event System
 
 The agent emits events at every lifecycle point. This is how UI layers (TUI, web) stay synchronized without coupling.

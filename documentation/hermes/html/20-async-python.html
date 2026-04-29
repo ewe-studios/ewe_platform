@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Agent -- Async Python Deep Dive -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="17-memory-deep.html">Hermes Agent -- Memory System Deep Dive</a> <a href="18-multi-model.html">Hermes Agent -- Multi-Model Execution</a> <a href="19-context-compression.html">Hermes Agent -- Context Management and Compression Deep Dive</a></span> <a href="19-context-compression.html">← Hermes Agent -- Context Management and Compression Deep Dive</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Agent -- Async Python Deep Dive</h1>
+<h2>Overview</h2>
+<p>Hermes operates in a <strong>hybrid sync/async world</strong> — its core message loop (<code>run_conversation</code>) is synchronous Python, but it wraps async operations (streaming LLM responses, web extraction, background tasks) using <code>asyncio</code> primitives. The framework's async architecture is pragmatic: <strong>sync where possible, async when needed, bridge the gap with <code>asyncio.to_thread()</code></strong>.</p>
+<p><strong>Key insight:</strong> Hermes doesn't run a persistent event loop. Instead, it creates event loops on-demand via <code>asyncio.run()</code> for specific operations, wrapping sync SDK calls in thread pools, and using <code>ThreadPoolExecutor</code> for concurrent tool execution. This avoids the complexity of a fully async agent while still getting the benefits of async I/O where it matters.</p>
+<h2>Async Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    SYNC[run_conversation&lt;br/&gt;sync main loop] --&gt;|LLM call| ASYNC_ASYNC[async_call_llm]
+    SYNC --&gt;|tool exec| THREAD[ThreadPoolExecutor&lt;br/&gt;max_workers=8]
+    SYNC --&gt;|background| BG[Thread for title,&lt;br/&gt;memory prefetch]
+
+    ASYNC_ASYNC --&gt; STREAM[SSE streaming&lt;br/&gt;sync OpenAI SDK]
+    ASYNC_ASYNC --&gt;|async path| AIO[asyncio.run&lt;br/&gt;async_call_llm]
+
+    AIO --&gt; TO_THREAD[asyncio.to_thread&lt;br/&gt;wrap sync SDK]
+    TO_THREAD --&gt; SDK[OpenAI SDK&lt;br/&gt;sync create()]
+
+    THREAD --&gt;|read_file| DISK[Disk I/O]
+    THREAD --&gt;|web_search| HTTP[HTTP requests]
+    THREAD --&gt;|execute_code| SUBPROCESS[subprocess]
+
+    BG --&gt; TITLE[title_generator.py&lt;br/&gt;threading.Thread]
+    BG --&gt; MEM[Memory prefetch&lt;br/&gt;background threads]
+
+</div>
+<h2>The Main Loop: Sync-First Design</h2>
+<p>Hermes's core <code>run_conversation()</code> is a <strong>synchronous while loop</strong>:</p>
+<pre><code class="language-python"># run_agent.py — simplified
+def run_conversation(self, user_message, messages, ...):
+    while True:
+        # 1. Build prompt
+        # 2. Call LLM (sync OpenAI SDK)
+        response = client.chat.completions.create(**kwargs)
+        # 3. Parse tool calls
+        # 4. Execute tools (ThreadPoolExecutor)
+        # 5. Append results
+        # 6. Check context compression
+        # 7. Loop or exit
+</code></pre>
+<p><strong>Aha moment:</strong> This is a deliberate design choice. A sync loop avoids the "async all the way down" problem where every function needs to be <code>async def</code>. The LLM SDK itself is synchronous (OpenAI's <code>OpenAI</code> client, not <code>AsyncOpenAI</code>), so there's no inherent need for async in the main loop. Async is reserved for <strong>background operations</strong> that shouldn't block the conversation.</p>
+<h2>Sync/Async Architecture Overview</h2>
+<div class="mermaid">
+flowchart TD
+    SYNC[run_conversation&lt;br/&gt;sync main loop]
+
+    SYNC --&gt;|LLM call| LLM_SYNC[Sync OpenAI SDK&lt;br/&gt;client.chat.completions.create]
+    SYNC --&gt;|tool exec| THREAD[ThreadPoolExecutor&lt;br/&gt;max_workers=8]
+    SYNC --&gt;|background| BG_TASKS[threading.Thread&lt;br/&gt;daemon=True]
+
+    LLM_SYNC --&gt; STREAM[SSE streaming&lt;br/&gt;sync iterator]
+
+    THREAD --&gt;|read_file| DISK[Disk I/O]
+    THREAD --&gt;|web_search| HTTP[HTTP requests]
+    THREAD --&gt;|execute_code| SUBPROCESS[subprocess]
+
+    BG_TASKS --&gt; TITLE[Title generation&lt;br/&gt;separate thread]
+    BG_TASKS --&gt; ANIM[Thinking animation&lt;br/&gt;separate thread]
+    BG_TASKS --&gt; MEM[Memory prefetch&lt;br/&gt;separate thread]
+
+    subgraph &quot;Async bridging&quot;
+        THREAD -.-&gt;|asyncio.to_thread| AIO[asyncio.run&lt;br/&gt;async_call_llm]
+        AIO -.-&gt;|AsyncOpenAI| SDK_ASYNC[Async OpenAI SDK]
+    end
+
+</div>
+<h2>Bridging Sync and Async: <code>asyncio.to_thread()</code></h2>
+<p>When Hermes needs async operations from sync code, it uses <code>asyncio.to_thread()</code>:</p>
+<pre><code class="language-python"># auxiliary_client.py
+class _AsyncCodexCompletionsAdapter:
+    &quot;&quot;&quot;Wraps the sync adapter via asyncio.to_thread() so async consumers
+    (web_tools, session_search) can await it as normal.&quot;&quot;&quot;
+
+    def __init__(self, sync_adapter: _CodexCompletionsAdapter):
+        self._sync = sync_adapter
+
+    async def create(self, **kwargs) -&gt; Any:
+        import asyncio
+        return await asyncio.to_thread(self._sync.create, **kwargs)
+</code></pre>
+<p>Same pattern for Gemini:</p>
+<pre><code class="language-python"># gemini_native_adapter.py
+async def _create_chat_completion(self, **kwargs: Any) -&gt; Any:
+    result = await asyncio.to_thread(self._sync.chat.completions.create, **kwargs)
+    
+    async def _async_stream() -&gt; Any:
+        while True:
+            done, chunk = await asyncio.to_thread(self._sync._advance_stream_iterator, result)
+            if done:
+                break
+            yield chunk
+</code></pre>
+<p><strong>Aha moment:</strong> <code>asyncio.to_thread()</code> runs the sync call in a separate thread from the default thread pool executor, then returns control to the event loop. This is cleaner than <code>loop.run_in_executor()</code> because it auto-creates the thread and handles the future-to-awaitable conversion. It's the modern Python 3.9+ way to bridge sync/async.</p>
+<h2>Event Loop Management</h2>
+<h3>On-Demand Event Loops</h3>
+<p>Hermes creates event loops per-operation, not persistent:</p>
+<pre><code class="language-python"># context_references.py — running async code from sync context
+def run_coro_in_new_loop(coro):
+    try:
+        loop = asyncio.get_running_loop()
+        # If we&#x27;re already in an async context, run in a thread
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+    except RuntimeError:
+        # No running loop — create one
+        return asyncio.run(coro)
+</code></pre>
+<p><strong>Aha moment:</strong> The <code>try/except RuntimeError</code> pattern detects whether we're already inside an event loop. If so, <code>asyncio.get_running_loop()</code> succeeds and we need a separate thread + new loop. If not, <code>RuntimeError</code> is raised and we can safely <code>asyncio.run()</code>. This is the standard Python pattern for "run async from sync, regardless of context."</p>
+<h3>Async Client Lifecycle</h3>
+<p>The auxiliary client creates async clients <strong>lazily</strong> to bind to the current event loop:</p>
+<pre><code class="language-python"># auxiliary_client.py
+def _get_async_client(self):
+    &quot;&quot;&quot;Return an AsyncOpenAI client bound to the current event loop.
+
+    Created lazily so that each asyncio.run() call gets a client tied to
+    its own loop, avoiding &#x27;Event loop is closed&#x27; errors on repeated calls.
+    &quot;&quot;&quot;
+    from openai import AsyncOpenAI
+    self.async_client = AsyncOpenAI(
+        api_key=self._async_client_api_key,
+        base_url=_to_openai_base_url(self.config.base_url),
+    )
+    return self.async_client
+</code></pre>
+<p><strong>Aha moment:</strong> <code>AsyncOpenAI</code> captures the event loop at creation time. If you create it once and reuse it across multiple <code>asyncio.run()</code> calls (each with its own loop), you get "Event loop is closed" errors. The fix: create a fresh client for each loop.</p>
+<h2>Concurrent Tool Execution: <code>ThreadPoolExecutor</code></h2>
+<p>When the LLM returns multiple tool calls, Hermes executes them <strong>concurrently</strong>:</p>
+<pre><code class="language-python"># run_agent.py
+_MAX_TOOL_WORKERS = 8
+
+_PARALLEL_SAFE_TOOLS = {&quot;read_file&quot;, &quot;search_files&quot;, &quot;web_search&quot;, ...}
+_NEVER_PARALLEL_TOOLS = {&quot;clarify&quot;}
+_PATH_SCOPED_TOOLS = {&quot;read_file&quot;, &quot;write_file&quot;, &quot;patch&quot;}
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    futures = {
+        executor.submit(execute_tool, call): call
+        for call in parallel_safe_calls
+    }
+    results = [f.result() for f in as_completed(futures)]
+</code></pre>
+<h3>Path-Scoped Parallelism</h3>
+<p>For tools that modify files, Hermes checks for <strong>path conflicts</strong> before parallelizing:</p>
+<pre><code class="language-python"># Two write_file calls to different files → safe to parallelize
+# Two write_file calls to the same file → sequential
+def _can_parallelize(tool_calls):
+    path_scoped = [tc for tc in tool_calls if tc.name in PATH_SCOPED_TOOLS]
+    paths = [tc.arguments.get(&quot;path&quot;) for tc in path_scoped]
+    return len(paths) == len(set(paths))  # No duplicate paths
+</code></pre>
+<h2>Threading and Locks</h2>
+<p>Hermes uses <code>threading.Lock</code> extensively for thread-safe shared state:</p>
+<pre><code class="language-python"># credential_pool.py
+class CredentialPool:
+    def __init__(self):
+        self._lock = threading.Lock()
+    
+    def get_credential(self, provider):
+        with self._lock:
+            # Find next available credential
+            # Mark exhausted ones
+            # Return the best option
+
+# shell_hooks.py
+_registered_lock = threading.Lock()
+_allowlist_write_lock = threading.Lock()
+
+# retry_utils.py
+_jitter_lock = threading.Lock()  # For jittered backoff randomness
+
+# auxiliary_client.py
+_client_cache_lock = threading.Lock()  # For LLM client caching
+
+# prompt_builder.py
+_SKILLS_PROMPT_CACHE_LOCK = threading.Lock()  # For skills prompt caching
+</code></pre>
+<p><strong>Aha moment:</strong> Hermes uses <code>threading.Lock</code> (not <code>threading.RLock</code>) intentionally in most places — it's faster and catches reentrancy bugs early. The only reentrant lock is in POSIX shell hook registration where recursive locking is expected.</p>
+<h2>Google OAuth: Thread-Local State + In-Flight Dedup</h2>
+<pre><code class="language-python"># google_oauth.py
+_lock_state = threading.local()  # Per-thread state
+
+# Deduplicate concurrent refresh attempts for the same token
+_refresh_inflight: Dict[str, threading.Event] = {}
+_refresh_inflight_lock = threading.Lock()
+
+def refresh_token(token_info):
+    key = token_info[&quot;refresh_token&quot;]
+    with _refresh_inflight_lock:
+        if key in _refresh_inflight:
+            # Another thread is already refreshing — wait for it
+            event = _refresh_inflight[key]
+        else:
+            # This thread owns the refresh
+            event = threading.Event()
+            _refresh_inflight[key] = event
+    
+    event.wait()  # Block until refresh completes
+    # All waiting threads get the same refreshed token
+</code></pre>
+<p><strong>Aha moment:</strong> This is a classic "thundering herd" prevention pattern. When multiple threads detect an expired OAuth token simultaneously, instead of all refreshing (which can trigger rate limits), one thread refreshes while others wait on a <code>threading.Event</code>. When the refresh completes, all waiting threads unblock with the same new token.</p>
+<h2>Background Operations</h2>
+<h3>Title Generation</h3>
+<pre><code class="language-python"># title_generator.py
+def generate_title_async(conversation_text, model, provider, ...):
+    thread = threading.Thread(
+        target=_generate_title_sync,
+        args=(conversation_text, model, provider, ...),
+        daemon=True,  # Don&#x27;t block process exit
+        name=&quot;title-generator&quot;,
+    )
+    thread.start()
+    # Returns immediately — title saved when thread completes
+</code></pre>
+<h3>Display Animation</h3>
+<pre><code class="language-python"># display.py
+class ThinkingAnimation:
+    def start(self):
+        self.thread = threading.Thread(target=self._animate, daemon=True)
+        self.thread.start()
+    
+    def _animate(self):
+        # Spins through animation frames in background
+        # Updates terminal without blocking the main loop
+</code></pre>
+<h3>Copilot ACP: Stdout/Stderr Readers</h3>
+<pre><code class="language-python"># copilot_acp_client.py
+def _start_process(self, cmd):
+    self._active_process_lock = threading.Lock()
+    process = subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE)
+    
+    def _stdout_reader():
+        for line in process.stdout:
+            # Parse and queue output
+    
+    def _stderr_reader():
+        for line in process.stderr:
+            # Log errors
+    
+    out_thread = threading.Thread(target=_stdout_reader, daemon=True)
+    err_thread = threading.Thread(target=_stderr_reader, daemon=True)
+    out_thread.start()
+    err_thread.start()
+</code></pre>
+<p><strong>Aha moment:</strong> Reading from <code>subprocess.Popen</code> pipes in the main thread would block the agent loop. Hermes spawns dedicated reader threads for stdout and stderr, feeding output into thread-safe queues that the main loop polls.</p>
+<h2>Async LLM Calls</h2>
+<p>The <code>async_call_llm</code> function provides an async path to LLM calls with retry logic:</p>
+<pre><code class="language-python"># auxiliary_client.py
+async def async_call_llm(provider, model, messages, ...):
+    # Initial attempt
+    try:
+        response, task = await asyncio.wait_for(
+            asyncio.create_task(
+                client.chat.completions.create(**kwargs)
+            ),
+            timeout=timeout,
+        )
+        return response
+    except Exception:
+        # Retry with jittered backoff
+        for attempt in range(max_retries):
+            try:
+                response = await client.chat.completions.create(**retry_kwargs)
+                return response
+            except Exception:
+                await asyncio.sleep(jittered_backoff(attempt + 1))
+        
+        # Fallback model attempt
+        if fallback_model_configured:
+            response = await async_fb.chat.completions.create(**fb_kwargs)
+            return response
+</code></pre>
+<p><strong>Key pattern:</strong> <code>asyncio.wait_for(asyncio.create_task(...), timeout=timeout)</code> — the <code>create_task</code> wraps the call so it can be cancelled on timeout, and <code>wait_for</code> applies the deadline.</p>
+<h2>Trajectory Compression: Async Parallel Processing</h2>
+<p>The trajectory compressor processes hundreds of JSONL files concurrently:</p>
+<pre><code class="language-python"># trajectory_compressor.py
+async def _process_directory_async(self, input_dir, output_dir):
+    # Semaphore for rate limiting — max N concurrent API calls
+    semaphore = asyncio.Semaphore(self.config.max_concurrent_requests)
+    
+    # Thread-safe counters with asyncio.Lock
+    progress_lock = asyncio.Lock()
+    compressed_count = 0
+    in_flight = 0
+    
+    async def process_single(file_path, entry_idx, entry, ...):
+        async with semaphore:  # Rate limit
+            async with progress_lock:
+                in_flight += 1
+            
+            try:
+                # Per-trajectory timeout
+                result = await asyncio.wait_for(
+                    self.process_entry_async(entry),
+                    timeout=self.config.per_trajectory_timeout  # 5 min default
+                )
+            except asyncio.TimeoutError:
+                # Skip timed-out entries
+            except Exception:
+                # Keep original on error
+    
+    # Run ALL trajectories concurrently
+    tasks = [process_single(...) for ...]
+    await asyncio.gather(*tasks)  # Parallel with semaphore control
+</code></pre>
+<p><strong>Aha moment:</strong> The <code>asyncio.Semaphore</code> pattern limits concurrent API calls to avoid rate limits (default 50), while <code>asyncio.wait_for</code> with a per-trajectory timeout (default 5 min) prevents any single trajectory from hanging indefinitely. The <code>asyncio.gather(*tasks)</code> runs everything in parallel, but the semaphore ensures at most 50 API calls are in flight at once.</p>
+<h2>Key Optimizations</h2>
+<h3>1. Client Caching with Lock</h3>
+<pre><code class="language-python"># auxiliary_client.py
+_client_cache_lock = threading.Lock()
+_client_cache: Dict[tuple, tuple] = {}
+
+def get_client(provider, model, ...):
+    key = (provider, model, ...)
+    with _client_cache_lock:
+        if key in _client_cache:
+            return _client_cache[key]
+    # Create new client
+    with _client_cache_lock:
+        _client_cache[key] = client
+    return client
+</code></pre>
+<h3>2. Prompt Cache Lock</h3>
+<pre><code class="language-python"># prompt_builder.py
+_SKILLS_PROMPT_CACHE_LOCK = threading.Lock()
+_skills_prompt_cache: Dict[str, str] = {}
+
+# Skills prompts are expensive to generate — cache them
+# The lock prevents duplicate generation under concurrent requests
+</code></pre>
+<h3>3. Nous Rate Guard</h3>
+<pre><code class="language-python"># nous_rate_guard.py
+# Tracks token rate limits per provider using:
+# Signal 1: current 429 response headers (Retry-After, X-RateLimit-*)
+# Signal 2: last-known-good state from successful response
+# Proactively throttles requests before hitting the limit
+</code></pre>
+<h3>4. Retry with Jitter</h3>
+<pre><code class="language-python"># retry_utils.py
+_jitter_lock = threading.Lock()
+
+def jittered_backoff(attempt, base_delay=1.0, max_delay=60.0):
+    with _jitter_lock:
+        # Full jitter: random delay in [0, base_delay * 2^attempt]
+        delay = random.uniform(0, min(base_delay * (2 ** attempt), max_delay))
+        return delay
+</code></pre>
+<h2>What Hermes Does NOT Use</h2>
+<table><tr><th>Pattern</th><th>Why Not</th></tr><tr><td>`asyncio.Queue` for main loop</td><td>Main loop is sync, no async producer/consumer needed</td></tr><tr><td>`ProcessPoolExecutor`</td><td>Tool execution is I/O bound, not CPU bound</td></tr><tr><td>Persistent event loop</td><td>Simpler to create loops on-demand per operation</td></tr><tr><td>`asyncio.Runner` (3.11+)</td><td>Hermes supports Python 3.9+, `asyncio.run()` is sufficient</td></tr><tr><td>`uvloop`</td><td>Adds dependency; stdlib event loop is adequate for Hermes's needs</td></tr></table>
+<h2>Comparison with Pi's Concurrency</h2>
+<table><tr><th>Aspect</th><th>Pi (TypeScript)</th><th>Hermes (Python)</th></tr><tr><td>Main loop</td><td>Async (`async run()`)</td><td>Sync (`def run_conversation()`)</td></tr><tr><td>Tool execution</td><td>`Promise.all()`</td><td>`ThreadPoolExecutor`</td></tr><tr><td>Streaming</td><td>Native async/await SSE</td><td>Sync OpenAI SDK</td></tr><tr><td>Background tasks</td><td>`agent.run()` queue</td><td>`threading.Thread(daemon=True)`</td></tr><tr><td>Concurrency control</td><td>`AbortController`</td><td>`threading.Lock`, `Semaphore`</td></tr><tr><td>Event loop</td><td>Single Node.js loop</td><td>Per-operation `asyncio.run()`</td></tr><tr><td>Client reuse</td><td>Single long-lived client</td><td>Fresh client per loop (async)</td></tr></table>
+<h2>Related Documents</h2>
+<ul><li><a href="./02-agent-core.md">02-agent-core.md</a> — AIAgent run_conversation() sync loop</li><li><a href="./03-tool-system.md">03-tool-system.md</a> — Parallel tool execution with ThreadPoolExecutor</li><li><a href="./05-memory-system.md">05-memory-system.md</a> — Background memory prefetch threads</li><li><a href="./13-self-evolution.md">13-self-evolution.md</a> — GEPA evolution and async patterns</li><li><a href="./18-multi-model.md">18-multi-model.md</a> — Auxiliary model async client management</li><li><a href="./19-context-compression.md">19-context-compression.md</a> — Trajectory compression async processing</li></ul>
+<h2>Source Paths</h2>
+<pre><code class="language-">agent/
+├── auxiliary_client.py         ← async_call_llm, asyncio.to_thread wrappers, lazy async clients
+├── credential_pool.py          ← threading.Lock for credential selection
+├── google_oauth.py             ← threading.Event for OAuth refresh dedup, threading.local
+├── gemini_native_adapter.py    ← asyncio.to_thread for Gemini sync SDK
+├── context_references.py       ← asyncio.run from sync context, ThreadPoolExecutor bridge
+├── retry_utils.py              ← threading.Lock for jittered backoff
+├── prompt_builder.py           ← threading.Lock for skills prompt cache
+├── shell_hooks.py              ← threading.Lock for hook registration
+├── copilot_acp_client.py       ← threading.Thread for stdout/stderr readers
+├── image_gen_registry.py       ← threading.Lock for image provider registry
+├── title_generator.py          ← threading.Thread for background title generation
+├── display.py                  ← threading.Thread for thinking animation
+└── transports/                 ← Sync transport implementations
+
+run_agent.py                    ← Main sync loop, ThreadPoolExecutor for tools
+trajectory_compressor.py        ← asyncio.Semaphore, asyncio.gather, asyncio.wait_for
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

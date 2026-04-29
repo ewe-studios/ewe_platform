@@ -29,6 +29,29 @@ class PlatformAdapter:
         ...
 ```
 
+## Message Flow Through the Gateway
+
+```mermaid
+sequenceDiagram
+    participant Platform as Telegram/Discord/Slack
+    participant Adapter as PlatformAdapter
+    participant Gateway as Gateway Runner
+    participant Agent as AIAgent
+    participant Session as Session Manager
+
+    Platform->>Adapter: Incoming message (platform-specific)
+    Adapter->>Adapter: Parse message to internal format
+    Adapter->>Gateway: on_message(internal_msg)
+    Gateway->>Session: get_or_create_session(user_id)
+    Session->>Agent: AIAgent instance for session
+    Agent->>Agent: run_conversation(message)
+    Agent->>Agent: LLM response
+    Agent->>Gateway: response text
+    Gateway->>Adapter: send_message(channel_id, text)
+    Adapter->>Adapter: Format to platform
+    Adapter->>Platform: Send formatted message
+```
+
 ## Telegram
 
 | Detail | Value |

@@ -16,6 +16,25 @@ Hermes-Function-Calling provides the prompt templates, schemas, and inference sc
 | **JSON Mode** | Hermes 2 Pro, Hermes 3 | Structured output adhering to a provided JSON schema |
 | **Scratch Pad (Hermes 3)** | Hermes 3 only | GOAP reasoning framework for planning before tool calls |
 
+## Function Calling Architecture
+
+```mermaid
+flowchart TD
+    USER[User message] --> BUILD[build_hermes_prompt]
+    BUILD --> SYS["System prompt with XML tool schemas"]
+    BUILD --> CONV["Convert to ChatML format"]
+    CONV --> GENERATE[Generate/completion]
+
+    GENERATE --> PARSE{Response contains tool_call?}
+    PARSE -->|Yes| EXTRACT[parse_tool_calls_from_response]
+    EXTRACT --> XML[Extract tool_name, arguments from XML]
+    XML --> EXEC[Execute tool]
+    EXEC --> RESULT[Format tool_result XML]
+    RESULT --> GENERATE
+
+    PARSE -->|No| RETURN[Return text response]
+```
+
 ## Function Calling Prompt Format
 
 Hermes uses ChatML with XML tags for tool calls. The system prompt defines available tools and the expected output format:
@@ -35,6 +54,19 @@ Hermes uses ChatML with XML tags for tool calls. The system prompt defines avail
 5. **Assistant**: Interprets result, generates natural language response
 
 See the key scripts section below for the Python implementations.
+
+## ChatML Message Format
+
+```mermaid
+flowchart TD
+    SYS["System role<br/>Tools in XML schema"]
+    USR["User role<br/>Natural request"]
+    ASST1["Assistant role<br/>Tool call XML"]
+    TOOL["Tool role<br/>Tool result XML"]
+    ASST2["Assistant role<br/>Natural response"]
+
+    SYS --> USR --> ASST1 --> TOOL --> ASST2
+```
 
 ## JSON Mode Prompt Format
 

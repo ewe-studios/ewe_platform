@@ -56,6 +56,25 @@ plugins/
           └── provider.py
 ```
 
+## Plugin Registration and Lifecycle
+
+```mermaid
+flowchart TD
+    START[Hermes starts] --> SCAN[Scan plugins/ directory]
+    SCAN --> LOAD[Load __init__.py for each plugin]
+    LOAD --> REGISTER[Register with plugin manager]
+    REGISTER --> VALIDATE{Valid?}
+    VALIDATE -->|Yes| ENABLE[Mark enabled]
+    VALIDATE -->|No| SKIP[Skip with warning]
+
+    ENABLE --> INIT[provider.__init__]
+    INIT --> CONFIG[Apply config from config.yaml]
+    CONFIG --> READY[Plugin ready]
+
+    READY --> USE[Agent uses plugin]
+    USE --> SHUTDOWN[Shutdown on agent exit]
+```
+
 ## Memory Provider Plugins
 
 All memory providers implement the `MemoryProvider` ABC (see [05-memory-system.md](./05-memory-system.md)):

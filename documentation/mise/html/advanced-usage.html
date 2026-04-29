@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mise Advanced Usage - EWE Platform -- mise</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mise/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="README.html">Mise Documentation - EWE Platform</a></span> <a href="README.html">← Mise Documentation - EWE Platform</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Mise Advanced Usage - EWE Platform</h1>
+<p>This guide covers advanced mise configurations and usage patterns for the EWE Platform project.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol><li><a href="#task-configuration-syntax">Task Configuration Syntax</a></li><li><a href="#working-directory">Working Directory</a></li><li><a href="#task-dependencies">Task Dependencies</a></li><li><a href="#environment-variables">Environment Variables</a></li><li><a href="#conditional-execution">Conditional Execution</a></li><li><a href="#integration-with-ides">Integration with IDEs</a></li><li><a href="#custom-tasks">Custom Tasks</a></li></ol>
+<hr>
+<h2>Task Configuration Syntax</h2>
+<h3>Basic Task</h3>
+<pre><code class="language-toml">[tasks.hello]
+description = &quot;Print hello world&quot;
+run = &quot;echo &#x27;Hello, World!&#x27;&quot;
+</code></pre>
+<h3>Multi-line Scripts</h3>
+<pre><code class="language-toml">[tasks.&quot;build:complex&quot;]
+description = &quot;Complex build with multiple steps&quot;
+run = &quot;&quot;&quot;
+echo &quot;Starting build...&quot;
+cargo build --release
+cargo build --target wasm32-unknown-unknown
+echo &quot;Build complete!&quot;
+&quot;&quot;&quot;
+</code></pre>
+<h3>Bash Scripts with Arguments</h3>
+<pre><code class="language-toml">[tasks.&quot;test:single&quot;]
+description = &quot;Run a single test file&quot;
+run = &quot;&quot;&quot;
+#!/usr/bin/env bash
+TEST_NAME=&quot;${1:-all}&quot;
+cargo test --package foundation_nostd &quot;$TEST_NAME&quot;
+&quot;&quot;&quot;
+</code></pre>
+<p>Usage:</p>
+<pre><code class="language-bash">mise run test:single my_test_function
+</code></pre>
+<hr>
+<h2>Working Directory</h2>
+<p>Tasks can specify a working directory:</p>
+<pre><code class="language-toml">[tasks.&quot;examples:todo:serve&quot;]
+description = &quot;Serve todo example&quot;
+dir = &quot;examples/todo&quot;
+run = &quot;localserver ./web 8080&quot;
+</code></pre>
+<p>This is useful for:</p>
+<ul><li>Running commands in specific subdirectories</li><li>Example-specific tooling (npm, tailwindcss)</li><li>Isolated build processes</li></ul>
+<hr>
+<h2>Task Dependencies</h2>
+<h3>Declaring Dependencies</h3>
+<p>Tasks can depend on other tasks:</p>
+<pre><code class="language-toml">[tasks.setup]
+description = &quot;Full setup&quot;
+depends = [&quot;setup:tools&quot;, &quot;setup:wasm&quot;]
+run = &#x27;echo &quot;Setup complete&quot;&#x27;
+</code></pre>
+<h3>Dependency Execution Order</h3>
+<p>When you run <code>mise run setup</code>:</p>
+<ol><li><code>setup:tools</code> runs first</li><li><code>setup:wasm</code> runs second</li><li><code>setup</code> runs last</li></ol>
+<h3>Multiple Dependencies</h3>
+<pre><code class="language-toml">[tasks.quality]
+depends = [&quot;fmt:check&quot;, &quot;clippy&quot;, &quot;test:unit&quot;]
+run = &#x27;echo &quot;All quality checks passed&quot;&#x27;
+</code></pre>
+<p>All dependencies run in parallel (where possible) before the main task.</p>
+<hr>
+<h2>Environment Variables</h2>
+<h3>Global Environment</h3>
+<p>Set environment variables for all tasks:</p>
+<pre><code class="language-toml">[env]
+CARGO_TERM_COLOR = &quot;always&quot;
+RUSTFLAGS = &quot;-C link-arg=-s&quot;
+NODE_ENV = &quot;development&quot;
+</code></pre>
+<h3>Task-Specific Environment</h3>
+<pre><code class="language-toml">[tasks.&quot;build:release&quot;]
+description = &quot;Release build&quot;
+env = { PROFILE = &quot;release&quot;, OPTIMIZE = &quot;true&quot; }
+run = &quot;&quot;&quot;
+echo &quot;Building with profile: $PROFILE&quot;
+cargo build --$PROFILE
+&quot;&quot;&quot;
+</code></pre>
+<h3>Using .env Files</h3>
+<p>Create a <code>.env</code> file in the project root:</p>
+<pre><code class="language-bash"># .env
+DATABASE_URL=postgres://localhost/dev
+API_KEY=your-api-key
+</code></pre>
+<p>Mise automatically loads <code>.env</code> files.</p>
+<hr>
+<h2>Conditional Execution</h2>
+<h3>File-based Conditions</h3>
+<pre><code class="language-toml">[tasks.&quot;build:if-changed&quot;]
+description = &quot;Build if sources changed&quot;
+sources = [&quot;src/**/*.rs&quot;, &quot;Cargo.toml&quot;]
+outputs = [&quot;target/release/ewe_platform&quot;]
+run = &quot;cargo build --release&quot;
+</code></pre>
+<h3>Platform-specific Tasks</h3>
+<pre><code class="language-toml">[tasks.&quot;setup:macos&quot;]
+description = &quot;macOS-specific setup&quot;
+os = &quot;macos&quot;
+run = &quot;brew install wasm-pack&quot;
+
+[tasks.&quot;setup:linux&quot;]
+description = &quot;Linux-specific setup&quot;
+os = &quot;linux&quot;
+run = &quot;sudo apt install wasm-tools&quot;
+</code></pre>
+<hr>
+<h2>Integration with IDEs</h2>
+<h3>VS Code</h3>
+<p>Create <code>.vscode/tasks.json</code>:</p>
+<pre><code class="language-json">{
+  &quot;version&quot;: &quot;2.0.0&quot;,
+  &quot;tasks&quot;: [
+    {
+      &quot;label&quot;: &quot;mise: test:all&quot;,
+      &quot;type&quot;: &quot;shell&quot;,
+      &quot;command&quot;: &quot;mise run test:all&quot;,
+      &quot;problemMatcher&quot;: [&quot;$rustc&quot;],
+      &quot;group&quot;: &quot;test&quot;
+    },
+    {
+      &quot;label&quot;: &quot;mise: build:release&quot;,
+      &quot;type&quot;: &quot;shell&quot;,
+      &quot;command&quot;: &quot;mise run build:release&quot;,
+      &quot;problemMatcher&quot;: [&quot;$rustc&quot;],
+      &quot;group&quot;: &quot;build&quot;
+    }
+  ]
+}
+</code></pre>
+<h3>Neovim</h3>
+<p>With <code>neotask.nvim</code> or similar:</p>
+<pre><code class="language-lua">require(&quot;neotask&quot;).setup({
+  tasks = {
+    test = function()
+      vim.fn.jobstart(&quot;mise run test:all&quot;)
+    end,
+    build = function()
+      vim.fn.jobstart(&quot;mise run build:release&quot;)
+    end,
+  },
+})
+</code></pre>
+<h3>Rust Analyzer</h3>
+<p>Mise integrates seamlessly with rust-analyzer. Ensure your <code>[tools]</code> section includes:</p>
+<pre><code class="language-toml">[tools]
+rust-analyzer = &quot;latest&quot;
+</code></pre>
+<hr>
+<h2>Custom Tasks</h2>
+<h3>Adding New Tasks</h3>
+<p>Add custom tasks to <code>mise.toml</code> for your workflow:</p>
+<pre><code class="language-toml"># Personal development tasks
+[tasks.&quot;dev:my-feature&quot;]
+description = &quot;Test my in-progress feature&quot;
+run = &quot;&quot;&quot;
+cargo test --package foundation_nostd --lib my_feature
+cargo clippy --package ewe_platform -- -W clippy::pedantic
+&quot;&quot;&quot;
+</code></pre>
+<h3>Task Templates</h3>
+<p>For repetitive tasks, create parameterized templates:</p>
+<pre><code class="language-toml">[tasks.&quot;test:package&quot;]
+description = &quot;Run tests for a specific package&quot;
+run = &quot;&quot;&quot;
+#!/usr/bin/env bash
+PACKAGE=&quot;${1:-}&quot;
+if [ -z &quot;$PACKAGE&quot; ]; then
+    echo &quot;Usage: mise run test:package &lt;package-name&gt;&quot;
+    exit 1
+fi
+cargo test --package &quot;$PACKAGE&quot;
+&quot;&quot;&quot;
+</code></pre>
+<hr>
+<h2>Performance Tips</h2>
+<h3>Parallel Task Execution</h3>
+<p>Mise runs independent dependencies in parallel:</p>
+<pre><code class="language-toml">[tasks.&quot;ci:all&quot;]
+depends = [&quot;quality&quot;, &quot;test:all&quot;, &quot;build:release&quot;]
+</code></pre>
+<p>All three dependencies start simultaneously.</p>
+<h3>Caching</h3>
+<p>Use <code>sources</code> and <code>outputs</code> for incremental builds:</p>
+<pre><code class="language-toml">[tasks.&quot;build:incremental&quot;]
+sources = [&quot;src/**/*.rs&quot;]
+outputs = [&quot;target/debug/ewe_platform&quot;]
+run = &quot;cargo build&quot;
+</code></pre>
+<h3>Preloading Tools</h3>
+<p>Keep tools pre-loaded for faster execution:</p>
+<pre><code class="language-bash"># Pre-load all tools
+mise install
+mise use --env
+</code></pre>
+<hr>
+<h2>CI/CD Integration</h2>
+<h3>GitHub Actions</h3>
+<pre><code class="language-yaml">name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run ci:all
+</code></pre>
+<h3>GitLab CI</h3>
+<pre><code class="language-yaml">stages:
+  - test
+  - build
+
+test:
+  stage: test
+  image: rust:latest
+  before_script:
+    - curl https://mise.run | sh
+    - mise install
+  script:
+    - mise run test:all
+</code></pre>
+<hr>
+<h2>Troubleshooting Advanced Issues</h2>
+<h3>Task Not Found</h3>
+<pre><code class="language-bash"># Verify task exists
+mise tasks | grep my-task
+
+# Check mise.toml syntax
+mise doctor
+</code></pre>
+<h3>Environment Not Loaded</h3>
+<pre><code class="language-bash"># Reload environment
+mise env --yes | source
+
+# Or use direnv integration
+mise activate direnv
+</code></pre>
+<h3>Tool Version Conflicts</h3>
+<pre><code class="language-bash"># Check which version is active
+mise current
+
+# Override for current session
+mise use node@20 --env
+
+# Override permanently for this directory
+mise use node@20
+</code></pre>
+<hr>
+<h2>Resources</h2>
+<ul><li><a href="https://mise.jdx.dev/tasks/">Mise Task Configuration</a></li><li><a href="https://mise.jdx.dev/environments/">Mise Environment</a></li><li><a href="../../mise.toml">EWE Platform mise.toml</a></li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

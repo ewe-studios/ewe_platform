@@ -48,6 +48,14 @@
 | [17-memory-deep.md](./17-memory-deep.md) | MemoryManager, 8+ providers, context compression, DAG-based context, session search |
 | [18-multi-model.md](./18-multi-model.md) | Credential pool, fallback chain, error classification, auxiliary models, cost routing |
 
+### Deep Dives (Compression, Async, RL)
+
+| Document | What It Covers |
+|----------|---------------|
+| [19-context-compression.md](./19-context-compression.md) | ContextEngine ABC, 4-phase compression pipeline, boundary alignment, secret redaction, guided compression |
+| [20-async-python.md](./20-async-python.md) | Sync-first loop design, asyncio.to_thread bridging, ThreadPoolExecutor, threading patterns, background operations |
+| [21-rl-training-traces.md](./21-rl-training-traces.md) | ShareGPT format, trajectory compressor, reasoning normalization, GRPO integration, GEPA self-evolution |
+
 ## Quick Orientation
 
 ```
