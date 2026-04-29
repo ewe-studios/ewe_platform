@@ -41,6 +41,12 @@
 | [15-memory-deep.md](./15-memory-deep.md) | Message-based memory, context window management, compaction, session persistence |
 | [16-multi-model.md](./16-multi-model.md) | Model switching, parallel tool execution, background runs, extension-driven routing |
 
+### Deep Dives
+
+| Document | What It Covers |
+|----------|---------------|
+| [17-context-compression.md](./17-context-compression.md) | Token-budget compaction, findCutPoint backward walk, split turn parallel summarization, FileOperations tracking, extension hook |
+
 ## Quick Orientation
 
 ```

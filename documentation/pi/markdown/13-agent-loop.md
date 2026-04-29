@@ -12,6 +12,32 @@ Agent (agent.ts)          ── High-level state machine, event dispatch, queue
 
 ## Three-Layer Architecture
 
+```mermaid
+flowchart TD
+    subgraph "Layer 1: Agent (agent.ts)"
+        A1[Agent class<br/>State, events, queues]
+        A1 --> STEER[SteeringQueue<br/>mid-run message injection]
+        A1 --> FOLLOW[FollowUpQueue<br/>post-run continuation]
+        A1 --> EVENTS[EventEmitter<br/>agent_start/end, turn_start/end]
+    end
+
+    subgraph "Layer 2: runLoop (agent-loop.ts)"
+        A2[runLoop function<br/>LLM call → tool exec → repeat]
+        A2 --> TOOLS[Tool execution<br/>sequential or parallel]
+        A2 --> PARALLEL[Promise.all<br/>concurrent tool calls]
+    end
+
+    subgraph "Layer 3: streamSimple (pi-ai)"
+        A3[streamSimple<br/>Provider-agnostic SSE]
+        A3 --> ANTHROPIC[AnthropicAdapter<br/>SSE → chunks]
+        A3 --> OPENAI[OpenAIAdapter<br/>streaming iter]
+        A3 --> OTHER[20+ providers]
+    end
+
+    A1 --> A2
+    A2 --> A3
+```
+
 ### Layer 1: `Agent` Class (`agent.ts`)
 
 The `Agent` class is the **stateful wrapper** that UI layers (TUI, web, Slack bot) interact with. It owns the conversation transcript, emits lifecycle events, manages queues, and provides the public API.
@@ -77,6 +103,43 @@ while (true)                          ← Outer: continues for follow-up message
 ```
 
 The **inner loop** handles tool-call chains within a single conversational turn. The **outer loop** handles continuation after the agent would naturally stop — used for steering/follow-up that arrives while the agent was working.
+
+### Steering Queue Interaction with the Loop
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant TUI as TUI/UI
+    participant Agent as Agent class
+    participant Loop as runLoop (inner)
+    participant LLM as streamSimple
+    participant Tools as Tool executor
+
+    User->>TUI: "Fix the bug"
+    TUI->>Agent: agent.prompt("Fix the bug")
+    Agent->>Agent: emit agent_start
+    Agent->>Loop: runLoop(messages)
+
+    Loop->>LLM: streamAssistantResponse()
+    LLM-->>Loop: text chunks
+    Loop->>TUI: emit message_update
+    LLM-->>Loop: tool call: read_file
+    Loop->>Tools: execute(read_file)
+    Tools-->>Loop: content
+    Loop->>Loop: append tool result
+
+    User->>TUI: "Also check config.py"
+    TUI->>Agent: agent.enqueueSteering("Also check config.py")
+
+    Loop->>Loop: check steering queue
+    Loop->>Loop: drain steering message
+    Loop->>LLM: streamAssistantResponse(+steering)
+    LLM-->>Loop: text response
+    Loop->>TUI: emit turn_end
+
+    Loop->>Agent: return
+    Agent->>TUI: emit agent_end
+```
 
 ### Turn Definition
 

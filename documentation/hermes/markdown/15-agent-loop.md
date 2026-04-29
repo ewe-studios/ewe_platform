@@ -32,6 +32,50 @@ agent/
 
 ## The Core Loop: `run_conversation()`
 
+### Architecture Overview
+
+```mermaid
+flowchart TD
+    USER[User message] --> AIAgent[AIAgent class]
+    AIAgent --> PREFETCH[Prefetch memory]
+    PREFETCH --> BUILD[Build system prompt<br/>prompt_builder]
+    BUILD --> TOOLS[Get tool schemas<br/>model_tools]
+    TOOLS --> CALL[Call LLM<br/>interruptible streaming]
+    CALL --> PARSE{Tool calls?}
+    PARSE -->|No| DONE[Return text]
+    PARSE -->|Yes| EXEC[Execute tools<br/>ThreadPoolExecutor]
+    EXEC --> APPEND[Append tool results]
+    APPEND --> SYNC[Sync memory]
+    SYNC --> COMPRESS{Context too long?}
+    COMPRESS -->|Yes| COMP[Compress context]
+    COMP --> CALL
+    COMPRESS -->|No| CALL
+```
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as AIAgent
+    participant Memory as MemoryManager
+    participant Prompt as prompt_builder
+    participant LLM as LLM Adapter
+    participant Tools as Tool Executor
+
+    User->>Agent: run_conversation(message)
+    Agent->>Memory: prefetch(messages)
+    Agent->>Prompt: build(identity, skills, memory)
+    Prompt-->>Agent: system prompt
+    Agent->>LLM: stream(system, messages, tools)
+    LLM-->>Agent: response + tool calls
+    Agent->>Tools: execute_tool(tool_call)
+    Tools-->>Agent: result
+    Agent->>Memory: sync(messages)
+    Agent->>Agent: check context budget
+    Agent->>LLM: stream(continued messages)
+    LLM-->>Agent: final text response
+    Agent->>User: return text
+```
+
 ### Entry Point and Setup
 
 ```python

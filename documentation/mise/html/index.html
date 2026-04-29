@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mise -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mise/docs</span>
+    <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+  </nav>
+
+  <h1>mise Documentation</h1>
+  <p>Documentation for mise.</p>
+  <ul class="doc-index">
+    <li><a href="README.html">Mise Documentation - EWE Platform</a></li>
+<li><a href="advanced-usage.html">Mise Advanced Usage - EWE Platform</a></li>
+<li><a href="getting-started.html">Getting Started with Mise - EWE Platform</a></li>
+<li><a href="task-reference.html">Mise Task Reference - EWE Platform</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

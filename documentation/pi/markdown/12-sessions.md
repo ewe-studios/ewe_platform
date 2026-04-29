@@ -10,6 +10,23 @@ Pi and Hermes take fundamentally different approaches to session management. Pi 
 
 ### Session File Format: JSONL with Tree Structure
 
+```mermaid
+flowchart TD
+    HDR["session v3<br/>workingDirectory: /path"] --> MSG1["message (user)<br/>id: a1b2c3d4"]
+    MSG1 --> MSG2["message (assistant)<br/>id: e5f6g7h8<br/>usage: {...}"]
+    MSG2 --> MC["model_change<br/>id: i9j0k1l2<br/>model: claude-sonnet-4-6"]
+    MC --> COMP["compaction<br/>id: m3n4o5p6<br/>summary: {...}"]
+    COMP --> MSG3["message (user)<br/>id: q7r8s9t0"]
+    MSG3 --> MSG4["message (assistant)<br/>id: u1v2w3x4"]
+
+    MSG2 -.-> BRANCH["branch_summary<br/>fork to branch-xyz"]
+    BRANCH --> BMSG1["message (user) on branch<br/>id: y5z6a7b8"]
+    BMSG1 --> BMSG2["message (assistant)<br/>id: c9d0e1f2"]
+
+    style COMP fill:#f9d
+    style BRANCH fill:#dfd
+```
+
 Pi stores sessions as JSONL files in `~/.pi/sessions/`. Each line is a JSON object representing a single entry:
 
 ```jsonl
@@ -186,6 +203,32 @@ Extensions can listen to these events and inject behavior at each lifecycle poin
 ## Hermes Session Architecture
 
 ### SQLite Database with FTS5 Search
+
+```mermaid
+flowchart TD
+    subgraph "SQLite Database (sessions.db)"
+        SESSIONS["sessions table<br/>id, model, cost, tokens, parent_session_id"]
+        MESSAGES["messages table<br/>session_id, role, content, tool_calls, usage"]
+        FTS5["FTS5 virtual table<br/>Full-text search across all content"]
+
+        SESSIONS -->|1:N| MESSAGES
+        SESSIONS -->|1:N| SESSIONS2["parent_session_id chain"]
+        MESSAGES --> FTS5
+    end
+
+    subgraph "Hermes SessionManager"
+        SM["SQLiteSessionManager"]
+        SM --> CREATE[create_session]
+        SM --> APPEND[add_message]
+        SM --> COMPACT[compress_session]
+        SM --> CHAIN[chain_sessions<br/>parent_session_id rotation]
+        SM --> SEARCH[search_messages<br/>via FTS5]
+    end
+
+    SM --> SESSIONS
+    SM --> MESSAGES
+    SM --> FTS5
+```
 
 Hermes uses a SQLite database (`~/.hermes/sessions.db`) instead of per-session files. The schema has three core tables:
 

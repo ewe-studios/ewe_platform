@@ -13,6 +13,33 @@ Hermes has a multi-layered cost tracking system that goes far beyond simple toke
 
 ---
 
+## Cost Tracking Pipeline
+
+```mermaid
+flowchart TD
+    LLM[LLM API response] --> NORM[Canonical Usage Normalization]
+    NORM --> SHAPE1{API response shape?}
+    SHAPE1 -->|OpenAI| OAI[usage.input/output/cacheRead]
+    SHAPE1 -->|Anthropic| ANT[usage.input/output/cacheRead/cacheWrite]
+    SHAPE1 -->|Codex| CDX[usage.promptTokens/completionTokens]
+    OAI --> CANON[CanonicalUsage dataclass]
+    ANT --> CANON
+    CDX --> CANON
+
+    CANON --> PRICING[Pricing Resolution]
+    PRICING --> DOCS[Official docs snapshot]
+    PRICING --> LIVE[Live pricing API]
+    PRICING --> FALLBACK[Hardcoded fallbacks]
+
+    DOCS --> COST[Per-call cost estimation]
+    LIVE --> COST
+    FALLBACK --> COST
+
+    COST --> SESSION[Session-level accumulation]
+    SESSION --> SQLITE[SQLite: sessions table]
+    SQLITE --> STATS[Session stats aggregation]
+```
+
 ## Layer 1: Canonical Usage Normalization
 
 Every LLM API returns usage data in a different format. Hermes normalizes all three shapes into a single `CanonicalUsage` dataclass:

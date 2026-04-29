@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonate -- Python SDK -- resonate</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/resonate/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="03-durable-promises.html">Resonate -- Durable Promises</a> <a href="04-sdk-typescript.html">Resonate -- TypeScript SDK</a> <a href="05-sdk-rust.html">Resonate -- Rust SDK</a></span> <a href="05-sdk-rust.html">← Resonate -- Rust SDK</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Resonate -- Python SDK</h1>
+<h2>Overview</h2>
+<p>The Python SDK (<code>resonate</code>) uses generator functions with a multi-threaded bridge architecture. Durable operations are expressed as <code>yield</code> statements that pause execution, while a background bridge coordinates task acquisition, message delivery, and heartbeat management.</p>
+<p><strong>Package:</strong> <code>resonate</code> (PyPI) <strong>Source:</strong> <code>resonate-sdk-py/resonate/</code> <strong>Runtime:</strong> Python 3.12+ <strong>Key files:</strong> <code>bridge.py</code>, <code>coroutine.py</code>, <code>graph.py</code>, <code>conventions/</code>, <code>message_sources/</code></p>
+<h2>Core Abstractions</h2>
+<div class="mermaid">
+graph TD
+    Resonate[Resonate Client] --&gt; Bridge
+    Bridge --&gt; Processor[Processor / Thread Pool]
+    Bridge --&gt; Scheduler
+    Bridge --&gt; MessageSource[Message Source]
+    Bridge --&gt; HeartbeatThread[Heartbeat Thread]
+    Bridge --&gt; DelayQ[Delay Queue]
+    
+    Scheduler --&gt; Context
+    Context --&gt; |yields| LFI[LFI - Local Invocation]
+    Context --&gt; |yields| RFI[RFI - Remote Invocation]
+    Context --&gt; |yields| Future[Future]
+    
+    MessageSource --&gt; LocalMS[Local Message Source]
+    MessageSource --&gt; PollerMS[Poller Message Source]
+    
+    subgraph Conventions
+        LocalConv[Local Convention]
+        RemoteConv[Remote Convention]
+        SleepConv[Sleep Convention]
+    end
+
+</div>
+<h3>Resonate (Entry Point)</h3>
+<pre><code class="language-python">from resonate import Resonate
+
+resonate = Resonate(url=&quot;http://localhost:8001&quot;)
+
+@resonate.function
+def process_order(ctx, order):
+    payment = yield ctx.lfc(charge_card, order[&quot;payment&quot;])
+    shipment = yield ctx.lfc(ship_items, order[&quot;items&quot;])
+    return {&quot;payment&quot;: payment, &quot;shipment&quot;: shipment}
+
+@resonate.function
+def charge_card(ctx, payment_info):
+    # Pure computation — no ctx.lfc/lfi needed
+    return {&quot;charged&quot;: True, &quot;amount&quot;: payment_info[&quot;amount&quot;]}
+
+# Invoke (ephemeral world)
+handle = resonate.run(&quot;order.123&quot;, process_order, order_data)
+result = handle.result()  # Blocks until complete
+</code></pre>
+<h2>Coroutine Types</h2>
+<p>The SDK defines dataclass-based yieldable types:</p>
+<table><tr><th>Type</th><th>Class</th><th>Description</th></tr><tr><td>`LFI[T]`</td><td>Local Function Invocation</td><td>Run locally, return Future handle</td></tr><tr><td>`LFC[T]`</td><td>Local Function Completion</td><td>Run locally, return value directly</td></tr><tr><td>`RFI[T]`</td><td>Remote Function Invocation</td><td>Create remote promise, return Future</td></tr><tr><td>`RFC[T]`</td><td>Remote Function Completion</td><td>Create remote promise, return value</td></tr></table>
+<pre><code class="language-python">@resonate.function
+def workflow(ctx, data):
+    # LFC: blocks until child completes, returns value
+    result = yield ctx.lfc(compute, data)
+    
+    # LFI: starts child, returns Future immediately
+    future = yield ctx.lfi(long_task, data)
+    # ... do other work ...
+    value = yield future  # await the future
+    
+    # RFC: remote call, blocks until remote worker completes
+    remote_result = yield ctx.rfc(&quot;remote_fn&quot;, data, target=&quot;other-workers&quot;)
+    
+    # RFI: remote call, returns Future immediately
+    remote_future = yield ctx.rfi(&quot;remote_fn&quot;, data)
+    remote_value = yield remote_future
+    
+    return {&quot;result&quot;: result, &quot;remote&quot;: remote_result}
+</code></pre>
+<h3>Options Builder</h3>
+<p>All coroutine types support fluent configuration:</p>
+<pre><code class="language-python">yield ctx.lfc(task, data).options(
+    id=&quot;custom-child-id&quot;,
+    timeout=300_000,  # 5 minutes
+    retry_policy=RetryPolicy(max_attempts=3, base_delay=1000),
+    tags={&quot;priority&quot;: &quot;high&quot;},
+)
+</code></pre>
+<h2>The Bridge Architecture</h2>
+<p>The Bridge is the central coordinator — a multi-threaded component that manages all I/O:</p>
+<div class="mermaid">
+graph TD
+    subgraph MainThread[&quot;Main Thread&quot;]
+        UserCode[User Code] --&gt; CommandQueue[Command Queue]
+    end
+    
+    subgraph BridgeThread[&quot;Bridge Thread&quot;]
+        CommandQueue --&gt; Scheduler
+        Scheduler --&gt; Processor[Processor / Worker Pool]
+        Processor --&gt; GeneratorExec[Generator Execution]
+    end
+    
+    subgraph MessageThread[&quot;Message Source Thread&quot;]
+        Server[Resonate Server] --&gt; Poller[HTTP Poller]
+        Poller --&gt; CommandQueue
+    end
+    
+    subgraph HeartbeatThread[&quot;Heartbeat Thread&quot;]
+        HB[Heartbeat Loop] --&gt; Server
+    end
+    
+    subgraph DelayThread[&quot;Delay Queue Thread&quot;]
+        DQ[Delay Queue] --&gt; CommandQueue
+    end
+
+</div>
+<h3>Bridge Components</h3>
+<table><tr><th>Component</th><th>Thread</th><th>Purpose</th></tr><tr><td>Command Queue</td><td>Shared</td><td>Thread-safe queue for inter-component messages</td></tr><tr><td>Scheduler</td><td>Bridge</td><td>Creates contexts, tracks promise state, handles resumption</td></tr><tr><td>Processor</td><td>Bridge (pool)</td><td>Executes functions with configurable parallelism</td></tr><tr><td>Message Source</td><td>Dedicated</td><td>Receives execute/unblock messages from server</td></tr><tr><td>Heartbeat</td><td>Dedicated</td><td>Sends periodic keep-alives to maintain task lease</td></tr><tr><td>Delay Queue</td><td>Dedicated</td><td>Manages retry delays with exponential backoff</td></tr></table>
+<h3>Thread Communication</h3>
+<pre><code class="language-python"># Command types flowing through the queue
+class Invoke:     task_id, version, function, args
+class Resume:     task_id, version, resolved_promises
+class Heartbeat:  task_id, version
+class Retry:      task_id, delay_ms
+class Complete:   task_id, result
+class Error:      task_id, error
+</code></pre>
+<h2>Execution Model</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant U as User Thread
+    participant B as Bridge Thread
+    participant M as Message Thread
+    participant S as Server
+
+    U-&gt;&gt;B: resonate.run(id, fn, args)
+    B-&gt;&gt;S: promise.create + task.create
+    S--&gt;&gt;M: Execute message
+    M-&gt;&gt;B: Invoke command
+    B-&gt;&gt;B: Processor: execute generator
+    
+    Note over B: Generator yields LFC(child_fn, args)
+    B-&gt;&gt;S: promise.create(child_id)
+    B-&gt;&gt;B: Execute child_fn locally
+    B-&gt;&gt;S: promise.settle(child_id, resolved)
+    Note over B: Feed result back to generator
+    
+    Note over B: Generator yields RFC(&quot;remote&quot;, args)
+    B-&gt;&gt;S: promise.create(remote_id, target)
+    B-&gt;&gt;S: task.suspend(awaited=[remote_id])
+    Note over B: Worker freed
+    
+    Note over S: Later: remote settles
+    S--&gt;&gt;M: Execute message (re-dispatch)
+    M-&gt;&gt;B: Resume command
+    B-&gt;&gt;B: Re-execute generator (replay)
+    Note over B: Generator returns final value
+    B-&gt;&gt;S: task.fulfill(settle promise)
+    B--&gt;&gt;U: handle.result() unblocks
+
+</div>
+<h2>Conventions (ID Generation)</h2>
+<p>Conventions define how child promise IDs are generated:</p>
+<pre><code class="language-python"># Local convention
+class LocalConvention:
+    def id(self, parent_id: str, index: int) -&gt; str:
+        return f&quot;{parent_id}.{index}&quot;
+    
+    def timeout(self, parent_timeout: int) -&gt; int:
+        return parent_timeout  # inherit
+    
+    def idempotency_key(self, id: str) -&gt; str:
+        return id  # ID is the key
+
+# Remote convention
+class RemoteConvention:
+    def id(self, parent_id: str, func_name: str, index: int) -&gt; str:
+        return f&quot;{parent_id}.{index}&quot;
+    
+    def target(self) -&gt; Optional[str]:
+        return self._target  # worker group routing
+
+# Sleep convention
+class SleepConvention:
+    def id(self, parent_id: str, index: int) -&gt; str:
+        return f&quot;{parent_id}.{index}&quot;
+    
+    def timeout(self, duration_ms: int) -&gt; int:
+        return duration_ms  # sleep duration as timeout
+</code></pre>
+<p>Conventions are pluggable — you can override ID generation for custom sharding or namespacing.</p>
+<h2>Message Sources</h2>
+<table><tr><th>Source</th><th>Mode</th><th>Description</th></tr><tr><td>`LocalMessageSource`</td><td>In-memory</td><td>For testing, single-process execution</td></tr><tr><td>`PollerMessageSource`</td><td>HTTP</td><td>Polls server for execute/unblock messages</td></tr></table>
+<pre><code class="language-python"># Poller message source (production)
+class PollerMessageSource:
+    def __init__(self, url: str, group: str, worker_id: str):
+        self.url = f&quot;{url}/poll/{group}/{worker_id}&quot;
+    
+    def poll(self) -&gt; List[Message]:
+        # Long-poll for messages
+        response = requests.get(self.url, timeout=30)
+        return parse_messages(response.json())
+</code></pre>
+<h2>Execution Graph</h2>
+<p><code>graph.py</code> provides a DAG structure for tracking execution traces:</p>
+<pre><code class="language-python">from resonate.graph import Graph, Node
+
+# Each execution builds a graph
+graph = Graph(root_id=&quot;order.123&quot;)
+graph.add_node(&quot;order.123.0&quot;, label=&quot;charge_card&quot;, state=&quot;resolved&quot;)
+graph.add_node(&quot;order.123.1&quot;, label=&quot;ship_items&quot;, state=&quot;pending&quot;)
+graph.add_edge(&quot;order.123&quot;, &quot;order.123.0&quot;, edge_type=&quot;default&quot;)
+graph.add_edge(&quot;order.123&quot;, &quot;order.123.1&quot;, edge_type=&quot;default&quot;)
+
+# Traverse for debugging
+for node in graph.level_order():
+    print(f&quot;{node.id}: {node.state}&quot;)
+</code></pre>
+<h2>Encoders</h2>
+<p>The Python SDK provides pluggable encoding:</p>
+<table><tr><th>Encoder</th><th>Description</th></tr><tr><td>`JsonEncoder`</td><td>Standard JSON serialization</td></tr><tr><td>`JsonPickleEncoder`</td><td>Python object serialization (classes, exceptions)</td></tr><tr><td>`Base64Encoder`</td><td>Binary data encoding</td></tr><tr><td>`CombinedEncoder`</td><td>Header-based routing to sub-encoders</td></tr><tr><td>`NoopEncoder`</td><td>Pass-through (raw bytes)</td></tr></table>
+<pre><code class="language-python">from resonate.encoders import CombinedEncoder, JsonEncoder, JsonPickleEncoder
+
+resonate = Resonate(
+    url=&quot;http://localhost:8001&quot;,
+    encoder=CombinedEncoder(
+        default=JsonEncoder(),
+        encoders={&quot;application/x-jsonpickle&quot;: JsonPickleEncoder()},
+    ),
+)
+</code></pre>
+<h2>Error Handling</h2>
+<pre><code class="language-python">from resonate.errors import ResonateError, TimeoutError, CancelledError
+
+@resonate.function
+def safe_workflow(ctx, data):
+    try:
+        result = yield ctx.lfc(risky_operation, data)
+    except TimeoutError:
+        # Child timed out — run compensation
+        yield ctx.lfc(compensate, data)
+        return {&quot;status&quot;: &quot;compensated&quot;}
+    except ResonateError as e:
+        # Generic failure — log and re-raise
+        raise
+    
+    return result
+</code></pre>
+<h2>Loggers</h2>
+<table><tr><th>Logger</th><th>Purpose</th></tr><tr><td>`ContextLogger`</td><td>Logs with execution context (task_id, promise_id)</td></tr><tr><td>`DSTLogger`</td><td>Deterministic Simulation Testing logger</td></tr></table>
+<h2>Comparison with TS/Rust SDKs</h2>
+<table><tr><th>Aspect</th><th>Python</th><th>TypeScript</th><th>Rust</th></tr><tr><td>Async model</td><td>OS threads + generators</td><td>Event loop + generators</td><td>tokio + async/await</td></tr><tr><td>Function syntax</td><td>`yield ctx.lfc(fn, args)`</td><td>`yield* context.run(fn, args)`</td><td>`ctx.run(fn, args).await?`</td></tr><tr><td>Parallelism</td><td>Thread pool (workers param)</td><td>Single-threaded (async)</td><td>tokio tasks</td></tr><tr><td>Decorator</td><td>`@resonate.function`</td><td>None (register call)</td><td>`#[resonate_sdk::function]`</td></tr><tr><td>Message delivery</td><td>Polling (HTTP)</td><td>SSE (EventSource)</td><td>SSE or polling</td></tr><tr><td>State machine</td><td>Bridge + Scheduler</td><td>Core + Computation</td><td>Core</td></tr><tr><td>Error propagation</td><td>Exception raising</td><td>Generator throw</td><td>Result<T></td></tr></table>
+<h2>Source Paths</h2>
+<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`resonate/__init__.py`</td><td>Entry point, Resonate class, decorator</td></tr><tr><td>`resonate/bridge.py`</td><td>Multi-threaded coordinator</td></tr><tr><td>`resonate/coroutine.py`</td><td>Yieldable types (LFI, LFC, RFI, RFC, Future)</td></tr><tr><td>`resonate/graph.py`</td><td>Execution trace DAG</td></tr><tr><td>`resonate/delay_q.py`</td><td>Retry delay queue</td></tr><tr><td>`resonate/dependencies.py`</td><td>Dependency injection container</td></tr><tr><td>`resonate/conventions/base.py`</td><td>Convention base class</td></tr><tr><td>`resonate/conventions/local.py`</td><td>Local invocation ID generation</td></tr><tr><td>`resonate/conventions/remote.py`</td><td>Remote invocation ID generation</td></tr><tr><td>`resonate/conventions/sleep.py`</td><td>Durable sleep convention</td></tr><tr><td>`resonate/message_sources/local.py`</td><td>In-memory message source</td></tr><tr><td>`resonate/message_sources/poller.py`</td><td>HTTP polling message source</td></tr><tr><td>`resonate/encoders/`</td><td>Serialization plugins</td></tr><tr><td>`resonate/errors/`</td><td>Error types</td></tr><tr><td>`resonate/loggers/`</td><td>Structured logging</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

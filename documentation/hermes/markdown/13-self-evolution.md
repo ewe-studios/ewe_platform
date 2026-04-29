@@ -10,19 +10,45 @@ hermes-agent-self-evolution is a standalone optimization pipeline that systemati
 
 ## How It Works
 
+```mermaid
+flowchart TD
+    READ[Read current skill/prompt/tool] --> GEN[Generate eval dataset]
+    GEN --> GEPA[GEPA Optimizer]
+    GEPA --> CAND[Candidate variants]
+    CAND --> EVAL[Evaluate with traces]
+    EVAL --> GEPA
+    EVAL --> GATE[Constraint gates]
+    GATE -->|pass| BEST[Best variant → PR]
+    GATE -->|fail| REJECT[Reject variant]
+
+    subgraph "Constraints"
+        TEST[Unit tests pass]
+        SIZE[Size limits respected]
+        BENCH[Benchmarks improved]
+    end
+
+    GATE --> TEST
+    GATE --> SIZE
+    GATE --> BENCH
 ```
-Read current skill/prompt/tool ──► Generate eval dataset
-                                        │
-                                        ▼
-                                   GEPA Optimizer ◄── Execution traces
-                                        │                    ▲
-                                        ▼                    │
-                                   Candidate variants ──► Evaluate
-                                        │
-                                   Constraint gates (tests, size limits, benchmarks)
-                                        │
-                                        ▼
-                                   Best variant ──► PR against hermes-agent
+
+```mermaid
+sequenceDiagram
+    participant Pipeline as Evolution Pipeline
+    participant Agent as hermes-agent codebase
+    participant Traces as Execution traces
+    participant GEPA as GEPA Optimizer
+    participant Eval as Evaluator
+    participant Git as Git PR
+
+    Pipeline->>Agent: Read current skills/prompts
+    Pipeline->>Traces: Collect execution traces
+    Traces->>GEPA: Feed failure traces
+    GEPA->>GEPA: Propose improvements
+    GEPA->>Eval: Evaluate candidates
+    Eval->>GEPA: Score + metrics
+    GEPA->>Pipeline: Pareto-optimal variant
+    Pipeline->>Git: Create PR with changes
 ```
 
 GEPA (Genetic-Pareto Prompt Evolution) reads execution traces to understand *why* things fail -- not just that they failed -- then proposes targeted improvements. ICLR 2026 Oral, MIT licensed. No GPU training required; everything operates via API calls, mutating text and evaluating results.

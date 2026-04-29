@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonate -- Persistence Layer -- resonate</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/resonate/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="05-sdk-rust.html">Resonate -- Rust SDK</a> <a href="06-sdk-python.html">Resonate -- Python SDK</a> <a href="07-transport-system.html">Resonate -- Transport System</a></span> <a href="07-transport-system.html">← Resonate -- Transport System</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Resonate -- Persistence Layer</h1>
+<h2>Overview</h2>
+<p>The persistence layer provides multi-backend storage for all durable state: promises, tasks, schedules, callbacks, listeners, timeouts, and outgoing messages. A trait-based abstraction (<code>Db</code>) defines ~42 methods that each backend implements.</p>
+<h2>Storage Abstraction</h2>
+<div class="mermaid">
+graph TD
+    Server[Server / Oracle] --&gt; Db[Db Trait ~42 methods]
+    Db --&gt; SQLite[SQLite Backend]
+    Db --&gt; PostgreSQL[PostgreSQL Backend]
+    Db --&gt; MySQL[MySQL Backend]
+    
+    SQLite --&gt; |rusqlite| File[Single File]
+    PostgreSQL --&gt; |sqlx| PGPool[Connection Pool]
+    MySQL --&gt; |sqlx| MyPool[Connection Pool]
+
+</div>
+<h3>The Db Trait</h3>
+<pre><code class="language-rust">#[async_trait]
+pub trait Db: Send + Sync {
+    // Health
+    async fn ping(&amp;self) -&gt; Result&lt;()&gt;;
+    
+    // Promise operations
+    async fn promise_get(&amp;self, id: &amp;str) -&gt; Result&lt;Option&lt;PromiseRecord&gt;&gt;;
+    async fn promise_create(&amp;self, ...) -&gt; Result&lt;PromiseCreateResult&gt;;
+    async fn promise_settle(&amp;self, ...) -&gt; Result&lt;PromiseSettleResult&gt;;
+    async fn promise_register_callback(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn promise_register_listener(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn promise_search(&amp;self, ...) -&gt; Result&lt;Vec&lt;PromiseRecord&gt;&gt;;
+    
+    // Task operations
+    async fn task_get(&amp;self, id: &amp;str) -&gt; Result&lt;Option&lt;TaskRecord&gt;&gt;;
+    async fn task_create(&amp;self, ...) -&gt; Result&lt;TaskCreateResult&gt;;
+    async fn task_acquire(&amp;self, ...) -&gt; Result&lt;TaskAcquireResult&gt;;
+    async fn task_suspend(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_fulfill(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_release(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_heartbeat(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_halt(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_continue(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_fence_create(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_fence_settle(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn task_search(&amp;self, ...) -&gt; Result&lt;Vec&lt;TaskRecord&gt;&gt;;
+    async fn task_compute_preload(&amp;self, ...) -&gt; Result&lt;Vec&lt;PromiseRecord&gt;&gt;;
+    
+    // Schedule operations
+    async fn schedule_get(&amp;self, id: &amp;str) -&gt; Result&lt;Option&lt;ScheduleRecord&gt;&gt;;
+    async fn schedule_create(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    async fn schedule_delete(&amp;self, id: &amp;str) -&gt; Result&lt;()&gt;;
+    async fn schedule_search(&amp;self, ...) -&gt; Result&lt;Vec&lt;ScheduleRecord&gt;&gt;;
+    
+    // Timeout operations
+    async fn get_expired_promise_timeouts(&amp;self, now: i64) -&gt; Result&lt;Vec&lt;String&gt;&gt;;
+    async fn get_expired_task_timeouts(&amp;self, now: i64) -&gt; Result&lt;Vec&lt;TaskTimeout&gt;&gt;;
+    async fn get_expired_schedule_timeouts(&amp;self, now: i64) -&gt; Result&lt;Vec&lt;String&gt;&gt;;
+    async fn process_schedule_timeout(&amp;self, ...) -&gt; Result&lt;()&gt;;
+    
+    // Outgoing messages
+    async fn take_outgoing(&amp;self, batch_size: usize) -&gt; Result&lt;(Vec&lt;Execute&gt;, Vec&lt;Unblock&gt;)&gt;;
+    
+    // Debug
+    async fn debug_reset(&amp;self) -&gt; Result&lt;()&gt;;
+    async fn snap(&amp;self) -&gt; Result&lt;Snapshot&gt;;
+}
+</code></pre>
+<h3>Error Types</h3>
+<pre><code class="language-rust">pub enum StorageError {
+    Backend(String),        // Generic database error
+    Serialization,          // Transaction conflict (retryable)
+    InvalidInput(String),   // Constraint violation (400 error)
+}
+</code></pre>
+<h2>SQLite Backend</h2>
+<p>The default backend. Single-file database using rusqlite with WAL mode.</p>
+<h3>Database Schema (12 Tables)</h3>
+<div class="mermaid">
+erDiagram
+    promises {
+        text id PK
+        text state
+        text param_headers
+        blob param_data
+        text value_headers
+        blob value_data
+        text tags
+        integer timeout_at
+        integer created_at
+        integer settled_at
+    }
+    
+    tasks {
+        text id PK
+        text state
+        integer version
+    }
+    
+    callbacks {
+        text awaited_id FK
+        text awaiter_id FK
+        integer ready
+    }
+    
+    listeners {
+        text promise_id FK
+        text address
+    }
+    
+    promise_timeouts {
+        integer timeout_at
+        text id FK
+    }
+    
+    task_timeouts {
+        integer timeout_at
+        text id
+        integer timeout_type
+        text process_id
+        integer ttl
+    }
+    
+    outgoing_execute {
+        text id PK
+        text version
+        text address
+    }
+    
+    outgoing_unblock {
+        text promise_id
+        text address
+    }
+    
+    schedules {
+        text id PK
+        text cron
+        text promise_id
+        integer promise_timeout
+        text promise_param_headers
+        blob promise_param_data
+        text promise_tags
+        integer created_at
+        integer next_run_at
+        integer last_run_at
+    }
+    
+    schedule_timeouts {
+        integer timeout_at
+        text id FK
+    }
+    
+    promises ||--o{ tasks : &quot;id&quot;
+    promises ||--o{ callbacks : &quot;awaited_id&quot;
+    promises ||--o{ callbacks : &quot;awaiter_id&quot;
+    promises ||--o{ listeners : &quot;promise_id&quot;
+    promises ||--o{ promise_timeouts : &quot;id&quot;
+
+</div>
+<h3>SQLite Pragmas</h3>
+<pre><code class="language-sql">PRAGMA journal_mode = WAL;      -- Write-Ahead Logging for concurrency
+PRAGMA busy_timeout = 5000;     -- Wait up to 5s for locks
+PRAGMA foreign_keys = ON;       -- Enforce referential integrity
+PRAGMA synchronous = NORMAL;    -- Balance safety and performance
+</code></pre>
+<h3>Generated Columns (Tags)</h3>
+<p>The <code>promises</code> table uses generated columns for efficient querying:</p>
+<pre><code class="language-sql">CREATE TABLE promises (
+    id TEXT PRIMARY KEY,
+    state TEXT NOT NULL,
+    -- ... data columns ...
+    tags TEXT NOT NULL DEFAULT &#x27;{}&#x27;,
+    
+    -- Generated columns from tags JSON
+    target TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:target&quot;&#x27;)),
+    origin TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:origin&quot;&#x27;)),
+    branch TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:branch&quot;&#x27;)),
+    timer TEXT GENERATED ALWAYS AS (json_extract(tags, &#x27;$.&quot;resonate:timer&quot;&#x27;))
+);
+
+CREATE INDEX idx_promises_target ON promises(target);
+CREATE INDEX idx_promises_timeout ON promises(timeout_at) WHERE state = &#x27;pending&#x27;;
+</code></pre>
+<h3>Concurrency Model</h3>
+<pre><code class="language-rust">pub struct SqliteStorage {
+    conn: Arc&lt;Mutex&lt;Connection&gt;&gt;,
+}
+
+impl SqliteStorage {
+    async fn execute&lt;F, R&gt;(&amp;self, f: F) -&gt; Result&lt;R&gt;
+    where
+        F: FnOnce(&amp;Connection) -&gt; Result&lt;R&gt; + Send + &#x27;static,
+        R: Send + &#x27;static,
+    {
+        let conn = self.conn.clone();
+        tokio::task::block_in_place(|| {
+            let guard = conn.lock().unwrap_or_else(|e| e.into_inner());
+            f(&amp;guard)
+        })
+    }
+}
+</code></pre>
+<p>SQLite runs synchronously within <code>block_in_place()</code> on the tokio threadpool. A single Mutex-wrapped connection provides serialized access. The <code>unwrap_or_else</code> pattern recovers from poisoned mutexes (if a previous operation panicked).</p>
+<h3>Settlement Chain (Atomic)</h3>
+<p>The settlement chain runs as a single SQLite transaction:</p>
+<pre><code class="language-sql">BEGIN;
+
+-- 1. Settle promise
+UPDATE promises SET state = ?, value_headers = ?, value_data = ?, settled_at = ?
+WHERE id = ? AND state = &#x27;pending&#x27;;
+
+-- 2. Delete promise timeout
+DELETE FROM promise_timeouts WHERE id = ?;
+
+-- 3. Fulfill dependent tasks
+UPDATE tasks SET state = &#x27;fulfilled&#x27; WHERE id = ?;
+DELETE FROM task_timeouts WHERE id = ?;
+DELETE FROM callbacks WHERE awaiter_id = ?;
+
+-- 4. Mark callbacks ready and resume
+UPDATE callbacks SET ready = 1 WHERE awaited_id = ?;
+
+-- For each suspended task with ALL callbacks ready:
+-- (No unready callbacks remain)
+UPDATE tasks SET state = &#x27;pending&#x27; WHERE id = ? AND state = &#x27;suspended&#x27;;
+INSERT INTO outgoing_execute (id, version, address) VALUES (?, ?, ?);
+
+-- 5. Notify listeners
+INSERT INTO outgoing_unblock (promise_id, address)
+    SELECT ?, address FROM listeners WHERE promise_id = ?;
+DELETE FROM listeners WHERE promise_id = ?;
+
+COMMIT;
+</code></pre>
+<h2>PostgreSQL Backend</h2>
+<p>Uses <code>sqlx</code> with async connection pooling. Key differences from SQLite:</p>
+<h3>Connection Pool</h3>
+<pre><code class="language-rust">pub struct PostgresStorage {
+    pool: PgPool,
+}
+
+// Configuration
+let pool = PgPoolOptions::new()
+    .max_connections(config.pool_size)  // default: 10
+    .connect(&amp;config.url)
+    .await?;
+</code></pre>
+<h3>CTE-Based Operations</h3>
+<p>PostgreSQL uses Common Table Expressions for atomic multi-step operations:</p>
+<pre><code class="language-sql">WITH settled AS (
+    UPDATE promises SET state = $2, value_headers = $3, value_data = $4, settled_at = $5
+    WHERE id = $1 AND state = &#x27;pending&#x27;
+    RETURNING id
+),
+timeout_deleted AS (
+    DELETE FROM promise_timeouts WHERE id IN (SELECT id FROM settled)
+),
+callbacks_updated AS (
+    UPDATE callbacks SET ready = true WHERE awaited_id IN (SELECT id FROM settled)
+    RETURNING awaiter_id
+),
+tasks_resumed AS (
+    UPDATE tasks SET state = &#x27;pending&#x27;
+    WHERE id IN (
+        SELECT awaiter_id FROM callbacks_updated
+        WHERE NOT EXISTS (
+            SELECT 1 FROM callbacks WHERE awaiter_id = callbacks_updated.awaiter_id AND ready = false
+        )
+    )
+    RETURNING id
+)
+INSERT INTO outgoing_execute (id, version, address)
+SELECT t.id, t.version, p.target
+FROM tasks_resumed tr
+JOIN tasks t ON t.id = tr.id
+JOIN promises p ON p.id = t.id;
+</code></pre>
+<h3>Serialization Conflict Retry</h3>
+<pre><code class="language-rust">const MAX_RETRIES: u32 = 3;
+
+async fn with_retry&lt;F&gt;(&amp;self, f: F) -&gt; Result&lt;T&gt; {
+    for attempt in 0..MAX_RETRIES {
+        match f().await {
+            Ok(v) =&gt; return Ok(v),
+            Err(e) if is_serialization_error(&amp;e) =&gt; {
+                // PostgreSQL error codes: 40001, 40P01
+                tokio::time::sleep(Duration::from_millis(10 * 2u64.pow(attempt))).await;
+                continue;
+            }
+            Err(e) =&gt; return Err(e),
+        }
+    }
+    Err(StorageError::Serialization)
+}
+</code></pre>
+<h2>MySQL Backend</h2>
+<p>Similar to PostgreSQL, uses <code>sqlx</code> with connection pooling. Adapted for MySQL syntax differences:</p>
+<ul><li>No <code>RETURNING</code> clause — uses separate SELECT after INSERT</li><li>Different error codes for serialization conflicts</li><li><code>ON DUPLICATE KEY UPDATE</code> instead of <code>ON CONFLICT</code></li></ul>
+<h2>Timeout Tables</h2>
+<p>Three separate timeout tables enable efficient scanning:</p>
+<h3>Promise Timeouts</h3>
+<pre><code class="language-sql">CREATE TABLE promise_timeouts (
+    timeout_at INTEGER NOT NULL,
+    id TEXT PRIMARY KEY REFERENCES promises(id)
+);
+
+-- Scan: find all expired
+SELECT id FROM promise_timeouts WHERE timeout_at &lt;= ?;
+</code></pre>
+<h3>Task Timeouts</h3>
+<pre><code class="language-sql">CREATE TABLE task_timeouts (
+    timeout_at INTEGER NOT NULL,
+    id TEXT NOT NULL,
+    timeout_type INTEGER NOT NULL,  -- 0 = retry, 1 = lease
+    process_id TEXT,
+    ttl INTEGER NOT NULL,
+    PRIMARY KEY (id)
+);
+
+-- type 0 (retry): task was released, waiting for retry delay
+-- type 1 (lease): task is acquired, lease will expire
+</code></pre>
+<h3>Schedule Timeouts</h3>
+<pre><code class="language-sql">CREATE TABLE schedule_timeouts (
+    timeout_at INTEGER NOT NULL,
+    id TEXT PRIMARY KEY REFERENCES schedules(id)
+);
+
+-- When timeout fires: create new promise from schedule template
+-- Then compute next_run_at and insert new timeout
+</code></pre>
+<h2>Preload Mechanism</h2>
+<p>When a task is acquired, the server returns all resolved promises in the same branch. This enables replay without network round-trips:</p>
+<pre><code class="language-sql">-- Compute preload: all resolved promises sharing the same branch
+SELECT * FROM promises
+WHERE branch = (SELECT branch FROM promises WHERE id = ?)
+  AND state IN (&#x27;resolved&#x27;, &#x27;rejected&#x27;, &#x27;rejected_canceled&#x27;, &#x27;rejected_timedout&#x27;);
+</code></pre>
+<p>The SDK caches these locally so that replayed <code>ctx.run()</code> calls return immediately.</p>
+<h2>Backend Selection</h2>
+<pre><code class="language-toml"># SQLite (default, good for dev and low-medium traffic)
+[storage]
+type = &quot;sqlite&quot;
+[storage.sqlite]
+path = &quot;resonate.db&quot;
+
+# PostgreSQL (recommended for production)
+[storage]
+type = &quot;postgres&quot;
+[storage.postgres]
+url = &quot;postgres://user:pass@localhost:5432/resonate&quot;
+pool_size = 20
+
+# MySQL
+[storage]
+type = &quot;mysql&quot;
+[storage.mysql]
+url = &quot;mysql://user:pass@localhost:3306/resonate&quot;
+pool_size = 20
+</code></pre>
+<h3>Backend Comparison</h3>
+<table><tr><th>Feature</th><th>SQLite</th><th>PostgreSQL</th><th>MySQL</th></tr><tr><td>Setup</td><td>Zero (single file)</td><td>Requires server</td><td>Requires server</td></tr><tr><td>Concurrency</td><td>Single writer</td><td>High (MVCC)</td><td>High (InnoDB)</td></tr><tr><td>Scaling</td><td>Vertical only</td><td>Horizontal (replicas)</td><td>Horizontal (replicas)</td></tr><tr><td>Best for</td><td>Dev, single-node</td><td>Production, multi-node</td><td>Production, multi-node</td></tr><tr><td>Connection model</td><td>Mutex-wrapped</td><td>Pool (async)</td><td>Pool (async)</td></tr><tr><td>Transaction isolation</td><td>Serialized</td><td>Read Committed</td><td>Read Committed</td></tr></table>
+<h2>Source Paths</h2>
+<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`src/persistence/mod.rs`</td><td>Db trait, Storage enum, error types</td></tr><tr><td>`src/persistence/persistence_sqlite.rs`</td><td>SQLite implementation</td></tr><tr><td>`src/persistence/persistence_postgres.rs`</td><td>PostgreSQL implementation</td></tr><tr><td>`src/persistence/persistence_mysql.rs`</td><td>MySQL implementation</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

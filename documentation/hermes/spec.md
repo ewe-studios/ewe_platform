@@ -85,13 +85,21 @@ hermes/
 |---|------|--------|------|
 | 17 | Agent loop deep dive: run_conversation, multi-turn, steer, tool pipeline, recovery | DONE | `15-agent-loop.md` |
 
-### Phase 1d: Model Interop & Memory Expansion
+### Phase 1e: Model Interop & Memory Expansion
 
 | # | Task | Status | File |
 |---|------|--------|------|
 | 18 | Model providers: 30+ providers, transport abstraction, context detection, credential management | DONE | `16-model-providers.md` |
 | 19 | Memory expansion: MemoryManager, 8+ providers, context compression, DAG context, session search | DONE | `17-memory-deep.md` |
 | 20 | Multi-model execution: credential pool, fallback chain, error classification, auxiliary models | DONE | `18-multi-model.md` |
+
+### Phase 1f: Deep Dives (Compression, Async, RL Traces)
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 21 | Context compression: ContextEngine ABC, 4-phase pipeline, boundary alignment, secret redaction, guided compression | DONE | `19-context-compression.md` |
+| 22 | Async Python: sync-first loop, asyncio.to_thread bridging, ThreadPoolExecutor, threading patterns, background ops | DONE | `20-async-python.md` |
+| 23 | RL training traces: ShareGPT format, trajectory compressor, reasoning normalization, GRPO integration, GEPA evolution | DONE | `21-rl-training-traces.md` |
 
 ### Phase 2: HTML Rendering -- COMPLETE
 

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonate -- Observability -- resonate</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/resonate/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="08-persistence.html">Resonate -- Persistence Layer</a> <a href="09-patterns.html">Resonate -- Design Patterns</a> <a href="10-faas-serverless.html">Resonate -- FaaS & Serverless Integrations</a></span> <a href="10-faas-serverless.html">← Resonate -- FaaS & Serverless Integrations</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Resonate -- Observability</h1>
+<h2>Overview</h2>
+<p>Resonate provides observability at three levels: server-side metrics (Prometheus), distributed tracing (OpenTelemetry), and structured logging (tracing crate). Together these give full visibility into workflow execution, task lifecycle, and transport delivery.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+graph TD
+    subgraph Server[&quot;Resonate Server&quot;]
+        Metrics[Prometheus Metrics :9090]
+        Tracing[Structured Logs]
+        API[HTTP API :8001]
+    end
+    
+    subgraph SDK[&quot;SDK (Worker)&quot;]
+        OTel[OpenTelemetry Spans]
+        SDKLogs[Structured Logs]
+    end
+    
+    Metrics --&gt; Prometheus[Prometheus / Grafana]
+    Tracing --&gt; Stdout[stdout / file]
+    OTel --&gt; Collector[OTEL Collector]
+    Collector --&gt; Jaeger[Jaeger / Datadog / Honeycomb]
+    SDKLogs --&gt; Stdout2[stdout]
+
+</div>
+<h2>Server Metrics (Prometheus)</h2>
+<p>The server exposes Prometheus metrics on a dedicated port (default: 9090).</p>
+<h3>Available Metrics</h3>
+<table><tr><th>Metric</th><th>Type</th><th>Labels</th><th>Description</th></tr><tr><td>`resonate_request_total`</td><td>Counter</td><td>`kind`, `status`</td><td>Total API requests by operation and HTTP status</td></tr><tr><td>`resonate_request_duration_seconds`</td><td>Histogram</td><td>`kind`</td><td>Request latency distribution</td></tr><tr><td>`resonate_messages_total`</td><td>Counter</td><td>`kind`</td><td>Messages delivered (execute, unblock)</td></tr><tr><td>`resonate_deliveries_total`</td><td>Counter</td><td>`status`</td><td>Transport delivery outcomes (success/failure)</td></tr><tr><td>`resonate_schedule_promises_total`</td><td>Counter</td><td>—</td><td>Promises created by cron schedules</td></tr></table>
+<h3>Metric Labels</h3>
+<p><strong><code>kind</code></strong> values (operations):</p>
+<ul><li><code>promise.get</code>, <code>promise.create</code>, <code>promise.settle</code></li><li><code>promise.register_callback</code>, <code>promise.register_listener</code>, <code>promise.search</code></li><li><code>task.get</code>, <code>task.create</code>, <code>task.acquire</code>, <code>task.release</code></li><li><code>task.fulfill</code>, <code>task.suspend</code>, <code>task.fence</code>, <code>task.heartbeat</code></li><li><code>task.halt</code>, <code>task.continue</code>, <code>task.search</code></li><li><code>schedule.get</code>, <code>schedule.create</code>, <code>schedule.delete</code>, <code>schedule.search</code></li></ul>
+<p><strong><code>status</code></strong> values: HTTP status codes (200, 201, 400, 401, 403, 404, 409, 500)</p>
+<h3>Configuration</h3>
+<pre><code class="language-toml">[observability]
+metrics_port = 9090          # Prometheus scrape endpoint
+# otlp_endpoint = &quot;http://localhost:4317&quot;  # Future: OTLP export
+</code></pre>
+<h3>Prometheus Scrape Config</h3>
+<pre><code class="language-yaml"># prometheus.yml
+scrape_configs:
+  - job_name: &#x27;resonate&#x27;
+    static_configs:
+      - targets: [&#x27;resonate-server:9090&#x27;]
+    scrape_interval: 15s
+</code></pre>
+<h3>Key Dashboards</h3>
+<p><strong>Request Rate & Latency:</strong></p>
+<pre><code class="language-promql"># Requests per second by operation
+rate(resonate_request_total[5m])
+
+# P99 latency by operation
+histogram_quantile(0.99, rate(resonate_request_duration_seconds_bucket[5m]))
+
+# Error rate
+sum(rate(resonate_request_total{status=~&quot;5..&quot;}[5m])) /
+sum(rate(resonate_request_total[5m]))
+</code></pre>
+<p><strong>Task Lifecycle:</strong></p>
+<pre><code class="language-promql"># Task acquisition rate
+rate(resonate_request_total{kind=&quot;task.acquire&quot;}[5m])
+
+# Suspension rate (indicates remote dependencies)
+rate(resonate_request_total{kind=&quot;task.suspend&quot;}[5m])
+
+# Fulfillment rate (completed work)
+rate(resonate_request_total{kind=&quot;task.fulfill&quot;}[5m])
+</code></pre>
+<p><strong>Transport Health:</strong></p>
+<pre><code class="language-promql"># Message delivery rate
+rate(resonate_messages_total[5m])
+
+# Delivery failures
+rate(resonate_deliveries_total{status=&quot;failure&quot;}[5m])
+</code></pre>
+<h2>OpenTelemetry Integration (SDK)</h2>
+<p><strong>Package:</strong> <code>@resonatehq/opentelemetry</code> (TypeScript)</p>
+<h3>Setup</h3>
+<pre><code class="language-typescript">import { Resonate, type Context } from &quot;@resonatehq/sdk&quot;;
+import { OpenTelemetryTracer } from &quot;@resonatehq/opentelemetry&quot;;
+import { NodeTracerProvider } from &quot;@opentelemetry/sdk-trace-node&quot;;
+import { OTLPTraceExporter } from &quot;@opentelemetry/exporter-trace-otlp-http&quot;;
+
+// Configure OTEL provider
+const provider = new NodeTracerProvider();
+provider.addSpanProcessor(
+    new BatchSpanProcessor(new OTLPTraceExporter({
+        url: &quot;http://localhost:4318/v1/traces&quot;,
+    }))
+);
+provider.register();
+
+// Wire into Resonate
+const resonate = new Resonate({
+    url: &quot;http://localhost:8001&quot;,
+    tracer: new OpenTelemetryTracer(),
+});
+</code></pre>
+<h3>Span Structure</h3>
+<p>Each durable operation creates a span:</p>
+<pre><code class="language-">[Span: processOrder (root)]
+├── [Span: chargeCard (ctx.run)]
+│   └── [Span: HTTP POST /payments (internal)]
+├── [Span: shipItems (ctx.run)]
+│   ├── [Span: checkInventory (ctx.run)]
+│   └── [Span: createShipment (ctx.run)]
+└── [Span: sendConfirmation (ctx.run)]
+</code></pre>
+<h3>Distributed Trace Context</h3>
+<p>When a workflow spans multiple workers (via <code>ctx.rpc()</code>), trace context propagates through the durable promise:</p>
+<div class="mermaid">
+sequenceDiagram
+    participant W1 as Worker A (Trace A)
+    participant S as Server
+    participant W2 as Worker B (Trace A continued)
+
+    W1-&gt;&gt;S: promise.create (trace context in tags)
+    S-&gt;&gt;W2: Execute message
+    W2-&gt;&gt;W2: Extract trace context from promise tags
+    Note over W2: Creates child span linked to Worker A&#x27;s trace
+
+</div>
+<p>The SDK stores W3C trace context (<code>traceparent</code>, <code>tracestate</code>) in promise tags, enabling cross-worker trace correlation.</p>
+<h2>Structured Logging (Server)</h2>
+<p>The server uses the <code>tracing</code> crate with <code>tracing-subscriber</code>:</p>
+<h3>Log Levels</h3>
+<table><tr><th>Level</th><th>Content</th></tr><tr><td>ERROR</td><td>Unrecoverable failures (DB connection lost, invalid config)</td></tr><tr><td>WARN</td><td>Degraded conditions (transport disabled, delivery failed)</td></tr><tr><td>INFO</td><td>Startup, shutdown, configuration summary</td></tr><tr><td>DEBUG</td><td>Individual operations, state transitions</td></tr><tr><td>TRACE</td><td>Wire-level protocol details</td></tr></table>
+<h3>Configuration</h3>
+<pre><code class="language-bash"># Via environment variable
+RUST_LOG=resonate=info,tower_http=debug
+
+# Structured JSON output (for log aggregation)
+RESONATE_LOG_FORMAT=json
+</code></pre>
+<h3>Example Log Output</h3>
+<pre><code class="language-">2026-04-02T05:05:32.480Z INFO  resonate: Server listening on 0.0.0.0:8001
+2026-04-02T05:05:32.481Z INFO  resonate: Using SQLite backend: resonate.db
+2026-04-02T05:05:32.492Z INFO  resonate: Metrics server listening on 0.0.0.0:9090
+2026-04-02T05:05:33.100Z DEBUG resonate: promise.create id=&quot;order.123&quot; timeout=86400000
+2026-04-02T05:05:33.105Z DEBUG resonate: task.create id=&quot;order.123&quot; address=&quot;poll://any@workers&quot;
+2026-04-02T05:05:33.110Z DEBUG resonate: outgoing execute id=&quot;order.123&quot; version=1
+</code></pre>
+<h2>Monitoring Patterns</h2>
+<h3>Workflow Health Dashboard</h3>
+<p>Key signals to monitor:</p>
+<table><tr><th>Signal</th><th>Healthy</th><th>Degraded</th><th>Critical</th></tr><tr><td>Task acquire rate</td><td>Stable</td><td>Dropping</td><td>Zero</td></tr><tr><td>Task fulfill rate</td><td>Matches acquire rate</td><td>Lagging</td><td>Zero</td></tr><tr><td>Suspension ratio</td><td><20% of acquires</td><td>20-50%</td><td>>50% (dependency bottleneck)</td></tr><tr><td>Error rate (5xx)</td><td><0.1%</td><td>0.1-1%</td><td>>1%</td></tr><tr><td>Delivery failures</td><td>0</td><td>Intermittent</td><td>Sustained</td></tr><tr><td>Promise timeout rate</td><td><1%</td><td>1-5%</td><td>>5% (work not completing)</td></tr></table>
+<h3>Alerting Rules</h3>
+<pre><code class="language-yaml"># Prometheus alerting rules
+groups:
+  - name: resonate
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(resonate_request_total{status=~&quot;5..&quot;}[5m])) / sum(rate(resonate_request_total[5m])) &gt; 0.01
+        for: 5m
+
+      - alert: DeliveryFailures
+        expr: rate(resonate_deliveries_total{status=&quot;failure&quot;}[5m]) &gt; 0
+        for: 2m
+
+      - alert: TaskStarvation
+        expr: rate(resonate_request_total{kind=&quot;task.acquire&quot;}[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+</code></pre>
+<h2>CLI Observability</h2>
+<p>The <code>resonate tree</code> command provides point-in-time workflow visibility:</p>
+<pre><code class="language-bash">$ resonate tree order.123
+order.123 ✅ resolved (2.3s)
+├── order.123.0 (charge_card) ✅ resolved (0.8s)
+├── order.123.1 (ship_items) ✅ resolved (1.2s)
+│   ├── order.123.1.0 (check_inventory) ✅ resolved (0.2s)
+│   └── order.123.1.1 (create_shipment) ✅ resolved (0.9s)
+└── order.123.2 (send_confirmation) ✅ resolved (0.3s)
+</code></pre>
+
+<pre><code class="language-bash">$ resonate promises search --id &quot;order.*&quot; --state pending
+ID                STATE    CREATED_AT           TIMEOUT_AT
+order.456         pending  2026-04-02 10:30:00  2026-04-03 10:30:00
+order.789         pending  2026-04-02 10:31:00  2026-04-03 10:31:00
+order.789.1       pending  2026-04-02 10:31:05  2026-04-03 10:31:05
+</code></pre>
+<h2>Telemetry Package</h2>
+<p><strong>Source:</strong> <code>resonate-telemetry/</code></p>
+<p>A Rust library for collecting and forwarding telemetry data from the server to external systems. Designed for future OTLP export of server-side spans.</p>
+<h2>Source Paths</h2>
+<table><tr><th>Component</th><th>Path</th></tr><tr><td>Server metrics</td><td>`resonate/src/metrics.rs`</td></tr><tr><td>Server logging</td><td>Uses `tracing` crate throughout</td></tr><tr><td>OpenTelemetry SDK</td><td>`resonate-opentelemetry-ts/`</td></tr><tr><td>Telemetry library</td><td>`resonate-telemetry/`</td></tr><tr><td>Server deployment metrics</td><td>`resonate-skills/resonate-server-deployment/SKILL.md`</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

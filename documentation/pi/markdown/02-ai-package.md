@@ -8,6 +8,48 @@
 
 LLM provider APIs differ in message format, streaming protocol, tool calling schema, and authentication. pi-ai absorbs all of that. The rest of Pi writes against one API and gets every provider for free.
 
+## Provider Abstraction Layer
+
+```mermaid
+flowchart TD
+    subgraph "Pi packages (consumers)"
+        CORE[pi-agent-core]
+        CODING[pi-coding-agent]
+        MOM[pi-mom]
+        WEBUI[pi-web-ui]
+    end
+
+    subgraph "pi-ai unified API"
+        COMPLETE[completeText / completeStream]
+        TOOLS[Tool calling interface]
+        THINKING[Thinking/reasoning blocks]
+        TOKENS[Token/cost tracking]
+    end
+
+    subgraph "Provider adapters"
+        ANTHROPIC[AnthropicAdapter<br/>message format, SSE stream]
+        OPENAI[OpenAIAdapter<br/>native SSE, tool schema]
+        GOOGLE[GoogleAdapter<br/>content parts, function calls]
+        BEDROCK[BedrockAdapter<br/>AWS SDK, converse API]
+        OTHER[16+ other adapters]
+    end
+
+    CORE --> COMPLETE
+    CODING --> COMPLETE
+    MOM --> COMPLETE
+    WEBUI --> COMPLETE
+
+    COMPLETE --> TOOLS
+    COMPLETE --> THINKING
+    COMPLETE --> TOKENS
+
+    COMPLETE --> ANTHROPIC
+    COMPLETE --> OPENAI
+    COMPLETE --> GOOGLE
+    COMPLETE --> BEDROCK
+    COMPLETE --> OTHER
+```
+
 ## Supported Providers
 
 | Provider | Module | Auth |

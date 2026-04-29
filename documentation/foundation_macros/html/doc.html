@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>foundation_macros - Documentation -- foundation_macros</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/foundation_macros/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>foundation_macros - Documentation</h1>
+<h2>Overview</h2>
+<p><code>foundation_macros</code> is a procedural macro crate that provides compile-time code generation for embedding files and directories into Rust binaries. It generates implementations of the embeddable traits from <code>foundation_nostd</code>, including automatic compression (gzip/brotli), hashing (SHA-256), ETag generation, MIME type detection, and timestamp extraction.</p>
+<h2>Purpose and Responsibility</h2>
+<p>This crate serves as the compile-time asset embedding system for the ewe-platform, providing:</p>
+<ul><li>Derive macros for embedding single files (<code>EmbedFileAs</code>)</li><li>Derive macros for embedding entire directories (<code>EmbedDirectoryAs</code>)</li><li>Automatic file compression (gzip or brotli)</li><li>Compile-time hash generation (SHA-256)</li><li>Automatic ETag generation (base85-encoded hash)</li><li>MIME type detection based on file extensions</li><li>Last-modified timestamp extraction</li><li>Support for placeholder variables ($ROOT_CRATE, $CURRENT_CRATE, $CRATE)</li><li>UTF-8 and optional UTF-16 encoding support</li><li>Binary and text file support</li></ul>
+<h2>Module Location</h2>
+<ul><li><strong>Path</strong>: <code>backends/foundation_macros/</code></li><li><strong>Entry Point</strong>: <code>src/lib.rs</code></li><li><strong>Language</strong>: Rust 2021 edition (proc-macro crate)</li><li><strong>Package Manager</strong>: Cargo</li><li><strong>Version</strong>: 0.0.4</li></ul>
+<h2>What It Implements</h2>
+<h3>Core Macros</h3>
+<h4>1. <strong>EmbedFileAs</strong> (Lines 50-108 in lib.rs)</h4>
+<ul><li><strong>What</strong>: Procedural derive macro for embedding a single file</li><li><strong>Why</strong>: Allows compile-time inclusion of assets with metadata</li><li><strong>How</strong>: Reads file at compile-time, generates const arrays and impl blocks</li><li><strong>Attributes</strong>:</li><li><code>#[source = "path"]</code>: File path to embed (required)</li><li><code>#[gzip_compression]</code>: Apply gzip compression</li><li><code>#[brottli_compression]</code>: Apply brotli compression</li><li><code>#[with_utf16]</code>: Generate UTF-16 encoded version</li><li><code>#[is_binary]</code>: Mark file as binary (no UTF-16 generation)</li><li><strong>Placeholders</strong>:</li><li><code>$ROOT_CRATE</code>: Workspace root directory</li><li><code>$CURRENT_CRATE</code>: Current crate directory</li><li><code>$CRATE</code>: Alias for $CURRENT_CRATE</li><li><strong>Generated Code</strong>:</li><li>Static <code>&[u8]</code> arrays for UTF-8 and UTF-16 data</li><li>Implements <code>EmbeddableFile</code> trait from foundation_nostd</li><li>Implements <code>FileData</code> and <code>HasCompression</code> traits</li><li>Static <code>FileInfo</code> with metadata</li><li><strong>Example</strong>:</li></ul>
+<p>  ``<code>rust   #[derive(EmbedFileAs)]   #[source = "$ROOT_CRATE/runtime/js/host.js"]   #[gzip_compression]   pub struct JSHostRuntime;   </code>``</p>
+<h4>2. <strong>EmbedDirectoryAs</strong> (Lines 41-76 in lib.rs)</h4>
+<ul><li><strong>What</strong>: Procedural derive macro for embedding an entire directory</li><li><strong>Why</strong>: Allows batch embedding of multiple files with unified access</li><li><strong>How</strong>: Recursively reads directory, generates array of file data and metadata</li><li><strong>Attributes</strong>:</li><li><code>#[source = "path"]</code>: Directory path to embed (required)</li><li><code>#[gzip_compression]</code>: Apply gzip to all files</li><li><code>#[brottli_compression]</code>: Apply brotli to all files</li><li><code>#[with_utf16]</code>: Generate UTF-16 for all text files</li><li><strong>Placeholders</strong>: Same as EmbedFileAs</li><li><strong>Generated Code</strong>:</li><li>Static arrays of <code>FileInfo</code> metadata</li><li>Static arrays of file data tuples</li><li>Implements <code>EmbeddableDirectory</code> trait</li><li>Implements <code>DirectoryData</code> and <code>HasCompression</code> traits</li><li>Methods: <code>info_for()</code>, <code>info_under_directory()</code>, <code>request_utf8()</code>, <code>request_utf16()</code></li><li><strong>Example</strong>:</li></ul>
+<p>  ``<code>rust   #[derive(EmbedDirectoryAs)]   #[source = "$ROOT_CRATE/runtime/css"]   #[brottli_compression]   pub struct CSSAssets;   </code>``</p>
+<h3>Core Module</h3>
+<h4><strong>embedders</strong> (Line 3 in lib.rs)</h4>
+<ul><li><strong>What</strong>: Implementation module for the proc macros</li><li><strong>Why</strong>: Separates macro entry points from implementation logic</li><li><strong>How</strong>: Parsing, file I/O, compression, hashing, code generation</li><li><strong>Key Functions</strong>:</li><li><code>embed_directory_on_struct()</code>: Implementation for EmbedDirectoryAs</li><li><code>embed_file_on_struct()</code>: Implementation for EmbedFileAs</li><li><code>has_attr()</code>: Check for attribute presence</li><li><code>get_attr()</code>: Extract attribute value</li><li><code>find_root_cargo()</code>: Locate workspace root</li><li><code>get_target_source_path()</code>: Resolve path placeholders</li><li><code>impl_embeddable_directory()</code>: Generate directory embedding code</li><li><code>impl_embeddable_file()</code>: Generate file embedding code</li><li><strong>Key Error Types</strong>:</li><li><code>GenError::UnableToGetModifiedDate</code></li><li><code>GenError::UnableToGetMimeType</code></li><li><code>GenError::Any(Box<dyn error::Error>)</code></li></ul>
+<h2>What It Imports</h2>
+<h3>Workspace Dependencies</h3>
+<ul><li><strong>foundation_nostd</strong> (workspace): Uses embeddable types for code generation</li></ul>
+<h3>External Dependencies (Proc Macro Tools)</h3>
+<ul><li><strong>syn</strong> (≥2.0): Parse Rust code and derive input</li><li><strong>quote</strong> (≥1.0): Generate Rust code as token streams</li><li><strong>proc-macro2</strong> (≥1.0): TokenStream manipulation</li><li><strong>proc-macro-crate</strong> (v3.3.0): Resolve crate names in proc macros</li></ul>
+<h3>External Dependencies (Asset Processing)</h3>
+<ul><li><strong>brotli</strong> (v8.0.2): Brotli compression algorithm</li><li><strong>flate2</strong> (v1.1.5): Gzip/zlib compression</li><li><strong>sha2</strong> (v0.10.8): SHA-256 hashing</li><li><strong>base85rs</strong> (v0.1): Base85 encoding for ETags</li><li><strong>chrono</strong> (v0.4): Timestamp handling (std features)</li><li><strong>new_mime_guess</strong> (v4.0): MIME type detection from file extensions</li></ul>
+<h2>Public API</h2>
+<h3>Derive Macros</h3>
+<ul><li><strong><code>#[derive(EmbedFileAs)]</code></strong>: Embed a single file with attributes</li><li><strong><code>#[derive(EmbedDirectoryAs)]</code></strong>: Embed a directory recursively</li></ul>
+<h3>Supported Attributes</h3>
+<ul><li><strong><code>source</code></strong>: Required - file or directory path</li><li><strong><code>gzip_compression</code></strong>: Optional - apply gzip compression</li><li><strong><code>brottli_compression</code></strong>: Optional - apply brotli compression</li><li><strong><code>with_utf16</code></strong>: Optional - generate UTF-16 encoding</li><li><strong><code>is_binary</code></strong>: Optional - mark as binary file (file only)</li></ul>
+<h3>Path Placeholders</h3>
+<ul><li><strong><code>$ROOT_CRATE</code></strong>: Replaced with workspace root directory path</li><li><strong><code>$CURRENT_CRATE</code></strong>: Replaced with current crate directory path</li><li><strong><code>$CRATE</code></strong>: Alias for <code>$CURRENT_CRATE</code></li></ul>
+<h3>Generated Trait Implementations</h3>
+<ul><li><strong><code>HasCompression</code></strong>: Returns compression type used</li><li><strong><code>FileData</code></strong>: Provides <code>read_utf8()</code> and <code>read_utf16()</code> methods</li><li><strong><code>EmbeddableFile</code></strong>: Provides <code>info()</code> method returning <code>&FileInfo</code></li><li><strong><code>DirectoryData</code></strong>: Provides file access by index or path</li><li><strong><code>EmbeddableDirectory</code></strong>: Provides directory iteration and lookup</li></ul>
+<h2>Feature Flags</h2>
+<p>This crate has no feature flags - it provides a fixed proc macro interface.</p>
+<h2>Architecture</h2>
+<h3>Design Patterns Used</h3>
+<ul><li><strong>Procedural Macro Pattern</strong>: Compile-time code generation</li><li><strong>Builder Pattern</strong>: Accumulate file metadata before generation</li><li><strong>Factory Pattern</strong>: Create trait implementations from file data</li><li><strong>Template Method</strong>: Fixed generation algorithm with pluggable compression</li><li><strong>Strategy Pattern</strong>: Different compression algorithms (gzip, brotli, none)</li></ul>
+<h3>Module Structure</h3>
+<pre><code class="language-">foundation_macros/
+├── src/
+│   ├── lib.rs                    # Public macro definitions (109 lines)
+│   │   ├── #[proc_macro_derive(EmbedDirectoryAs, ...)]
+│   │   ├── embed_directory_as() entry point
+│   │   ├── #[proc_macro_derive(EmbedFileAs, ...)]
+│   │   └── embed_file_as() entry point
+│   └── embedders.rs              # Implementation (large file)
+│       ├── GenError enum
+│       ├── embed_directory_on_struct()
+│       ├── embed_file_on_struct()
+│       ├── has_attr() - attribute checking
+│       ├── get_attr() - attribute extraction
+│       ├── find_root_cargo() - workspace root discovery
+│       ├── get_target_source_path() - placeholder resolution
+│       ├── impl_embeddable_directory() - directory code gen
+│       ├── impl_embeddable_file() - file code gen
+│       ├── File I/O operations
+│       ├── Compression logic (gzip, brotli)
+│       ├── SHA-256 hashing
+│       ├── Base85 encoding
+│       ├── MIME type detection
+│       └── TokenStream generation with quote!
+└── Cargo.toml
+</code></pre>
+<h2>Key Implementation Details</h2>
+<h3>Compilation Process</h3>
+<ol><li><strong>Macro Invocation</strong>: User adds <code>#[derive(EmbedFileAs)]</code> to struct</li><li><strong>Parsing</strong>: syn parses the derive input and attributes</li><li><strong>Path Resolution</strong>: Resolve placeholders ($ROOT_CRATE, etc.)</li><li><strong>File I/O</strong>: Read file contents at compile-time</li><li><strong>Compression</strong>: Optionally compress with gzip or brotli</li><li><strong>Hashing</strong>: Compute SHA-256 hash</li><li><strong>ETag Generation</strong>: Encode hash with base85</li><li><strong>MIME Detection</strong>: Guess MIME type from file extension</li><li><strong>Timestamp Extraction</strong>: Get last-modified time</li><li><strong>Code Generation</strong>: Generate const arrays and trait impls with quote!</li><li><strong>Token Stream</strong>: Return generated code to compiler</li></ol>
+<h3>Compression Strategy</h3>
+<ul><li><strong>None</strong>: Data stored as-is in static arrays</li><li><strong>Gzip</strong>: Uses flate2 with default compression level</li><li><strong>Brotli</strong>: Uses brotli with default compression level</li><li><strong>Mutual Exclusion</strong>: Cannot use both gzip and brotli (enforced with assert!)</li><li><strong>Decompression</strong>: Consumer must decompress at runtime</li></ul>
+<h3>Path Resolution Algorithm</h3>
+<ol><li>Check for <code>$CURRENT_CRATE</code> or <code>$CRATE</code> in path</li><li>Replace with <code>CARGO_MANIFEST_DIR</code> environment variable</li><li>Check for <code>$ROOT_CRATE</code> in path</li><li>Traverse up directory tree to find workspace root (Cargo.toml without parent Cargo.toml)</li><li>Replace with workspace root path</li><li>Handle both <code>Cargo.toml</code> and <code>cargo.toml</code> (case-insensitive)</li></ol>
+<h3>Metadata Extraction</h3>
+<ul><li><strong>File Name</strong>: Extract from path</li><li><strong>File Path</strong>: Absolute and relative-to-parent variants</li><li><strong>Package Directory</strong>: Crate directory</li><li><strong>Hash</strong>: SHA-256 digest of file contents (hex-encoded)</li><li><strong>ETag</strong>: Base85-encoded hash for HTTP caching</li><li><strong>MIME Type</strong>: Detected via new_mime_guess crate</li><li><strong>Last Modified</strong>: System time since Unix epoch</li><li><strong>Is Directory</strong>: Boolean flag</li></ul>
+<h3>Performance Considerations</h3>
+<ul><li><strong>Compile-Time Work</strong>: All processing done at compile-time</li><li><strong>Runtime Zero-Cost</strong>: Embedded data is static, no runtime overhead</li><li><strong>Compression Trade-off</strong>: Smaller binary vs runtime decompression cost</li><li><strong>Base85 Encoding</strong>: Compact ETag representation</li></ul>
+<h3>Security Considerations</h3>
+<ul><li><strong>Compile-Time Safety</strong>: No runtime file access</li><li><strong>Hash Verification</strong>: SHA-256 ensures data integrity</li><li><strong>Path Validation</strong>: Validates paths exist at compile-time</li><li><strong>No Arbitrary Code</strong>: Only generates safe trait implementations</li></ul>
+<h3>Code Generation Details</h3>
+<p>The generated code includes:</p>
+<ul><li>Static byte arrays with <code>&'static [u8]</code> type</li><li>Optional UTF-16 byte arrays for text files</li><li>FileInfo struct with all metadata</li><li>Trait implementations (HasCompression, FileData, EmbeddableFile/Directory)</li><li>Efficient data structures (arrays, not collections)</li></ul>
+<h2>Dependencies and Relationships</h2>
+<h3>Depends On</h3>
+<ul><li><strong>foundation_nostd</strong> (workspace): Defines embeddable traits</li><li><strong>syn, quote, proc-macro2</strong>: Proc macro infrastructure</li><li><strong>brotli, flate2</strong>: Compression algorithms</li><li><strong>sha2, base85rs</strong>: Hashing and encoding</li><li><strong>chrono</strong>: Timestamp handling</li><li><strong>new_mime_guess</strong>: MIME type detection</li></ul>
+<h3>Used By</h3>
+<ul><li><strong>foundation_wasm</strong>: Uses macros to embed JS runtime files</li><li><strong>foundation_runtimes</strong>: Uses macros extensively for runtime assets</li><li><strong>Any crate needing embedded assets</strong>: Public API for asset embedding</li></ul>
+<h3>Sibling Modules</h3>
+<ul><li><strong>foundation_nostd</strong>: Defines traits that this crate implements</li><li><strong>foundation_core</strong>: Higher-level framework built on this foundation</li><li><strong>foundation_wasm</strong>: Uses embedded files for WASM/JS runtime</li></ul>
+<h2>Configuration</h2>
+<h3>Feature Flags</h3>
+<p>None - proc macros provide a fixed interface.</p>
+<h3>Environment Variables</h3>
+<ul><li><strong><code>CARGO_MANIFEST_DIR</code></strong>: Used to resolve <code>$CURRENT_CRATE</code> placeholder</li><li>Workspace root discovered by traversing filesystem</li></ul>
+<h3>Build Configuration</h3>
+<ul><li><strong>proc-macro = true</strong>: Required in Cargo.toml for proc macro crates</li><li><strong>Edition</strong>: Rust 2021</li></ul>
+<h2>Known Issues and Limitations</h2>
+<h3>Current Limitations</h3>
+<ol><li><strong>Compile-Time Overhead</strong>: Large files/directories slow compilation</li><li><strong>Binary Size</strong>: Embedded data increases binary size</li><li><strong>No Hot Reloading</strong>: Changes require recompilation</li><li><strong>No Lazy Loading</strong>: All data embedded in binary</li><li><strong>Compression Choice</strong>: Cannot choose compression level</li><li><strong>No Filtering</strong>: Cannot exclude files from directory embedding</li><li><strong>Case-Sensitive Paths</strong>: Placeholder matching is case-sensitive</li><li><strong>No Streaming</strong>: Entire file loaded into memory at compile-time</li></ol>
+<h3>Technical Debt</h3>
+<ul><li><strong>Limited Error Messages</strong>: Panics with basic messages</li><li><strong>No Path Normalization</strong>: Relies on OS path handling</li><li><strong>Hardcoded Placeholders</strong>: Fixed set of placeholder strings</li><li><strong>No Conditional Embedding</strong>: Cannot conditionally embed based on features</li></ul>
+<h3>Known Issues</h3>
+<ul><li><strong>find_root_cargo()</strong>: Recursive directory traversal may be slow on deep hierarchies</li><li><strong>Panic on Missing Files</strong>: No graceful error handling, just panics</li><li><strong>No Validation</strong>: Does not validate file types before processing</li><li><strong>UTF-16 for Binary</strong>: Attempting UTF-16 on binary files wastes space</li></ul>
+<h2>Future Improvements</h2>
+<h3>Planned Enhancements</h3>
+<ul><li><strong>Compression Level Control</strong>: Attribute to specify compression level</li><li><strong>File Filtering</strong>: Glob patterns to include/exclude files</li><li><strong>Better Error Messages</strong>: Detailed error reporting with file context</li><li><strong>Lazy Embedding</strong>: Conditional embedding based on features</li><li><strong>Directory Options</strong>: Recursive depth control, symlink handling</li><li><strong>Custom Hashing</strong>: Support for other hash algorithms</li><li><strong>Incremental Compilation</strong>: Better caching for faster rebuilds</li></ul>
+<h3>Refactoring Opportunities</h3>
+<ul><li><strong>Error Handling</strong>: Replace panics with proper error types</li><li><strong>Path Normalization</strong>: Canonical path handling</li><li><strong>Modular Generation</strong>: Split code generation into smaller functions</li><li><strong>Test Coverage</strong>: Add integration tests for macros</li><li><strong>Documentation</strong>: More examples in doc comments</li></ul>
+<h2>Testing</h2>
+<h3>Test Strategy</h3>
+<ul><li><strong>No Direct Tests</strong>: Proc macro crates are hard to test directly</li><li><strong>Integration Testing</strong>: Tested via dependent crates (foundation_wasm, runtimes)</li><li><strong>Manual Testing</strong>: Verify generated code in expansion</li></ul>
+<h3>Testing Challenges</h3>
+<ul><li>Proc macros require special test infrastructure</li><li>Generated code must be inspected manually</li><li>Compilation failures are the primary feedback mechanism</li></ul>
+<h2>Related Documentation</h2>
+<h3>Specifications</h3>
+<ul><li>No specific specifications currently documented</li><li>Macro behavior documented in doc comments</li></ul>
+<h3>External Resources</h3>
+<ul><li><a href="https://doc.rust-lang.org/reference/procedural-macros.html">The Rust Procedural Macro Book</a></li><li><a href="https://docs.rs/syn/">syn documentation</a></li><li><a href="https://docs.rs/quote/">quote documentation</a></li><li><a href="https://github.com/google/brotli">Brotli Compression</a></li><li><a href="https://www.gnu.org/software/gzip/">Gzip Format</a></li></ul>
+<h3>Related Modules</h3>
+<ul><li><code>documentation/foundation_nostd/doc.md</code> - Defines embeddable traits</li><li><code>documentation/foundation_wasm/doc.md</code> - Uses these macros</li><li><code>documentation/runtimes/doc.md</code> - Heavy user of these macros</li></ul>
+<h2>Version History</h2>
+<h3>[0.0.4] - Current</h3>
+<ul><li>EmbedFileAs and EmbedDirectoryAs derive macros</li><li>Compression support (gzip, brotli)</li><li>SHA-256 hashing and base85 ETags</li><li>MIME type detection</li><li>Placeholder support ($ROOT_CRATE, $CURRENT_CRATE, $CRATE)</li><li>UTF-8 and UTF-16 encoding support</li><li>Binary file support</li></ul>
+<hr>
+<p><em>Last Updated: 2026-01-14</em> <em>Documentation Version: 1.0</em></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

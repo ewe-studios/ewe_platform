@@ -109,6 +109,12 @@ pi/
 | 25 | Memory expansion: deep dive into memory types, context management, compaction | DONE | `15-memory-deep.md` |
 | 26 | Multi-model execution: background work, parallel model calls, model routing | DONE | `16-multi-model.md` |
 
+### Phase 7: Context Compression Deep Dive
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 27 | Context compression: token-budget model, findCutPoint backward walk, split turn parallel summarization, FileOperations tracking, extension hook | DONE | `17-context-compression.md` |
+
 ## Build System
 
 **Script:** `documentation/build.py` (shared with Hermes)

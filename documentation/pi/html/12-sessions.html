@@ -39,6 +39,84 @@
       }
       await render();
       new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
     })();
   </script>
 </head>
@@ -58,6 +136,23 @@
 <hr>
 <h2>Pi Session Architecture</h2>
 <h3>Session File Format: JSONL with Tree Structure</h3>
+<div class="mermaid">
+flowchart TD
+    HDR[&quot;session v3&lt;br/&gt;workingDirectory: /path&quot;] --&gt; MSG1[&quot;message (user)&lt;br/&gt;id: a1b2c3d4&quot;]
+    MSG1 --&gt; MSG2[&quot;message (assistant)&lt;br/&gt;id: e5f6g7h8&lt;br/&gt;usage: {...}&quot;]
+    MSG2 --&gt; MC[&quot;model_change&lt;br/&gt;id: i9j0k1l2&lt;br/&gt;model: claude-sonnet-4-6&quot;]
+    MC --&gt; COMP[&quot;compaction&lt;br/&gt;id: m3n4o5p6&lt;br/&gt;summary: {...}&quot;]
+    COMP --&gt; MSG3[&quot;message (user)&lt;br/&gt;id: q7r8s9t0&quot;]
+    MSG3 --&gt; MSG4[&quot;message (assistant)&lt;br/&gt;id: u1v2w3x4&quot;]
+
+    MSG2 -.-&gt; BRANCH[&quot;branch_summary&lt;br/&gt;fork to branch-xyz&quot;]
+    BRANCH --&gt; BMSG1[&quot;message (user) on branch&lt;br/&gt;id: y5z6a7b8&quot;]
+    BMSG1 --&gt; BMSG2[&quot;message (assistant)&lt;br/&gt;id: c9d0e1f2&quot;]
+
+    style COMP fill:#f9d
+    style BRANCH fill:#dfd
+
+</div>
 <p>Pi stores sessions as JSONL files in <code>~/.pi/sessions/</code>. Each line is a JSON object representing a single entry:</p>
 <pre><code class="language-jsonl">{&quot;type&quot;:&quot;session&quot;,&quot;version&quot;:3,&quot;workingDirectory&quot;:&quot;/path/to/project&quot;}
 {&quot;type&quot;:&quot;message&quot;,&quot;id&quot;:&quot;a1b2c3d4&quot;,&quot;parentId&quot;:null,&quot;message&quot;:{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;...&quot;,&quot;timestamp&quot;:1712345678000}}
@@ -159,6 +254,32 @@ if (isContextOverflow(model, messages)) {
 <hr>
 <h2>Hermes Session Architecture</h2>
 <h3>SQLite Database with FTS5 Search</h3>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;SQLite Database (sessions.db)&quot;
+        SESSIONS[&quot;sessions table&lt;br/&gt;id, model, cost, tokens, parent_session_id&quot;]
+        MESSAGES[&quot;messages table&lt;br/&gt;session_id, role, content, tool_calls, usage&quot;]
+        FTS5[&quot;FTS5 virtual table&lt;br/&gt;Full-text search across all content&quot;]
+
+        SESSIONS --&gt;|1:N| MESSAGES
+        SESSIONS --&gt;|1:N| SESSIONS2[&quot;parent_session_id chain&quot;]
+        MESSAGES --&gt; FTS5
+    end
+
+    subgraph &quot;Hermes SessionManager&quot;
+        SM[&quot;SQLiteSessionManager&quot;]
+        SM --&gt; CREATE[create_session]
+        SM --&gt; APPEND[add_message]
+        SM --&gt; COMPACT[compress_session]
+        SM --&gt; CHAIN[chain_sessions&lt;br/&gt;parent_session_id rotation]
+        SM --&gt; SEARCH[search_messages&lt;br/&gt;via FTS5]
+    end
+
+    SM --&gt; SESSIONS
+    SM --&gt; MESSAGES
+    SM --&gt; FTS5
+
+</div>
 <p>Hermes uses a SQLite database (<code>~/.hermes/sessions.db</code>) instead of per-session files. The schema has three core tables:</p>
 <pre><code class="language-sql">CREATE TABLE sessions (
     id TEXT PRIMARY KEY,

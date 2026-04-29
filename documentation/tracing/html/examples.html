@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracing Examples - EWE Platform -- tracing</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/tracing/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="README.html">Tracing Documentation - EWE Platform</a> <a href="beyond-logging.html">Tracing in Rust - Beyond Logging</a></span> <a href="beyond-logging.html">← Tracing in Rust - Beyond Logging</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Tracing Examples - EWE Platform</h1>
+<p>Practical examples of using <code>tracing</code> in real-world scenarios within the EWE Platform codebase.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol><li><a href="#basic-examples">Basic Examples</a></li><li><a href="#async-examples">Async Examples</a></li><li><a href="#error-handling">Error Handling</a></li><li><a href="#httpwebsocket-examples">HTTP/WebSocket Examples</a></li><li><a href="#database-examples">Database Examples</a></li><li><a href="#testing-examples">Testing Examples</a></li></ol>
+<hr>
+<h2>Basic Examples</h2>
+<h3>Simple Function Instrumentation</h3>
+<pre><code class="language-rust">use tracing::{info, instrument, debug};
+
+/// Basic instrumentation - automatic span creation
+#[instrument]
+fn process_data(input: &amp;str) -&gt; String {
+    info!(&quot;Processing data&quot;);
+    format!(&quot;Processed: {}&quot;, input)
+}
+
+// Usage
+let result = process_data(&quot;hello&quot;);
+// Output shows:
+// NEW process_data
+// Processing data
+// CLOSE process_data
+</code></pre>
+<h3>Custom Span Fields</h3>
+<pre><code class="language-rust">use tracing::{instrument, Level, info};
+use tracing::field::{debug, display};
+
+#[instrument(
+    name = &quot;user_operation&quot;,
+    level = Level::INFO,
+    fields(
+        user_id = %user.id,
+        username = %user.name,
+        operation = &quot;create&quot;
+    )
+)]
+fn create_user(user: &amp;User) -&gt; Result&lt;UserId&gt; {
+    info!(&quot;Creating user&quot;);
+    // user_id and username automatically included in all child spans
+    Ok(UserId::new())
+}
+</code></pre>
+<h3>Conditional Logging</h3>
+<pre><code class="language-rust">use tracing::{debug, info, enabled, Level};
+
+fn expensive_operation(data: &amp;[u8]) {
+    // Only format debug info if debug level is enabled
+    if enabled!(Level::DEBUG) {
+        debug!(data_len = data.len(), first_byte = data[0], &quot;Processing data&quot;);
+    }
+
+    info!(&quot;Operation complete&quot;);
+}
+</code></pre>
+<hr>
+<h2>Async Examples</h2>
+<h3>Async Function Instrumentation</h3>
+<pre><code class="language-rust">use tracing::{instrument, info};
+
+#[instrument]
+async fn fetch_user_data(user_id: u64) -&gt; Result&lt;UserData&gt; {
+    info!(&quot;Fetching user data&quot;);
+
+    // Simulate async operation
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    Ok(UserData { id: user_id })
+}
+</code></pre>
+<h3>Spawning Tasks with Context</h3>
+<pre><code class="language-rust">use tracing::{info, Instrument, info_span};
+use tokio::task;
+
+#[instrument]
+async fn handle_request(request: Request) {
+    let request_id = generate_id();
+
+    // Spawn background task with span context
+    let span = info_span!(&quot;background_task&quot;, %request_id);
+
+    task::spawn(
+        async move {
+            info!(&quot;Processing in background&quot;);
+            process_background(request).await;
+        }
+        .instrument(span)
+    );
+
+    info!(&quot;Request handled, background task spawned&quot;);
+}
+</code></pre>
+<h3>Parallel Processing with Spans</h3>
+<pre><code class="language-rust">use tracing::{instrument, info_span, Instrument};
+use futures::future::join_all;
+
+#[instrument]
+async fn process_batch(items: Vec&lt;Item&gt;) -&gt; Vec&lt;Result&lt;Output&gt;&gt; {
+    let futures = items.into_iter().map(|item| {
+        let span = info_span!(&quot;process_item&quot;, item_id = %item.id);
+        async move {
+            process_single(item).await
+        }
+        .instrument(span)
+    });
+
+    join_all(futures).await
+}
+</code></pre>
+<hr>
+<h2>Error Handling</h2>
+<h3>Instrument with Error Logging</h3>
+<pre><code class="language-rust">use tracing::{instrument, error};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+enum AppError {
+    #[error(&quot;Not found: {0}&quot;)]
+    NotFound(String),
+    #[error(&quot;Database error: {0}&quot;)]
+    Database(#[from] sqlx::Error),
+}
+
+// Automatically log errors
+#[instrument(err)]
+fn fallible_operation() -&gt; Result&lt;(), AppError&gt; {
+    // On error, automatically logs: error=...
+    Err(AppError::NotFound(&quot;item&quot;.to_string()))
+}
+
+// Custom error logging
+#[instrument]
+async fn fetch_with_context(id: u64) -&gt; Result&lt;Data, AppError&gt; {
+    match fetch_data(id).await {
+        Ok(data) =&gt; Ok(data),
+        Err(e) =&gt; {
+            error!(
+                error = %e,
+                item_id = id,
+                error_type = std::any::type_name_of_val(&amp;e),
+                &quot;Failed to fetch item&quot;
+            );
+            Err(e)
+        }
+    }
+}
+</code></pre>
+<h3>Error Context Chain</h3>
+<pre><code class="language-rust">use tracing::{error, warn, info, Span};
+
+pub trait WithTracingContext&lt;T, E&gt; {
+    fn with_context(self, operation: &amp;&#x27;static str) -&gt; Result&lt;T, E&gt;;
+    fn with_warn_context(self, operation: &amp;&#x27;static str) -&gt; Result&lt;T, E&gt;;
+}
+
+impl&lt;T, E&gt; WithTracingContext&lt;T, E&gt; for Result&lt;T, E&gt;
+where
+    E: std::fmt::Display + std::fmt::Debug,
+{
+    fn with_context(self, operation: &amp;&#x27;static str) -&gt; Result&lt;T, E&gt; {
+        self.map_err(|err| {
+            error!(
+                error = %err,
+                error.debug = ?err,
+                operation,
+                &quot;Operation failed&quot;
+            );
+            err
+        })
+    }
+
+    fn with_warn_context(self, operation: &amp;&#x27;static str) -&gt; Result&lt;T, E&gt; {
+        self.map_err(|err| {
+            warn!(
+                error = %err,
+                operation,
+                &quot;Operation completed with warning&quot;
+            );
+            err
+        })
+    }
+}
+
+// Usage
+async fn process_pipeline() -&gt; Result&lt;()&gt; {
+    fetch_data()
+        .await
+        .with_context(&quot;fetch_data&quot;)
+        .and_then(|data| {
+            transform(data).with_context(&quot;transform&quot;)
+        })
+        .and_then(|result| {
+            save(result).with_context(&quot;save&quot;)
+        })
+}
+</code></pre>
+<hr>
+<h2>HTTP/WebSocket Examples</h2>
+<h3>HTTP Request Tracing</h3>
+<pre><code class="language-rust">use tracing::{instrument, info, warn};
+use tracing::field::{debug, display};
+
+#[instrument(
+    skip(request, bytes),
+    fields(
+        method = %request.method(),
+        uri = %request.uri(),
+        content_length = request.headers().get(&quot;content-length&quot;)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::&lt;u64&gt;().ok()),
+        request_id = %uuid::Uuid::new_v4()
+    )
+)]
+async fn handle_http_request(
+    request: hyper::Request&lt;hyper::Body&gt;,
+    bytes: Vec&lt;u8&gt;,
+) -&gt; Result&lt;hyper::Response&lt;hyper::Body&gt;&gt; {
+    info!(&quot;Handling HTTP request&quot;);
+
+    // Process request...
+
+    let response = hyper::Response::builder()
+        .status(200)
+        .body(hyper::Body::from(&quot;OK&quot;))?;
+
+    Ok(response)
+}
+</code></pre>
+<h3>WebSocket Connection Tracing</h3>
+<pre><code class="language-rust">use tracing::{instrument, info, warn, error, Span};
+use tokio::sync::mpsc;
+
+#[instrument(
+    skip(stream, tx),
+    fields(
+        peer_addr = %stream.peer_addr().unwrap_or_else(|_| &quot;unknown&quot;.parse().unwrap()),
+        connection_id = %uuid::Uuid::new_v4()
+    )
+)]
+async fn handle_websocket&lt;S&gt;(
+    stream: S,
+    tx: mpsc::Sender&lt;Message&gt;,
+) -&gt; Result&lt;()&gt;
+where
+    S: WebSocketStream + Send + &#x27;static,
+{
+    let (mut write, mut read) = stream.split();
+    let connection_id = Span::current()
+        .record(&quot;connection_id&quot;)
+        .unwrap_or_else(|| &quot;unknown&quot;.to_string());
+
+    info!(connection_id = %connection_id, &quot;WebSocket connection established&quot;);
+
+    while let Some(msg) = read.next().await {
+        match msg {
+            Ok(Message::Text(text)) =&gt; {
+                info!(%text, &quot;Received text message&quot;);
+                tx.send(Message::Text(text)).await?;
+            }
+            Ok(Message::Binary(data)) =&gt; {
+                info!(data_len = data.len(), &quot;Received binary message&quot;);
+            }
+            Ok(Message::Close(frame)) =&gt; {
+                info!(?frame, &quot;Received close frame&quot;);
+                break;
+            }
+            Ok(Message::Ping(data)) =&gt; {
+                debug!(data_len = data.len(), &quot;Received ping&quot;);
+                write.send(Message::Pong(data)).await?;
+            }
+            Err(e) =&gt; {
+                error!(error = %e, &quot;WebSocket error&quot;);
+                break;
+            }
+            _ =&gt; {}
+        }
+    }
+
+    info!(&quot;WebSocket connection closed&quot;);
+    Ok(())
+}
+</code></pre>
+<h3>SSE (Server-Sent Events) Tracing</h3>
+<pre><code class="language-rust">use tracing::{instrument, info, debug};
+use futures::stream::Stream;
+
+#[instrument(skip(stream), fields(client_id = %client_id))]
+async fn stream_events&lt;S&gt;(
+    client_id: String,
+    mut stream: S,
+) -&gt; Result&lt;Vec&lt;Event&gt;&gt;
+where
+    S: Stream&lt;Item = Result&lt;Event&gt;&gt; + Unpin,
+{
+    let mut events = Vec::new();
+    let mut count = 0;
+
+    while let Some(event) = stream.next().await {
+        count += 1;
+
+        match event {
+            Ok(e) =&gt; {
+                debug!(event_type = %e.event, data_len = e.data.len(), &quot;Received event&quot;);
+                events.push(e);
+            }
+            Err(e) =&gt; {
+                warn!(error = %e, count, &quot;Stream error&quot;);
+                break;
+            }
+        }
+    }
+
+    info!(count, &quot;Stream completed&quot;);
+    Ok(events)
+}
+</code></pre>
+<hr>
+<h2>Database Examples</h2>
+<h3>SQL Query Tracing</h3>
+<pre><code class="language-rust">use tracing::{instrument, debug, info};
+use sqlx::{PgPool, FromRow};
+
+#[derive(FromRow, Debug)]
+struct User {
+    id: i64,
+    name: String,
+    email: String,
+}
+
+#[instrument(
+    skip(pool),
+    fields(
+        query = &quot;SELECT * FROM users WHERE id = $1&quot;,
+        user_id = id
+    )
+)]
+async fn get_user_by_id(pool: &amp;PgPool, id: i64) -&gt; Result&lt;User&gt; {
+    let user = sqlx::query_as::&lt;_, User&gt;(&quot;SELECT * FROM users WHERE id = $1&quot;)
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+    debug!(?user, &quot;User fetched&quot;);
+    Ok(user)
+}
+
+#[instrument(skip(pool, users))]
+async fn bulk_insert_users(pool: &amp;PgPool, users: Vec&lt;User&gt;) -&gt; Result&lt;u64&gt; {
+    let count = users.len();
+    info!(count, &quot;Inserting users&quot;);
+
+    let mut tx = pool.begin().await?;
+
+    for user in &amp;users {
+        sqlx::query(&quot;INSERT INTO users (name, email) VALUES ($1, $2)&quot;)
+            .bind(&amp;user.name)
+            .bind(&amp;user.email)
+            .execute(&amp;mut *tx)
+            .await?;
+    }
+
+    tx.commit().await?;
+    info!(inserted = count, &quot;Users inserted&quot;);
+    Ok(count as u64)
+}
+</code></pre>
+<h3>Transaction Tracing</h3>
+<pre><code class="language-rust">use tracing::{instrument, info, Span};
+
+#[instrument(skip(pool), fields(transaction_id = Empty))]
+async fn execute_transaction(pool: &amp;PgPool, operations: Vec&lt;Operation&gt;) -&gt; Result&lt;()&gt; {
+    let tx_id = uuid::Uuid::new_v4();
+    Span::current().record(&quot;transaction_id&quot;, &amp;tx_id.to_string());
+
+    info!(&quot;Starting transaction&quot;);
+
+    let mut tx = pool.begin().await?;
+
+    for (i, op) in operations.iter().enumerate() {
+        let op_span = info_span!(&quot;transaction_operation&quot;, index = i, operation = %op.name());
+
+        op_span.in_scope(|| {
+            info!(&quot;Executing operation&quot;);
+        });
+
+        op.execute(&amp;mut tx).await?;
+    }
+
+    tx.commit().await?;
+    info!(&quot;Transaction committed&quot;);
+
+    Ok(())
+}
+</code></pre>
+<hr>
+<h2>Testing Examples</h2>
+<h3>Unit Tests with Tracing</h3>
+<pre><code class="language-rust">use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_with_logging() {
+    info!(&quot;This log appears in test output&quot;);
+
+    let result = process_data(&quot;test&quot;);
+
+    assert_eq!(result, &quot;Processed: test&quot;);
+
+    // Assert on log output
+    assert!(logs_contain(&quot;Processing data&quot;));
+}
+
+#[tokio::test]
+#[traced_test]
+async fn test_async_with_logging() {
+    info!(&quot;Starting async test&quot;);
+
+    let result = fetch_data(123).await;
+
+    assert!(result.is_ok());
+    assert!(logs_contain(&quot;Fetching&quot;));
+}
+</code></pre>
+<h3>Integration Test with Capture</h3>
+<pre><code class="language-rust">use tracing_subscriber::{layer::SubscriberExt, Registry};
+use tracing::subscriber::with_default;
+use std::sync::{Arc, Mutex};
+
+#[derive(Default, Clone)]
+struct LogCapture {
+    logs: Arc&lt;Mutex&lt;Vec&lt;String&gt;&gt;&gt;,
+}
+
+impl&lt;S: tracing::Subscriber&gt; tracing_subscriber::layer::Layer&lt;S&gt; for LogCapture {
+    fn on_event(&amp;self, event: &amp;tracing::Event&lt;&#x27;_&gt;, _ctx: tracing_subscriber::layer::Context&lt;&#x27;_&gt;) {
+        let mut logs = self.logs.lock().unwrap();
+        logs.push(format!(&quot;{:?}&quot;, event));
+    }
+}
+
+#[test]
+fn test_captures_logs() {
+    let capture = LogCapture::default();
+    let subscriber = Registry::default().with(capture.clone());
+
+    with_default(subscriber, || {
+        info!(&quot;Test message&quot;);
+        process_data(&quot;hello&quot;);
+    });
+
+    let logs = capture.logs.lock().unwrap();
+    assert!(logs.iter().any(|l| l.contains(&quot;Test message&quot;)));
+    assert!(logs.iter().any(|l| l.contains(&quot;Processing&quot;)));
+}
+</code></pre>
+<hr>
+<h2>EWE Platform Specific Examples</h2>
+<h3>Using ewe_trace Macros</h3>
+<pre><code class="language-rust">// Using the project&#x27;s tracing abstraction
+use ewe_trace::{info, debug, warn, error};
+
+#[cfg(feature = &quot;log_info&quot;)]
+fn info_logging() {
+    info!(&quot;This appears when log_info feature is enabled&quot;);
+}
+
+#[cfg(feature = &quot;log_debug&quot;)]
+fn debug_logging() {
+    debug!(&quot;This appears when log_debug feature is enabled&quot;);
+}
+
+// In release builds without features, these are no-ops
+#[cfg(not(feature = &quot;log_debug&quot;))]
+fn no_debug_in_release() {
+    debug!(&quot;This is compiled out in release&quot;);
+}
+</code></pre>
+<h3>Foundation Core Executor Tracing</h3>
+<pre><code class="language-rust">// Example from foundation_core executors
+use tracing::{instrument, debug, info_span};
+
+#[instrument(skip(task), fields(task_id = Empty))]
+fn execute_task&lt;T&gt;(task: T) -&gt; Result&lt;Output&gt;
+where
+    T: TaskIterator,
+{
+    let task_id = generate_task_id();
+    tracing::Span::current().record(&quot;task_id&quot;, &amp;task_id);
+
+    let span = info_span!(&quot;task_execution&quot;, %task_id);
+    span.in_scope(|| {
+        debug!(&quot;Starting task execution&quot;);
+
+        let result = task.run();
+
+        debug!(&quot;Task execution complete&quot;);
+        result
+    })
+}
+</code></pre>
+<h3>WASM-Compatible Tracing</h3>
+<pre><code class="language-rust">// Tracing that works in both WASM and native
+use tracing::{instrument, info};
+
+#[instrument]
+fn wasm_safe_operation(data: &amp;[u8]) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {
+    // All tracing works normally in WASM
+    info!(data_len = data.len(), &quot;Processing&quot;);
+
+    // Result automatically logged on return
+    Ok(data.to_vec())
+}
+</code></pre>
+<hr>
+<h2>Quick Reference Card</h2>
+<pre><code class="language-rust">// ===== BASIC USAGE =====
+info!(&quot;Message&quot;);
+debug!(&quot;Debug: {}&quot;, value);
+warn!(&quot;Warning: {}&quot;, value);
+error!(&quot;Error: {}&quot;, error);
+
+// ===== FIELDS =====
+info!(key = value, &quot;Message&quot;);
+info!(?value, &quot;Debug format&quot;);
+info!(%value, &quot;Display format&quot;);
+info!(field1 = a, field2 = b, &quot;Message&quot;);
+
+// ===== SPANS =====
+let span = info_span!(&quot;name&quot;, field = value);
+let _enter = span.enter();
+span.record(&quot;field&quot;, &amp;new_value);
+
+// ===== INSTRUMENT =====
+#[instrument]
+fn my_function(arg: i32) {}
+
+#[instrument(skip(self))]
+impl MyStruct {
+    #[instrument(fields(custom = self.value))]
+    fn method(&amp;self) {}
+}
+
+#[instrument(ret, err)]
+async fn async_fn() -&gt; Result&lt;T, E&gt; {}
+
+// ===== ASYNC =====
+tokio::spawn(async { work() }.in_current_span());
+
+// ===== TESTING =====
+#[test]
+#[traced_test]
+fn test_logs() {
+    assert!(logs_contain(&quot;expected text&quot;));
+}
+</code></pre>
+<hr>
+<h2>Related Documentation</h2>
+<ul><li><a href="./beyond-logging.md">Beyond Logging</a> - Core concepts and patterns</li><li><a href="./production-setup.md">Production Setup</a> - Production configuration</li><li><a href="../crates/trace/Cargo.toml">Tracing Crate</a> - EWE Platform's trace crate</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

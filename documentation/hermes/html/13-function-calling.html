@@ -39,6 +39,84 @@
       }
       await render();
       new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
     })();
   </script>
 </head>
@@ -57,12 +135,42 @@
 <p>Hermes-Function-Calling provides the prompt templates, schemas, and inference scripts for enabling function calling and structured JSON output on Hermes 2 Pro and Hermes 3 models. The models use ChatML prompt format with XML-wrapped tool calls, enabling OpenAI endpoint compatibility.</p>
 <h2>Features</h2>
 <table><tr><th>Feature</th><th>Models</th><th>Description</th></tr><tr><td>**Function Calling**</td><td>Hermes 2 Pro, Hermes 3</td><td>Parse tool schemas, generate function calls with arguments</td></tr><tr><td>**JSON Mode**</td><td>Hermes 2 Pro, Hermes 3</td><td>Structured output adhering to a provided JSON schema</td></tr><tr><td>**Scratch Pad (Hermes 3)**</td><td>Hermes 3 only</td><td>GOAP reasoning framework for planning before tool calls</td></tr></table>
+<h2>Function Calling Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    USER[User message] --&gt; BUILD[build_hermes_prompt]
+    BUILD --&gt; SYS[&quot;System prompt with XML tool schemas&quot;]
+    BUILD --&gt; CONV[&quot;Convert to ChatML format&quot;]
+    CONV --&gt; GENERATE[Generate/completion]
+
+    GENERATE --&gt; PARSE{Response contains tool_call?}
+    PARSE --&gt;|Yes| EXTRACT[parse_tool_calls_from_response]
+    EXTRACT --&gt; XML[Extract tool_name, arguments from XML]
+    XML --&gt; EXEC[Execute tool]
+    EXEC --&gt; RESULT[Format tool_result XML]
+    RESULT --&gt; GENERATE
+
+    PARSE --&gt;|No| RETURN[Return text response]
+
+</div>
 <h2>Function Calling Prompt Format</h2>
 <p>Hermes uses ChatML with XML tags for tool calls. The system prompt defines available tools and the expected output format:</p>
 <ul><li>System role with tool schema in XML tools tags</li><li>Pydantic model schema for function call structure</li><li>Tool calls wrapped in XML tool_call tags (Hermes 2 Pro)</li><li>Tool calls wrapped in XML tool_call tags with scratch_pad planning (Hermes 3)</li><li>Tool responses returned in XML tool_result tags</li></ul>
 <h3>Conversation Flow</h3>
 <ol><li><strong>System</strong>: Defines available tools and calling format</li><li><strong>User</strong>: Natural language request</li><li><strong>Assistant</strong>: Generates structured function call</li><li><strong>Tool</strong>: Executes function, returns result</li><li><strong>Assistant</strong>: Interprets result, generates natural language response</li></ol>
 <p>See the key scripts section below for the Python implementations.</p>
+<h2>ChatML Message Format</h2>
+<div class="mermaid">
+flowchart TD
+    SYS[&quot;System role&lt;br/&gt;Tools in XML schema&quot;]
+    USR[&quot;User role&lt;br/&gt;Natural request&quot;]
+    ASST1[&quot;Assistant role&lt;br/&gt;Tool call XML&quot;]
+    TOOL[&quot;Tool role&lt;br/&gt;Tool result XML&quot;]
+    ASST2[&quot;Assistant role&lt;br/&gt;Natural response&quot;]
+
+    SYS --&gt; USR --&gt; ASST1 --&gt; TOOL --&gt; ASST2
+
+</div>
 <h2>JSON Mode Prompt Format</h2>
 <p>For structured outputs, the model responds with only a JSON object matching the provided schema:</p>
 <ul><li>System: "You are a helpful assistant that answers in JSON" with schema in XML schema tags</li><li>User: Natural language request</li><li>Assistant: JSON object matching the provided schema</li></ul>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonate -- Documentation Index -- resonate</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/resonate/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="11-observability.html">Resonate -- Observability</a> <a href="12-deployment.html">Resonate -- Deployment</a> <a href="13-data-flow.html">Resonate -- Data Flow</a></span> <a href="13-data-flow.html">← Resonate -- Data Flow</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Resonate -- Documentation Index</h1>
+<p><strong>Resonate</strong> is a durable execution engine implementing the Distributed Async Await specification. Write normal async functions in TypeScript, Rust, or Python. Resonate handles retries, crash recovery, and distributed coordination — your code survives process restarts without missing a beat.</p>
+<h2>Documents</h2>
+<h3>Foundation</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[00-overview.md](./00-overview.md)</td><td>What Resonate is, philosophy, the component map</td></tr><tr><td>[01-architecture.md](./01-architecture.md)</td><td>System architecture, dependency graph, communication patterns</td></tr></table>
+<h3>Core Concepts</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[03-durable-promises.md](./03-durable-promises.md)</td><td>Promise lifecycle, states, callbacks, listeners, settlement chains</td></tr><tr><td>[13-data-flow.md](./13-data-flow.md)</td><td>End-to-end execution flows: invoke, suspend, resume, settle</td></tr></table>
+<h3>Server Internals</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[02-server.md](./02-server.md)</td><td>Oracle, HTTP API, CLI commands, configuration</td></tr><tr><td>[07-transport-system.md](./07-transport-system.md)</td><td>HTTP push/poll, GCP Pub/Sub, bash exec transports</td></tr><tr><td>[08-persistence.md](./08-persistence.md)</td><td>SQLite, PostgreSQL, MySQL backends and schema</td></tr></table>
+<h3>SDK Deep Dives</h3>
+<table><tr><th>Document</th><th>SDK</th><th>Execution Model</th></tr><tr><td>[04-sdk-typescript.md](./04-sdk-typescript.md)</td><td>`@resonatehq/sdk`</td><td>Generator functions (`yield*`)</td></tr><tr><td>[05-sdk-rust.md](./05-sdk-rust.md)</td><td>`resonate-sdk`</td><td>Async/await + proc macros</td></tr><tr><td>[06-sdk-python.md](./06-sdk-python.md)</td><td>`resonate` (PyPI)</td><td>Generator functions + threading</td></tr></table>
+<h3>Patterns & Integrations</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[09-patterns.md](./09-patterns.md)</td><td>Saga, fan-out, human-in-the-loop, external SoR, state bus</td></tr><tr><td>[10-faas-serverless.md](./10-faas-serverless.md)</td><td>AWS Lambda, Cloudflare Workers, Supabase Edge Functions</td></tr></table>
+<h3>Operations</h3>
+<table><tr><th>Document</th><th>What It Covers</th></tr><tr><td>[11-observability.md](./11-observability.md)</td><td>Prometheus metrics, OpenTelemetry, structured tracing</td></tr><tr><td>[12-deployment.md](./12-deployment.md)</td><td>Production setup, JWT auth, configuration layering</td></tr></table>
+<h2>Quick Orientation</h2>
+<pre><code class="language-">┌─────────────────────────────────────────────────────────────────┐
+│                          SDKs                                    │
+│                                                                  │
+│  resonate-sdk-ts       resonate-sdk-rs       resonate-sdk-py    │
+│  TypeScript (npm)      Rust (crates.io)      Python (PyPI)      │
+│  Generator-based       Async/Await           Generator + Thread  │
+│                                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                      PROTOCOL (HTTP/JSON)                        │
+│                                                                  │
+│  RequestEnvelope → Server → ResponseEnvelope                    │
+│  Poll (SSE) | Push (webhook) | Pub/Sub | Bash                   │
+│                                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                     RESONATE SERVER                              │
+│                                                                  │
+│  Oracle          Persistence       Transports       Processing  │
+│  State machine   SQLite/PG/MySQL   HTTP/Poll/GCP    Timeouts    │
+│  30 operations   12 tables         4 schemes        Messages    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h2>Source</h2>
+<p><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.resonatehq/</code></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

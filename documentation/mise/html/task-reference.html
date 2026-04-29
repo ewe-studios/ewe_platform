@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mise Task Reference - EWE Platform -- mise</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/mise/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="README.html">Mise Documentation - EWE Platform</a> <a href="advanced-usage.html">Mise Advanced Usage - EWE Platform</a> <a href="getting-started.html">Getting Started with Mise - EWE Platform</a></span> <a href="getting-started.html">← Getting Started with Mise - EWE Platform</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Mise Task Reference - EWE Platform</h1>
+<p>Complete reference for all mise tasks in the EWE Platform project.</p>
+<hr>
+<h2>Quick Reference by Category</h2>
+<h3>Setup & Installation</h3>
+<pre><code class="language-bash">mise run setup              # Full environment setup
+mise run setup:tools        # Install Rust tools
+mise run setup:wasm         # Install WASM targets
+mise run setup:check        # Verify installation
+</code></pre>
+<h3>Building</h3>
+<pre><code class="language-bash">mise run build:all          # Debug build all
+mise run build:release      # Release build all
+mise run build:wasm         # WASM build
+mise run build:demos        # Build demo WASM
+mise run build:tests        # Build WASM tests
+mise run clean              # Clean build artifacts
+</code></pre>
+<h3>Testing</h3>
+<pre><code class="language-bash">mise run test:all           # All tests
+mise run test:unit          # Unit tests only
+mise run test:integration   # Integration tests only
+mise run test:quick         # Quick smoke test
+mise run test:nostd         # foundation_nostd tests
+mise run test:wasm          # WASM compatibility tests
+mise run nextest            # Run via nextest/bacon
+</code></pre>
+<h3>Code Quality</h3>
+<pre><code class="language-bash">mise run quality            # fmt + clippy + tests
+mise run verify-all         # Full CI verification
+mise run clippy             # Lint checks
+mise run fmt                # Format code
+mise run fmt:check          # Check formatting
+mise run audit              # Security audit
+</code></pre>
+<h3>Documentation</h3>
+<pre><code class="language-bash">mise run doc                # Generate docs
+mise run doc:open           # Generate and open docs
+mise run doc:nostd          # foundation_nostd docs
+</code></pre>
+<h3>Benchmarking</h3>
+<pre><code class="language-bash">mise run bench              # All benchmarks
+mise run bench:condvar      # CondVar benchmarks
+mise run bench:nostd        # foundation_testing benchmarks
+</code></pre>
+<h3>Development</h3>
+<pre><code class="language-bash">mise run sandbox            # Run sandbox binary
+mise run bacon              # Start bacon language server
+mise run publish            # Publish to crates.io
+</code></pre>
+<h3>Git & Submodules</h3>
+<pre><code class="language-bash">mise run git:update-submodules   # Update all submodules
+mise run update-submodules       # (alias)
+</code></pre>
+<hr>
+<h2>Detailed Task Descriptions</h2>
+<h3>Setup Tasks</h3>
+<h4><code>setup</code></h4>
+<p><strong>Description:</strong> Complete development environment setup</p>
+<p><strong>Dependencies:</strong> <code>setup:tools</code>, <code>setup:wasm</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run setup
+</code></pre>
+<hr>
+<h4><code>setup:tools</code></h4>
+<p><strong>Description:</strong> Install rustfmt, clippy, rust-analyzer, and cargo tools</p>
+<p><strong>Commands:</strong></p>
+<ul><li><code>rustup component add rustfmt clippy rust-analyzer</code></li><li>Installs cargo-nextest and cargo-audit via mise</li></ul>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run setup:tools
+</code></pre>
+<hr>
+<h4><code>setup:wasm</code></h4>
+<p><strong>Description:</strong> Install WASM compilation targets</p>
+<p><strong>Commands:</strong></p>
+<ul><li><code>rustup target add wasm32-unknown-unknown</code></li><li><code>rustup target add wasm32-wasip1</code></li></ul>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run setup:wasm
+</code></pre>
+<hr>
+<h4><code>setup:check</code></h4>
+<p><strong>Alias:</strong> <code>check-tools</code></p>
+<p><strong>Description:</strong> Verify all installed tools and versions</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run setup:check
+</code></pre>
+<hr>
+<h3>Build Tasks</h3>
+<h4><code>build:all</code></h4>
+<p><strong>Alias:</strong> <code>build-all</code></p>
+<p><strong>Description:</strong> Build all packages in debug mode</p>
+<p><strong>Command:</strong> <code>cargo build --all</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run build:all
+</code></pre>
+<hr>
+<h4><code>build:release</code></h4>
+<p><strong>Alias:</strong> <code>build-release</code></p>
+<p><strong>Description:</strong> Build all packages in release mode</p>
+<p><strong>Command:</strong> <code>cargo build --all --release</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run build:release
+</code></pre>
+<hr>
+<h4><code>build:wasm</code></h4>
+<p><strong>Alias:</strong> <code>build-wasm</code></p>
+<p><strong>Description:</strong> Build foundation_nostd for WASM target</p>
+<p><strong>Command:</strong> <code>cargo build --package foundation_nostd --target wasm32-unknown-unknown</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run build:wasm
+</code></pre>
+<hr>
+<h4><code>build:demos</code></h4>
+<p><strong>Alias:</strong> <code>build-demos</code></p>
+<p><strong>Description:</strong> Build demo WASM binaries and generate WAT files</p>
+<p><strong>Commands:</strong></p>
+<pre><code class="language-bash">RUSTFLAGS=&#x27;-C link-arg=-s&#x27; cargo build --package intro --target wasm32-unknown-unknown
+cp target/wasm32-unknown-unknown/debug/intro.wasm ./assets/public/intro.wasm
+wasm2wat ./assets/public/intro.wasm -o ./assets/public/intro.wat
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run build:demos
+</code></pre>
+<hr>
+<h4><code>build:tests</code></h4>
+<p><strong>Alias:</strong> <code>build-tests</code></p>
+<p><strong>Description:</strong> Build all WASM integration test packages</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run build:tests
+</code></pre>
+<hr>
+<h3>Testing Tasks</h3>
+<h4><code>test:all</code></h4>
+<p><strong>Alias:</strong> <code>test-all</code></p>
+<p><strong>Description:</strong> Run all tests (unit + integration)</p>
+<p><strong>Dependencies:</strong> <code>test:unit</code>, <code>test:integration</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:all
+</code></pre>
+<hr>
+<h4><code>test:unit</code></h4>
+<p><strong>Alias:</strong> <code>test-unit</code></p>
+<p><strong>Description:</strong> Run unit tests (--lib tests in all crates)</p>
+<p><strong>Command:</strong> <code>cargo test --lib --all</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:unit
+</code></pre>
+<hr>
+<h4><code>test:integration</code></h4>
+<p><strong>Alias:</strong> <code>test-integration</code></p>
+<p><strong>Description:</strong> Run workspace-level integration tests</p>
+<p><strong>Command:</strong> <code>cargo test --package ewe_platform_tests</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:integration
+</code></pre>
+<hr>
+<h4><code>test:quick</code></h4>
+<p><strong>Alias:</strong> <code>test-quick</code></p>
+<p><strong>Description:</strong> Quick smoke test for fast feedback</p>
+<p><strong>Command:</strong> <code>cargo test --package foundation_nostd --lib</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:quick
+</code></pre>
+<hr>
+<h4><code>test:nostd</code></h4>
+<p><strong>Alias:</strong> <code>test-nostd</code></p>
+<p><strong>Description:</strong> All foundation_nostd tests</p>
+<p><strong>Dependencies:</strong> <code>test:nostd:unit</code>, <code>test:nostd:integration</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:nostd
+</code></pre>
+<hr>
+<h4><code>test:nostd:unit</code></h4>
+<p><strong>Description:</strong> foundation_nostd unit tests only</p>
+<p><strong>Command:</strong> <code>cargo test --package foundation_nostd --lib</code></p>
+<hr>
+<h4><code>test:nostd:integration</code></h4>
+<p><strong>Description:</strong> foundation_nostd integration tests</p>
+<p><strong>Command:</strong> <code>cargo test --package ewe_platform_tests --lib</code></p>
+<hr>
+<h4><code>test:nostd:std</code></h4>
+<p><strong>Description:</strong> Run tests with std feature enabled</p>
+<p><strong>Commands:</strong></p>
+<ul><li><code>cargo test --package foundation_nostd --features std</code></li><li><code>cargo test --package foundation_testing</code></li></ul>
+<hr>
+<h4><code>test:nostd:no-std</code></h4>
+<p><strong>Description:</strong> Run tests in no_std mode</p>
+<p><strong>Command:</strong> <code>cargo test --package foundation_nostd --no-default-features</code></p>
+<hr>
+<h4><code>test:wasm</code></h4>
+<p><strong>Alias:</strong> <code>test-wasm</code></p>
+<p><strong>Description:</strong> WASM compilation verification</p>
+<p><strong>Dependencies:</strong> <code>test:wasm:build</code>, <code>test:wasm:verify</code></p>
+<hr>
+<h4><code>test:wasm:build</code></h4>
+<p><strong>Description:</strong> Build for all WASM configurations</p>
+<p><strong>Commands:</strong></p>
+<ul><li>no_std debug build</li><li>std debug build</li><li>no_std release build</li></ul>
+<hr>
+<h4><code>test:wasm:verify</code></h4>
+<p><strong>Description:</strong> Verify WASM artifacts exist</p>
+<hr>
+<h4><code>test:wasm:node</code></h4>
+<p><strong>Alias:</strong> <code>wasm-tests</code></p>
+<p><strong>Description:</strong> Build and run all WASM tests with Node.js</p>
+<p><strong>Dependencies:</strong> <code>build:tests</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run test:wasm:node
+</code></pre>
+<hr>
+<h4><code>test:wasm:node-single</code></h4>
+<p><strong>Alias:</strong> <code>wasm-test</code></p>
+<p><strong>Description:</strong> Build and run a single WASM test</p>
+<p><strong>Environment:</strong> <code>TARGET_TEST</code> (default: <code>tests_callfunction</code>)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">TARGET_TEST=my_test mise run test:wasm:node-single
+</code></pre>
+<hr>
+<h3>Code Quality Tasks</h3>
+<h4><code>quality</code></h4>
+<p><strong>Description:</strong> Run all quality checks</p>
+<p><strong>Dependencies:</strong> <code>fmt:check</code>, <code>clippy</code>, <code>test:unit</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run quality
+</code></pre>
+<hr>
+<h4><code>verify-all</code></h4>
+<p><strong>Alias:</strong> <code>verify</code></p>
+<p><strong>Description:</strong> Full CI verification</p>
+<p><strong>Dependencies:</strong> <code>quality</code>, <code>test:all</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run verify-all
+</code></pre>
+<hr>
+<h4><code>clippy</code></h4>
+<p><strong>Description:</strong> Run clippy with zero-warnings policy</p>
+<p><strong>Command:</strong> <code>cargo clippy --all-targets --all-features -- -D warnings</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run clippy
+</code></pre>
+<hr>
+<h4><code>fmt</code></h4>
+<p><strong>Alias:</strong> <code>lint</code></p>
+<p><strong>Description:</strong> Format all code</p>
+<p><strong>Command:</strong> <code>cargo fmt --all</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run fmt
+</code></pre>
+<hr>
+<h4><code>fmt:check</code></h4>
+<p><strong>Alias:</strong> <code>fmt-check</code></p>
+<p><strong>Description:</strong> Check if code is formatted</p>
+<p><strong>Command:</strong> <code>cargo fmt --all -- --check</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run fmt:check
+</code></pre>
+<hr>
+<h4><code>audit</code></h4>
+<p><strong>Description:</strong> Run cargo security audit</p>
+<p><strong>Command:</strong> <code>cargo audit</code></p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">mise run audit
+</code></pre>
+<hr>
+<h3>Documentation Tasks</h3>
+<h4><code>doc</code></h4>
+<p><strong>Description:</strong> Generate Rust documentation</p>
+<p><strong>Command:</strong> <code>cargo doc --no-deps --all-features</code></p>
+<p><strong>Output:</strong> <code>target/doc/index.html</code></p>
+<hr>
+<h4><code>doc:open</code></h4>
+<p><strong>Alias:</strong> <code>doc-open</code></p>
+<p><strong>Description:</strong> Generate and open documentation in browser</p>
+<p><strong>Command:</strong> <code>cargo doc --no-deps --all-features --open</code></p>
+<hr>
+<h4><code>doc:nostd</code></h4>
+<p><strong>Alias:</strong> <code>doc-nostd</code></p>
+<p><strong>Description:</strong> Generate foundation_nostd documentation</p>
+<p><strong>Command:</strong> <code>cargo doc --package foundation_nostd --no-deps --all-features --open</code></p>
+<hr>
+<h3>Benchmarking Tasks</h3>
+<h4><code>bench</code></h4>
+<p><strong>Alias:</strong> <code>bench-all</code></p>
+<p><strong>Description:</strong> Run all Criterion benchmarks</p>
+<p><strong>Command:</strong> <code>cargo bench</code></p>
+<p><strong>Results:</strong> <code>target/criterion/report/index.html</code></p>
+<hr>
+<h4><code>bench:condvar</code></h4>
+<p><strong>Alias:</strong> <code>bench-condvar</code></p>
+<p><strong>Description:</strong> Run CondVar-specific benchmarks</p>
+<p><strong>Command:</strong> <code>cargo bench --bench condvar_bench</code></p>
+<hr>
+<h4><code>bench:nostd</code></h4>
+<p><strong>Description:</strong> Run foundation_testing benchmarks</p>
+<p><strong>Command:</strong> <code>cargo bench --package foundation_testing</code></p>
+<hr>
+<h3>Development Tasks</h3>
+<h4><code>sandbox</code></h4>
+<p><strong>Description:</strong> Run ewe_platform sandbox binary</p>
+<p><strong>Command:</strong> <code>cargo run --profile dev --bin ewe_platform sandbox</code></p>
+<hr>
+<h4><code>bacon</code></h4>
+<p><strong>Description:</strong> Start bacon language server for IDE integration</p>
+<p><strong>Command:</strong> <code>bacon -j bacon-ls</code></p>
+<hr>
+<h4><code>publish</code></h4>
+<p><strong>Description:</strong> Publish all packages to crates.io</p>
+<hr>
+<h3>Git Tasks</h3>
+<h4><code>git:update-submodules</code></h4>
+<p><strong>Alias:</strong> <code>update-submodules</code></p>
+<p><strong>Description:</strong> Update all git submodules to latest remote</p>
+<p><strong>Commands:</strong></p>
+<pre><code class="language-bash">git submodule update --remote .agents
+git submodule update --remote tools/dawn
+git submodule update --remote tools/emsdk
+git submodule update --remote infrastructure/llama-bindings/llama.cpp/
+</code></pre>
+<hr>
+<h3>Example Tasks</h3>
+<h4><code>examples:todo:serve</code></h4>
+<p><strong>Description:</strong> Serve todo example on localhost:8080</p>
+<p><strong>Directory:</strong> <code>examples/todo</code></p>
+<hr>
+<h4><code>examples:todo:tailwind</code></h4>
+<p><strong>Description:</strong> Watch and rebuild Tailwind CSS</p>
+<p><strong>Directory:</strong> <code>examples/todo</code></p>
+<p><strong>Command:</strong> <code>npx tailwindcss -i ./web/css/main.tailwind -o ./web/css/main.css --watch</code></p>
+<hr>
+<h3>Foundation NoStd Tasks</h3>
+<h4><code>nostd:build</code></h4>
+<p><strong>Description:</strong> Build foundation_nostd and foundation_testing</p>
+<hr>
+<h4><code>nostd:clippy</code></h4>
+<p><strong>Description:</strong> Run clippy on foundation_nostd packages</p>
+<hr>
+<h4><code>nostd:fmt</code></h4>
+<p><strong>Description:</strong> Format foundation_nostd code</p>
+<hr>
+<h4><code>nostd:quality</code></h4>
+<p><strong>Description:</strong> All quality checks for foundation_nostd</p>
+<p><strong>Dependencies:</strong> <code>nostd:fmt-check</code>, <code>nostd:clippy</code>, <code>test:nostd:std</code></p>
+<hr>
+<h2>Task Naming Conventions</h2>
+<ul><li>Use colons for namespaces: <code>category:action</code></li><li>Use kebab-case within names: <code>build:all</code> not <code>build:All</code></li><li>Aliases use dashes: <code>build-all</code> maps to <code>build:all</code></li></ul>
+<hr>
+<h2>Related Documentation</h2>
+<ul><li><a href="./getting-started.md">Getting Started</a></li><li><a href="./advanced-usage.md">Advanced Usage</a></li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

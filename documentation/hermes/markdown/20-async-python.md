@@ -48,6 +48,32 @@ def run_conversation(self, user_message, messages, ...):
 
 **Aha moment:** This is a deliberate design choice. A sync loop avoids the "async all the way down" problem where every function needs to be `async def`. The LLM SDK itself is synchronous (OpenAI's `OpenAI` client, not `AsyncOpenAI`), so there's no inherent need for async in the main loop. Async is reserved for **background operations** that shouldn't block the conversation.
 
+## Sync/Async Architecture Overview
+
+```mermaid
+flowchart TD
+    SYNC[run_conversation<br/>sync main loop]
+
+    SYNC -->|LLM call| LLM_SYNC[Sync OpenAI SDK<br/>client.chat.completions.create]
+    SYNC -->|tool exec| THREAD[ThreadPoolExecutor<br/>max_workers=8]
+    SYNC -->|background| BG_TASKS[threading.Thread<br/>daemon=True]
+
+    LLM_SYNC --> STREAM[SSE streaming<br/>sync iterator]
+
+    THREAD -->|read_file| DISK[Disk I/O]
+    THREAD -->|web_search| HTTP[HTTP requests]
+    THREAD -->|execute_code| SUBPROCESS[subprocess]
+
+    BG_TASKS --> TITLE[Title generation<br/>separate thread]
+    BG_TASKS --> ANIM[Thinking animation<br/>separate thread]
+    BG_TASKS --> MEM[Memory prefetch<br/>separate thread]
+
+    subgraph "Async bridging"
+        THREAD -.->|asyncio.to_thread| AIO[asyncio.run<br/>async_call_llm]
+        AIO -.->|AsyncOpenAI| SDK_ASYNC[Async OpenAI SDK]
+    end
+```
+
 ## Bridging Sync and Async: `asyncio.to_thread()`
 
 When Hermes needs async operations from sync code, it uses `asyncio.to_thread()`:
