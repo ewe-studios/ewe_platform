@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Resonate server is a single Rust binary (~22 source files) that provides a durable promise engine with HTTP API, multi-backend persistence, and pluggable transport delivery. Built on tokio + axum, it handles concurrent requests while running background processing loops for timeouts, message delivery, and scheduled work.
+The Resonate server is a single Rust binary (~27 source files) that provides a durable promise engine with HTTP API, multi-backend persistence, and pluggable transport delivery. Built on tokio + axum, it handles concurrent requests while running background processing loops for timeouts, message delivery, and scheduled work.
 
 ## Entry Point
 
@@ -86,13 +86,15 @@ stateDiagram-v2
 
 | Operation | From State | To State | Side Effects |
 |-----------|-----------|----------|--------------|
-| promise.create | — | pending | Create timeout, optional task |
+| promise.create | — | pending | Create timeout, optional task (via task.create) |
 | promise.settle | pending | resolved/rejected | Fire callbacks, notify listeners |
 | task.acquire | pending | acquired | Set lease timeout, bump version |
 | task.release | acquired | pending | Set retry timeout |
-| task.suspend | acquired | suspended | Register callbacks on awaited promises |
+| task.suspend | acquired | suspended | Register callback actions on awaited promises |
 | task.fulfill | acquired | fulfilled | Settle associated promise |
 | task.halt | acquired/suspended | halted | Cancel associated promise |
+| task.fence | acquired | acquired | Version-checked sub-ops (promise.create/settle) |
+| task.continue | halted | pending | Re-enable halted task for execution |
 
 ## HTTP API
 
@@ -135,40 +137,79 @@ async fn handler(State(server): State<Arc<Server>>, Json(req): Json<RequestEnvel
 
 ### Key Operation Handlers
 
-**promise.create** — Creates a promise and optionally a task for execution:
+**promise.create** — Creates a promise; a separate task is created if the request includes an action with `resonate:target` tag:
 
 ```rust
-// If tags contain "resonate:invoke", create task alongside promise
-// Task address comes from "resonate:target" tag or registered listener
+// Task creation is a separate operation from promise creation
+// When the client sends a task.create alongside promise.create,
+// the task has an action with PromiseCreateData and a resonate:target tag
 async fn op_promise_create(server: &Server, data: &Value) -> ResponseEnvelope {
     let id = data["id"].as_str()?;
     let timeout = data["timeout"].as_i64()?;
     let param = &data["param"];
     let tags = &data["tags"];
     
-    let result = server.storage.promise_create(id, timeout, param, tags).await?;
-    // If new promise created AND has invoke tag → create task
-    if result.was_created && has_invoke_tag(tags) {
-        server.storage.task_create(id, address).await?;
-    }
+    server.storage.promise_create(id, timeout, param, tags).await?;
+    // Task is created separately via task.create operation
+    // when the envelope includes a task action with resonate:target
     
     ResponseEnvelope::new(result.status, result.promise)
 }
 ```
 
-**task.suspend** — Registers callbacks on awaited promises:
+**task.suspend** — Registers callback actions on awaited promises:
 
 ```rust
 async fn op_task_suspend(server: &Server, data: &Value) -> ResponseEnvelope {
     let id = data["id"].as_str()?;
     let version = data["version"].as_i64()?;
-    let awaited: Vec<String> = data["awaited"].as_array()?;
+    // actions: Vec<TaskSuspendAction> — each action contains:
+    //   { kind: "promise.register_callback", head: {...}, data: { awaited, awaiter, ready } }
+    let actions: Vec<TaskSuspendAction> = data["actions"].as_array()?;
     
     // Validate: all awaited promises must exist
     // Validate: awaiter != awaited (no self-suspension)
-    // Register callback: when awaited settles, check if all callbacks ready
-    server.storage.task_suspend(id, version, &awaited).await?;
+    // Validate: all action awaiter IDs must match the task ID
+    // Register callback for each action
+    server.storage.task_suspend(id, version, &actions).await?;
 }
+```
+
+**task.fence** — Version-checked sub-operations within a task execution. Allows a worker to perform promise.create/promise.settle operations that are tied to the parent task's version. If the task version changes (e.g., crash recovery), fence operations are invalidated:
+
+```rust
+async fn op_task_fence(server: &Server, data: &Value) -> ResponseEnvelope {
+    let id = data["id"].as_str()?;
+    let version = data["version"].as_i64()?;
+    let actions: Vec<TaskFenceAction> = data["actions"].as_array()?;
+    
+    // Validate task exists and version matches
+    // Execute each fence action atomically:
+    //   - promise.create: create child promise + task
+    //   - promise.settle: settle a child promise
+    // All within a single transaction
+    server.storage.task_fence(id, version, &actions).await?;
+}
+```
+
+**task.continue** — Resumes a halted task, transitioning it back to pending for re-execution:
+
+```rust
+async fn op_task_continue(server: &Server, data: &Value) -> ResponseEnvelope {
+    let id = data["id"].as_str()?;
+    let version = data["version"].as_i64()?;
+    
+    // Only halted tasks can be continued
+    // Transitions: halted → pending, bumps version
+    server.storage.task_continue(id, version).await?;
+}
+```
+
+**task.suspend (immediate resume)** — When a task suspends with no awaited promises (empty actions), the server returns status 300 with preloaded resolved promises, allowing the worker to continue immediately without a round-trip:
+
+```
+Worker → task.suspend { id: "job.1", actions: [] }
+Server → 300: task resumed immediately with preload
 ```
 
 ## Configuration
@@ -177,11 +218,17 @@ async fn op_task_suspend(server: &Server, data: &Value) -> ResponseEnvelope {
 
 ```toml
 # resonate.toml
+
+level = "info"          # Log level: debug, info, warn, error
+debug = false           # Enable debug mode
+
 [server]
 host = "0.0.0.0"
 port = 8001
-shutdown_timeout = "30s"
-cors_origins = ["*"]
+shutdown_timeout = "10s"  # Graceful shutdown timeout (ms)
+
+[server.cors]
+allow_origins = ["*"]
 
 [storage]
 type = "sqlite"         # sqlite | postgres | mysql
@@ -238,6 +285,8 @@ metrics_port = 9090
 ### Environment Variable Mapping
 
 ```bash
+RESONATE_LEVEL=debug
+RESONATE_DEBUG=true
 RESONATE_SERVER__PORT=9001
 RESONATE_STORAGE__TYPE=postgres
 RESONATE_STORAGE__POSTGRES__URL=postgres://...
@@ -302,10 +351,10 @@ Prefix matching: a token with `prefix: "org-123/"` can only access promises/task
 | File | Lines | Purpose |
 |------|-------|---------|
 | `src/main.rs` | ~400 | Entry point, startup, CLI dispatch |
-| `src/server.rs` | ~1200 | HTTP handler, all 30 operation handlers |
+| `src/server.rs` | ~2600 | HTTP handler, all 26 operation handlers |
 | `src/oracle.rs` | ~800 | In-memory state machine (testing) |
-| `src/types.rs` | ~300 | Protocol types, validation |
-| `src/config.rs` | ~200 | Configuration structs |
+| `src/types.rs` | ~736 | Protocol types, validation |
+| `src/config.rs` | ~602 | Configuration structs (Figment) |
 | `src/cli.rs` | ~2000 | CLI commands and tests |
 | `src/auth.rs` | ~250 | JWT verification, prefix auth |
 | `src/metrics.rs` | ~80 | Prometheus metric definitions |

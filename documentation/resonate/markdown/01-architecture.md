@@ -28,7 +28,7 @@ Resonate follows a hub-and-spoke architecture. The server is the hub — it owns
 │  │  HTTP API   │  │   Oracle     │  │  Background Loops    │       │
 │  │  (Axum)     │  │  (State Mch) │  │                      │       │
 │  │             │  │              │  │  Timeout Processing  │       │
-│  │  /          │  │  30 ops      │  │  Message Delivery    │       │
+│  │  /          │  │  26 ops      │  │  Message Delivery    │       │
 │  │  /health    │  │  Validation  │  │  Schedule Expiry     │       │
 │  │  /ready     │  │  Auth        │  │                      │       │
 │  │  /poll/:g   │  │              │  │                      │       │
@@ -146,7 +146,7 @@ All communication between SDKs and the server uses a JSON envelope protocol over
 }
 ```
 
-### Operations (30 total)
+### Operations (26 total)
 
 | Category | Operations |
 |----------|-----------|
@@ -242,7 +242,7 @@ Dispatch to operation handler
     ├── task.acquire → increment version, set lease timeout
     ├── task.suspend → register callbacks on awaited promises
     ├── task.fulfill → settle promise, fire callbacks, notify listeners
-    └── ... (30 operations)
+    └── ... (26 operations)
     │
     ▼
 Record metrics (request_total, request_duration)

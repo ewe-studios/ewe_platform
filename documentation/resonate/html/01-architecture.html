@@ -156,7 +156,7 @@
 │  │  HTTP API   │  │   Oracle     │  │  Background Loops    │       │
 │  │  (Axum)     │  │  (State Mch) │  │                      │       │
 │  │             │  │              │  │  Timeout Processing  │       │
-│  │  /          │  │  30 ops      │  │  Message Delivery    │       │
+│  │  /          │  │  26 ops      │  │  Message Delivery    │       │
 │  │  /health    │  │  Validation  │  │  Schedule Expiry     │       │
 │  │  /ready     │  │  Auth        │  │                      │       │
 │  │  /poll/:g   │  │              │  │                      │       │
@@ -264,7 +264,7 @@ graph TD
   }
 }
 </code></pre>
-<h3>Operations (30 total)</h3>
+<h3>Operations (26 total)</h3>
 <table><tr><th>Category</th><th>Operations</th></tr><tr><td>Promise</td><td>get, create, settle, register_callback, register_listener, search</td></tr><tr><td>Task</td><td>get, create, acquire, release, fulfill, suspend, fence, heartbeat, halt, continue, search</td></tr><tr><td>Schedule</td><td>get, create, delete, search</td></tr><tr><td>Debug</td><td>start, stop, reset, snap, tick</td></tr></table>
 <h2>Communication Patterns</h2>
 <h3>Pattern 1: Direct Invocation (Client → Server → Worker)</h3>
@@ -346,7 +346,7 @@ Dispatch to operation handler
     ├── task.acquire → increment version, set lease timeout
     ├── task.suspend → register callbacks on awaited promises
     ├── task.fulfill → settle promise, fire callbacks, notify listeners
-    └── ... (30 operations)
+    └── ... (26 operations)
     │
     ▼
 Record metrics (request_total, request_duration)
