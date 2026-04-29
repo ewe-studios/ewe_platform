@@ -378,34 +378,23 @@ function generateTrace(opts: GenerateTraceOptions = {}): TracingEvent[] {
 }
 </code></pre>
 <p>This mimics real async execution: parent spans start first, children complete before parents.</p>
-<h2>Async Error Classification and Retry</h2>
-<p>Mastra's model router handles async errors with classification:</p>
-<pre><code class="language-typescript">// packages/core/src/llm/model/router.ts (simplified)
-async generateWithRetry(messages, options) {
-  const maxRetries = options.maxRetries ?? 3;
+<h2>Async Error Handling and Retries</h2>
+<p>Mastra handles model errors through the <code>#execute()</code> pipeline's error processor workflow, not through inline retry logic. Each <code>ModelFallbacks</code> entry has a <code>maxRetries</code> field that controls per-model retry attempts:</p>
+<pre><code class="language-typescript">// packages/core/src/agent/agent.ts (lines 121-129)
+type ModelFallbacks = {
+  id: string;
+  model: DynamicArgument&lt;MastraModelConfig&gt;;
+  maxRetries: number;      // Retries per fallback entry
+  enabled: boolean;
+  // ...
+}[];
 
-  for (let attempt = 0; attempt &lt; maxRetries; attempt++) {
-    try {
-      return await gateway.generate(messages, options);
-    } catch (error) {
-      if (isRetryableError(error)) {
-        // Rate limit, timeout, 5xx -- retry
-        await new Promise(r =&gt; setTimeout(r, exponentialBackoff(attempt)));
-        continue;
-      }
-      // Authentication, bad request -- fail immediately
-      throw error;
-    }
-  }
-
-  // Exhaust retries -- try fallback model
-  if (this.fallbackModel) {
-    return await this.fallbackGateway.generate(messages, options);
-  }
-
-  throw new Error(&#x27;All models exhausted&#x27;);
-}
+// On failure in #execute(), error processors run.
+// If configured, the next enabled fallback model is tried.
+// Tool isolation via Promise.allSettled prevents one tool failure
+// from killing the entire execution.
 </code></pre>
+<p>The model router itself (<code>ModelRouterLanguageModel</code>) is stateless — it delegates <code>doGenerate</code>/<code>doStream</code> to the gateway's underlying SDK client and lets errors propagate up to the Agent's <code>#execute()</code> pipeline.</p>
 <h2>Key Optimizations</h2>
 <h3>1. TransformStream Over Async Transforms</h3>
 <p>Using <code>TransformStream</code> (synchronous transform) instead of async transforms per chunk avoids creating a Promise for every streaming chunk. For a 1000-chunk response, that's 1000 fewer Promise allocations.</p>

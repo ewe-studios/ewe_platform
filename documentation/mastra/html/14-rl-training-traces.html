@@ -274,7 +274,7 @@ function summarizePart(part: unknown): string {
 <p><strong>Key insight:</strong> The tracing system summarizes content to keep spans bounded. Full message bodies aren't stored in spans -- only the extracted role+content preview. This keeps trace files manageable while preserving the conversation structure.</p>
 <h2>LLM Recorder: Conversation Replay</h2>
 <p>The LLM recorder captures full HTTP interactions (including streaming) for testing:</p>
-<pre><code class="language-typescript">// packages/_llm-recorder/src/llm-recorder.ts
+<pre><code class="language-typescript">// packages/_llm-recorder/src/auto-recording.ts
 export interface LLMRecording {
   hash: string;                          // Unique hash for matching
   request: {
@@ -418,7 +418,7 @@ Export as ShareGPT:
     └── loadExporter.ts           ← OTEL exporter loader
 
 packages/_llm-recorder/src/
-└── llm-recorder.ts               ← MSW-based LLM recording/replay for testing
+└── auto-recording.ts             ← MSW-based LLM recording/replay for testing
 </code></pre>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>

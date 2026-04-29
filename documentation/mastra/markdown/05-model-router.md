@@ -32,7 +32,7 @@ flowchart TD
 sequenceDiagram
     participant Agent as Agent.getLLM()
     participant Router as ModelRouterLanguageModel
-    participant Reg as Provider Registry
+    participant Reg as PROVIDER_REGISTRY (static JSON)
     participant GW as Gateway
     participant SDK as AI SDK Provider
 
@@ -40,8 +40,8 @@ sequenceDiagram
     Router->>Router: parseModelRouterId("openai/gpt-5")
     Router->>GW: findGatewayForModel("openai/gpt-5")
     GW-->>Router: MastraGateway
-    Router->>Reg: Load provider config for "openai"
-    Reg-->>Router: { baseURL, models, schema }
+    Router->>PROVIDER_REGISTRY: Look up "openai" config from static JSON
+    PROVIDER_REGISTRY-->>Router: { baseURL, models, schema }
     Router->>SDK: createOpenAI({ apiKey, baseURL })
     SDK-->>Router: OpenAI provider client
     Router->>Agent: MastraLanguageModel wrapper
@@ -120,12 +120,13 @@ export interface MastraModelGateway {
 
 ## Provider Registry
 
-The registry is loaded from JSON:
+The provider registry is a **static JSON file** imported at module load time -- not a class with `has()` or `getConfig()` methods.
 
 ```typescript
 // llm/model/provider-registry.ts
 import staticRegistry from './provider-registry.json';
 
+// The JSON file contains:
 interface RegistryData {
   providers: Record<string, ProviderConfig>;
   models: Record<string, string[]>;  // provider -> [model names]
@@ -141,6 +142,8 @@ function sanitizeRegistryDataForRuntime(data: RegistryData, enabledGatewayIds: S
   return { providers, models, version: data.version };
 }
 ```
+
+There is no `ProviderRegistry` class with `.has()` or `.getConfig()` methods. The registry is just a JSON object exported via `PROVIDER_REGISTRY` constant. Provider lookups happen via `parseModelRouterId()` which extracts the provider from the model ID string, then the gateway is found via `findGatewayForModel()`.
 
 The registry supports **offline mode**:
 

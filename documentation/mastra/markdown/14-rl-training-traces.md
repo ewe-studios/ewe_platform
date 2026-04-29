@@ -163,7 +163,7 @@ function summarizePart(part: unknown): string {
 The LLM recorder captures full HTTP interactions (including streaming) for testing:
 
 ```typescript
-// packages/_llm-recorder/src/llm-recorder.ts
+// packages/_llm-recorder/src/auto-recording.ts
 export interface LLMRecording {
   hash: string;                          // Unique hash for matching
   request: {
@@ -372,5 +372,5 @@ observability/
     └── loadExporter.ts           ← OTEL exporter loader
 
 packages/_llm-recorder/src/
-└── llm-recorder.ts               ← MSW-based LLM recording/replay for testing
+└── auto-recording.ts             ← MSW-based LLM recording/replay for testing
 ```

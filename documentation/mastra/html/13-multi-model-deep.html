@@ -139,8 +139,8 @@
 flowchart TD
     USER[Agent.generate/stream] --&gt; ROUTER[ModelRouterLanguageModel&lt;br/&gt;parse &quot;openai/gpt-4o&quot;]
 
-    ROUTER --&gt; REGISTRY[Provider Registry&lt;br/&gt;200+ providers]
-    REGISTRY --&gt; OFFLINE{Offline mode?}
+    ROUTER --&gt; REGISTRY[PROVIDER_REGISTRY (static JSON)&lt;br/&gt;200+ providers]
+    REGISTRY --&gt; OFFLINE{MASTRA_OFFLINE&lt;br/&gt;env var?}
     OFFLINE --&gt;|Yes| LOCAL[Local model provider&lt;br/&gt;ollama, llama.cpp]
     OFFLINE --&gt;|No| GATEWAY[Gateway Resolution&lt;br/&gt;OpenAI, Anthropic, Google]
 
@@ -156,34 +156,51 @@ flowchart TD
 
 </div>
 <h2>Model Router: Provider Resolution</h2>
-<p>The <code>ModelRouterLanguageModel</code> class parses model IDs and routes to the correct provider:</p>
-<pre><code class="language-typescript">// packages/core/src/llm/model/router.ts (simplified)
-class ModelRouterLanguageModel {
-  #providerRegistry: ProviderRegistry;
-  #modelId: string;  // e.g., &quot;openai/gpt-4o&quot; or &quot;anthropic/claude-3.5-sonnet&quot;
+<p>The <code>ModelRouterLanguageModel</code> class is the concrete implementation that wraps a gateway client:</p>
+<pre><code class="language-typescript">// packages/core/src/llm/model/router.ts (simplified, line 84+)
+import { parseModelRouterId } from &#x27;./gateway-resolver.js&#x27;;
+import { PROVIDER_REGISTRY } from &#x27;./provider-registry.ts&#x27;;
 
-  async parseModelId(modelId: string): Promise&lt;{ provider: string; model: string }&gt; {
-    const [provider, ...modelParts] = modelId.split(&#x27;/&#x27;);
-    const model = modelParts.join(&#x27;/&#x27;);  // Handle models with &quot;/&quot; in name
+export class ModelRouterLanguageModel implements MastraLanguageModelV2 {
+  readonly specificationVersion = &#x27;v2&#x27;;  // or &#x27;v3&#x27; for AI SDK v6
+  readonly modelId: string;       // e.g. &#x27;gpt-5&#x27;
+  readonly provider: string;      // e.g. &#x27;openai&#x27;
+  readonly gatewayId: string;     // e.g. &#x27;mastra&#x27;
 
-    if (!this.#providerRegistry.has(provider)) {
-      throw new Error(`Unknown provider: ${provider}`);
-    }
+  constructor(
+    config: ModelRouterModelId | OpenAICompatibleConfig,
+    customGateways?: MastraModelGateway[]
+  ) {
+    // Normalize config: string &quot;openai/gpt-5&quot; → { id: &quot;openai/gpt-5&quot; }
+    const normalizedConfig = normalizeModelConfig(config);
 
-    return { provider, model };
+    // Collect all available gateways (built-in + custom)
+    const allGateways = getEnabledGateways(customGateways);
+
+    // Find the gateway that handles this model
+    this.gateway = findGatewayForModel(normalizedConfig.id, allGateways);
+
+    // Parse provider and model from the ID
+    const gatewayPrefix = this.gateway.id;
+    const parsed = parseModelRouterId(normalizedConfig.id, gatewayPrefix);
+    this.modelId = parsed.model;
+    this.provider = parsed.provider;
+
+    // Create the underlying SDK LanguageModel via the gateway
+    this.model = this.gateway.getModel(normalizedConfig);
   }
 
-  async getModelConfig(provider: string, model: string) {
-    const config = this.#providerRegistry.getConfig(provider);
-    return {
-      ...config,
-      model,
-      apiKey: config.apiKey ?? process.env[`${provider.toUpperCase()}_API_KEY`],
-      baseURL: config.baseURL ?? getDefaultBaseURL(provider),
-    };
+  async doGenerate(options: LanguageModelV2CallOptions) {
+    return this.model.doGenerate(options);
+  }
+
+  async doStream(options: LanguageModelV2CallOptions): Promise&lt;[ModelStream, () =&gt; void]&gt; {
+    return this.model.doStream(options);
   }
 }
 </code></pre>
+<p>Key differences from the simplified model-router doc:</p>
+<ul><li><strong>No <code>parseModelId()</code> method</strong> — uses <code>parseModelRouterId()</code> from <code>gateway-resolver.js</code></li><li><strong>No <code>ProviderRegistry</code> class</strong> — imports <code>PROVIDER_REGISTRY</code> from static JSON</li><li><strong>No <code>getModelConfig()</code> method</strong> — the gateway handles config resolution</li><li><strong>Constructor accepts</strong> either a <code>ModelRouterModelId</code> object or an <code>OpenAICompatibleConfig</code></li><li><strong><code>doStream</code> returns</strong> a tuple <code>[ModelStream, () => void]</code> (stream + cleanup function)</li></ul>
 <h3>Gateway Plugin Architecture</h3>
 <p>Each provider has a gateway implementation:</p>
 <pre><code class="language-typescript">// Provider gateway interface
@@ -223,46 +240,40 @@ class AnthropicGateway implements ModelGateway {
 }
 </code></pre>
 <h2>Fallback Chains</h2>
-<p>Mastra supports model fallbacks at the Agent level:</p>
-<pre><code class="language-typescript">// packages/core/src/agent/agent.ts (simplified)
-class Agent {
-  #model: LanguageModel;
-  #fallbackModels?: LanguageModel[];
-
-  async generate(input, options) {
-    const models = [this.#model, ...(this.#fallbackModels ?? [])];
-
-    let lastError: Error | undefined;
-    for (const model of models) {
-      try {
-        return await model.generate(input, options);
-      } catch (error) {
-        lastError = error;
-        if (!this.isRetryableError(error)) {
-          throw error;  // Auth error, bad request -- don&#x27;t retry
-        }
-        // Continue to next model in fallback chain
-      }
-    }
-
-    throw lastError;  // All models exhausted
-  }
-
-  isRetryableError(error: Error): boolean {
-    // Retry on: rate limits, timeouts, 5xx
-    // Don&#x27;t retry on: auth failures, invalid requests
-    return error instanceof RateLimitError
-      || error instanceof TimeoutError
-      || (error instanceof APIError &amp;&amp; error.status &gt;= 500);
-  }
+<p>Mastra supports model fallbacks at the Agent level via the <code>ModelFallbacks</code> type:</p>
+<pre><code class="language-typescript">// packages/core/src/agent/agent.ts (lines 121-129)
+type ModelFallbacks = {
+  id: string;                                    // Unique identifier
+  model: DynamicArgument&lt;MastraModelConfig&gt;;     // Model config or resolver function
+  maxRetries: number;                            // Retries per fallback entry
+  enabled: boolean;                              // Toggle on/off
+  modelSettings?: DynamicArgument&lt;ModelFallbackSettings&gt;;
+  providerOptions?: DynamicArgument&lt;ProviderOptions&gt;;
+  headers?: DynamicArgument&lt;Record&lt;string, string&gt;&gt;;
+}[];
+</code></pre>
+<p>The Agent's <code>model</code> field can be set to a <code>ModelFallbacks</code> array:</p>
+<pre><code class="language-typescript">model: DynamicArgument&lt;MastraModelConfig | ModelWithRetries[], TRequestContext&gt; | ModelFallbacks
+</code></pre>
+<p>Helpers for working with fallbacks:</p>
+<ul><li><code>isModelFallbacks()</code> — type guard to check if a value is a fallback array</li><li><code>normalizeModelFallbacks()</code> — normalize fallback entries</li><li><code>toFallbackEntry()</code> — static method to convert a model config to a fallback entry</li></ul>
+<p>When the primary model fails, the Agent iterates through the fallback chain, creating a new <code>ModelRouterLanguageModel</code> for each fallback entry and retrying. The <code>maxRetries</code> field controls retries per individual fallback model, and <code>enabled</code> toggles whether a specific fallback is active.</p>
+<h3>Spec Version Handling</h3>
+<p>The Agent checks the model's <code>specificationVersion</code> after resolving the LLM in <code>generate()</code> (line 5340):</p>
+<pre><code class="language-typescript">// agent/agent.ts, generate() at line 5340
+async generate(messages, options) {
+  const llm = await this.getLLM({ requestContext, model: options.model });
+  // specVersion is checked AFTER getLLM()
+  // v1 models throw: AGENT_GENERATE_V1_MODEL_NOT_SUPPORTED
+  // v2/v3 proceed to #execute()
 }
 </code></pre>
-<h3>Error Classification</h3>
-<p>The error classification determines whether to try the next model:</p>
-<table><tr><th>Error Type</th><th>Retryable?</th><th>Why</th></tr><tr><td>RateLimitError (429)</td><td>Yes</td><td>Temporary, next model may have capacity</td></tr><tr><td>TimeoutError</td><td>Yes</td><td>Network issue, next model may respond</td></tr><tr><td>APIError 5xx</td><td>Yes</td><td>Server-side, transient</td></tr><tr><td>APIError 4xx</td><td>No</td><td>Client-side, will fail on all models</td></tr><tr><td>AuthenticationError</td><td>No</td><td>Missing/invalid key affects all models</td></tr><tr><td>InvalidRequestError</td><td>No</td><td>Bad parameters, won work on any model</td></tr></table>
+<p>For v1 legacy models, <code>generate()</code> throws <code>AGENT_GENERATE_V1_MODEL_NOT_SUPPORTED</code> and users should use <code>generateLegacy()</code> instead.</p>
+<h3>Error Handling in Fallback Chains</h3>
+<p>When a model in the fallback chain fails, the Agent's <code>#execute()</code> pipeline handles the error through the error processor workflow. Non-retryable errors (auth failures, invalid requests) propagate immediately; retryable errors (rate limits, server errors) trigger the next fallback model.</p>
 <h2>LLM Recording for Multi-Model Testing</h2>
 <p>Mastra's LLM recorder supports testing with multiple providers:</p>
-<pre><code class="language-typescript">// packages/_llm-recorder/src/llm-recorder.ts
+<pre><code class="language-typescript">// packages/_llm-recorder/src/auto-recording.ts
 export const LLM_API_HOSTS = [
   &#x27;https://api.openai.com&#x27;,
   &#x27;https://api.anthropic.com&#x27;,
@@ -321,13 +332,13 @@ function extractUsageMetrics(usage: unknown, providerMetadata?: unknown): UsageS
 }
 </code></pre>
 <h2>Comparison: Multi-Model Across Projects</h2>
-<table><tr><th>Aspect</th><th>Hermes (Python)</th><th>Pi (TypeScript)</th><th>Mastra (TypeScript)</th></tr><tr><td>**Provider Resolution**</td><td>Model ID parsing + gateway</td><td>Provider adapter registry</td><td>ProviderRegistry + gateway plugins</td></tr><tr><td>**Credential Management**</td><td>CredentialPool with threading.Lock</td><td>Environment variables / config</td><td>Provider-level config, env var fallback</td></tr><tr><td>**Error Classification**</td><td>Error classifier in retry_utils.py</td><td>API error type checking</td><td>isRetryableError() on Agent</td></tr><tr><td>**Fallback Models**</td><td>Async fallback model attempt</td><td>Model switching via config</td><td>Fallback chain at Agent level</td></tr><tr><td>**Auxiliary Models**</td><td>AsyncOpenAI client per event loop</td><td>Single shared client</td><td>Per-provider gateway client</td></tr><tr><td>**Usage Tracking**</td><td>Token normalization in cost tracking</td><td>Provider metadata extraction</td><td>extractUsageMetrics() with cache tokens</td></tr><tr><td>**Rate Limiting**</td><td>NousRateGuard (proactive throttling)</td><td>Basic retry with backoff</td><td>Retry with isRetryableError classification</td></tr><tr><td>**Recording/Replay**</td><td>Not implemented</td><td>Not implemented</td><td>LLM recorder with MSW interception</td></tr></table>
+<table><tr><th>Aspect</th><th>Hermes (Python)</th><th>Pi (TypeScript)</th><th>Mastra (TypeScript)</th></tr><tr><td>**Provider Resolution**</td><td>Model ID parsing + gateway</td><td>Provider adapter registry</td><td>`parseModelRouterId()` + gateway plugins</td></tr><tr><td>**Credential Management**</td><td>CredentialPool with threading.Lock</td><td>Environment variables / config</td><td>Provider-level config in static JSON, env var fallback</td></tr><tr><td>**Error Classification**</td><td>Error classifier in retry_utils.py</td><td>API error type checking</td><td>Error processor workflow in `#execute()`</td></tr><tr><td>**Fallback Models**</td><td>Async fallback model attempt</td><td>Model switching via config</td><td>`ModelFallbacks[]` with per-entry `maxRetries`, `enabled`</td></tr><tr><td>**Auxiliary Models**</td><td>AsyncOpenAI client per event loop</td><td>Single shared client</td><td>Per-provider gateway client</td></tr><tr><td>**Usage Tracking**</td><td>Token normalization in cost tracking</td><td>Provider metadata extraction</td><td>`extractUsageMetrics()` with cache tokens</td></tr><tr><td>**Rate Limiting**</td><td>NousRateGuard (proactive throttling)</td><td>Basic retry with backoff</td><td>Retry via error processor + `maxRetries` per fallback</td></tr><tr><td>**Recording/Replay**</td><td>Not implemented</td><td>Not implemented</td><td>LLM recorder with MSW interception</td></tr></table>
 <h3>Hermes's Credential Pool</h3>
 <p>Hermes maintains a <code>CredentialPool</code> with <code>threading.Lock</code> for thread-safe credential selection. When multiple tools call the same provider concurrently, the pool ensures credentials are distributed without conflicts. Google OAuth uses <code>threading.Event</code> for refresh deduplication.</p>
 <h3>Pi's Provider Adapters</h3>
 <p>Pi uses an adapter pattern where each provider (OpenAI, Anthropic, etc.) implements a common interface. Model switching happens by swapping the active adapter. Credentials come from environment variables or configuration.</p>
 <h3>Mastra's Gateway Plugins</h3>
-<p>Mastra treats providers as gateway plugins. The <code>ProviderRegistry</code> loads provider configurations, and the <code>ModelRouterLanguageModel</code> resolves <code>provider/model</code> strings to concrete implementations. API keys fall back to environment variables if not explicitly configured.</p>
+<p>Mastra treats providers as gateway plugins. <code>PROVIDER_REGISTRY</code> (static JSON) holds provider configurations, and <code>ModelRouterLanguageModel</code> resolves <code>provider/model</code> strings via <code>parseModelRouterId()</code> + <code>findGatewayForModel()</code>. API keys fall back to environment variables if not explicitly configured.</p>
 <h2>Offline Mode and Local Models</h2>
 <p>Mastra supports local model providers:</p>
 <pre><code class="language-typescript">// Provider registry with offline mode
@@ -357,7 +368,7 @@ const task = backgroundTaskManager.createTask({
 </code></pre>
 <h2>Key Optimizations</h2>
 <h3>1. Provider Config Caching</h3>
-<p>Provider configurations are resolved once and cached. The <code>ProviderRegistry</code> doesn't re-parse API keys or base URLs on each call.</p>
+<p>Provider configurations from the static JSON registry are resolved once and cached. The gateway resolution doesn't re-parse API keys or base URLs on each call.</p>
 <h3>2. Gateway Lazy Initialization</h3>
 <p>Gateway clients are created lazily -- the OpenAI client isn't instantiated until the first <code>generate()</code> call. This avoids connection overhead for unused providers.</p>
 <h3>3. Error Classification Prevents Wasted Retries</h3>
@@ -380,7 +391,7 @@ observability/
     └── usage.ts                  ← Usage metrics extraction from provider responses
 
 packages/_llm-recorder/src/
-└── llm-recorder.ts               ← MSW-based recording/replay for multi-provider testing
+└── auto-recording.ts             ← MSW-based recording/replay for multi-provider testing
 </code></pre>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>

@@ -155,8 +155,8 @@ export class Agent&lt;TAgentId, TTools, TOutput, TRequestContext&gt; extends Mas
   public id: TAgentId;
   public name: string;
 
-  // Model -- can be a single model, array with retries, or fallback chain
-  model: MastraModelConfig | ModelFallbacks;
+  // Model -- dynamic: single config, array with retries, or fallback chain
+  model: DynamicArgument&lt;MastraModelConfig | ModelWithRetries[], TRequestContext&gt; | ModelFallbacks;
   #originalModel: MastraModelConfig | ModelFallbacks;
   maxRetries?: number;
 
@@ -167,11 +167,18 @@ export class Agent&lt;TAgentId, TTools, TOutput, TRequestContext&gt; extends Mas
   #workflows?: DynamicArgument&lt;Record&lt;string, AnyWorkflow&gt;, TRequestContext&gt;;
   #agents: DynamicArgument&lt;Record&lt;string, Agent&gt;, TRequestContext&gt;;  // Sub-agents
 
-  // Processors
-  #inputProcessors?: InputProcessorOrWorkflow[];
-  #outputProcessors?: OutputProcessorOrWorkflow[];
-  #errorProcessors?: ErrorProcessorOrWorkflow[];
+  // Processors (all wrapped in DynamicArgument for context-aware resolution)
+  #inputProcessors?: DynamicArgument&lt;InputProcessorOrWorkflow[], TRequestContext&gt;;
+  #outputProcessors?: DynamicArgument&lt;OutputProcessorOrWorkflow[], TRequestContext&gt;;
+  #errorProcessors?: DynamicArgument&lt;ErrorProcessorOrWorkflow[], TRequestContext&gt;;
   #maxProcessorRetries?: number;
+
+  // Additional fields
+  #requestContextSchema?: z.ZodType&lt;TRequestContext&gt;;
+  #agentChannels?: AgentChannel[];
+  #skillsFormat?: SkillsFormat;
+  #scorers?: Record&lt;string, Scorer&gt;;
+  #legacyHandler?: AgentLegacyHandler;
 
   // Capabilities
   #voice: MastraVoice;
@@ -270,7 +277,7 @@ async #execute&lt;OUTPUT&gt;({ methodType, resumeContext, ...options }) {
 <p><strong>Aha moment:</strong> The model can be a <code>DynamicArgument</code> -- either a static value or a function that receives the request context and returns a model. This enables runtime model selection based on context: <code>model: (ctx) => ctx.user.premium ? 'openai/gpt-5' : 'openai/gpt-4o-mini'</code>.</p>
 <h2>Tool Conversion</h2>
 <p>Tools are converted from the Agent's tool format to CoreTool format via <code>convertTools()</code>:</p>
-<pre><code class="language-typescript">async convertTools({ requestContext, methodType }): Promise&lt;CoreTool[]&gt; {
+<pre><code class="language-typescript">async convertTools({ requestContext, methodType }): Promise&lt;Record&lt;string, CoreTool&gt;&gt; {
   // 1. Resolve dynamic tools
   const tools = await resolveDynamicValue(this.#tools, { requestContext });
 
@@ -361,14 +368,11 @@ enableBackgroundTasks(): void {
 <p><strong>Aha moment:</strong> The sub-agent background config derivation (<code>deriveSubAgentBackgroundConfig</code>) automatically inspects a sub-agent's tools and config to determine if any are background-eligible. This means a sub-agent can have async tools without the parent knowing about them -- the configuration is self-describing.</p>
 <h2>Processor Integration</h2>
 <p>The Agent integrates with the processor pipeline:</p>
-<pre><code class="language-typescript">// Input processors -- run before LLM
-#inputProcessors?: InputProcessorOrWorkflow[];
-
-// Output processors -- run after LLM
-#outputProcessors?: OutputProcessorOrWorkflow[];
-
-// Error processors -- run on failure
-#errorProcessors?: ErrorProcessorOrWorkflow[];
+<pre><code class="language-typescript">// All processor fields are DynamicArgument — can be static arrays or functions
+// that receive requestContext and return arrays
+#inputProcessors?: DynamicArgument&lt;InputProcessorOrWorkflow[], TRequestContext&gt;;
+#outputProcessors?: DynamicArgument&lt;OutputProcessorOrWorkflow[], TRequestContext&gt;;
+#errorProcessors?: DynamicArgument&lt;ErrorProcessorOrWorkflow[], TRequestContext&gt;;
 
 // Retry count for processor failures
 #maxProcessorRetries?: number;
@@ -425,7 +429,7 @@ agent/utils.ts                    Utility functions (model validation, etc.)
 <ul><li><a href="./00-overview.md">00-overview.md</a> -- What Mastra is, capabilities</li><li><a href="./01-architecture.md">01-architecture.md</a> -- Package map, dependency graph</li><li><a href="./03-agent-loop.md">03-agent-loop.md</a> -- Workflow-based agentic loop</li><li><a href="./04-tool-system.md">04-tool-system.md</a> -- Tool calling, suspension, approval</li><li><a href="./05-model-router.md">05-model-router.md</a> -- Provider resolution, model fallbacks</li><li><a href="./07-processors.md">07-processors.md</a> -- Input/output/error processor pipeline</li></ul>
 <h2>Source Paths</h2>
 <pre><code class="language-">packages/core/src/agent/
-├── agent.ts                    ← Agent class (3600+ lines, generate/stream/#execute)
+├── agent.ts                    ← Agent class (6094 lines, generate/stream/#execute)
 ├── agent.types.ts              ← AgentConfig, DelegationConfig, IterationCompleteContext
 ├── message-list/               ← MessageList, message history management
 ├── trip-wire.ts                ← TripWire -- iteration control
