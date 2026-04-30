@@ -33,6 +33,7 @@ impl Validate for UnevaluatedPropertiesValidator {
                     if !self.schema.is_valid(value, ctx) {
                         return false;
                     }
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }

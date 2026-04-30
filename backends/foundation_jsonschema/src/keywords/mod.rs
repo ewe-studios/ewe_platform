@@ -189,6 +189,10 @@ pub enum BuiltinKeyword {
     ContentMediaType,
     /// `contentSchema` keyword.
     ContentSchema,
+    /// `minContains` keyword.
+    MinContains,
+    /// `maxContains` keyword.
+    MaxContains,
 }
 
 #[allow(dead_code)]
@@ -241,6 +245,8 @@ impl BuiltinKeyword {
             Self::ContentEncoding => "contentEncoding",
             Self::ContentMediaType => "contentMediaType",
             Self::ContentSchema => "contentSchema",
+            Self::MinContains => "minContains",
+            Self::MaxContains => "maxContains",
         }
     }
 
@@ -292,6 +298,8 @@ impl BuiltinKeyword {
             "contentEncoding" => Self::ContentEncoding,
             "contentMediaType" => Self::ContentMediaType,
             "contentSchema" => Self::ContentSchema,
+            "minContains" => Self::MinContains,
+            "maxContains" => Self::MaxContains,
             _ => return None,
         })
     }

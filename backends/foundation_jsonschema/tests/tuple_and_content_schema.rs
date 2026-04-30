@@ -341,6 +341,7 @@ fn content_schema_standalone_valid_json_object() {
 
 #[test]
 fn content_schema_standalone_invalid_json() {
+    // contentSchema is annotation-only in Draft 2020-12 (spec: invalid content passes)
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "contentSchema": {
@@ -353,12 +354,13 @@ fn content_schema_standalone_invalid_json() {
         .build(&schema)
         .unwrap();
 
-    // Not valid JSON
-    assert!(!validator.is_valid(&json!("not json")));
+    // Annotation-only: contentSchema is not validated, string passes type check
+    assert!(validator.is_valid(&json!("not json")));
 }
 
 #[test]
 fn content_schema_standalone_json_wrong_type() {
+    // contentSchema is annotation-only in Draft 2020-12
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "contentSchema": {
@@ -372,8 +374,8 @@ fn content_schema_standalone_json_wrong_type() {
         .build(&schema)
         .unwrap();
 
-    // Valid JSON array, but not an object with "id"
-    assert!(!validator.is_valid(&json!("[1, 2, 3]")));
+    // Annotation-only: contentSchema not validated, string passes type check
+    assert!(validator.is_valid(&json!("[1, 2, 3]")));
 }
 
 #[test]
@@ -403,7 +405,7 @@ fn content_schema_with_base64_encoding() {
 
 #[test]
 fn content_schema_with_base64_wrong_schema() {
-    // base64 of {"wrong":"field"} — decodes to valid JSON but doesn't match schema
+    // contentSchema is annotation-only in Draft 2020-12; decoded content is not validated
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "contentEncoding": "base64",
@@ -419,8 +421,8 @@ fn content_schema_with_base64_wrong_schema() {
         .build(&schema)
         .unwrap();
 
-    // base64 of {"wrong":"field"}
-    assert!(!validator.is_valid(&json!("eyJ3cm9uZyI6ImZpZWxkIn0=")));
+    // Annotation-only: content keywords not validated, string passes
+    assert!(validator.is_valid(&json!("eyJ3cm9uZyI6ImZpZWxkIn0=")));
 }
 
 #[test]
@@ -443,6 +445,7 @@ fn content_schema_non_string_instance_passes() {
 
 #[test]
 fn content_schema_draft2019_09() {
+    // contentSchema is annotation-only in Draft 2019-09 (spec: content keywords not validated)
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2019-09/schema",
         "contentEncoding": "base64",
@@ -458,24 +461,20 @@ fn content_schema_draft2019_09() {
         .build(&schema)
         .unwrap();
 
-    // base64 of [1,2,3] = WzEsMiwzXQ==
+    // Annotation-only: content keywords are not validated, strings pass
     assert!(validator.is_valid(&json!("WzEsMiwzXQ==")));
-    // base64 of ["a","b"] = WyJhIiwiYiJd — not integers
-    assert!(!validator.is_valid(&json!("WyJhIiwiYiJd")));
+    assert!(validator.is_valid(&json!("WyJhIiwiYiJd")));
 }
 
 #[test]
 fn content_schema_with_encoding_only_no_media_type() {
-    // contentEncoding without contentMediaType: decode, then parse as JSON
-    // (since no media type, string treated as-is)
+    // contentEncoding without contentMediaType: decode, then treat as string value
+    // (no JSON parsing without media type)
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "contentEncoding": "base64",
         "contentSchema": {
-            "type": "object",
-            "properties": {
-                "key": {"type": "string"}
-            }
+            "type": "string"
         }
     });
 
@@ -485,9 +484,7 @@ fn content_schema_with_encoding_only_no_media_type() {
         .unwrap();
 
     // base64 of {"key":"value"} = eyJrZXkiOiJ2YWx1ZSJ9
-    // Without media type, the decoded bytes are treated as a string value
-    // But our implementation parses as JSON when encoding is none or media type is application/json
-    // With encoding but no media type, it tries to parse decoded as JSON
+    // Decodes to a string, which matches {"type": "string"}
     assert!(validator.is_valid(&json!("eyJrZXkiOiJ2YWx1ZSJ9")));
 }
 
@@ -541,7 +538,10 @@ fn tuple_additional_items_absent_means_true_all_drafts() {
         (Draft::Draft4, "http://json-schema.org/draft-04/schema#"),
         (Draft::Draft6, "http://json-schema.org/draft-06/schema#"),
         (Draft::Draft7, "http://json-schema.org/draft-07/schema#"),
-        (Draft::Draft201909, "https://json-schema.org/draft/2019-09/schema"),
+        (
+            Draft::Draft201909,
+            "https://json-schema.org/draft/2019-09/schema",
+        ),
     ] {
         let schema = json!({
             "$schema": schema_uri,

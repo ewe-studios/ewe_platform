@@ -26,7 +26,14 @@ impl AllOfValidator {
 
 impl Validate for AllOfValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
-        self.schemas.iter().all(|s| s.is_valid(instance, ctx))
+        for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
+            if !schema.is_valid(instance, ctx) {
+                return false;
+            }
+            ctx.merge_evaluation_state(&state);
+        }
+        true
     }
 
     fn validate(
@@ -36,7 +43,9 @@ impl Validate for AllOfValidator {
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
             schema.validate(instance, instance_path, ctx)?;
+            ctx.merge_evaluation_state(&state);
         }
         Ok(())
     }
@@ -49,9 +58,11 @@ impl Validate for AllOfValidator {
     ) -> ErrorIterator {
         let mut errors: Vec<ValidationError> = Vec::new();
         for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
             for e in schema.iter_errors(instance, instance_path, ctx) {
                 errors.push(e);
             }
+            ctx.merge_evaluation_state(&state);
         }
         Box::new(errors.into_iter())
     }

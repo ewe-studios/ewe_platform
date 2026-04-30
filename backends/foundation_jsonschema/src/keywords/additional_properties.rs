@@ -78,6 +78,7 @@ impl Validate for AdditionalPropertiesValidator {
                             if !s.is_valid(value, ctx) {
                                 return false;
                             }
+                            ctx.mark_property_evaluated(name);
                         }
                     }
                 }
@@ -114,6 +115,7 @@ impl Validate for AdditionalPropertiesValidator {
                         AdditionalSchema::Schema(s) => {
                             let child_path = instance_path.push_property(name);
                             s.validate(value, &child_path, ctx)?;
+                            ctx.mark_property_evaluated(name);
                         }
                     }
                 }
@@ -155,6 +157,7 @@ impl Validate for AdditionalPropertiesValidator {
                             for e in s.iter_errors(value, &child_path, ctx) {
                                 errors.push(e);
                             }
+                            ctx.mark_property_evaluated(name);
                         }
                     }
                 }

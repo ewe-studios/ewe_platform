@@ -28,16 +28,18 @@ impl PropertiesValidator {
 
 impl Validate for PropertiesValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
+        let mut valid = true;
         if let Value::Object(obj) = instance {
             for (name, value) in obj {
                 if let Some(schema) = self.properties.get(name) {
                     if !schema.is_valid(value, ctx) {
-                        return false;
+                        valid = false;
                     }
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }
-        true
+        valid
     }
 
     fn validate(
@@ -51,6 +53,7 @@ impl Validate for PropertiesValidator {
                 if let Some(schema) = self.properties.get(name) {
                     let child_path = instance_path.push_property(name);
                     schema.validate(value, &child_path, ctx)?;
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }
@@ -71,6 +74,7 @@ impl Validate for PropertiesValidator {
                     for e in schema.iter_errors(value, &child_path, ctx) {
                         errors.push(e);
                     }
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }

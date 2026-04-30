@@ -62,6 +62,12 @@ impl JsonType {
             Value::Number(n) => {
                 if n.is_i64() || n.is_u64() {
                     Self::Integer
+                } else if let Some(f) = n.as_f64() {
+                    if f.fract() == 0.0 {
+                        Self::Integer
+                    } else {
+                        Self::Number
+                    }
                 } else {
                     Self::Number
                 }

@@ -28,8 +28,11 @@ impl Validate for UnevaluatedItemsValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
         if let Value::Array(arr) = instance {
             for (i, item) in arr.iter().enumerate() {
-                if !ctx.is_item_evaluated(i) && !self.schema.is_valid(item, ctx) {
-                    return false;
+                if !ctx.is_item_evaluated(i) {
+                    if !self.schema.is_valid(item, ctx) {
+                        return false;
+                    }
+                    ctx.mark_item_evaluated(i);
                 }
             }
         }
