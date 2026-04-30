@@ -58,6 +58,19 @@ use crate::referencing::{Registry, VocabularySet};
 use foundation_errstacks::IntoErrorTrace;
 use serde_json::Value;
 
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn value_to_u64(value: &Value) -> Option<u64> {
+    value.as_u64().or_else(|| {
+        value.as_f64().and_then(|f| {
+            if f >= 0.0 && f.fract() == 0.0 && f <= u64::MAX as f64 {
+                Some(f as u64)
+            } else {
+                None
+            }
+        })
+    })
+}
+
 /// Compile a JSON Schema into a validator tree.
 ///
 /// WHY: This is the main entry point that transforms a raw JSON Schema
@@ -210,7 +223,7 @@ fn compile_keyword(
         "uniqueItems" => compile_unique_items(value, ctx),
         "items" => compile_items(value, ctx, schema_obj),
         "prefixItems" => compile_prefix_items(value, ctx),
-        "contains" => compile_contains(value, ctx),
+        "contains" => compile_contains(value, ctx, schema_obj),
         "unevaluatedItems" => compile_unevaluated_items(value, ctx),
         "additionalItems" => compile_additional_items(value, ctx, schema_obj),
         // Composition
@@ -223,10 +236,13 @@ fn compile_keyword(
         "$ref" => compile_ref(value, ctx),
         "$dynamicRef" => compile_dynamic_ref(value, ctx),
         "$recursiveRef" => compile_recursive_ref(value, ctx),
-        // Content
-        "contentEncoding" => compile_content_encoding(value, ctx, schema_obj),
-        "contentMediaType" => Some(compile_content_media_type(value, ctx, schema_obj)),
-        "contentSchema" => compile_content_schema(value, ctx, schema_obj),
+        // Content — annotation-only in 2019-09+ (no validation unless opted in)
+        "contentEncoding" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
+            compile_content_encoding(value, ctx, schema_obj),
+        "contentMediaType" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
+            Some(compile_content_media_type(value, ctx, schema_obj)),
+        "contentSchema" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
+            compile_content_schema(value, ctx, schema_obj),
         // Legacy
         "dependencies" => compile_dependencies(value, ctx),
         // Unknown — skip
@@ -290,12 +306,12 @@ fn compile_enum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
 // ── String ─────────────────────────────────────────────────────────────
 
 fn compile_min_length(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let min = value.as_u64().unwrap_or(0);
+    let min = value_to_u64(value).unwrap_or(0);
     Box::new(MinLengthValidator::new(min, ctx.schema_path.clone()))
 }
 
 fn compile_max_length(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let max = value.as_u64().unwrap_or(0);
+    let max = value_to_u64(value).unwrap_or(0);
     Box::new(MaxLengthValidator::new(max, ctx.schema_path.clone()))
 }
 
@@ -378,12 +394,12 @@ fn compile_required(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator 
 }
 
 fn compile_min_properties(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let min = value.as_u64().unwrap_or(0);
+    let min = value_to_u64(value).unwrap_or(0);
     Box::new(MinPropertiesValidator::new(min, ctx.schema_path.clone()))
 }
 
 fn compile_max_properties(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let max = value.as_u64().unwrap_or(0);
+    let max = value_to_u64(value).unwrap_or(0);
     Box::new(MaxPropertiesValidator::new(max, ctx.schema_path.clone()))
 }
 
@@ -527,6 +543,7 @@ fn compile_additional_properties(
 ) -> Option<BoxedValidator> {
     let schema = match value {
         Value::Bool(false) => Some(AdditionalSchema::False),
+        Value::Bool(true) => Some(AdditionalSchema::Schema(SchemaNode::AlwaysValid)),
         Value::Object(_) | Value::Array(_) => {
             let sub_ctx = ctx.push_keyword("additionalProperties");
             match compile_node(value, &sub_ctx) {
@@ -534,7 +551,7 @@ fn compile_additional_properties(
                 Err(_) => return None,
             }
         }
-        _ => None, // true or other — allow all
+        _ => None,
     };
     Some(Box::new(AdditionalPropertiesValidator::new(
         schema,
@@ -596,20 +613,36 @@ fn compile_items(
     schema_obj: &serde_json::Map<String, Value>,
 ) -> Option<BoxedValidator> {
     match value {
-        Value::Bool(false) => {
-            // items: false means no items allowed — tuple of length 0, additionalItems: false
+        Value::Bool(b) => {
             match ctx.draft {
                 Draft::Draft202012 => {
+                    // In 2020-12, items applies to items beyond prefixItems
+                    let skip_first = schema_obj
+                        .get("prefixItems")
+                        .and_then(Value::as_array)
+                        .map_or(0, std::vec::Vec::len);
                     let sub_ctx = ctx.push_keyword("items");
                     match compile_node(value, &sub_ctx) {
-                        Ok(node) => Some(Box::new(ItemsValidator::new(node))),
+                        Ok(node) => {
+                            if *b || skip_first > 0 {
+                                Some(Box::new(ItemsValidator::with_offset(node, skip_first)))
+                            } else {
+                                Some(Box::new(ItemsValidator::new(node)))
+                            }
+                        }
                         Err(_) => None,
                     }
                 }
-                _ => Some(Box::new(TupleItemsValidator::new(
-                    vec![],
-                    AdditionalItemsPolicy::RejectAll,
-                ))),
+                _ => {
+                    if *b {
+                        None // items: true is a no-op in older drafts
+                    } else {
+                        Some(Box::new(TupleItemsValidator::new(
+                            vec![],
+                            AdditionalItemsPolicy::RejectAll,
+                        )))
+                    }
+                }
             }
         }
         Value::Object(_) => {
@@ -714,12 +747,24 @@ fn compile_prefix_items(value: &Value, ctx: &CompilerContext) -> Option<BoxedVal
     Some(Box::new(PrefixItemsValidator::new(items)))
 }
 
-fn compile_contains(value: &Value, ctx: &CompilerContext) -> Option<BoxedValidator> {
+fn compile_contains(
+    value: &Value,
+    ctx: &CompilerContext,
+    schema_obj: &serde_json::Map<String, Value>,
+) -> Option<BoxedValidator> {
     let sub_ctx = ctx.push_keyword("contains");
-    match compile_node(value, &sub_ctx) {
-        Ok(node) => Some(Box::new(ContainsValidator::new(node))),
-        Err(_) => None,
+    let Ok(node) = compile_node(value, &sub_ctx) else { return None };
+    let mut validator = ContainsValidator::new(node);
+
+    // minContains and maxContains modify contains behavior (Draft 2019-09+).
+    if let Some(min) = schema_obj.get("minContains").and_then(value_to_u64) {
+        validator = validator.with_min(min);
     }
+    if let Some(max) = schema_obj.get("maxContains").and_then(value_to_u64) {
+        validator = validator.with_max(max);
+    }
+
+    Some(Box::new(validator))
 }
 
 fn compile_unevaluated_items(value: &Value, ctx: &CompilerContext) -> Option<BoxedValidator> {
@@ -732,13 +777,21 @@ fn compile_unevaluated_items(value: &Value, ctx: &CompilerContext) -> Option<Box
 
 // ── Reference keywords ─────────────────────────────────────────────────
 
+fn resolve_ref_uri(base_uri: &str, reference: &str) -> String {
+    if let Some(frag) = reference.strip_prefix('#') {
+        alloc::format!("{base_uri}#{frag}")
+    } else {
+        reference.to_string()
+    }
+}
+
 fn compile_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
     let reference = value.as_str()?.to_string();
     let resolved = ctx.resolver.lookup(&reference).ok()?;
-    let target_uri = resolved.resolver().base_uri().to_string();
+    let cycle_key = resolve_ref_uri(resolved.resolver().base_uri(), &reference);
 
     // Circular reference — return AlwaysValid to break the cycle
-    if ctx.is_in_progress(&target_uri) {
+    if ctx.is_in_progress(&cycle_key) {
         return Some(Box::new(RefValidator::new(
             reference,
             ctx.schema_path.clone(),
@@ -746,10 +799,10 @@ fn compile_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidato
         )));
     }
 
-    ctx.mark_in_progress(&target_uri);
-    let sub_ctx = ctx.push_keyword("$ref");
+    ctx.mark_in_progress(&cycle_key);
+    let sub_ctx = ctx.with_resolver(resolved.resolver().clone(), "$ref");
     let resolved_schema = compile_node(resolved.contents(), &sub_ctx).ok()?;
-    ctx.mark_done(&target_uri);
+    ctx.mark_done(&cycle_key);
 
     Some(Box::new(RefValidator::new(
         reference,
@@ -761,9 +814,9 @@ fn compile_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidato
 fn compile_dynamic_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
     let reference = value.as_str()?.to_string();
     let resolved = ctx.resolver.lookup(&reference).ok()?;
-    let target_uri = resolved.resolver().base_uri().to_string();
+    let cycle_key = resolve_ref_uri(resolved.resolver().base_uri(), &reference);
 
-    if ctx.is_in_progress(&target_uri) {
+    if ctx.is_in_progress(&cycle_key) {
         return Some(Box::new(DynamicRefValidator::new(
             reference,
             ctx.schema_path.clone(),
@@ -771,10 +824,10 @@ fn compile_dynamic_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<Boxed
         )));
     }
 
-    ctx.mark_in_progress(&target_uri);
-    let sub_ctx = ctx.push_keyword("$dynamicRef");
+    ctx.mark_in_progress(&cycle_key);
+    let sub_ctx = ctx.with_resolver(resolved.resolver().clone(), "$dynamicRef");
     let resolved_schema = compile_node(resolved.contents(), &sub_ctx).ok()?;
-    ctx.mark_done(&target_uri);
+    ctx.mark_done(&cycle_key);
 
     Some(Box::new(DynamicRefValidator::new(
         reference,
@@ -792,9 +845,9 @@ fn compile_recursive_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<Box
     } else {
         ctx.resolver.lookup(&reference).ok()?
     };
-    let target_uri = resolved.resolver().base_uri().to_string();
+    let cycle_key = resolve_ref_uri(resolved.resolver().base_uri(), &reference);
 
-    if ctx.is_in_progress(&target_uri) {
+    if ctx.is_in_progress(&cycle_key) {
         return Some(Box::new(RecursiveRefValidator::new(
             reference,
             ctx.schema_path.clone(),
@@ -802,10 +855,10 @@ fn compile_recursive_ref(value: &Value, ctx: &CompilerContext<'_>) -> Option<Box
         )));
     }
 
-    ctx.mark_in_progress(&target_uri);
-    let sub_ctx = ctx.push_keyword("$recursiveRef");
+    ctx.mark_in_progress(&cycle_key);
+    let sub_ctx = ctx.with_resolver(resolved.resolver().clone(), "$recursiveRef");
     let resolved_schema = compile_node(resolved.contents(), &sub_ctx).ok()?;
-    ctx.mark_done(&target_uri);
+    ctx.mark_done(&cycle_key);
 
     Some(Box::new(RecursiveRefValidator::new(
         reference,
@@ -839,13 +892,6 @@ fn compile_content_media_type(
     schema_obj: &serde_json::Map<String, Value>,
 ) -> BoxedValidator {
     let media_type = value.as_str().unwrap_or("").to_string();
-    // If contentSchema is also present, contentSchema handles the media type check internally.
-    if schema_obj.contains_key("contentSchema") {
-        return Box::new(ContentMediaTypeValidator::new(
-            media_type,
-            ctx.schema_path.clone(),
-        ));
-    }
     // If contentEncoding is also present, create a combined validator that
     // decodes first, then checks media type on the decoded result.
     if let Some(Value::String(encoding)) = schema_obj.get("contentEncoding") {
@@ -902,12 +948,12 @@ fn compile_content_schema(
 // ── Array validators ───────────────────────────────────────────────────
 
 fn compile_min_items(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let min = value.as_u64().unwrap_or(0);
+    let min = value_to_u64(value).unwrap_or(0);
     Box::new(MinItemsValidator::new(min, ctx.schema_path.clone()))
 }
 
 fn compile_max_items(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let max = value.as_u64().unwrap_or(0);
+    let max = value_to_u64(value).unwrap_or(0);
     Box::new(MaxItemsValidator::new(max, ctx.schema_path.clone()))
 }
 

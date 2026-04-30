@@ -37,11 +37,17 @@ impl IfThenElseValidator {
 
 impl Validate for IfThenElseValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
-        if self.if_schema.is_valid(instance, ctx) {
+        let pre_if = ctx.save_evaluation_state();
+        let condition = self.if_schema.is_valid(instance, ctx);
+
+        if condition {
+            // `if` passed — keep its marks, run `then`
             self.then_schema
                 .as_ref()
                 .is_none_or(|s| s.is_valid(instance, ctx))
         } else {
+            // `if` failed — discard its marks, run `else`
+            ctx.restore_evaluation_state(&pre_if);
             self.else_schema
                 .as_ref()
                 .is_none_or(|s| s.is_valid(instance, ctx))
@@ -54,20 +60,20 @@ impl Validate for IfThenElseValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
-        if self.is_valid(instance, ctx) {
-            Ok(())
+        let pre_if = ctx.save_evaluation_state();
+        let condition = self.if_schema.is_valid(instance, ctx);
+
+        if condition {
+            if let Some(then_schema) = &self.then_schema {
+                then_schema.validate(instance, instance_path, ctx)?;
+            }
         } else {
-            let schema = if self.if_schema.is_valid(instance, ctx) {
-                &self.then_schema
-            } else {
-                &self.else_schema
-            };
-            if let Some(s) = schema {
-                s.validate(instance, instance_path, ctx)
-            } else {
-                Ok(())
+            ctx.restore_evaluation_state(&pre_if);
+            if let Some(else_schema) = &self.else_schema {
+                else_schema.validate(instance, instance_path, ctx)?;
             }
         }
+        Ok(())
     }
 
     fn iter_errors(
@@ -76,17 +82,20 @@ impl Validate for IfThenElseValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        if self.is_valid(instance, ctx) {
-            return Box::new(core::iter::empty());
-        }
-        let schema = if self.if_schema.is_valid(instance, ctx) {
-            &self.then_schema
+        let pre_if = ctx.save_evaluation_state();
+        let condition = self.if_schema.is_valid(instance, ctx);
+
+        if condition {
+            match &self.then_schema {
+                Some(s) => s.iter_errors(instance, instance_path, ctx),
+                None => Box::new(core::iter::empty()),
+            }
         } else {
-            &self.else_schema
-        };
-        match schema {
-            Some(s) => Box::new(s.iter_errors(instance, instance_path, ctx)),
-            None => Box::new(core::iter::empty()),
+            ctx.restore_evaluation_state(&pre_if);
+            match &self.else_schema {
+                Some(s) => s.iter_errors(instance, instance_path, ctx),
+                None => Box::new(core::iter::empty()),
+            }
         }
     }
 }

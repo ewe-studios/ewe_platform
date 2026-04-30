@@ -27,10 +27,11 @@ impl PrefixItemsValidator {
 impl Validate for PrefixItemsValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
         if let Value::Array(arr) = instance {
-            for (i, item) in arr.iter().enumerate() {
-                if i < self.items.len() && !self.items[i].is_valid(item, ctx) {
+            for (i, item) in arr.iter().enumerate().take(self.items.len()) {
+                if !self.items[i].is_valid(item, ctx) {
                     return false;
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         true
@@ -46,6 +47,7 @@ impl Validate for PrefixItemsValidator {
             for (i, item) in arr.iter().enumerate().take(self.items.len()) {
                 let child_path = instance_path.push_index(i);
                 self.items[i].validate(item, &child_path, ctx)?;
+                ctx.mark_item_evaluated(i);
             }
         }
         Ok(())
@@ -64,6 +66,7 @@ impl Validate for PrefixItemsValidator {
                 for e in self.items[i].iter_errors(item, &child_path, ctx) {
                     errors.push(e);
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         Box::new(errors.into_iter())

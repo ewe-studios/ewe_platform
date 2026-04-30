@@ -107,6 +107,13 @@ impl ValidationContext {
         self.evaluated_items
             .extend(state.evaluated_items.iter().copied());
     }
+
+    /// Restore evaluation state to a previous snapshot (discards current marks).
+    #[allow(dead_code)]
+    pub fn restore_evaluation_state(&mut self, state: &EvaluationState) {
+        self.evaluated_properties.clone_from(&state.evaluated_properties);
+        self.evaluated_items.clone_from(&state.evaluated_items);
+    }
 }
 
 impl Default for ValidationContext {

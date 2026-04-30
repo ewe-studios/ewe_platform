@@ -67,6 +67,7 @@ impl Validate for TupleItemsValidator {
                 if !schema.is_valid(item, ctx) {
                     return false;
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         true
@@ -96,6 +97,7 @@ impl Validate for TupleItemsValidator {
                     }
                 };
                 schema.validate(item, &child_path, ctx)?;
+                ctx.mark_item_evaluated(i);
             }
         }
         Ok(())
@@ -131,6 +133,7 @@ impl Validate for TupleItemsValidator {
                 for e in schema.iter_errors(item, &child_path, ctx) {
                     errors.push(e);
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         Box::new(errors.into_iter())

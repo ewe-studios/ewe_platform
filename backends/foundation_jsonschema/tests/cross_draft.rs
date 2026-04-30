@@ -225,7 +225,8 @@ fn draft7_no_content_encoding() {
 }
 
 #[test]
-fn draft2019_09_content_encoding() {
+fn draft2019_09_content_encoding_annotation_only() {
+    // In 2019-09+, content keywords are annotation-only by default
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2019-09/schema",
         "type": "string",
@@ -233,8 +234,7 @@ fn draft2019_09_content_encoding() {
     });
     let v = draft201909::compile(&schema).unwrap();
     assert!(v.is_valid(&json!("SGVsbG8=")));
-    // Invalid base64 (wrong length)
-    assert!(!v.is_valid(&json!("not-valid")));
+    assert!(v.is_valid(&json!("not-valid")));
 }
 
 // ── prefixItems vs items (2020-12) ───────────────────────────────────

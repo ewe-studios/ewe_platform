@@ -26,7 +26,21 @@ impl AnyOfValidator {
 
 impl Validate for AnyOfValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
-        self.schemas.iter().any(|s| s.is_valid(instance, ctx))
+        let mut any_valid = false;
+        let base_state = ctx.save_evaluation_state();
+        for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
+            if schema.is_valid(instance, ctx) {
+                any_valid = true;
+                // Keep marks from this matching branch, continue to collect more
+            } else {
+                ctx.restore_evaluation_state(&state);
+            }
+        }
+        if !any_valid {
+            ctx.restore_evaluation_state(&base_state);
+        }
+        any_valid
     }
 
     fn validate(
@@ -35,13 +49,32 @@ impl Validate for AnyOfValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
-        if self.schemas.iter().any(|s| s.is_valid(instance, ctx)) {
-            return Ok(());
+        let mut all_errors: Vec<ValidationError> = Vec::new();
+        let mut any_valid = false;
+        let base_state = ctx.save_evaluation_state();
+
+        for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
+            let result = schema.validate(instance, instance_path, ctx);
+            if result.is_ok() {
+                any_valid = true;
+            } else {
+                ctx.restore_evaluation_state(&state);
+                if let Err(e) = result {
+                    all_errors.push(e);
+                }
+            }
         }
-        Err(
-            ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
-                .build(ValidationErrorKind::AnyOf),
-        )
+
+        if any_valid {
+            Ok(())
+        } else {
+            ctx.restore_evaluation_state(&base_state);
+            Err(all_errors.into_iter().next().unwrap_or_else(|| {
+                ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
+                    .build(ValidationErrorKind::AnyOf)
+            }))
+        }
     }
 
     fn iter_errors(
@@ -50,9 +83,20 @@ impl Validate for AnyOfValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        if self.schemas.iter().any(|s| s.is_valid(instance, ctx)) {
+        let base_state = ctx.save_evaluation_state();
+        let mut any_valid = false;
+        for schema in &self.schemas {
+            let state = ctx.save_evaluation_state();
+            if schema.is_valid(instance, ctx) {
+                any_valid = true;
+            } else {
+                ctx.restore_evaluation_state(&state);
+            }
+        }
+        if any_valid {
             return Box::new(core::iter::empty());
         }
+        ctx.restore_evaluation_state(&base_state);
         let err = ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
             .build(ValidationErrorKind::AnyOf);
         Box::new(core::iter::once(err))

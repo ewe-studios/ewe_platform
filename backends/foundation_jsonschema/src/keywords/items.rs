@@ -43,10 +43,11 @@ impl ItemsValidator {
 impl Validate for ItemsValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
         if let Value::Array(arr) = instance {
-            for item in arr.iter().skip(self.skip_first) {
+            for (i, item) in arr.iter().enumerate().skip(self.skip_first) {
                 if !self.schema.is_valid(item, ctx) {
                     return false;
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         true
@@ -62,6 +63,7 @@ impl Validate for ItemsValidator {
             for (i, item) in arr.iter().enumerate().skip(self.skip_first) {
                 let child_path = instance_path.push_index(i);
                 self.schema.validate(item, &child_path, ctx)?;
+                ctx.mark_item_evaluated(i);
             }
         }
         Ok(())
@@ -80,6 +82,7 @@ impl Validate for ItemsValidator {
                 for e in self.schema.iter_errors(item, &child_path, ctx) {
                     errors.push(e);
                 }
+                ctx.mark_item_evaluated(i);
             }
         }
         Box::new(errors.into_iter())

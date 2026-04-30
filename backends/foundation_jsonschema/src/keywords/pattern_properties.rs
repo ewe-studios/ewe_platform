@@ -30,8 +30,11 @@ impl Validate for PatternPropertiesValidator {
         if let Value::Object(obj) = instance {
             for (name, value) in obj {
                 for (regex, schema) in &self.patterns {
-                    if regex.is_match(name) && !schema.is_valid(value, ctx) {
-                        return false;
+                    if regex.is_match(name) {
+                        if !schema.is_valid(value, ctx) {
+                            return false;
+                        }
+                        ctx.mark_property_evaluated(name);
                     }
                 }
             }
@@ -51,6 +54,7 @@ impl Validate for PatternPropertiesValidator {
                     if regex.is_match(name) {
                         let child_path = instance_path.push_property(name);
                         schema.validate(value, &child_path, ctx)?;
+                        ctx.mark_property_evaluated(name);
                     }
                 }
             }
@@ -73,6 +77,7 @@ impl Validate for PatternPropertiesValidator {
                         for e in schema.iter_errors(value, &child_path, ctx) {
                             errors.push(e);
                         }
+                        ctx.mark_property_evaluated(name);
                     }
                 }
             }

@@ -84,6 +84,22 @@ impl<'a> CompilerContext<'a> {
         }
     }
 
+    /// Create a sub-context with a different resolver (for $ref resolution).
+    pub fn with_resolver(&self, resolver: Resolver<'a>, keyword: &str) -> Self {
+        let mut new_path = self.schema_path.clone();
+        new_path.push_property(keyword);
+        Self {
+            resolver,
+            schema_path: new_path,
+            vocabulary: self.vocabulary.clone(),
+            in_progress: Rc::clone(&self.in_progress),
+            draft: self.draft,
+            assert_format: self.assert_format,
+            custom_formats: self.custom_formats.clone(),
+            custom_keywords: self.custom_keywords.clone(),
+        }
+    }
+
     /// Resolve a $ref and return the resolved value + new resolver.
     #[allow(dead_code)]
     pub fn resolve_ref(&self, reference: &str) -> Result<Resolved<'a>, ValidationError> {

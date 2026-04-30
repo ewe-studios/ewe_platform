@@ -25,7 +25,10 @@ impl NotValidator {
 
 impl Validate for NotValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
-        !self.schema.is_valid(instance, ctx)
+        let state = ctx.save_evaluation_state();
+        let result = !self.schema.is_valid(instance, ctx);
+        ctx.restore_evaluation_state(&state);
+        result
     }
 
     fn validate(
@@ -34,7 +37,10 @@ impl Validate for NotValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
-        if self.schema.is_valid(instance, ctx) {
+        let state = ctx.save_evaluation_state();
+        let inner_valid = self.schema.is_valid(instance, ctx);
+        ctx.restore_evaluation_state(&state);
+        if inner_valid {
             return Err(
                 ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
                     .build(ValidationErrorKind::Not),
@@ -49,7 +55,10 @@ impl Validate for NotValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        if self.schema.is_valid(instance, ctx) {
+        let state = ctx.save_evaluation_state();
+        let inner_valid = self.schema.is_valid(instance, ctx);
+        ctx.restore_evaluation_state(&state);
+        if inner_valid {
             let err = ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
                 .build(ValidationErrorKind::Not);
             Box::new(core::iter::once(err))
