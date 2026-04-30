@@ -10,17 +10,17 @@
 //! HOW: Single pass over the schema object's keys, extracting `$id`/`id`,
 //! `$anchor`/`$dynamicAnchor`, `$ref`, and `$schema`.
 
+pub mod draft201909;
+pub mod draft202012;
 pub mod draft4;
 pub mod draft6;
 pub mod draft7;
-pub mod draft201909;
-pub mod draft202012;
 pub mod ids;
 
 use serde_json::{Map, Value};
 
-use crate::draft::Draft;
 use super::anchor::AnchorIter;
+use crate::draft::Draft;
 
 /// Metadata extracted from one schema object during registry crawling.
 pub struct ObjectAnalysis<'a> {
@@ -138,7 +138,9 @@ pub fn anchors_of(draft: Draft, contents: &Value) -> AnchorIter<'_> {
 /// Each draft defines which keywords contain sub-schemas.
 pub fn subresources_of(draft: Draft, contents: &Value) -> SubresourceIter<'_> {
     let Some(object) = contents.as_object() else {
-        return SubresourceIter { items: alloc::vec::Vec::new() };
+        return SubresourceIter {
+            items: alloc::vec::Vec::new(),
+        };
     };
 
     let mut items = alloc::vec::Vec::new();
@@ -170,22 +172,14 @@ impl<'a> Iterator for SubresourceIter<'a> {
 use alloc::vec::Vec;
 
 /// Collect single-valued keyword children.
-fn collect_single<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-    items: &mut Vec<&'a Value>,
-) {
+fn collect_single<'a>(object: &'a Map<String, Value>, key: &str, items: &mut Vec<&'a Value>) {
     if let Some(value) = object.get(key) {
         items.push(value);
     }
 }
 
 /// Collect array-valued keyword children.
-fn collect_array<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-    items: &mut Vec<&'a Value>,
-) {
+fn collect_array<'a>(object: &'a Map<String, Value>, key: &str, items: &mut Vec<&'a Value>) {
     if let Some(Value::Array(arr)) = object.get(key) {
         items.extend(arr.iter());
     }

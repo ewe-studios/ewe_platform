@@ -102,8 +102,10 @@ impl ValidationContext {
     /// Merge evaluation state from a sub-validation.
     #[allow(dead_code)]
     pub fn merge_evaluation_state(&mut self, state: &EvaluationState) {
-        self.evaluated_properties.extend(state.evaluated_properties.iter().cloned());
-        self.evaluated_items.extend(state.evaluated_items.iter().copied());
+        self.evaluated_properties
+            .extend(state.evaluated_properties.iter().cloned());
+        self.evaluated_items
+            .extend(state.evaluated_items.iter().copied());
     }
 }
 

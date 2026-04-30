@@ -42,7 +42,10 @@ impl Validate for MinLengthValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MinLength { min: self.min, actual: len }));
+                .build(ValidationErrorKind::MinLength {
+                    min: self.min,
+                    actual: len,
+                }));
             }
         }
         Ok(())

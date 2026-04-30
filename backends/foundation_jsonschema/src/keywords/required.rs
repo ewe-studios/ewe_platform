@@ -18,7 +18,10 @@ pub struct RequiredValidator {
 
 impl RequiredValidator {
     pub fn new(properties: Vec<String>, schema_path: Location) -> Self {
-        Self { properties, schema_path }
+        Self {
+            properties,
+            schema_path,
+        }
     }
 }
 
@@ -63,13 +66,15 @@ impl Validate for RequiredValidator {
             let mut missing = Vec::new();
             for prop in &self.properties {
                 if !obj.contains_key(prop.as_str()) {
-                    missing.push(ValidationErrorBuilder::new(
-                        instance_path.materialize(),
-                        self.schema_path.clone(),
-                    )
-                    .build(ValidationErrorKind::Required {
-                        property: prop.clone(),
-                    }));
+                    missing.push(
+                        ValidationErrorBuilder::new(
+                            instance_path.materialize(),
+                            self.schema_path.clone(),
+                        )
+                        .build(ValidationErrorKind::Required {
+                            property: prop.clone(),
+                        }),
+                    );
                 }
             }
             Box::new(missing.into_iter())

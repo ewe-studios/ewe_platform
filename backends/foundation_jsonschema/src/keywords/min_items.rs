@@ -42,7 +42,10 @@ impl Validate for MinItemsValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MinItems { min: self.min, actual }));
+                .build(ValidationErrorKind::MinItems {
+                    min: self.min,
+                    actual,
+                }));
             }
         }
         Ok(())

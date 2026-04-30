@@ -58,7 +58,10 @@ impl Resource {
     /// Create with explicit draft.
     #[must_use]
     pub fn with_draft(value: Value, draft: Draft) -> Self {
-        Self { contents: value, draft }
+        Self {
+            contents: value,
+            draft,
+        }
     }
 
     /// Get the JSON contents.
@@ -190,7 +193,8 @@ mod tests {
 
     #[test]
     fn resource_ref_from_contents() {
-        let schema = json!({"$schema": "http://json-schema.org/draft-07/schema#", "type": "object"});
+        let schema =
+            json!({"$schema": "http://json-schema.org/draft-07/schema#", "type": "object"});
         let rr = ResourceRef::from_contents(&schema);
         assert_eq!(rr.draft(), Draft::Draft7);
     }

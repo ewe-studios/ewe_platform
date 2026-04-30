@@ -1,13 +1,10 @@
 //! Integration tests — custom extensions (formats and keywords).
 
-use foundation_jsonschema::keywords::KeywordFactory;
-use foundation_jsonschema::{
-    ErrorIterator, LazyLocation, Location, ValidationError, ValidationErrorBuilder, ValidationErrorKind,
-    ValidationOptions,
-};
 use foundation_jsonschema::formats::FormatChecker;
-use foundation_jsonschema::keywords::Validate;
-use foundation_jsonschema::keywords::ValidationContext;
+use foundation_jsonschema::{
+    ErrorIterator, KeywordFactory, LazyLocation, Location, Validate, ValidationContext,
+    ValidationError, ValidationErrorBuilder, ValidationErrorKind, ValidationOptions,
+};
 use serde_json::json;
 
 #[test]
@@ -16,7 +13,9 @@ fn custom_format_checker() {
 
     impl FormatChecker for HexColorFormat {
         fn check(&self, value: &str) -> bool {
-            value.len() == 7 && value.starts_with('#') && value[1..].chars().all(|c| c.is_ascii_hexdigit())
+            value.len() == 7
+                && value.starts_with('#')
+                && value[1..].chars().all(|c| c.is_ascii_hexdigit())
         }
 
         fn format_name(&self) -> &str {
@@ -68,9 +67,7 @@ fn format_annotation_only_by_default() {
         "format": "email"
     });
 
-    let v = ValidationOptions::new()
-        .build(&schema)
-        .unwrap();
+    let v = ValidationOptions::new().build(&schema).unwrap();
 
     // Even with an invalid email, it should pass because format is annotation-only
     assert!(v.is_valid(&json!("not-an-email")));
@@ -94,10 +91,12 @@ fn custom_keyword_factory() {
             if instance.as_f64().map_or(false, |n| n > 0.0) {
                 Ok(())
             } else {
-                Err(ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
-                    .build(ValidationErrorKind::Custom {
-                        message: "value must be positive".into(),
-                    }))
+                Err(
+                    ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
+                        .build(ValidationErrorKind::Custom {
+                            message: "value must be positive".into(),
+                        }),
+                )
             }
         }
 
@@ -123,6 +122,10 @@ fn custom_keyword_factory() {
             _schema_path: Location,
         ) -> Result<Box<dyn Validate>, ValidationError> {
             Ok(Box::new(PositiveNumberValidator))
+        }
+
+        fn clone_box(&self) -> Box<dyn KeywordFactory> {
+            Box::new(PositiveFactory)
         }
     }
 

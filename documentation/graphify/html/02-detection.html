@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detection -- graphify</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/graphify/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Graphify -- Overview</a> <a href="01-architecture.html">Architecture</a></span> <a href="01-architecture.html">← Architecture</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Detection</h1>
+<p>The <code>detect.py</code> module is the first stage of the Graphify pipeline. It walks a directory tree, classifies every file by type, counts corpus size, filters out sensitive files and noise directories, and returns a structured dict that drives the rest of the pipeline. Every other module depends on its output.</p>
+<ul><li><strong>Source file:</strong> <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/graphify/graphify/detect.py</code></li><li><strong>Related documents:</strong> <a href="01-architecture.md">Architecture</a> | <a href="03-extraction.md">Extraction</a></li></ul>
+<h2>FileType Enum</h2>
+<p>Files are classified into one of five categories (<code>detect.py:11-16</code>):</p>
+<pre><code class="language-python">class FileType(str, Enum):
+    CODE = &quot;code&quot;
+    DOCUMENT = &quot;document&quot;
+    PAPER = &quot;paper&quot;
+    IMAGE = &quot;image&quot;
+    VIDEO = &quot;video&quot;
+</code></pre>
+<h2>File Extension Sets</h2>
+<p>Each file type is matched against a set of extensions (<code>detect.py:21-26</code>):</p>
+<table><tr><th>Type</th><th>Extensions</th><th>Count</th></tr><tr><td>`CODE`</td><td>`.py`, `.ts`, `.js`, `.jsx`, `.tsx`, `.mjs`, `.ejs`, `.go`, `.rs`, `.java`, `.cpp`, `.cc`, `.cxx`, `.c`, `.h`, `.hpp`, `.rb`, `.swift`, `.kt`, `.kts`, `.cs`, `.scala`, `.php`, `.lua`, `.toc`, `.zig`, `.ps1`, `.ex`, `.exs`, `.m`, `.mm`, `.jl`, `.vue`, `.svelte`, `.dart`, `.v`, `.sv`</td><td>39</td></tr><tr><td>`DOCUMENT`</td><td>`.md`, `.mdx`, `.txt`, `.rst`, `.html`</td><td>5</td></tr><tr><td>`PAPER`</td><td>`.pdf`</td><td>1</td></tr><tr><td>`IMAGE`</td><td>`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`</td><td>6</td></tr><tr><td>`OFFICE`</td><td>`.docx`, `.xlsx`</td><td>2 (treated as DOCUMENT after conversion)</td></tr><tr><td>`VIDEO`</td><td>`.mp4`, `.mov`, `.webm`, `.mkv`, `.avi`, `.m4v`, `.mp3`, `.wav`, `.m4a`, `.ogg`</td><td>10</td></tr></table>
+<p>The special case of <code>.blade.php</code> is handled explicitly: <code>classify_file()</code> checks <code>path.name.lower().endswith(".blade.php")</code> before the generic suffix lookup (<code>detect.py:83-84</code>).</p>
+<h2>Pipeline Flowchart</h2>
+<div class="mermaid">
+flowchart TD
+    A[detect root: Path] --&gt; B[load .graphifyignore from root and ancestors]
+    B --&gt; C[scan_paths = root + graphify-out/memory/ if exists]
+    C --&gt; D[os.walk each scan_root]
+    D --&gt; E{prune dirs}
+    E --&gt;|skip| F[_SKIP_DIRS, hidden dirs, ignored]
+    E --&gt;|keep| G[collect filenames]
+    G --&gt; H{classify each file}
+    H --&gt;|sensitive?| I[skip, record in skipped_sensitive]
+    H --&gt;|ignored?| J[skip via .graphifyignore]
+    H --&gt;|.docx/.xlsx| K[convert_office_file to markdown sidecar]
+    H --&gt;|CODE| L[files[CODE].append]
+    H --&gt;|DOCUMENT| M[files[DOCUMENT].append]
+    H --&gt;|PAPER| N[files[PAPER].append]
+    H --&gt;|IMAGE| O[files[IMAGE].append]
+    H --&gt;|VIDEO| P[files[VIDEO].append]
+    L --&gt; Q[count_words per file]
+    M --&gt; Q
+    N --&gt; Q
+    K --&gt; Q
+    Q --&gt; R{corpus health check}
+    R --&gt;|words &lt; 50000| S[warn: may not need a graph]
+    R --&gt;|words &gt; 500000 or files &gt; 200| T[warn: expensive semantic extraction]
+    R --&gt;|healthy| U[needs_graph = True]
+    S --&gt; V[return detection dict]
+    T --&gt; V
+    U --&gt; V
+
+</div>
+<h2>classify_file() Logic</h2>
+<p>The classification function (<code>detect.py:81-104</code>) applies rules in this order:</p>
+<ol><li><strong>Blade templates</strong> -- <code>.blade.php</code> files are always <code>CODE</code> (checked via <code>path.name.lower().endswith()</code> before suffix lookup)</li><li><strong>Code extensions</strong> -- if <code>ext in CODE_EXTENSIONS</code> return <code>FileType.CODE</code></li><li><strong>PDF papers</strong> -- if <code>ext in PAPER_EXTENSIONS</code> return <code>FileType.PAPER</code>, unless the file lives inside an Xcode asset catalog directory (<code>.imageset</code>, <code>.xcassets</code>, etc.)</li><li><strong>Images</strong> -- if <code>ext in IMAGE_EXTENSIONS</code> return <code>FileType.IMAGE</code></li><li><strong>Documents with paper heuristic</strong> -- if <code>ext in DOC_EXTENSIONS</code>, check <code>_looks_like_paper()</code>; if it matches, return <code>FileType.PAPER</code>, otherwise <code>FileType.DOCUMENT</code></li><li><strong>Office documents</strong> -- if <code>ext in OFFICE_EXTENSIONS</code> return <code>FileType.DOCUMENT</code> (later converted to markdown)</li><li><strong>Video/audio</strong> -- if <code>ext in VIDEO_EXTENSIONS</code> return <code>FileType.VIDEO</code></li><li><strong>Unknown</strong> -- return <code>None</code> (file is silently ignored)</li></ol>
+<h2>Paper Detection</h2>
+<p>The <code>_looks_like_paper()</code> function (<code>detect.py:67-75</code>) reads the first 3000 characters of a text file and checks it against 11 regex patterns (<code>detect.py:43-57</code>). A file is classified as a paper if at least 3 patterns match:</p>
+<table><tr><th>Signal</th><th>Pattern</th><th>Examples</th></tr><tr><td>arxiv</td><td>`\barxiv\b`</td><td>"arxiv preprint"</td></tr><tr><td>DOI</td><td>`\bdoi\s*:`</td><td>"doi: 10.1000/xyz"</td></tr><tr><td>Abstract</td><td>`\babstract\b`</td><td>Section heading</td></tr><tr><td>Proceedings</td><td>`\bproceedings\b`</td><td>Conference paper</td></tr><tr><td>Journal</td><td>`\bjournal\b`</td><td>Journal name</td></tr><tr><td>Preprint</td><td>`\bpreprint\b`</td><td>"arXiv preprint"</td></tr><tr><td>LaTeX cite</td><td>`\\cite\{`</td><td>`\cite{smith2020}`</td></tr><tr><td>Numbered cite</td><td>`\[\d+\]`</td><td>"[1]", "[23]"</td></tr><tr><td>Multi-line cite</td><td>`\[\n\d+\n\]`</td><td>Citation split across lines</td></tr><tr><td>Equation ref</td><td>`eq.\s*\d+`</td><td>"eq. 3", "equation 5"</td></tr><tr><td>arXiv ID</td><td>`\d{4}\.\d{4,5}`</td><td>"1706.03762"</td></tr><tr><td>Academic phrasing</td><td>`\bwe propose\b`</td><td>"we propose a novel"</td></tr><tr><td>Literature</td><td>`\bliterature\b`</td><td>"from the literature"</td></tr></table>
+<p>Threshold: 3 out of 11 signals must match (<code>detect.py:58</code>).</p>
+<h2>Sensitive File Detection</h2>
+<p>Files that may contain secrets are skipped silently. Six regex patterns in <code>_SENSITIVE_PATTERNS</code> (<code>detect.py:33-40</code>) catch:</p>
+<table><tr><th>Pattern</th><th>Matches</th></tr><tr><td>`(^</td><td>[\\/])\.(env</td><td>envrc)(\</td><td>$)`</td><td>`.env`, `.envrc`, `.env.local`</td></tr><tr><td>`\.(pem</td><td>key</td><td>p12</td><td>pfx</td><td>cert</td><td>crt</td><td>der</td><td>p8)$`</td><td>Certificate and key files</td></tr><tr><td>`(credential</td><td>secret</td><td>passwd</td><td>password</td><td>token</td><td>private_key)`</td><td>Files with credential-like names</td></tr><tr><td>`(id_rsa</td><td>id_dsa</td><td>id_ecdsa</td><td>id_ed25519)(\.pub)?$`</td><td>SSH private/public keys</td></tr><tr><td>`(\.netrc</td><td>\.pgpass</td><td>\.htpasswd)$`</td><td>Auth credential files</td></tr><tr><td>`(aws_credentials</td><td>gcloud_credentials</td><td>service.account)`</td><td>Cloud credential files</td></tr></table>
+<h2>Directory Pruning</h2>
+<p>Three sets control which directories and files are excluded from the scan (<code>detect.py:237-263</code>):</p>
+<pre><code class="language-python">_SKIP_DIRS = {
+    &quot;venv&quot;, &quot;.venv&quot;, &quot;env&quot;, &quot;.env&quot;,
+    &quot;node_modules&quot;, &quot;__pycache__&quot;, &quot;.git&quot;,
+    &quot;dist&quot;, &quot;build&quot;, &quot;target&quot;, &quot;out&quot;,
+    &quot;site-packages&quot;, &quot;lib64&quot;,
+    &quot;.pytest_cache&quot;, &quot;.mypy_cache&quot;, &quot;.ruff_cache&quot;,
+    &quot;.tox&quot;, &quot;.eggs&quot;, &quot;*.egg-info&quot;,
+    &quot;graphify-out&quot;,   # never treat own output as source input (#524)
+}
+
+_SKIP_FILES = {
+    &quot;package-lock.json&quot;, &quot;yarn.lock&quot;, &quot;pnpm-lock.yaml&quot;,
+    &quot;Cargo.lock&quot;, &quot;poetry.lock&quot;, &quot;Gemfile.lock&quot;,
+    &quot;composer.lock&quot;, &quot;go.sum&quot;, &quot;go.work.sum&quot;,
+}
+</code></pre>
+<p>The <code>_is_noise_dir()</code> function (<code>detect.py:254-263</code>) additionally skips any directory ending in <code>_venv</code>, <code>_env</code>, or <code>.egg-info</code>.</p>
+<h2>.graphifyignore Support</h2>
+<p>The <code>_load_graphifyignore()</code> function (<code>detect.py:266-293</code>) reads <code>.graphifyignore</code> files from the scan root and all ancestor directories up to a <code>.git</code> boundary or the filesystem root. This means ignore patterns written in a parent directory still apply when running graphify on a subfolder.</p>
+<p>The <code>_is_ignored()</code> function (<code>detect.py:296-334</code>) matches each file against all loaded patterns using <code>fnmatch</code>. It checks three levels of the path: the full relative path, the filename alone, and each path prefix segment. Patterns are evaluated both relative to the scan root and relative to the anchor directory where each <code>.graphifyignore</code> was found.</p>
+<h2>Corpus Health Thresholds</h2>
+<p>Three constants control corpus size warnings (<code>detect.py:28-30</code>):</p>
+<pre><code class="language-python">CORPUS_WARN_THRESHOLD = 50_000      # words -- below this, warn &quot;you may not need a graph&quot;
+CORPUS_UPPER_THRESHOLD = 500_000    # words -- above this, warn about token cost
+FILE_COUNT_UPPER = 200               # files -- above this, warn about token cost
+</code></pre>
+<ul><li><strong>Below 50,000 words:</strong> The corpus fits in a single context window. A warning suggests you may not need a graph.</li><li><strong>Above 500,000 words or 200 files:</strong> A warning advises that semantic extraction will be expensive and suggests using <code>--no-semantic</code> for AST-only mode or running on a subfolder.</li></ul>
+<h2>Office File Conversion</h2>
+<p>Office documents are converted to markdown sidecars before extraction (<code>detect.py:122-219</code>):</p>
+<ul><li><strong><code>docx_to_markdown(path)</code></strong> -- Uses <code>python-docx</code> to read paragraphs and tables. Headings become <code>#</code>, <code>##</code>, <code>###</code> markdown. List items become <code>- </code> bullets. Tables become pipe-separated markdown tables.</li><li><strong><code>xlsx_to_markdown(path)</code></strong> -- Uses <code>openpyxl</code> to read each sheet. The first row becomes a header, subsequent rows become data rows. Empty rows are skipped.</li><li><strong><code>convert_office_file(path, out_dir)</code></strong> -- Converts and writes a <code>.md</code> sidecar to <code>graphify-out/converted/</code>. The filename uses a SHA256 hash prefix (first 8 chars of the resolved path hash) to avoid collisions. Returns the output path or <code>None</code> if conversion failed.</li></ul>
+<p>These functions gracefully degrade: if the required library (<code>python-docx</code> or <code>openpyxl</code>) is not installed, they return an empty string and the file is recorded in <code>skipped_sensitive</code> with a note to <code>pip install graphifyy[office]</code>.</p>
+<h2>Memory Directory Inclusion</h2>
+<p>The <code>detect()</code> function (<code>detect.py:352-355</code>) always includes <code>graphify-out/memory/</code> in the scan paths alongside the source root. This allows query results filed back into the graph by agents to be picked up as new source material:</p>
+<pre><code class="language-python">memory_dir = root / &quot;graphify-out&quot; / &quot;memory&quot;
+scan_paths = [root]
+if memory_dir.exists():
+    scan_paths.append(memory_dir)
+</code></pre>
+<p>Files in the memory tree skip the hidden-file and noise-directory pruning that applies to the source tree (<code>detect.py:361, 390</code>).</p>
+<h2>Incremental Detection</h2>
+<p>The <code>--update</code> mode re-runs extraction only on files that have changed since the last run. This flow is handled by <code>detect_incremental()</code>:</p>
+<div class="mermaid">
+flowchart TD
+    A[detect_incremental root] --&gt; B[load_manifest graphify-out/manifest.json]
+    B --&gt; C{manifest exists?}
+    C --&gt;|no| D[full = detect root]
+    D --&gt; E[full.incremental = True]
+    E --&gt; F[new_files = all files]
+    F --&gt; G[return with full corpus stats]
+    C --&gt;|yes| H[full = detect root]
+    H --&gt; I[compare mtime for each file]
+    I --&gt; J{mtime &gt; stored?}
+    J --&gt;|yes| K[new_files append]
+    J --&gt;|no| L[unchanged_files append]
+    K --&gt; M[find deleted files: manifest - current]
+    L --&gt; M
+    M --&gt; N[return with new/unchanged/deleted breakdown]
+
+</div>
+<p>Two supporting functions handle the manifest persistence:</p>
+<ul><li><strong><code>load_manifest(manifest_path)</code></strong> (<code>detect.py:448-453</code>) -- Loads <code>graphify-out/manifest.json</code> as a dict mapping file paths to their modification timestamps.</li><li><strong><code>save_manifest(files, manifest_path)</code></strong> (<code>detect.py:456-466</code>) -- Writes current file mtimes to the manifest.</li><li><strong><code>detect_incremental(root, manifest_path)</code></strong> (<code>detect.py:469-511</code>) -- Runs <code>detect()</code>, then compares each file's current mtime against the stored manifest. Returns the full detection dict augmented with <code>new_files</code>, <code>unchanged_files</code>, <code>new_total</code>, and <code>deleted_files</code> keys.</li></ul>
+<h2>detect() Return Value</h2>
+<p>The <code>detect()</code> function (<code>detect.py:337-445</code>) returns:</p>
+<pre><code class="language-python">{
+    &quot;files&quot;: {
+        &quot;code&quot;: [&quot;src/main.py&quot;, &quot;src/utils.py&quot;, ...],
+        &quot;document&quot;: [&quot;README.md&quot;, &quot;docs/guide.txt&quot;, ...],
+        &quot;paper&quot;: [&quot;papers/attention.pdf&quot;, ...],
+        &quot;image&quot;: [&quot;assets/logo.png&quot;, ...],
+        &quot;video&quot;: [&quot;demos/demo.mp4&quot;, ...],
+    },
+    &quot;total_files&quot;: 42,
+    &quot;total_words&quot;: 125_000,
+    &quot;needs_graph&quot;: True,
+    &quot;warning&quot;: None,                    # or warning string if corpus too small/large
+    &quot;skipped_sensitive&quot;: [&quot;.env&quot;, ...], # files skipped (secrets or office conversion failed)
+    &quot;graphifyignore_patterns&quot;: 3,       # number of loaded .graphifyignore patterns
+}
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -42,7 +42,10 @@ impl Validate for MinPropertiesValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MinProperties { min: self.min, actual }));
+                .build(ValidationErrorKind::MinProperties {
+                    min: self.min,
+                    actual,
+                }));
             }
         }
         Ok(())

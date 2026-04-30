@@ -162,14 +162,11 @@ impl Default for MapResolver {
 
 impl JsonResolver for MapResolver {
     fn resolve(&self, uri: &str) -> Result<Value, ErrorTrace<ResolveError>> {
-        self.schemas
-            .get(uri)
-            .cloned()
-            .ok_or_else(|| {
-                ResolveError::new(uri)
-                    .into_error_trace()
-                    .attach(format!("not found in map resolver: {uri}"))
-            })
+        self.schemas.get(uri).cloned().ok_or_else(|| {
+            ResolveError::new(uri)
+                .into_error_trace()
+                .attach(format!("not found in map resolver: {uri}"))
+        })
     }
 }
 

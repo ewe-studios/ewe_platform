@@ -17,7 +17,11 @@ pub struct MaximumValidator {
 
 impl MaximumValidator {
     pub fn new(limit: f64, exclusive: bool, schema_path: Location) -> Self {
-        Self { limit, exclusive, schema_path }
+        Self {
+            limit,
+            exclusive,
+            schema_path,
+        }
     }
 }
 
@@ -25,7 +29,11 @@ impl Validate for MaximumValidator {
     fn is_valid(&self, instance: &Value, _ctx: &mut ValidationContext) -> bool {
         if let Value::Number(n) = instance {
             if let Some(v) = n.as_f64() {
-                return if self.exclusive { v < self.limit } else { v <= self.limit };
+                return if self.exclusive {
+                    v < self.limit
+                } else {
+                    v <= self.limit
+                };
             }
         }
         true

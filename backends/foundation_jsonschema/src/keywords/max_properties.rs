@@ -42,7 +42,10 @@ impl Validate for MaxPropertiesValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MaxProperties { max: self.max, actual }));
+                .build(ValidationErrorKind::MaxProperties {
+                    max: self.max,
+                    actual,
+                }));
             }
         }
         Ok(())

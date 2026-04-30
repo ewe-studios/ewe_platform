@@ -1,8 +1,14 @@
 //! `ValidationOptions` builder — configure schema compilation and validation.
 
+use alloc::boxed::Box;
+use alloc::collections::BTreeMap;
+use alloc::string::String;
+
 use crate::draft::Draft;
 use crate::error::ValidationError;
+use crate::formats::FormatChecker;
 use crate::in_memory_fetcher::InMemoryFetcher;
+use crate::keywords::custom::KeywordFactory;
 use crate::referencing::Registry;
 use crate::validator::Validator;
 use serde_json::Value;
@@ -14,6 +20,9 @@ use serde_json::Value;
 pub struct ValidationOptions {
     default_draft: Draft,
     resolver: InMemoryFetcher,
+    assert_format: bool,
+    custom_keywords: BTreeMap<String, Box<dyn KeywordFactory>>,
+    custom_formats: BTreeMap<String, Box<dyn FormatChecker>>,
 }
 
 impl ValidationOptions {
@@ -26,6 +35,9 @@ impl ValidationOptions {
         Self {
             default_draft: Draft::DEFAULT,
             resolver: InMemoryFetcher::builtin(),
+            assert_format: false,
+            custom_keywords: BTreeMap::new(),
+            custom_formats: BTreeMap::new(),
         }
     }
 
@@ -43,6 +55,36 @@ impl ValidationOptions {
     #[must_use]
     pub fn with_resolver(mut self, resolver: InMemoryFetcher) -> Self {
         self.resolver = resolver;
+        self
+    }
+
+    /// Enable or disable format assertion mode.
+    ///
+    /// When true, the `format` keyword performs validation rather than
+    /// just annotation collection (the default per JSON Schema spec).
+    #[must_use]
+    pub fn assert_format(mut self, assert: bool) -> Self {
+        self.assert_format = assert;
+        self
+    }
+
+    /// Register a custom keyword factory.
+    ///
+    /// The factory will be invoked when the compiler encounters a keyword
+    /// with the given name in a schema.
+    #[must_use]
+    pub fn with_keyword(mut self, name: &str, factory: Box<dyn KeywordFactory>) -> Self {
+        self.custom_keywords.insert(name.into(), factory);
+        self
+    }
+
+    /// Register a custom format checker.
+    ///
+    /// If a format with the same name already exists, this replaces it,
+    /// allowing custom checkers to override built-in ones.
+    #[must_use]
+    pub fn with_format(mut self, name: &str, checker: Box<dyn FormatChecker>) -> Self {
+        self.custom_formats.insert(name.into(), checker);
         self
     }
 
@@ -70,10 +112,14 @@ impl ValidationOptions {
             .add_resource("", schema.clone())
             .build()?;
 
-        let base_uri = "";
-        let root_node = crate::compiler::compile(schema, &registry, draft)?;
-
-        let _ = base_uri;
+        let root_node = crate::compiler::compile(
+            schema,
+            &registry,
+            draft,
+            self.assert_format,
+            self.custom_formats,
+            self.custom_keywords,
+        )?;
 
         Ok(Validator::new(root_node, draft))
     }

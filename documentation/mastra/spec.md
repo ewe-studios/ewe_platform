@@ -129,12 +129,23 @@ All documentation MUST meet these standards:
 
 1. **Detailed sections with code snippets** — Every concept must be grounded in actual source code. Include real function signatures, class structures, and key logic snippets. No vague hand-waving.
 2. **Teach key facts, principles, and ideas quickly** — Each section should deliver insight density. A reader should learn the core concept within the first paragraph, then get progressively deeper detail.
-3. **Clear articulation** — Non-overly-complex sentences. Clearly articulated ideas and processes. Every section should flow logically from one idea to the next.
+3. **Clear articulation** — Non-overly-complex sentences. Clearly articulated ideas and processes. Every section should flow logically from one idea to the next. Mermaid diagrams and clear logic follow-up for every process.
 4. **Mermaid diagrams** — Use mermaid flowcharts, sequence diagrams, and class diagrams to illustrate architecture, data flow, and lifecycle. Minimum 2 diagrams per document.
-5. **Good visual assets** — Tables for comparisons, ASCII art for quick structure overviews, mermaid for complex flows. Diagrams should stand alone as learning aids.
-6. **Generated HTML** — All markdown must build to HTML with the shared build.py. Well-aligned headers, text, and menu structure. Modeled after markdown.engineering/learn-claude-code style: organized, insightful units with clear navigation.
+5. **Good visual assets** — Images, diagrams, tables, ASCII art — anything that helps clearly explain concepts. Diagrams should stand alone as learning aids.
+6. **Generated HTML** — All markdown must build to HTML with the shared build.py. Well-aligned headers, text, and menu structure. Modeled after [markdown.engineering/learn-claude-code](https://www.markdown.engineering/learn-claude-code) style: organized, insightful units with clear navigation. See [04-query-engine](https://www.markdown.engineering/learn-claude-code/04-query-engine) for the expected level of header alignment, text quality, and menu structure.
 7. **Cross-references** — Every document should link to related documents. No orphan pages.
 8. **Source path references** — Include actual file paths from the source codebase so readers can verify claims.
+
+## Grandfather Review
+
+The code is the grandfather — the root of truth. A grandfather review walks back to the source and checks:
+
+1. **Do the names match?** — Classes, methods, types, interfaces, config fields must match the actual TypeScript source. Grep every name in the docs against the codebase.
+2. **Do the numbers match?** — Defaults, provider counts (200+), memory limits, timeout values must match the implementation.
+3. **Do the flows match?** — Workflow-based agent loop, tool suspension/resumption, processor pipeline, model router resolution must match the actual execution path.
+4. **Is anything missing?** — Features the code has that the docs don't mention. Walk every module, every public class, and verify each appears somewhere in the documentation.
+
+**Schedule:** Run a grandfather review after completing all documentation phases and before marking the project as final. Fix every discrepancy — there is no "close enough."
 
 ## Expected Outcome
 

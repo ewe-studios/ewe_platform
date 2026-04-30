@@ -15,8 +15,11 @@ use alloc::vec::Vec;
 ///
 /// Implementers must also implement `Clone` for internal cloning during compilation.
 pub trait FormatChecker: Send + Sync {
+    /// Check if the given string value matches this format.
     fn check(&self, value: &str) -> bool;
+    /// The name of the format this checker validates.
     fn format_name(&self) -> &str;
+    /// Clone this checker into a boxed trait object.
     fn clone_box(&self) -> Box<dyn FormatChecker>;
 }
 
@@ -44,7 +47,9 @@ fn days_in_month(year: i32, month: u32) -> u32 {
 
 fn parse_date(s: &str) -> Option<(i32, u32, u32)> {
     let parts: Vec<&str> = s.split('-').collect();
-    if parts.len() != 3 { return None; }
+    if parts.len() != 3 {
+        return None;
+    }
     let year = parts[0].parse::<i32>().ok()?;
     let month = parts[1].parse::<u32>().ok()?;
     let day = parts[2].parse::<u32>().ok()?;
@@ -56,54 +61,83 @@ fn parse_date(s: &str) -> Option<(i32, u32, u32)> {
 
 fn validate_date(s: &str) -> Option<()> {
     let (year, month, day) = parse_date(s)?;
-    if !(1..=12).contains(&month) { return None; }
-    if day < 1 || day > days_in_month(year, month) { return None; }
+    if !(1..=12).contains(&month) {
+        return None;
+    }
+    if day < 1 || day > days_in_month(year, month) {
+        return None;
+    }
     Some(())
 }
 
 fn parse_time_val(s: &str) -> Option<()> {
     let parts: Vec<&str> = s.split(':').collect();
-    if parts.len() < 2 || parts.len() > 3 { return None; }
+    if parts.len() < 2 || parts.len() > 3 {
+        return None;
+    }
     let hour = parts[0].parse::<u32>().ok()?;
     let minute = parts[1].parse::<u32>().ok()?;
-    if parts[0].len() != 2 || parts[1].len() != 2 { return None; }
-    if hour > 23 || minute > 59 { return None; }
+    if parts[0].len() != 2 || parts[1].len() != 2 {
+        return None;
+    }
+    if hour > 23 || minute > 59 {
+        return None;
+    }
     if parts.len() == 3 {
         let sec_parts: Vec<&str> = parts[2].split('.').collect();
         let sec = sec_parts[0].parse::<u32>().ok()?;
-        if sec_parts[0].is_empty() || sec > 60 { return None; }
+        if sec_parts[0].is_empty() || sec > 60 {
+            return None;
+        }
         if sec_parts.len() == 2 {
-            if sec_parts[1].is_empty() { return None; }
-            if !sec_parts[1].chars().all(|c| c.is_ascii_digit()) { return None; }
+            if sec_parts[1].is_empty() {
+                return None;
+            }
+            if !sec_parts[1].chars().all(|c| c.is_ascii_digit()) {
+                return None;
+            }
         }
     }
     Some(())
 }
 
 fn validate_tz(s: &str) -> Option<()> {
-    if s == "Z" || s == "z" { return Some(()); }
-    if s.len() < 6 { return None; }
+    if s == "Z" || s == "z" {
+        return Some(());
+    }
+    if s.len() < 6 {
+        return None;
+    }
     let sign = s.chars().next()?;
-    if sign != '+' && sign != '-' { return None; }
+    if sign != '+' && sign != '-' {
+        return None;
+    }
     let rest = &s[1..];
     let tz_parts: Vec<&str> = rest.split(':').collect();
-    if tz_parts.len() != 2 { return None; }
+    if tz_parts.len() != 2 {
+        return None;
+    }
     let h: u32 = tz_parts[0].parse().ok()?;
     let m: u32 = tz_parts[1].parse().ok()?;
-    if h > 23 || m > 59 { return None; }
+    if h > 23 || m > 59 {
+        return None;
+    }
     Some(())
 }
 
 // ── date-time ────────────────────────────────────────────────────────
 
-/// Validates `date-time` format.\npub struct DateTimeChecker;
+/// Validates `date-time` format.
+pub struct DateTimeChecker;
 
 impl FormatChecker for DateTimeChecker {
     fn check(&self, value: &str) -> bool {
         if let Some(t_pos) = value.find('T').or_else(|| value.find('t')) {
             let date_part = &value[..t_pos];
             let time_part = &value[t_pos + 1..];
-            if validate_date(date_part).is_none() { return false; }
+            if validate_date(date_part).is_none() {
+                return false;
+            }
             // Find timezone in time part
             let tz_start = time_part
                 .find('Z')
@@ -117,11 +151,13 @@ impl FormatChecker for DateTimeChecker {
                     let bytes = time_part.as_bytes();
                     let mut pos = None;
                     for i in (0..bytes.len()).rev() {
-                        if bytes[i] == b'-' && i > 0
-                            && time_part[..i].ends_with(|c: char| c.is_ascii_digit()) {
-                                pos = Some(i);
-                                break;
-                            }
+                        if bytes[i] == b'-'
+                            && i > 0
+                            && time_part[..i].ends_with(|c: char| c.is_ascii_digit())
+                        {
+                            pos = Some(i);
+                            break;
+                        }
                     }
                     pos
                 });
@@ -129,7 +165,9 @@ impl FormatChecker for DateTimeChecker {
                 Some(pos) => {
                     let time_str = &time_part[..pos];
                     let tz_str = &time_part[pos..];
-                    if parse_time_val(time_str).is_none() { return false; }
+                    if parse_time_val(time_str).is_none() {
+                        return false;
+                    }
                     validate_tz(tz_str).is_some()
                 }
                 None => parse_time_val(time_part).is_some(),
@@ -138,7 +176,9 @@ impl FormatChecker for DateTimeChecker {
             false
         }
     }
-    fn format_name(&self) -> &'static str { "date-time" }
+    fn format_name(&self) -> &'static str {
+        "date-time"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(DateTimeChecker)
     }
@@ -146,11 +186,16 @@ impl FormatChecker for DateTimeChecker {
 
 // ── date ──────────────────────────────────────────────────────────────
 
-/// Validates `date` format.\npub struct DateChecker;
+/// Validates `date` format.
+pub struct DateChecker;
 
 impl FormatChecker for DateChecker {
-    fn check(&self, value: &str) -> bool { validate_date(value).is_some() }
-    fn format_name(&self) -> &'static str { "date" }
+    fn check(&self, value: &str) -> bool {
+        validate_date(value).is_some()
+    }
+    fn format_name(&self) -> &'static str {
+        "date"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(DateChecker)
     }
@@ -158,7 +203,8 @@ impl FormatChecker for DateChecker {
 
 // ── time ──────────────────────────────────────────────────────────────
 
-/// Validates `time` format.\npub struct TimeChecker;
+/// Validates `time` format.
+pub struct TimeChecker;
 
 impl FormatChecker for TimeChecker {
     fn check(&self, value: &str) -> bool {
@@ -171,24 +217,30 @@ impl FormatChecker for TimeChecker {
                 let bytes = value.as_bytes();
                 let mut p = None;
                 for i in (0..bytes.len()).rev() {
-                    if bytes[i] == b'-' && i > 0
-                        && value[..i].ends_with(|c: char| c.is_ascii_digit()) {
-                            p = Some(i);
-                            break;
-                        }
+                    if bytes[i] == b'-'
+                        && i > 0
+                        && value[..i].ends_with(|c: char| c.is_ascii_digit())
+                    {
+                        p = Some(i);
+                        break;
+                    }
                 }
                 p
             })
         {
             let time_str = &value[..pos];
             let tz_str = &value[pos..];
-            if parse_time_val(time_str).is_none() { return false; }
+            if parse_time_val(time_str).is_none() {
+                return false;
+            }
             validate_tz(tz_str).is_some()
         } else {
             parse_time_val(value).is_some()
         }
     }
-    fn format_name(&self) -> &'static str { "time" }
+    fn format_name(&self) -> &'static str {
+        "time"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(TimeChecker)
     }
@@ -196,45 +248,70 @@ impl FormatChecker for TimeChecker {
 
 // ── duration ──────────────────────────────────────────────────────────
 
-/// Validates `duration` format.\npub struct DurationChecker;
+/// Validates `duration` format.
+pub struct DurationChecker;
 
 impl FormatChecker for DurationChecker {
     fn check(&self, value: &str) -> bool {
         // ISO 8601 duration: P[n]Y[n]M[n]DT[n]H[n]M[n]S
         let bytes = value.as_bytes();
-        if bytes.is_empty() || bytes[0] != b'P' { return false; }
+        if bytes.is_empty() || bytes[0] != b'P' {
+            return false;
+        }
         let rest = &value[1..];
-        if rest.is_empty() { return false; }
+        if rest.is_empty() {
+            return false;
+        }
 
         let has_time = rest.contains('T');
         if has_time {
             let parts: Vec<&str> = rest.split('T').collect();
-            if parts.len() != 2 { return false; }
-            if parts[0].is_empty() && parts[1].is_empty() { return false; }
-            if !parse_duration_date(parts[0]) { return false; }
-            if !parse_duration_time(parts[1]) { return false; }
-        } else if !parse_duration_date(rest) { return false; }
+            if parts.len() != 2 {
+                return false;
+            }
+            if parts[0].is_empty() && parts[1].is_empty() {
+                return false;
+            }
+            if !parse_duration_date(parts[0]) {
+                return false;
+            }
+            if !parse_duration_time(parts[1]) {
+                return false;
+            }
+        } else if !parse_duration_date(rest) {
+            return false;
+        }
         true
     }
-    fn format_name(&self) -> &'static str { "duration" }
+    fn format_name(&self) -> &'static str {
+        "duration"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(DurationChecker)
     }
 }
 
 fn parse_duration_date(s: &str) -> bool {
-    if s.is_empty() { return true; }
+    if s.is_empty() {
+        return true;
+    }
     let mut has = false;
     let chars: Vec<char> = s.chars().collect();
     let mut i = 0;
     while i < chars.len() {
         // Read digits
         let start = i;
-        while i < chars.len() && chars[i].is_ascii_digit() { i += 1; }
-        if i == start || i >= chars.len() { return false; }
+        while i < chars.len() && chars[i].is_ascii_digit() {
+            i += 1;
+        }
+        if i == start || i >= chars.len() {
+            return false;
+        }
         let designator = chars[i];
         match designator {
-            'Y' | 'M' | 'W' | 'D' => { has = true; },
+            'Y' | 'M' | 'W' | 'D' => {
+                has = true;
+            }
             _ => return false,
         }
         i += 1;
@@ -243,17 +320,25 @@ fn parse_duration_date(s: &str) -> bool {
 }
 
 fn parse_duration_time(s: &str) -> bool {
-    if s.is_empty() { return true; }
+    if s.is_empty() {
+        return true;
+    }
     let mut has = false;
     let chars: Vec<char> = s.chars().collect();
     let mut i = 0;
     while i < chars.len() {
         let start = i;
-        while i < chars.len() && (chars[i].is_ascii_digit() || chars[i] == '.') { i += 1; }
-        if i == start || i >= chars.len() { return false; }
+        while i < chars.len() && (chars[i].is_ascii_digit() || chars[i] == '.') {
+            i += 1;
+        }
+        if i == start || i >= chars.len() {
+            return false;
+        }
         let designator = chars[i];
         match designator {
-            'H' | 'M' | 'S' => { has = true; },
+            'H' | 'M' | 'S' => {
+                has = true;
+            }
             _ => return false,
         }
         i += 1;
@@ -263,22 +348,31 @@ fn parse_duration_time(s: &str) -> bool {
 
 // ── email ─────────────────────────────────────────────────────────────
 
-/// Validates `email` format.\npub struct EmailChecker;
+/// Validates `email` format.
+pub struct EmailChecker;
 
 impl FormatChecker for EmailChecker {
     fn check(&self, value: &str) -> bool {
         // Basic RFC 5321 email validation
         let parts: Vec<&str> = value.split('@').collect();
-        if parts.len() != 2 { return false; }
+        if parts.len() != 2 {
+            return false;
+        }
         let local = parts[0];
         let domain = parts[1];
-        if local.is_empty() || domain.is_empty() { return false; }
+        if local.is_empty() || domain.is_empty() {
+            return false;
+        }
         // Domain must have at least one dot
-        if !domain.contains('.') { return false; }
+        if !domain.contains('.') {
+            return false;
+        }
         let domain_parts: Vec<&str> = domain.split('.').collect();
         domain_parts.iter().all(|d| !d.is_empty())
     }
-    fn format_name(&self) -> &'static str { "email" }
+    fn format_name(&self) -> &'static str {
+        "email"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(EmailChecker)
     }
@@ -286,16 +380,21 @@ impl FormatChecker for EmailChecker {
 
 // ── idn-email ─────────────────────────────────────────────────────────
 
-/// Validates `idn-email` format.\npub struct IdnEmailChecker;
+/// Validates `idn-email` format.
+pub struct IdnEmailChecker;
 
 impl FormatChecker for IdnEmailChecker {
     fn check(&self, value: &str) -> bool {
         // Basic: same as email but allows Unicode
         let parts: Vec<&str> = value.split('@').collect();
-        if parts.len() != 2 { return false; }
+        if parts.len() != 2 {
+            return false;
+        }
         !parts[0].is_empty() && !parts[1].is_empty()
     }
-    fn format_name(&self) -> &'static str { "idn-email" }
+    fn format_name(&self) -> &'static str {
+        "idn-email"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(IdnEmailChecker)
     }
@@ -303,21 +402,30 @@ impl FormatChecker for IdnEmailChecker {
 
 // ── hostname ──────────────────────────────────────────────────────────
 
-/// Validates `hostname` format.\npub struct HostnameChecker;
+/// Validates `hostname` format.
+pub struct HostnameChecker;
 
 impl FormatChecker for HostnameChecker {
     fn check(&self, value: &str) -> bool {
         // RFC 1123 hostname
-        if value.is_empty() || value.len() > 253 { return false; }
+        if value.is_empty() || value.len() > 253 {
+            return false;
+        }
         let labels: Vec<&str> = value.split('.').collect();
         labels.iter().all(|l| {
-            if l.is_empty() || l.len() > 63 { return false; }
+            if l.is_empty() || l.len() > 63 {
+                return false;
+            }
             let bytes = l.as_bytes();
-            if bytes[0] == b'-' || bytes[bytes.len() - 1] == b'-' { return false; }
+            if bytes[0] == b'-' || bytes[bytes.len() - 1] == b'-' {
+                return false;
+            }
             l.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
         })
     }
-    fn format_name(&self) -> &'static str { "hostname" }
+    fn format_name(&self) -> &'static str {
+        "hostname"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(HostnameChecker)
     }
@@ -325,16 +433,21 @@ impl FormatChecker for HostnameChecker {
 
 // ── idn-hostname ──────────────────────────────────────────────────────
 
-/// Validates `idn-hostname` format.\npub struct IdnHostnameChecker;
+/// Validates `idn-hostname` format.
+pub struct IdnHostnameChecker;
 
 impl FormatChecker for IdnHostnameChecker {
     fn check(&self, value: &str) -> bool {
         // Basic: allow Unicode, same structure as hostname
-        if value.is_empty() { return false; }
+        if value.is_empty() {
+            return false;
+        }
         let labels: Vec<&str> = value.split('.').collect();
         labels.iter().all(|l| !l.is_empty() && l.len() <= 63)
     }
-    fn format_name(&self) -> &'static str { "idn-hostname" }
+    fn format_name(&self) -> &'static str {
+        "idn-hostname"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(IdnHostnameChecker)
     }
@@ -342,18 +455,25 @@ impl FormatChecker for IdnHostnameChecker {
 
 // ── ipv4 ──────────────────────────────────────────────────────────────
 
-/// Validates `ipv4` format.\npub struct Ipv4Checker;
+/// Validates `ipv4` format.
+pub struct Ipv4Checker;
 
 impl FormatChecker for Ipv4Checker {
     fn check(&self, value: &str) -> bool {
         let parts: Vec<&str> = value.split('.').collect();
-        if parts.len() != 4 { return false; }
+        if parts.len() != 4 {
+            return false;
+        }
         parts.iter().all(|p| {
-            if p.is_empty() || (p.len() > 1 && p.starts_with('0')) { return false; }
+            if p.is_empty() || (p.len() > 1 && p.starts_with('0')) {
+                return false;
+            }
             p.parse::<u8>().is_ok()
         })
     }
-    fn format_name(&self) -> &'static str { "ipv4" }
+    fn format_name(&self) -> &'static str {
+        "ipv4"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(Ipv4Checker)
     }
@@ -361,17 +481,22 @@ impl FormatChecker for Ipv4Checker {
 
 // ── ipv6 ──────────────────────────────────────────────────────────────
 
-/// Validates `ipv6` format.\npub struct Ipv6Checker;
+/// Validates `ipv6` format.
+pub struct Ipv6Checker;
 
 impl FormatChecker for Ipv6Checker {
     fn check(&self, value: &str) -> bool {
         // RFC 4291 IPv6 with :: compression
-        if value.is_empty() { return false; }
+        if value.is_empty() {
+            return false;
+        }
         let has_compression = value.contains("::");
         let segments: Vec<&str> = if has_compression {
             // Split on ::
             let parts: Vec<&str> = value.split("::").collect();
-            if parts.len() != 2 { return false; }
+            if parts.len() != 2 {
+                return false;
+            }
             let mut segs = Vec::new();
             if !parts[0].is_empty() {
                 segs.extend(parts[0].split(':'));
@@ -385,14 +510,22 @@ impl FormatChecker for Ipv6Checker {
         };
 
         let max_segs = if has_compression { 7 } else { 8 };
-        if segments.len() > max_segs { return false; }
+        if segments.len() > max_segs {
+            return false;
+        }
         segments.iter().all(|s| {
-            if s.is_empty() { return false; }
-            if s.len() > 4 { return false; }
+            if s.is_empty() {
+                return false;
+            }
+            if s.len() > 4 {
+                return false;
+            }
             u16::from_str_radix(s, 16).is_ok()
         })
     }
-    fn format_name(&self) -> &'static str { "ipv6" }
+    fn format_name(&self) -> &'static str {
+        "ipv6"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(Ipv6Checker)
     }
@@ -400,14 +533,19 @@ impl FormatChecker for Ipv6Checker {
 
 // ── uri ───────────────────────────────────────────────────────────────
 
-/// Validates `uri` format.\npub struct UriChecker;
+/// Validates `uri` format.
+pub struct UriChecker;
 
 impl FormatChecker for UriChecker {
     fn check(&self, value: &str) -> bool {
         // RFC 3986 URI: scheme ":" hier-part ["?" query] ["#" fragment]
-        let Some(colon) = value.find(':') else { return false };
+        let Some(colon) = value.find(':') else {
+            return false;
+        };
         let scheme = &value[..colon];
-        if scheme.is_empty() { return false; }
+        if scheme.is_empty() {
+            return false;
+        }
         let mut chars = scheme.chars();
         if !chars.next().is_some_and(|c| c.is_ascii_alphabetic()) {
             return false;
@@ -421,7 +559,9 @@ impl FormatChecker for UriChecker {
         // Must have something after scheme:
         !after.is_empty()
     }
-    fn format_name(&self) -> &'static str { "uri" }
+    fn format_name(&self) -> &'static str {
+        "uri"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(UriChecker)
     }
@@ -429,12 +569,15 @@ impl FormatChecker for UriChecker {
 
 // ── uri-reference ─────────────────────────────────────────────────────
 
-/// Validates `uri-reference` format.\npub struct UriReferenceChecker;
+/// Validates `uri-reference` format.
+pub struct UriReferenceChecker;
 
 impl FormatChecker for UriReferenceChecker {
     fn check(&self, value: &str) -> bool {
         // URI or relative-ref: can be relative (no scheme)
-        if value.is_empty() { return true; }
+        if value.is_empty() {
+            return true;
+        }
         // Try as absolute URI first
         if value.contains(':') {
             return UriChecker.check(value);
@@ -442,7 +585,9 @@ impl FormatChecker for UriReferenceChecker {
         // Relative reference: just check no control characters
         !value.chars().any(char::is_control)
     }
-    fn format_name(&self) -> &'static str { "uri-reference" }
+    fn format_name(&self) -> &'static str {
+        "uri-reference"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(UriReferenceChecker)
     }
@@ -450,21 +595,28 @@ impl FormatChecker for UriReferenceChecker {
 
 // ── iri ───────────────────────────────────────────────────────────────
 
-/// Validates `iri` format.\npub struct IriChecker;
+/// Validates `iri` format.
+pub struct IriChecker;
 
 impl FormatChecker for IriChecker {
     fn check(&self, value: &str) -> bool {
         // IRI is like URI but allows Unicode
-        let Some(colon) = value.find(':') else { return false };
+        let Some(colon) = value.find(':') else {
+            return false;
+        };
         let scheme = &value[..colon];
-        if scheme.is_empty() { return false; }
+        if scheme.is_empty() {
+            return false;
+        }
         let mut chars = scheme.chars();
         if !chars.next().is_some_and(|c| c.is_ascii_alphabetic()) {
             return false;
         }
         !value[colon + 1..].is_empty()
     }
-    fn format_name(&self) -> &'static str { "iri" }
+    fn format_name(&self) -> &'static str {
+        "iri"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(IriChecker)
     }
@@ -472,17 +624,22 @@ impl FormatChecker for IriChecker {
 
 // ── iri-reference ─────────────────────────────────────────────────────
 
-/// Validates `iri-reference` format.\npub struct IriReferenceChecker;
+/// Validates `iri-reference` format.
+pub struct IriReferenceChecker;
 
 impl FormatChecker for IriReferenceChecker {
     fn check(&self, value: &str) -> bool {
-        if value.is_empty() { return true; }
+        if value.is_empty() {
+            return true;
+        }
         if value.contains(':') {
             return IriChecker.check(value);
         }
         !value.chars().any(char::is_control)
     }
-    fn format_name(&self) -> &'static str { "iri-reference" }
+    fn format_name(&self) -> &'static str {
+        "iri-reference"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(IriReferenceChecker)
     }
@@ -490,25 +647,32 @@ impl FormatChecker for IriReferenceChecker {
 
 // ── uri-template ──────────────────────────────────────────────────────
 
-/// Validates `uri-template` format.\npub struct UriTemplateChecker;
+/// Validates `uri-template` format.
+pub struct UriTemplateChecker;
 
 impl FormatChecker for UriTemplateChecker {
     fn check(&self, value: &str) -> bool {
         // RFC 6570: basic check — valid URI with optional {expression}
-        if value.is_empty() { return false; }
+        if value.is_empty() {
+            return false;
+        }
         // Check for balanced braces
         let mut depth: i32 = 0;
         for c in value.chars() {
             match c {
                 '{' => depth += 1,
                 '}' => depth -= 1,
-                _ => {},
+                _ => {}
             }
-            if depth < 0 { return false; }
+            if depth < 0 {
+                return false;
+            }
         }
         depth == 0
     }
-    fn format_name(&self) -> &'static str { "uri-template" }
+    fn format_name(&self) -> &'static str {
+        "uri-template"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(UriTemplateChecker)
     }
@@ -516,26 +680,35 @@ impl FormatChecker for UriTemplateChecker {
 
 // ── json-pointer ──────────────────────────────────────────────────────
 
-/// Validates `json-pointer` format.\npub struct JsonPointerChecker;
+/// Validates `json-pointer` format.
+pub struct JsonPointerChecker;
 
 impl FormatChecker for JsonPointerChecker {
     fn check(&self, value: &str) -> bool {
         // RFC 6901: empty string or starts with /
-        if value.is_empty() { return true; }
-        if !value.starts_with('/') { return false; }
+        if value.is_empty() {
+            return true;
+        }
+        if !value.starts_with('/') {
+            return false;
+        }
         // Check for valid escape sequences: ~0 (~) and ~1 (/)
         let mut chars = value.chars().peekable();
         while let Some(c) = chars.next() {
             if c == '~' {
                 match chars.peek() {
-                    Some(&'0' | &'1') => { chars.next(); }
+                    Some(&'0' | &'1') => {
+                        chars.next();
+                    }
                     _ => return false,
                 }
             }
         }
         true
     }
-    fn format_name(&self) -> &'static str { "json-pointer" }
+    fn format_name(&self) -> &'static str {
+        "json-pointer"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(JsonPointerChecker)
     }
@@ -543,25 +716,36 @@ impl FormatChecker for JsonPointerChecker {
 
 // ── relative-json-pointer ─────────────────────────────────────────────
 
-/// Validates `relative-json-pointer` format.\npub struct RelativeJsonPointerChecker;
+/// Validates `relative-json-pointer` format.
+pub struct RelativeJsonPointerChecker;
 
 impl FormatChecker for RelativeJsonPointerChecker {
     fn check(&self, value: &str) -> bool {
         // Non-negative integer followed by "#" or JSON pointer
-        if value.is_empty() { return false; }
+        if value.is_empty() {
+            return false;
+        }
         let mut i = 0;
         let bytes = value.as_bytes();
         while i < bytes.len() && bytes[i].is_ascii_digit() {
             i += 1;
         }
-        if i == 0 { return false; }
+        if i == 0 {
+            return false;
+        }
         let rest = &value[i..];
-        if rest.is_empty() { return false; }
-        if rest == "#" { return true; }
+        if rest.is_empty() {
+            return false;
+        }
+        if rest == "#" {
+            return true;
+        }
         // Must be a valid JSON pointer
         JsonPointerChecker.check(rest)
     }
-    fn format_name(&self) -> &'static str { "relative-json-pointer" }
+    fn format_name(&self) -> &'static str {
+        "relative-json-pointer"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(RelativeJsonPointerChecker)
     }
@@ -569,11 +753,16 @@ impl FormatChecker for RelativeJsonPointerChecker {
 
 // ── regex ─────────────────────────────────────────────────────────────
 
-/// Validates `regex` format.\npub struct RegexChecker;
+/// Validates `regex` format.
+pub struct RegexChecker;
 
 impl FormatChecker for RegexChecker {
-    fn check(&self, value: &str) -> bool { regex::Regex::new(value).is_ok() }
-    fn format_name(&self) -> &'static str { "regex" }
+    fn check(&self, value: &str) -> bool {
+        regex::Regex::new(value).is_ok()
+    }
+    fn format_name(&self) -> &'static str {
+        "regex"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(RegexChecker)
     }
@@ -581,19 +770,25 @@ impl FormatChecker for RegexChecker {
 
 // ── uuid ──────────────────────────────────────────────────────────────
 
-/// Validates `uuid` format.\npub struct UuidChecker;
+/// Validates `uuid` format.
+pub struct UuidChecker;
 
 impl FormatChecker for UuidChecker {
     fn check(&self, value: &str) -> bool {
         // 8-4-4-4-12 hex pattern
         let parts: Vec<&str> = value.split('-').collect();
-        if parts.len() != 5 { return false; }
+        if parts.len() != 5 {
+            return false;
+        }
         let lens = [8, 4, 4, 4, 12];
-        parts.iter().zip(lens).all(|(p, len)| {
-            p.len() == len && p.chars().all(|c| c.is_ascii_hexdigit())
-        })
+        parts
+            .iter()
+            .zip(lens)
+            .all(|(p, len)| p.len() == len && p.chars().all(|c| c.is_ascii_hexdigit()))
     }
-    fn format_name(&self) -> &'static str { "uuid" }
+    fn format_name(&self) -> &'static str {
+        "uuid"
+    }
     fn clone_box(&self) -> Box<dyn FormatChecker> {
         Box::new(UuidChecker)
     }
@@ -808,7 +1003,7 @@ mod tests {
     #[test]
     fn duration_invalid() {
         assert!(!DurationChecker.check("1Y")); // missing P
-        assert!(!DurationChecker.check("P"));  // nothing after P
+        assert!(!DurationChecker.check("P")); // nothing after P
     }
 
     #[test]

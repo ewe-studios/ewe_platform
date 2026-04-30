@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graphify -- Caching and Performance -- graphify</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/graphify/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-report-export.html">Report Generation and Export Formats</a> <a href="08-cli-integration.html">CLI Integration: Commands, Platform Installs, and Hooks</a> <a href="09-security-validation.html">Graphify -- Security and Validation</a></span> <a href="09-security-validation.html">← Graphify -- Security and Validation</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Graphify -- Caching and Performance</h1>
+<p>Graphify uses three complementary caching strategies to minimize redundant work: a per-file SHA256 content cache for extraction results, a token-reduction benchmark to quantify context savings, and a filesystem watcher for incremental rebuilds. Together they ensure that repeated runs over stable corpora cost near-zero tokens and that code-only changes rebuild without any LLM calls.</p>
+<p>Related: <a href="00-overview.md">Overview</a> -- <a href="11-data-flow.md">Data Flow</a> -- <a href="12-llm-backend.md">LLM Backend</a></p>
+<h2>Per-File Extraction Cache</h2>
+<p>The cache module (<code>cache.py</code>) stores extraction results keyed by the SHA256 hash of file contents. A file that has not changed since the last run returns its cached result instantly, skipping both AST parsing and LLM extraction.</p>
+<h3>Cache Directory Structure</h3>
+<p>Cache entries are stored under <code>graphify-out/cache/</code> with separate subdirectories for AST and semantic results:</p>
+<pre><code class="language-">graphify-out/cache/
+  ast/
+    &lt;sha256&gt;.json      # AST extraction result for a code file
+    &lt;sha256&gt;.json
+  semantic/
+    &lt;sha256&gt;.json      # Semantic extraction result for a doc/paper/image file
+    &lt;sha256&gt;.json
+</code></pre>
+<p>The separation (<code>cache.py:46-54</code>) prevents semantic cache entries from overwriting AST entries for the same <code>source_file</code> (issue #582). A legacy flat <code>cache/*.json</code> directory is also checked for backward compatibility with pre-0.5.3 installations.</p>
+<h3>File Hashing</h3>
+<p><code>file_hash</code> (<code>cache.py:20</code>) computes a SHA256 hash of the file content plus its relative path. The relative path ensures cache entries are portable across machines and checkout directories -- the same file at <code>/home/user/project/foo.py</code> and <code>/home/dev/project/foo.py</code> produces the same cache key.</p>
+<pre><code class="language-python"># cache.py:20-43
+def file_hash(path: Path, root: Path = Path(&quot;.&quot;)) -&gt; str:
+    &quot;&quot;&quot;SHA256 of file contents + path relative to root.&quot;&quot;&quot;
+    p = Path(path)
+    raw = p.read_bytes()
+    content = _body_content(raw) if p.suffix.lower() == &quot;.md&quot; else raw
+    h = hashlib.sha256()
+    h.update(content)
+    h.update(b&quot;\x00&quot;)
+    try:
+        rel = p.resolve().relative_to(Path(root).resolve())
+        h.update(str(rel).encode())
+    except ValueError:
+        h.update(str(p.resolve()).encode())
+    return h.hexdigest()
+</code></pre>
+<p>For Markdown files, YAML frontmatter is stripped before hashing (<code>cache.py:10-17</code>). This means metadata-only changes (e.g., <code>reviewed: true</code>, status updates, tag changes) do not invalidate the cache -- only actual body content changes trigger re-extraction.</p>
+<h3>Load and Save</h3>
+<p><code>load_cached</code> (<code>cache.py:57</code>) returns the cached extraction if the file's current hash matches a stored entry. <code>save_cached</code> (<code>cache.py:88</code>) writes results atomically using a <code>.tmp</code> file followed by <code>os.replace</code>, with a Windows fallback for file locking issues.</p>
+<div class="mermaid">
+flowchart TD
+    A[&quot;extract(files)&quot;] --&gt; B[&quot;For each file: file_hash(path)&quot;]
+    B --&gt; C[&quot;load_cached(path, kind=&#x27;ast&#x27;)&quot;]
+    C --&gt; D{&quot;cache hit?&quot;}
+    D --&gt;|Yes| E[&quot;Use cached result&quot;]
+    D --&gt;|No| F[&quot;Run extraction&quot;]
+    F --&gt; G[&quot;save_cached(path, result)&quot;]
+    G --&gt; H[&quot;Write tmp file&quot;]
+    H --&gt; I[&quot;os.replace(tmp, entry)&quot;]
+    E --&gt; J[&quot;Merge into extraction dict&quot;]
+    I --&gt; J
+
+</div>
+<h3>Semantic Cache</h3>
+<p><code>check_semantic_cache</code> (<code>cache.py:149</code>) takes a list of file paths and splits them into cached and uncached groups. Cached files contribute their nodes, edges, and hyperedges directly. Uncached files are returned as a list for LLM extraction.</p>
+<pre><code class="language-python"># cache.py:149-172
+def check_semantic_cache(files: list[str], root: Path = Path(&quot;.&quot;)) -&gt; tuple[list[dict], list[dict], list[dict], list[str]]:
+    &quot;&quot;&quot;Returns (cached_nodes, cached_edges, cached_hyperedges, uncached_files).&quot;&quot;&quot;
+</code></pre>
+<p><code>save_semantic_cache</code> (<code>cache.py:175</code>) groups results by <code>source_file</code> and saves one cache entry per file. It returns the count of files cached.</p>
+<h3>Cache Clearing</h3>
+<p><code>clear_cache</code> (<code>cache.py:134</code>) deletes all cache entries across <code>ast/</code>, <code>semantic/</code>, and legacy flat directories.</p>
+<h2>Token-Reduction Benchmark</h2>
+<p>The benchmark module (<code>benchmark.py</code>) quantifies how much context graphify saves compared to a naive full-corpus approach. It measures tokens needed to answer questions using the graph subgraph versus sending the entire corpus to an LLM.</p>
+<h3>How It Works</h3>
+<p><code>run_benchmark</code> (<code>benchmark.py:64</code>) loads the built graph, scores nodes against sample questions, performs a BFS traversal to collect a relevant subgraph, and estimates token counts using the <code>_CHARS_PER_TOKEN = 4</code> approximation.</p>
+<pre><code class="language-python"># benchmark.py:9
+_CHARS_PER_TOKEN = 4  # standard approximation
+</code></pre>
+<p>The <code>_query_subgraph_tokens</code> function (<code>benchmark.py:16</code>) performs BFS from the top-3 matching nodes (by keyword overlap) up to a configurable depth (default 3). It formats visited nodes and edges as text lines and estimates the token count.</p>
+<pre><code class="language-python"># benchmark.py:64-111
+def run_benchmark(
+    graph_path: str = &quot;graphify-out/graph.json&quot;,
+    corpus_words: int | None = None,
+    questions: list[str] | None = None,
+) -&gt; dict:
+</code></pre>
+<p>The returned dict contains:</p>
+<table><tr><th>Key</th><th>Description</th></tr><tr><td>`corpus_tokens`</td><td>Estimated tokens for the full corpus</td></tr><tr><td>`corpus_words`</td><td>Word count (provided or estimated)</td></tr><tr><td>`nodes`</td><td>Total nodes in the graph</td></tr><tr><td>`edges`</td><td>Total edges in the graph</td></tr><tr><td>`avg_query_tokens`</td><td>Average tokens per query question</td></tr><tr><td>`reduction_ratio`</td><td>`corpus_tokens / avg_query_tokens` -- how many times cheaper graph queries are</td></tr><tr><td>`per_question`</td><td>List of per-question results with individual reduction ratios</td></tr></table>
+<p>The default sample questions are: "how does authentication work", "what is the main entry point", "how are errors handled", "what connects the data layer to the api", "what are the core abstractions" (<code>benchmark.py:55-61</code>).</p>
+<div class="mermaid">
+flowchart LR
+    A[&quot;load graph.json&quot;] --&gt; B[&quot;Score nodes against questions&quot;]
+    B --&gt; C[&quot;Top 3 matches&quot;]
+    C --&gt; D[&quot;BFS depth=3&quot;]
+    D --&gt; E[&quot;Format nodes+edges as text&quot;]
+    E --&gt; F[&quot;Estimate tokens (chars/4)&quot;]
+    F --&gt; G[&quot;Compare to corpus_tokens&quot;]
+    G --&gt; H[&quot;reduction_ratio = corpus / query&quot;]
+
+</div>
+<h2>Filesystem Watcher</h2>
+<p>The watch module (<code>watch.py</code>) uses the <code>watchdog</code> library to monitor a directory for file changes and trigger automatic rebuilds.</p>
+<h3>Watched Extensions</h3>
+<p>The watcher monitors all file types that graphify recognizes: code, documents, papers, and images (<code>watch.py:9-12</code>). Files in dot-prefixed directories (like <code>.git</code>) and the <code>graphify-out/</code> output directory are excluded.</p>
+<h3>Code Rebuild Path</h3>
+<p><code>_rebuild_code</code> (<code>watch.py:36</code>) re-runs AST extraction, build, clustering, analysis, report generation, and export -- all without any LLM calls. It is a pure local rebuild of the code graph.</p>
+<pre><code class="language-python"># watch.py:36-136
+def _rebuild_code(watch_path: Path, *, follow_symlinks: bool = False) -&gt; bool:
+    &quot;&quot;&quot;Re-run AST extraction + build + cluster + report for code files. No LLM needed.&quot;&quot;&quot;
+</code></pre>
+<p>The rebuild preserves semantic nodes and edges from a previous full run. Only code nodes (where <code>file_type == "code"</code>) are replaced; INFERRED and AMBIGUOUS edges are kept since they come from semantic analysis, not AST parsing (<code>watch.py:66-82</code>).</p>
+<div class="mermaid">
+flowchart TD
+    A[&quot;File change detected&quot;] --&gt; B{&quot;code file?&quot;}
+    B --&gt;|Yes| C[&quot;_rebuild_code()&quot;]
+    B --&gt;|No| D[&quot;_notify_only()&quot;]
+    C --&gt; E[&quot;detect(code files)&quot;]
+    E --&gt; F[&quot;extract(AST only, cached)&quot;]
+    F --&gt; G[&quot;Merge with existing semantic nodes&quot;]
+    G --&gt; H[&quot;build_from_json&quot;]
+    H --&gt; I[&quot;cluster + analyze + report + export&quot;]
+    I --&gt; J[&quot;Clear needs_update flag&quot;]
+    D --&gt; K[&quot;Write needs_update flag&quot;]
+    K --&gt; L[&quot;Print: run /graphify --update&quot;]
+
+</div>
+<h3>Debounce</h3>
+<p>The watcher uses a configurable debounce period (default 3.0 seconds) to batch rapid saves from editors. After the last file change, it waits for the debounce window before triggering a rebuild (<code>watch.py:221</code>).</p>
+<h3>Non-Code Changes</h3>
+<p>When non-code files change (docs, papers, images), the watcher writes a <code>graphify-out/needs_update</code> flag file and prints a notification telling the user to run <code>/graphify --update</code> for semantic re-extraction (<code>watch.py:154-162</code>). The <code>check_update</code> function (<code>watch.py:139</code>) is cron-safe -- it always returns <code>True</code> and simply checks whether the flag exists.</p>
+<pre><code class="language-python"># watch.py:139-151
+def check_update(watch_path: Path) -&gt; bool:
+    &quot;&quot;&quot;Check for pending semantic update flag and notify the user if set.
+    Cron-safe: always returns True so cron jobs do not alarm.&quot;&quot;&quot;
+</code></pre>
+<h3>Observer Selection</h3>
+<p>On macOS, a <code>PollingObserver</code> is used instead of the native <code>Observer</code> because FSEvents can miss rapid saves in some editors (<code>watch.py:209</code>). On other platforms, the native observer is used.</p>
+<h2>Source Files</h2>
+<ul><li><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/graphify/cache.py</code> -- Per-file SHA256 extraction cache</li><li><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/graphify/benchmark.py</code> -- Token-reduction benchmark</li><li><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/graphify/watch.py</code> -- Filesystem watcher for incremental rebuilds</li></ul>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

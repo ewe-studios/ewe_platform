@@ -19,7 +19,10 @@ pub struct ConstValidator {
 
 impl ConstValidator {
     pub fn new(expected: Value, schema_path: Location) -> Self {
-        Self { expected, schema_path }
+        Self {
+            expected,
+            schema_path,
+        }
     }
 }
 
@@ -37,13 +40,12 @@ impl Validate for ConstValidator {
         if self.is_valid(instance, ctx) {
             Ok(())
         } else {
-            Err(ValidationErrorBuilder::new(
-                instance_path.materialize(),
-                self.schema_path.clone(),
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), self.schema_path.clone())
+                    .build(ValidationErrorKind::InvalidConst {
+                        expected: self.expected.clone(),
+                    }),
             )
-            .build(ValidationErrorKind::InvalidConst {
-                expected: self.expected.clone(),
-            }))
         }
     }
 

@@ -1,42 +1,82 @@
-//! Stub: `patternProperties` — regex-matched property validation.
-//!
-//! Requires `SchemaNode` (Feature 3).
+//! `patternProperties` — regex-matched property validation.
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
+use regex::Regex;
 use serde_json::Value;
 
 use crate::error::{ErrorIterator, ValidationError};
+use crate::node::SchemaNode;
 use crate::paths::LazyLocation;
 
 use super::{Validate, ValidationContext};
 
-pub struct PatternPropertiesValidator;
+/// Validates properties whose names match regex patterns.
+pub struct PatternPropertiesValidator {
+    patterns: Vec<(Regex, SchemaNode)>,
+}
 
-impl Default for PatternPropertiesValidator {
-    fn default() -> Self { Self }
+impl PatternPropertiesValidator {
+    /// Create with compiled regex → schema pairs.
+    #[must_use]
+    pub fn new(patterns: Vec<(Regex, SchemaNode)>) -> Self {
+        Self { patterns }
+    }
 }
 
 impl Validate for PatternPropertiesValidator {
-    fn is_valid(&self, _instance: &Value, _ctx: &mut ValidationContext) -> bool {
+    fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
+        if let Value::Object(obj) = instance {
+            for (name, value) in obj {
+                for (regex, schema) in &self.patterns {
+                    if regex.is_match(name) && !schema.is_valid(value, ctx) {
+                        return false;
+                    }
+                }
+            }
+        }
         true
     }
 
     fn validate(
         &self,
-        _instance: &Value,
-        _instance_path: &LazyLocation<'_>,
-        _ctx: &mut ValidationContext,
+        instance: &Value,
+        instance_path: &LazyLocation<'_>,
+        ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
+        if let Value::Object(obj) = instance {
+            for (name, value) in obj {
+                for (regex, schema) in &self.patterns {
+                    if regex.is_match(name) {
+                        let child_path = instance_path.push_property(name);
+                        schema.validate(value, &child_path, ctx)?;
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
     fn iter_errors(
         &self,
-        _instance: &Value,
-        _instance_path: &LazyLocation<'_>,
-        _ctx: &mut ValidationContext,
+        instance: &Value,
+        instance_path: &LazyLocation<'_>,
+        ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        Box::new(core::iter::empty())
+        let mut errors: Vec<ValidationError> = Vec::new();
+        if let Value::Object(obj) = instance {
+            for (name, value) in obj {
+                for (regex, schema) in &self.patterns {
+                    if regex.is_match(name) {
+                        let child_path = instance_path.push_property(name);
+                        for e in schema.iter_errors(value, &child_path, ctx) {
+                            errors.push(e);
+                        }
+                    }
+                }
+            }
+        }
+        Box::new(errors.into_iter())
     }
 }

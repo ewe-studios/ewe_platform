@@ -75,8 +75,8 @@ fn one_of() {
         ]
     });
     let v = validator_for(&schema).unwrap();
-    assert!(v.is_valid(&json!(10)));  // multiple of 5 only
-    assert!(v.is_valid(&json!(9)));   // multiple of 3 only
+    assert!(v.is_valid(&json!(10))); // multiple of 5 only
+    assert!(v.is_valid(&json!(9))); // multiple of 3 only
     assert!(!v.is_valid(&json!(15))); // multiple of both
 }
 
@@ -159,9 +159,18 @@ fn draft_selection() {
     });
 
     // All drafts should accept this simple schema
-    let v4 = ValidationOptions::new().with_draft(Draft::Draft4).build(&schema).unwrap();
-    let v7 = ValidationOptions::new().with_draft(Draft::Draft7).build(&schema).unwrap();
-    let v2020 = ValidationOptions::new().with_draft(Draft::Draft202012).build(&schema).unwrap();
+    let v4 = ValidationOptions::new()
+        .with_draft(Draft::Draft4)
+        .build(&schema)
+        .unwrap();
+    let v7 = ValidationOptions::new()
+        .with_draft(Draft::Draft7)
+        .build(&schema)
+        .unwrap();
+    let v2020 = ValidationOptions::new()
+        .with_draft(Draft::Draft202012)
+        .build(&schema)
+        .unwrap();
 
     let instance = json!({"name": "Alice"});
     assert!(v4.is_valid(&instance));
@@ -226,6 +235,9 @@ fn min_max_constraints() {
 #[test]
 fn validator_draft_returns_correct() {
     let schema = json!({"type": "string"});
-    let v = ValidationOptions::new().with_draft(Draft::Draft7).build(&schema).unwrap();
+    let v = ValidationOptions::new()
+        .with_draft(Draft::Draft7)
+        .build(&schema)
+        .unwrap();
     assert_eq!(v.draft(), Draft::Draft7);
 }

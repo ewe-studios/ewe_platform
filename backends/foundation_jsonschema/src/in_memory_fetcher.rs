@@ -103,9 +103,7 @@ fn build_builtin_map() -> BTreeMap<String, Value> {
         ),
         (
             "https://json-schema.org/draft/2020-12/meta/format-annotation",
-            include_str!(
-"../artefacts/draft-2020-12-meta-format-annotation.json"
-            ),
+            include_str!("../artefacts/draft-2020-12-meta-format-annotation.json"),
         ),
         (
             "https://json-schema.org/draft/2020-12/meta/content",
@@ -202,14 +200,11 @@ impl Default for InMemoryFetcher {
 
 impl JsonResolver for InMemoryFetcher {
     fn resolve(&self, uri: &str) -> Result<Value, ErrorTrace<ResolveError>> {
-        self.schemas
-            .get(uri)
-            .cloned()
-            .ok_or_else(|| {
-                ResolveError::new(uri)
-                    .into_error_trace()
-                    .attach(format!("not found in in-memory fetcher: {uri}"))
-            })
+        self.schemas.get(uri).cloned().ok_or_else(|| {
+            ResolveError::new(uri)
+                .into_error_trace()
+                .attach(format!("not found in in-memory fetcher: {uri}"))
+        })
     }
 }
 
@@ -284,10 +279,7 @@ mod tests {
         );
         let result = fetcher.resolve("https://example.com/test");
         assert!(result.is_ok());
-        assert_eq!(
-            result.unwrap(),
-            serde_json::json!({"type": "string"})
-        );
+        assert_eq!(result.unwrap(), serde_json::json!({"type": "string"}));
     }
 
     #[test]

@@ -16,44 +16,46 @@ use alloc::boxed::Box;
 use serde_json::Value;
 
 // Stub modules — will be implemented in subsequent features
-pub(crate) mod custom;
+pub(crate) mod additional_properties;
 pub(crate) mod all_of;
 pub(crate) mod any_of;
-pub(crate) mod one_of;
-pub(crate) mod not_;
-pub(crate) mod if_;
-pub(crate) mod ref_;
-pub(crate) mod properties;
-pub(crate) mod additional_properties;
-pub(crate) mod pattern_properties;
-pub(crate) mod required;
-pub(crate) mod property_names;
-pub(crate) mod min_properties;
-pub(crate) mod max_properties;
+pub(crate) mod const_;
+pub(crate) mod contains;
+pub(crate) mod content;
+pub(crate) mod content_schema;
+pub(crate) mod custom;
 pub(crate) mod dependent_required;
 pub(crate) mod dependent_schemas;
-pub(crate) mod unevaluated_properties;
-pub(crate) mod items;
-pub(crate) mod prefix_items;
-pub(crate) mod contains;
-pub(crate) mod min_items;
-pub(crate) mod max_items;
-pub(crate) mod unique_items;
-pub(crate) mod unevaluated_items;
-pub(crate) mod min_length;
-pub(crate) mod max_length;
-pub(crate) mod pattern;
-pub(crate) mod format;
-pub(crate) mod minimum;
-pub(crate) mod maximum;
-pub(crate) mod exclusive_minimum;
-pub(crate) mod exclusive_maximum;
-pub(crate) mod multiple_of;
-pub(crate) mod content;
-pub(crate) mod legacy;
-pub(crate) mod type_;
-pub(crate) mod const_;
 pub(crate) mod enum_;
+pub(crate) mod exclusive_maximum;
+pub(crate) mod exclusive_minimum;
+pub(crate) mod format;
+pub(crate) mod if_;
+pub(crate) mod items;
+pub(crate) mod legacy;
+pub(crate) mod max_items;
+pub(crate) mod max_length;
+pub(crate) mod max_properties;
+pub(crate) mod maximum;
+pub(crate) mod min_items;
+pub(crate) mod min_length;
+pub(crate) mod min_properties;
+pub(crate) mod minimum;
+pub(crate) mod multiple_of;
+pub(crate) mod not_;
+pub(crate) mod one_of;
+pub(crate) mod pattern;
+pub(crate) mod pattern_properties;
+pub(crate) mod prefix_items;
+pub(crate) mod properties;
+pub(crate) mod property_names;
+pub(crate) mod ref_;
+pub(crate) mod required;
+pub(crate) mod tuple_items;
+pub(crate) mod type_;
+pub(crate) mod unevaluated_items;
+pub(crate) mod unevaluated_properties;
+pub(crate) mod unique_items;
 
 /// The core validation trait implemented by all keyword validators.
 ///
@@ -72,6 +74,10 @@ pub trait Validate: Send + Sync {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool;
 
     /// Validate and return the first error encountered.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first validation error if the instance fails validation.
     fn validate(
         &self,
         instance: &Value,

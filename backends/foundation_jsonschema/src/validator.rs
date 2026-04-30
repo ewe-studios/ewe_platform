@@ -3,7 +3,6 @@
 //! WHY: Users interact with the `Validator` type, not `SchemaNode` directly.
 //! This wraps the compiled tree with the public API.
 
-
 use crate::draft::Draft;
 use crate::error::{ErrorIterator, ValidationError};
 use crate::node::SchemaNode;

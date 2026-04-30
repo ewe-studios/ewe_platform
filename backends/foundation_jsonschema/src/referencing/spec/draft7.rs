@@ -17,12 +17,7 @@ pub fn collect_subresources<'a>(
             "additionalItems" | "additionalProperties" if value.is_object() => {
                 items.push(value);
             }
-            "contains"
-            | "else"
-            | "if"
-            | "not"
-            | "propertyNames"
-            | "then" => {
+            "contains" | "else" | "if" | "not" | "propertyNames" | "then" => {
                 items.push(value);
             }
             "allOf" | "anyOf" | "oneOf" => {

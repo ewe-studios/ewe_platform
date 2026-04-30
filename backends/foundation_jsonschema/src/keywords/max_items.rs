@@ -42,7 +42,10 @@ impl Validate for MaxItemsValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MaxItems { max: self.max, actual }));
+                .build(ValidationErrorKind::MaxItems {
+                    max: self.max,
+                    actual,
+                }));
             }
         }
         Ok(())

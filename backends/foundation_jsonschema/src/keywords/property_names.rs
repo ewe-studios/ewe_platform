@@ -6,19 +6,21 @@ use alloc::vec::Vec;
 use serde_json::Value;
 
 use crate::error::{ErrorIterator, ValidationError};
-use crate::paths::{LazyLocation, Location};
+use crate::node::SchemaNode;
+use crate::paths::LazyLocation;
 
 use super::{Validate, ValidationContext};
 
+/// Validates each property name against a schema.
 pub struct PropertyNamesValidator {
-    sub_validators: Vec<Box<dyn Validate>>,
-    #[allow(dead_code)]
-    schema_path: Location,
+    schema: SchemaNode,
 }
 
 impl PropertyNamesValidator {
-    pub fn new(sub_validators: Vec<Box<dyn Validate>>, schema_path: Location) -> Self {
-        Self { sub_validators, schema_path }
+    /// Create with a pre-compiled sub-schema.
+    #[must_use]
+    pub fn new(schema: SchemaNode) -> Self {
+        Self { schema }
     }
 }
 
@@ -27,7 +29,7 @@ impl Validate for PropertyNamesValidator {
         if let Value::Object(obj) = instance {
             obj.keys().all(|key| {
                 let name = Value::String(key.clone());
-                self.sub_validators.iter().all(|sv| sv.is_valid(&name, ctx))
+                self.schema.is_valid(&name, ctx)
             })
         } else {
             true
@@ -43,13 +45,8 @@ impl Validate for PropertyNamesValidator {
         if let Value::Object(obj) = instance {
             for key in obj.keys() {
                 let name = Value::String(key.clone());
-                for sv in &self.sub_validators {
-                    sv.validate(
-                        &name,
-                        &instance_path.push_property(key),
-                        ctx,
-                    )?;
-                }
+                let child_path = instance_path.push_property(key);
+                self.schema.validate(&name, &child_path, ctx)?;
             }
         }
         Ok(())
@@ -61,35 +58,16 @@ impl Validate for PropertyNamesValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
+        let mut errors: Vec<ValidationError> = Vec::new();
         if let Value::Object(obj) = instance {
-            let mut errors: Vec<crate::error::ValidationError> = Vec::new();
             for key in obj.keys() {
                 let name = Value::String(key.clone());
-                for sv in &self.sub_validators {
-                    for e in sv.iter_errors(&name, &instance_path.push_property(key), ctx) {
-                        errors.push(e);
-                    }
+                let child_path = instance_path.push_property(key);
+                for e in self.schema.iter_errors(&name, &child_path, ctx) {
+                    errors.push(e);
                 }
             }
-            Box::new(errors.into_iter())
-        } else {
-            Box::new(core::iter::empty())
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-
-    fn ctx() -> ValidationContext {
-        ValidationContext::new()
-    }
-
-    #[test]
-    fn all_valid_names() {
-        let v = PropertyNamesValidator::new(vec![], Location::new());
-        assert!(v.is_valid(&json!({"a": 1}), &mut ctx()));
+        Box::new(errors.into_iter())
     }
 }

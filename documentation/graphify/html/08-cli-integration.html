@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CLI Integration: Commands, Platform Installs, and Hooks -- graphify</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/graphify/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="05-clustering.html">Graphify -- Clustering</a> <a href="06-analysis.html">Graph Analysis: God Nodes, Surprises, and Suggested Questions</a> <a href="07-report-export.html">Report Generation and Export Formats</a></span> <a href="07-report-export.html">← Report Generation and Export Formats</a>
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>CLI Integration: Commands, Platform Installs, and Hooks</h1>
+<p>The <code>__main__.py</code> module provides the <code>graphify</code> CLI, a single entry point that handles knowledge graph construction, platform-specific skill installation, graph querying, and git hook management. It integrates with 14+ AI coding platforms, each with its own skill file, configuration mechanism, and hook system.</p>
+<p>See <a href="04-graph-building.md">Graph Building</a> for the underlying graph construction and <a href="07-report-export.md">Report Export</a> for output formats the CLI produces.</p>
+<h2>All CLI Commands</h2>
+<p>Running <code>graphify --help</code> (or <code>graphify</code> with no arguments) prints the full command list — <a href="graphify/__main__.py:984"><code>__main__.py:984-1051</code></a>.</p>
+<h3>Core Commands</h3>
+<table><tr><th>Command</th><th>Description</th></tr><tr><td>`graphify` (no args)</td><td>Show help</td></tr><tr><td>`graphify install`</td><td>Copy skill to platform config dir (default: claude, or windows on Windows)</td></tr><tr><td>`graphify install --platform P`</td><td>Install for specific platform</td></tr><tr><td>`graphify update <path>`</td><td>Re-extract code files and update graph (AST-only, no LLM needed)</td></tr><tr><td>`graphify watch <path>`</td><td>Watch a folder and rebuild the graph on code changes</td></tr><tr><td>`graphify cluster-only <path>`</td><td>Re-run clustering on existing graph.json, regenerate report</td></tr><tr><td>`graphify check-update <path>`</td><td>Check `needs_update` flag for semantic re-extraction (cron-safe)</td></tr></table>
+<h3>Graph Query Commands</h3>
+<table><tr><th>Command</th><th>Description</th></tr><tr><td>`graphify query "<question>"`</td><td>BFS traversal of graph.json for a question</td></tr><tr><td>`graphify query "<Q>" --dfs`</td><td>Use depth-first instead of breadth-first</td></tr><tr><td>`graphify query "<Q>" --budget N`</td><td>Cap output at N tokens (default 2000)</td></tr><tr><td>`graphify path "A" "B"`</td><td>Shortest path between two nodes</td></tr><tr><td>`graphify explain "X"`</td><td>Plain-language explanation of a node and its neighbors</td></tr></table>
+<h3>Content Management</h3>
+<table><tr><th>Command</th><th>Description</th></tr><tr><td>`graphify add <url>`</td><td>Fetch a URL and save to `./raw`, then update the graph</td></tr><tr><td>`graphify clone <github-url>`</td><td>Clone a GitHub repo locally for `/graphify` processing</td></tr><tr><td>`graphify merge-graphs <g1> <g2>`</td><td>Merge two or more graph.json files into one cross-repo graph</td></tr><tr><td>`graphify save-result`</td><td>Save a Q&A result to `graphify-out/memory/` for feedback loop</td></tr></table>
+<h3>Utility Commands</h3>
+<table><tr><th>Command</th><th>Description</th></tr><tr><td>`graphify benchmark [graph.json]`</td><td>Measure token reduction vs naive full-corpus approach</td></tr><tr><td>`graphify hook install`</td><td>Install post-commit/post-checkout git hooks</td></tr><tr><td>`graphify hook uninstall`</td><td>Remove git hooks</td></tr><tr><td>`graphify hook status`</td><td>Check if git hooks are installed</td></tr></table>
+<h3>Platform-Specific Commands</h3>
+<p>Each platform has <code>install</code> and <code>uninstall</code> subcommands: <code>claude</code>, <code>gemini</code>, <code>cursor</code>, <code>vscode</code>, <code>copilot</code>, <code>codex</code>, <code>opencode</code>, <code>aider</code>, <code>claw</code>, <code>droid</code>, <code>trae</code>, <code>trae-cn</code>, <code>hermes</code>, <code>kiro</code>, <code>antigravity</code>.</p>
+<h2>Platform Install Matrix</h2>
+<p>The <code>install(platform)</code> function dispatches to platform-specific installers — <a href="graphify/__main__.py:140"><code>__main__.py:140-198</code></a>.</p>
+<table><tr><th>Platform</th><th>Skill File</th><th>Config Destination</th><th>Mechanism</th></tr><tr><td>**claude**</td><td>`skill.md`</td><td>`~/.claude/skills/graphify/SKILL.md`</td><td>CLAUDE.md + PreToolUse hook</td></tr><tr><td>**codex**</td><td>`skill-codex.md`</td><td>`~/.agents/skills/graphify/SKILL.md`</td><td>AGENTS.md + PreToolUse hook</td></tr><tr><td>**opencode**</td><td>`skill-opencode.md`</td><td>`~/.config/opencode/skills/graphify/SKILL.md`</td><td>AGENTS.md + JS plugin</td></tr><tr><td>**gemini**</td><td>`skill.md`</td><td>`~/.gemini/skills/graphify/SKILL.md`</td><td>GEMINI.md + BeforeTool hook</td></tr><tr><td>**cursor**</td><td>N/A</td><td>`.cursor/rules/graphify.mdc`</td><td>MDC rule (alwaysApply: true)</td></tr><tr><td>**vscode**</td><td>`skill-vscode.md`</td><td>`~/.copilot/skills/graphify/SKILL.md`</td><td>copilot-instructions.md</td></tr><tr><td>**copilot**</td><td>`skill-copilot.md`</td><td>`~/.copilot/skills/graphify/SKILL.md`</td><td>Skill file only</td></tr><tr><td>**aider**</td><td>`skill-aider.md`</td><td>`~/.aider/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**claw**</td><td>`skill-claw.md`</td><td>`~/.openclaw/skills/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**droid**</td><td>`skill-droid.md`</td><td>`~/.factory/skills/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**trae**</td><td>`skill-trae.md`</td><td>`~/.trae/skills/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**trae-cn**</td><td>`skill-trae.md`</td><td>`~/.trae-cn/skills/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**hermes**</td><td>`skill-claw.md`</td><td>`~/.hermes/skills/graphify/SKILL.md`</td><td>AGENTS.md</td></tr><tr><td>**kiro**</td><td>`skill-kiro.md`</td><td>`.kiro/skills/graphify/SKILL.md`</td><td>Skill + steering file</td></tr><tr><td>**antigravity**</td><td>`skill.md`</td><td>`~/.agents/skills/graphify/SKILL.md`</td><td>.agents/rules + .agents/workflows + YAML frontmatter</td></tr></table>
+<h3>Platform-Specific Mechanisms</h3>
+<p><strong>PreToolUse Hooks (Claude Code, Codex):</strong> JSON hooks in <code>.claude/settings.json</code> and <code>.codex/hooks.json</code> fire when grep/find/bash commands are used, injecting a reminder to read the knowledge graph first — <a href="graphify/__main__.py:40"><code>__main__.py:40-60</code>, <code>__main__.py:713-731</code></a>.</p>
+<p><strong>AGENTS.md (OpenCode, Aider, Claw, Droid, Trae, Hermes):</strong> A <code>## graphify</code> section is appended to the project's <code>AGENTS.md</code> with rules for using the graph — <a href="graphify/__main__.py:770"><code>__main__.py:214-226</code>, <code>__main__.py:770-796</code></a>.</p>
+<p><strong>.cursor/rules (Cursor):</strong> A <code>.mdc</code> file with <code>alwaysApply: true</code> frontmatter ensures Cursor always includes graph context — <a href="graphify/__main__.py:593"><code>__main__.py:593-619</code></a>.</p>
+<p><strong>GEMINI.md (Gemini):</strong> A <code>## graphify</code> section is written to <code>GEMINI.md</code>, plus a BeforeTool hook in <code>.gemini/settings.json</code> — <a href="graphify/__main__.py:259"><code>__main__.py:230-256</code>, <code>__main__.py:259-289</code></a>.</p>
+<p><strong>.kiro/steering (Kiro):</strong> A steering file with <code>inclusion: always</code> ensures Kiro always reads the graph context — <a href="graphify/__main__.py:457"><code>__main__.py:457-494</code></a>.</p>
+<p><strong>OpenCode Plugin:</strong> A JavaScript plugin (<code>graphify.js</code>) registers a <code>tool.execute.before</code> hook that prepends a graph reminder to bash commands — <a href="graphify/__main__.py:632"><code>__main__.py:632-686</code></a>.</p>
+<h3>The <code>_PLATFORM_CONFIG</code> Dict</h3>
+<p><code>_PLATFORM_CONFIG</code> maps platform names to their configuration — <a href="graphify/__main__.py:71"><code>__main__.py:71-137</code></a>:</p>
+<pre><code class="language-python">_PLATFORM_CONFIG = {
+    &quot;claude&quot;: {
+        &quot;skill_file&quot;: &quot;skill.md&quot;,
+        &quot;skill_dst&quot;: Path(&quot;.claude&quot;) / &quot;skills&quot; / &quot;graphify&quot; / &quot;SKILL.md&quot;,
+        &quot;claude_md&quot;: True,  # Also register in ~/.claude/CLAUDE.md
+    },
+    &quot;codex&quot;: {
+        &quot;skill_file&quot;: &quot;skill-codex.md&quot;,
+        &quot;skill_dst&quot;: Path(&quot;.agents&quot;) / &quot;skills&quot; / &quot;graphify&quot; / &quot;SKILL.md&quot;,
+        &quot;claude_md&quot;: False,
+    },
+    # ... 13 more platforms
+}
+</code></pre>
+<p>Each entry specifies the skill file name, destination path, and whether to also register in <code>CLAUDE.md</code>.</p>
+<h2>Version Tracking: <code>.graphify_version</code> Files</h2>
+<p>Every skill installation writes a <code>.graphify_version</code> file next to the skill file containing the current package version — <a href="graphify/__main__.py:168"><code>__main__.py:168</code></a>.</p>
+<p>On subsequent CLI runs (not during install/uninstall), <code>_check_skill_version()</code> compares installed versions against <code>__version__</code> and warns if they differ — <a href="graphify/__main__.py:18"><code>__main__.py:18-25</code></a>.</p>
+<p><code>_refresh_all_version_stamps()</code> updates version stamps in all other previously-installed skill dirs after a successful install, preventing stale-version warnings from platforms that were installed previously but not explicitly re-installed — <a href="graphify/__main__.py:28"><code>__main__.py:28-38</code></a>.</p>
+<h2>Git Hooks Integration</h2>
+<p><code>graphify hook install</code> installs two git hooks — <a href="graphify/hooks.py:195"><code>hooks.py:195-206</code></a>:</p>
+<h3>Post-Commit Hook</h3>
+<p>Runs after each commit, diffing <code>HEAD~1</code> against <code>HEAD</code> to find changed files. If any changed, it runs <code>_rebuild_code()</code> to update the graph (AST-only, no LLM cost). Skips during rebase/merge/cherry-pick — <a href="graphify/hooks.py:45"><code>hooks.py:45-84</code></a>.</p>
+<h3>Post-Checkout Hook</h3>
+<p>Runs on branch switches (not file checkouts). Rebuilds the code graph if <code>graphify-out/</code> exists. Also skips during rebase/merge/cherry-pick — <a href="graphify/hooks.py:87"><code>hooks.py:87-126</code></a>.</p>
+<p>Both hooks auto-detect the correct Python interpreter (handles pipx, venv, system installs) with an allowlist-based path sanitization to prevent injection — <a href="graphify/hooks.py:12"><code>hooks.py:12-43</code></a>.</p>
+<p>The hook installer respects <code>core.hooksPath</code> (e.g., Husky) and appends to existing hooks rather than overwriting them — <a href="graphify/hooks.py:138"><code>hooks.py:138-171</code></a>.</p>
+<h2>Query System: BFS/DFS with Token Budget</h2>
+<p><code>graphify query "<question>"</code> performs graph traversal to find relevant context — <a href="graphify/__main__.py:1169"><code>__main__.py:1169-1226</code></a>.</p>
+<ol><li><strong>Node Scoring</strong>: <code>_score_nodes(G, terms)</code> scores nodes by how well their labels match the question's terms (words longer than 2 characters).</li><li><strong>Traversal</strong>: Starts from the top 5 scored nodes and traverses to depth 2 using BFS (default) or DFS (<code>--dfs</code> flag).</li><li><strong>Token Budget</strong>: <code>_subgraph_to_text()</code> caps output at N tokens (default 2000).</li></ol>
+<pre><code class="language-bash">graphify query &quot;How does authentication connect to the database?&quot;
+graphify query &quot;How does auth work?&quot; --dfs --budget 5000
+graphify query &quot;Explain the event system&quot; --graph custom/path/graph.json
+</code></pre>
+<p><code>graphify path "A" "B"</code> finds the shortest path between two nodes using <code>nx.shortest_path()</code>, scoring both labels via <code>_score_nodes()</code> first — <a href="graphify/__main__.py:1246"><code>__main__.py:1246-1294</code></a>.</p>
+<p><code>graphify explain "X"</code> finds a node matching the label, prints its metadata (source, type, community, degree), and lists up to 20 neighbors sorted by degree — <a href="graphify/__main__.py:1296"><code>__main__.py:1296-1338</code></a>.</p>
+<h2><code>_SETTINGS_HOOK</code>: Claude Code Grep/Find Interception</h2>
+<p>The <code>_SETTINGS_HOOK</code> intercepts Claude Code's Bash tool when the command contains grep, ripgrep, find, fd, ack, or ag — <a href="graphify/__main__.py:40"><code>__main__.py:40-60</code></a>.</p>
+<p>Since Claude Code v2.1.117 removed dedicated Grep/Glob tools (searches now go through Bash), the hook matches on <code>"Bash"</code> and inspects the command string. If it finds grep/find patterns and <code>graphify-out/graph.json</code> exists, it injects context suggesting the user read <code>GRAPH_REPORT.md</code> first.</p>
+<h2>Architecture Diagram</h2>
+<div class="mermaid">
+graph TD
+    CLI[graphify CLI] --&gt; I[install]
+    CLI --&gt; Q[query/path/explain]
+    CLI --&gt; U[update/watch/cluster-only]
+    CLI --&gt; H[hook]
+    CLI --&gt; M[merge-graphs/clone]
+
+    I --&gt; P1[claude: CLAUDE.md + hook]
+    I --&gt; P2[codex: AGENTS.md + hook]
+    I --&gt; P3[opencode: AGENTS.md + JS plugin]
+    I --&gt; P4[gemini: GEMINI.md + hook]
+    I --&gt; P5[cursor: .mdc rule]
+    I --&gt; P6[kiro: skill + steering]
+    I --&gt; P7[antigravity: rules + workflows]
+
+    Q --&gt; S1[_score_nodes]
+    S1 --&gt; S2[BFS or DFS]
+    S2 --&gt; S3[_subgraph_to_text]
+
+    U --&gt; R1[_rebuild_code AST-only]
+    H --&gt; HC[post-commit hook]
+    H --&gt; HCo[post-checkout hook]
+
+</div>
+<h2>Platform Configuration Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant C as graphify CLI
+    participant FS as File System
+    participant G as Git Hooks
+
+    U-&gt;&gt;C: graphify install --platform claude
+    C-&gt;&gt;FS: Copy skill.md to ~/.claude/skills/graphify/
+    C-&gt;&gt;FS: Write .graphify_version
+    C-&gt;&gt;FS: Append ## graphify to ~/.claude/CLAUDE.md
+    C-&gt;&gt;FS: Write PreToolUse hook to .claude/settings.json
+    C-&gt;&gt;FS: Update .graphify_version in all other skill dirs
+    C--&gt;&gt;U: Done. Type /graphify .
+
+    U-&gt;&gt;C: graphify hook install
+    C-&gt;&gt;FS: Detect git root, find hooks dir (respect core.hooksPath)
+    C-&gt;&gt;G: Append post-commit script
+    C-&gt;&gt;G: Append post-checkout script
+    C--&gt;&gt;U: Hooks installed
+
+</div>
+<h2>Platform Comparison: Hook Mechanisms</h2>
+<table><tr><th>Platform</th><th>Pre-Tool Interception</th><th>Persistent Instructions</th><th>Skill Discovery</th></tr><tr><td>Claude Code</td><td>PreToolUse hook in `settings.json`</td><td>`CLAUDE.md`</td><td>`~/.claude/skills/`</td></tr><tr><td>Codex</td><td>PreToolUse hook in `.codex/hooks.json`</td><td>`AGENTS.md`</td><td>`~/.agents/skills/`</td></tr><tr><td>OpenCode</td><td>JS `tool.execute.before` plugin</td><td>`AGENTS.md`</td><td>`~/.config/opencode/skills/`</td></tr><tr><td>Gemini</td><td>BeforeTool hook in `.gemini/settings.json`</td><td>`GEMINI.md`</td><td>`~/.gemini/skills/`</td></tr><tr><td>Cursor</td><td>None (alwaysApply rule)</td><td>`.cursor/rules/*.mdc`</td><td>N/A (rule-based)</td></tr><tr><td>VS Code</td><td>None</td><td>`.github/copilot-instructions.md`</td><td>`~/.copilot/skills/`</td></tr><tr><td>Aider</td><td>None</td><td>`AGENTS.md`</td><td>`~/.aider/`</td></tr><tr><td>Kiro</td><td>None (steering file)</td><td>`.kiro/steering/*.md`</td><td>`.kiro/skills/`</td></tr><tr><td>Antigravity</td><td>None</td><td>`.agents/rules/` + `.agents/workflows/`</td><td>`~/.agents/skills/`</td></tr></table>
+<h2>Quick Reference</h2>
+<table><tr><th>Command</th><th>Source</th><th>Key Functions</th></tr><tr><td>`install`</td><td>`__main__.py:140`</td><td>`install()`, `_agents_install()`, `gemini_install()`</td></tr><tr><td>`query`</td><td>`__main__.py:1169`</td><td>`_score_nodes()`, `_bfs()`, `_dfs()`</td></tr><tr><td>`path`</td><td>`__main__.py:1246`</td><td>`_score_nodes()`, `nx.shortest_path()`</td></tr><tr><td>`explain`</td><td>`__main__.py:1296`</td><td>`_find_node()`</td></tr><tr><td>`hook install`</td><td>`__main__.py:1157`</td><td>`hooks.install()`, `hooks.uninstall()`</td></tr><tr><td>`update`</td><td>`__main__.py:1413`</td><td>`_rebuild_code()`</td></tr><tr><td>`cluster-only`</td><td>`__main__.py:1380`</td><td>`cluster()`, `score_all()`, `generate()`</td></tr><tr><td>`merge-graphs`</td><td>`__main__.py:1444`</td><td>`nx.compose_all()`</td></tr><tr><td>`save-result`</td><td>`__main__.py:1227`</td><td>`save_query_result()`</td></tr></table>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
