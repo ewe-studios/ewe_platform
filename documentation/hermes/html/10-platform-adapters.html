@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hermes Agent -- Platform Adapters -- hermes</title>
+  <title>Hermes Platform Adapters -- hermes</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -123,170 +123,75 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/hermes/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-cli-tui.html">Hermes Agent -- CLI & TUI</a> <a href="08-cron.html">Hermes Agent -- Cron & Scheduling</a> <a href="09-plugins.html">Hermes Agent -- Plugin System</a></span> <a href="09-plugins.html">← Hermes Agent -- Plugin System</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="07-cli-tui.html" class="nav-breadcrumb">Hermes Agent -- CLI & TUI</a><a href="08-cron.html" class="nav-breadcrumb">Hermes Agent -- Cron & Scheduling: Implementation Deep Dive</a><a href="09-plugins.html" class="nav-breadcrumb">Hermes Agent -- Plugin System</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="09-plugins.html" class="nav-btn" title="Previous: Hermes Agent -- Plugin System">← prev</a>
+      <a href="10a-bot-api-adapter.html" class="nav-btn nav-btn-next" title="Next: Hermes Platform Adapters -- Bot API: Telegram">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Hermes Agent -- Platform Adapters</h1>
-<h2>Overview</h2>
-<p>Each messaging platform has an adapter that handles connection, authentication, message parsing, formatting, and delivery. All adapters implement a common interface but handle platform-specific details internally.</p>
-<h2>Common Adapter Interface</h2>
-<pre><code class="language-python">class PlatformAdapter:
-    async def start(self, on_message):
-        &quot;&quot;&quot;Connect to the platform and start listening.&quot;&quot;&quot;
-        ...
-
-    async def send_message(self, channel_id, content):
-        &quot;&quot;&quot;Send a text message to a channel/user.&quot;&quot;&quot;
-        ...
-
-    async def send_attachment(self, channel_id, attachment):
-        &quot;&quot;&quot;Send a file/image attachment.&quot;&quot;&quot;
-        ...
-
-    async def get_user_info(self, user_id):
-        &quot;&quot;&quot;Get user profile information.&quot;&quot;&quot;
-        ...
-
-    async def stop(self):
-        &quot;&quot;&quot;Disconnect from the platform.&quot;&quot;&quot;
-        ...
-</code></pre>
-<h2>Message Flow Through the Gateway</h2>
-<div class="mermaid">
-sequenceDiagram
-    participant Platform as Telegram/Discord/Slack
-    participant Adapter as PlatformAdapter
-    participant Gateway as Gateway Runner
-    participant Agent as AIAgent
-    participant Session as Session Manager
-
-    Platform-&gt;&gt;Adapter: Incoming message (platform-specific)
-    Adapter-&gt;&gt;Adapter: Parse message to internal format
-    Adapter-&gt;&gt;Gateway: on_message(internal_msg)
-    Gateway-&gt;&gt;Session: get_or_create_session(user_id)
-    Session-&gt;&gt;Agent: AIAgent instance for session
-    Agent-&gt;&gt;Agent: run_conversation(message)
-    Agent-&gt;&gt;Agent: LLM response
-    Agent-&gt;&gt;Gateway: response text
-    Gateway-&gt;&gt;Adapter: send_message(channel_id, text)
-    Adapter-&gt;&gt;Adapter: Format to platform
-    Adapter-&gt;&gt;Platform: Send formatted message
-
-</div>
-<h2>Telegram</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`python-telegram-bot`</td></tr><tr><td>Connection</td><td>Polling or Webhook</td></tr><tr><td>Formatting</td><td>MarkdownV2</td></tr><tr><td>Max message</td><td>4096 chars</td></tr><tr><td>Inline images</td><td>Yes</td></tr><tr><td>Threads</td><td>Reply-to message</td></tr><tr><td>Bot creation</td><td>@BotFather</td></tr></table>
-<pre><code class="language-python"># gateway/platforms/telegram.py (simplified)
-class TelegramAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        app = ApplicationBuilder().token(self.token).build()
-        app.add_handler(MessageHandler(filters.TEXT, self.handle_message))
-        await app.run_polling()
-
-    async def handle_message(self, update, context):
-        text = update.message.text
-        user_id = str(update.message.from_user.id)
-        chat_id = str(update.message.chat_id)
-        await self.on_message(&quot;telegram&quot;, user_id, chat_id, text)
-
-    async def send_message(self, chat_id, content):
-        formatted = self.to_markdown_v2(content)
-        await self.bot.send_message(
-            chat_id=chat_id,
-            text=formatted,
-            parse_mode=&quot;MarkdownV2&quot;,
-        )
-</code></pre>
-<h2>Discord</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`discord.py`</td></tr><tr><td>Connection</td><td>WebSocket (Gateway)</td></tr><tr><td>Formatting</td><td>Markdown</td></tr><tr><td>Max message</td><td>2000 chars</td></tr><tr><td>Embeds</td><td>Yes (rich embeds)</td></tr><tr><td>Threads</td><td>Discord threads</td></tr><tr><td>Bot creation</td><td>Discord Developer Portal</td></tr></table>
-<pre><code class="language-python"># gateway/platforms/discord.py (simplified)
-class DiscordAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        intents = discord.Intents.default()
-        intents.message_content = True
-        client = discord.Client(intents=intents)
-
-        @client.event
-        async def on_message(message):
-            if message.author == client.user:
-                return
-            await self.on_message(&quot;discord&quot;, str(message.author.id),
-                                   str(message.channel.id), message.content)
-
-        await client.start(self.token)
-
-    async def send_message(self, channel_id, content):
-        channel = self.client.get_channel(int(channel_id))
-        # Split into 2000-char chunks
-        for chunk in split_text(content, 2000):
-            await channel.send(chunk)
-</code></pre>
-<h2>Slack</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`slack-bolt`</td></tr><tr><td>Connection</td><td>Socket Mode (WebSocket)</td></tr><tr><td>Formatting</td><td>mrkdwn</td></tr><tr><td>Max message</td><td>40000 chars</td></tr><tr><td>Blocks</td><td>Yes (Block Kit)</td></tr><tr><td>Threads</td><td>Slack threads</td></tr><tr><td>Bot creation</td><td>Slack API → Your Apps</td></tr></table>
-<pre><code class="language-python"># gateway/platforms/slack.py (simplified)
-class SlackAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        app = AsyncApp(token=self.bot_token)
-
-        @app.event(&quot;message&quot;)
-        async def handle_message(event, say):
-            if event.get(&quot;bot_id&quot;):
-                return
-            await self.on_message(&quot;slack&quot;, event[&quot;user&quot;],
-                                   event[&quot;channel&quot;], event[&quot;text&quot;])
-
-        handler = AsyncSocketModeHandler(app, self.app_token)
-        await handler.start_async()
-</code></pre>
-<h2>WhatsApp</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Twilio or Vonage SDK</td></tr><tr><td>Connection</td><td>Webhook (HTTP)</td></tr><tr><td>Formatting</td><td>Limited (bold, italic, monospace)</td></tr><tr><td>Max message</td><td>65536 chars</td></tr><tr><td>Media</td><td>Images, audio, documents</td></tr><tr><td>Threads</td><td>No native threads</td></tr><tr><td>Setup</td><td>Twilio/Vonage account + phone number</td></tr></table>
-<p>Requires a webhook endpoint -- the gateway must be publicly accessible or use a tunnel.</p>
-<h2>Signal</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>signal-cli or signal-bot</td></tr><tr><td>Connection</td><td>Local daemon</td></tr><tr><td>Formatting</td><td>Plain text</td></tr><tr><td>Max message</td><td>65536 chars</td></tr><tr><td>Media</td><td>Images, attachments</td></tr><tr><td>Threads</td><td>No</td></tr><tr><td>Setup</td><td>Phone number + signal-cli</td></tr></table>
-<h2>Matrix</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>matrix-nio</td></tr><tr><td>Connection</td><td>Long polling or WebSocket</td></tr><tr><td>Formatting</td><td>HTML or Markdown</td></tr><tr><td>Max message</td><td>No hard limit</td></tr><tr><td>Media</td><td>Yes</td></tr><tr><td>Threads</td><td>Matrix threads (MSC3440)</td></tr><tr><td>Setup</td><td>Matrix homeserver account</td></tr></table>
-<h2>Email</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>aiosmtplib + aioimaplib</td></tr><tr><td>Connection</td><td>IMAP (receive) + SMTP (send)</td></tr><tr><td>Formatting</td><td>HTML</td></tr><tr><td>Max message</td><td>No hard limit</td></tr><tr><td>Attachments</td><td>Yes</td></tr><tr><td>Threads</td><td>Email threading (In-Reply-To)</td></tr><tr><td>Setup</td><td>IMAP/SMTP credentials</td></tr></table>
-<h2>DingTalk</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>DingTalk Open API SDK</td></tr><tr><td>Connection</td><td>Webhook + Event subscription</td></tr><tr><td>Formatting</td><td>Markdown (DingTalk flavor)</td></tr><tr><td>Setup</td><td>DingTalk Developer account</td></tr></table>
-<h2>Feishu (Lark)</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Feishu Open Platform SDK</td></tr><tr><td>Connection</td><td>WebSocket or Webhook</td></tr><tr><td>Formatting</td><td>Rich text cards</td></tr><tr><td>Setup</td><td>Feishu Developer account</td></tr></table>
-<h2>SMS</h2>
-<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>Twilio SDK</td></tr><tr><td>Connection</td><td>Webhook</td></tr><tr><td>Formatting</td><td>Plain text</td></tr><tr><td>Max message</td><td>1600 chars (concatenated SMS)</td></tr><tr><td>Media</td><td>MMS for images</td></tr><tr><td>Setup</td><td>Twilio account + phone number</td></tr></table>
-<h2>Platform Feature Matrix</h2>
-<table><tr><th>Feature</th><th>TG</th><th>DC</th><th>SL</th><th>WA</th><th>SIG</th><th>MTX</th><th>Email</th><th>DT</th><th>FS</th><th>SMS</th></tr><tr><td>Markdown</td><td>V2</td><td>MD</td><td>mrk</td><td>Ltd</td><td>No</td><td>HTML</td><td>HTML</td><td>MD</td><td>Rich</td><td>No</td></tr><tr><td>Images</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>MMS</td></tr><tr><td>Threads</td><td>Y</td><td>Y</td><td>Y</td><td>N</td><td>N</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>N</td></tr><tr><td>Reactions</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>Y</td><td>Y</td><td>N</td></tr><tr><td>Typing indicator</td><td>Y</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>Y</td><td>N</td><td>N</td><td>N</td><td>N</td></tr><tr><td>Max msg</td><td>4K</td><td>2K</td><td>40K</td><td>65K</td><td>65K</td><td>--</td><td>--</td><td>--</td><td>--</td><td>1.6K</td></tr></table>
-<h2>Message Format Conversion</h2>
-<p>The delivery layer converts the agent's Markdown response to each platform's format:</p>
+<h1>Hermes Platform Adapters</h1>
+<h2>Purpose</h2>
+<p>The <code>send_message_tool.py</code> module (1523 lines) routes messages to <strong>18 platforms</strong> from a single unified interface. All platforms share the same target resolution pipeline, smart message chunking, media extraction, and error sanitization — but each connects differently.</p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Telegram measures length in UTF-16 code units, not Unicode codepoints.</strong> Python's <code>len()</code> counts codepoints (<code>"😀"</code> = 1), but Telegram's 4096 limit counts UTF-16 code units (<code>"😀"</code> = 2). Characters outside the Basic Multilingual Plane (emoji, CJK Extension B) are surrogate pairs. The <code>utf16_len()</code> function at <code>base.py:27</code> computes <code>len(s.encode("utf-16-le")) // 2</code>.</p>
+<p><strong>Aha: Discord forum channels (type 15) reject POST <code>/messages</code> — a thread is created automatically.</strong> When sending to a forum, the code detects it and creates a thread via <code>POST /channels/{id}/threads</code> with the message as a starter post. Three-layer detection: directory cache → process-local probe cache → live API probe (memoized).</p>
+<p><strong>Aha: Media files are only attached to the LAST chunk of a multi-chunk message.</strong> When <code>truncate_message</code> splits a long response, media files are passed only to the final chunk (<code>media_files if is_last else []</code>). This prevents duplicating attachments across every message.</p>
+<p><strong>Aha: Message mirroring lets the agent see its own outputs.</strong> After a successful send, the text is mirrored back into the target's gateway session via <code>mirror_to_session()</code>. The agent's own responses become conversation history for follow-up messages.</p>
+<p><strong>Aha: Cron duplicate-send detection prevents redundant deliveries.</strong> When <code>send_message</code> is called from within a cron job targeting the same destination the scheduler will auto-deliver to, <code>_maybe_skip_cron_duplicate_send()</code> returns <code>{"skipped": True}</code> instead.</p>
+<h2>Target Resolution Pipeline</h2>
 <div class="mermaid">
 flowchart TD
-    AGENT[Agent Response&lt;br/&gt;Markdown] --&gt; CONVERTER[Format Converter]
-    CONVERTER --&gt; TG_FMT[Telegram MarkdownV2&lt;br/&gt;Escape special chars]
-    CONVERTER --&gt; DC_FMT[Discord Markdown&lt;br/&gt;Code blocks, embeds]
-    CONVERTER --&gt; SL_FMT[Slack mrkdwn&lt;br/&gt;Block Kit for complex]
-    CONVERTER --&gt; WA_FMT[WhatsApp&lt;br/&gt;Bold, italic, mono only]
-    CONVERTER --&gt; PLAIN[Plain text&lt;br/&gt;Signal, SMS]
-    CONVERTER --&gt; HTML_FMT[HTML&lt;br/&gt;Email, Matrix]
+    INPUT[&quot;target: &#x27;platform:ref&#x27;&quot;] --&gt; PARSE[&quot;_parse_target_ref()&quot;]
+    PARSE --&gt; PLATFORM{&quot;Platform-specific regex?&quot;}
+    PLATFORM --&gt;|telegram/discord/feishu| EXPLICIT[&quot;Numeric chat_id:thread_id&quot;]
+    PLATFORM --&gt;|signal/sms/whatsapp| E164[&quot;+DDDDDDDD (7-15 digits)&quot;]
+    PLATFORM --&gt;|matrix| MATRIX[&quot;!roomid:server or @user:server&quot;]
+    PLATFORM --&gt;|weixin| WEIXIN[&quot;wxid_..., @chatroom, filehelper&quot;]
+    PLATFORM --&gt;|fallthrough| NUMERIC{Is numeric?}
+    NUMERIC --&gt;|yes| EXPLICIT
+    NUMERIC --&gt;|no| RESOLVE[&quot;resolve_channel_name() → channel_directory&quot;]
+    RESOLVE --&gt; REPARSE[&quot;_parse_target_ref() on resolved value&quot;]
 
 </div>
-<h2>Key Files</h2>
-<pre><code class="language-">gateway/platforms/
-  ├── telegram.py       Telegram adapter
-  ├── discord.py        Discord adapter
-  ├── slack.py          Slack adapter
-  ├── whatsapp.py       WhatsApp adapter (Twilio/Vonage)
-  ├── signal.py         Signal adapter
-  ├── matrix.py         Matrix adapter
-  ├── email.py          Email adapter (IMAP/SMTP)
-  ├── dingtalk.py       DingTalk adapter
-  ├── feishu.py         Feishu (Lark) adapter
-  ���── sms.py            SMS adapter (Twilio)
-gateway/
-  ├── delivery.py       Message delivery + format conversion
-  └── display_config.py Per-platform display preferences
+<p>Source: <code>send_message_tool.py:307-336</code></p>
+<h2>Smart Message Chunking</h2>
+<pre><code class="language-python"># send_message_tool.py:440-456
+# Limits read from adapter class attributes, not hardcoded literals
+_MAX_LENGTHS = {
+    Platform.TELEGRAM: TelegramAdapter.MAX_MESSAGE_LENGTH,   # 4096 (UTF-16 code units)
+    Platform.DISCORD:  DiscordAdapter.MAX_MESSAGE_LENGTH,    # 2000  (Unicode codepoints)
+    Platform.SLACK:    SlackAdapter.MAX_MESSAGE_LENGTH,      # 40000 (Unicode codepoints)
+}
+if _feishu_available:
+    _MAX_LENGTHS[Platform.FEISHU] = FeishuAdapter.MAX_MESSAGE_LENGTH  # 20000
+
+_len_fn = utf16_len if platform == Platform.TELEGRAM else None
+chunks = BasePlatformAdapter.truncate_message(message, max_len, len_fn=_len_fn)
 </code></pre>
+<p>The <code>truncate_message()</code> method (<code>base.py:2594-2723</code>) splits at natural boundaries (newlines > spaces), preserves code-block fences (closes/reopens with language tag), avoids splitting inline code spans, and appends <code>(N/M)</code> indicators.</p>
+<h2>Media Extraction</h2>
+<p>The agent embeds media paths in responses using <code>MEDIA:</code> tags:</p>
+<pre><code class="language-python"># base.py:1434-1473
+def extract_media(content: str) -&gt; Tuple[List[Tuple[str, bool]], str]:
+    &quot;&quot;&quot;Extract MEDIA:&lt;path&gt; tags and [[audio_as_voice]] directives.&quot;&quot;&quot;
+</code></pre>
+<p>Supported extensions: images (<code>.jpg</code>, <code>.png</code>, <code>.webp</code>, <code>.gif</code>), video (<code>.mp4</code>, <code>.mov</code>, <code>.avi</code>, <code>.mkv</code>), audio (<code>.ogg</code>, <code>.opus</code>, <code>.mp3</code>, <code>.wav</code>, <code>.m4a</code>), documents (<code>.pdf</code>, <code>.zip</code>, <code>.docx</code>, <code>.xlsx</code>, <code>.csv</code>, etc.).</p>
+<h2>Adapter Types</h2>
+<p>Each platform connects differently. The subpages below cover each adapter type in depth:</p>
+<table><tr><th>Type</th><th>Platforms</th><th>Connection Method</th></tr><tr><td>**Bot API**</td><td>Telegram</td><td>`python-telegram-bot` Bot class (one-shot, no polling)</td></tr><tr><td>**REST API**</td><td>Discord, Slack, Mattermost, Home Assistant, DingTalk, QQBot</td><td>`aiohttp`/`httpx` direct HTTP calls</td></tr><tr><td>**Bridge/Daemon**</td><td>WhatsApp, Signal</td><td>Local bridge HTTP / JSON-RPC to signal-cli</td></tr><tr><td>**SMTP**</td><td>Email</td><td>`smtplib.SMTP` one-shot with STARTTLS</td></tr><tr><td>**Native SDK**</td><td>Feishu/Lark, Weixin, WeCom, BlueBubbles</td><td>Platform-specific SDK or adapter class</td></tr><tr><td>**Matrix Client-Server**</td><td>Matrix</td><td>REST API + full `MatrixAdapter` for media</td></tr></table>
+<h2>Media Support by Platform</h2>
+<table><tr><th>Platform</th><th>Text</th><th>Media</th><th>Threads</th><th>Formatting</th></tr><tr><td>Telegram</td><td>Yes</td><td>Photo/video/voice/audio/doc</td><td>Topics</td><td>MarkdownV2/HTML</td></tr><tr><td>Discord</td><td>Yes</td><td>Multipart uploads</td><td>Threads + Forums</td><td>Auto-markdown</td></tr><tr><td>Signal</td><td>Yes</td><td>Attachments array</td><td>Groups</td><td>Plain text</td></tr><tr><td>Matrix</td><td>Yes</td><td>Image/video/voice/doc</td><td>Threads</td><td>HTML from markdown</td></tr><tr><td>Feishu</td><td>Yes</td><td>Image/video/voice/doc</td><td>Threads</td><td>Rich text</td></tr><tr><td>Weixin</td><td>Yes</td><td>Image/video/doc</td><td>No</td><td>Rich text</td></tr><tr><td>All others</td><td>Yes</td><td>Warning only</td><td>Varies</td><td>Platform-specific</td></tr></table>
+<h2>Error Sanitization</h2>
+<p>All error messages pass through <code>_sanitize_error_text()</code> which redacts API keys, tokens, and webhook URLs before surfacing to users or LLMs:</p>
+<pre><code class="language-python">_URL_SECRET_QUERY_RE = re.compile(r&quot;([?&amp;](?:access_token|api[_-]?key|auth[_-]?token|token|signature|sig)=)([^&amp;#\s]+)&quot;)
+_GENERIC_SECRET_ASSIGN_RE = re.compile(r&quot;\b(access_token|api[_-]?key|auth[_-]?token|signature|sig)\s*=\s*([^\s,;]+)&quot;)
+</code></pre>
+<h2>Subpages</h2>
+<table><tr><th>Document</th><th>Covers</th></tr><tr><td>[10a-bot-api-adapter.md](10a-bot-api-adapter.md)</td><td>Telegram — Bot API, MarkdownV2, retry logic, media</td></tr><tr><td>[10b-rest-api-adapters.md](10b-rest-api-adapters.md)</td><td>Discord (forum detection), Slack, Mattermost, Home Assistant, DingTalk, QQBot</td></tr><tr><td>[10c-bridge-daemon-adapters.md](10c-bridge-daemon-adapters.md)</td><td>WhatsApp (local bridge), Signal (JSON-RPC daemon)</td></tr><tr><td>[10d-smtp-adapter.md](10d-smtp-adapter.md)</td><td>Email — SMTP one-shot, STARTTLS</td></tr><tr><td>[10e-matrix-adapter.md](10e-matrix-adapter.md)</td><td>Matrix — Client-Server API, E2EE, full media adapter</td></tr><tr><td>[10f-native-sdk-adapters.md](10f-native-sdk-adapters.md)</td><td>Feishu/Lark, Weixin, WeCom, BlueBubbles</td></tr></table>
+<p><a href="08-cron.md">See cron scheduler for automated delivery → 08-cron.md</a> <a href="11-data-flow.md">See data flow end-to-end → 11-data-flow.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

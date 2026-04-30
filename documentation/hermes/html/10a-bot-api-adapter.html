@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Platform Adapters -- Bot API: Telegram -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-actions">
+      <a href="08-cron.html" class="nav-breadcrumb">Hermes Agent -- Cron & Scheduling: Implementation Deep Dive</a><a href="09-plugins.html" class="nav-breadcrumb">Hermes Agent -- Plugin System</a><a href="10-platform-adapters.html" class="nav-breadcrumb">Hermes Platform Adapters</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="10-platform-adapters.html" class="nav-btn" title="Previous: Hermes Platform Adapters">← prev</a>
+      <a href="10b-rest-api-adapters.html" class="nav-btn nav-btn-next" title="Next: Hermes Platform Adapters -- REST API: Discord, Slack, Mattermost, Home Assistant, DingTalk, QQBot">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Platform Adapters -- Bot API: Telegram</h1>
+<h2>Purpose</h2>
+<p>The Telegram adapter (<code>_send_telegram</code>, lines 588-714 of <code>send_message_tool.py</code>) connects via the Telegram Bot API using a one-shot <code>Bot</code> instance — no polling, no websocket. It handles MarkdownV2 formatting, auto-detects HTML content, retries transient failures with exponential backoff, and sends media as separate API calls.</p>
+<p>Source: <code>hermes-agent/tools/send_message_tool.py:588-714</code> Source: <code>hermes-agent/gateway/platforms/base.py:27-39</code> — <code>utf16_len()</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Telegram measures length in UTF-16 code units, not Unicode codepoints.</strong> Python's <code>len()</code> counts codepoints (<code>"😀"</code> = 1). Telegram's 4096-character limit counts UTF-16 code units (<code>"😀"</code> = 2). Characters outside the Basic Multilingual Plane (emoji, CJK Extension B, musical symbols) are surrogate pairs. The <code>utf16_len()</code> function:</p>
+<pre><code class="language-python"># base.py:27-39
+def utf16_len(s: str) -&gt; int:
+    &quot;&quot;&quot;Count UTF-16 code units in s.&quot;&quot;&quot;
+    return len(s.encode(&quot;utf-16-le&quot;)) // 2
+</code></pre>
+<p>Slicing respects surrogate-pair boundaries via binary search in <code>_prefix_within_utf16_limit()</code> (<code>base.py:42-58</code>).</p>
+<p><strong>Aha: Telegram MarkdownV2 parsing falls back to plain text automatically.</strong> If <code>send_message</code> with <code>parse_mode=MarkdownV2</code> fails (unescaped special characters), the catch block strips all MarkdownV2 formatting via <code>_strip_mdv2()</code> and retries with <code>parse_mode=None</code>. Malformed MarkdownV2 never causes a hard send failure.</p>
+<p><strong>Aha: The adapter uses a one-shot Bot instance — no polling needed.</strong> <code>send_message_tool.py</code> creates a <code>Bot(token)</code> instance, sends the message, and lets it garbage collect. This is different from the gateway adapter which uses <code>run_polling()</code> or webhooks to listen for incoming messages. For outbound delivery, only the Bot API token is needed.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    ENTRY[&quot;_send_telegram()&quot;] --&gt; HTML{&quot;Has HTML tags?&quot;}
+
+    HTML --&gt;|yes| SEND_HTML[&quot;parse_mode=HTML\nno conversion needed&quot;]
+    HTML --&gt;|no| FORMAT[&quot;TelegramAdapter.format_message()\nmarkdown → MarkdownV2&quot;]
+    FORMAT --&gt; SEND_MDV2[&quot;parse_mode=MarkdownV2&quot;]
+
+    SEND_MDV2 --&gt; PARSE_ERR{&quot;Parse error?&quot;}
+    PARSE_ERR --&gt;|yes| STRIP[&quot;_strip_mdv2()\nremove all formatting&quot;]
+    STRIP --&gt; PLAIN[&quot;parse_mode=None\nplain text&quot;]
+    PARSE_ERR --&gt;|no| TEXT_OK
+
+    SEND_HTML --&gt; TEXT_OK[&quot;bot.send_message()\nwith retry logic&quot;]
+    PLAIN --&gt; TEXT_OK
+
+    TEXT_OK --&gt; RETRY{&quot;Transient error?&quot;}
+    RETRY --&gt;|429/502/503/504| BACKOFF[&quot;Exponential backoff: 2^attempt\nor retry_after header&quot;]
+    BACKOFF --&gt; TEXT_OK
+    RETRY --&gt;|permanent| MEDIA
+
+    MEDIA{&quot;Media files?&quot;} --&gt;|yes| ROUTE[&quot;Route by extension&quot;]
+    ROUTE --&gt; IMG[&quot;bot.send_photo()&quot;]
+    ROUTE --&gt; VID[&quot;bot.send_video()&quot;]
+    ROUTE --&gt; VOICE[&quot;bot.send_voice()&quot;]
+    ROUTE --&gt; AUDIO[&quot;bot.send_audio()&quot;]
+    ROUTE --&gt; DOC[&quot;bot.send_document()&quot;]
+    MEDIA --&gt;|no| DONE
+
+    IMG --&gt; DONE[&quot;Return {success, message_id}&quot;]
+    VID --&gt; DONE
+    VOICE --&gt; DONE
+    AUDIO --&gt; DONE
+    DOC --&gt; DONE
+
+</div>
+<h2>Implementation: Full Function Walkthrough</h2>
+<h3>1. Format Detection (lines 600-616)</h3>
+<pre><code class="language-python"># Auto-detect HTML tags — if present, skip MarkdownV2 and send as HTML
+_has_html = bool(re.search(r&#x27;&lt;[a-zA-Z/][^&gt;]*&gt;&#x27;, message))
+
+if _has_html:
+    formatted = message
+    send_parse_mode = ParseMode.HTML
+else:
+    from gateway.platforms.telegram import TelegramAdapter
+    _adapter = TelegramAdapter.__new__(TelegramAdapter)
+    formatted = _adapter.format_message(message)
+    send_parse_mode = ParseMode.MARKDOWN_V2
+</code></pre>
+<p>The HTML detection regex <code>r'<[a-zA-Z/][^>]*>'</code> matches any HTML tag (<code><b></code>, <code></i></code>, <code><a href="..."></code>, <code><code></code>). This lets the agent send raw HTML when it needs precise control (e.g., <code><tg-spoiler></code> for spoilers).</p>
+<h3>2. Retry Logic (lines 60-100, 631-659)</h3>
+<p>The retry handler distinguishes between recoverable and non-recoverable errors:</p>
+<pre><code class="language-python">def _telegram_retry_delay(exc: Exception, attempt: int) -&gt; float | None:
+    # Priority 1: retry_after header from Telegram (rate limit)
+    retry_after = getattr(exc, &quot;retry_after&quot;, None)
+    if retry_after is not None:
+        return max(float(retry_after), 0.0)
+
+    text = str(exc).lower()
+    # Timeouts — don&#x27;t retry, give up immediately
+    if &quot;timed out&quot; in text or &quot;timeout&quot; in text:
+        return None
+
+    # Server errors — exponential backoff
+    if &quot;bad gateway&quot; in text or &quot;502&quot; in text or &quot;too many requests&quot; in text \
+       or &quot;429&quot; in text or &quot;service unavailable&quot; in text or &quot;503&quot; in text \
+       or &quot;gateway timeout&quot; in text or &quot;504&quot; in text:
+        return float(2 ** attempt)  # 1s, 2s, 4s
+
+    return None  # All other errors — fail immediately
+</code></pre>
+<p>Usage in <code>_send_telegram_message_with_retry</code>:</p>
+<pre><code class="language-python">async def _send_telegram_message_with_retry(bot, *, attempts=3, **kwargs):
+    for attempt in range(attempts):
+        try:
+            return await bot.send_message(**kwargs)
+        except Exception as exc:
+            delay = _telegram_retry_delay(exc, attempt)
+            if delay is None or attempt &gt;= attempts - 1:
+                raise
+            await asyncio.sleep(delay)
+</code></pre>
+<h3>3. MarkdownV2 Fallback (lines 637-659)</h3>
+<pre><code class="language-python">try:
+    last_msg = await _send_telegram_message_with_retry(
+        bot, chat_id=int_chat_id, text=formatted,
+        parse_mode=send_parse_mode, **thread_kwargs
+    )
+except Exception as md_error:
+    if &quot;parse&quot; in str(md_error).lower() or &quot;markdown&quot; in str(md_error).lower() \
+       or &quot;html&quot; in str(md_error).lower():
+        # Parse failed — strip formatting and retry as plain text
+        if not _has_html:
+            from gateway.platforms.telegram import _strip_mdv2
+            plain = _strip_mdv2(formatted)
+        else:
+            plain = message
+        last_msg = await _send_telegram_message_with_retry(
+            bot, chat_id=int_chat_id, text=plain,
+            parse_mode=None, **thread_kwargs
+        )
+    else:
+        raise  # Non-parse error — propagate
+</code></pre>
+<h3>4. Thread/Topic Support (lines 621-625)</h3>
+<pre><code class="language-python">thread_kwargs = {}
+if thread_id is not None:
+    thread_kwargs[&quot;message_thread_id&quot;] = int(thread_id)
+if disable_link_previews:
+    thread_kwargs[&quot;disable_web_page_preview&quot;] = True
+</code></pre>
+<p>Telegram supergroup topics (forum threads) are addressed by <code>message_thread_id</code>. Link preview suppression is configured per-platform via <code>pconfig.extra.get("disable_link_previews")</code>.</p>
+<h3>5. Media Routing (lines 661-694)</h3>
+<p>Each media file is sent as a separate API call, routed by file extension:</p>
+<pre><code class="language-python">for media_path, is_voice in media_files:
+    if not os.path.exists(media_path):
+        warnings.append(f&quot;Media file not found, skipping: {media_path}&quot;)
+        continue
+
+    ext = os.path.splitext(media_path)[1].lower()
+    with open(media_path, &quot;rb&quot;) as f:
+        if ext in _IMAGE_EXTS:        # .jpg, .jpeg, .png, .webp, .gif
+            last_msg = await bot.send_photo(chat_id=int_chat_id, photo=f, **thread_kwargs)
+        elif ext in _VIDEO_EXTS:      # .mp4, .mov, .avi, .mkv, .3gp
+            last_msg = await bot.send_video(chat_id=int_chat_id, video=f, **thread_kwargs)
+        elif ext in _VOICE_EXTS and is_voice:  # .ogg, .opus
+            last_msg = await bot.send_voice(chat_id=int_chat_id, voice=f, **thread_kwargs)
+        elif ext in _AUDIO_EXTS:      # .ogg, .opus, .mp3, .wav, .m4a
+            last_msg = await bot.send_audio(chat_id=int_chat_id, audio=f, **thread_kwargs)
+        else:                         # Everything else
+            last_msg = await bot.send_document(chat_id=int_chat_id, document=f, **thread_kwargs)
+</code></pre>
+<p>Media failures are collected as warnings and don't abort the send. Only if no text AND no media succeed does the function return an error.</p>
+<h2>Configuration</h2>
+<table><tr><th>Setting</th><th>Source</th><th>Purpose</th></tr><tr><td>Token</td><td>`pconfig.token`</td><td>Bot API token from BotFather</td></tr><tr><td>Home channel</td><td>`TELEGRAM_HOME_CHANNEL` env</td><td>Default target for bare `"telegram"` sends</td></tr><tr><td>Link previews</td><td>`pconfig.extra.disable_link_previews`</td><td>Suppress URL previews</td></tr><tr><td>Proxy</td><td>`HTTPS_PROXY` env (SDK default)</td><td>`python-telegram-bot` respects standard proxy env</td></tr></table>
+<h2>Building Your Own Bot API Adapter</h2>
+<p>The Telegram adapter pattern applies to any platform with a Python SDK that supports one-shot usage:</p>
+<pre><code class="language-python">async def _send_your_platform(token, chat_id, message, media_files=None, thread_id=None):
+    # 1. Detect content type (HTML vs markdown vs plain)
+    # 2. Format via your gateway adapter&#x27;s format_message()
+    # 3. Create one-shot client from SDK
+    client = YourSDK(token=token)
+
+    # 4. Send text with retry logic
+    try:
+        result = await client.send_message(
+            chat_id=chat_id, text=formatted,
+            parse_mode=your_format, **thread_kwargs
+        )
+    except ParseError:
+        # 5. Fall back to plain text on format errors
+        result = await client.send_message(
+            chat_id=chat_id, text=plain, parse_mode=None
+        )
+
+    # 6. Route media files by extension
+    for media_path, is_voice in media_files:
+        ext = os.path.splitext(media_path)[1].lower()
+        if ext in IMAGE_EXTS:
+            await client.send_photo(chat_id=chat_id, photo=open(media_path, &quot;rb&quot;))
+        # ... video, audio, document
+
+    return {&quot;success&quot;: True, &quot;platform&quot;: &quot;your_platform&quot;, &quot;message_id&quot;: result.id}
+</code></pre>
+<p>Key patterns to copy:</p>
+<ul><li>Retry logic with <code>retry_after</code> header respect</li><li>Parse mode fallback (formatted → plain text)</li><li>Per-file media routing with warning collection</li><li><code>thread_kwargs</code> pattern for thread/topic support</li><li><code>disable_link_previews</code> for URL preview control</li></ul>
+<h2>Key Files</h2>
+<pre><code class="language-">tools/
+  └── send_message_tool.py   ← _send_telegram() (lines 588-714)
+                              ← _telegram_retry_delay() (lines 60-82)
+                              ← _send_telegram_message_with_retry() (lines 85-100)
+
+gateway/platforms/
+  ├── telegram.py            ← TelegramAdapter.format_message()
+  │                          ← _strip_mdv2()
+  └── base.py                ← utf16_len() (line 27)
+                              ← truncate_message() (line 2594)
+                              ← extract_media() (line 1434)
+</code></pre>
+<p><a href="10-platform-adapters.md">Back to platform adapters overview → 10-platform-adapters.md</a> <a href="10b-rest-api-adapters.md">See REST API adapters → 10b-rest-api-adapters.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
