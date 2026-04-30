@@ -19,7 +19,11 @@ pub struct PatternValidator {
 impl PatternValidator {
     pub fn new(pattern: alloc::string::String, schema_path: Location) -> Self {
         let regex = Regex::new(&pattern).expect("pattern must be a valid regex");
-        Self { regex, raw_pattern: pattern, schema_path }
+        Self {
+            regex,
+            raw_pattern: pattern,
+            schema_path,
+        }
     }
 }
 
@@ -41,13 +45,12 @@ impl Validate for PatternValidator {
         if self.is_valid(instance, ctx) {
             Ok(())
         } else {
-            Err(ValidationErrorBuilder::new(
-                instance_path.materialize(),
-                self.schema_path.clone(),
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), self.schema_path.clone())
+                    .build(ValidationErrorKind::Pattern {
+                        pattern: self.raw_pattern.clone(),
+                    }),
             )
-            .build(ValidationErrorKind::Pattern {
-                pattern: self.raw_pattern.clone(),
-            }))
         }
     }
 

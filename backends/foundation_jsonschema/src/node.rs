@@ -52,9 +52,9 @@ impl SchemaNode {
     ) -> Result<(), ValidationError> {
         match self {
             Self::AlwaysValid => Ok(()),
-            Self::AlwaysInvalid { schema_path: _ } => Err(
-                crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
-            ),
+            Self::AlwaysInvalid { schema_path: _ } => {
+                Err(crate::error::ValidationErrorKind::FalseSchema.into_error_trace())
+            }
             Self::Validators { validators, .. } => {
                 for v in validators {
                     v.validate(instance, path, ctx)?;
@@ -73,11 +73,9 @@ impl SchemaNode {
     ) -> ErrorIterator {
         match self {
             Self::AlwaysValid => Box::new(core::iter::empty()),
-            Self::AlwaysInvalid { schema_path: _ } => {
-                Box::new(core::iter::once(
-                    crate::error::ValidationErrorKind::FalseSchema.into_error_trace()
-                ))
-            }
+            Self::AlwaysInvalid { schema_path: _ } => Box::new(core::iter::once(
+                crate::error::ValidationErrorKind::FalseSchema.into_error_trace(),
+            )),
             Self::Validators { validators, .. } => {
                 let mut errors: Vec<ValidationError> = Vec::new();
                 for v in validators {

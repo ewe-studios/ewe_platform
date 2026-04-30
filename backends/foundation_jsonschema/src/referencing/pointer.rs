@@ -102,14 +102,14 @@ pub fn pointer<'a>(document: &'a Value, pointer_str: &str) -> Option<&'a Value> 
     if !pointer_str.starts_with('/') {
         return None;
     }
-    pointer_str[1..].split('/').map(unescape_segment).try_fold(
-        document,
-        |target, token| match target {
+    pointer_str[1..]
+        .split('/')
+        .map(unescape_segment)
+        .try_fold(document, |target, token| match target {
             Value::Object(map) => map.get(&*token),
             Value::Array(list) => parse_index(&token).and_then(|x| list.get(x)),
             _ => None,
-        },
-    )
+        })
 }
 
 /// Unescape a JSON Pointer segment: `~1` → `/`, `~0` → `~`.
@@ -306,8 +306,8 @@ mod tests {
     #[test]
     fn unescape_equivalence_property() {
         let inputs = &[
-            "abc", "a~0b", "a~1b", "~01", "~10", "a~0~1b", "~", "~~",
-            "~~~~~", "~2", "a~c", "~0~1~", "", "a/d", "a~01b",
+            "abc", "a~0b", "a~1b", "~01", "~10", "a~0~1b", "~", "~~", "~~~~~", "~2", "a~c",
+            "~0~1~", "", "a/d", "a~01b",
         ];
         for input in inputs {
             let unescaped = unescape_segment(input);

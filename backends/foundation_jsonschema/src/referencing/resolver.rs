@@ -158,9 +158,7 @@ impl<'r> Resolver<'r> {
 
         let resource = self.registry.get_resource(&target_uri).ok_or_else(|| {
             ValidationErrorKind::Schema {
-                reason: alloc::format!(
-                    "resource '{target_uri}' not found in registry"
-                ),
+                reason: alloc::format!("resource '{target_uri}' not found in registry"),
             }
             .into_error_trace()
         })?;
@@ -186,12 +184,15 @@ impl<'r> Resolver<'r> {
                 .into_error_trace());
             }
 
-            let anchor = self.registry.get_anchor(&target_uri, &fragment).ok_or_else(|| {
-                ValidationErrorKind::Schema {
-                    reason: alloc::format!("anchor '{fragment}' does not exist"),
-                }
-                .into_error_trace()
-            })?;
+            let anchor = self
+                .registry
+                .get_anchor(&target_uri, &fragment)
+                .ok_or_else(|| {
+                    ValidationErrorKind::Schema {
+                        reason: alloc::format!("anchor '{fragment}' does not exist"),
+                    }
+                    .into_error_trace()
+                })?;
 
             let resolver = self.evolve(&target_uri);
             return match anchor {
@@ -202,8 +203,9 @@ impl<'r> Resolver<'r> {
                     // Walk dynamic scope for outermost matching dynamic anchor
                     let mut last_resource = r;
                     for scope_uri in &self.dynamic_scope {
-                        if let Some(Anchor::Dynamic { resource: scoped_r, .. }) =
-                            self.registry.get_anchor(scope_uri, name)
+                        if let Some(Anchor::Dynamic {
+                            resource: scoped_r, ..
+                        }) = self.registry.get_anchor(scope_uri, name)
                         {
                             last_resource = scoped_r;
                         }
@@ -272,8 +274,7 @@ impl<'r> Resolver<'r> {
     #[must_use]
     pub fn evolve(&self, new_base_uri: &str) -> Resolver<'r> {
         let mut dynamic_scope = self.dynamic_scope.clone();
-        if !self.base_uri.is_empty()
-            && (dynamic_scope.is_empty() || new_base_uri != self.base_uri)
+        if !self.base_uri.is_empty() && (dynamic_scope.is_empty() || new_base_uri != self.base_uri)
         {
             dynamic_scope.push(self.base_uri.clone());
         }
@@ -297,15 +298,12 @@ impl<'r> Resolver<'r> {
         subresource: ResourceRef<'_>,
     ) -> Result<Resolver<'r>, ValidationError> {
         if let Some(id) = subresource.id() {
-            let base_uri = self
-                .registry
-                .resolve_uri(&self.base_uri, id)
-                .map_err(|e| {
-                    ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve subresource ID '{id}': {e}"),
-                    }
-                    .into_error_trace()
-                })?;
+            let base_uri = self.registry.resolve_uri(&self.base_uri, id).map_err(|e| {
+                ValidationErrorKind::Schema {
+                    reason: alloc::format!("failed to resolve subresource ID '{id}': {e}"),
+                }
+                .into_error_trace()
+            })?;
             Ok(Resolver {
                 registry: self.registry,
                 base_uri,
@@ -342,10 +340,7 @@ mod tests {
 
     #[test]
     fn lookup_self_ref() {
-        let registry = build_registry(&[(
-            "http://example.com",
-            json!({"type": "object"}),
-        )]);
+        let registry = build_registry(&[("http://example.com", json!({"type": "object"}))]);
         let resolver = registry.resolver("http://example.com");
         let resolved = resolver.lookup("#").unwrap();
         assert_eq!(resolved.contents(), &json!({"type": "object"}));
@@ -353,10 +348,7 @@ mod tests {
 
     #[test]
     fn lookup_empty_ref() {
-        let registry = build_registry(&[(
-            "http://example.com",
-            json!({"type": "object"}),
-        )]);
+        let registry = build_registry(&[("http://example.com", json!({"type": "object"}))]);
         let resolver = registry.resolver("http://example.com");
         let resolved = resolver.lookup("").unwrap();
         assert_eq!(resolved.contents(), &json!({"type": "object"}));
@@ -390,10 +382,7 @@ mod tests {
 
     #[test]
     fn lookup_missing_resource() {
-        let registry = build_registry(&[(
-            "http://example.com",
-            json!({"type": "string"}),
-        )]);
+        let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
         let err = resolver.lookup("http://missing.com").unwrap_err();
         let msg = alloc::format!("{}", err);
@@ -402,10 +391,7 @@ mod tests {
 
     #[test]
     fn lookup_missing_anchor() {
-        let registry = build_registry(&[(
-            "http://example.com",
-            json!({"type": "string"}),
-        )]);
+        let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
         let err = resolver.lookup("#noSuchAnchor").unwrap_err();
         let msg = alloc::format!("{}", err);
@@ -414,10 +400,7 @@ mod tests {
 
     #[test]
     fn evolve_pushes_scope() {
-        let registry = build_registry(&[(
-            "http://example.com",
-            json!({"type": "string"}),
-        )]);
+        let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
         assert!(resolver.dynamic_scope().is_empty());
 

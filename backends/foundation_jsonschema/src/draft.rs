@@ -237,8 +237,14 @@ mod tests {
 
     #[test]
     fn test_draft_schema_uri() {
-        assert_eq!(Draft::Draft4.schema_uri(), "http://json-schema.org/draft-04/schema#");
-        assert_eq!(Draft::Draft202012.schema_uri(), "https://json-schema.org/draft/2020-12/schema");
+        assert_eq!(
+            Draft::Draft4.schema_uri(),
+            "http://json-schema.org/draft-04/schema#"
+        );
+        assert_eq!(
+            Draft::Draft202012.schema_uri(),
+            "https://json-schema.org/draft/2020-12/schema"
+        );
     }
 
     #[test]

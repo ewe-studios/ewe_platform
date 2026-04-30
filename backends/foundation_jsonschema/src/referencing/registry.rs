@@ -23,8 +23,8 @@ use crate::draft::Draft;
 use crate::resolver_trait::{JsonResolver, NoopResolver};
 
 use super::anchor::Anchor;
-use super::resource::{Resource, ResourceRef};
 use super::resolver::Resolver;
+use super::resource::{Resource, ResourceRef};
 use super::spec;
 use super::uri;
 
@@ -116,7 +116,8 @@ impl RegistryBuilder {
         let mut resources: BTreeMap<String, Resource> = BTreeMap::new();
         let mut anchors: BTreeMap<(String, String), AnchorEntry> = BTreeMap::new();
         let mut external_refs: Vec<String> = Vec::new();
-        let mut known_uris: alloc::collections::BTreeSet<String> = alloc::collections::BTreeSet::new();
+        let mut known_uris: alloc::collections::BTreeSet<String> =
+            alloc::collections::BTreeSet::new();
 
         // Phase 1: Register all user-provided resources
         for (uri, schema) in &self.pending {
@@ -126,7 +127,8 @@ impl RegistryBuilder {
         }
 
         // Phase 2: BFS crawl — discover sub-resources, anchors, and external refs
-        let mut queue: alloc::collections::VecDeque<(String, String)> = alloc::collections::VecDeque::new();
+        let mut queue: alloc::collections::VecDeque<(String, String)> =
+            alloc::collections::VecDeque::new();
 
         for (uri, _schema) in &self.pending {
             queue.push_back((uri.clone(), uri.clone()));
@@ -164,7 +166,9 @@ impl RegistryBuilder {
                 let resolved_value = self.resolver.resolve(&fragmentless).map_err(|e| {
                     use foundation_errstacks::IntoErrorTrace;
                     crate::error::ValidationErrorKind::Schema {
-                        reason: alloc::format!("failed to resolve external reference: {fragmentless}"),
+                        reason: alloc::format!(
+                            "failed to resolve external reference: {fragmentless}"
+                        ),
                     }
                     .into_error_trace()
                 })?;
@@ -244,10 +248,7 @@ fn crawl_schema(
         let entry = AnchorEntry {
             is_dynamic: matches!(anchor, Anchor::Dynamic { .. }),
         };
-        anchors.insert(
-            (effective_base.clone(), anchor.name().to_string()),
-            entry,
-        );
+        anchors.insert((effective_base.clone(), anchor.name().to_string()), entry);
     }
 
     // Collect $ref targets
@@ -347,7 +348,9 @@ impl Registry {
     /// Get a stable reference to an anchor name stored in the anchors map.
     fn get_anchor_name(&self, base_uri: &str, name: &str) -> Option<&str> {
         let key = (base_uri.to_string(), name.to_string());
-        self.anchors.get_key_value(&key).map(|((_, n), _)| n.as_str())
+        self.anchors
+            .get_key_value(&key)
+            .map(|((_, n), _)| n.as_str())
     }
 
     /// Check if the registry contains a resource at the given URI.
@@ -358,14 +361,22 @@ impl Registry {
 
     /// Resolve a URI reference against a base, using the registry's knowledge.
     #[allow(clippy::unused_self)]
-    pub(crate) fn resolve_uri(&self, base: &str, reference: &str) -> Result<String, super::uri::UriError> {
+    pub(crate) fn resolve_uri(
+        &self,
+        base: &str,
+        reference: &str,
+    ) -> Result<String, super::uri::UriError> {
         let resolved = uri::resolve_against(base, reference)?;
         Ok(resolved.without_fragment().to_string())
     }
 }
 
 /// Recursively search for a sub-schema declaring the given anchor.
-fn find_anchor_in_value<'a>(value: &'a Value, draft: Draft, anchor_name: &str) -> Option<&'a Value> {
+fn find_anchor_in_value<'a>(
+    value: &'a Value,
+    draft: Draft,
+    anchor_name: &str,
+) -> Option<&'a Value> {
     for anchor in spec::anchors_of(draft, value) {
         if anchor.name() == anchor_name {
             return Some(value);
@@ -450,10 +461,7 @@ mod tests {
     #[test]
     fn build_resolves_external_refs() {
         let mut resolver = MapResolver::new();
-        resolver.insert(
-            "http://example.com/external",
-            json!({"type": "number"}),
-        );
+        resolver.insert("http://example.com/external", json!({"type": "number"}));
 
         let registry = Registry::builder()
             .with_resolver(resolver)

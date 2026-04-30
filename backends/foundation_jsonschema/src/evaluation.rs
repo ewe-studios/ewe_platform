@@ -7,7 +7,6 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-
 /// The result of evaluating a JSON instance against a compiled schema.
 ///
 /// Provides access to the three JSON Schema Output formats:

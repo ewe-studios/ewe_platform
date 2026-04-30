@@ -19,7 +19,10 @@ pub struct EnumValidator {
 
 impl EnumValidator {
     pub fn new(options: Vec<Value>, schema_path: Location) -> Self {
-        Self { options, schema_path }
+        Self {
+            options,
+            schema_path,
+        }
     }
 }
 
@@ -37,13 +40,12 @@ impl Validate for EnumValidator {
         if self.is_valid(instance, ctx) {
             Ok(())
         } else {
-            Err(ValidationErrorBuilder::new(
-                instance_path.materialize(),
-                self.schema_path.clone(),
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), self.schema_path.clone())
+                    .build(ValidationErrorKind::InvalidEnum {
+                        options: self.options.clone(),
+                    }),
             )
-            .build(ValidationErrorKind::InvalidEnum {
-                options: self.options.clone(),
-            }))
         }
     }
 

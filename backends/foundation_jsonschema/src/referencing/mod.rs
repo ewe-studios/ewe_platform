@@ -13,14 +13,14 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-pub mod uri;
-pub mod pointer;
-pub mod resource;
 pub mod anchor;
+pub mod pointer;
 pub mod registry;
 pub mod resolver;
-pub mod vocabulary;
+pub mod resource;
 pub(crate) mod spec;
+pub mod uri;
+pub mod vocabulary;
 
 pub use registry::{Registry, RegistryBuilder};
 pub use resolver::{Resolved, Resolver};

@@ -43,14 +43,13 @@ impl Validate for TypeValidator {
         if self.is_valid(instance, ctx) {
             Ok(())
         } else {
-            Err(ValidationErrorBuilder::new(
-                instance_path.materialize(),
-                self.schema_path.clone(),
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), self.schema_path.clone())
+                    .build(ValidationErrorKind::InvalidType {
+                        expected: self.types,
+                        actual: JsonType::of(instance),
+                    }),
             )
-            .build(ValidationErrorKind::InvalidType {
-                expected: self.types,
-                actual: JsonType::of(instance),
-            }))
         }
     }
 

@@ -61,6 +61,7 @@ foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
 foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
 foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
 foundation_codegen = { path = "./backends/foundation_codegen", version = "0.1.0" }
+foundation_jsonschema = { path = "./backends/foundation_jsonschema", version = "0.0.1" }
 
 system_operations = { path = "./crates/system_operations", version = "0.1.0" }
 

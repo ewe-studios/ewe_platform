@@ -97,13 +97,14 @@ pub fn anchors_202012(draft: Draft, contents: &Value) -> AnchorIter<'_> {
         return AnchorIter::Empty;
     };
 
-    let default_anchor = schema
-        .get("$anchor")
-        .and_then(Value::as_str)
-        .map(|name| Anchor::Default {
-            name,
-            resource: ResourceRef::new(contents, draft),
-        });
+    let default_anchor =
+        schema
+            .get("$anchor")
+            .and_then(Value::as_str)
+            .map(|name| Anchor::Default {
+                name,
+                resource: ResourceRef::new(contents, draft),
+            });
 
     let dynamic_anchor = schema
         .get("$dynamicAnchor")

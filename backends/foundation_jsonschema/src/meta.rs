@@ -51,10 +51,13 @@ pub fn meta_schema(draft: Draft) -> Value {
 /// the schema does not conform to the meta-schema.
 pub fn validate_schema(schema: &Value) -> Result<(), ValidationError> {
     let draft = Draft::detect(schema).ok_or_else(|| {
-        ValidationErrorBuilder::new(Location::new(), Location::new())
-            .build(ValidationErrorKind::Schema {
-                reason: "no $schema keyword found; cannot auto-detect draft for meta-schema validation".into(),
-            })
+        ValidationErrorBuilder::new(Location::new(), Location::new()).build(
+            ValidationErrorKind::Schema {
+                reason:
+                    "no $schema keyword found; cannot auto-detect draft for meta-schema validation"
+                        .into(),
+            },
+        )
     })?;
     validate_schema_with_draft(schema, draft)
 }
@@ -73,9 +76,7 @@ pub fn validate_schema(schema: &Value) -> Result<(), ValidationError> {
 /// Returns `Err` if the schema does not conform to the meta-schema.
 pub fn validate_schema_with_draft(schema: &Value, draft: Draft) -> Result<(), ValidationError> {
     let meta = meta_schema(draft);
-    let validator = ValidationOptions::new()
-        .with_draft(draft)
-        .build(&meta)?;
+    let validator = ValidationOptions::new().with_draft(draft).build(&meta)?;
 
     if validator.is_valid(schema) {
         return Ok(());
@@ -103,10 +104,11 @@ pub fn validate_schema_with_draft(schema: &Value, draft: Draft) -> Result<(), Va
 /// Returns `Err` if draft detection fails.
 pub fn is_schema_valid(schema: &Value) -> Result<bool, ValidationError> {
     let draft = Draft::detect(schema).ok_or_else(|| {
-        ValidationErrorBuilder::new(Location::new(), Location::new())
-            .build(ValidationErrorKind::Schema {
+        ValidationErrorBuilder::new(Location::new(), Location::new()).build(
+            ValidationErrorKind::Schema {
                 reason: "no $schema keyword found".into(),
-            })
+            },
+        )
     })?;
     Ok(is_schema_valid_with_draft(schema, draft))
 }
@@ -129,7 +131,7 @@ pub fn is_schema_valid_with_draft(schema: &Value, draft: Draft) -> bool {
 
 /// Meta-schema validation for Draft 4.
 pub mod draft4 {
-    use super::{Value, ValidationError, Draft};
+    use super::{Draft, ValidationError, Value};
 
     /// Validate a schema against the Draft 4 meta-schema.
     ///
@@ -149,7 +151,7 @@ pub mod draft4 {
 
 /// Meta-schema validation for Draft 6.
 pub mod draft6 {
-    use super::{Value, ValidationError, Draft};
+    use super::{Draft, ValidationError, Value};
 
     /// Validate a schema against the Draft 6 meta-schema.
     ///
@@ -169,7 +171,7 @@ pub mod draft6 {
 
 /// Meta-schema validation for Draft 7.
 pub mod draft7 {
-    use super::{Value, ValidationError, Draft};
+    use super::{Draft, ValidationError, Value};
 
     /// Validate a schema against the Draft 7 meta-schema.
     ///
@@ -189,7 +191,7 @@ pub mod draft7 {
 
 /// Meta-schema validation for Draft 2019-09.
 pub mod draft201909 {
-    use super::{Value, ValidationError, Draft};
+    use super::{Draft, ValidationError, Value};
 
     /// Validate a schema against the Draft 2019-09 meta-schema.
     ///
@@ -209,7 +211,7 @@ pub mod draft201909 {
 
 /// Meta-schema validation for Draft 2020-12.
 pub mod draft202012 {
-    use super::{Value, ValidationError, Draft};
+    use super::{Draft, ValidationError, Value};
 
     /// Validate a schema against the Draft 2020-12 meta-schema.
     ///

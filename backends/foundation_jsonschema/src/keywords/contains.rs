@@ -1,34 +1,50 @@
-//! Stub: `contains` requires sub-schema validation via `SchemaNode`.
+//! `contains` — at least one array item must validate against the sub-schema.
 
 use alloc::boxed::Box;
 
 use serde_json::Value;
 
-use crate::error::{ErrorIterator, ValidationError};
-use crate::paths::LazyLocation;
-
-use foundation_errstacks::IntoErrorTrace;
+use crate::error::{ErrorIterator, ValidationError, ValidationErrorBuilder, ValidationErrorKind};
+use crate::node::SchemaNode;
+use crate::paths::{LazyLocation, Location};
 
 use super::{Validate, ValidationContext};
 
-pub struct ContainsValidator;
+/// Validates that at least one array item satisfies the sub-schema.
+pub struct ContainsValidator {
+    schema: SchemaNode,
+}
+
+impl ContainsValidator {
+    /// Create with a pre-compiled sub-schema.
+    #[must_use]
+    pub fn new(schema: SchemaNode) -> Self {
+        Self { schema }
+    }
+}
 
 impl Validate for ContainsValidator {
-    fn is_valid(&self, instance: &Value, _ctx: &mut ValidationContext) -> bool {
-        !matches!(instance, Value::Array(_))
+    fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
+        if let Value::Array(arr) = instance {
+            arr.iter().any(|item| self.schema.is_valid(item, ctx))
+        } else {
+            true
+        }
     }
 
     fn validate(
         &self,
         instance: &Value,
-        _instance_path: &LazyLocation<'_>,
+        instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
         if self.is_valid(instance, ctx) {
             Ok(())
         } else {
-            Err(crate::error::ValidationErrorKind::Contains
-                .into_error_trace())
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
+                    .build(ValidationErrorKind::Contains),
+            )
         }
     }
 
@@ -38,9 +54,12 @@ impl Validate for ContainsValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        match self.validate(instance, instance_path, ctx) {
-            Ok(()) => Box::new(core::iter::empty()),
-            Err(e) => Box::new(core::iter::once(e)),
+        if self.is_valid(instance, ctx) {
+            Box::new(core::iter::empty())
+        } else {
+            let err = ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
+                .build(ValidationErrorKind::Contains);
+            Box::new(core::iter::once(err))
         }
     }
 }

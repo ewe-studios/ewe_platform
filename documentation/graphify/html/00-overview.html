@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graphify -- Overview -- graphify</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/graphify/docs</span>
+    <div class="nav-links">
+      <a href="index.html">Index</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Graphify -- Overview</h1>
+<p>Graphify is an AI coding assistant skill that transforms mixed-media corpora -- code, documentation, papers, images, video, and audio -- into queryable knowledge graphs. It ships as a Python library (<code>graphifyy</code> on PyPI, v0.5.6) with a CLI entry point and integrates with 14 platforms including Claude Code, Codex, Cursor, and Gemini CLI. The core value proposition is structural: a 52-file mixed corpus (code + papers + images) compresses to 71.5x fewer tokens per query compared to reading raw files, while preserving every relationship's provenance.</p>
+<h2>The Three-Pass Extraction Model</h2>
+<p>Every corpus passes through three extraction stages. The first two are local and deterministic; only the third requires an LLM.</p>
+<div class="mermaid">
+flowchart LR
+    subgraph Pass1[&quot;Pass 1: AST (local)&quot;]
+        TS[tree-sitter parse] --&gt; Walk[Walk AST nodes]
+        Walk --&gt; Struct[&quot;Classes, functions,\nimports, call-graph,\ndocstrings, rationale&quot;]
+    end
+    subgraph Pass2[&quot;Pass 2: Whisper (local)&quot;]
+        Audio[Video / audio file] --&gt; Whisper[&quot;faster-whisper\n(domain-aware prompt)&quot;]
+        Whisper --&gt; Transcript[Cached transcript]
+    end
+    subgraph Pass3[&quot;Pass 3: Claude (remote)&quot;]
+        Docs[Docs, papers,\nimages, transcripts] --&gt; Subagents[&quot;Claude subagents\n(parallel)&quot;]
+        Subagents --&gt; Semantic[&quot;Concepts, relationships,\ndesign rationale,\nsemantic similarity&quot;]
+    end
+    Pass1 --&gt; Merge[Merge into\nNetworkX graph]
+    Pass2 --&gt; Pass3
+    Pass3 --&gt; Merge
+
+</div>
+<p><strong>Pass 1 -- Deterministic AST</strong> (<code>graphify/extract.py</code>). tree-sitter parses code files into syntax trees. The extractor walks each tree, collecting classes, functions, imports, and call-graph edges. A second pass resolves cross-file imports into class-level INFERRED edges (e.g., <code>DigestAuth --uses--> Response</code>). Rationale comments (<code># WHY:</code>, <code># HACK:</code>, <code># NOTE:</code>, <code># IMPORTANT:</code>) are extracted as <code>rationale_for</code> nodes. No LLM is involved. This covers 25 languages.</p>
+<p><strong>Pass 2 -- Whisper Transcription</strong> (<code>graphify/transcribe.py</code>). Video and audio files are transcribed locally using faster-whisper. The transcription prompt is domain-aware: it derives vocabulary from the corpus's god nodes so technical terms are spelled correctly. Transcripts are cached in <code>graphify-out/transcripts/</code> and reused on subsequent runs.</p>
+<p><strong>Pass 3 -- Claude Semantic Extraction</strong> (via <code>skill.md</code> or <code>graphify/llm.py</code>). Documents, papers, images, and transcripts are dispatched to Claude subagents running in parallel. Each subagent extracts concepts, relationships, and design rationale, returning structured JSON that conforms to the extraction schema. Confidence labels are assigned to every edge.</p>
+<h2>The 7-Stage Pipeline</h2>
+<p>The pipeline is a linear sequence of pure functions. Each stage lives in its own module and communicates through plain Python dicts and NetworkX graphs. There is no shared state and no side effects outside <code>graphify-out/</code>.</p>
+<div class="mermaid">
+flowchart TD
+    D[&quot;detect(root)&quot;] --&gt;|&quot;dict: files by type\n+ corpus stats&quot;| E[&quot;extract(paths)&quot;]
+    E --&gt;|&quot;dict: {nodes, edges}&quot;| B[&quot;build_from_json(extraction)&quot;]
+    B --&gt;|&quot;nx.Graph&quot;| C[&quot;cluster(G)&quot;]
+    C --&gt;|&quot;dict: {cid: [node_ids]}&quot;| A[&quot;analyze(G, communities)&quot;]
+    A --&gt;|&quot;dict: god_nodes,\nsurprises, questions&quot;| R[&quot;generate(G, ...analysis)&quot;]
+    R --&gt;|&quot;str: GRAPH_REPORT.md&quot;| X[&quot;export(G, out_dir)&quot;]
+    X --&gt;|&quot;graph.html\ngraph.json\ncache/&quot;| Done[&quot;graphify-out/&quot;]
+
+</div>
+<table><tr><th>Stage</th><th>Module</th><th>Function</th><th>What It Does</th></tr><tr><td>1. Detect</td><td>`detect.py`</td><td>`detect(root)`</td><td>Walks the directory tree, classifies files by type (code, document, paper, image, video), applies `.graphifyignore` patterns, skips sensitive files, and returns a manifest with corpus statistics</td></tr><tr><td>2. Extract</td><td>`extract.py`</td><td>`extract(paths)`</td><td>Runs per-file AST extraction via tree-sitter, then a cross-file import resolution pass. Returns `{nodes, edges}` dict. Results are SHA256-cached</td></tr><tr><td>3. Build</td><td>`build.py`</td><td>`build_from_json(extraction)`</td><td>Assembles node and edge dicts into a NetworkX graph. Validates against the extraction schema, normalizes IDs, and handles deduplication</td></tr><tr><td>4. Cluster</td><td>`cluster.py`</td><td>`cluster(G)`</td><td>Runs Leiden community detection (via graspologic) with Louvain fallback. Splits oversized communities (>25% of graph, minimum 10 nodes) with a second pass</td></tr><tr><td>5. Analyze</td><td>`analyze.py`</td><td>`god_nodes(G)`, `surprising_connections(G, communities)`, `suggest_questions(G, communities, labels)`</td><td>Identifies highest-degree entities, ranks cross-file/cross-community edges by a composite surprise score, and generates graph-derived questions</td></tr><tr><td>6. Report</td><td>`report.py`</td><td>`generate(G, communities, ...)`</td><td>Produces a `GRAPH_REPORT.md` string with corpus stats, confidence breakdown, god nodes, surprising connections, community summaries, ambiguous edges, knowledge gaps, and suggested questions</td></tr><tr><td>7. Export</td><td>`export.py`</td><td>`to_json()`, `to_html()`, `to_svg()`, `to_obsidian()`, `to_canvas()`, `to_cypher()`, `to_graphml()`, `push_to_neo4j()`</td><td>Writes the graph to multiple output formats. The HTML export uses vis.js with community filtering, search, and click-to-inspect</td></tr></table>
+<h2>Supported Languages (25 via tree-sitter)</h2>
+<p>The AST extraction pass supports 25 languages through tree-sitter language bindings. Each language has a dedicated extractor function in <code>graphify/extract.py</code> and a corresponding <code>tree-sitter-<lang></code> dependency in <code>pyproject.toml</code>.</p>
+<table><tr><th>Language</th><th>Extension(s)</th><th>Extractor Function</th></tr><tr><td>Python</td><td>`.py`</td><td>`extract_python`</td></tr><tr><td>JavaScript</td><td>`.js`, `.jsx`, `.mjs`</td><td>`extract_js`</td></tr><tr><td>TypeScript</td><td>`.ts`, `.tsx`</td><td>`extract_js`</td></tr><tr><td>Go</td><td>`.go`</td><td>`extract_go`</td></tr><tr><td>Rust</td><td>`.rs`</td><td>`extract_rust`</td></tr><tr><td>Java</td><td>`.java`</td><td>`extract_java`</td></tr><tr><td>C</td><td>`.c`, `.h`</td><td>`extract_c`</td></tr><tr><td>C++</td><td>`.cpp`, `.cc`, `.cxx`, `.hpp`</td><td>`extract_cpp`</td></tr><tr><td>Ruby</td><td>`.rb`</td><td>`extract_ruby`</td></tr><tr><td>C#</td><td>`.cs`</td><td>`extract_csharp`</td></tr><tr><td>Kotlin</td><td>`.kt`, `.kts`</td><td>`extract_kotlin`</td></tr><tr><td>Scala</td><td>`.scala`</td><td>`extract_scala`</td></tr><tr><td>PHP</td><td>`.php`, `.blade.php`</td><td>`extract_php`, `extract_blade`</td></tr><tr><td>Swift</td><td>`.swift`</td><td>`extract_swift`</td></tr><tr><td>Lua</td><td>`.lua`, `.toc`</td><td>`extract_lua`</td></tr><tr><td>Zig</td><td>`.zig`</td><td>`extract_zig`</td></tr><tr><td>PowerShell</td><td>`.ps1`</td><td>`extract_powershell`</td></tr><tr><td>Elixir</td><td>`.ex`, `.exs`</td><td>`extract_elixir`</td></tr><tr><td>Objective-C</td><td>`.m`, `.mm`</td><td>`extract_objc`</td></tr><tr><td>Julia</td><td>`.jl`</td><td>`extract_julia`</td></tr><tr><td>Verilog / SystemVerilog</td><td>`.v`, `.sv`</td><td>`extract_verilog`</td></tr><tr><td>Vue</td><td>`.vue`</td><td>`extract_js`</td></tr><tr><td>Svelte</td><td>`.svelte`</td><td>`extract_js`</td></tr><tr><td>Dart</td><td>`.dart`</td><td>`extract_dart`</td></tr></table>
+<p>Non-code file types are handled by Claude semantic extraction:</p>
+<table><tr><th>Type</th><th>Extensions</th><th>Extraction Method</th></tr><tr><td>Documents</td><td>`.md`, `.mdx`, `.html`, `.txt`, `.rst`</td><td>Claude subagent</td></tr><tr><td>Office</td><td>`.docx`, `.xlsx`</td><td>Converted to markdown, then Claude subagent</td></tr><tr><td>Papers</td><td>`.pdf`</td><td>Citation mining + concept extraction via Claude</td></tr><tr><td>Images</td><td>`.png`, `.jpg`, `.webp`, `.gif`</td><td>Claude vision</td></tr><tr><td>Video / Audio</td><td>`.mp4`, `.mov`, `.mkv`, `.webm`, `.avi`, `.m4v`, `.mp3`, `.wav`, `.m4a`, `.ogg`</td><td>Whisper transcription, then Claude subagent</td></tr></table>
+<h2>The Confidence System</h2>
+<p>Every edge in the graph carries one of three confidence labels, defined in <code>graphify/validate.py:5</code> as the constant <code>VALID_CONFIDENCES</code>:</p>
+<table><tr><th>Label</th><th>Meaning</th><th>Example</th></tr><tr><td>`EXTRACTED`</td><td>Relationship is explicitly stated in source. Always confidence_score 1.0</td><td>An `import` statement, a direct function call, a citation reference</td></tr><tr><td>`INFERRED`</td><td>Reasonable deduction. Carries a `confidence_score` between 0.0 and 1.0</td><td>Cross-file call-graph second pass, co-occurrence in context, semantic similarity</td></tr><tr><td>`AMBIGUOUS`</td><td>Uncertain relationship. Flagged for human review in GRAPH_REPORT.md</td><td>Vague conceptual link where the extractor could not determine the exact relation</td></tr></table>
+<p>The confidence system enables the report to surface edges that need verification. The <code>analyze.py</code> module generates suggested questions specifically targeting AMBIGUOUS edges and nodes with many INFERRED connections.</p>
+<h2>Output Directory Structure</h2>
+<p>A single run of <code>/graphify .</code> produces the following output:</p>
+<pre><code class="language-">graphify-out/
+|-- graph.html           Interactive vis.js graph -- open in any browser.
+|                         Click nodes, search, filter by community, hover for edge details.
+|-- GRAPH_REPORT.md      Audit trail: god nodes, surprising connections,
+|                         community summaries, ambiguous edges, knowledge gaps,
+|                         suggested questions.
+|-- graph.json            Persistent graph in NetworkX node-link format.
+|                         Query weeks later without re-reading source files.
+|-- cache/
+|   |-- ast/              SHA256-keyed extraction cache for code files.
+|   |   `-- &lt;hash&gt;.json   One entry per source file. Invalidated when content changes.
+|   `-- semantic/         SHA256-keyed cache for Claude semantic extractions.
+|       `-- &lt;hash&gt;.json   Separate from AST to prevent hash collisions (#582).
+|-- transcripts/          Whisper transcripts for video/audio files.
+|-- converted/            Markdown sidecars for .docx/.xlsx files.
+|-- manifest.json         File modification times for incremental --update runs.
+`-- cost.json             Local token tracking (input/output token counts).
+</code></pre>
+<h2>Platform Integrations</h2>
+<p>Graphify integrates with 14 AI coding platforms. Each platform gets a tailored install command that sets up the skill file, always-on hooks (where supported), and the <code>/graphify</code> trigger.</p>
+<table><tr><th>Platform</th><th>Install Command</th><th>Hook Mechanism</th></tr><tr><td>Claude Code (Linux/Mac)</td><td>`graphify install`</td><td>`PreToolUse` hook in `settings.json`</td></tr><tr><td>Claude Code (Windows)</td><td>`graphify install --platform windows`</td><td>`PreToolUse` hook in `settings.json`</td></tr><tr><td>Codex</td><td>`graphify install --platform codex`</td><td>`PreToolUse` hook in `.codex/hooks.json`</td></tr><tr><td>OpenCode</td><td>`graphify install --platform opencode`</td><td>`tool.execute.before` plugin</td></tr><tr><td>Cursor</td><td>`graphify cursor install`</td><td>`.cursor/rules/graphify.mdc` (alwaysApply)</td></tr><tr><td>Gemini CLI</td><td>`graphify install --platform gemini`</td><td>`BeforeTool` hook in `.gemini/settings.json`</td></tr><tr><td>GitHub Copilot CLI</td><td>`graphify install --platform copilot`</td><td>Skill file only</td></tr><tr><td>VS Code Copilot Chat</td><td>`graphify vscode install`</td><td>`.github/copilot-instructions.md`</td></tr><tr><td>Aider</td><td>`graphify install --platform aider`</td><td>`AGENTS.md`</td></tr><tr><td>OpenClaw</td><td>`graphify install --platform claw`</td><td>`AGENTS.md`</td></tr><tr><td>Factory Droid</td><td>`graphify install --platform droid`</td><td>`AGENTS.md` (uses Task tool)</td></tr><tr><td>Trae</td><td>`graphify install --platform trae`</td><td>`AGENTS.md` (uses Agent tool)</td></tr><tr><td>Kiro IDE/CLI</td><td>`graphify kiro install`</td><td>`.kiro/steering/graphify.md` (inclusion: always)</td></tr><tr><td>Google Antigravity</td><td>`graphify antigravity install`</td><td>`.agents/rules/` + `.agents/workflows/`</td></tr></table>
+<h2>Token Reduction</h2>
+<p>The benchmark module (<code>graphify/benchmark.py</code>) measures the ratio of raw corpus tokens to graph-subgraph tokens for a set of sample questions. On the worked example with 52 files (Karpathy repos + 5 papers + 4 images), the measured reduction is <strong>71.5x</strong>. The first run pays the extraction cost. Every subsequent query reads the compact graph representation instead of raw files. The SHA256 cache ensures re-runs only re-process changed files.</p>
+<p>Token reduction scales with corpus size. A 6-file corpus fits in a single context window anyway, so the graph adds structural clarity rather than compression. At 52+ files the compression benefit dominates.</p>
+<h2>Design Principles</h2>
+<p><strong>Deterministic AST, not probabilistic parsing.</strong> Code extraction uses tree-sitter, which produces exact syntax trees. The LLM is only involved for documents, papers, and images where structural parsing is not possible.</p>
+<p><strong>No embeddings.</strong> Clustering is graph-topology-based. Leiden/Louvain finds communities by edge density. The semantic similarity edges that Claude extracts (<code>semantically_similar_to</code>, marked INFERRED) are already in the graph, so they influence community detection directly. The graph structure is the similarity signal. No separate embedding step, no vector database.</p>
+<p><strong>Cached by content hash.</strong> Every extraction result is cached under <code>graphify-out/cache/{ast,semantic}/<sha256>.json</code>. The hash covers file contents and the path relative to the project root, so cache entries are portable across machines. Markdown files hash only the body below the YAML frontmatter, so metadata-only changes do not invalidate the cache.</p>
+<p><strong>Explicit provenance.</strong> Every edge carries a <code>confidence</code> label and a <code>source_file</code> with <code>source_location</code>. The report separates what was found from what was guessed. AMBIGUOUS edges are surfaced for human review.</p>
+<h2>Lazy Imports</h2>
+<p>The package uses lazy attribute loading in <code>graphify/__init__.py</code> so that <code>graphify install</code> works before heavy dependencies (networkx, tree-sitter) are installed:</p>
+<pre><code class="language-python">&quot;&quot;&quot;graphify - extract . build . cluster . analyze . report.&quot;&quot;&quot;
+
+
+def __getattr__(name):
+    # Lazy imports so `graphify install` works before heavy deps are in place.
+    _map = {
+        &quot;extract&quot;: (&quot;graphify.extract&quot;, &quot;extract&quot;),
+        &quot;collect_files&quot;: (&quot;graphify.extract&quot;, &quot;collect_files&quot;),
+        &quot;build_from_json&quot;: (&quot;graphify.build&quot;, &quot;build_from_json&quot;),
+        &quot;cluster&quot;: (&quot;graphify.cluster&quot;, &quot;cluster&quot;),
+        &quot;score_all&quot;: (&quot;graphify.cluster&quot;, &quot;score_all&quot;),
+        &quot;cohesion_score&quot;: (&quot;graphify.cluster&quot;, &quot;cohesion_score&quot;),
+        &quot;god_nodes&quot;: (&quot;graphify.analyze&quot;, &quot;god_nodes&quot;),
+        &quot;surprising_connections&quot;: (&quot;graphify.analyze&quot;, &quot;surprising_connections&quot;),
+        &quot;suggest_questions&quot;: (&quot;graphify.analyze&quot;, &quot;suggest_questions&quot;),
+        &quot;generate&quot;: (&quot;graphify.report&quot;, &quot;generate&quot;),
+        &quot;to_json&quot;: (&quot;graphify.export&quot;, &quot;to_json&quot;),
+        &quot;to_html&quot;: (&quot;graphify.export&quot;, &quot;to_html&quot;),
+        &quot;to_svg&quot;: (&quot;graphify.export&quot;, &quot;to_svg&quot;),
+        &quot;to_canvas&quot;: (&quot;graphify.export&quot;, &quot;to_canvas&quot;),
+        &quot;to_wiki&quot;: (&quot;graphify.wiki&quot;, &quot;to_wiki&quot;),
+    }
+    if name in _map:
+        import importlib
+        mod_name, attr = _map[name]
+        mod = importlib.import_module(mod_name)
+        return getattr(mod, attr)
+    raise AttributeError(f&quot;module &#x27;graphify&#x27; has no attribute {name!r}&quot;)
+</code></pre>
+<p>This pattern means the top-level <code>graphify</code> module never imports networkx, tree-sitter, or any other heavy dependency at import time. The actual import only happens when a pipeline function is first accessed.</p>
+<h2>Source</h2>
+<p><code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/</code></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

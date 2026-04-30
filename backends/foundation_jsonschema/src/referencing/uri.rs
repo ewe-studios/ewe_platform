@@ -127,9 +127,7 @@ impl Uri {
         // Detect authority (starts with "//")
         if rest.starts_with("//") {
             let after_slashes = &rest[2..];
-            let authority_len = after_slashes
-                .find('/')
-                .unwrap_or(after_slashes.len());
+            let authority_len = after_slashes.find('/').unwrap_or(after_slashes.len());
             authority_end = Some(offset + 2 + authority_len);
             offset += 2 + authority_len;
             rest = &after_slashes[authority_len..];
@@ -519,10 +517,16 @@ mod tests {
         assert_eq!(base.resolve("g?y").unwrap().as_str(), "http://a/b/c/g?y");
         assert_eq!(base.resolve("#s").unwrap().as_str(), "http://a/b/c/d;p?q#s");
         assert_eq!(base.resolve("g#s").unwrap().as_str(), "http://a/b/c/g#s");
-        assert_eq!(base.resolve("g?y#s").unwrap().as_str(), "http://a/b/c/g?y#s");
+        assert_eq!(
+            base.resolve("g?y#s").unwrap().as_str(),
+            "http://a/b/c/g?y#s"
+        );
         assert_eq!(base.resolve(";x").unwrap().as_str(), "http://a/b/c/;x");
         assert_eq!(base.resolve("g;x").unwrap().as_str(), "http://a/b/c/g;x");
-        assert_eq!(base.resolve("g;x?y#s").unwrap().as_str(), "http://a/b/c/g;x?y#s");
+        assert_eq!(
+            base.resolve("g;x?y#s").unwrap().as_str(),
+            "http://a/b/c/g;x?y#s"
+        );
         assert_eq!(base.resolve("").unwrap().as_str(), "http://a/b/c/d;p?q");
         assert_eq!(base.resolve(".").unwrap().as_str(), "http://a/b/c/");
         assert_eq!(base.resolve("./").unwrap().as_str(), "http://a/b/c/");
@@ -538,7 +542,10 @@ mod tests {
     fn resolve_fragment_only_against_base() {
         let base = Uri::parse("http://example.com/schema.json").unwrap();
         let resolved = base.resolve("#/definitions/Foo").unwrap();
-        assert_eq!(resolved.as_str(), "http://example.com/schema.json#/definitions/Foo");
+        assert_eq!(
+            resolved.as_str(),
+            "http://example.com/schema.json#/definitions/Foo"
+        );
     }
 
     #[test]

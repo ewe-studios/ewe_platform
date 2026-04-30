@@ -42,7 +42,10 @@ impl Validate for MaxLengthValidator {
                     instance_path.materialize(),
                     self.schema_path.clone(),
                 )
-                .build(ValidationErrorKind::MaxLength { max: self.max, actual: len }));
+                .build(ValidationErrorKind::MaxLength {
+                    max: self.max,
+                    actual: len,
+                }));
             }
         }
         Ok(())

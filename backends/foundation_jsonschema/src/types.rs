@@ -285,7 +285,10 @@ mod tests {
 
     #[test]
     fn test_json_type_of_string() {
-        assert_eq!(JsonType::of(&Value::String("hello".into())), JsonType::String);
+        assert_eq!(
+            JsonType::of(&Value::String("hello".into())),
+            JsonType::String
+        );
     }
 
     #[test]
@@ -295,7 +298,10 @@ mod tests {
 
     #[test]
     fn test_json_type_of_object() {
-        assert_eq!(JsonType::of(&Value::Object(Default::default())), JsonType::Object);
+        assert_eq!(
+            JsonType::of(&Value::Object(Default::default())),
+            JsonType::Object
+        );
     }
 
     #[test]

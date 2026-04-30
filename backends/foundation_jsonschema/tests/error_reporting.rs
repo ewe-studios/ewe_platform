@@ -9,7 +9,10 @@ fn type_error_kind() {
     let v = foundation_jsonschema::validator_for(&schema).unwrap();
     let errors: Vec<_> = v.iter_errors(&json!(42)).collect();
     assert!(!errors.is_empty());
-    assert!(matches!(errors[0].current_context(), ValidationErrorKind::InvalidType { .. }));
+    assert!(matches!(
+        errors[0].current_context(),
+        ValidationErrorKind::InvalidType { .. }
+    ));
 }
 
 #[test]
@@ -21,7 +24,9 @@ fn required_error_kind() {
     let v = foundation_jsonschema::validator_for(&schema).unwrap();
     let errors: Vec<_> = v.iter_errors(&json!({})).collect();
     assert!(errors.len() >= 2);
-    assert!(errors.iter().all(|e| matches!(e.current_context(), ValidationErrorKind::Required { .. })));
+    assert!(errors
+        .iter()
+        .all(|e| matches!(e.current_context(), ValidationErrorKind::Required { .. })));
 }
 
 #[test]
@@ -88,7 +93,10 @@ fn validate_first_error() {
     assert!(result.is_err());
     // validate() returns only the first error
     let err = result.unwrap_err();
-    assert!(matches!(err.current_context(), ValidationErrorKind::Required { .. }));
+    assert!(matches!(
+        err.current_context(),
+        ValidationErrorKind::Required { .. }
+    ));
 }
 
 #[test]
@@ -103,7 +111,10 @@ fn one_of_multiple_valid_error() {
     let errors: Vec<_> = v.iter_errors(&json!(42)).collect();
     // 42 matches both int and number in oneOf
     assert!(!errors.is_empty());
-    assert!(matches!(errors[0].current_context(), ValidationErrorKind::OneOfMultipleValid));
+    assert!(matches!(
+        errors[0].current_context(),
+        ValidationErrorKind::OneOfMultipleValid
+    ));
 }
 
 #[test]
