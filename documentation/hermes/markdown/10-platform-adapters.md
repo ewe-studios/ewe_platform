@@ -1,277 +1,114 @@
-# Hermes Agent -- Platform Adapters
+# Hermes Platform Adapters
 
-## Overview
+## Purpose
 
-Each messaging platform has an adapter that handles connection, authentication, message parsing, formatting, and delivery. All adapters implement a common interface but handle platform-specific details internally.
+The `send_message_tool.py` module (1523 lines) routes messages to **18 platforms** from a single unified interface. All platforms share the same target resolution pipeline, smart message chunking, media extraction, and error sanitization — but each connects differently.
 
-## Common Adapter Interface
+## Aha Moments
 
-```python
-class PlatformAdapter:
-    async def start(self, on_message):
-        """Connect to the platform and start listening."""
-        ...
+**Aha: Telegram measures length in UTF-16 code units, not Unicode codepoints.** Python's `len()` counts codepoints (`"😀"` = 1), but Telegram's 4096 limit counts UTF-16 code units (`"😀"` = 2). Characters outside the Basic Multilingual Plane (emoji, CJK Extension B) are surrogate pairs. The `utf16_len()` function at `base.py:27` computes `len(s.encode("utf-16-le")) // 2`.
 
-    async def send_message(self, channel_id, content):
-        """Send a text message to a channel/user."""
-        ...
+**Aha: Discord forum channels (type 15) reject POST `/messages` — a thread is created automatically.** When sending to a forum, the code detects it and creates a thread via `POST /channels/{id}/threads` with the message as a starter post. Three-layer detection: directory cache → process-local probe cache → live API probe (memoized).
 
-    async def send_attachment(self, channel_id, attachment):
-        """Send a file/image attachment."""
-        ...
+**Aha: Media files are only attached to the LAST chunk of a multi-chunk message.** When `truncate_message` splits a long response, media files are passed only to the final chunk (`media_files if is_last else []`). This prevents duplicating attachments across every message.
 
-    async def get_user_info(self, user_id):
-        """Get user profile information."""
-        ...
+**Aha: Message mirroring lets the agent see its own outputs.** After a successful send, the text is mirrored back into the target's gateway session via `mirror_to_session()`. The agent's own responses become conversation history for follow-up messages.
 
-    async def stop(self):
-        """Disconnect from the platform."""
-        ...
-```
+**Aha: Cron duplicate-send detection prevents redundant deliveries.** When `send_message` is called from within a cron job targeting the same destination the scheduler will auto-deliver to, `_maybe_skip_cron_duplicate_send()` returns `{"skipped": True}` instead.
 
-## Message Flow Through the Gateway
-
-```mermaid
-sequenceDiagram
-    participant Platform as Telegram/Discord/Slack
-    participant Adapter as PlatformAdapter
-    participant Gateway as Gateway Runner
-    participant Agent as AIAgent
-    participant Session as Session Manager
-
-    Platform->>Adapter: Incoming message (platform-specific)
-    Adapter->>Adapter: Parse message to internal format
-    Adapter->>Gateway: on_message(internal_msg)
-    Gateway->>Session: get_or_create_session(user_id)
-    Session->>Agent: AIAgent instance for session
-    Agent->>Agent: run_conversation(message)
-    Agent->>Agent: LLM response
-    Agent->>Gateway: response text
-    Gateway->>Adapter: send_message(channel_id, text)
-    Adapter->>Adapter: Format to platform
-    Adapter->>Platform: Send formatted message
-```
-
-## Telegram
-
-| Detail | Value |
-|--------|-------|
-| Library | `python-telegram-bot` |
-| Connection | Polling or Webhook |
-| Formatting | MarkdownV2 |
-| Max message | 4096 chars |
-| Inline images | Yes |
-| Threads | Reply-to message |
-| Bot creation | @BotFather |
-
-```python
-# gateway/platforms/telegram.py (simplified)
-class TelegramAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        app = ApplicationBuilder().token(self.token).build()
-        app.add_handler(MessageHandler(filters.TEXT, self.handle_message))
-        await app.run_polling()
-
-    async def handle_message(self, update, context):
-        text = update.message.text
-        user_id = str(update.message.from_user.id)
-        chat_id = str(update.message.chat_id)
-        await self.on_message("telegram", user_id, chat_id, text)
-
-    async def send_message(self, chat_id, content):
-        formatted = self.to_markdown_v2(content)
-        await self.bot.send_message(
-            chat_id=chat_id,
-            text=formatted,
-            parse_mode="MarkdownV2",
-        )
-```
-
-## Discord
-
-| Detail | Value |
-|--------|-------|
-| Library | `discord.py` |
-| Connection | WebSocket (Gateway) |
-| Formatting | Markdown |
-| Max message | 2000 chars |
-| Embeds | Yes (rich embeds) |
-| Threads | Discord threads |
-| Bot creation | Discord Developer Portal |
-
-```python
-# gateway/platforms/discord.py (simplified)
-class DiscordAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        intents = discord.Intents.default()
-        intents.message_content = True
-        client = discord.Client(intents=intents)
-
-        @client.event
-        async def on_message(message):
-            if message.author == client.user:
-                return
-            await self.on_message("discord", str(message.author.id),
-                                   str(message.channel.id), message.content)
-
-        await client.start(self.token)
-
-    async def send_message(self, channel_id, content):
-        channel = self.client.get_channel(int(channel_id))
-        # Split into 2000-char chunks
-        for chunk in split_text(content, 2000):
-            await channel.send(chunk)
-```
-
-## Slack
-
-| Detail | Value |
-|--------|-------|
-| Library | `slack-bolt` |
-| Connection | Socket Mode (WebSocket) |
-| Formatting | mrkdwn |
-| Max message | 40000 chars |
-| Blocks | Yes (Block Kit) |
-| Threads | Slack threads |
-| Bot creation | Slack API → Your Apps |
-
-```python
-# gateway/platforms/slack.py (simplified)
-class SlackAdapter(PlatformAdapter):
-    async def start(self, on_message):
-        app = AsyncApp(token=self.bot_token)
-
-        @app.event("message")
-        async def handle_message(event, say):
-            if event.get("bot_id"):
-                return
-            await self.on_message("slack", event["user"],
-                                   event["channel"], event["text"])
-
-        handler = AsyncSocketModeHandler(app, self.app_token)
-        await handler.start_async()
-```
-
-## WhatsApp
-
-| Detail | Value |
-|--------|-------|
-| Library | Twilio or Vonage SDK |
-| Connection | Webhook (HTTP) |
-| Formatting | Limited (bold, italic, monospace) |
-| Max message | 65536 chars |
-| Media | Images, audio, documents |
-| Threads | No native threads |
-| Setup | Twilio/Vonage account + phone number |
-
-Requires a webhook endpoint -- the gateway must be publicly accessible or use a tunnel.
-
-## Signal
-
-| Detail | Value |
-|--------|-------|
-| Library | signal-cli or signal-bot |
-| Connection | Local daemon |
-| Formatting | Plain text |
-| Max message | 65536 chars |
-| Media | Images, attachments |
-| Threads | No |
-| Setup | Phone number + signal-cli |
-
-## Matrix
-
-| Detail | Value |
-|--------|-------|
-| Library | matrix-nio |
-| Connection | Long polling or WebSocket |
-| Formatting | HTML or Markdown |
-| Max message | No hard limit |
-| Media | Yes |
-| Threads | Matrix threads (MSC3440) |
-| Setup | Matrix homeserver account |
-
-## Email
-
-| Detail | Value |
-|--------|-------|
-| Library | aiosmtplib + aioimaplib |
-| Connection | IMAP (receive) + SMTP (send) |
-| Formatting | HTML |
-| Max message | No hard limit |
-| Attachments | Yes |
-| Threads | Email threading (In-Reply-To) |
-| Setup | IMAP/SMTP credentials |
-
-## DingTalk
-
-| Detail | Value |
-|--------|-------|
-| Library | DingTalk Open API SDK |
-| Connection | Webhook + Event subscription |
-| Formatting | Markdown (DingTalk flavor) |
-| Setup | DingTalk Developer account |
-
-## Feishu (Lark)
-
-| Detail | Value |
-|--------|-------|
-| Library | Feishu Open Platform SDK |
-| Connection | WebSocket or Webhook |
-| Formatting | Rich text cards |
-| Setup | Feishu Developer account |
-
-## SMS
-
-| Detail | Value |
-|--------|-------|
-| Library | Twilio SDK |
-| Connection | Webhook |
-| Formatting | Plain text |
-| Max message | 1600 chars (concatenated SMS) |
-| Media | MMS for images |
-| Setup | Twilio account + phone number |
-
-## Platform Feature Matrix
-
-| Feature | TG | DC | SL | WA | SIG | MTX | Email | DT | FS | SMS |
-|---------|----|----|----|----|-----|-----|-------|----|----|-----|
-| Markdown | V2 | MD | mrk | Ltd | No | HTML | HTML | MD | Rich | No |
-| Images | Y | Y | Y | Y | Y | Y | Y | Y | Y | MMS |
-| Threads | Y | Y | Y | N | N | Y | Y | Y | Y | N |
-| Reactions | Y | Y | Y | Y | N | Y | N | Y | Y | N |
-| Typing indicator | Y | Y | N | Y | N | Y | N | N | N | N |
-| Max msg | 4K | 2K | 40K | 65K | 65K | -- | -- | -- | -- | 1.6K |
-
-## Message Format Conversion
-
-The delivery layer converts the agent's Markdown response to each platform's format:
+## Target Resolution Pipeline
 
 ```mermaid
 flowchart TD
-    AGENT[Agent Response<br/>Markdown] --> CONVERTER[Format Converter]
-    CONVERTER --> TG_FMT[Telegram MarkdownV2<br/>Escape special chars]
-    CONVERTER --> DC_FMT[Discord Markdown<br/>Code blocks, embeds]
-    CONVERTER --> SL_FMT[Slack mrkdwn<br/>Block Kit for complex]
-    CONVERTER --> WA_FMT[WhatsApp<br/>Bold, italic, mono only]
-    CONVERTER --> PLAIN[Plain text<br/>Signal, SMS]
-    CONVERTER --> HTML_FMT[HTML<br/>Email, Matrix]
+    INPUT["target: 'platform:ref'"] --> PARSE["_parse_target_ref()"]
+    PARSE --> PLATFORM{"Platform-specific regex?"}
+    PLATFORM -->|telegram/discord/feishu| EXPLICIT["Numeric chat_id:thread_id"]
+    PLATFORM -->|signal/sms/whatsapp| E164["+DDDDDDDD (7-15 digits)"]
+    PLATFORM -->|matrix| MATRIX["!roomid:server or @user:server"]
+    PLATFORM -->|weixin| WEIXIN["wxid_..., @chatroom, filehelper"]
+    PLATFORM -->|fallthrough| NUMERIC{Is numeric?}
+    NUMERIC -->|yes| EXPLICIT
+    NUMERIC -->|no| RESOLVE["resolve_channel_name() → channel_directory"]
+    RESOLVE --> REPARSE["_parse_target_ref() on resolved value"]
 ```
 
-## Key Files
+Source: `send_message_tool.py:307-336`
 
+## Smart Message Chunking
+
+```python
+# send_message_tool.py:440-456
+# Limits read from adapter class attributes, not hardcoded literals
+_MAX_LENGTHS = {
+    Platform.TELEGRAM: TelegramAdapter.MAX_MESSAGE_LENGTH,   # 4096 (UTF-16 code units)
+    Platform.DISCORD:  DiscordAdapter.MAX_MESSAGE_LENGTH,    # 2000  (Unicode codepoints)
+    Platform.SLACK:    SlackAdapter.MAX_MESSAGE_LENGTH,      # 40000 (Unicode codepoints)
+}
+if _feishu_available:
+    _MAX_LENGTHS[Platform.FEISHU] = FeishuAdapter.MAX_MESSAGE_LENGTH  # 20000
+
+_len_fn = utf16_len if platform == Platform.TELEGRAM else None
+chunks = BasePlatformAdapter.truncate_message(message, max_len, len_fn=_len_fn)
 ```
-gateway/platforms/
-  ├── telegram.py       Telegram adapter
-  ├── discord.py        Discord adapter
-  ├── slack.py          Slack adapter
-  ├── whatsapp.py       WhatsApp adapter (Twilio/Vonage)
-  ├── signal.py         Signal adapter
-  ├── matrix.py         Matrix adapter
-  ├── email.py          Email adapter (IMAP/SMTP)
-  ├── dingtalk.py       DingTalk adapter
-  ├── feishu.py         Feishu (Lark) adapter
-  ���── sms.py            SMS adapter (Twilio)
-gateway/
-  ├── delivery.py       Message delivery + format conversion
-  └── display_config.py Per-platform display preferences
+
+The `truncate_message()` method (`base.py:2594-2723`) splits at natural boundaries (newlines > spaces), preserves code-block fences (closes/reopens with language tag), avoids splitting inline code spans, and appends `(N/M)` indicators.
+
+## Media Extraction
+
+The agent embeds media paths in responses using `MEDIA:` tags:
+
+```python
+# base.py:1434-1473
+def extract_media(content: str) -> Tuple[List[Tuple[str, bool]], str]:
+    """Extract MEDIA:<path> tags and [[audio_as_voice]] directives."""
 ```
+
+Supported extensions: images (`.jpg`, `.png`, `.webp`, `.gif`), video (`.mp4`, `.mov`, `.avi`, `.mkv`), audio (`.ogg`, `.opus`, `.mp3`, `.wav`, `.m4a`), documents (`.pdf`, `.zip`, `.docx`, `.xlsx`, `.csv`, etc.).
+
+## Adapter Types
+
+Each platform connects differently. The subpages below cover each adapter type in depth:
+
+| Type | Platforms | Connection Method |
+|------|-----------|-------------------|
+| **Bot API** | Telegram | `python-telegram-bot` Bot class (one-shot, no polling) |
+| **REST API** | Discord, Slack, Mattermost, Home Assistant, DingTalk, QQBot | `aiohttp`/`httpx` direct HTTP calls |
+| **Bridge/Daemon** | WhatsApp, Signal | Local bridge HTTP / JSON-RPC to signal-cli |
+| **SMTP** | Email | `smtplib.SMTP` one-shot with STARTTLS |
+| **Native SDK** | Feishu/Lark, Weixin, WeCom, BlueBubbles | Platform-specific SDK or adapter class |
+| **Matrix Client-Server** | Matrix | REST API + full `MatrixAdapter` for media |
+
+## Media Support by Platform
+
+| Platform | Text | Media | Threads | Formatting |
+|----------|------|-------|---------|------------|
+| Telegram | Yes | Photo/video/voice/audio/doc | Topics | MarkdownV2/HTML |
+| Discord | Yes | Multipart uploads | Threads + Forums | Auto-markdown |
+| Signal | Yes | Attachments array | Groups | Plain text |
+| Matrix | Yes | Image/video/voice/doc | Threads | HTML from markdown |
+| Feishu | Yes | Image/video/voice/doc | Threads | Rich text |
+| Weixin | Yes | Image/video/doc | No | Rich text |
+| All others | Yes | Warning only | Varies | Platform-specific |
+
+## Error Sanitization
+
+All error messages pass through `_sanitize_error_text()` which redacts API keys, tokens, and webhook URLs before surfacing to users or LLMs:
+
+```python
+_URL_SECRET_QUERY_RE = re.compile(r"([?&](?:access_token|api[_-]?key|auth[_-]?token|token|signature|sig)=)([^&#\s]+)")
+_GENERIC_SECRET_ASSIGN_RE = re.compile(r"\b(access_token|api[_-]?key|auth[_-]?token|signature|sig)\s*=\s*([^\s,;]+)")
+```
+
+## Subpages
+
+| Document | Covers |
+|----------|--------|
+| [10a-bot-api-adapter.md](10a-bot-api-adapter.md) | Telegram — Bot API, MarkdownV2, retry logic, media |
+| [10b-rest-api-adapters.md](10b-rest-api-adapters.md) | Discord (forum detection), Slack, Mattermost, Home Assistant, DingTalk, QQBot |
+| [10c-bridge-daemon-adapters.md](10c-bridge-daemon-adapters.md) | WhatsApp (local bridge), Signal (JSON-RPC daemon) |
+| [10d-smtp-adapter.md](10d-smtp-adapter.md) | Email — SMTP one-shot, STARTTLS |
+| [10e-matrix-adapter.md](10e-matrix-adapter.md) | Matrix — Client-Server API, E2EE, full media adapter |
+| [10f-native-sdk-adapters.md](10f-native-sdk-adapters.md) | Feishu/Lark, Weixin, WeCom, BlueBubbles |
+
+[See cron scheduler for automated delivery → 08-cron.md](08-cron.md)
+[See data flow end-to-end → 11-data-flow.md](11-data-flow.md)

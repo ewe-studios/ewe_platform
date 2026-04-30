@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Platform Adapters -- Native SDK: Feishu/Lark, Weixin, WeCom, BlueBubbles -- hermes</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/hermes/docs</span>
+    <div class="nav-actions">
+      <a href="10c-bridge-daemon-adapters.html" class="nav-breadcrumb">Hermes Platform Adapters -- Bridge/Daemon: WhatsApp and Signal</a><a href="10d-smtp-adapter.html" class="nav-breadcrumb">Hermes Platform Adapters -- SMTP: Email</a><a href="10e-matrix-adapter.html" class="nav-breadcrumb">Hermes Platform Adapters -- Matrix: Client-Server API + E2EE</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="10e-matrix-adapter.html" class="nav-btn" title="Previous: Hermes Platform Adapters -- Matrix: Client-Server API + E2EE">← prev</a>
+      <a href="11-data-flow.html" class="nav-btn nav-btn-next" title="Next: Hermes Agent -- Data Flow (End-to-End)">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Hermes Platform Adapters -- Native SDK: Feishu/Lark, Weixin, WeCom, BlueBubbles</h1>
+<h2>Purpose</h2>
+<p>Four platforms use native SDKs or adapter classes for their full send pipelines. Feishu/Lark uses the <code>lark-oapi</code> SDK, Weixin uses the iLink native API, WeCom uses a WebSocket-based adapter, and BlueBubbles connects to an iMessage server via REST. These adapters manage connections, authentication, and media uploads through platform-specific libraries.</p>
+<p>Source: <code>hermes-agent/tools/send_message_tool.py</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Weixin can be configured purely via <code>.env</code> without a <code>gateway.yaml</code> entry.</strong> The <code>send_message_tool</code> synthesizes a <code>PlatformConfig</code> from <code>WEIXIN_TOKEN</code>, <code>WEIXIN_ACCOUNT_ID</code>, and <code>WEIXIN_BASE_URL</code> environment variables. This is unique — all other platforms require a <code>config.yaml</code> entry.</p>
+<p><strong>Aha: Feishu/Lark auto-detects between Feishu (China) and Lark (global) domains.</strong> The adapter reads <code>_domain_name</code> from config and selects <code>FEISHU_DOMAIN</code> or <code>LARK_DOMAIN</code> accordingly, then builds the <code>lark-oapi</code> client with the correct base URL.</p>
+<p><strong>Aha: WeCom and BlueBubbles use a connect → send → disconnect lifecycle.</strong> Unlike the REST adapters that are stateless, these adapters maintain a connection (WebSocket for WeCom, HTTP session for BlueBubbles) that must be explicitly opened and closed for each send.</p>
+<h2>Architecture: Feishu/Lark</h2>
+<div class="mermaid">
+flowchart TD
+    ENTRY[&quot;_send_feishu()&quot;] --&gt; CHECK[&quot;FEISHU_AVAILABLE?\nlark-oapi installed&quot;]
+    CHECK --&gt;|no| ERR[&quot;Install: pip install &#x27;hermes-agent[feishu]&#x27;&quot;]
+    CHECK --&gt;|yes| NEW[&quot;FeishuAdapter(pconfig)&quot;]
+    NEW --&gt; DOMAIN{&quot;feishu or lark?&quot;}
+    DOMAIN --&gt;|feishu| FEISHU[&quot;FEISHU_DOMAIN&quot;]
+    DOMAIN --&gt;|lark| LARK[&quot;LARK_DOMAIN&quot;]
+    FEISHU --&gt; BUILD[&quot;adapter._build_lark_client(domain)&quot;]
+    LARK --&gt; BUILD
+    BUILD --&gt; TEXT{&quot;Text?&quot;}
+    TEXT --&gt;|yes| SEND[&quot;adapter.send(chat_id, message)&quot;]
+    TEXT --&gt;|no| MEDIA
+    SEND --&gt; OK{&quot;success?&quot;}
+    OK --&gt;|no| ERR2[&quot;Return error&quot;]
+    OK --&gt;|yes| MEDIA
+
+    MEDIA[&quot;For each media file&quot;] --&gt; EXT{&quot;Extension?&quot;}
+    EXT --&gt;|image| IMG[&quot;adapter.send_image_file()&quot;]
+    EXT --&gt;|video| VID[&quot;adapter.send_video()&quot;]
+    EXT --&gt;|voice| VOICE[&quot;adapter.send_voice()&quot;]
+    EXT --&gt;|other| DOC[&quot;adapter.send_document()&quot;]
+    IMG --&gt; M_OK
+    VID --&gt; M_OK
+    VOICE --&gt; M_OK
+    DOC --&gt; M_OK
+    M_OK --&gt;|no| ERR2
+    M_OK --&gt;|yes| MORE{&quot;More?&quot;}
+    MORE --&gt;|yes| MEDIA
+    MORE --&gt;|no| DONE[&quot;{success, message_id}&quot;]
+
+</div>
+<h2>Feishu/Lark (<code>_send_feishu</code>, lines 1391-1445)</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Library</td><td>`lark-oapi` SDK</td></tr><tr><td>Connection</td><td>Feishu or Lark domain (auto-detected)</td></tr><tr><td>Max message</td><td>20000 chars</td></tr><tr><td>Media</td><td>`send_image_file`, `send_video`, `send_voice`, `send_document`</td></tr><tr><td>Threads</td><td>`thread_id` passed via metadata dict</td></tr><tr><td>Config</td><td>Feishu app ID + secret, or Lark equivalents</td></tr></table>
+<pre><code class="language-python">async def _send_feishu(pconfig, chat_id, message, media_files=None, thread_id=None):
+    from gateway.platforms.feishu import FeishuAdapter, FEISHU_AVAILABLE
+    if not FEISHU_AVAILABLE:
+        return {&quot;error&quot;: &quot;Feishu dependencies not installed. Run: pip install &#x27;hermes-agent[feishu]&#x27;&quot;}
+    from gateway.platforms.feishu import FEISHU_DOMAIN, LARK_DOMAIN
+
+    adapter = FeishuAdapter(pconfig)
+    domain_name = getattr(adapter, &quot;_domain_name&quot;, &quot;feishu&quot;)
+    domain = FEISHU_DOMAIN if domain_name != &quot;lark&quot; else LARK_DOMAIN
+    adapter._client = adapter._build_lark_client(domain)
+    metadata = {&quot;thread_id&quot;: thread_id} if thread_id else None
+
+    last_result = None
+    if message.strip():
+        last_result = await adapter.send(chat_id, message, metadata=metadata)
+        if not last_result.success:
+            return _error(f&quot;Feishu send failed: {last_result.error}&quot;)
+
+    for media_path, is_voice in media_files:
+        ext = os.path.splitext(media_path)[1].lower()
+        if ext in _IMAGE_EXTS:
+            last_result = await adapter.send_image_file(chat_id, media_path, metadata=metadata)
+        elif ext in _VIDEO_EXTS:
+            last_result = await adapter.send_video(chat_id, media_path, metadata=metadata)
+        elif ext in _VOICE_EXTS and is_voice:
+            last_result = await adapter.send_voice(chat_id, media_path, metadata=metadata)
+        elif ext in _AUDIO_EXTS:
+            last_result = await adapter.send_voice(chat_id, media_path, metadata=metadata)
+        else:
+            last_result = await adapter.send_document(chat_id, media_path, metadata=metadata)
+
+        if not last_result.success:
+            return _error(f&quot;Feishu media send failed: {last_result.error}&quot;)
+</code></pre>
+<h3>Feishu Target Parsing</h3>
+<p>Feishu uses structured ID formats that are recognized as explicit targets:</p>
+<pre><code class="language-python">_FEISHU_TARGET_RE = re.compile(r&quot;^\s*((?:oc|ou|on|chat|open)_[-A-Za-z0-9]+)(?::([-A-Za-z0-9_]+))?\s*$&quot;)
+# Matches: oc_abc123, ou_user456, on_..., chat_..., open_...
+# Optional thread_id after colon: oc_abc123:thread_id
+</code></pre>
+<h2>Weixin (<code>_send_weixin</code>, lines 1343-1361)</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Connection</td><td>Weixin iLink native API</td></tr><tr><td>Auth</td><td>`WEIXIN_TOKEN` + `WEIXIN_ACCOUNT_ID` (env-only, no config.yaml needed)</td></tr><tr><td>Media</td><td>`send_weixin_direct` with media_files support</td></tr><tr><td>Config</td><td>Can be purely env-based — unique among all platforms</td></tr></table>
+<pre><code class="language-python">async def _send_weixin(pconfig, chat_id, message, media_files=None):
+    from gateway.platforms.weixin import check_weixin_requirements, send_weixin_direct
+    if not check_weixin_requirements():
+        return {&quot;error&quot;: &quot;Weixin requirements not met. Need aiohttp + cryptography.&quot;}
+
+    return await send_weixin_direct(
+        extra=pconfig.extra,
+        token=pconfig.token,
+        chat_id=chat_id,
+        message=message,
+        media_files=media_files,
+    )
+</code></pre>
+<p>The env-only configuration is synthesized in <code>_handle_send</code>:</p>
+<pre><code class="language-python"># send_message_tool.py:228-242
+if platform_name == &quot;weixin&quot;:
+    wx_token = os.getenv(&quot;WEIXIN_TOKEN&quot;, &quot;&quot;).strip()
+    wx_account = os.getenv(&quot;WEIXIN_ACCOUNT_ID&quot;, &quot;&quot;).strip()
+    if wx_token and wx_account:
+        pconfig = PlatformConfig(
+            enabled=True,
+            token=wx_token,
+            extra={
+                &quot;account_id&quot;: wx_account,
+                &quot;base_url&quot;: os.getenv(&quot;WEIXIN_BASE_URL&quot;, &quot;&quot;).strip(),
+                &quot;cdn_base_url&quot;: os.getenv(&quot;WEIXIN_CDN_BASE_URL&quot;, &quot;&quot;).strip(),
+            },
+        )
+    else:
+        return tool_error(f&quot;Platform &#x27;{platform_name}&#x27; is not configured...&quot;)
+</code></pre>
+<h3>Weixin Target Parsing</h3>
+<pre><code class="language-python">_WEIXIN_TARGET_RE = re.compile(r&quot;^\s*((?:wxid|gh|v\d+|wm|wb)_[A-Za-z0-9_-]+|[A-Za-z0-9._-]+@chatroom|filehelper)\s*$&quot;)
+# Matches: wxid_abc123, gh_def456, v1_..., user@chatroom, filehelper
+</code></pre>
+<h2>WeCom (<code>_send_wecom</code>, lines 1316-1340)</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Connection</td><td>WebSocket-based send pipeline via `WeComAdapter`</td></tr><tr><td>Auth</td><td>`WECOM_BOT_ID` + `WECOM_BOT_SECRET`</td></tr><tr><td>Lifecycle</td><td>Connect → send → disconnect (one-shot)</td></tr><tr><td>Library</td><td>`aiohttp`</td></tr></table>
+<pre><code class="language-python">async def _send_wecom(extra, chat_id, message):
+    from gateway.platforms.wecom import WeComAdapter, check_wecom_requirements
+    if not check_wecom_requirements():
+        return {&quot;error&quot;: &quot;WeCom requirements not met. Need aiohttp + WECOM_BOT_ID/SECRET.&quot;}
+
+    from gateway.config import PlatformConfig
+    pconfig = PlatformConfig(extra=extra)
+    adapter = WeComAdapter(pconfig)
+    connected = await adapter.connect()
+    if not connected:
+        return _error(f&quot;WeCom: failed to connect - {adapter.fatal_error_message or &#x27;unknown error&#x27;}&quot;)
+    try:
+        result = await adapter.send(chat_id, message)
+        if not result.success:
+            return _error(f&quot;WeCom send failed: {result.error}&quot;)
+        return {&quot;success&quot;: True, &quot;platform&quot;: &quot;wecom&quot;, &quot;message_id&quot;: result.message_id}
+    finally:
+        await adapter.disconnect()
+</code></pre>
+<h2>BlueBubbles (<code>_send_bluebubbles</code>, lines 1364-1388)</h2>
+<table><tr><th>Detail</th><th>Value</th></tr><tr><td>Connection</td><td>BlueBubbles iMessage server REST API</td></tr><tr><td>Auth</td><td>Server URL + password</td></tr><tr><td>Lifecycle</td><td>Connect → send → disconnect (one-shot)</td></tr><tr><td>Library</td><td>`aiohttp` + `httpx`</td></tr></table>
+<pre><code class="language-python">async def _send_bluebubbles(extra, chat_id, message):
+    from gateway.platforms.bluebubbles import BlueBubblesAdapter, check_bluebubbles_requirements
+    if not check_bluebubbles_requirements():
+        return {&quot;error&quot;: &quot;BlueBubbles requirements not met (need aiohttp + httpx).&quot;}
+
+    from gateway.config import PlatformConfig
+    pconfig = PlatformConfig(extra=extra)
+    adapter = BlueBubblesAdapter(pconfig)
+    connected = await adapter.connect()
+    if not connected:
+        return _error(&quot;BlueBubbles: failed to connect to server&quot;)
+    try:
+        result = await adapter.send(chat_id, message)
+        if not result.success:
+            return _error(f&quot;BlueBubbles send failed: {result.error}&quot;)
+        return {&quot;success&quot;: True, &quot;platform&quot;: &quot;bluebubbles&quot;, &quot;message_id&quot;: result.message_id}
+    finally:
+        await adapter.disconnect()
+</code></pre>
+<h2>Connect → Send → Disconnect Pattern</h2>
+<p>WeCom and BlueBubbles share a lifecycle pattern that applies to any connection-based platform:</p>
+<pre><code class="language-python">async def _send_connection_based(extra, chat_id, message):
+    # 1. Check requirements
+    check_requirements()
+
+    # 2. Build config and adapter
+    pconfig = PlatformConfig(extra=extra)
+    adapter = YourAdapter(pconfig)
+
+    # 3. Connect
+    connected = await adapter.connect()
+    if not connected:
+        return _error(f&quot;Failed to connect: {adapter.fatal_error_message}&quot;)
+
+    # 4. Send (always in try/finally to ensure disconnect)
+    try:
+        result = await adapter.send(chat_id, message)
+        if not result.success:
+            return _error(f&quot;Send failed: {result.error}&quot;)
+        return {&quot;success&quot;: True, &quot;platform&quot;: &quot;your_platform&quot;, &quot;message_id&quot;: result.message_id}
+    finally:
+        await adapter.disconnect()
+</code></pre>
+<p>The <code>try/finally</code> ensures the connection is closed even if the send raises an exception, preventing resource leaks (open WebSocket connections, unclosed HTTP sessions).</p>
+<h2>Building Your Own Native SDK Adapter</h2>
+<p>For platforms with Python SDKs:</p>
+<pre><code class="language-python">async def _send_your_sdk(pconfig, chat_id, message, media_files=None):
+    # 1. Check SDK availability
+    try:
+        from your_platform_sdk import Client
+    except ImportError:
+        return {&quot;error&quot;: &quot;your-platform-sdk not installed&quot;}
+
+    # 2. Initialize client
+    client = Client(
+        app_id=pconfig.extra.get(&quot;app_id&quot;),
+        secret=pconfig.token,
+    )
+
+    # 3. Send text
+    result = await client.send_message(
+        target=chat_id,
+        content=message,
+    )
+
+    # 4. Send media (if supported)
+    for media_path, is_voice in media_files or []:
+        ext = os.path.splitext(media_path)[1].lower()
+        if ext in IMAGE_EXTS:
+            await client.send_image(target=chat_id, file=media_path)
+        elif ext in VIDEO_EXTS:
+            await client.send_video(target=chat_id, file=media_path)
+        else:
+            await client.send_file(target=chat_id, file=media_path)
+
+    return {&quot;success&quot;: True, &quot;platform&quot;: &quot;your_platform&quot;, &quot;message_id&quot;: result.id}
+</code></pre>
+<p>For connection-based adapters (WebSocket, persistent sessions):</p>
+<pre><code class="language-python">async def _send_with_connection(pconfig, chat_id, message):
+    adapter = YourAdapter(pconfig)
+    connected = await adapter.connect()
+    if not connected:
+        return _error(&quot;Connection failed&quot;)
+    try:
+        result = await adapter.send(chat_id, message)
+        return {&quot;success&quot;: True, &quot;message_id&quot;: result.id}
+    finally:
+        await adapter.disconnect()  # Always clean up
+</code></pre>
+<h2>Key Files</h2>
+<pre><code class="language-">tools/
+  └── send_message_tool.py   ← _send_feishu() (lines 1391-1445)
+                              ← _send_weixin() (lines 1343-1361)
+                              ← _send_wecom() (lines 1316-1340)
+                              ← _send_bluebubbles() (lines 1364-1388)
+
+gateway/platforms/
+  ├── feishu.py              ← FeishuAdapter (lark-oapi SDK)
+  ├── weixin.py              ← send_weixin_direct (iLink native API)
+  ├── wecom.py               ← WeComAdapter (WebSocket)
+  └── bluebubbles.py         ← BlueBubblesAdapter (REST API)
+</code></pre>
+<p><a href="10-platform-adapters.md">Back to platform adapters overview → 10-platform-adapters.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
