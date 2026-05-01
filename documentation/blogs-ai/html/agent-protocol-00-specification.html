@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Agent Protocol -- Standardized API for LLM Agents -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,36 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="03-observability-evaluation.html" class="nav-breadcrumb">LangChain -- Agent Observability & Evaluation</a><a href="04-production-agents.html" class="nav-breadcrumb">LangChain -- Production Deep Agents</a><a href="README.html" class="nav-breadcrumb">Blogs AI -- Industry Research Synthesis</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="README.html" class="nav-btn" title="Previous: Blogs AI -- Industry Research Synthesis">← prev</a>
+      <a href="agent-protocol-README.html" class="nav-btn nav-btn-next" title="Next: Agent Protocol -- Standardized API for LLM Agents">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
-<h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
-</code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h1>Agent Protocol -- Standardized API for LLM Agents</h1>
+<h2>Purpose</h2>
+<p>Agent Protocol is a framework-agnostic API specification for serving LLM agents in production. It defines standardized endpoints around three core concepts: Runs (executions), Threads (multi-turn sessions), and Store (long-term memory).</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/agent-protocol/</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Unified streaming protocol via CDDL.</strong> The protocol defines a CDDL schema covering all streaming channels — messages, tools, lifecycle events, input requests, values, updates, checkpoints, tasks, custom — with content-block lifecycle states.</p>
+<p><strong>Aha: Three core primitives cover all agent patterns.</strong> Runs (execute), Threads (organize), Store (remember). Everything else — background runs, stateless runs, streaming — are variations on these three.</p>
+<h2>API Specification (<code>openapi.json</code>)</h2>
+<h3>Core Primitives</h3>
+<table><tr><th>Concept</th><th>Description</th></tr><tr><td>**Run**</td><td>A single agent execution</td></tr><tr><td>**Thread**</td><td>A multi-turn session organizing related runs</td></tr><tr><td>**Store**</td><td>Long-term memory with namespace-based access</td></tr></table>
+<h3>Endpoint Groups</h3>
+<table><tr><th>Group</th><th>Endpoints</th><th>Purpose</th></tr><tr><td>**Stateless Runs**</td><td>`POST /runs/wait`, `POST /runs/stream`</td><td>Create thread + run in one call</td></tr><tr><td>**Threads**</td><td>`POST /threads`, `GET /threads/{id}`, `PATCH /threads/{id}`, `DELETE /threads/{id}`, `POST /threads/search`, `GET /threads/{id}/history`, `POST /threads/{id}/copy`</td><td>Thread CRUD and search</td></tr><tr><td>**Agents**</td><td>`POST /agents/search`, `GET /agents/{id}`, `GET /agents/{id}/schemas`</td><td>Agent introspection</td></tr><tr><td>**Background Runs**</td><td>`GET /threads/{id}/runs`, `POST /runs`, `GET /runs/{id}`, `POST /runs/{id}/cancel`, `DELETE /runs/{id}`, `GET /runs/{id}/wait`, `GET /runs/{id}/stream`</td><td>Async run management</td></tr><tr><td>**Store**</td><td>`PUT /store/items`, `DELETE /store/items`, `GET /store/items`, `POST /store/items/search`, `POST /store/namespaces`</td><td>Long-term memory</td></tr><tr><td>**Streaming**</td><td>`POST /threads/{id}/stream` (SSE), `GET /threads/{id}/stream` (WebSocket), `POST /threads/{id}/commands`</td><td>Real-time streaming + HITL</td></tr></table>
+<h2>Streaming Protocol (<code>streaming/protocol.cddl</code>)</h2>
+<p>Unified streaming protocol with channels:</p>
+<ul><li><code>messages</code> — LLM message content</li><li><code>tools</code> — tool call lifecycle</li><li><code>lifecycle</code> — graph start/end events</li><li><code>input</code> — human-in-the-loop input requests</li><li><code>values</code> — state values after each step</li><li><code>updates</code> — node deltas</li><li><code>checkpoints</code> — checkpoint events</li><li><code>tasks</code> — task start/finish</li><li><code>custom</code> — user-defined events</li></ul>
+<p><strong>Content-block lifecycle:</strong> <code>message-start</code> → <code>content-block-start</code> → <code>content-block-delta</code> × N → <code>content-block-finish</code> → <code>message-finish</code></p>
+<p><strong>Tool lifecycle:</strong> <code>tool-started</code> → <code>tool-output-delta</code> × N → <code>tool-finished</code> / <code>tool-error</code></p>
+<p><strong>Human-in-the-loop:</strong> <code>input.requested</code> / <code>input.respond</code> commands</p>
+<h2>Server Implementation (<code>server/</code>)</h2>
+<p>FastAPI-based reference implementation:</p>
+<ul><li><code>main.py</code> — FastAPI app entry point</li><li><code>models.py</code> — Pydantic V2 models for request/response schemas</li><li><code>routers/runs.py</code> — Background run endpoints</li><li><code>routers/stateless_runs.py</code> — Stateless run endpoints</li><li><code>routers/threads.py</code> — Thread CRUD</li><li><code>routers/agents.py</code> — Agent introspection</li><li><code>routers/store.py</code> — Memory store</li><li><code>routers/background_runs.py</code> — Background run management</li></ul>
+<p><a href="../README.md">Back to main index → ../README.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

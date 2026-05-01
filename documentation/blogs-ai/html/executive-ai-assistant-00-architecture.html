@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Executive AI Assistant -- Email Triage Agent -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,46 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="deepagents-README.html" class="nav-breadcrumb">Deep Agents -- Batteries-Included Agent Harness</a><a href="deepagentsjs-00-architecture.html" class="nav-breadcrumb">Deep Agents JS -- TypeScript Source Architecture</a><a href="deepagentsjs-README.html" class="nav-breadcrumb">Deep Agents JS -- TypeScript Port</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="deepagentsjs-README.html" class="nav-btn" title="Previous: Deep Agents JS -- TypeScript Port">← prev</a>
+      <a href="executive-ai-assistant-README.html" class="nav-btn nav-btn-next" title="Next: Executive AI Assistant -- Email Triage Agent">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
-<h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
+<h1>Executive AI Assistant -- Email Triage Agent</h1>
+<h2>Purpose</h2>
+<p>An AI agent that acts as an Executive Assistant — monitors a Gmail inbox, triages emails, drafts responses, schedules meetings, and sends calendar invites. Uses LangChain Auth for Google OAuth.</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/executive-ai-assistant/</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Deterministic thread IDs from email thread_id MD5.</strong> The cron graph creates/reuses threads by hashing the Gmail thread_id — same email always maps to the same LangGraph thread, enabling stateful multi-turn handling.</p>
+<p><strong>Aha: Two graphs — main and cron.</strong> The main graph handles per-email processing (triage → human → action). The cron graph periodically fetches new emails and kicks off runs against the main graph with <code>multitask_strategy="rollback"</code>.</p>
+<h2>Main Graph (<code>eaia/main/graph.py:1-191</code>)</h2>
+<pre><code class="language-">START --&gt; triage_input --&gt; route_after_triage
+                                |
+         +----------------------+----------------------+
+         |              |              |               |
+    draft_response    &quot;no&quot;         &quot;notify&quot;        &quot;question&quot;
+         |              |              |               |
+    human_node      mark_as_read    notify_node    send_email_node
+         |
+    enter_after_human
+         |
+    +----+----+----------+
+    |         |          |
+send_email  send_cal   rewrite
+  invite    invite
 </code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h3>Nodes</h3>
+<table><tr><th>Node</th><th>File</th><th>Purpose</th></tr><tr><td>`triage_input`</td><td>`triage.py:46`</td><td>Classifies email as: "email" (draft response), "no" (mark as read), "notify" (alert user), "question" (draft response)</td></tr><tr><td>`draft_response`</td><td>`draft_response.py`</td><td>Drafts email response using LLM</td></tr><tr><td>`take_action`</td><td>Conditional edge</td><td>Routes to appropriate action based on agent decision</td></tr><tr><td>`human_node`</td><td>`human_inbox.py:153`</td><td>Human-in-the-loop pause point</td></tr><tr><td>`enter_after_human`</td><td>After approval</td><td>Routes to action node</td></tr><tr><td>Action nodes</td><td>Various</td><td>`send_email_node`, `send_cal_invite_node`, `rewrite`, `notify`, `mark_as_read_node`</td></tr></table>
+<h2>Cron Graph (<code>eaia/cron_graph.py:1-54</code>)</h2>
+<ol><li>Fetches group emails via Gmail (last N minutes)</li><li>Creates/reuses threads (deterministic thread IDs from email thread_id MD5 hash, line 23)</li><li>Kicks off runs against "main" graph with <code>multitask_strategy="rollback"</code></li></ol>
+<h2>langgraph.json</h2>
+<p>Defines 4 graphs: <code>main</code>, <code>cron</code>, <code>general_reflection_graph</code>, <code>multi_reflection_graph</code>. Uses OpenAI text-embedding-3-small for store indexing.</p>
+<h2>Key Files</h2>
+<ul><li><code>eaia/main/graph.py</code> — Main agent graph</li><li><code>eaia/main/triage.py</code> — Email triage classification</li><li><code>eaia/main/draft_response.py</code> — Email drafting</li><li><code>eaia/main/rewrite.py</code> — Tone/style rewriting</li><li><code>eaia/main/find_meeting_time.py</code> — Calendar scheduling</li><li><code>eaia/main/human_inbox.py</code> — HITL action dispatch</li><li><code>eaia/cron_graph.py</code> — Email ingestion cron</li><li><code>eaia/gmail.py</code> — Gmail API interactions</li><li><code>eaia/reflection_graphs.py</code> — Memory/reflection graphs</li><li><code>eaia/main/config.yaml</code> — User configuration</li></ul>
+<p><a href="../README.md">Back to main index → ../README.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

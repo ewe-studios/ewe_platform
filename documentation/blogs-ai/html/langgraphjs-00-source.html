@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangGraph.js -- TypeScript Source Architecture -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="executive-ai-assistant-README.html" class="nav-breadcrumb">Executive AI Assistant -- Email Triage Agent</a><a href="langchain-05-langgraph-source.html" class="nav-breadcrumb">LangGraph -- Source Code Architecture Deep Dive</a><a href="langchain-README.html" class="nav-breadcrumb">LangChain -- Blog Synthesis</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="langchain-README.html" class="nav-btn" title="Previous: LangChain -- Blog Synthesis">← prev</a>
+      <a href="langgraphjs-README.html" class="nav-btn nav-btn-next" title="Next: LangGraph.js -- TypeScript/JavaScript Port">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>LangGraph.js -- TypeScript Source Architecture</h1>
+<h2>Purpose</h2>
+<p>LangGraph.js is the TypeScript/JavaScript port of LangGraph. Same Pregel algorithm, channel system, checkpointing, and state graph API — but with JS-native concurrency (async/await, AbortSignal, Web Streams).</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/langgraphjs/</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Same algorithm, different concurrency.</strong> Python uses <code>ThreadPoolExecutor</code> and <code>asyncio.Task</code> cancellation. JS uses <code>Promise.race()</code> with configurable <code>maxConcurrency</code> and <code>AbortSignal</code>. The BSP superstep logic is identical.</p>
+<p><strong>Aha: <code>AsyncLocalStorage</code> replaces <code>contextvars</code>.</strong> Node.js <code>AsyncLocalStorage</code> propagates execution context across async boundaries — the same role Python's <code>contextvars</code> fills.</p>
+<p><strong>Aha: Web Streams API for streaming.</strong> Instead of Python's <code>AsyncIterator</code>, JS uses <code>ReadableStream</code>/<code>WritableStream</code> — the browser-native standard.</p>
+<p><strong>Aha: Three frontend SDK families.</strong> React hooks, Angular services, Svelte stores, Vue composables — each with framework-specific bindings for LangGraph Platform.</p>
+<h2>Monorepo Structure</h2>
+<pre><code class="language-">langgraphjs/libs/
+├── langgraph/              # Main — re-exports from langgraph-core
+├── langgraph-core/         # Core engine (Pregel, channels, state graph)
+├── checkpoint/             # Base checkpoint + MemorySaver
+├── checkpoint-postgres/    # PostgreSQL checkpointer
+├── checkpoint-sqlite/      # SQLite checkpointer
+├── checkpoint-mongodb/     # MongoDB checkpointer
+├── checkpoint-redis/       # Redis checkpointer
+├── sdk/                    # Headless JS client for LangGraph Platform
+├── sdk-react/              # React hooks
+├── sdk-angular/            # Angular services
+├── sdk-svelte/             # Svelte stores
+├── sdk-vue/                # Vue composables
+├── langgraph-swarm/        # Multi-agent swarm pattern
+├── langgraph-supervisor/   # Supervisor multi-agent pattern
+├── langgraph-cua/          # Computer Use Agent
+├── langgraph-api/          # Server-side API (LangGraph Platform)
+├── langgraph-cli/          # CLI tooling
+├── langgraph-ui/           # UI components
+└── create-langgraph/       # Project scaffolding CLI
+</code></pre>
+<h2>Core Engine (<code>langgraph-core/src/</code>)</h2>
+<h3>Pregel (<code>pregel/index.ts:384</code>, 2428 lines)</h3>
+<pre><code class="language-typescript">class Pregel extends PartialRunnable implements PregelInterface
+</code></pre>
+<p>Extends LangChain's <code>PartialRunnable</code> — every graph is a runnable. Key methods: <code>invoke()</code>, <code>stream()</code> (returns <code>ReadableStream</code>), <code>getState()</code>, <code>getStateHistory()</code>, <code>updateState()</code>.</p>
+<p>Stream modes: <code>"values" | "updates" | "debug" | "messages" | "checkpoints" | "tasks" | "custom" | "tools"</code></p>
+<p>Durability: <code>"exit" | "async" | "sync"</code></p>
+<h3>PregelLoop (<code>pregel/loop.ts:216</code>, 1322 lines)</h3>
+<pre><code class="language-typescript">class PregelLoop {
+  static async initialize(options): Promise&lt;PregelLoop&gt;
+  async tick(): Promise&lt;boolean&gt;       // Single BSP superstep
+  async _first(): Promise&lt;void&gt;        // Handle initial input
+  async putWrites(taskId, writes)      // Save task results
+  async acceptPush(task, writeIdx)     // Accept dynamic tasks
+}
+</code></pre>
+<p>Default recursion limit: 25.</p>
+<h3>PregelRunner (<code>pregel/runner.ts:83</code>, 516 lines)</h3>
+<ul><li><code>Promise.race()</code> with barrier pattern for concurrent execution</li><li><code>AbortSignal</code> for cancellation</li><li><code>maxConcurrency</code> config for controlling parallelism</li><li><code>call()</code> pushes sub-tasks dynamically during execution</li></ul>
+<h3>Channels (<code>channels/</code>)</h3>
+<p>Same types as Python, implementing <code>BaseChannel<ValueType, UpdateType, CheckpointType></code>:</p>
+<table><tr><th>Class</th><th>Purpose</th></tr><tr><td>`LastValue`</td><td>Stores last single value</td></tr><tr><td>`LastValueAfterFinish`</td><td>Available only after `finish()`</td></tr><tr><td>`Topic<Value>`</td><td>Pub/sub with `unique` and `accumulate`</td></tr><tr><td>`AnyValue`</td><td>Accepts any value</td></tr><tr><td>`EphemeralValue`</td><td>One-step, not persisted</td></tr><tr><td>`UntrackedValue`</td><td>Not saved to checkpoints</td></tr><tr><td>`BinaryOperatorAggregate`</td><td>Reduces with binary operator</td></tr><tr><td>`DynamicBarrierValue`</td><td>Waits for dynamic set of sources</td></tr><tr><td>`NamedBarrierValue`</td><td>Waits for fixed set of named sources</td></tr></table>
+<h3>StateGraph (<code>graph/state.ts:292</code>, 1657 lines)</h3>
+<pre><code class="language-typescript">class StateGraph {
+  addNode(name, node, options?): this
+  addEdge(source, target): this
+  addSequence(nodes): this
+  compile(): CompiledStateGraph
+}
+</code></pre>
+<p>Three schema types: <code>Annotation.Root()</code> (declarative), <code>StateSchema</code> (class-based), Zod objects.</p>
+<h3>Functional API (<code>func/index.ts</code>, 463 lines)</h3>
+<pre><code class="language-typescript">function task(name, func, options?): TaskFunction
+function entrypoint(name, func, options?): EntrypointFunction
+// entrypoint.final({ value, save }) — separates return from persisted state
+// getPreviousState&lt;StateT&gt;() — accesses state from previous invocation
+</code></pre>
+<p>In JS, function calls (not decorators). Same underlying mechanism.</p>
+<h2>Python vs JavaScript</h2>
+<table><tr><th>Aspect</th><th>Python</th><th>JavaScript</th></tr><tr><td>Execution</td><td>Sync + Async</td><td>Async-only</td></tr><tr><td>Concurrency</td><td>ThreadPoolExecutor</td><td>Promise.race() + maxConcurrency</td></tr><tr><td>Cancellation</td><td>asyncio.Task</td><td>AbortSignal</td></tr><tr><td>Context</td><td>contextvars</td><td>AsyncLocalStorage</td></tr><tr><td>Streaming</td><td>AsyncIterator</td><td>Web ReadableStream</td></tr><tr><td>Serialization</td><td>pickle + JsonPlus</td><td>JsonPlus only</td></tr><tr><td>Checkpoint format</td><td>v4</td><td>v4 (same)</td></tr><tr><td>Core algorithm</td><td>Pregel supersteps</td><td>Identical</td></tr></table>
+<p><a href="../langchain/05-langgraph-source.md">Back to LangGraph source → ../langchain/05-langgraph-source.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

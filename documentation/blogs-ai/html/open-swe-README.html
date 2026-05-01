@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Open SWE -- Internal Coding Agent -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,23 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a><a href="observability-README.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="open-swe-00-architecture.html" class="nav-breadcrumb">Open SWE -- Internal Coding Agent</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="open-swe-00-architecture.html" class="nav-btn" title="Previous: Open SWE -- Internal Coding Agent">← prev</a>
+      <a href="open_deep_research-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open Deep Research -- Source Architecture">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
+<h1>Open SWE -- Internal Coding Agent</h1>
+<p>Open-source framework for internal coding agents. Triggered from Slack, Linear, or GitHub — runs code changes in isolated cloud sandboxes and opens PRs.</p>
 <h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
+<ul><li><a href="00-architecture.md">00 Architecture</a> — Deep Agents-based agent with 21 tools, 4 middleware hooks, sandbox providers, webhook server</li></ul>
+<h2>Workflow</h2>
+<pre><code class="language-">Slack/Linear/GitHub --&gt; Webhook --&gt; LangGraph Run --&gt; Sandbox --&gt; Deep Agent --&gt; PR
 </code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h2>Key Features</h2>
+<ul><li><strong>Mid-run message injection</strong> — Linear comments/Slack replies arrive during execution</li><li><strong>PR safety net</strong> — <code>open_pr_if_needed</code> middleware opens PR if agent forgot</li><li><strong>5 sandbox providers</strong> — LangSmith, Daytona, Runloop, Modal, Local</li></ul>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

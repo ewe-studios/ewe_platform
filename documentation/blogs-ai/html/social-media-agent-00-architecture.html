@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Social Media Agent -- Source Architecture -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,37 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="open_deep_research-README.html" class="nav-breadcrumb">Open Deep Research -- Deep Research Agent</a><a href="opengpts-00-architecture.html" class="nav-breadcrumb">OpenGPTs -- Open-Source GPTs Clone</a><a href="opengpts-README.html" class="nav-breadcrumb">OpenGPTs -- Open-Source GPTs Clone</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="opengpts-README.html" class="nav-btn" title="Previous: OpenGPTs -- Open-Source GPTs Clone">← prev</a>
+      <a href="social-media-agent-README.html" class="nav-btn nav-btn-next" title="Next: Social Media Agent -- Content Generation Pipeline">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
-<h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
-</code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h1>Social Media Agent -- Source Architecture</h1>
+<h2>Purpose</h2>
+<p>Social Media Agent takes a URL and generates Twitter and LinkedIn posts. Uses human-in-the-loop (HITL) flow for platform auth and post review/approval. Supports cron-based ingestion from Slack, content curation, thread generation, and content repurposing.</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/social-media-agent/</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: 14 graphs in one project.</strong> Each graph handles a specific concern — ingest, generate, upload, reflect, thread, curate, verify, supervisor, report, repurpose, and HITL variants. This is a full content pipeline, not a single agent.</p>
+<p><strong>Aha: URL deduplication via LangGraph store.</strong> Used URLs stored in LangGraph store to prevent duplicate content generation across runs.</p>
+<p><strong>Aha: Reflection learns from accepted/rejected posts.</strong> The reflection graph analyzes which posts were accepted vs rejected and updates its generation strategy accordingly.</p>
+<h2>Architecture</h2>
+<p>TypeScript project with 14 LangGraph graphs:</p>
+<table><tr><th>Graph</th><th>Source</th><th>Purpose</th></tr><tr><td>`ingest_data`</td><td>`src/agents/ingest-data/`</td><td>Fetch messages from Slack, call generate_post</td></tr><tr><td>`generate_post`</td><td>`src/agents/generate-post/`</td><td>Main post generation</td></tr><tr><td>`upload_post`</td><td>`src/agents/upload-post/`</td><td>Post to Twitter/LinkedIn</td></tr><tr><td>`reflection`</td><td>`src/agents/reflection/`</td><td>Learn from accepted/rejected posts</td></tr><tr><td>`generate_thread`</td><td>`src/agents/generate-thread/`</td><td>Multi-post Twitter threads</td></tr><tr><td>`curate_data`</td><td>`src/agents/curate-data/`</td><td>Curate from AI news sources</td></tr><tr><td>`verify_reddit_post`</td><td>`src/agents/verify-reddit-post/`</td><td>Verify Reddit content</td></tr><tr><td>`verify_tweet`</td><td>`src/agents/verify-tweet/`</td><td>Verify tweet content</td></tr><tr><td>`supervisor`</td><td>`src/agents/supervisor/`</td><td>Supervisor orchestration</td></tr><tr><td>`generate_report`</td><td>`src/agents/generate-report/`</td><td>Marketing reports</td></tr><tr><td>`repurposer`</td><td>`src/agents/repurposer/`</td><td>Content repurposing</td></tr><tr><td>`curated_post_interrupt`</td><td>`src/agents/curated-post-interrupt/`</td><td>HITL for curated posts</td></tr><tr><td>`ingest_repurposed_data`</td><td>`src/agents/ingest-repurposed-data/`</td><td>Repurposed content ingestion</td></tr><tr><td>`repurposer_post_interrupt`</td><td>`src/agents/repurposer-post-interrupt/`</td><td>HITL for repurposed posts</td></tr></table>
+<h2>Key Components</h2>
+<h3>Post Generation (<code>src/agents/generate-post/</code>)</h3>
+<p>Content verification → link verification (general, GitHub, YouTube, Tweet sub-graphs) → report generation → human node for HITL review.</p>
+<h3>Data Curation (<code>src/agents/curate-data/</code>)</h3>
+<p>Loaders from AI news blogs, GitHub trending, Latent Space, Reddit, Twitter.</p>
+<h3>Upload (<code>src/agents/upload-post/</code>)</h3>
+<p>Platform upload logic for Twitter and LinkedIn via authenticated clients.</p>
+<h3>Memory (<code>memory-v2/</code>)</h3>
+<p>Separate Python-based memory graph (<code>memory-v2/memory_v2/graph.py</code>) for learning from post outcomes.</p>
+<h2>Features</h2>
+<ul><li><strong>URL deduplication</strong> — stores used URLs in LangGraph store</li><li><strong>Content relevancy verification</strong> — checks URLs against business context</li><li><strong>URL exclusion</strong> — LangChain-specific URL blacklist</li><li><strong>HITL review</strong> — human approves posts before publishing</li><li><strong>Cron ingestion</strong> — scheduled Slack message ingestion</li></ul>
+<p><a href="../README.md">Back to main index → ../README.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

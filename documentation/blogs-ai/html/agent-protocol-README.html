@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Agent Protocol -- Standardized API for LLM Agents -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,22 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="04-production-agents.html" class="nav-breadcrumb">LangChain -- Production Deep Agents</a><a href="README.html" class="nav-breadcrumb">Blogs AI -- Industry Research Synthesis</a><a href="agent-protocol-00-specification.html" class="nav-breadcrumb">Agent Protocol -- Standardized API for LLM Agents</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="agent-protocol-00-specification.html" class="nav-btn" title="Previous: Agent Protocol -- Standardized API for LLM Agents">← prev</a>
+      <a href="chat-langchain-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Chat LangChain -- Documentation Assistant Agent">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
+<h1>Agent Protocol -- Standardized API for LLM Agents</h1>
+<p>Framework-agnostic API specification for serving LLM agents in production.</p>
 <h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
-</code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<ul><li><a href="00-specification.md">00 Specification</a> — Runs, Threads, Store primitives, streaming protocol (CDDL), server implementation</li></ul>
+<h2>Core Primitives</h2>
+<ol><li><strong>Run</strong> — A single agent execution</li><li><strong>Thread</strong> — Multi-turn session organizing related runs</li><li><strong>Store</strong> — Long-term memory with namespace-based access</li></ol>
+<h2>Streaming Channels</h2>
+<p><code>messages</code> | <code>tools</code> | <code>lifecycle</code> | <code>input</code> | <code>values</code> | <code>updates</code> | <code>checkpoints</code> | <code>tasks</code> | <code>custom</code></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>
