@@ -15,7 +15,7 @@ use crate::paths::LazyLocation;
 use alloc::boxed::Box;
 use serde_json::Value;
 
-// Stub modules — will be implemented in subsequent features
+// Keyword validators — each struct implements the Validate trait.
 pub(crate) mod additional_properties;
 pub(crate) mod all_of;
 pub(crate) mod any_of;

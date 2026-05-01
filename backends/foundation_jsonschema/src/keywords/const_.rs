@@ -65,7 +65,17 @@ impl Validate for ConstValidator {
 /// JSON Schema equality: integer 1 equals float 1.0
 fn values_equal(a: &Value, b: &Value) -> bool {
     match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
+        (Value::Number(a), Value::Number(b)) => {
+            // Same integer representation: exact comparison.
+            if a.as_i64().is_some() && b.as_i64().is_some() {
+                return a.as_i64() == b.as_i64();
+            }
+            if a.as_u64().is_some() && b.as_u64().is_some() {
+                return a.as_u64() == b.as_u64();
+            }
+            // Cross-representation: fall back to f64 (handles 0 == 0.0).
+            a.as_f64() == b.as_f64()
+        }
         _ => a == b,
     }
 }

@@ -52,6 +52,7 @@ impl Validate for UnevaluatedPropertiesValidator {
                     let value = &obj[name];
                     let child_path = instance_path.push_property(name);
                     self.schema.validate(value, &child_path, ctx)?;
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }
@@ -73,6 +74,7 @@ impl Validate for UnevaluatedPropertiesValidator {
                     for e in self.schema.iter_errors(value, &child_path, ctx) {
                         errors.push(e);
                     }
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }

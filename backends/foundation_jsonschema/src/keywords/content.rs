@@ -332,35 +332,6 @@ impl ContentCombinedValidator {
     }
 }
 
-/// Supported media types.
-#[allow(dead_code)]
-pub enum ContentMediaType {
-    ApplicationJson,
-    /// Unknown media type — annotation only.
-    Unknown(String),
-}
-
-impl ContentMediaType {
-    /// Parse a media type name.
-    #[allow(dead_code)]
-    #[must_use]
-    pub fn from_name(name: &str) -> Self {
-        match name {
-            "application/json" => Self::ApplicationJson,
-            other => Self::Unknown(other.to_string()),
-        }
-    }
-
-    /// Check if a string value conforms to this media type.
-    #[allow(dead_code)]
-    pub fn is_valid(&self, s: &str) -> bool {
-        match self {
-            Self::ApplicationJson => serde_json::from_str::<Value>(s).is_ok(),
-            Self::Unknown(_) => true,
-        }
-    }
-}
-
 /// Check if a string is valid base64 (RFC 4648).
 fn is_valid_base64(s: &str) -> bool {
     if s.is_empty() {

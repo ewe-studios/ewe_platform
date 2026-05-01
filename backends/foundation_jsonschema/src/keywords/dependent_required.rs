@@ -1,4 +1,4 @@
-//! Stub: `dependentRequired` — property presence triggers required others.
+//! `dependentRequired` — property presence triggers required others.
 
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
