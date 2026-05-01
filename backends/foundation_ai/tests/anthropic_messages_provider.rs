@@ -8,7 +8,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    Args, ArgType, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
+    Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
     ModelProviders, StopReason, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -1096,10 +1096,13 @@ fn test_build_anthropic_request_with_tools() {
         id: "tool_1".into(),
         name: "get_weather".into(),
         description: "Get weather info".into(),
-        arguments: Some(vec![Args::Named(
-            "location".into(),
-            ArgType::Text("Paris".into()),
-        )]),
+        arguments: Some(Args::from_value(serde_json::json!({
+            "type": "object",
+            "properties": {
+                "location": { "type": "string" }
+            },
+            "required": ["location"],
+        }))),
         returns: None,
     };
     let interaction = ModelInteraction {

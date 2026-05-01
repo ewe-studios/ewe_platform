@@ -4,13 +4,14 @@
 //! with sample provider responses.
 
 use foundation_ai::types::{
-    ArgType, Messages, ModelOutput, TextBasedFormatter,
+    ArgType, Args, Messages, ModelOutput, TextBasedFormatter,
     TextContent, ToolCallingError, UserModelContent,
 };
 use foundation_ai::backends::anthropic_messages_provider::AnthropicFormatter;
 use foundation_ai::backends::openai_provider::OpenAIFormatter;
 
-use foundation_ai::types::{Args, Tool, ToolFormatter};
+use foundation_ai::types::{Tool, ToolFormatter};
+use foundation_jsonschema::{scheme, ValidationOptions};
 use std::time::SystemTime;
 
 // ============================================================================
@@ -18,14 +19,14 @@ use std::time::SystemTime;
 // ============================================================================
 
 fn make_tool(name: &str, description: &str) -> Tool {
+    let opts: ValidationOptions = scheme::object()
+        .required("query", scheme::string().min_len(1))
+        .build();
     Tool {
         id: format!("tool_{name}"),
         name: name.to_string(),
         description: description.to_string(),
-        arguments: Some(vec![Args::Named(
-            "query".to_string(),
-            ArgType::Text("search term".to_string()),
-        )]),
+        arguments: Some(Args::new(opts)),
         returns: None,
     }
 }

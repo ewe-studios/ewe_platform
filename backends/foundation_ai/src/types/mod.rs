@@ -5,12 +5,12 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use derive_more::{Display, Error, From};
-use foundation_errstacks::ErrorTrace;
-use lazy_regex::regex;
 use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
+use foundation_errstacks::ErrorTrace;
+use lazy_regex::regex;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -613,14 +613,88 @@ pub enum ArgType {
     JSONMap(std::collections::HashMap<String, ArgType>),
 }
 
-/// A single tool argument parameter.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum Args {
-    /// Named parameter (e.g. `"location" → Text("Paris")`).
-    Named(String, ArgType),
-    /// Positional / unnamed parameter.
-    Unnamed(ArgType),
+/// A tool argument/return definition — stores a JSON Schema document and a
+/// pre-built `ValidationOptions` so that callers can extract the schema for
+/// API requests and compile a `Validator` for runtime validation.
+///
+/// WHY: Previously `Args` was an externally-tagged enum mapping `ArgType` →
+/// `"type"` per provider. This loses expressiveness (min, max, format, etc.)
+/// and can't produce real validators. Now `Args` holds the full JSON Schema
+/// and its compiled `ValidationOptions` together.
+///
+/// HOW: Build with the `scheme` builder from `foundation_jsonschema`, then
+/// store the result:
+/// ```ignore
+/// let opts = scheme::object()
+///     .required("query", scheme::string().min_len(1))
+///     .build(); // → ValidationOptions
+/// let args = Args::new(opts);
+/// ```
+pub struct Args {
+    /// The JSON Schema document for this argument/return.
+    pub schema: serde_json::Value,
+    /// Pre-built `ValidationOptions` with schema embedded.
+    /// Call `.compile()` to get a `Validator`.
+    pub validator: foundation_jsonschema::ValidationOptions,
+}
+
+impl std::fmt::Debug for Args {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Args")
+            .field("schema", &self.schema)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Args {
+    /// Create an `Args` from a `ValidationOptions` (produced by a scheme builder).
+    ///
+    /// The schema is extracted from the `ValidationOptions` via `.clone_schema()`.
+    pub fn new(opts: foundation_jsonschema::ValidationOptions) -> Self {
+        let schema = opts.clone_schema();
+        Self {
+            schema,
+            validator: opts,
+        }
+    }
+
+    /// Create an `Args` from a raw JSON Schema value.
+    ///
+    /// Wraps the value in a fresh `ValidationOptions` with the schema embedded.
+    pub fn from_value(value: serde_json::Value) -> Self {
+        Self {
+            validator: foundation_jsonschema::ValidationOptions::with_schema(value.clone()),
+            schema: value,
+        }
+    }
+}
+
+impl Clone for Args {
+    fn clone(&self) -> Self {
+        Self {
+            schema: self.schema.clone(),
+            validator: foundation_jsonschema::ValidationOptions::with_schema(self.schema.clone()),
+        }
+    }
+}
+
+impl PartialEq for Args {
+    fn eq(&self, other: &Self) -> bool {
+        self.schema == other.schema
+    }
+}
+
+impl Serialize for Args {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.schema.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Args {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        Ok(Self::from_value(value))
+    }
 }
 
 /// Status of a cost calculation.
@@ -935,8 +1009,8 @@ pub struct Tool {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub arguments: Option<Vec<Args>>,
-    pub returns: Option<Vec<Args>>,
+    pub arguments: Option<Args>,
+    pub returns: Option<Args>,
 }
 
 /// Strategy for tool selection in model interactions.
@@ -1061,8 +1135,10 @@ pub enum ToolCallingError {
 /// representation and the format expected by its API.
 pub trait ToolFormatter: Default + Send + Sync {
     /// Convert internal `Tool[]` definitions to provider-specific tool schema.
-    fn format_tools(&self, tools: &[Tool])
-        -> Result<serde_json::Value, ErrorTrace<ToolCallingError>>;
+    fn format_tools(
+        &self,
+        tools: &[Tool],
+    ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>>;
 
     /// System prompt instructions for tool calling format.
     ///
@@ -1072,8 +1148,10 @@ pub trait ToolFormatter: Default + Send + Sync {
     fn tool_calling_instructions(&self) -> Option<String>;
 
     /// Extract tool calls from provider response text.
-    fn extract_tool_calls(&self, response: &str)
-        -> Result<ExtractResult, ErrorTrace<ToolCallingError>>;
+    fn extract_tool_calls(
+        &self,
+        response: &str,
+    ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>>;
 
     /// Format a tool execution result into provider message structure.
     fn format_tool_response(
@@ -1114,9 +1192,12 @@ fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
         }
         serde_json::Value::Bool(b) => ArgType::Text(if *b { "true" } else { "false" }.to_string()),
         serde_json::Value::Null => ArgType::Text(String::new()),
-        serde_json::Value::Array(arr) => {
-            ArgType::Text(arr.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(", "))
-        }
+        serde_json::Value::Array(arr) => ArgType::Text(
+            arr.iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(", "),
+        ),
         serde_json::Value::Object(map) => {
             let nested: HashMap<String, ArgType> = map
                 .iter()
@@ -1143,39 +1224,21 @@ impl ToolFormatter for TextBasedFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let mut properties = serde_json::Map::new();
-                    if let Some(args) = &tool.arguments {
-                        for arg in args {
-                            if let Args::Named(key, value) = arg {
-                                let schema_type = match value {
-                                    crate::types::ArgType::Float32(_)
-                                    | crate::types::ArgType::Float64(_) => "number",
-                                    crate::types::ArgType::Usize(_)
-                                    | crate::types::ArgType::U8(_)
-                                    | crate::types::ArgType::U16(_)
-                                    | crate::types::ArgType::U32(_)
-                                    | crate::types::ArgType::U64(_)
-                                    | crate::types::ArgType::Isize(_)
-                                    | crate::types::ArgType::I8(_)
-                                    | crate::types::ArgType::I16(_)
-                                    | crate::types::ArgType::I32(_)
-                                    | crate::types::ArgType::I64(_) => "integer",
-                                    _ => "string",
-                                };
-                                properties.insert(
-                                    key.clone(),
-                                    serde_json::json!({ "type": schema_type }),
-                                );
-                            }
-                        }
-                    }
+                    // Use the Args schema if present, otherwise default to empty object
+                    let params = tool
+                        .arguments
+                        .as_ref()
+                        .map(|a| a.schema.clone())
+                        .unwrap_or_else(|| {
+                            serde_json::json!({
+                                "type": "object",
+                                "properties": {},
+                            })
+                        });
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,
-                        "parameters": {
-                            "type": "object",
-                            "properties": properties,
-                        },
+                        "parameters": params,
                     })
                 })
                 .collect(),
@@ -1218,10 +1281,13 @@ impl ToolFormatter for TextBasedFormatter {
                             .iter()
                             .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
                             .collect();
-                        let name = arguments.get("name").and_then(|v| match v {
-                            ArgType::Text(s) => Some(s.clone()),
-                            _ => None,
-                        }).unwrap_or_default();
+                        let name = arguments
+                            .get("name")
+                            .and_then(|v| match v {
+                                ArgType::Text(s) => Some(s.clone()),
+                                _ => None,
+                            })
+                            .unwrap_or_default();
                         if !name.is_empty() {
                             calls.push(ModelOutput::ToolCall {
                                 id: format!("tool_{}", calls.len()),
@@ -1262,7 +1328,11 @@ impl ToolFormatter for TextBasedFormatter {
             }
         };
 
-        Ok(ExtractResult { calls, remaining_text, has_tool_calls })
+        Ok(ExtractResult {
+            calls,
+            remaining_text,
+            has_tool_calls,
+        })
     }
 
     fn format_tool_response(
@@ -1270,13 +1340,18 @@ impl ToolFormatter for TextBasedFormatter {
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         let Messages::ToolResult {
-            id: _, name, content, error_detail, ..
+            id: _,
+            name,
+            content,
+            error_detail,
+            ..
         } = result
         else {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
-            }).attach("source=text_based_formatter"));
+            })
+            .attach("source=text_based_formatter"));
         };
 
         let content_str = match content {
@@ -1284,7 +1359,11 @@ impl ToolFormatter for TextBasedFormatter {
             crate::types::UserModelContent::Image(_) => "[image]".to_string(),
         };
 
-        let error_note = if error_detail.is_some() { " (error)" } else { "" };
+        let error_note = if error_detail.is_some() {
+            " (error)"
+        } else {
+            ""
+        };
         Ok(serde_json::json!({
             "role": "tool",
             "name": name,

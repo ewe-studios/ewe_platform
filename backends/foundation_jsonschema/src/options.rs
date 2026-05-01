@@ -49,6 +49,18 @@ impl ValidationOptions {
         }
     }
 
+    /// Create a new builder with an embedded schema already set.
+    ///
+    /// WHY: The `scheme` builder produces `ValidationOptions` with schema
+    /// embedded. This constructor lets you create one from a raw `Value`
+    /// directly — e.g., for `Args { schema, validator }` patterns.
+    #[must_use]
+    pub fn with_schema(schema: Value) -> Self {
+        let mut options = Self::new();
+        options.schema = Some(schema);
+        options
+    }
+
     /// Set the default draft for schemas that don't declare `$schema`.
     #[must_use]
     pub fn with_draft(mut self, draft: Draft) -> Self {

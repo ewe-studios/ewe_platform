@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    Args, AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
     StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, CostStatus, UsageCosting, UsageReport,
 };
@@ -673,41 +673,19 @@ impl ToolFormatter for OpenAIFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let mut properties = serde_json::Map::new();
-                    if let Some(args) = &tool.arguments {
-                        for arg in args {
-                            if let Args::Named(key, value) = arg {
-                                let schema_type = match value {
-                                    crate::types::ArgType::Float32(_)
-                                    | crate::types::ArgType::Float64(_) => "number",
-                                    crate::types::ArgType::Usize(_)
-                                    | crate::types::ArgType::U8(_)
-                                    | crate::types::ArgType::U16(_)
-                                    | crate::types::ArgType::U32(_)
-                                    | crate::types::ArgType::U64(_)
-                                    | crate::types::ArgType::Isize(_)
-                                    | crate::types::ArgType::I8(_)
-                                    | crate::types::ArgType::I16(_)
-                                    | crate::types::ArgType::I32(_)
-                                    | crate::types::ArgType::I64(_) => "integer",
-                                    _ => "string",
-                                };
-                                properties.insert(
-                                    key.clone(),
-                                    serde_json::json!({ "type": schema_type }),
-                                );
-                            }
-                        }
-                    }
+                    // Use the Args schema if present, otherwise default to empty object
+                    let parameters = tool.arguments.as_ref()
+                        .map(|a| a.schema.clone())
+                        .unwrap_or_else(|| serde_json::json!({
+                            "type": "object",
+                            "properties": {},
+                        }));
                     serde_json::json!({
                         "type": "function",
                         "function": {
                             "name": &tool.name,
                             "description": tool.description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": properties,
-                            },
+                            "parameters": parameters,
                         },
                     })
                 })
@@ -1764,36 +1742,8 @@ fn build_chat_request(
                 function: OpenAIFunction {
                     name: tool.name.clone(),
                     description: Some(tool.description.clone()),
-                    parameters: tool.arguments.as_ref().map(|args| {
-                        let mut properties = serde_json::Map::new();
-                        for arg in args {
-                            if let crate::types::Args::Named(key, value) = arg {
-                                let schema_type = match value {
-                                    crate::types::ArgType::Float32(_)
-                                    | crate::types::ArgType::Float64(_) => "number",
-                                    crate::types::ArgType::Usize(_)
-                                    | crate::types::ArgType::U8(_)
-                                    | crate::types::ArgType::U16(_)
-                                    | crate::types::ArgType::U32(_)
-                                    | crate::types::ArgType::U64(_)
-                                    | crate::types::ArgType::Isize(_)
-                                    | crate::types::ArgType::I8(_)
-                                    | crate::types::ArgType::I16(_)
-                                    | crate::types::ArgType::I32(_)
-                                    | crate::types::ArgType::I64(_) => "integer",
-                                    _ => "string",
-                                };
-                                properties.insert(
-                                    key.clone(),
-                                    serde_json::json!({ "type": schema_type }),
-                                );
-                            }
-                        }
-                        serde_json::json!({
-                            "type": "object",
-                            "properties": properties,
-                        })
-                    }),
+                    parameters: tool.arguments.as_ref()
+                        .map(|a| a.schema.clone()),
                 },
             })
             .collect::<Vec<_>>()

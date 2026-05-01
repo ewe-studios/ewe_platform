@@ -947,17 +947,10 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
                     let args = t
                         .arguments
                         .as_ref()
-                        .map(|args| {
-                            args.iter()
-                                .filter_map(|a| {
-                                    if let crate::types::Args::Named(key, _) = a {
-                                        Some(key.clone())
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect::<Vec<_>>()
-                                .join(", ")
+                        .and_then(|a| a.schema.get("properties"))
+                        .and_then(|p| p.as_object())
+                        .map(|props| {
+                            props.keys().cloned().collect::<Vec<_>>().join(", ")
                         })
                         .unwrap_or_default();
                     format!("- {}({})", t.name, args)
