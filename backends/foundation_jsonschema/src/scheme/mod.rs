@@ -39,12 +39,13 @@ pub mod primitives;
 pub mod reference;
 
 pub use array::{ArraySchema, array, array_of};
+pub use compound::{all_of, any_of, if_then, if_then_else, intersection, not, one_of, union};
 pub use literal::{literal, r#enum};
 pub use object::{object, ObjectSchema};
 pub use primitives::*;
 pub use reference::{dynamic_ref, ref_};
 
 // Re-export for type signatures — users rarely need this directly.
-use crate::ValidationOptions;
+pub use crate::ValidationOptions;
 use alloc::collections::BTreeMap;
 use serde_json::Value;

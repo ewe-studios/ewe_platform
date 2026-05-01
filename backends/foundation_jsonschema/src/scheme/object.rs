@@ -131,6 +131,7 @@ impl ObjectSchema {
     #[must_use]
     pub fn optional_value(mut self) -> Self {
         let inner = self.build_schema();
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![
