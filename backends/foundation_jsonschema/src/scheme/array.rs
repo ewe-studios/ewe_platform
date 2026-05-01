@@ -27,10 +27,10 @@ impl ArraySchema {
 
     /// Set prefix items (tuple validation, Draft 2020-12).
     #[must_use]
-    pub fn prefix_items(mut self, schemas: Vec<Value>) -> Self {
+    pub fn prefix_items(mut self, schemas: Vec<impl Into<Value>>) -> Self {
         self.schema.insert(
             "prefixItems".into(),
-            Value::Array(schemas),
+            Value::Array(schemas.into_iter().map(Into::into).collect()),
         );
         self
     }
@@ -114,6 +114,7 @@ impl ArraySchema {
     #[must_use]
     pub fn optional(mut self) -> Self {
         let inner = self.build_schema();
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![

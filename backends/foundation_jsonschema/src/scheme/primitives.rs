@@ -118,6 +118,7 @@ impl StringSchema {
     #[must_use]
     pub fn optional(mut self) -> Self {
         let inner = Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect());
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![
@@ -260,6 +261,7 @@ impl IntegerSchema {
     #[must_use]
     pub fn optional(mut self) -> Self {
         let inner = self.build_schema();
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![
@@ -390,6 +392,7 @@ impl NumberSchema {
     #[must_use]
     pub fn optional(mut self) -> Self {
         let inner = self.build_schema();
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![
@@ -476,6 +479,7 @@ impl BooleanSchema {
     #[must_use]
     pub fn optional(mut self) -> Self {
         let inner = self.build_schema();
+        self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
         self.schema.insert("anyOf".into(), Value::Array(vec![
