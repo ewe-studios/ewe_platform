@@ -88,7 +88,6 @@ impl Default for VocabularySet {
 static DRAFT4_KEYWORDS: &[&str] = &[
     "type",
     "enum",
-    "const",
     "allOf",
     "anyOf",
     "oneOf",

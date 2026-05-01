@@ -50,6 +50,7 @@ impl Validate for UnevaluatedItemsValidator {
                 if !ctx.is_item_evaluated(i) {
                     let child_path = instance_path.push_index(i);
                     self.schema.validate(item, &child_path, ctx)?;
+                    ctx.mark_item_evaluated(i);
                 }
             }
         }
@@ -70,6 +71,7 @@ impl Validate for UnevaluatedItemsValidator {
                     for e in self.schema.iter_errors(item, &child_path, ctx) {
                         errors.push(e);
                     }
+                    ctx.mark_item_evaluated(i);
                 }
             }
         }

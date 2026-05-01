@@ -64,7 +64,7 @@ impl Validate for EnumValidator {
 
 fn values_equal(a: &Value, b: &Value) -> bool {
     match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
+        (Value::Number(a), Value::Number(b)) => numbers_equal(a, b),
         (Value::Array(a), Value::Array(b)) => {
             a.len() == b.len() && a.iter().zip(b.iter()).all(|(x, y)| values_equal(x, y))
         }
@@ -75,6 +75,30 @@ fn values_equal(a: &Value, b: &Value) -> bool {
         }
         _ => a == b,
     }
+}
+
+/// Compare two JSON numbers with correct integer precision.
+///
+/// Same-representation integers use exact comparison. Cross-representation
+/// (i64 vs f64) falls back to f64 to handle cases like `0` == `0.0`.
+fn numbers_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
+    // Same representation — exact comparison.
+    if a.as_i64().is_some() && b.as_i64().is_some() {
+        return a.as_i64() == b.as_i64();
+    }
+    if a.as_u64().is_some() && b.as_u64().is_some() {
+        return a.as_u64() == b.as_u64();
+    }
+    if a.as_f64().is_some() && b.as_f64().is_some()
+        && a.as_i64().is_none()
+        && a.as_u64().is_none()
+        && b.as_i64().is_none()
+        && b.as_u64().is_none()
+    {
+        return a.as_f64() == b.as_f64();
+    }
+    // Cross-representation: compare as f64 (handles 0 == 0.0).
+    a.as_f64() == b.as_f64()
 }
 
 #[cfg(test)]

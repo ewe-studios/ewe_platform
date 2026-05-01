@@ -17,13 +17,17 @@ pub struct PatternValidator {
 }
 
 impl PatternValidator {
-    pub fn new(pattern: alloc::string::String, schema_path: Location) -> Self {
-        let regex = Regex::new(&pattern).expect("pattern must be a valid regex");
-        Self {
+    pub fn new(
+        pattern: alloc::string::String,
+        schema_path: Location,
+    ) -> Result<Self, alloc::string::String> {
+        let regex = Regex::new(&pattern)
+            .map_err(|e| alloc::format!("invalid pattern '{pattern}': {e}"))?;
+        Ok(Self {
             regex,
             raw_pattern: pattern,
             schema_path,
-        }
+        })
     }
 }
 
@@ -78,19 +82,19 @@ mod tests {
 
     #[test]
     fn matches_pattern() {
-        let v = PatternValidator::new(r"^\d+$".into(), Location::new());
+        let v = PatternValidator::new(r"^\d+$".into(), Location::new()).unwrap();
         assert!(v.is_valid(&json!("12345"), &mut ctx()));
     }
 
     #[test]
     fn no_match_pattern() {
-        let v = PatternValidator::new(r"^\d+$".into(), Location::new());
+        let v = PatternValidator::new(r"^\d+$".into(), Location::new()).unwrap();
         assert!(!v.is_valid(&json!("abc"), &mut ctx()));
     }
 
     #[test]
     fn non_string_always_valid() {
-        let v = PatternValidator::new(r"^\d+$".into(), Location::new());
+        let v = PatternValidator::new(r"^\d+$".into(), Location::new()).unwrap();
         assert!(v.is_valid(&json!(42), &mut ctx()));
     }
 }

@@ -70,10 +70,14 @@ impl Validate for AdditionalPropertiesValidator {
         };
         if let Value::Object(obj) = instance {
             for name in obj.keys() {
-                if self.is_additional_property(name) {
+                // Skip properties already evaluated by allOf/$ref/other keywords.
+                if !ctx.is_property_evaluated(name) && self.is_additional_property(name) {
                     let value = &obj[name];
                     match schema {
-                        AdditionalSchema::False => return false,
+                        AdditionalSchema::False => {
+                            ctx.mark_property_evaluated(name);
+                            return false;
+                        }
                         AdditionalSchema::Schema(s) => {
                             if !s.is_valid(value, ctx) {
                                 return false;
@@ -98,10 +102,11 @@ impl Validate for AdditionalPropertiesValidator {
         };
         if let Value::Object(obj) = instance {
             for name in obj.keys() {
-                if self.is_additional_property(name) {
+                if !ctx.is_property_evaluated(name) && self.is_additional_property(name) {
                     let value = &obj[name];
                     match schema {
                         AdditionalSchema::False => {
+                            ctx.mark_property_evaluated(name);
                             return Err(ValidationErrorBuilder::new(
                                 instance_path.push_property(name).materialize(),
                                 Location::new(),
@@ -136,10 +141,11 @@ impl Validate for AdditionalPropertiesValidator {
         };
         if let Value::Object(obj) = instance {
             for name in obj.keys() {
-                if self.is_additional_property(name) {
+                if !ctx.is_property_evaluated(name) && self.is_additional_property(name) {
                     let value = &obj[name];
                     match schema {
                         AdditionalSchema::False => {
+                            ctx.mark_property_evaluated(name);
                             errors.push(
                                 ValidationErrorBuilder::new(
                                     instance_path.push_property(name).materialize(),

@@ -196,7 +196,7 @@ fn compile_keyword(
         // String
         "minLength" => Some(compile_min_length(value, ctx)),
         "maxLength" => Some(compile_max_length(value, ctx)),
-        "pattern" => Some(compile_pattern(value, ctx)),
+        "pattern" => compile_pattern(value, ctx),
         "format" => Some(compile_format(value, ctx)),
         // Number
         "minimum" => Some(compile_minimum(value, ctx)),
@@ -225,7 +225,6 @@ fn compile_keyword(
         "prefixItems" => compile_prefix_items(value, ctx),
         "contains" => compile_contains(value, ctx, schema_obj),
         "unevaluatedItems" => compile_unevaluated_items(value, ctx),
-        "additionalItems" => compile_additional_items(value, ctx, schema_obj),
         // Composition
         "allOf" => compile_all_of(value, ctx),
         "anyOf" => compile_any_of(value, ctx),
@@ -245,7 +244,8 @@ fn compile_keyword(
             compile_content_schema(value, ctx, schema_obj),
         // Legacy
         "dependencies" => compile_dependencies(value, ctx),
-        // Unknown — skip
+        // Unknown keywords and handled-inline keywords — skip
+        // (additionalItems is handled by compile_items)
         _ => None,
     }
 }
@@ -315,9 +315,11 @@ fn compile_max_length(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidato
     Box::new(MaxLengthValidator::new(max, ctx.schema_path.clone()))
 }
 
-fn compile_pattern(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let pattern = value.as_str().unwrap_or("").to_string();
-    Box::new(PatternValidator::new(pattern, ctx.schema_path.clone()))
+fn compile_pattern(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
+    let pattern = value.as_str()?.to_string();
+    PatternValidator::new(pattern, ctx.schema_path.clone())
+        .map(|v| Box::new(v) as BoxedValidator)
+        .ok()
 }
 
 fn compile_format(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
@@ -691,31 +693,6 @@ fn compile_items(
             }
         }
         _ => None,
-    }
-}
-
-/// Compile the `additionalItems` keyword (Draft 4/6/7/2019-09 only).
-///
-/// This is called from `compile_items` when `items` is an array, or as a
-/// standalone keyword when `items` is a single schema (in which case it
-/// should be ignored per spec, but we handle it gracefully).
-fn compile_additional_items(
-    _value: &Value,
-    _ctx: &CompilerContext,
-    schema_obj: &serde_json::Map<String, Value>,
-) -> Option<BoxedValidator> {
-    // additionalItems only applies when items is an array (tuple form).
-    // If items is a single schema or not present, additionalItems is ignored.
-    // We detect this by checking if items is an array.
-    match schema_obj.get("items") {
-        Some(Value::Array(_arr)) => {
-            // Already handled by compile_items — skip to avoid double-compilation
-            None
-        }
-        _ => {
-            // items is not an array — additionalItems is ignored per spec
-            None
-        }
     }
 }
 
