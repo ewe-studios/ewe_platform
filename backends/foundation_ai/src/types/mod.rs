@@ -250,14 +250,14 @@ pub enum MessageType {
     TextAndImages,
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Serialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelProviderDescriptor {
-    pub id: String,
-    pub name: String,
+    pub id: &'static str,
+    pub name: &'static str,
     pub reasoning: bool,
     pub api: ModelAPI,
     pub provider: ModelProviders,
-    pub base_url: Option<String>,
+    pub base_url: Option<&'static str>,
     pub inputs: MessageType,
     pub cost: ModelUsageCosting,
     pub context_window: u32,

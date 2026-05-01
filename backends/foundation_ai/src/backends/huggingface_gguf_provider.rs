@@ -457,13 +457,13 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     }
 
     fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
-        let descriptor = crate::types::ModelProviderDescriptor {
-            id: "huggingface".to_string(),
-            name: "HuggingFace Hub (llama.cpp)".to_string(),
+        Ok(crate::types::ModelProviderDescriptor {
+            id: "huggingface",
+            name: "HuggingFace Hub (llama.cpp)",
             reasoning: false,
             api: crate::types::ModelAPI::Custom("huggingface-hub".to_string()),
             provider: crate::types::ModelProviders::HUGGINGFACE,
-            base_url: Some("https://huggingface.co".to_string()),
+            base_url: Some("https://huggingface.co"),
             inputs: crate::types::MessageType::Text,
             cost: crate::types::ModelUsageCosting {
                 input: 0.0,
@@ -473,8 +473,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
             },
             context_window: 4096,
             max_tokens: 2048,
-        };
-        Ok(descriptor)
+        })
     }
 
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {

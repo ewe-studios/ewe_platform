@@ -266,16 +266,16 @@ impl ModelProvider for CandleBackend {
     }
 
     fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
-        let variant = match self {
-            CandleBackend::Cpu { .. } => "CPU",
+        let name = match self {
+            CandleBackend::Cpu { .. } => "Candle (CPU)",
             #[cfg(feature = "candle-cuda")]
-            CandleBackend::Cuda { .. } => "CUDA",
+            CandleBackend::Cuda { .. } => "Candle (CUDA)",
             #[cfg(feature = "candle-metal")]
-            CandleBackend::Metal { .. } => "Metal",
+            CandleBackend::Metal { .. } => "Candle (Metal)",
         };
         Ok(crate::types::ModelProviderDescriptor {
-            id: "candle".to_string(),
-            name: format!("Candle ({variant})"),
+            id: "candle",
+            name,
             reasoning: false,
             api: crate::types::ModelAPI::Custom("candle".to_string()),
             provider: ModelProviders::Custom("candle".to_string()),

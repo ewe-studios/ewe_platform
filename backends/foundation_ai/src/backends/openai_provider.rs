@@ -350,12 +350,12 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 
     fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor> {
         Ok(ModelProviderDescriptor {
-            id: String::from("openai"),
-            name: String::from("OpenAI"),
+            id: "openai",
+            name: "OpenAI",
             reasoning: false,
             api: crate::types::ModelAPI::OpenAICompletions,
             provider: ModelProviders::OPENAI,
-            base_url: Some(self.config.base_url.clone()),
+            base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
             cost: crate::types::ModelUsageCosting {
                 input: 0.0,

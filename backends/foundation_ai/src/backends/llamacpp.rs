@@ -915,9 +915,9 @@ impl ModelProvider for LlamaBackends {
     }
 
     fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
-        let descriptor = crate::types::ModelProviderDescriptor {
-            id: "llamacpp".to_string(),
-            name: "llama.cpp Local Inference".to_string(),
+        Ok(crate::types::ModelProviderDescriptor {
+            id: "llamacpp",
+            name: "llama.cpp Local Inference",
             reasoning: false,
             api: crate::types::ModelAPI::Custom("llama-cpp".to_string()),
             provider: ModelProviders::LLAMACPP,
@@ -931,8 +931,7 @@ impl ModelProvider for LlamaBackends {
             },
             context_window: 4096,
             max_tokens: 2048,
-        };
-        Ok(descriptor)
+        })
     }
 
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {
