@@ -106,10 +106,20 @@ impl ValidationOptions {
     pub fn build(self, schema: &Value) -> Result<Validator, ValidationError> {
         let draft = Draft::detect(schema).unwrap_or(self.default_draft);
 
+        // Extract the schema's own id to use as base_uri for registry registration.
+        // Draft 4 uses "id"; Draft 6+ uses "$id". Strip trailing '#' for consistency
+        // with add_resource's internal normalization.
+        let id_keyword = draft.id_keyword();
+        let base_uri = schema
+            .as_object()
+            .and_then(|o| o.get(id_keyword))
+            .and_then(|v| v.as_str())
+            .map_or("", |s| s.strip_suffix('#').unwrap_or(s));
+
         let registry = Registry::builder()
             .with_resolver(self.resolver)
             .with_draft(draft)
-            .add_resource("", schema.clone())
+            .add_resource(base_uri, schema.clone())
             .build()?;
 
         let root_node = crate::compiler::compile(
