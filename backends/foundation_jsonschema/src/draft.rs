@@ -21,7 +21,7 @@ use serde_json::Value;
 ///
 /// HOW: Detected automatically from `$schema` URI, or set explicitly via
 /// `ValidationOptions::with_draft()`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Draft {
     /// JSON Schema Draft 4 (released 2013).
     ///

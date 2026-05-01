@@ -52,8 +52,9 @@ impl Validate for PropertiesValidator {
             for (name, value) in obj {
                 if let Some(schema) = self.properties.get(name) {
                     let child_path = instance_path.push_property(name);
-                    schema.validate(value, &child_path, ctx)?;
+                    // Mark as evaluated regardless of validation outcome.
                     ctx.mark_property_evaluated(name);
+                    schema.validate(value, &child_path, ctx)?;
                 }
             }
         }
