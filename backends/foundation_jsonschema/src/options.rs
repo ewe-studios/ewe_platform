@@ -17,12 +17,19 @@ use serde_json::Value;
 ///
 /// WHY: Different schemas may need different resolvers, draft settings, or
 /// custom keywords. This builder provides an ergonomic configuration API.
+///
+/// HOW: Two compile paths are available:
+/// - `build(&self, schema)` — compile a caller-provided schema (unchanged API).
+/// - `compile(self)` — compile a schema embedded via a `scheme` builder's `.build()`
+///   method. Adds `.schema()`, `.into_schema()`, `.clone_schema()` accessors.
 pub struct ValidationOptions {
     default_draft: Draft,
     resolver: InMemoryFetcher,
     assert_format: bool,
     custom_keywords: BTreeMap<String, Box<dyn KeywordFactory>>,
     custom_formats: BTreeMap<String, Box<dyn FormatChecker>>,
+    /// Embedded schema from a `scheme` builder. Set by `SchemaBuilder::build()`.
+    pub schema: Option<Value>,
 }
 
 impl ValidationOptions {
@@ -38,6 +45,7 @@ impl ValidationOptions {
             assert_format: false,
             custom_keywords: BTreeMap::new(),
             custom_formats: BTreeMap::new(),
+            schema: None,
         }
     }
 
@@ -88,6 +96,60 @@ impl ValidationOptions {
         self
     }
 
+    /// Compile the embedded schema with these options.
+    ///
+    /// WHY: Primary compile path for schemas built via the `scheme` builder
+    /// API. The schema is already embedded by `SchemaBuilder::build()`.
+    ///
+    /// WHAT: Returns a `Validator` ready for validating instances.
+    ///
+    /// HOW: Extracts the embedded schema and runs the same compilation
+    /// pipeline as `build()`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no schema has been embedded. Use `ValidationOptions::build(&Value)`
+    /// for manual schema construction, or call `scheme::Builder::build()` first.
+    pub fn compile(self) -> Result<Validator, ValidationError> {
+        let schema = self.schema.as_ref()
+            .expect("schema must be set before compile() — use scheme::Builder::build() or ValidationOptions::build(schema)");
+        Self::_do_compile(&self, schema)
+    }
+
+    /// Reference to the stored schema.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no schema has been embedded.
+    #[must_use]
+    pub fn schema(&self) -> &Value {
+        self.schema.as_ref()
+            .expect("schema must be set — use scheme::Builder::build() first")
+    }
+
+    /// Consume and take ownership of the stored schema.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no schema has been embedded.
+    #[must_use]
+    pub fn into_schema(mut self) -> Value {
+        self.schema.take()
+            .expect("schema must be set — use scheme::Builder::build() first")
+    }
+
+    /// Clone the stored schema.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no schema has been embedded.
+    #[must_use]
+    pub fn clone_schema(&self) -> Value {
+        self.schema.as_ref()
+            .expect("schema must be set — use scheme::Builder::build() first")
+            .clone()
+    }
+
     /// Compile the schema with these options.
     ///
     /// WHY: This is the main entry point for schema compilation. It builds
@@ -104,6 +166,16 @@ impl ValidationOptions {
     /// Returns an error if schema compilation fails (invalid schema structure,
     /// unresolvable references, etc.).
     pub fn build(self, schema: &Value) -> Result<Validator, ValidationError> {
+        Self::_do_compile(&self, schema)
+    }
+}
+
+impl ValidationOptions {
+    /// Shared compilation logic used by both `build(schema)` and `compile()`.
+    ///
+    /// WHY: Both entry points run the same pipeline — registry build, draft
+    /// detection, ID extraction, compiler invocation. This avoids duplication.
+    fn _do_compile(&self, schema: &Value) -> Result<Validator, ValidationError> {
         let draft = Draft::detect(schema).unwrap_or(self.default_draft);
 
         // Extract the schema's own id to use as base_uri for registry registration.
@@ -117,7 +189,7 @@ impl ValidationOptions {
             .map_or("", |s| s.strip_suffix('#').unwrap_or(s));
 
         let registry = Registry::builder()
-            .with_resolver(self.resolver)
+            .with_resolver(self.resolver.clone())
             .with_draft(draft)
             .add_resource(base_uri, schema.clone())
             .build()?;
@@ -127,8 +199,8 @@ impl ValidationOptions {
             &registry,
             draft,
             self.assert_format,
-            self.custom_formats,
-            self.custom_keywords,
+            self.custom_formats.clone(),
+            self.custom_keywords.clone(),
         )?;
 
         Ok(Validator::new(root_node, draft))

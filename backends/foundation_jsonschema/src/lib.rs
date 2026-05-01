@@ -115,6 +115,10 @@ pub mod evaluation;
 
 mod in_memory_fetcher;
 
+// ── Schema Builder (Feature 12) ─────────────────────────────────
+
+pub mod scheme;
+
 // ── Meta-Schema Validation ───────────────────────────────────────────
 
 mod meta;

@@ -59,6 +59,16 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 - Schema dereferencing (inlining $ref targets) could be added as a later feature
 - Python/Ruby bindings are out of scope — this is a pure Rust library
 
+## Schema Builder (Feature 12)
+
+- Consuming builder pattern (`self` not `&mut self`) is the Rust-idiomatic approach — each method call moves the builder, enabling fluent chains without `Arc`.
+- `From<XxxSchema> for Value` impls are essential for ergonomics — without them, every `required("field", scheme::string())` must be `required("field", scheme::string().build_schema())`.
+- The `schema` field on `ValidationOptions` must be `pub` (not `pub(crate)`) because the scheme module is a sibling public module, not an internal module. The field is visible outside the crate but not re-exported in `lib.rs`, so users won't find it accidentally.
+- `pub mod compound;` already makes the module public — `pub use compound;` causes a duplicate-definition error. Remove redundant re-exports for modules that are already `pub mod`.
+- **`optional()` on builders**: calling `self.build_schema()` inside `optional()` consumes `self` (since `build_schema` takes `self` by value), then trying to use `self` again causes a borrow-after-move error. Fix: use `Value::Object(self.schema.clone().into_iter().collect())` instead.
+- **Naming conflict on ObjectSchema**: `ObjectSchema` already has `optional(name, schema)` for adding optional properties. The universal `optional()` (wrapping in anyOf with null) conflicts. Renamed to `optional_value()` on ObjectSchema only.
+- **Always check spec for universal modifiers**: `optional()`, `nullable()`, `description()`, `default()` are listed on "every builder" in the spec. Easy to miss during initial implementation — do a pass specifically for these after building the core methods.
+
 ---
 
-_Last Updated: 2026-04-29_
+_Last Updated: 2026-05-01_
