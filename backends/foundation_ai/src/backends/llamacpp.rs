@@ -34,8 +34,8 @@ use crate::errors::{
 };
 use crate::types::{
     KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviders, ModelSpec, ModelState, SplitMode, StopReason, TextContent,
-    TextBasedFormatter, UsageCosting, UsageReport, UserModelContent,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, SplitMode, StopReason, TextContent,
+    TextBasedFormatter, ToolFormatter, CostStatus, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -294,6 +294,10 @@ impl Model for LlamaModels {
         self.inner.borrow().spec.clone()
     }
 
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        None
+    }
+
     fn costing(&self) -> GenerationResult<UsageReport> {
         let inner = self.inner.borrow();
         Ok(inner.last_usage.clone().unwrap_or_else(|| UsageReport {
@@ -309,6 +313,7 @@ impl Model for LlamaModels {
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
+                status: CostStatus::Actual,
             },
         }))
     }
@@ -431,8 +436,51 @@ impl LlamaCppStream {
         )] // FFI boundary: llama.cpp uses i32 for token counts
         let max_tokens = params.max_tokens as i32;
 
-        // Extract prompt from interaction (simplified - just use system prompt for now)
-        let prompt = interaction.system_prompt.unwrap_or_default();
+        // Build system prompt from system_prompt + soul + tool definitions
+        let mut prompt = String::new();
+        if let Some(sys) = &interaction.system_prompt {
+            prompt.push_str(sys);
+        }
+        if let Some(soul) = &interaction.soul {
+            if !prompt.is_empty() {
+                prompt.push_str("\n\n");
+            }
+            prompt.push_str(soul);
+        }
+        if let Some(shed) = &interaction.tools_shed {
+            let all_tools = flatten_tools(shed);
+            if !all_tools.is_empty() {
+                if !prompt.is_empty() {
+                    prompt.push_str("\n\n");
+                }
+                let formatter = TextBasedFormatter;
+                if let Some(instructions) = formatter.tool_calling_instructions() {
+                    prompt.push_str(&instructions);
+                    prompt.push_str("\n\nAvailable tools:\n");
+                } else {
+                    prompt.push_str("Available tools:\n");
+                }
+                for tool in &all_tools {
+                    let args = tool
+                        .arguments
+                        .as_ref()
+                        .map(|args| {
+                            args.iter()
+                                .filter_map(|a| {
+                                    if let crate::types::Args::Named(key, _) = a {
+                                        Some(key.clone())
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        })
+                        .unwrap_or_default();
+                    prompt.push_str(&format!("- {}({})\n", tool.name, args));
+                }
+            }
+        }
 
         Ok(Self {
             inner: Rc::new(RefCell::new(LlamaCppStreamInner {
@@ -601,6 +649,7 @@ impl Iterator for LlamaCppStream {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: 0.0,
+                    status: CostStatus::Actual,
                 },
             },
             content: ModelOutput::Text(TextContent {
@@ -634,60 +683,143 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
+/// Flatten a ToolShed into a Vec<Tool> for formatting.
+fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
+    let mut tools = vec![
+        shed.shed.clone(),
+        shed.read.clone(),
+        shed.edit.clone(),
+        shed.write.clone(),
+        shed.search.clone(),
+    ];
+    if let Some(mem) = &shed.memory {
+        tools.push(mem.add.clone());
+        tools.push(mem.replace.clone());
+        tools.push(mem.remove.clone());
+    }
+    if let Some(delegate) = &shed.delegate {
+        tools.push(delegate.start.clone());
+        tools.push(delegate.check.clone());
+        tools.push(delegate.get.clone());
+    }
+    if let Some(bash) = &shed.bash {
+        tools.push(bash.clone());
+    }
+    if let Some(others) = &shed.others {
+        tools.extend(others.iter().cloned());
+    }
+    tools
+}
+
 /// Apply a chat template to the interaction messages.
 ///
 /// Uses a custom template if provided, otherwise falls back to the model's default.
+/// Prepends a system message combining system_prompt + soul + tool definitions.
 fn apply_chat_template(
     model: &LlamaModel,
     interaction: &ModelInteraction,
 ) -> GenerationResult<String> {
-    // Convert Messages to LlamaChatMessage format
-    let chat_messages: Vec<LlamaChatMessage> = interaction
-        .messages
-        .iter()
-        .filter_map(|msg| {
-            let (role, content_str) = match msg {
-                Messages::User { content, .. } => {
-                    let text = match content {
-                        UserModelContent::Text(TextContent { content, .. }) => content.clone(),
-                        UserModelContent::Image(_) => String::new(), // Skip images for now
-                    };
-                    ("user", text)
-                }
-                Messages::Assistant { content, .. } => {
-                    let text = match content {
-                        ModelOutput::Text(TextContent { content, .. }) => content.clone(),
-                        ModelOutput::ToolCall {
-                            name, arguments, ..
-                        } => {
-                            let args_str = arguments
-                                .as_ref()
-                                .map(|a| {
-                                    serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string())
-                                })
-                                .unwrap_or_default();
-                            format!("[Tool call: {name}({args_str})]")
-                        }
-                        ModelOutput::ThinkingContent { thinking, .. } => thinking.clone(),
-                        ModelOutput::Embedding { .. } | ModelOutput::Image(_) => String::new(),
-                    };
-                    ("assistant", text)
-                }
-                Messages::ToolResult { content, .. } => {
-                    let text = match content {
-                        UserModelContent::Text(TextContent { content, .. }) => content.clone(),
-                        UserModelContent::Image(_) => String::new(),
-                    };
-                    ("tool", text)
-                }
-            };
-            if content_str.is_empty() {
-                None
-            } else {
-                LlamaChatMessage::new(role.to_string(), content_str).ok()
+    // Build system message content: system_prompt + soul + tool definitions
+    let mut system_content = String::new();
+    if let Some(sys) = &interaction.system_prompt {
+        system_content.push_str(sys);
+    }
+    if let Some(soul) = &interaction.soul {
+        if !system_content.is_empty() {
+            system_content.push_str("\n\n");
+        }
+        system_content.push_str(soul);
+    }
+
+    // Append tool definitions and calling instructions from tools_shed
+    if let Some(shed) = &interaction.tools_shed {
+        let all_tools = flatten_tools(shed);
+        if !all_tools.is_empty() {
+            if !system_content.is_empty() {
+                system_content.push_str("\n\n");
             }
-        })
-        .collect();
+            let formatter = TextBasedFormatter;
+            if let Some(instructions) = formatter.tool_calling_instructions() {
+                system_content.push_str(&instructions);
+                system_content.push_str("\n\nAvailable tools:\n");
+            } else {
+                system_content.push_str("Available tools:\n");
+            }
+            for tool in &all_tools {
+                let args = tool
+                    .arguments
+                    .as_ref()
+                    .map(|args| {
+                        args.iter()
+                            .filter_map(|a| {
+                                if let crate::types::Args::Named(key, _) = a {
+                                    Some(key.clone())
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    })
+                    .unwrap_or_default();
+                system_content.push_str(&format!("- {}({})\n", tool.name, args));
+            }
+        }
+    }
+
+    // Convert Messages to LlamaChatMessage format, prepending system message
+    let mut chat_messages: Vec<LlamaChatMessage> = Vec::new();
+
+    // Prepend system message if we have content
+    if !system_content.is_empty() {
+        if let Ok(msg) = LlamaChatMessage::new("system".to_string(), system_content) {
+            chat_messages.push(msg);
+        }
+    }
+
+    // Add user/assistant/tool messages
+    for msg in &interaction.messages {
+        let (role, content_str) = match msg {
+            Messages::User { content, .. } => {
+                let text = match content {
+                    UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                    UserModelContent::Image(_) => String::new(),
+                };
+                ("user", text)
+            }
+            Messages::Assistant { content, .. } => {
+                let text = match content {
+                    ModelOutput::Text(TextContent { content, .. }) => content.clone(),
+                    ModelOutput::ToolCall {
+                        name, arguments, ..
+                    } => {
+                        let args_str = arguments
+                            .as_ref()
+                            .map(|a| {
+                                serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string())
+                            })
+                            .unwrap_or_default();
+                        format!("[Tool call: {name}({args_str})]")
+                    }
+                    ModelOutput::ThinkingContent { thinking, .. } => thinking.clone(),
+                    ModelOutput::Embedding { .. } | ModelOutput::Image(_) => String::new(),
+                };
+                ("assistant", text)
+            }
+            Messages::ToolResult { content, .. } => {
+                let text = match content {
+                    UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                    UserModelContent::Image(_) => String::new(),
+                };
+                ("tool", text)
+            }
+        };
+        if !content_str.is_empty() {
+            if let Ok(chat_msg) = LlamaChatMessage::new(role.to_string(), content_str) {
+                chat_messages.push(chat_msg);
+            }
+        }
+    }
 
     // Get chat template (use custom if provided, otherwise default)
     let template = if let Some(custom_template) = &interaction.chat_template {
@@ -756,6 +888,7 @@ fn generate_embeddings(
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
+                status: CostStatus::Actual,
             },
         },
         content: ModelOutput::Embedding {
@@ -867,6 +1000,7 @@ fn generate_text(
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
+                status: CostStatus::Actual,
             },
         },
         content: ModelOutput::Text(TextContent {

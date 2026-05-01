@@ -40,6 +40,7 @@ fn test_llama_server_responses_generate() {
 
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".into()),
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -48,7 +49,7 @@ fn test_llama_server_responses_generate() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -84,6 +85,7 @@ fn test_llama_server_responses_stream() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -92,7 +94,7 @@ fn test_llama_server_responses_stream() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
