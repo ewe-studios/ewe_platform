@@ -43,6 +43,8 @@ pub struct CompilerContext<'a> {
     pub custom_formats: BTreeMap<String, Box<dyn FormatChecker>>,
     /// Custom keyword factories for user-defined keywords.
     pub custom_keywords: BTreeMap<String, Box<dyn KeywordFactory>>,
+    /// Recursion depth for compile_node (security: limit depth).
+    pub depth: u32,
 }
 
 impl<'a> CompilerContext<'a> {
@@ -65,6 +67,7 @@ impl<'a> CompilerContext<'a> {
             assert_format,
             custom_formats,
             custom_keywords,
+            depth: 0,
         }
     }
 
@@ -81,6 +84,7 @@ impl<'a> CompilerContext<'a> {
             assert_format: self.assert_format,
             custom_formats: self.custom_formats.clone(),
             custom_keywords: self.custom_keywords.clone(),
+            depth: self.depth + 1,
         }
     }
 
@@ -97,6 +101,7 @@ impl<'a> CompilerContext<'a> {
             assert_format: self.assert_format,
             custom_formats: self.custom_formats.clone(),
             custom_keywords: self.custom_keywords.clone(),
+            depth: self.depth + 1,
         }
     }
 

@@ -30,8 +30,12 @@ impl Validate for DependentSchemasValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
         if let Value::Object(obj) = instance {
             for (name, schema) in &self.dependencies {
-                if obj.contains_key(name) && !schema.is_valid(instance, ctx) {
-                    return false;
+                if obj.contains_key(name) {
+                    let state = ctx.save_evaluation_state();
+                    if !schema.is_valid(instance, ctx) {
+                        ctx.restore_evaluation_state(&state);
+                        return false;
+                    }
                 }
             }
         }
@@ -47,7 +51,11 @@ impl Validate for DependentSchemasValidator {
         if let Value::Object(obj) = instance {
             for (name, schema) in &self.dependencies {
                 if obj.contains_key(name) {
-                    schema.validate(instance, instance_path, ctx)?;
+                    let state = ctx.save_evaluation_state();
+                    if let Err(e) = schema.validate(instance, instance_path, ctx) {
+                        ctx.restore_evaluation_state(&state);
+                        return Err(e);
+                    }
                 }
             }
         }
@@ -64,8 +72,16 @@ impl Validate for DependentSchemasValidator {
         if let Value::Object(obj) = instance {
             for (name, schema) in &self.dependencies {
                 if obj.contains_key(name) {
-                    for e in schema.iter_errors(instance, instance_path, ctx) {
-                        errors.push(e);
+                    let state = ctx.save_evaluation_state();
+                    let sub_errors: Vec<ValidationError> = schema
+                        .iter_errors(instance, instance_path, ctx)
+                        .collect();
+                    if sub_errors.is_empty() {
+                        // Success — keep the marks.
+                    } else {
+                        // Failure — restore state so stale marks don't leak.
+                        ctx.restore_evaluation_state(&state);
+                        errors.extend(sub_errors);
                     }
                 }
             }

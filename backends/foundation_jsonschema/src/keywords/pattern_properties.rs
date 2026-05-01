@@ -31,10 +31,11 @@ impl Validate for PatternPropertiesValidator {
             for (name, value) in obj {
                 for (regex, schema) in &self.patterns {
                     if regex.is_match(name) {
+                        // Mark as evaluated regardless of validation outcome.
+                        ctx.mark_property_evaluated(name);
                         if !schema.is_valid(value, ctx) {
                             return false;
                         }
-                        ctx.mark_property_evaluated(name);
                     }
                 }
             }
@@ -53,8 +54,9 @@ impl Validate for PatternPropertiesValidator {
                 for (regex, schema) in &self.patterns {
                     if regex.is_match(name) {
                         let child_path = instance_path.push_property(name);
-                        schema.validate(value, &child_path, ctx)?;
+                        // Mark as evaluated regardless of validation outcome.
                         ctx.mark_property_evaluated(name);
+                        schema.validate(value, &child_path, ctx)?;
                     }
                 }
             }

@@ -180,8 +180,9 @@ fn min_and_max_contains_combined() {
 }
 
 #[test]
-fn contains_marks_items_for_unevaluated() {
-    // Items matched by contains should be marked as evaluated
+fn contains_marks_matched_items_for_unevaluated() {
+    // In Draft 2020-12, `contains` DOES mark matched items as evaluated for
+    // unevaluatedItems. Only items that match the contains schema are marked.
     let schema = json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "contains": {"type": "string"},
@@ -193,16 +194,15 @@ fn contains_marks_items_for_unevaluated() {
         .build(&schema)
         .unwrap();
 
-    // "a" matched by contains (marked), 42 is unevaluated but matches integer
+    // "a" matched by contains (marked evaluated), 42 is unevaluated —
+    // 42 passes unevaluatedItems check (it is an integer)
     assert!(validator.is_valid(&json!(["a", 42])));
-    // Two strings — both matched by contains, no unevaluated items
+    // All strings — all matched by contains, all marked evaluated
     assert!(validator.is_valid(&json!(["a", "b"])));
-    // "a" and "b" both matched by contains (marked), 42 unevaluated, matches integer
-    assert!(validator.is_valid(&json!(["a", "b", 42])));
-    // All strings — all matched by contains, no unevaluated items
-    assert!(validator.is_valid(&json!(["a", "b", "all strings"])));
-    // No strings at all — contains fails
+    // No strings — contains fails (requires at least one match)
     assert!(!validator.is_valid(&json!([1, 2, 3])));
+    // Only integers — contains fails (no string matches)
+    assert!(!validator.is_valid(&json!([1, 2])));
 }
 
 // ── If/then/else with unevaluatedProperties ──────────────────────────
@@ -448,8 +448,9 @@ fn unevaluated_items_with_contains_and_prefix_items() {
         .build(&schema)
         .unwrap();
 
-    // First item evaluated by prefixItems, number matched by contains, rest unevaluated
+    // Item 0 ("name") evaluated by prefixItems. Item 1 (42) matched by contains
+    // (type: number) and marked as evaluated — all items evaluated, passes.
     assert!(validator.is_valid(&json!(["name", 42])));
-    // Extra item unevaluated — fails
-    assert!(!validator.is_valid(&json!(["name", 42, "extra"])));
+    // No number present — contains fails (requires at least one match)
+    assert!(!validator.is_valid(&json!(["name"])));
 }

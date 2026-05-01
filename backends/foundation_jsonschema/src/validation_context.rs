@@ -14,7 +14,6 @@ use alloc::string::String;
 ///
 /// HOW: Created fresh for each top-level `is_valid()/validate()` call.
 /// Passed as &mut through the entire validation tree.
-#[allow(dead_code)]
 pub struct ValidationContext {
     /// Active validation paths for cycle detection.
     in_progress: BTreeSet<(usize, String)>,
@@ -64,33 +63,28 @@ impl ValidationContext {
     }
 
     /// Mark a property as evaluated (for unevaluatedProperties tracking).
-    #[allow(dead_code)]
     pub fn mark_property_evaluated(&mut self, name: &str) {
         self.evaluated_properties.insert(name.to_string());
     }
 
     /// Check if a property was evaluated.
-    #[allow(dead_code)]
     #[must_use]
     pub fn is_property_evaluated(&self, name: &str) -> bool {
         self.evaluated_properties.contains(name)
     }
 
     /// Mark an array index as evaluated (for unevaluatedItems tracking).
-    #[allow(dead_code)]
     pub fn mark_item_evaluated(&mut self, index: usize) {
         self.evaluated_items.insert(index);
     }
 
     /// Check if an array index was evaluated.
-    #[allow(dead_code)]
     #[must_use]
     pub fn is_item_evaluated(&self, index: usize) -> bool {
         self.evaluated_items.contains(&index)
     }
 
     /// Save the current evaluation state.
-    #[allow(dead_code)]
     #[must_use]
     pub fn save_evaluation_state(&self) -> EvaluationState {
         EvaluationState {
@@ -109,7 +103,6 @@ impl ValidationContext {
     }
 
     /// Restore evaluation state to a previous snapshot (discards current marks).
-    #[allow(dead_code)]
     pub fn restore_evaluation_state(&mut self, state: &EvaluationState) {
         self.evaluated_properties.clone_from(&state.evaluated_properties);
         self.evaluated_items.clone_from(&state.evaluated_items);
@@ -123,7 +116,6 @@ impl Default for ValidationContext {
 }
 
 /// Snapshot of evaluation state for composition keywords.
-#[allow(dead_code)]
 #[derive(Clone)]
 pub struct EvaluationState {
     evaluated_properties: BTreeSet<String>,

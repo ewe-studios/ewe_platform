@@ -115,6 +115,14 @@ pub(crate) fn compile(
 
 /// Compile a schema value into a `SchemaNode`.
 fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, ValidationError> {
+    // Security: reject schemas deeper than 128 levels to prevent memory exhaustion.
+    if ctx.depth > 128 {
+        return Err(ValidationErrorKind::Schema {
+            reason: "schema exceeds maximum nesting depth (128)".into(),
+        }
+        .into_error_trace());
+    }
+
     // Boolean schemas
     if let Value::Bool(b) = schema {
         return if *b {
@@ -191,12 +199,17 @@ fn compile_keyword(
     defined_properties: &alloc::collections::BTreeSet<alloc::string::String>,
     pattern_regexes: &[(regex::Regex, alloc::string::String)],
 ) -> Option<BoxedValidator> {
-    // Check custom keywords first
+    // Check custom keywords first (before vocabulary enforcement).
     if let Some(factory) = ctx.custom_keywords.get(keyword) {
         match factory.compile(value, ctx.schema_path.clone()) {
             Ok(validator) => return Some(validator),
             Err(_) => return None,
         }
+    }
+
+    // Enforce vocabulary membership — skip keywords not recognized by this draft.
+    if !ctx.vocabulary.contains_keyword(keyword) {
+        return None;
     }
 
     match keyword {
@@ -209,10 +222,10 @@ fn compile_keyword(
         "pattern" => compile_pattern(value, ctx),
         "format" => Some(compile_format(value, ctx)),
         // Number
-        "minimum" => Some(compile_minimum(value, ctx)),
-        "maximum" => Some(compile_maximum(value, ctx)),
-        "exclusiveMinimum" => Some(compile_exclusive_minimum(value, ctx)),
-        "exclusiveMaximum" => Some(compile_exclusive_maximum(value, ctx)),
+        "minimum" => Some(compile_minimum(value, ctx, schema_obj)),
+        "maximum" => Some(compile_maximum(value, ctx, schema_obj)),
+        "exclusiveMinimum" => compile_exclusive_minimum(value, ctx),
+        "exclusiveMaximum" => compile_exclusive_maximum(value, ctx),
         "multipleOf" => compile_multiple_of(value, ctx),
         // Object
         "required" => Some(compile_required(value, ctx)),
@@ -245,7 +258,10 @@ fn compile_keyword(
         "$ref" => compile_ref(value, ctx),
         "$dynamicRef" => compile_dynamic_ref(value, ctx),
         "$recursiveRef" => compile_recursive_ref(value, ctx),
-        // Content — annotation-only in 2019-09+ (no validation unless opted in)
+        // Content — Draft 4/6/7 validate contentEncoding/contentMediaType;
+        // Draft 2019-09/2020-12 treat them as annotation-only (skip compilation).
+        // contentSchema only exists in 2019-09+ (vocabulary enforcement gates it).
+        // All content keywords are annotation-only in 2019-09/2020-12.
         "contentEncoding" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
             compile_content_encoding(value, ctx, schema_obj),
         "contentMediaType" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
@@ -354,30 +370,48 @@ fn compile_format(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
 
 // ── Number ─────────────────────────────────────────────────────────────
 
-fn compile_minimum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+fn compile_minimum(value: &Value, ctx: &CompilerContext<'_>, schema_obj: &serde_json::Map<String, Value>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Box::new(MinimumValidator::new(limit, false, ctx.schema_path.clone()))
+    // In Draft 4, exclusiveMinimum is a boolean modifier for minimum.
+    let exclusive = if ctx.draft == Draft::Draft4 {
+        schema_obj.get("exclusiveMinimum").and_then(Value::as_bool).unwrap_or(false)
+    } else {
+        false
+    };
+    Box::new(MinimumValidator::new(limit, exclusive, ctx.schema_path.clone()))
 }
 
-fn compile_maximum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+fn compile_maximum(value: &Value, ctx: &CompilerContext<'_>, schema_obj: &serde_json::Map<String, Value>) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
-    Box::new(MaximumValidator::new(limit, false, ctx.schema_path.clone()))
+    let exclusive = if ctx.draft == Draft::Draft4 {
+        schema_obj.get("exclusiveMaximum").and_then(Value::as_bool).unwrap_or(false)
+    } else {
+        false
+    };
+    Box::new(MaximumValidator::new(limit, exclusive, ctx.schema_path.clone()))
 }
 
-fn compile_exclusive_minimum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+fn compile_exclusive_minimum(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
+    // In Draft 4, exclusiveMinimum is a boolean modifier handled by compile_minimum.
+    if ctx.draft == Draft::Draft4 {
+        return None;
+    }
     let limit = value.as_f64().unwrap_or(0.0);
-    Box::new(ExclusiveMinimumValidator::new(
+    Some(Box::new(ExclusiveMinimumValidator::new(
         limit,
         ctx.schema_path.clone(),
-    ))
+    )))
 }
 
-fn compile_exclusive_maximum(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
+fn compile_exclusive_maximum(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
+    if ctx.draft == Draft::Draft4 {
+        return None;
+    }
     let limit = value.as_f64().unwrap_or(0.0);
-    Box::new(ExclusiveMaximumValidator::new(
+    Some(Box::new(ExclusiveMaximumValidator::new(
         limit,
         ctx.schema_path.clone(),
-    ))
+    )))
 }
 
 fn compile_multiple_of(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
@@ -743,12 +777,14 @@ fn compile_contains(
     let Ok(node) = compile_node(value, &sub_ctx) else { return None };
     let mut validator = ContainsValidator::new(node);
 
-    // minContains and maxContains modify contains behavior (Draft 2019-09+).
-    if let Some(min) = schema_obj.get("minContains").and_then(value_to_u64) {
-        validator = validator.with_min(min);
-    }
-    if let Some(max) = schema_obj.get("maxContains").and_then(value_to_u64) {
-        validator = validator.with_max(max);
+    // minContains and maxContains are Draft 2019-09+.
+    if ctx.draft >= Draft::Draft201909 {
+        if let Some(min) = schema_obj.get("minContains").and_then(value_to_u64) {
+            validator = validator.with_min(min);
+        }
+        if let Some(max) = schema_obj.get("maxContains").and_then(value_to_u64) {
+            validator = validator.with_max(max);
+        }
     }
 
     Some(Box::new(validator))

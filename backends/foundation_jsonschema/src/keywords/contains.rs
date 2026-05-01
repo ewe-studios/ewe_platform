@@ -188,11 +188,10 @@ mod tests {
 
     #[test]
     fn contains_marks_matched_items() {
+        // `contains` marks matched items as evaluated for unevaluatedItems.
         let v = ContainsValidator::new(SchemaNode::AlwaysValid);
         let mut ctx = ctx();
-        // validate() marks matched items; is_valid() does not (early exit)
         let _ = v.validate(&json!([1, 2, 3]), &LazyLocation::new(), &mut ctx);
-        // All items should be marked as evaluated
         assert!(ctx.is_item_evaluated(0));
         assert!(ctx.is_item_evaluated(1));
         assert!(ctx.is_item_evaluated(2));
