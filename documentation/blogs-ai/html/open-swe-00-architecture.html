@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Open SWE -- Internal Coding Agent -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,42 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a><a href="observability-README.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="observability-README.html" class="nav-btn" title="Previous: Agent Observability -- Comprehensive Guide">← prev</a>
+      <a href="open-swe-README.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
-<h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
+<h1>Open SWE -- Internal Coding Agent</h1>
+<h2>Purpose</h2>
+<p>Open SWE is an open-source framework for building internal coding agents. Inspired by Stripe Minions, Ramp Inspect, and Coinbase Cloudbot. Triggered from Slack, Linear, or GitHub — runs code changes in isolated cloud sandboxes and opens PRs automatically.</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/open-swe/</code></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Built on Deep Agents, not raw LangGraph.</strong> Uses <code>create_deep_agent()</code> from the Deep Agents framework with 21 custom tools and 4 middleware hooks — not a ground-up graph.</p>
+<p><strong>Aha: Mid-run message injection.</strong> <code>check_message_queue_before_model</code> middleware reads from LangGraph store at namespace <code>("queue", thread_id)</code> and injects follow-up messages (Linear comments/Slack replies) that arrived during execution. The agent sees them in its next turn.</p>
+<p><strong>Aha: After-agent PR safety net.</strong> <code>open_pr_if_needed</code> middleware commits, pushes, and opens a PR if the agent forgot to do it itself. Never loses work.</p>
+<h2>Architecture</h2>
+<pre><code class="language-">Slack/Linear/GitHub Webhook --&gt; FastAPI (webapp.py) --&gt; LangGraph Run --&gt; Cloud Sandbox --&gt; Deep Agent --&gt; PR
+                                                                                              ↓
+                                                                                      Post results back
 </code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h2>Core Entry Point (<code>agent/server.py:190-318</code>)</h2>
+<p><code>get_agent()</code> async function:</p>
+<ol><li><strong>Sandbox management</strong> (lines 196-268): Creates or reconnects to isolated Linux sandbox. Supports LangSmith, Daytona, Runloop, Modal, and local providers. Auto-recreates on connection failure.</li><li><strong>Agent creation</strong> (lines 277-318): Uses <code>create_deep_agent()</code> with:</li></ol>
+<ul><li><strong>Model:</strong> Default <code>anthropic:claude-opus-4-6</code></li><li><strong>System prompt:</strong> Modular sections (working env, task execution, coding standards, PR conventions, code review) + injected <code>AGENTS.md</code> from target repo</li><li><strong>21 tools:</strong> <code>http_request</code>, <code>fetch_url</code>, <code>web_search</code>, <code>list_repos</code>, <code>get_branch_name</code>, <code>commit_and_open_pr</code>, Linear tools, Slack tools, GitHub tools</li><li><strong>4 middleware hooks:</strong> Tool error handler, mid-run message injection, empty message prevention, PR safety net</li></ul>
+<h2>Webhook Server (<code>agent/webapp.py</code>)</h2>
+<p>FastAPI server with endpoints for:</p>
+<ul><li>Linear webhook (issue created/updated)</li><li>Slack webhook (mention <code>@openswe</code>)</li><li>GitHub webhook (PR review request)</li></ul>
+<p>Extracts task + repo info, creates LangGraph run with deterministic thread ID.</p>
+<h2>Middleware (<code>agent/middleware/</code>)</h2>
+<table><tr><th>Middleware</th><th>File</th><th>Purpose</th></tr><tr><td>`ToolErrorMiddleware`</td><td>`tool_error_handler.py`</td><td>Catches tool errors gracefully</td></tr><tr><td>`check_message_queue_before_model`</td><td>`check_message_queue.py:49`</td><td>Injects mid-run messages from store</td></tr><tr><td>`ensure_no_empty_msg`</td><td>`ensure_no_empty_msg.py`</td><td>Prevents empty messages reaching model</td></tr><tr><td>`open_pr_if_needed`</td><td>`open_pr.py:69`</td><td>After-agent PR safety net</td></tr></table>
+<h2>Sandbox Providers (<code>agent/integrations/</code>)</h2>
+<table><tr><th>Provider</th><th>File</th><th>Purpose</th></tr><tr><td>LangSmith Sandbox</td><td>`langsmith.py`</td><td>Built-in sandbox</td></tr><tr><td>Daytona</td><td>`daytona.py`</td><td>Daytona cloud sandbox</td></tr><tr><td>Runloop</td><td>`runloop.py`</td><td>Runloop sandbox</td></tr><tr><td>Modal</td><td>`modal.py`</td><td>Modal serverless containers</td></tr><tr><td>Local</td><td>`local.py`</td><td>Local development</td></tr></table>
+<h2>Workflow</h2>
+<ol><li>User mentions <code>@openswe</code> in Slack, comments on Linear, or tags in GitHub PR</li><li>Webhook receives event, extracts task + repo info</li><li>LangGraph run created with deterministic thread ID</li><li>Cloud sandbox provisioned, repo cloned</li><li>Agent executes: understand → implement → verify → commit</li><li><code>commit_and_open_pr</code> tool or <code>open_pr_if_needed</code> middleware opens GitHub draft PR</li><li>Results posted back to invocation surface</li></ol>
+<p><a href="../README.md">Back to main index → ../README.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

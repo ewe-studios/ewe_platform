@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Observability -- Comprehensive Guide -- blogs-ai</title>
+  <title>Chat LangChain -- Documentation Assistant Agent -- blogs-ai</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script>
@@ -124,27 +124,34 @@
   <nav class="nav">
     <span class="nav-brand">~/blogs-ai/docs</span>
     <div class="nav-actions">
-      <a href="langgraphjs-README.html" class="nav-breadcrumb">LangGraph.js -- TypeScript/JavaScript Port</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-01-langsmith-internals.html" class="nav-breadcrumb">LangSmith Internals -- Source Code Deep Dive</a>
+      <a href="README.html" class="nav-breadcrumb">Blogs AI -- Industry Research Synthesis</a><a href="agent-protocol-00-specification.html" class="nav-breadcrumb">Agent Protocol -- Standardized API for LLM Agents</a><a href="agent-protocol-README.html" class="nav-breadcrumb">Agent Protocol -- Standardized API for LLM Agents</a>
       <a href="index.html" class="nav-btn" title="Back to index">index</a>
-      <a href="observability-01-langsmith-internals.html" class="nav-btn" title="Previous: LangSmith Internals -- Source Code Deep Dive">← prev</a>
-      <a href="open-swe-00-architecture.html" class="nav-btn nav-btn-next" title="Next: Open SWE -- Internal Coding Agent">next →</a>
+      <a href="agent-protocol-README.html" class="nav-btn" title="Previous: Agent Protocol -- Standardized API for LLM Agents">← prev</a>
+      <a href="chat-langchain-README.html" class="nav-btn nav-btn-next" title="Next: Chat LangChain -- Documentation Assistant">next →</a>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
-<h1>Agent Observability -- Comprehensive Guide</h1>
-<p>How to observe, evaluate, and continuously improve AI agents.</p>
-<h2>Documents</h2>
-<ul><li><a href="00-overview.md">00 Agent Observability</a> — Observability gap, runs/traces/threads, LangSmith stack, building from scratch, evaluation methods, production monitoring, improvement loop</li><li><a href="01-langsmith-internals.md">01 LangSmith Internals</a> — Source code deep dive (v0.8.0): contextvars tracing, dotted_order encoding, UUIDv7, background thread batching, write replicas, provider wrappers, evaluation engine</li></ul>
-<h2>Core Principles</h2>
-<ol><li><strong>Traces are the new source of truth.</strong> Behavior emerges at runtime, not in code.</li><li><strong>Observability → Evaluation → Improvement.</strong> The three are inseparable.</li><li><strong>Agent observability ≠ software observability.</strong> You capture reasoning, not service calls.</li><li><strong>Production is the primary teacher.</strong> Traces reveal failure modes you can't engineer.</li></ol>
-<h2>Quick Stack</h2>
-<pre><code class="language-">Agent Code → Traces (runs, traces, threads) → Evaluation → Improvement
-                  ↓
-            Monitoring &amp; Alerting
+<h1>Chat LangChain -- Documentation Assistant Agent</h1>
+<h2>Purpose</h2>
+<p>A documentation assistant agent that answers questions about LangChain, LangGraph, and LangSmith. Built with LangGraph using a docs-first research strategy.</p>
+<p>Source: <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.AgenticLibraries/src.langchain/chat-langchain/</code></p>
+<h2>Architecture</h2>
+<pre><code class="language-">User Query --&gt; Guardrails Middleware --&gt; Agent (with tools) --&gt; Response
+                                    |
+                            +--------+--------+
+                            |                 |
+                    SearchDocsByLangChain   Pylon KB Tools
+                    (Mintlify API)         (Support articles)
 </code></pre>
-<h2>Building From Scratch</h2>
-<p>Start with: trace capture decorator, trace viewing UI, error tracking, cost tracking, basic evals. Add later: LLM-as-judge, dataset management, prompt versioning, thread analysis, alerting.</p>
+<h2>Agent (<code>src/agent/docs_graph.py</code>)</h2>
+<p>Uses <code>langchain.agents.create_agent()</code> with:</p>
+<ul><li><strong>Model:</strong> <code>configurable_model</code> with fallback middleware</li><li><strong>Tools:</strong> <code>SearchDocsByLangChain</code> (docs search via Mintlify), <code>search_support_articles</code> and <code>get_article_content</code> (Pylon KB), <code>check_links</code> (URL validation)</li></ul>
+<h2>Guardrails (<code>src/middleware/guardrails_middleware.py:1-328</code>)</h2>
+<p><code>GuardrailsMiddleware</code> intercepts queries via <code>abefore_agent</code> hook (line 186). Uses structured <code>GuardrailsDecision</code> Pydantic model with ALLOWED/BLOCKED outcomes. Deliberately permissive — default is to allow, only blocking egregious misuse. Failed classification is fail-open (line 315).</p>
+<h2>langgraph.json</h2>
+<p>Maps <code>docs_agent</code> to <code>./src/agent/docs_graph.py:docs_agent</code>, recursion limit 100, checkpointer with 7-day TTL.</p>
+<p><a href="../README.md">Back to main index → ../README.md</a></p>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>
