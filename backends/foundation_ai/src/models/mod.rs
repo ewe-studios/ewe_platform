@@ -1,1 +1,4 @@
-pub mod model_descriptors;
+pub mod generator;
+pub mod providers;
+
+pub use providers::model_descriptors;

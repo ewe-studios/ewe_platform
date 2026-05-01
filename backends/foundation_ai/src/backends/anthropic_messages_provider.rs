@@ -473,12 +473,12 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
 
     fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor> {
         Ok(ModelProviderDescriptor {
-            id: String::from("anthropic"),
-            name: String::from("Anthropic"),
+            id: "anthropic",
+            name: "Anthropic",
             reasoning: true,
             api: crate::types::ModelAPI::AnthropicMessages,
             provider: ModelProviders::ANTHROPIC,
-            base_url: Some(self.config.base_url.clone()),
+            base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
             cost: crate::types::ModelUsageCosting {
                 input: 0.0,

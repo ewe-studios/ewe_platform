@@ -411,12 +411,12 @@ impl ModelProvider for HuggingFaceCandleProvider {
 
     fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
         Ok(crate::types::ModelProviderDescriptor {
-            id: "huggingface-candle".to_string(),
-            name: "HuggingFace Hub (Candle)".to_string(),
+            id: "huggingface-candle",
+            name: "HuggingFace Hub (Candle)",
             reasoning: false,
             api: crate::types::ModelAPI::Custom("huggingface-candle".to_string()),
             provider: crate::types::ModelProviders::HUGGINGFACE,
-            base_url: Some("https://huggingface.co".to_string()),
+            base_url: Some("https://huggingface.co"),
             inputs: crate::types::MessageType::Text,
             cost: crate::types::ModelUsageCosting {
                 input: 0.0,

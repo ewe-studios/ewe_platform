@@ -46,6 +46,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,
         Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,
+        Some(("gen_model_descriptors", arguments)) => models::run(arguments)?,
         _ => {}
     }
 
