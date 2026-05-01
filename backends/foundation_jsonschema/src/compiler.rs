@@ -90,11 +90,12 @@ pub(crate) fn compile(
         Box<dyn crate::keywords::custom::KeywordFactory>,
     >,
 ) -> Result<SchemaNode, ValidationError> {
+    let id_keyword = draft.id_keyword();
     let base_uri = schema
         .as_object()
-        .and_then(|o| o.get("$id"))
-        .and_then(Value::as_str)
-        .unwrap_or("");
+        .and_then(|o| o.get(id_keyword))
+        .and_then(|v| v.as_str())
+        .map_or("", |s| s.strip_suffix('#').unwrap_or(s));
 
     let resolver = registry.resolver(base_uri);
     let schema_path = Location::new();
@@ -150,8 +151,17 @@ fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, Val
 
     let mut validators: Vec<BoxedValidator> = Vec::new();
 
+    // In Draft 4/6/7/2019-09, $ref suppresses sibling keywords in the same
+    // schema object. In Draft 2020-12, all keywords are evaluated alongside $ref.
+    let has_ref = schema_obj.contains_key("$ref");
+    let ref_suppresses = !matches!(ctx.draft, Draft::Draft202012);
+
     // Process each keyword
     for (key, value) in schema_obj {
+        if ref_suppresses && has_ref && key != "$ref" {
+            continue;
+        }
+
         let keyword_ctx = ctx.push_keyword(key);
 
         if let Some(result) = compile_keyword(
