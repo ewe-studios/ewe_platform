@@ -4,7 +4,9 @@
 //! Uses `foundation_core::simple_http` for HTTP I/O with Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -20,11 +22,13 @@ use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleHeade
 use foundation_errstacks::ErrorTrace;
 use serde::{Deserialize, Serialize};
 
+use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
     AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, CostStatus, UsageCosting, UsageReport,
+    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
+    CostStatus, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -382,6 +386,8 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 resolver: self.resolver.clone(),
                 info: info.clone(),
                 _formatter: std::marker::PhantomData,
+                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -416,6 +422,8 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             resolver: self.resolver.clone(),
             info,
             _formatter: std::marker::PhantomData,
+            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
         })
     }
 
@@ -480,6 +488,8 @@ pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = Syst
     #[allow(dead_code)]
     info: OpenAIModelInfo,
     _formatter: std::marker::PhantomData<F>,
+    pricing: ModelUsageCosting,
+    cumulative_cost: Rc<RefCell<CostAccumulator>>,
 }
 
 impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
@@ -614,31 +624,35 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             .ok_or_else(|| GenerationError::Generic("No embeddings in response".into()))?;
 
         #[allow(clippy::cast_precision_loss)]
-        Ok(vec![Messages::Assistant {
-            model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
-            usage: UsageReport {
-                input: response
-                    .usage
-                    .as_ref()
-                    .map_or(0.0, |u| u.prompt_tokens as f64),
+        let emb_usage = UsageReport {
+            input: response
+                .usage
+                .as_ref()
+                .map_or(0.0, |u| u.prompt_tokens as f64),
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: response
+                .usage
+                .as_ref()
+                .map_or(0.0, |u| u.total_tokens as f64),
+            cost: UsageCosting {
+                currency: "USD".to_string(),
+                input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
                 cache_write: 0.0,
-                total_tokens: response
-                    .usage
-                    .as_ref()
-                    .map_or(0.0, |u| u.total_tokens as f64),
-                cost: UsageCosting {
-                    currency: "USD".to_string(),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: 0.0,
-                    status: CostStatus::Actual,
-                },
+                total_tokens: 0.0,
+                status: CostStatus::Actual,
             },
+        };
+        let emb_cost = calculate_cost(&self.pricing, &emb_usage, CostStatus::Actual);
+        let emb_usage = UsageReport { cost: emb_cost, ..emb_usage };
+        self.cumulative_cost.borrow_mut().add(&emb_usage.cost);
+        Ok(vec![Messages::Assistant {
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: emb_usage,
             content: ModelOutput::Embedding {
                 dimensions: data.embedding.len(),
                 values: data.embedding.clone(),
@@ -782,11 +796,30 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        None
+        Some(ModelProviderDescriptor {
+            id: "openai",
+            name: "OpenAI",
+            reasoning: false,
+            api: crate::types::ModelAPI::OpenAICompletions,
+            provider: ModelProviders::OPENAI,
+            base_url: None,
+            inputs: crate::types::MessageType::TextAndImages,
+            cost: self.pricing.clone(),
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        Ok(empty_usage_report())
+        let cost = self.cumulative_cost.borrow().result();
+        Ok(UsageReport {
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: cost.total_tokens,
+            cost,
+        })
     }
 
     fn generate(
@@ -809,7 +842,8 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
         let url = self.build_url("chat/completions");
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
 
-        let message = parse_chat_response(&response, &self.model_id)?;
+        let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
+        self.cumulative_cost.borrow_mut().add(&report.cost);
         Ok(vec![message])
     }
 
@@ -859,6 +893,8 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             finish_reason: None,
             usage: None,
             done: false,
+            pricing: self.pricing.clone(),
+            cumulative_cost: Rc::clone(&self.cumulative_cost),
         })
     }
 }
@@ -880,6 +916,8 @@ struct OpenAIStream<R: DnsResolver + 'static> {
     finish_reason: Option<String>,
     usage: Option<OpenAIUsage>,
     done: bool,
+    pricing: ModelUsageCosting,
+    cumulative_cost: Rc<RefCell<CostAccumulator>>,
 }
 
 struct AccumulatedToolCall {
@@ -906,7 +944,9 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
 
                 if data.trim() == "[DONE]" {
                     self.done = true;
-                    return Some(Stream::Next(self.build_final_message()));
+                    let (msg, report) = self.build_final_message();
+                    self.cumulative_cost.borrow_mut().add(&report.cost);
+                    return Some(Stream::Next(msg));
                 }
 
                 let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
@@ -1012,7 +1052,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
         }
     }
 
-    fn build_final_message(&self) -> Messages {
+    fn build_final_message(&self) -> (Messages, UsageReport) {
         let stop_reason = match self.finish_reason.as_deref() {
             Some("stop") | None => StopReason::Stop,
             Some("length") => StopReason::Length,
@@ -1020,26 +1060,31 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             Some(reason) => StopReason::Message(reason.to_string()),
         };
 
-        #[allow(clippy::cast_precision_loss)]
         let usage_report = self
             .usage
             .as_ref()
-            .map_or_else(empty_usage_report, |u| UsageReport {
-                input: u.prompt_tokens as f64,
-                output: u.completion_tokens as f64,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: u.total_tokens as f64,
-                cost: UsageCosting {
-                    currency: String::from("USD"),
-                    input: 0.0,
-                    output: 0.0,
+            .map(|u| {
+                #[allow(clippy::cast_precision_loss)]
+                let usage = UsageReport {
+                    input: u.prompt_tokens as f64,
+                    output: u.completion_tokens as f64,
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: u.total_tokens as f64,
-                    status: CostStatus::Actual,
-                },
-            });
+                    cost: UsageCosting {
+                        currency: String::from("USD"),
+                        input: 0.0,
+                        output: 0.0,
+                        cache_read: 0.0,
+                        cache_write: 0.0,
+                        total_tokens: u.total_tokens as f64,
+                        status: CostStatus::Actual,
+                    },
+                };
+                let costing = calculate_cost(&self.pricing, &usage, CostStatus::Actual);
+                UsageReport { cost: costing, ..usage }
+            })
+            .unwrap_or_else(empty_usage_report);
 
         let content = if self.tool_calls.is_empty() {
             ModelOutput::Text(TextContent {
@@ -1069,17 +1114,18 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             }
         };
 
-        Messages::Assistant {
+        let msg = Messages::Assistant {
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
-            usage: usage_report,
+            usage: usage_report.clone(),
             content,
             stop_reason,
             provider: ModelProviders::OPENAI,
             error_detail: None,
             signature: None,
             metadata: None,
-        }
+        };
+        (msg, usage_report)
     }
 }
 
@@ -1821,7 +1867,8 @@ fn build_chat_request(
 fn parse_chat_response(
     response: &ChatCompletionResponse,
     model_id: &ModelId,
-) -> GenerationResult<Messages> {
+    pricing: &ModelUsageCosting,
+) -> GenerationResult<(Messages, UsageReport)> {
     let choice = response
         .choices
         .first()
@@ -1853,26 +1900,31 @@ fn parse_chat_response(
         Some(other) => StopReason::Message(other.to_string()),
     };
 
-    #[allow(clippy::cast_precision_loss)]
     let usage_report = response
         .usage
         .as_ref()
-        .map_or_else(empty_usage_report, |u| UsageReport {
-            input: u.prompt_tokens as f64,
-            output: u.completion_tokens as f64,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: u.total_tokens as f64,
-            cost: UsageCosting {
-                currency: String::from("USD"),
-                input: 0.0,
-                output: 0.0,
+        .map(|u| {
+            #[allow(clippy::cast_precision_loss)]
+            let usage = UsageReport {
+                input: u.prompt_tokens as f64,
+                output: u.completion_tokens as f64,
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: u.total_tokens as f64,
-                status: CostStatus::Actual,
-            },
-        });
+                cost: UsageCosting {
+                    currency: String::from("USD"),
+                    input: 0.0,
+                    output: 0.0,
+                    cache_read: 0.0,
+                    cache_write: 0.0,
+                    total_tokens: u.total_tokens as f64,
+                    status: CostStatus::Actual,
+                },
+            };
+            let costing = calculate_cost(pricing, &usage, CostStatus::Actual);
+            UsageReport { cost: costing, ..usage }
+        })
+        .unwrap_or_else(empty_usage_report);
 
     let output = if let Some(tool_calls) = &message.tool_calls {
         if let Some(tc) = tool_calls.first() {
@@ -1908,17 +1960,20 @@ fn parse_chat_response(
         })
     };
 
-    Ok(Messages::Assistant {
-        model: model_id.clone(),
-        timestamp: SystemTime::now(),
-        usage: usage_report,
-        content: output,
-        stop_reason,
-        provider: ModelProviders::OPENAI,
-        error_detail: None,
-        signature: None,
-        metadata: build_metadata(&choice.logprobs, &response.system_fingerprint, &message.refusal),
-    })
+    Ok((
+        Messages::Assistant {
+            model: model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: usage_report.clone(),
+            content: output,
+            stop_reason,
+            provider: ModelProviders::OPENAI,
+            error_detail: None,
+            signature: None,
+            metadata: build_metadata(&choice.logprobs, &response.system_fingerprint, &message.refusal),
+        },
+        usage_report,
+    ))
 }
 
 fn build_metadata(
@@ -2287,13 +2342,13 @@ mod tests {
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
-        let result = parse_chat_response(&response, &model_id).unwrap();
+        let (msg, _report) = parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
         if let Messages::Assistant {
             content,
             stop_reason,
             ..
-        } = &result
+        } = &msg
         {
             assert_eq!(*stop_reason, StopReason::ToolUse);
             if let ModelOutput::ToolCall {
@@ -2343,7 +2398,7 @@ mod tests {
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
-        let result = parse_chat_response(&response, &model_id).unwrap();
+        let (msg, _report) = parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
         if let Messages::Assistant {
             content,
@@ -2351,7 +2406,7 @@ mod tests {
             usage,
             metadata: _,
             ..
-        } = &result
+        } = &msg
         {
             assert_eq!(*stop_reason, StopReason::Stop);
             if let ModelOutput::Text(tc) = content {

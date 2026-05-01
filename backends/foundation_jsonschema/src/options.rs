@@ -122,6 +122,11 @@ impl ValidationOptions {
     ///
     /// Panics if no schema has been embedded. Use `ValidationOptions::build(&Value)`
     /// for manual schema construction, or call `scheme::Builder::build()` first.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValidationError` if the embedded schema fails to compile
+    /// into a `Validator`.
     pub fn compile(self) -> Result<Validator, ValidationError> {
         let schema = self.schema.as_ref()
             .expect("schema must be set before compile() — use scheme::Builder::build() or ValidationOptions::build(schema)");

@@ -99,6 +99,7 @@ pub struct CostAccumulator {
     output: f64,
     cache_read: f64,
     cache_write: f64,
+    total_tokens: f64,
     call_count: u64,
 }
 
@@ -112,6 +113,7 @@ impl CostAccumulator {
         self.output += costing.output;
         self.cache_read += costing.cache_read;
         self.cache_write += costing.cache_write;
+        self.total_tokens += costing.total_tokens;
         self.call_count += 1;
     }
 
@@ -122,7 +124,7 @@ impl CostAccumulator {
             output: self.output,
             cache_read: self.cache_read,
             cache_write: self.cache_write,
-            total_tokens: 0.0,
+            total_tokens: self.total_tokens,
             status: if self.call_count > 0 {
                 CostStatus::Actual
             } else {

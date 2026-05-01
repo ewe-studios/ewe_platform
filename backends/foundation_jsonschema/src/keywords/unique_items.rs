@@ -41,17 +41,15 @@ impl Validate for UniqueItemsValidator {
     ) -> Result<(), ValidationError> {
         if self.is_valid(instance, ctx) {
             Ok(())
+        } else if let Value::Array(arr) = instance {
+            let (first, second) = find_duplicate(arr).unwrap_or((0, 1));
+            Err(ValidationErrorBuilder::new(
+                instance_path.materialize(),
+                self.schema_path.clone(),
+            )
+            .build(ValidationErrorKind::UniqueItems { first, second }))
         } else {
-            if let Value::Array(arr) = instance {
-                let (first, second) = find_duplicate(arr).unwrap_or((0, 1));
-                Err(ValidationErrorBuilder::new(
-                    instance_path.materialize(),
-                    self.schema_path.clone(),
-                )
-                .build(ValidationErrorKind::UniqueItems { first, second }))
-            } else {
-                unreachable!()
-            }
+            unreachable!()
         }
     }
 
@@ -100,11 +98,9 @@ fn numbers_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
 }
 
 /// Canonical string representation for hashing.
-/// Uses serde_json to serialize, which gives consistent output for JSON values.
-fn value_hash(value: &Value) -> Option<String> {
-    // Use a simple discriminant-based approach to avoid pulling in a new dependency.
-    // For objects/arrays, use recursive serialization. For primitives, use direct format.
-    Some(match value {
+/// Uses `serde_json` to serialize, which gives consistent output for JSON values.
+fn value_hash(value: &Value) -> String {
+    match value {
         Value::Null => "null".into(),
         Value::Bool(b) => alloc::format!("bool:{b}"),
         Value::Number(n) => {
@@ -118,17 +114,17 @@ fn value_hash(value: &Value) -> Option<String> {
         }
         Value::String(s) => alloc::format!("str:{s}"),
         Value::Array(arr) => {
-            let inner: Vec<String> = arr.iter().filter_map(value_hash).collect();
+            let inner: Vec<String> = arr.iter().map(value_hash).collect();
             alloc::format!("arr:[{}]", inner.join(","))
         }
         Value::Object(obj) => {
             let inner: Vec<String> = obj
                 .iter()
-                .filter_map(|(k, v)| value_hash(v).map(|vh| alloc::format!("{k}={vh}")))
+                .map(|(k, v)| alloc::format!("{k}={}", value_hash(v)))
                 .collect();
             alloc::format!("obj:[{}]", inner.join(","))
         }
-    })
+    }
 }
 
 fn find_duplicate(arr: &[Value]) -> Option<(usize, usize)> {
@@ -145,14 +141,11 @@ fn find_duplicate(arr: &[Value]) -> Option<(usize, usize)> {
     } else {
         let mut seen: BTreeSet<String> = BTreeSet::new();
         for (i, item) in arr.iter().enumerate() {
-            if let Some(h) = value_hash(item) {
-                if !seen.insert(h) {
-                    // Hash collision — verify with exact comparison.
-                    for j in 0..i {
-                        if values_equal(&arr[j], item) {
-                            return Some((j, i));
-                        }
-                    }
+            let h = value_hash(item);
+            if !seen.insert(h) {
+                // Hash collision — verify with exact comparison.
+                if let Some((j, _)) = arr.iter().take(i).enumerate().find(|(_, prev)| values_equal(prev, item)) {
+                    return Some((j, i));
                 }
             }
         }
