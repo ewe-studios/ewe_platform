@@ -39,7 +39,13 @@ hermes/
 │   ├── 07-cli-tui.md               ← CLI entry points, TUI, commands
 │   ├── 08-cron.md                  ← Scheduling, jobs, automation
 │   ├── 09-plugins.md               ← Plugin architecture, memory/context/image
-│   ├── 10-platform-adapters.md     ← Per-platform adapter details
+│   ├── 10-platform-adapters.md     ← Overview: 18 platforms, target resolution, chunking
+│   ├── 10a-bot-api-adapter.md      ← Telegram: Bot API, MarkdownV2, retry, media
+│   ├── 10b-rest-api-adapters.md    ← Discord (forum detection), Slack, Mattermost, HASS, DingTalk, QQBot, SMS
+│   ├── 10c-bridge-daemon-adapters.md ← WhatsApp (bridge), Signal (JSON-RPC daemon)
+│   ├── 10d-smtp-adapter.md         ← Email: SMTP one-shot, STARTTLS
+│   ├── 10e-matrix-adapter.md       ← Matrix: Client-Server API, E2EE, media adapter
+│   ├── 10f-native-sdk-adapters.md  ← Feishu/Lark, Weixin, WeCom, BlueBubbles
 │   ├── 11-data-flow.md             ← End-to-end flows with sequence diagrams
 │   ├── 12-cost-tracking.md         ← Token usage, pricing, cost estimation, account monitoring
 │   ├── 13-self-evolution.md        ← GEPA-based prompt/skill evolution
@@ -100,6 +106,18 @@ hermes/
 | 21 | Context compression: ContextEngine ABC, 4-phase pipeline, boundary alignment, secret redaction, guided compression | DONE | `19-context-compression.md` |
 | 22 | Async Python: sync-first loop, asyncio.to_thread bridging, ThreadPoolExecutor, threading patterns, background ops | DONE | `20-async-python.md` |
 | 23 | RL training traces: ShareGPT format, trajectory compressor, reasoning normalization, GRPO integration, GEPA evolution | DONE | `21-rl-training-traces.md` |
+
+### Phase 1g: Platform Adapter Subpages (Deep Implementation)
+
+| # | Task | Status | File |
+|---|------|--------|------|
+| 24 | Platform adapters overview: 18 platforms, target resolution, chunking, media | DONE | `10-platform-adapters.md` |
+| 25 | Bot API adapter deep dive: Telegram — Bot API, MarkdownV2, retry logic, media routing | DONE | `10a-bot-api-adapter.md` |
+| 26 | REST API adapters: Discord (forum detection), Slack, Mattermost, HASS, DingTalk, QQBot, SMS | DONE | `10b-rest-api-adapters.md` |
+| 27 | Bridge/daemon adapters: WhatsApp (local bridge), Signal (JSON-RPC daemon) | DONE | `10c-bridge-daemon-adapters.md` |
+| 28 | SMTP adapter: Email — one-shot SMTP, STARTTLS, MIME construction | DONE | `10d-smtp-adapter.md` |
+| 29 | Matrix adapter: Client-Server API, E2EE live adapter delivery, media pipeline | DONE | `10e-matrix-adapter.md` |
+| 30 | Native SDK adapters: Feishu/Lark, Weixin, WeCom, BlueBubbles | DONE | `10f-native-sdk-adapters.md` |
 
 ### Phase 2: HTML Rendering -- COMPLETE
 

@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/autoresearch/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="03-training-setup.html">autoresearch -- Training Setup</a> <a href="04-platform-support.html">autoresearch -- Platform Support</a> <a href="05-development.html">autoresearch -- Development Guide</a></span> <a href="05-development.html">← autoresearch -- Development Guide</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="03-training-setup.html" class="nav-breadcrumb">autoresearch -- Training Setup</a><a href="04-platform-support.html" class="nav-breadcrumb">autoresearch -- Platform Support</a><a href="05-development.html" class="nav-breadcrumb">autoresearch -- Development Guide</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="05-development.html" class="nav-btn" title="Previous: autoresearch -- Development Guide">← prev</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

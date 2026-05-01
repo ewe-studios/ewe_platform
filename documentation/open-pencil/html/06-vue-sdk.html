@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/open-pencil/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="03-cli.html">OpenPencil -- CLI</a> <a href="04-ai-mcp.html">OpenPencil -- AI & MCP</a> <a href="05-collaboration.html">OpenPencil -- Collaboration</a></span> <a href="05-collaboration.html">← OpenPencil -- Collaboration</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="03-cli.html" class="nav-breadcrumb">OpenPencil -- CLI</a><a href="04-ai-mcp.html" class="nav-breadcrumb">OpenPencil -- AI & MCP</a><a href="05-collaboration.html" class="nav-breadcrumb">OpenPencil -- Collaboration</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="05-collaboration.html" class="nav-btn" title="Previous: OpenPencil -- Collaboration">← prev</a>
+      <a href="07-development.html" class="nav-btn nav-btn-next" title="Next: OpenPencil -- Development">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

@@ -92,8 +92,84 @@ blockquote {
 
 hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
 
-.mermaid { margin: 1.5rem 0; text-align: center; min-height: 100px; }
+.mermaid {
+  margin: 1.5rem 0;
+  text-align: center;
+  min-height: 100px;
+  cursor: zoom-in;
+  transition: opacity 0.15s;
+}
+.mermaid:hover { opacity: 0.85; }
 .mermaid svg { max-width: 100%; height: auto; }
+
+/* ── Diagram modal ─────────────────────────────────────────── */
+.diagram-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  animation: modal-fade-in 0.2s ease;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.diagram-modal-container {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  cursor: grab;
+  user-select: none;
+}
+.diagram-modal-container.dragging { cursor: grabbing; }
+.diagram-modal-container svg {
+  display: block;
+  max-width: 95vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  transform-origin: 0 0;
+  transition: transform 0.1s ease-out;
+}
+.diagram-modal-toolbar {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.diagram-modal-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: monospace;
+  line-height: 1;
+}
+.diagram-modal-btn:hover { background: rgba(255,255,255,0.25); }
+.diagram-modal-hint {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.6);
+  font-size: 0.8rem;
+  font-family: monospace;
+  pointer-events: none;
+  animation: modal-hint-fade 4s ease forwards;
+}
+@keyframes modal-hint-fade {
+  0%, 60% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
 .doc-index { list-style: none; padding: 0; }
 .doc-index li { padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
@@ -113,9 +189,52 @@ hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
 }
 
 .nav-brand { font-family: monospace; font-weight: 600; font-size: 0.9rem; }
-.nav-links { display: flex; gap: 0.75rem; align-items: center; font-size: 0.85rem; flex-wrap: wrap; }
-.nav-links a { color: var(--fg-muted); }
-.nav-links a:hover { color: var(--fg); }
+
+.nav-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+/* Breadcrumb links -- muted, inline */
+.nav-breadcrumb {
+  color: var(--fg-soft);
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+}
+.nav-breadcrumb:hover { color: var(--fg); }
+
+/* Nav buttons (index, prev, next, theme) -- pill style */
+.nav-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg-muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-btn:hover {
+  border-color: var(--fg-muted);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+/* Next button -- accent border to draw attention */
+.nav-btn-next {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.nav-btn-next:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
 
 .theme-toggle {
   background: none;
@@ -126,9 +245,20 @@ hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
   cursor: pointer;
   font-family: monospace;
   font-size: 0.8rem;
+  line-height: 1;
 }
 
 .theme-toggle:hover { border-color: var(--fg-muted); color: var(--fg); }
+
+/* Bottom-of-page prev/next footer navigation */
+.nav-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
 
 .prose { min-height: 60vh; }
 

@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/resonate/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-transport-system.html">Resonate -- Transport System</a> <a href="08-persistence.html">Resonate -- Persistence Layer</a> <a href="09-patterns.html">Resonate -- Design Patterns</a></span> <a href="09-patterns.html">← Resonate -- Design Patterns</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="07-transport-system.html" class="nav-breadcrumb">Resonate -- Transport System</a><a href="08-persistence.html" class="nav-breadcrumb">Resonate -- Persistence Layer</a><a href="09-patterns.html" class="nav-breadcrumb">Resonate -- Design Patterns</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="09-patterns.html" class="nav-btn" title="Previous: Resonate -- Design Patterns">← prev</a>
+      <a href="11-observability.html" class="nav-btn nav-btn-next" title="Next: Resonate -- Observability">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangChain -- Core Principles & Architecture -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="00-minions.html" class="nav-breadcrumb">Stripe Minions -- One-Shot Coding Agents</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="00-minions.html" class="nav-btn" title="Previous: Stripe Minions -- One-Shot Coding Agents">← prev</a>
+      <a href="00-production-agent-architecture.html" class="nav-btn nav-btn-next" title="Next: Conductor -- Production Agent Architecture">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>LangChain -- Core Principles & Architecture</h1>
+<h2>Purpose</h2>
+<p>LangChain evolved from a popular chain-based LLM framework into a layered ecosystem: <strong>LangGraph</strong> for low-level production agent control, <strong>Deep Agents</strong> for long-running agentic tasks, and <strong>LangSmith</strong> for observability and evaluation. The key lesson from their journey: production agents need control and durability, not higher-level abstractions.</p>
+<p>Source: <a href="https://www.langchain.com/blog/building-langgraph">Building LangGraph</a> Source: <a href="https://www.langchain.com/blog/the-anatomy-of-an-agent-harness">The Anatomy of an Agent Harness</a> Source: <a href="https://www.langchain.com/blog/your-harness-your-memory">Your Harness, Your Memory</a></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: The biggest competitor to any agent framework is no framework at all.</strong> LangGraph's design philosophy is "it should feel like writing code." Every requirement placed on the developer's code must be justified by enabling a really high-value feature. Otherwise the pull of skipping the framework is too strong.</p>
+<p><strong>Aha: Memory isn't a plugin — it's the harness.</strong> How the harness manages context and state is the foundation for agent memory. Asking to plug memory into an agent harness is like asking to plug driving into a car. If you use a closed harness behind a proprietary API, you yield control of your memory to a third party.</p>
+<p><strong>Aha: LLMs are slow, flaky, and open-ended.</strong> These three properties drove every LangGraph design decision. Slow → need parallelization and streaming. Flaky → need checkpointing and task queues. Open-ended → need human-in-the-loop and tracing.</p>
+<h2>What LangChain Is</h2>
+<p>LangChain started as a framework for composing LLM chains. As models improved and agents emerged, LangChain restructured into three layers:</p>
+<table><tr><th>Layer</th><th>Product</th><th>Purpose</th></tr><tr><td>**Runtime**</td><td>LangGraph</td><td>Low-level agent graph execution with loops, state, checkpointing</td></tr><tr><td>**Harness**</td><td>Deep Agents</td><td>High-level long-running agent with skills, subagents, context management</td></tr><tr><td>**Observability**</td><td>LangSmith</td><td>Traces, evals, deployment, Fleet management</td></tr></table>
+<pre><code class="language-">User Request
+    │
+    ▼
+┌─────────────────────────┐
+│   LangSmith (observ.)   │  ← Traces, evals, monitoring
+├─────────────────────────┤
+│   Deep Agents (harness) │  ← Skills, subagents, context
+├─────────────────────────┤
+│   LangGraph (runtime)   │  ← StateGraph, PregelLoop, checkpoints
+├─────────────────────────┤
+│   Model Providers        │  ← OpenAI, Anthropic, etc.
+└─────────────────────────┘
+</code></pre>
+<h2>Design Principles</h2>
+<p>LangGraph was designed with two leading principles:</p>
+<p><strong>1. Few assumptions about the future.</strong> The fewer assumptions baked in, the more relevant the framework stays. The only baked-in assumptions: LLMs are slow, flaky, and open-ended.</p>
+<p><strong>2. It should feel like writing code.</strong> The public API should be as close to regular framework-less code as possible.</p>
+<p>This resulted in two key architectural decisions:</p>
+<ul><li><strong>Runtime independent from SDKs.</strong> The runtime (PregelLoop) implements features, plans computation graphs, and executes them. SDKs (StateGraph, imperative API) are public interfaces. This allows SDK and runtime to evolve independently.</li><li><strong>Features as building blocks.</strong> Each of the 6 core features is optional — you reach for them when needed. The framework doesn't force a particular pattern.</li></ul>
+<h2>Six Features Every Production Agent Needs</h2>
+<p>From building agents with Uber, LinkedIn, Klarna, and Elastic, LangChain identified six features developers need:</p>
+<table><tr><th>Feature</th><th>Problem Solved</th><th>Mechanism</th></tr><tr><td>**Parallelization**</td><td>Actual latency</td><td>Run independent steps concurrently, avoid data races</td></tr><tr><td>**Streaming**</td><td>Perceived latency</td><td>Show progress/actions/tokens to user while agent runs</td></tr><tr><td>**Task Queue**</td><td>Failed retries</td><td>Decouple agent execution from triggering request</td></tr><tr><td>**Checkpointing**</td><td>Retry cost</td><td>Save intermediate state, resume from failure point</td></tr><tr><td>**Human-in-the-loop**</td><td>Non-deterministic outcomes</td><td>Interrupt/resume at any point, approve actions</td></tr><tr><td>**Tracing**</td><td>Visibility</td><td>See inputs, trajectories, outputs of agent loops</td></tr></table>
+<h2>Execution Algorithm: BSP/Pregel</h2>
+<p>LangGraph's runtime uses the <strong>Bulk Synchronous Parallel / Pregel</strong> algorithm, not DAG topological sort:</p>
+<div class="mermaid">
+flowchart TD
+    INPUT[Input written to channels] --&gt; NODES{Nodes subscribed to changed channels?}
+    NODES --&gt;|yes| EXEC[Execute all ready nodes in parallel]
+    NODES --&gt;|no| DONE[Check output channels → return value]
+    EXEC --&gt; WRITE[Write node outputs to channels]
+    WRITE --&gt; BARRIER[Synchronization barrier]
+    BARRIER --&gt; NODES
+    DONE --&gt; INPUT
+
+</div>
+<ul><li><strong>Channels</strong> contain data (any Python/JS type), with a name and monotonically increasing version</li><li><strong>Nodes</strong> are functions that subscribe to channels, run when channels change</li><li><strong>Input channels</strong> trigger nodes; <strong>output channels</strong> define the return value</li><li><strong>Synchronization barrier</strong> ensures deterministic concurrency between supersteps</li></ul>
+<p>This provides deterministic concurrency with full loop support — critical for agents that need to iterate.</p>
+<h2>Agent Harnesses: The Indispensable Layer</h2>
+<p>An agent harness is the scaffolding around the LLM that facilitates tool calling, context management, and interaction with the world. Harnesses are not going away — even the best models need a harness:</p>
+<ul><li>Claude Code leaked source: <strong>512k lines of code</strong> (the harness)</li><li>When models absorb scaffolding (e.g., built-in web search), they just become a lightweight harness behind the API</li></ul>
+<p><strong>Key responsibilities of the harness:</strong></p>
+<ul><li>Tool selection and invocation</li><li>Context window management (loading, compression, eviction)</li><li>Memory management (short-term, long-term, cross-session)</li><li>Instruction loading (AGENTS.md, CLAUDE.md, skills)</li><li>System prompt construction</li></ul>
+<h2>Harness-Memory Coupling</h2>
+<p>The harness is intimately tied to memory:</p>
+<blockquote>"Asking to plug memory into an agent harness is like asking to plug driving into a car." — Sarah Wooders</blockquote>
+<p>Questions the harness must answer:</p>
+<ul><li>How is AGENTS.md/CLAUDE.md loaded into context?</li><li>Can the agent modify its own system instructions?</li><li>What survives compaction, what's lost?</li><li>Are interactions stored and made queryable?</li><li>How is the current working directory represented?</li></ul>
+<p><strong>Aha: If you don't own your harness, you don't own your memory.</strong> Using a stateful API (like OpenAI's Responses API or Anthropic's server-side compaction) stores state on their server — you can't swap models and resume previous threads.</p>
+<h2>Agent Authorization Patterns</h2>
+<p>Two authorization patterns emerged for shared agents:</p>
+<table><tr><th>Type</th><th>Identity</th><th>Use Case</th></tr><tr><td>**Assistant** (on-behalf-of)</td><td>Acts as the end user</td><td>Onboarding agent uses Alice's Slack/Notion creds</td></tr><tr><td>**Claw** (fixed credentials)</td><td>Has its own credentials</td><td>Email agent uses a dedicated account</td></tr></table>
+<p>With Claw-style agents, human-in-the-loop guardrails become essential — anyone interacting with the agent uses the same fixed credentials.</p>
+<h2>Key Files</h2>
+<pre><code class="language-">langchain-ai/
+├── langgraph/                ← Low-level runtime
+│   ├── langgraph/            ← Python SDK
+│   │   ├── graph/            ← StateGraph, add_node, add_edge
+│   │   ├── pregel/           ← PregelLoop runtime
+│   │   ├── checkpoint/       ← Checkpointing (sqlite, postgres, memory)
+│   │   └── types/            ← Channel, State types
+│   └── tests/                ← Integration tests
+├── deepagents/               ← High-level harness
+│   ├── deepagents/
+│   │   ├── harness.py        ← create_deep_agent()
+│   │   ├── middleware/       ← Summarization, compaction tools
+│   │   └── backends/         ← StateBackend, filesystem storage
+│   └── cli/                  ← Deep Agents CLI
+└── langsmith/                ← Observability platform
+    ├── traceable             ← @traceable decorator
+    ├── runs, traces, threads ← Core primitives
+    └── evaluation            ← Evals, assertions
+</code></pre>
+<h2>The Tradeoff: Low-Level vs High-Level</h2>
+<p>LangGraph chose to be low-level in a sea of high-level frameworks:</p>
+<table><tr><th>Low-Level (LangGraph)</th><th>High-Level (others)</th></tr><tr><td>More control</td><td>Faster to prototype</td></tr><tr><td>You choose which features to use</td><td>Features are bundled</td></tr><tr><td>Harder to start</td><td>Easy to start</td></tr><tr><td>Production-ready by design</td><td>May hit walls at scale</td></tr></table>
+<p><strong>Aha: High-level abstractions come and go. LangGraph remains relevant by being low-level.</strong> The framework provides building blocks, not a prescribed pattern.</p>
+<p><a href="01-langgraph-design.md">See LangGraph design details → 01-langgraph-design.md</a> <a href="02-agent-harness.md">See agent harness anatomy → 02-agent-harness.md</a> <a href="03-observability-evaluation.md">See observability and evaluation → 03-observability-evaluation.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

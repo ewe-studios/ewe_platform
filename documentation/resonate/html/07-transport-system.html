@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/resonate/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="04-sdk-typescript.html">Resonate -- TypeScript SDK</a> <a href="05-sdk-rust.html">Resonate -- Rust SDK</a> <a href="06-sdk-python.html">Resonate -- Python SDK</a></span> <a href="06-sdk-python.html">← Resonate -- Python SDK</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="04-sdk-typescript.html" class="nav-breadcrumb">Resonate -- TypeScript SDK</a><a href="05-sdk-rust.html" class="nav-breadcrumb">Resonate -- Rust SDK</a><a href="06-sdk-python.html" class="nav-breadcrumb">Resonate -- Python SDK</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="06-sdk-python.html" class="nav-btn" title="Previous: Resonate -- Python SDK">← prev</a>
+      <a href="08-persistence.html" class="nav-btn nav-btn-next" title="Next: Resonate -- Persistence Layer">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

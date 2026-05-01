@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/hermes/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="06-context-engine.html">Hermes Agent -- Context Engine</a> <a href="07-cli-tui.html">Hermes Agent -- CLI & TUI</a> <a href="08-cron.html">Hermes Agent -- Cron & Scheduling</a></span> <a href="08-cron.html">← Hermes Agent -- Cron & Scheduling</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="06-context-engine.html" class="nav-breadcrumb">Hermes Agent -- Context Engine</a><a href="07-cli-tui.html" class="nav-breadcrumb">Hermes Agent -- CLI & TUI</a><a href="08-cron.html" class="nav-breadcrumb">Hermes Agent -- Cron & Scheduling: Implementation Deep Dive</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-cron.html" class="nav-btn" title="Previous: Hermes Agent -- Cron & Scheduling: Implementation Deep Dive">← prev</a>
+      <a href="10-platform-adapters.html" class="nav-btn nav-btn-next" title="Next: Hermes Platform Adapters">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

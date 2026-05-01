@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/pi/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="01-architecture.html">Pi -- Architecture</a> <a href="02-ai-package.html">Pi -- pi-ai Package</a> <a href="03-agent-core.html">Pi -- pi-agent-core Package</a></span> <a href="03-agent-core.html">← Pi -- pi-agent-core Package</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="01-architecture.html" class="nav-breadcrumb">Pi -- Architecture</a><a href="02-ai-package.html" class="nav-breadcrumb">Pi -- pi-ai Package</a><a href="03-agent-core.html" class="nav-breadcrumb">Pi -- pi-agent-core Package</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="03-agent-core.html" class="nav-btn" title="Previous: Pi -- pi-agent-core Package">← prev</a>
+      <a href="05-tui.html" class="nav-btn nav-btn-next" title="Next: Pi -- pi-tui Package">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

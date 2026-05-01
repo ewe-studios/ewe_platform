@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/paperclip/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="05-ticket-system.html">Paperclip -- Ticket System and Audit Log</a> <a href="06-subprojects.html">Paperclip -- Sub-Projects</a> <a href="07-development.html">Paperclip -- Development Guide</a></span> <a href="07-development.html">← Paperclip -- Development Guide</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="05-ticket-system.html" class="nav-breadcrumb">Paperclip -- Ticket System and Audit Log</a><a href="06-subprojects.html" class="nav-breadcrumb">Paperclip -- Sub-Projects</a><a href="07-development.html" class="nav-breadcrumb">Paperclip -- Development Guide</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="07-development.html" class="nav-btn" title="Previous: Paperclip -- Development Guide">← prev</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

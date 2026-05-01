@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/mastra/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="11-context-compression.html">Mastra -- Context Management & Compression</a> <a href="12-async-typescript.html">Mastra -- Async/TypeScript Patterns</a> <a href="13-multi-model-deep.html">Mastra -- Multi-Model Execution Deep Dive</a></span> <a href="13-multi-model-deep.html">← Mastra -- Multi-Model Execution Deep Dive</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="11-context-compression.html" class="nav-breadcrumb">Mastra -- Context Management & Compression</a><a href="12-async-typescript.html" class="nav-breadcrumb">Mastra -- Async/TypeScript Patterns</a><a href="13-multi-model-deep.html" class="nav-breadcrumb">Mastra -- Multi-Model Execution Deep Dive</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="13-multi-model-deep.html" class="nav-btn" title="Previous: Mastra -- Multi-Model Execution Deep Dive">← prev</a>
+      <a href="15-ecosystem.html" class="nav-btn nav-btn-next" title="Next: Mastra -- Production Services, Applications, and Ecosystem">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

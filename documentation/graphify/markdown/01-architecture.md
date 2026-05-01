@@ -112,6 +112,58 @@ graph LR
     Validate[validate.py] -.->|validate_extraction| B
 ```
 
+## How Relationships Form the Network
+
+The graph's value comes from how edges connect structural entities. Every edge has a `relation`, `confidence`, `source_file`, and `source_location` -- you can trace any connection back to the exact line of code that produced it.
+
+### Edge Anatomy
+
+```mermaid
+graph LR
+    A[DigestAuth] -->|"calls\nEXTRACTED\nL45"| B[verify_token]
+    A -.->|"uses\nINFERRED\nauth.py:15"| C[Response]
+    D[concept:auth] -.->|"AMBIGUOUS\nllm:extraction"| A
+
+    style A fill:#1a1a2e,color:#ddd
+    style B fill:#16213e,color:#ddd
+    style C fill:#0f3460,color:#ddd
+    style D fill:#533483,color:#ddd
+```
+
+### Relationship Density
+
+The graph reveals which parts of a codebase are tightly coupled (many edges) vs. loosely coupled (few edges). A class with 20+ `calls` edges is a coordination hub. A class with zero incoming edges is dead code. A file that `imports` 15 other files is a facade or orchestrator.
+
+### Edge Categories by Origin
+
+| Origin | Relations | Confidence | Certainty |
+|--------|-----------|------------|-----------|
+| AST walker (single file) | `contains`, `method`, `calls`, `imports` | `EXTRACTED` | Syntactically proven |
+| Cross-file resolver | `uses`, `imports`, `calls` | `INFERRED` | Resolved by naming convention |
+| LLM semantic extraction | `semantically_similar_to`, `related_to` | `AMBIGUOUS` | LLM judgment call |
+
+### The Network Effect
+
+Individual files produce small trees. Cross-file resolution connects these trees into a forest. Community detection finds which clusters of trees grow together. The result is a map of architectural boundaries:
+
+```
+auth.py          models.py         handlers.py
+├─ DigestAuth ───┤                 ├─ login_handler ──calls──▶ authenticate()
+│  ├─ validate() │                 │
+│  └─ authenticate() ──uses──▶ Response
+└─ hash_password()│                 └─ logout_handler
+                  │
+                  ├─ Response      services.py
+                  └─ User          └─ EmailService
+                                      └─ send()
+                                         ▲
+                                    calls │
+                                          │
+                               password_reset_handler
+```
+
+The `calls` edge from `password_reset_handler` to `EmailService.send()` crosses three module boundaries. In a 500-file project, this edge is one of thousands -- but it tells you that the password reset flow depends on email delivery, which is architecturally significant.
+
 ## Data Model
 
 ### Node Dict Schema

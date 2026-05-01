@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/mastra/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="07-processors.html">Mastra -- Processor Pipeline</a> <a href="08-multi-model.html">Mastra -- Multi-Model Execution</a> <a href="09-data-flow.html">Mastra -- Data Flow</a></span> <a href="09-data-flow.html">← Mastra -- Data Flow</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="07-processors.html" class="nav-breadcrumb">Mastra -- Processor Pipeline</a><a href="08-multi-model.html" class="nav-breadcrumb">Mastra -- Multi-Model Execution</a><a href="09-data-flow.html" class="nav-breadcrumb">Mastra -- Data Flow</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="09-data-flow.html" class="nav-btn" title="Previous: Mastra -- Data Flow">← prev</a>
+      <a href="11-context-compression.html" class="nav-btn nav-btn-next" title="Next: Mastra -- Context Management & Compression">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

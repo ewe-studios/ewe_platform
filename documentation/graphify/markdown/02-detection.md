@@ -80,7 +80,7 @@ The classification function (`detect.py:81-104`) applies rules in this order:
 
 ## Paper Detection
 
-The `_looks_like_paper()` function (`detect.py:67-75`) reads the first 3000 characters of a text file and checks it against 11 regex patterns (`detect.py:43-57`). A file is classified as a paper if at least 3 patterns match:
+The `_looks_like_paper()` function (`detect.py:67-75`) reads the first 3000 characters of a text file and checks it against 13 regex patterns (`detect.py:43-57`). A file is classified as a paper if at least 3 patterns match:
 
 | Signal | Pattern | Examples |
 |--------|---------|----------|
@@ -98,7 +98,7 @@ The `_looks_like_paper()` function (`detect.py:67-75`) reads the first 3000 char
 | Academic phrasing | `\bwe propose\b` | "we propose a novel" |
 | Literature | `\bliterature\b` | "from the literature" |
 
-Threshold: 3 out of 11 signals must match (`detect.py:58`).
+Threshold: 3 out of 13 signals must match (`detect.py:58`).
 
 ## Sensitive File Detection
 
