@@ -29,12 +29,13 @@ use std::time::SystemTime;
 use foundation_core::valtron::{Stream, StreamIterator};
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
+use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
 use crate::types::{
     KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, SplitMode, StopReason, TextContent,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelUsageCosting, ModelState, SplitMode, StopReason, TextContent,
     TextBasedFormatter, ToolFormatter, CostStatus, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
@@ -249,6 +250,8 @@ struct LlamaModelsInner {
     sampler: Option<LlamaSampler>,
     spec: ModelSpec,
     last_usage: Option<UsageReport>,
+    pricing: ModelUsageCosting,
+    cumulative_cost: CostAccumulator,
 }
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
@@ -277,6 +280,8 @@ impl LlamaModels {
                 sampler: None,
                 spec,
                 last_usage: None,
+                pricing: ModelUsageCosting::default(),
+                cumulative_cost: CostAccumulator::new(),
             })),
         }
     }
@@ -295,27 +300,32 @@ impl Model for LlamaModels {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        None
+        let inner = self.inner.borrow();
+        Some(ModelProviderDescriptor {
+            id: "llamacpp",
+            name: "llama.cpp",
+            reasoning: false,
+            api: crate::types::ModelAPI::Custom("llamacpp".into()),
+            provider: ModelProviders::LLAMACPP,
+            base_url: None,
+            inputs: crate::types::MessageType::TextAndImages,
+            cost: inner.pricing.clone(),
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
         let inner = self.inner.borrow();
-        Ok(inner.last_usage.clone().unwrap_or_else(|| UsageReport {
+        let cost = inner.cumulative_cost.result();
+        Ok(UsageReport {
             input: 0.0,
             output: 0.0,
             cache_read: 0.0,
             cache_write: 0.0,
-            total_tokens: 0.0,
-            cost: UsageCosting {
-                currency: "USD".to_string(),
-                input: 0.0,
-                output: 0.0,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: 0.0,
-                status: CostStatus::Actual,
-            },
-        }))
+            total_tokens: cost.total_tokens,
+            cost,
+        })
     }
 
     fn generate(
@@ -626,25 +636,29 @@ impl Iterator for LlamaCppStream {
         inner.current_pos += 1;
 
         // Return token as Messages::Assistant
+        #[allow(clippy::cast_precision_loss)]
+        let stream_usage = UsageReport {
+            input: inner.input_tokens as f64,
+            output: inner.tokens_generated as f64,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: (inner.input_tokens + inner.tokens_generated as usize) as f64,
+            cost: UsageCosting {
+                currency: "USD".to_string(),
+                input: 0.0,
+                output: 0.0,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: 0.0,
+                status: CostStatus::Actual,
+            },
+        };
+        let zero_pricing = ModelUsageCosting::default();
+        let stream_cost = calculate_cost(&zero_pricing, &stream_usage, CostStatus::Actual);
         Some(Stream::Next(Messages::Assistant {
             model: ModelId::Name("llamacpp".to_string(), None),
             timestamp: SystemTime::now(),
-            usage: UsageReport {
-                input: inner.input_tokens as f64,
-                output: inner.tokens_generated as f64,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: (inner.input_tokens + inner.tokens_generated as usize) as f64,
-                cost: UsageCosting {
-                    currency: "USD".to_string(),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: 0.0,
-                    status: CostStatus::Actual,
-                },
-            },
+            usage: UsageReport { cost: stream_cost, ..stream_usage },
             content: ModelOutput::Text(TextContent {
                 content: token_str,
                 signature: None,
@@ -858,25 +872,31 @@ fn generate_embeddings(
 
     // Return embeddings as Assistant message
     let dimensions = embeddings.len();
-    Ok(vec![Messages::Assistant {
-        model: ModelId::Name("llamacpp".to_string(), None),
-        timestamp: SystemTime::now(),
-        usage: UsageReport {
-            input: tokens.len() as f64,
+    #[allow(clippy::cast_precision_loss)]
+    let emb_usage = UsageReport {
+        input: tokens.len() as f64,
+        output: 0.0,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: tokens.len() as f64,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
             output: 0.0,
             cache_read: 0.0,
             cache_write: 0.0,
             total_tokens: tokens.len() as f64,
-            cost: UsageCosting {
-                currency: "USD".to_string(),
-                input: 0.0,
-                output: 0.0,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: 0.0,
-                status: CostStatus::Actual,
-            },
+            status: CostStatus::Actual,
         },
+    };
+    // Local model: $0 pricing
+    let zero_pricing = ModelUsageCosting::default();
+    let emb_cost = calculate_cost(&zero_pricing, &emb_usage, CostStatus::Actual);
+    let emb_usage = UsageReport { cost: emb_cost, ..emb_usage };
+    Ok(vec![Messages::Assistant {
+        model: ModelId::Name("llamacpp".to_string(), None),
+        timestamp: SystemTime::now(),
+        usage: emb_usage,
         content: ModelOutput::Embedding {
             dimensions,
             values: embeddings.to_vec(),
@@ -969,26 +989,31 @@ fn generate_text(
     let input_tokens = tokens.len() as f64;
     let output_tokens = generated_tokens.len() as f64;
 
+    // Local model: $0 pricing
+    let zero_pricing = ModelUsageCosting::default();
+    let txt_usage = UsageReport {
+        input: input_tokens,
+        output: output_tokens,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: input_tokens + output_tokens,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status: CostStatus::Actual,
+        },
+    };
+    let txt_cost = calculate_cost(&zero_pricing, &txt_usage, CostStatus::Actual);
+    let txt_usage = UsageReport { cost: txt_cost, ..txt_usage };
     // Return generated text as Assistant message
     Ok(vec![Messages::Assistant {
         model: ModelId::Name("llamacpp".to_string(), None),
         timestamp: SystemTime::now(),
-        usage: UsageReport {
-            input: input_tokens,
-            output: output_tokens,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: input_tokens + output_tokens,
-            cost: UsageCosting {
-                currency: "USD".to_string(),
-                input: 0.0,
-                output: 0.0,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: 0.0,
-                status: CostStatus::Actual,
-            },
-        },
+        usage: txt_usage,
         content: ModelOutput::Text(TextContent {
             content: output_text,
             signature: None,

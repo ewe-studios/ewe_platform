@@ -449,7 +449,7 @@ pub enum ModelSource {
     LocalDirectory(PathBuf),
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd, Default)]
 pub struct ModelUsageCosting {
     pub input: f64,
     pub output: f64,

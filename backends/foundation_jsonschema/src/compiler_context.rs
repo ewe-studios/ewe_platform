@@ -43,7 +43,7 @@ pub struct CompilerContext<'a> {
     pub custom_formats: BTreeMap<String, Box<dyn FormatChecker>>,
     /// Custom keyword factories for user-defined keywords.
     pub custom_keywords: BTreeMap<String, Box<dyn KeywordFactory>>,
-    /// Recursion depth for compile_node (security: limit depth).
+    /// Recursion depth for `compile_node` (security: limit depth).
     pub depth: u32,
 }
 

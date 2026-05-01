@@ -20,10 +20,11 @@ use foundation_core::valtron::{Stream, StreamIterator};
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
+use crate::costing::{calculate_cost, CostAccumulator};
 use crate::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
     ModelProviders, ModelSpec, ModelState, StopReason, TextBasedFormatter, TextContent,
-    CostStatus, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    CostStatus, ModelUsageCosting, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -500,6 +501,8 @@ struct CandleModelsState {
     spec: ModelSpec,
     last_usage: Option<UsageReport>,
     tokens_generated: usize,
+    pricing: ModelUsageCosting,
+    cumulative_cost: CostAccumulator,
 }
 
 /// Candle model wrapper implementing the [`Model`] trait.
@@ -552,6 +555,8 @@ impl CandleModels {
                 spec,
                 last_usage: None,
                 tokens_generated: 0,
+                pricing: ModelUsageCosting::default(),
+                cumulative_cost: CostAccumulator::new(),
             })),
         }
     }
@@ -565,22 +570,31 @@ impl Model for CandleModels {
 
     fn costing(&self) -> GenerationResult<UsageReport> {
         let inner = self.inner.borrow();
-        Ok(inner.last_usage.clone().unwrap_or_else(|| UsageReport {
+        let cost = inner.cumulative_cost.result();
+        Ok(UsageReport {
             input: 0.0,
             output: 0.0,
             cache_read: 0.0,
             cache_write: 0.0,
-            total_tokens: 0.0,
-            cost: UsageCosting {
-                currency: "USD".to_string(),
-                input: 0.0,
-                output: 0.0,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: 0.0,
-            status: CostStatus::Actual,
-            },
-        }))
+            total_tokens: cost.total_tokens,
+            cost,
+        })
+    }
+
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        let inner = self.inner.borrow();
+        Some(ModelProviderDescriptor {
+            id: "candle",
+            name: "Candle",
+            reasoning: false,
+            api: crate::types::ModelAPI::Custom("candle".into()),
+            provider: ModelProviders::CANDLE,
+            base_url: None,
+            inputs: crate::types::MessageType::TextAndImages,
+            cost: inner.pricing.clone(),
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn generate(

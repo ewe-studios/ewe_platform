@@ -9,7 +9,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
 };
 use foundation_ai::types::{
     Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviders, StopReason, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    ModelProviders, ModelUsageCosting, StopReason, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -354,12 +354,14 @@ fn test_provider_generate_multimodal() {
 fn setup_llama_server_provider() -> impl Model {
     let base_url =
         std::env::var("LLAMA_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:8999".into());
-    let api_key = std::env::var("LLAMA_SERVER_API_KEY").unwrap_or_default();
+
+    // Matches the llama-server --api-key flag in mise configuration.
+    let api_key = "test-api-key-123";
 
     let config = AnthropicConfig::new()
         .with_base_url(base_url)
         .with_messages_endpoint("/v1/messages")
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
 
     let provider = AnthropicMessagesProvider::new().create(Some(config)).unwrap();
 
@@ -936,7 +938,7 @@ fn test_parse_response_text() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let msgs = parse_response(&response, &model_id).unwrap();
+    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -981,7 +983,7 @@ fn test_parse_response_tool_use() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let msgs = parse_response(&response, &model_id).unwrap();
+    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -1029,7 +1031,7 @@ fn test_parse_response_thinking() {
     };
 
     let model_id = ModelId::Name("claude-3-7-sonnet".into(), None);
-    let msgs = parse_response(&response, &model_id).unwrap();
+    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 2);
 

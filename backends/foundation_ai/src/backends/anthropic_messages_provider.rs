@@ -3,7 +3,9 @@
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -19,12 +21,13 @@ use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
+use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
     AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, UsageCosting,
-    UsageReport,
+    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
+    UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -500,6 +503,8 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
                 http_client: self.http_client.clone(),
                 resolver: self.resolver.clone(),
                 info: info.clone(),
+                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -524,6 +529,8 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             http_client: self.http_client.clone(),
             resolver: self.resolver.clone(),
             info,
+            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
         })
     }
 
@@ -566,6 +573,8 @@ pub struct AnthropicModel<R: DnsResolver = SystemDnsResolver> {
     resolver: Option<R>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
+    pricing: ModelUsageCosting,
+    cumulative_cost: Rc<RefCell<CostAccumulator>>,
 }
 
 impl<R: DnsResolver + 'static> AnthropicModel<R> {
@@ -820,11 +829,30 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        None
+        Some(ModelProviderDescriptor {
+            id: "anthropic",
+            name: "Anthropic",
+            reasoning: true,
+            api: crate::types::ModelAPI::AnthropicMessages,
+            provider: ModelProviders::ANTHROPIC,
+            base_url: None,
+            inputs: crate::types::MessageType::TextAndImages,
+            cost: self.pricing.clone(),
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        Ok(empty_usage_report())
+        let cost = self.cumulative_cost.borrow().result();
+        Ok(UsageReport {
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: cost.total_tokens,
+            cost,
+        })
     }
 
     fn generate(
@@ -841,8 +869,9 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         let url = self.build_url("messages");
         let response: MessagesResponse = self.execute_request(&url, &body)?;
 
-        let message = parse_response(&response, &self.model_id)?;
-        Ok(message)
+        let (messages, report) = parse_response(&response, &self.model_id, &self.pricing)?;
+        self.cumulative_cost.borrow_mut().add(&report.cost);
+        Ok(messages)
     }
 
     fn stream(
@@ -895,6 +924,8 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             done: false,
             final_messages: Vec::new(),
             final_message_index: 0,
+            pricing: self.pricing.clone(),
+            cumulative_cost: Rc::clone(&self.cumulative_cost),
         })
     }
 }
@@ -920,6 +951,8 @@ struct AnthropicStream<R: DnsResolver + 'static> {
     done: bool,
     final_messages: Vec<Messages>,
     final_message_index: usize,
+    pricing: ModelUsageCosting,
+    cumulative_cost: Rc<RefCell<CostAccumulator>>,
 }
 
 impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
@@ -1049,8 +1082,10 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                         Some(Stream::Ignore)
                     }
                     "message_stop" => {
-                        self.final_messages = self.build_final_messages();
+                        let (messages, report) = self.build_final_messages_with_cost();
+                        self.final_messages = messages;
                         self.final_message_index = 0;
+                        self.cumulative_cost.borrow_mut().add(&report.cost);
                         Some(Stream::Ignore)
                     }
                     "ping" | _ => Some(Stream::Ignore),
@@ -1065,27 +1100,20 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
 }
 
 impl<R: DnsResolver + 'static> AnthropicStream<R> {
-    fn build_final_messages(&self) -> Vec<Messages> {
-        #[allow(clippy::cast_precision_loss)]
+    fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {
         let usage_report = self
             .usage
             .as_ref()
-            .map_or_else(empty_usage_report, |u| UsageReport {
-                input: u.input_tokens as f64,
-                output: u.output_tokens as f64,
-                cache_read: u.cache_read_input_tokens as f64,
-                cache_write: u.cache_creation_input_tokens as f64,
-                total_tokens: (u.input_tokens + u.output_tokens) as f64,
-                cost: UsageCosting {
-                    currency: String::from("USD"),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: (u.input_tokens + u.output_tokens) as f64,
-                    status: CostStatus::Actual,
-                },
-            });
+            .map(|u| {
+                make_usage_report(
+                    u.input_tokens,
+                    u.output_tokens,
+                    u.cache_read_input_tokens,
+                    u.cache_creation_input_tokens,
+                    &self.pricing,
+                )
+            })
+            .unwrap_or_else(empty_usage_report);
 
         let stop_reason = map_stop_reason(&self.stop_reason);
 
@@ -1165,7 +1193,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
             messages.push(Messages::Assistant {
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
-                usage: usage_report,
+                usage: usage_report.clone(),
                 content: ModelOutput::Text(TextContent {
                     content: String::new(),
                     signature: None,
@@ -1178,7 +1206,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
             });
         }
 
-        messages
+        (messages, usage_report)
     }
 }
 
@@ -1369,14 +1397,49 @@ pub fn build_anthropic_request(
     }
 }
 
+/// Build a `UsageReport` from raw token counts and pricing.
+fn make_usage_report(
+    input_tokens: u32,
+    output_tokens: u32,
+    cache_read: u32,
+    cache_write: u32,
+    pricing: &ModelUsageCosting,
+) -> UsageReport {
+    #[allow(clippy::cast_precision_loss)]
+    let usage = crate::types::UsageReport {
+        input: input_tokens as f64,
+        output: output_tokens as f64,
+        cache_read: cache_read as f64,
+        cache_write: cache_write as f64,
+        total_tokens: (input_tokens + output_tokens) as f64,
+        cost: crate::types::UsageCosting {
+            currency: String::from("USD"),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: (input_tokens + output_tokens) as f64,
+            status: CostStatus::Actual,
+        },
+    };
+    let costing = calculate_cost(pricing, &usage, CostStatus::Actual);
+    UsageReport { cost: costing, ..usage }
+}
+
 pub fn parse_response(
     response: &MessagesResponse,
     model_id: &ModelId,
-) -> GenerationResult<Vec<Messages>> {
+    pricing: &ModelUsageCosting,
+) -> GenerationResult<(Vec<Messages>, UsageReport)> {
     let stop_reason = map_stop_reason(&response.stop_reason);
 
-    #[allow(clippy::cast_precision_loss)]
-    let usage_total = (response.usage.input_tokens + response.usage.output_tokens) as f64;
+    let report = make_usage_report(
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+        response.usage.cache_read_input_tokens,
+        response.usage.cache_creation_input_tokens,
+        pricing,
+    );
 
     let mut messages = Vec::new();
 
@@ -1385,22 +1448,7 @@ pub fn parse_response(
             AnthropicContentBlock::Text { text } => Messages::Assistant {
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
-                usage: UsageReport {
-                    input: response.usage.input_tokens as f64,
-                    output: response.usage.output_tokens as f64,
-                    cache_read: response.usage.cache_read_input_tokens as f64,
-                    cache_write: response.usage.cache_creation_input_tokens as f64,
-                    total_tokens: usage_total,
-                    cost: UsageCosting {
-                        currency: String::from("USD"),
-                        input: 0.0,
-                        output: 0.0,
-                        cache_read: 0.0,
-                        cache_write: 0.0,
-                        total_tokens: 0.0,
-                        status: CostStatus::Actual,
-                    },
-                },
+                usage: report.clone(),
                 content: ModelOutput::Text(TextContent {
                     content: text.clone(),
                     signature: None,
@@ -1428,22 +1476,7 @@ pub fn parse_response(
                 Messages::Assistant {
                     model: model_id.clone(),
                     timestamp: SystemTime::now(),
-                    usage: UsageReport {
-                        input: response.usage.input_tokens as f64,
-                        output: response.usage.output_tokens as f64,
-                        cache_read: response.usage.cache_read_input_tokens as f64,
-                        cache_write: response.usage.cache_creation_input_tokens as f64,
-                        total_tokens: usage_total,
-                        cost: UsageCosting {
-                            currency: String::from("USD"),
-                            input: 0.0,
-                            output: 0.0,
-                            cache_read: 0.0,
-                            cache_write: 0.0,
-                            total_tokens: 0.0,
-                            status: CostStatus::Actual,
-                        },
-                    },
+                    usage: report.clone(),
                     content: ModelOutput::ToolCall {
                         id: id.clone(),
                         name: name.clone(),
@@ -1463,22 +1496,7 @@ pub fn parse_response(
             } => Messages::Assistant {
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
-                usage: UsageReport {
-                    input: response.usage.input_tokens as f64,
-                    output: response.usage.output_tokens as f64,
-                    cache_read: response.usage.cache_read_input_tokens as f64,
-                    cache_write: response.usage.cache_creation_input_tokens as f64,
-                    total_tokens: usage_total,
-                    cost: UsageCosting {
-                        currency: String::from("USD"),
-                        input: 0.0,
-                        output: 0.0,
-                        cache_read: 0.0,
-                        cache_write: 0.0,
-                        total_tokens: 0.0,
-                        status: CostStatus::Actual,
-                    },
-                },
+                usage: report.clone(),
                 content: ModelOutput::ThinkingContent {
                     thinking: thinking.clone(),
                     signature: Some(signature.clone()),
@@ -1492,22 +1510,7 @@ pub fn parse_response(
             AnthropicContentBlock::RedactedThinking { .. } => Messages::Assistant {
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
-                usage: UsageReport {
-                    input: response.usage.input_tokens as f64,
-                    output: response.usage.output_tokens as f64,
-                    cache_read: response.usage.cache_read_input_tokens as f64,
-                    cache_write: response.usage.cache_creation_input_tokens as f64,
-                    total_tokens: usage_total,
-                    cost: UsageCosting {
-                        currency: String::from("USD"),
-                        input: 0.0,
-                        output: 0.0,
-                        cache_read: 0.0,
-                        cache_write: 0.0,
-                        total_tokens: 0.0,
-                        status: CostStatus::Actual,
-                    },
-                },
+                usage: report.clone(),
                 content: ModelOutput::ThinkingContent {
                     thinking: String::from("[redacted]"),
                     signature: None,
@@ -1519,7 +1522,6 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::Image { .. } | AnthropicContentBlock::ToolResult { .. } => {
-                // Non-assistant blocks, skip
                 continue;
             }
         };
@@ -1531,22 +1533,7 @@ pub fn parse_response(
         messages.push(Messages::Assistant {
             model: model_id.clone(),
             timestamp: SystemTime::now(),
-            usage: UsageReport {
-                input: response.usage.input_tokens as f64,
-                output: response.usage.output_tokens as f64,
-                cache_read: response.usage.cache_read_input_tokens as f64,
-                cache_write: response.usage.cache_creation_input_tokens as f64,
-                total_tokens: usage_total,
-                cost: UsageCosting {
-                    currency: String::from("USD"),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: 0.0,
-                    status: CostStatus::Actual,
-                },
-            },
+            usage: report.clone(),
             content: ModelOutput::Text(TextContent {
                 content: String::new(),
                 signature: None,
@@ -1559,7 +1546,7 @@ pub fn parse_response(
         });
     }
 
-    Ok(messages)
+    Ok((messages, report))
 }
 
 pub fn map_stop_reason(reason: &Option<String>) -> StopReason {

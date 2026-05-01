@@ -1,6 +1,7 @@
 //! Object type schema builder — properties, required, additional properties.
 
 use super::{ValidationOptions, BTreeMap, Value};
+use serde_json::Map;
 
 /// Builder for JSON Schema object type.
 ///
@@ -177,7 +178,7 @@ impl ObjectSchema {
     fn ensure_properties(&mut self) {
         self.schema
             .entry("properties".into())
-            .or_insert_with(|| Value::Object(Default::default()));
+            .or_insert_with(|| Value::Object(Map::default()));
     }
 
     fn ensure_required(&mut self) {
@@ -189,7 +190,7 @@ impl ObjectSchema {
     fn ensure_pattern_properties(&mut self) {
         self.schema
             .entry("patternProperties".into())
-            .or_insert_with(|| Value::Object(Default::default()));
+            .or_insert_with(|| Value::Object(Map::default()));
     }
 }
 
