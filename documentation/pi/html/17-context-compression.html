@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/pi/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="14-model-providers.html">Pi -- Model Providers Deep Dive</a> <a href="15-memory-deep.html">Pi -- Memory and Context Management Deep Dive</a> <a href="16-multi-model.html">Pi -- Multi-Model Execution</a></span> <a href="16-multi-model.html">← Pi -- Multi-Model Execution</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="14-model-providers.html" class="nav-breadcrumb">Pi -- Model Providers Deep Dive</a><a href="15-memory-deep.html" class="nav-breadcrumb">Pi -- Memory and Context Management Deep Dive</a><a href="16-multi-model.html" class="nav-breadcrumb">Pi -- Multi-Model Execution</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="16-multi-model.html" class="nav-btn" title="Previous: Pi -- Multi-Model Execution">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: Pi -- Documentation Index">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

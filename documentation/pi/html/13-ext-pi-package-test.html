@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/pi/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="13-ext-pi-mcp-adapter.html">Pi Extensions -- pi-mcp-adapter</a> <a href="13-ext-pi-messenger.html">Pi Extensions -- pi-messenger</a> <a href="13-ext-pi-model-switch.html">Pi Extensions -- pi-model-switch</a></span> <a href="13-ext-pi-model-switch.html">← Pi Extensions -- pi-model-switch</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="13-ext-pi-mcp-adapter.html" class="nav-breadcrumb">Pi Extensions -- pi-mcp-adapter</a><a href="13-ext-pi-messenger.html" class="nav-breadcrumb">Pi Extensions -- pi-messenger</a><a href="13-ext-pi-model-switch.html" class="nav-breadcrumb">Pi Extensions -- pi-model-switch</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="13-ext-pi-model-switch.html" class="nav-btn" title="Previous: Pi Extensions -- pi-model-switch">← prev</a>
+      <a href="13-ext-pi-powerline-footer.html" class="nav-btn nav-btn-next" title="Next: Pi Extensions -- pi-powerline-footer">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

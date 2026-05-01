@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/graphify/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="02-detection.html">Detection</a> <a href="03-extraction.html">Extraction</a> <a href="04-graph-building.html">Graph Building: From Extraction Dicts to NetworkX</a></span> <a href="04-graph-building.html">← Graph Building: From Extraction Dicts to NetworkX</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="02-detection.html" class="nav-breadcrumb">Detection</a><a href="03-extraction.html" class="nav-breadcrumb">Extraction</a><a href="04-graph-building.html" class="nav-breadcrumb">Graph Building: From Extraction Dicts to NetworkX</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="04-graph-building.html" class="nav-btn" title="Previous: Graph Building: From Extraction Dicts to NetworkX">← prev</a>
+      <a href="06-analysis.html" class="nav-btn nav-btn-next" title="Next: Graph Analysis: God Nodes, Surprises, and Suggested Questions">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

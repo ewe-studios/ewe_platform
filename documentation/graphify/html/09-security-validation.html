@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/graphify/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="06-analysis.html">Graph Analysis: God Nodes, Surprises, and Suggested Questions</a> <a href="07-report-export.html">Report Generation and Export Formats</a> <a href="08-cli-integration.html">CLI Integration: Commands, Platform Installs, and Hooks</a></span> <a href="08-cli-integration.html">← CLI Integration: Commands, Platform Installs, and Hooks</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="06-analysis.html" class="nav-breadcrumb">Graph Analysis: God Nodes, Surprises, and Suggested Questions</a><a href="07-report-export.html" class="nav-breadcrumb">Report Generation and Export Formats</a><a href="08-cli-integration.html" class="nav-breadcrumb">CLI Integration: Commands, Platform Installs, and Hooks</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-cli-integration.html" class="nav-btn" title="Previous: CLI Integration: Commands, Platform Installs, and Hooks">← prev</a>
+      <a href="10-caching-performance.html" class="nav-btn nav-btn-next" title="Next: Graphify -- Caching and Performance">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

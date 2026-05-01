@@ -16,11 +16,13 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/mastra/docs</span>
-    <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
   </nav>
 
   <h1>mastra Documentation</h1>
-  <p>Documentation for mastra.</p>
+  <p>TypeScript-first AI agent framework. Unified model router, workflow-based agentic loop, built-in memory, processor pipeline, and multi-model fallbacks.</p>
   <ul class="doc-index">
     <li><a href="00-overview.html">Mastra -- Overview</a></li>
 <li><a href="01-architecture.html">Mastra -- Architecture</a></li>

@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/open-pencil/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="04-ai-mcp.html">OpenPencil -- AI & MCP</a> <a href="05-collaboration.html">OpenPencil -- Collaboration</a> <a href="06-vue-sdk.html">OpenPencil -- Vue SDK</a></span> <a href="06-vue-sdk.html">← OpenPencil -- Vue SDK</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="04-ai-mcp.html" class="nav-breadcrumb">OpenPencil -- AI & MCP</a><a href="05-collaboration.html" class="nav-breadcrumb">OpenPencil -- Collaboration</a><a href="06-vue-sdk.html" class="nav-breadcrumb">OpenPencil -- Vue SDK</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="06-vue-sdk.html" class="nav-btn" title="Previous: OpenPencil -- Vue SDK">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: OpenPencil Documentation">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

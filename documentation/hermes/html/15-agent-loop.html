@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/hermes/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="12-cost-tracking.html">Hermes Agent -- Token Usage and Cost Tracking</a> <a href="13-function-calling.html">Hermes -- Function Calling & JSON Mode</a> <a href="13-self-evolution.html">Hermes -- Self-Evolution (GEPA Prompt Evolution)</a></span> <a href="13-self-evolution.html">← Hermes -- Self-Evolution (GEPA Prompt Evolution)</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="12-cost-tracking.html" class="nav-breadcrumb">Hermes Agent -- Token Usage and Cost Tracking</a><a href="13-function-calling.html" class="nav-breadcrumb">Hermes -- Function Calling & JSON Mode</a><a href="13-self-evolution.html" class="nav-breadcrumb">Hermes -- Self-Evolution (GEPA Prompt Evolution)</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="13-self-evolution.html" class="nav-btn" title="Previous: Hermes -- Self-Evolution (GEPA Prompt Evolution)">← prev</a>
+      <a href="16-model-providers.html" class="nav-btn nav-btn-next" title="Next: Hermes Agent -- Model Providers Deep Dive">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

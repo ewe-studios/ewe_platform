@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/voice-agent-server/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Voice Agent Server -- Overview</a> <a href="01-api.html">Voice Agent Server -- REST API</a></span> <a href="01-api.html">← Voice Agent Server -- REST API</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Voice Agent Server -- Overview</a><a href="01-api.html" class="nav-breadcrumb">Voice Agent Server -- REST API</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="01-api.html" class="nav-btn" title="Previous: Voice Agent Server -- REST API">← prev</a>
+      <a href="03-deployment.html" class="nav-btn nav-btn-next" title="Next: Voice Agent Server -- Deployment">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

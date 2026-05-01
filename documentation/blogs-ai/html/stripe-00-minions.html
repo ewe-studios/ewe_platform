@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stripe Minions -- One-Shot Coding Agents -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="langchain-README.html" class="nav-breadcrumb">LangChain -- Blog Synthesis</a><a href="observability-00-overview.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a><a href="observability-README.html" class="nav-breadcrumb">Agent Observability -- Comprehensive Guide</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="observability-README.html" class="nav-btn" title="Previous: Agent Observability -- Comprehensive Guide">← prev</a>
+      <a href="stripe-README.html" class="nav-btn nav-btn-next" title="Next: Stripe Minions -- One-Shot Coding Agents">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Stripe Minions -- One-Shot Coding Agents</h1>
+<h2>Purpose</h2>
+<p>Minions are Stripe's unattended coding agents. A typical minion run starts in Slack and ends in a pull request ready for review — with zero human interaction in between. Over 1,300 PRs merged per week are minion-produced with no human-written code. This document covers the architecture, blueprint orchestration, and developer experience.</p>
+<p>Source: <a href="https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents">Stripe Minions Part 1</a> Source: <a href="https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents-part-2">Stripe Minions Part 2</a></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: What's good for human developers is good for agents.</strong> Stripe built devboxes, linting, caching, and CI for humans first. Minions use the exact same infrastructure. This is why "what's good for humans is good for agents."</p>
+<p><strong>Aha: Blueprints interleave deterministic code with agent loops.</strong> Rather than letting the agent decide everything, blueprints define a state machine where some nodes are deterministic (linters, git push) and some are agent-driven (implement task, fix CI). "Putting LLMs into contained boxes" compounds into system-wide reliability.</p>
+<p><strong>Aha: One or two CI rounds, then done.</strong> There are diminishing marginal returns for an LLM running against many rounds of full CI. After two pushes and CI runs, the branch goes to human review.</p>
+<h2>Developer Experience</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Eng as Engineer
+    participant Slack as Slack
+    participant Minion as Minion Agent
+    participant DevBox as Isolated DevBox
+    participant CI as CI System
+    participant PR as Pull Request
+
+    Eng-&gt;&gt;Slack: &quot;@minion Fix flaky test in payment_test.py&quot;
+    Slack-&gt;&gt;Minion: Create minion run
+    Minion-&gt;&gt;DevBox: Provision hot devbox (10s)
+    DevBox-&gt;&gt;Minion: Ready with code + caches
+
+    loop Agent Loop
+        Minion-&gt;&gt;DevBox: Read code, understand problem
+        Minion-&gt;&gt;DevBox: Implement fix
+        Minion-&gt;&gt;DevBox: Run linters (&lt; 5s)
+    end
+
+    Minion-&gt;&gt;DevBox: Push branch to CI
+    CI-&gt;&gt;CI: Run relevant tests (3M+ battery)
+
+    alt Tests pass
+        CI-&gt;&gt;PR: Create PR, ready for review
+        PR-&gt;&gt;Eng: Notification
+    else Tests fail (round 1)
+        CI-&gt;&gt;Minion: Test failures + autofixes
+        Minion-&gt;&gt;DevBox: Apply autofixes
+        Minion-&gt;&gt;DevBox: Fix remaining failures
+        Minion-&gt;&gt;DevBox: Push round 2
+        CI-&gt;&gt;CI: Run tests again
+
+        alt Tests pass (round 2)
+            CI-&gt;&gt;PR: Create PR
+        else Tests still fail
+            CI-&gt;&gt;Eng: PR with note: &quot;needs manual review&quot;
+        end
+    end
+
+</div>
+<h3>Entry Points</h3>
+<table><tr><th>Entry Point</th><th>Use Case</th></tr><tr><td>**Slack**</td><td>`@minion` in a thread discussing a change</td></tr><tr><td>**CLI**</td><td>Direct terminal invocation</td></tr><tr><td>**Web UI**</td><td>Management interface for minion runs</td></tr><tr><td>**Internal platforms**</td><td>Docs, feature flags, ticketing UI</td></tr><tr><td>**Automated tickets**</td><td>CI detects flaky test → auto-creates minion ticket</td></tr></table>
+<h3>The End Result</h3>
+<ul><li>Minion creates a branch, pushes to CI, prepares a PR</li><li>Engineer opens the PR, requests review</li><li>If changes needed: give further instructions, minion pushes updated code</li><li>North Star: PR with no human-written code</li></ul>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    SLACK[Slack/CLI/Web UI] --&gt; ORCH[Orchestrator]
+    ORCH --&gt; POOL[DevBox Pool\n&quot;Hot and Ready&quot;]
+    POOL --&gt; DEVBOX[Isolated DevBox\n10s provision]
+
+    DEVBOX --&gt; BP[Blueprint State Machine]
+
+    BP --&gt; AGENT_NODE[Agent Node\n&quot;Implement task&quot;]
+    BP --&gt; DET_NODE[Deterministic Node\n&quot;Run linters&quot;]
+    BP --&gt; GIT_NODE[Git Node\n&quot;Push changes&quot;]
+
+    AGENT_NODE --&gt; MCP[MCP: Toolshed\n~500 tools]
+    AGENT_NODE --&gt; RULES[Rule Files\nAGENTS.md etc.]
+
+    DET_NODE --&gt; LINT[Pre-push linters\n&lt; 5s]
+    GIT_NODE --&gt; CI[CI: 3M+ tests]
+    CI --&gt; AUTO[Autofixes]
+    AUTO --&gt; BP
+
+    BP --&gt; PR[Pull Request\nReady for review]
+
+</div>
+<h2>DevBoxes: Parallel, Predictable, Isolated</h2>
+<p>A Stripe devbox is an AWS EC2 instance with:</p>
+<ul><li>Source code pre-cloned</li><li>Bazel and type-checking caches warmed</li><li>Code generation services running</li><li>Services under development ready to start</li></ul>
+<p><strong>Hot and ready: 10-second provisioning.</strong> A pool of pre-warmed devboxes means spinning one up takes 10 seconds, not minutes.</p>
+<h3>Why Devboxes for Agents?</h3>
+<table><tr><th>Property</th><th>Why It Matters for Agents</th></tr><tr><td>**Parallelism**</td><td>Many minions can work simultaneously without interference</td></tr><tr><td>**Predictability**</td><td>Clean environments eliminate "works on my machine" token waste</td></tr><tr><td>**Isolation**</td><td>Safe for autonomous operation — no confirmation prompts needed</td></tr><tr><td>**Security**</td><td>QA environment, no prod access, no network egress</td></tr></table>
+<p><strong>Aha: Devboxes were built for humans, not agents.</strong> Stripe invested in parallel, predictable, isolated developer environments. What's good for humans turned out to be exactly what agents need.</p>
+<h2>The Agent Harness</h2>
+<p>Minions use a fork of Block's <a href="https://github.com/block/goose">goose</a>, customized for unattended operation:</p>
+<table><tr><th>Feature</th><th>Human-Supervised Tools</th><th>Minions (Unattended)</th></tr><tr><td>Interruptibility</td><td>Yes</td><td>No</td></tr><tr><td>Confirmation prompts</td><td>Yes</td><td>No (safe in devbox)</td></tr><tr><td>Human-triggered commands</td><td>Yes</td><td>No</td></tr><tr><td>Full permissions</td><td>Restricted</td><td>Yes (isolated devbox)</td></tr></table>
+<p><strong>Aha: No confirmation prompts needed.</strong> Because the devbox is quarantined, any mistakes are confined to its blast radius. Minions run with full permissions safely.</p>
+<h2>Blueprints: The Key Innovation</h2>
+<p>Blueprints are workflows that combine deterministic code and agent loops:</p>
+<div class="mermaid">
+stateDiagram-v2
+    [*] --&gt; DiscoverTools
+    DiscoverTools --&gt; InitializeMemory
+    InitializeMemory --&gt; AgentLoop
+
+    state AgentLoop {
+        [*] --&gt; PlanNextAction
+        PlanNextAction --&gt; CheckIfDone: LLM decides
+
+        CheckIfDone --&gt; NeedsApproval: needs_approval
+        CheckIfDone --&gt; ExecuteTool: execute
+        CheckIfDone --&gt; Done: done
+
+        NeedsApproval --&gt; HumanReview
+        HumanReview --&gt; ExecuteApproved
+
+        ExecuteApproved --&gt; UpdateMemory
+        UpdateMemory --&gt; [*]
+
+        ExecuteTool --&gt; UpdateMemory
+        UpdateMemory --&gt; [*]
+
+        Done --&gt; [*]
+    }
+
+    AgentLoop --&gt; PushChanges: exit loop
+    PushChanges --&gt; RunLinters
+    RunLinters --&gt; PushToCI
+
+    PushToCI --&gt; CIPass: all tests pass
+    PushToCI --&gt; CIFail: some tests fail
+
+    CIFail --&gt; ApplyAutofixes
+    ApplyAutofixes --&gt; FixRemaining
+    FixRemaining --&gt; PushToCI
+
+    PushToCI --&gt; [*]: after 2 rounds
+    CIPass --&gt; CreatePR
+    CreatePR --&gt; [*]
+
+</div>
+<h3>Blueprint Node Types</h3>
+<table><tr><th>Node Type</th><th>What It Does</th><th>Example</th></tr><tr><td>**Agent node**</td><td>LLM loop with tools, makes its own decisions</td><td>"Implement task", "Fix CI failures"</td></tr><tr><td>**Deterministic node**</td><td>Runs code, no LLM involved</td><td>"Run configured linters", "Push changes"</td></tr></table>
+<p><strong>Aha: Deterministic nodes save tokens and increase reliability.</strong> Always linting changes at the end of a run is a small decision we can anticipate. Writing code for it saves tokens and eliminates a failure mode.</p>
+<h3>Blueprint Design Principles</h3>
+<ol><li><strong>Put LLMs in contained boxes.</strong> Each agent node has a narrow scope and specific inputs.</li><li><strong>Deterministic for what you can anticipate.</strong> Linting, git operations, test execution — these don't need an LLM.</li><li><strong>Agent flexibility for what you can't.</strong> Implementation, debugging, CI fixup — these need LLM reasoning.</li></ol>
+<h2>Context Gathering: Rule Files</h2>
+<p>Due to Stripe's repository size, rule files are scoped to subdirectories, not global:</p>
+<pre><code class="language-">repo/
+├── AGENTS.md          # Global rules (minimal, to avoid context bloat)
+├── payments/
+│   └── AGENTS.md      # Payment-specific conventions
+├── frontend/
+│   └── .cursorrules   # Frontend patterns (Cursor format)
+└── infra/
+    └── AGENTS.md      # Infrastructure patterns
+</code></pre>
+<p>Standardized on Cursor's rule format, synced to also work with Claude Code:</p>
+<table><tr><th>Agent</th><th>Rule Format</th></tr><tr><td>Minions</td><td>`.cursorrules`, `AGENTS.md`</td></tr><tr><td>Cursor</td><td>`.cursorrules`</td></tr><tr><td>Claude Code</td><td>`CLAUDE.md` (synced from `.cursorrules`)</td></tr></table>
+<p><strong>Aha: One source of truth for all agents.</strong> Stripe syncs rule files so all three coding agents benefit from the same guidance.</p>
+<h2>Context Gathering: MCP + Toolshed</h2>
+<p>Stripe built a centralized MCP server called <strong>Toolshed</strong> with ~500 tools:</p>
+<ul><li>Internal documentation</li><li>Ticket details</li><li>Build statuses</li><li>Code intelligence (Sourcegraph)</li><li>SaaS platforms</li></ul>
+<p>Minions receive a curated subset of Toolshed tools. Different agents get different tool sets — "agents perform best with a smaller box."</p>
+<h2>Feedback Loop: Shift Left</h2>
+<pre><code class="language-">Fastest feedback ← IDE / Pre-push hooks (&lt; 5s)
+                  ↑
+               Local lint / typecheck
+                  ↑
+               CI tests (selective)
+                  ↑
+Slowest feedback ← Full CI battery (minutes)
+</code></pre>
+<p>The minion blueprint follows this pattern:</p>
+<ol><li><strong>Pre-push linters</strong> (< 5s): Background daemon precomputes heuristics, caches results</li><li><strong>CI tests</strong> (one iteration): Selective tests, autofixes auto-applied</li><li><strong>Second CI round</strong> (if needed): Minion fixes remaining failures, pushes again</li><li><strong>Human review</strong>: After two CI rounds, branch goes to manual scrutiny</li></ol>
+<p><strong>Aha: Two CI rounds max.</strong> CI runs cost tokens, compute, and time. Diminishing marginal returns after two full CI loops.</p>
+<h2>Key Takeaways</h2>
+<ol><li><strong>Infrastructure investment pays agent dividends.</strong> Stripe's years of developer productivity investment (devboxes, caching, linting, CI) became the perfect foundation for agents.</li></ol>
+<ol><li><strong>Blueprints are the key innovation.</strong> Interleaving deterministic nodes with agent nodes gives the reliability of workflows with the flexibility of agents.</li></ol>
+<ol><li><strong>MCP is the capability layer.</strong> Toolshed's ~500 tools make capabilities instantly available to all agents, not just minions.</li></ol>
+<ol><li><strong>What's good for humans is good for agents.</strong> Devboxes, rule files, pre-push hooks, CI — all built for humans first, repurposed for agents.</li></ol>
+<p><a href="../conductor/00-production-agent-architecture.md">See Conductor production architecture → ../conductor/00-production-agent-architecture.md</a> <a href="../langchain/01-langgraph-design.md">See LangGraph design → ../langchain/01-langgraph-design.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

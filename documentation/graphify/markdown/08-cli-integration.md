@@ -72,6 +72,7 @@ The `install(platform)` function dispatches to platform-specific installers — 
 | **trae-cn** | `skill-trae.md` | `~/.trae-cn/skills/graphify/SKILL.md` | AGENTS.md |
 | **hermes** | `skill-claw.md` | `~/.hermes/skills/graphify/SKILL.md` | AGENTS.md |
 | **kiro** | `skill-kiro.md` | `.kiro/skills/graphify/SKILL.md` | Skill + steering file |
+| **windows** | `skill-windows.md` | `~/.claude/skills/graphify/SKILL.md` | CLAUDE.md + PreToolUse hook (default on Windows) |
 | **antigravity** | `skill.md` | `~/.agents/skills/graphify/SKILL.md` | .agents/rules + .agents/workflows + YAML frontmatter |
 
 ### Platform-Specific Mechanisms

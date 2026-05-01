@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/hermes/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Hermes Agent -- Overview</a></span> <a href="00-overview.html">← Hermes Agent -- Overview</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Hermes Agent -- Overview</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="00-overview.html" class="nav-btn" title="Previous: Hermes Agent -- Overview">← prev</a>
+      <a href="02-agent-core.html" class="nav-btn nav-btn-next" title="Next: Hermes Agent -- Agent Core">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

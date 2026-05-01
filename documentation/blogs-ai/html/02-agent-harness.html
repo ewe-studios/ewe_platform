@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangChain -- Agent Harness Anatomy -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">LangChain -- Core Principles & Architecture</a><a href="00-production-agent-architecture.html" class="nav-breadcrumb">Conductor -- Production Agent Architecture</a><a href="01-langgraph-design.html" class="nav-breadcrumb">LangGraph -- Design from First Principles</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="01-langgraph-design.html" class="nav-btn" title="Previous: LangGraph -- Design from First Principles">← prev</a>
+      <a href="03-observability-evaluation.html" class="nav-btn nav-btn-next" title="Next: LangChain -- Agent Observability & Evaluation">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>LangChain -- Agent Harness Anatomy</h1>
+<h2>Purpose</h2>
+<p>An agent harness is the scaffolding around the LLM that manages tool calling, context, memory, and execution flow. As models improve, scaffolding shifts rather than disappears. This document covers the anatomy of agent harnesses based on LangChain's deep agents, Claude Code, and other production harnesses.</p>
+<p>Source: <a href="https://www.langchain.com/blog/the-anatomy-of-an-agent-harness">The Anatomy of an Agent Harness</a> Source: <a href="https://www.langchain.com/blog/your-harness-your-memory">Your Harness, Your Memory</a> Source: <a href="https://www.langchain.com/blog/how-middleware-lets-you-customize-your-agent-harness">How Middleware Lets You Customize Your Agent Harness</a></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: Agent harnesses evolved as models got better, not worse.</strong> Simple chains (2023) → LangGraph (models improved) → agent harnesses (models got much better). Better models don't absorb the harness; they enable more sophisticated harnesses.</p>
+<p><strong>Aha: The harness handles what the model can't be trusted with.</strong> Linting, git operations, CI runs, test execution — these are deterministic nodes interleaved with agent loops. "Putting LLMs into contained boxes" compounds into system-wide reliability.</p>
+<p><strong>Aha: Middleware is the customization hook.</strong> Rather than forking the harness, middleware lets you intercept and modify agent behavior at specific points (before/after tool calls, during context compaction, on response).</p>
+<h2>What Is an Agent Harness?</h2>
+<p>An agent harness wraps the LLM in a loop that:</p>
+<ol><li>Constructs the system prompt and context</li><li>Calls the LLM with available tools</li><li>Executes tool calls</li><li>Feeds results back to the LLM</li><li>Repeats until the LLM signals completion</li></ol>
+<div class="mermaid">
+flowchart TD
+    SYS[Build system prompt\n+ AGENTS.md + skills] --&gt; LLM[Call LLM]
+    LLM --&gt; PARSE{Parse response}
+    PARSE --&gt;|text| RESPOND[Return text response]
+    PARSE --&gt;|tool call| EXEC[Execute tool]
+    EXEC --&gt; FEEDBACK[Add result to context]
+    FEEDBACK --&gt; COMPACT{Context too large?}
+    COMPACT --&gt;|yes| SUMMARIZE[Summarize/compact]
+    COMPACT --&gt;|no| LLM
+    SUMMARIZE --&gt; LLM
+
+</div>
+<h2>Deep Agents Harness Architecture</h2>
+<p>The Deep Agents harness (<code>create_deep_agent</code>) consists of:</p>
+<table><tr><th>Component</th><th>Purpose</th></tr><tr><td>**Model**</td><td>LLM provider, model selection</td></tr><tr><td>**Middleware stack**</td><td>Interceptors for tool calls, context, responses</td></tr><tr><td>**Skills**</td><td>Reusable instruction sets (like `SKILL.md`)</td></tr><tr><td>**Subagents**</td><td>Background task delegation</td></tr><tr><td>**Summarization**</td><td>Context compression (automatic + tool-triggered)</td></tr><tr><td>**Backend**</td><td>State persistence (filesystem, memory)</td></tr><tr><td>**Tools**</td><td>MCP tools, custom tools, filesystem tools</td></tr></table>
+<pre><code class="language-python">from deepagents import create_deep_agent
+from deepagents.middleware.summarization import (
+    create_summarization_tool_middleware,
+)
+
+agent = create_deep_agent(
+    model=&quot;anthropic:claude-sonnet-4-6-20250514&quot;,
+    middleware=[
+        create_summarization_tool_middleware(model, backend),
+        # custom middleware...
+    ],
+    skills=[&quot;my-skill&quot;],
+)
+</code></pre>
+<h2>Middleware: The Customization Hook</h2>
+<p>Middleware intercepts specific lifecycle events:</p>
+<table><tr><th>Middleware Point</th><th>Use Case</th></tr><tr><td>Before tool call</td><td>Add auth, modify arguments, skip tools</td></tr><tr><td>After tool call</td><td>Transform results, log, validate</td></tr><tr><td>Before LLM call</td><td>Inject context, modify system prompt</td></tr><tr><td>After LLM call</td><td>Validate response, add headers</td></tr><tr><td>On compaction</td><td>Custom summarization strategy</td></tr></table>
+<p>Middleware replaces the need to fork the harness — you intercept behavior at specific points while inheriting the core loop.</p>
+<h2>Context Management</h2>
+<h3>Autonomous Context Compression</h3>
+<p>Deep Agents added a tool that lets the model trigger its own context compression:</p>
+<pre><code class="language-python"># The model can decide when to compact
+# Good times to compact:
+# - At clean task boundaries
+# - After extracting a result from large context
+# - Before consuming a large amount of new context
+# - Before entering a complex multi-step process
+# - When a decision supersedes prior context
+</code></pre>
+<p>The tool retains recent messages (10% of available context) and summarizes what comes before. All conversation history is preserved in the virtual filesystem for recovery.</p>
+<p><strong>Aha: Autonomous compaction follows "the bitter lesson."</strong> Can we give agents more control over their own context to avoid tuning their harness by hand? In practice, agents are conservative about triggering compaction but choose good moments when they do.</p>
+<h3>Model Profiles</h3>
+<p>Deep Agents uses model profiles to compact at 85% of any given model's context limit. This avoids the fixed-threshold problem where compaction happens at a rigid token count regardless of task state.</p>
+<h2>Skills: Reusable Instructions</h2>
+<p>Skills are instructions the agent loads when a task matches the skill description:</p>
+<pre><code class="language-yaml">---
+name: docs-code-samples
+description: Use this skill when migrating inline code samples from
+  LangChain docs (MDX files) into external, testable code files...
+---
+</code></pre>
+<p>The body contains:</p>
+<ul><li>When to use the skill</li><li>Directory structure and file layout</li><li>Step-by-step instructions</li><li>Commands to run and their order</li><li>Naming, tagging, import conventions</li></ul>
+<p>Skills live in <code>.deepagents/skills/{name}/SKILL.md</code>. The description in frontmatter tells the agent when to load it.</p>
+<p><strong>Aha: Skills are like instructions to a coworker.</strong> Write them as step-by-step instructions you'd give to a colleague. The agent loads them on demand when a task matches.</p>
+<h2>Subagents: Background Delegation</h2>
+<p>Deep Agents supports running subagents in the background:</p>
+<pre><code class="language-">Main Agent
+  │
+  ├── Task A → Subagent 1 (background)
+  ├── Task B → Subagent 2 (background)
+  └── Task C → Main agent continues
+       │
+       └── Wait for subagents → Combine results
+</code></pre>
+<p>Use cases:</p>
+<ul><li>Independent research tasks running in parallel</li><li>Code analysis while the main agent writes</li><li>Testing/validation in the background</li></ul>
+<p><strong>Aha: Subagents enable parallelism without complexity.</strong> The main agent spawns background tasks and continues working. Results are combined when the main agent is ready.</p>
+<h2>Harness Engineering: Hill Climbling with Evals</h2>
+<p>Improving a harness requires systematic evaluation:</p>
+<ol><li><strong>Define the eval suite</strong>: Representative tasks covering all harness capabilities</li><li><strong>Run the baseline</strong>: Measure current performance</li><li><strong>Make a targeted change</strong>: One variable at a time (tool description, system prompt, middleware)</li><li><strong>Re-run evals</strong>: Measure delta</li><li><strong>Commit or revert</strong>: Only keep changes that improve scores</li></ol>
+<p><strong>Aha: Eval-driven harness tuning beats intuition.</strong> With non-deterministic LLMs, you can't reason about whether a prompt change will help — you have to measure it.</p>
+<h2>Harness Comparison: Industry Landscape</h2>
+<table><tr><th>Harness</th><th>Lines of Code</th><th>Type</th><th>Key Feature</th></tr><tr><td>Claude Code</td><td>512k</td><td>Coding agent</td><td>Project context files, skills</td></tr><tr><td>Deep Agents</td><td>~10k</td><td>Coding agent</td><td>Skills, subagents, MCP</td></tr><tr><td>Pi</td><td>~15k</td><td>General agent</td><td>40+ tools, 10+ platforms</td></tr><tr><td>OpenClaw</td><td>~20k</td><td>General agent</td><td>Self-hosted, MCP native</td></tr><tr><td>Codex (OpenAI)</td><td>Unknown</td><td>Coding agent</td><td>Built-in web search</td></tr></table>
+<p>Even the makers of the best models invest heavily in harnesses. The harness is where the production value is added.</p>
+<h2>Memory: The Harness's Responsibility</h2>
+<p>The harness manages all levels of memory:</p>
+<table><tr><th>Memory Type</th><th>Managed By</th><th>Example</th></tr><tr><td>Short-term</td><td>Harness</td><td>Messages in conversation, large tool results</td></tr><tr><td>Long-term</td><td>Harness</td><td>Cross-session memory, user representations</td></tr><tr><td>Filesystem</td><td>Harness + Agent</td><td>AGENTS.md, project context files</td></tr><tr><td>Tool state</td><td>Harness</td><td>MCP tool states, connection pools</td></tr></table>
+<p><strong>Aha: There are no well-known memory abstractions yet.</strong> The industry is still figuring out memory. Until best practices emerge, separate memory systems don't make sense — memory is the harness's job.</p>
+<h2>Key Takeaways</h2>
+<ol><li><strong>Harnesses are not going away.</strong> Models getting better means different scaffolding, not no scaffolding. Even built-in model features (web search) are just lightweight harnesses behind the API.</li></ol>
+<ol><li><strong>Context management is the harness's core job.</strong> Loading, compressing, evicting, and recovering context is where the harness adds the most value.</li></ol>
+<ol><li><strong>Middleware > Forking.</strong> Middleware lets you customize behavior without maintaining a fork.</li></ol>
+<ol><li><strong>Eval-driven improvement.</strong> You can't improve what you can't measure. Production traces become your eval suite.</li></ol>
+<p><a href="00-overview.md">See core principles overview → 00-overview.md</a> <a href="01-langgraph-design.md">See LangGraph design details → 01-langgraph-design.md</a> <a href="03-observability-evaluation.md">See observability and evaluation → 03-observability-evaluation.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

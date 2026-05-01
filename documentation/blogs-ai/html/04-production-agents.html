@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangChain -- Production Deep Agents -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="01-langgraph-design.html" class="nav-breadcrumb">LangGraph -- Design from First Principles</a><a href="02-agent-harness.html" class="nav-breadcrumb">LangChain -- Agent Harness Anatomy</a><a href="03-observability-evaluation.html" class="nav-breadcrumb">LangChain -- Agent Observability & Evaluation</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="03-observability-evaluation.html" class="nav-btn" title="Previous: LangChain -- Agent Observability & Evaluation">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: Blogs AI -- Industry Research Synthesis">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>LangChain -- Production Deep Agents</h1>
+<h2>Purpose</h2>
+<p>Deep agents are long-running agents that handle complex, multi-step tasks. This document covers the runtime architecture, deployment patterns, context management, and security considerations for production deep agents.</p>
+<p>Source: <a href="https://www.langchain.com/blog/runtime-behind-production-deep-agents">The Runtime Behind Production Deep Agents</a> Source: <a href="https://www.langchain.com/blog/running-subagents-in-the-background">Running Subagents in the Background</a> Source: <a href="https://www.langchain.com/blog/context-management-for-deepagents/">Context Management for Deep Agents</a> Source: <a href="https://www.langchain.com/blog/secure-agents-cisco-ai-defense">Secure Agents with Cisco AI Defense</a></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: The runtime is the hidden cost driver.</strong> How the runtime schedules LLM calls, manages context, and handles failures determines whether an agent scales to 100 concurrent users or falls over at 10.</p>
+<p><strong>Aha: Two sandbox connection patterns dominate.</strong> Agents connect to sandboxes either through a "sidecar" (agent runs alongside the sandbox) or "remote" (agent calls into the sandbox via network). Each has different security and latency tradeoffs.</p>
+<p><strong>Aha: Two types of agent authorization exist.</strong> "On-behalf-of" (agent acts as the user) and "Claw" (agent has its own fixed credentials). OpenClaw made the Claw pattern mainstream.</p>
+<h2>Runtime Architecture</h2>
+<p>The deep agents runtime handles:</p>
+<div class="mermaid">
+flowchart TD
+    REQ[Request] --&gt; QUEUE[Task Queue]
+    QUEUE --&gt; WORKER[Worker Pool]
+    WORKER --&gt; HARNESS[Agent Harness]
+    HARNESS --&gt; LLM[LLM Provider]
+    HARNESS --&gt; TOOLS[Tool Execution]
+    TOOLS --&gt; SANDBOX[Sandbox/DevBox]
+    LLM --&gt; STREAM[Streaming]
+    STREAM --&gt; RESPOND[Response]
+    TOOLS --&gt; RESPOND
+
+    HARNESS --&gt; CHECKPOINT[Checkpoint State]
+    CHECKPOINT --&gt; HARNESS
+
+</div>
+<h3>Key Runtime Components</h3>
+<table><tr><th>Component</th><th>Purpose</th><th>Design Decision</th></tr><tr><td>**Task Queue**</td><td>Decouple execution from trigger</td><td>Eliminates request timeouts</td></tr><tr><td>**Worker Pool**</td><td>Scale concurrent agents</td><td>Configurable max_workers</td></tr><tr><td>**Harness Loop**</td><td>LLM → tool → LLM cycle</td><td>Pregel algorithm for determinism</td></tr><tr><td>**Context Manager**</td><td>Window management, summarization</td><td>Model profiles at 85% threshold</td></tr><tr><td>**Checkpoint Store**</td><td>State persistence</td><td>Pluggable (memory, sqlite, postgres)</td></tr><tr><td>**Streaming Engine**</td><td>Real-time output delivery</td><td>Token-level, action-level, node-level</td></tr></table>
+<h2>Deployment: Open Alternative to Managed Agents</h2>
+<p>LangGraph's deep agents can be deployed as an open alternative to Claude Managed Agents:</p>
+<div class="mermaid">
+flowchart LR
+    A[Self-Hosted Deep Agents] --&gt; B[Full control of data]
+    A --&gt; C[Model choice flexibility]
+    A --&gt; D[Custom middleware]
+    A --&gt; E[No vendor lock-in]
+
+    F[Managed Agents] --&gt; G[Zero ops]
+    F --&gt; H[Built-in observability]
+    F --&gt; I[Automatic scaling]
+
+</div>
+<table><tr><th>Dimension</th><th>Self-Hosted</th><th>Managed</th></tr><tr><td>Data control</td><td>Full</td><td>Vendor-dependent</td></tr><tr><td>Model choice</td><td>Any provider</td><td>Vendor's models</td></tr><tr><td>Customization</td><td>Full (middleware, skills)</td><td>Limited to API params</td></tr><tr><td>Operations</td><td>You run it</td><td>Vendor runs it</td></tr><tr><td>Cost</td><td>Infrastructure + compute</td><td>Per-usage pricing</td></tr><tr><td>Lock-in</td><td>None</td><td>High (memory, state)</td></tr></table>
+<h2>Context Management</h2>
+<h3>The Context Problem</h3>
+<p>Deep agents accumulate context over long runs:</p>
+<ul><li>Conversation history (messages)</li><li>File contents (read files)</li><li>Tool results (search results, code analysis)</li><li>System instructions (skills, AGENTS.md)</li></ul>
+<p>This grows until it exceeds the context window, causing <strong>context rot</strong> — older information degrades the model's ability to use recent information effectively.</p>
+<h3>Compression Strategies</h3>
+<table><tr><th>Strategy</th><th>When</th><th>Retention</th></tr><tr><td>**Automatic at threshold**</td><td>Context hits 85% of limit</td><td>Recent 10% kept, rest summarized</td></tr><tr><td>**Tool-triggered**</td><td>Agent calls compact tool</td><td>Agent decides what's recent</td></tr><tr><td>**User-triggered**</td><td>User runs `/compact`</td><td>Recent 10% kept, rest summarized</td></tr></table>
+<p><strong>What gets preserved:</strong></p>
+<ul><li>All conversation history in virtual filesystem (recoverable)</li><li>Recent messages (10% of context window)</li><li>Tool call results needed for current task</li></ul>
+<p><strong>What gets summarized:</strong></p>
+<ul><li>Older conversation turns</li><li>Intermediate reasoning steps</li><li>File contents that were read but not modified</li></ul>
+<h3>When to Compact</h3>
+<p>Good times to compact:</p>
+<ul><li>At clean task boundaries (finished one task, starting another)</li><li>After extracting a result from large context (research done, conclusion reached)</li><li>Before consuming large new context (about to read many files)</li><li>Before complex multi-step processes (starting a refactor)</li><li>When decisions supersede prior context (new requirements invalidate old context)</li></ul>
+<p><strong>Aha: Agents are conservative about compaction but choose good moments when they do.</strong> This suggests autonomous compaction is viable — agents can identify opportune times better than fixed thresholds.</p>
+<h2>Subagents: Background Execution</h2>
+<p>Deep agents can spawn subagents that run in the background:</p>
+<div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Main as Main Agent
+    participant Sub1 as Subagent 1
+    participant Sub2 as Subagent 2
+
+    User-&gt;&gt;Main: &quot;Analyze this codebase and fix bugs&quot;
+    Main-&gt;&gt;Sub1: Background: &quot;Analyze test coverage&quot;
+    Main-&gt;&gt;Sub2: Background: &quot;Check for security issues&quot;
+    Main-&gt;&gt;Main: &quot;Start fixing known bugs...&quot;
+    Sub1--&gt;&gt;Main: &quot;Test coverage: 67%, gaps in auth/&quot;
+    Sub2--&gt;&gt;Main: &quot;3 potential XSS vulnerabilities found&quot;
+    Main-&gt;&gt;Main: Incorporate findings
+    Main--&gt;&gt;User: &quot;Fixed bugs, report attached&quot;
+
+</div>
+<p>Use cases:</p>
+<ul><li><strong>Parallel research</strong>: Multiple independent analysis tasks</li><li><strong>Validation</strong>: Testing changes while the main agent continues working</li><li><strong>Monitoring</strong>: Background processes watching for conditions</li></ul>
+<h2>Security: Two Types of Agent Authorization</h2>
+<h3>On-Behalf-Of (Assistants)</h3>
+<p>The agent acts as the end user with their credentials:</p>
+<pre><code class="language-">Alice → Onboarding Agent → (Alice&#x27;s Slack creds, Alice&#x27;s Notion creds)
+Bob   → Onboarding Agent → (Bob&#x27;s Slack creds, Bob&#x27;s Notion creds)
+</code></pre>
+<p>Requires: User identification, credential mapping at runtime.</p>
+<h3>Fixed Credentials (Claws)</h3>
+<p>The agent has its own dedicated credentials:</p>
+<pre><code class="language-">Anyone → Email Agent → (Agent&#x27;s dedicated Gmail account)
+Anyone → Product Agent → (Agent&#x27;s dedicated Notion account)
+</code></pre>
+<p>Requires: Dedicated service accounts, human-in-the-loop for sensitive actions.</p>
+<p><strong>Aha: OpenClaw made the Claw pattern mainstream.</strong> Before OpenClaw, most people thought of agents as acting on-behalf-of users. OpenClaw showed that user-created agents with fixed credentials are a major pattern.</p>
+<h3>Security Controls</h3>
+<table><tr><th>Control</th><th>Purpose</th><th>Implementation</th></tr><tr><td>**Sandboxing**</td><td>Limit blast radius</td><td>Isolated devboxes, no prod access</td></tr><tr><td>**Tool curation**</td><td>Limit capabilities</td><td>Subset of MCP tools per agent</td></tr><tr><td>**Human-in-the-loop**</td><td>Gate sensitive actions</td><td>Approval gates before destructive ops</td></tr><tr><td>**Cisco AI Defense**</td><td>Policy enforcement</td><td>Guardrails for tool access, data exfiltration</td></tr></table>
+<h2>The Two Sandbox Patterns</h2>
+<p>Agents connect to isolated environments in two ways:</p>
+<table><tr><th>Pattern</th><th>Description</th><th>Pros</th><th>Cons</th></tr><tr><td>**Sidecar**</td><td>Agent runs inside/alongside the sandbox</td><td>Low latency, full access</td><td>Tight coupling</td></tr><tr><td>**Remote**</td><td>Agent calls into sandbox via network</td><td>Loose coupling, multi-tenant</td><td>Higher latency, network dependency</td></tr></table>
+<p>Most coding agents use sidecar (agent runs on the devbox). Most general agents use remote (agent calls tools via MCP).</p>
+<h2>Key Takeaways</h2>
+<ol><li><strong>The runtime is the scaling bottleneck.</strong> How the runtime manages concurrency, context, and failures determines whether agents work in production.</li></ol>
+<ol><li><strong>Context management is the hardest problem in long-running agents.</strong> Autonomous compaction gives the model control over its own working memory.</li></ol>
+<ol><li><strong>Authorization type matters.</strong> On-behalf-of vs. fixed credentials determines the agent's security model and user experience.</li></ol>
+<ol><li><strong>Self-hosted is viable.</strong> Deep agents provide an open alternative to managed agent services with full control over data, models, and customization.</li></ol>
+<p><a href="00-overview.md">See core principles overview → 00-overview.md</a> <a href="03-observability-evaluation.md">See observability and evaluation → 03-observability-evaluation.md</a> <a href="02-agent-harness.md">See agent harness patterns → 02-agent-harness.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

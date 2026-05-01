@@ -143,10 +143,12 @@ HTML_TEMPLATE = """\
 <body>
   <nav class="nav">
     <span class="nav-brand">~/{project}/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      {prev_next}
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      {breadcrumbs}
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      {prev_btn}
+      {next_btn}
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
@@ -176,7 +178,9 @@ INDEX_TEMPLATE = """\
 <body>
   <nav class="nav">
     <span class="nav-brand">~/{project}/docs</span>
-    <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
   </nav>
 
   <h1>{project} Documentation</h1>
@@ -424,6 +428,18 @@ def build(project_dir: str):
         slug = md_file.stem  # e.g., "00-overview"
         file_map[slug] = (md_file.name, title)
 
+    # Pre-compute ordered slug list for prev/next navigation
+    all_slugs = list(file_map.keys())
+
+    for md_file in md_files:
+        with open(md_file) as f:
+            content = f.read()
+
+        # Extract title (already computed above, but needed for content)
+        fm = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+        slug = md_file.stem
+        title = file_map[slug][1]
+
         # Convert markdown to HTML
         body = content
         if fm:
@@ -431,32 +447,35 @@ def build(project_dir: str):
 
         html_body = converter.convert(body)
 
-        # Navigation: prev/next
-        slugs = list(file_map.keys())
-        idx = slugs.index(slug)
-        prev_html = ''
-        next_html = ''
+        # Navigation: breadcrumbs, index btn, prev btn, next btn
+        idx = all_slugs.index(slug)
+
+        # Breadcrumbs: last 3 pages before current one
+        breadcrumbs = ''
+        for p in all_slugs[max(0, idx-3):idx]:
+            breadcrumbs += f'<a href="{p}.html" class="nav-breadcrumb">{file_map[p][1]}</a>'
+
+        # Previous button
         if idx > 0:
-            prev_slug = slugs[idx - 1]
-            prev_name = file_map[prev_slug][1]
-            prev_html = f'<a href="{prev_slug}.html">← {prev_name}</a>'
-        if idx < len(slugs) - 1:
-            next_slug = slugs[idx + 1]
-            next_name = file_map[next_slug][1]
-            next_html = f'<a href="{next_slug}.html">{next_name} →</a>'
+            prev_slug = all_slugs[idx - 1]
+            prev_btn = f'<a href="{prev_slug}.html" class="nav-btn" title="Previous: {file_map[prev_slug][1]}">← prev</a>'
+        else:
+            prev_btn = ''
 
-        nav = ' '.join(f'<a href="{p}.html">{file_map[p][1]}</a>'
-                       for p in slugs[max(0,idx-3):idx])
-        if nav:
-            nav = f'<span style="color:var(--fg-soft);font-size:0.75rem">{nav}</span> '
-
-        prev_next = nav + prev_html + (' ' if prev_html and next_html else '') + next_html
+        # Next button
+        if idx < len(all_slugs) - 1:
+            next_slug = all_slugs[idx + 1]
+            next_btn = f'<a href="{next_slug}.html" class="nav-btn nav-btn-next" title="Next: {file_map[next_slug][1]}">next →</a>'
+        else:
+            next_btn = ''
 
         html_content = HTML_TEMPLATE.format(
             title=f"{title} -- {project_name}",
             project=project_name,
             content=html_body,
-            prev_next=prev_next,
+            breadcrumbs=breadcrumbs,
+            prev_btn=prev_btn,
+            next_btn=next_btn,
         )
 
         out_file = html_dir / f"{slug}.html"

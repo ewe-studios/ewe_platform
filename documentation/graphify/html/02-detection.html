@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/graphify/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Graphify -- Overview</a> <a href="01-architecture.html">Architecture</a></span> <a href="01-architecture.html">← Architecture</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Graphify -- Overview</a><a href="01-architecture.html" class="nav-breadcrumb">Architecture</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="01-architecture.html" class="nav-btn" title="Previous: Architecture">← prev</a>
+      <a href="03-extraction.html" class="nav-btn nav-btn-next" title="Next: Extraction">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
@@ -181,9 +183,9 @@ flowchart TD
 <p>The classification function (<code>detect.py:81-104</code>) applies rules in this order:</p>
 <ol><li><strong>Blade templates</strong> -- <code>.blade.php</code> files are always <code>CODE</code> (checked via <code>path.name.lower().endswith()</code> before suffix lookup)</li><li><strong>Code extensions</strong> -- if <code>ext in CODE_EXTENSIONS</code> return <code>FileType.CODE</code></li><li><strong>PDF papers</strong> -- if <code>ext in PAPER_EXTENSIONS</code> return <code>FileType.PAPER</code>, unless the file lives inside an Xcode asset catalog directory (<code>.imageset</code>, <code>.xcassets</code>, etc.)</li><li><strong>Images</strong> -- if <code>ext in IMAGE_EXTENSIONS</code> return <code>FileType.IMAGE</code></li><li><strong>Documents with paper heuristic</strong> -- if <code>ext in DOC_EXTENSIONS</code>, check <code>_looks_like_paper()</code>; if it matches, return <code>FileType.PAPER</code>, otherwise <code>FileType.DOCUMENT</code></li><li><strong>Office documents</strong> -- if <code>ext in OFFICE_EXTENSIONS</code> return <code>FileType.DOCUMENT</code> (later converted to markdown)</li><li><strong>Video/audio</strong> -- if <code>ext in VIDEO_EXTENSIONS</code> return <code>FileType.VIDEO</code></li><li><strong>Unknown</strong> -- return <code>None</code> (file is silently ignored)</li></ol>
 <h2>Paper Detection</h2>
-<p>The <code>_looks_like_paper()</code> function (<code>detect.py:67-75</code>) reads the first 3000 characters of a text file and checks it against 11 regex patterns (<code>detect.py:43-57</code>). A file is classified as a paper if at least 3 patterns match:</p>
+<p>The <code>_looks_like_paper()</code> function (<code>detect.py:67-75</code>) reads the first 3000 characters of a text file and checks it against 13 regex patterns (<code>detect.py:43-57</code>). A file is classified as a paper if at least 3 patterns match:</p>
 <table><tr><th>Signal</th><th>Pattern</th><th>Examples</th></tr><tr><td>arxiv</td><td>`\barxiv\b`</td><td>"arxiv preprint"</td></tr><tr><td>DOI</td><td>`\bdoi\s*:`</td><td>"doi: 10.1000/xyz"</td></tr><tr><td>Abstract</td><td>`\babstract\b`</td><td>Section heading</td></tr><tr><td>Proceedings</td><td>`\bproceedings\b`</td><td>Conference paper</td></tr><tr><td>Journal</td><td>`\bjournal\b`</td><td>Journal name</td></tr><tr><td>Preprint</td><td>`\bpreprint\b`</td><td>"arXiv preprint"</td></tr><tr><td>LaTeX cite</td><td>`\\cite\{`</td><td>`\cite{smith2020}`</td></tr><tr><td>Numbered cite</td><td>`\[\d+\]`</td><td>"[1]", "[23]"</td></tr><tr><td>Multi-line cite</td><td>`\[\n\d+\n\]`</td><td>Citation split across lines</td></tr><tr><td>Equation ref</td><td>`eq.\s*\d+`</td><td>"eq. 3", "equation 5"</td></tr><tr><td>arXiv ID</td><td>`\d{4}\.\d{4,5}`</td><td>"1706.03762"</td></tr><tr><td>Academic phrasing</td><td>`\bwe propose\b`</td><td>"we propose a novel"</td></tr><tr><td>Literature</td><td>`\bliterature\b`</td><td>"from the literature"</td></tr></table>
-<p>Threshold: 3 out of 11 signals must match (<code>detect.py:58</code>).</p>
+<p>Threshold: 3 out of 13 signals must match (<code>detect.py:58</code>).</p>
 <h2>Sensitive File Detection</h2>
 <p>Files that may contain secrets are skipped silently. Six regex patterns in <code>_SENSITIVE_PATTERNS</code> (<code>detect.py:33-40</code>) catch:</p>
 <table><tr><th>Pattern</th><th>Matches</th></tr><tr><td>`(^</td><td>[\\/])\.(env</td><td>envrc)(\</td><td>$)`</td><td>`.env`, `.envrc`, `.env.local`</td></tr><tr><td>`\.(pem</td><td>key</td><td>p12</td><td>pfx</td><td>cert</td><td>crt</td><td>der</td><td>p8)$`</td><td>Certificate and key files</td></tr><tr><td>`(credential</td><td>secret</td><td>passwd</td><td>password</td><td>token</td><td>private_key)`</td><td>Files with credential-like names</td></tr><tr><td>`(id_rsa</td><td>id_dsa</td><td>id_ecdsa</td><td>id_ed25519)(\.pub)?$`</td><td>SSH private/public keys</td></tr><tr><td>`(\.netrc</td><td>\.pgpass</td><td>\.htpasswd)$`</td><td>Auth credential files</td></tr><tr><td>`(aws_credentials</td><td>gcloud_credentials</td><td>service.account)`</td><td>Cloud credential files</td></tr></table>

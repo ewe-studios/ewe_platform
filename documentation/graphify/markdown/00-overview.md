@@ -56,9 +56,9 @@ flowchart TD
 | 6. Report | `report.py` | `generate(G, communities, ...)` | Produces a `GRAPH_REPORT.md` string with corpus stats, confidence breakdown, god nodes, surprising connections, community summaries, ambiguous edges, knowledge gaps, and suggested questions |
 | 7. Export | `export.py` | `to_json()`, `to_html()`, `to_svg()`, `to_obsidian()`, `to_canvas()`, `to_cypher()`, `to_graphml()`, `push_to_neo4j()` | Writes the graph to multiple output formats. The HTML export uses vis.js with community filtering, search, and click-to-inspect |
 
-## Supported Languages (25 via tree-sitter)
+## Supported Languages (25 total)
 
-The AST extraction pass supports 25 languages through tree-sitter language bindings. Each language has a dedicated extractor function in `graphify/extract.py` and a corresponding `tree-sitter-<lang>` dependency in `pyproject.toml`.
+The AST extraction pass supports 25 languages. 21 use tree-sitter language bindings with a corresponding `tree-sitter-<lang>` dependency in `pyproject.toml`. Four languages use alternative parsers:
 
 | Language | Extension(s) | Extractor Function |
 |----------|-------------|-------------------|
@@ -74,7 +74,7 @@ The AST extraction pass supports 25 languages through tree-sitter language bindi
 | C# | `.cs` | `extract_csharp` |
 | Kotlin | `.kt`, `.kts` | `extract_kotlin` |
 | Scala | `.scala` | `extract_scala` |
-| PHP | `.php`, `.blade.php` | `extract_php`, `extract_blade` |
+| PHP | `.php`, `.blade.php` | `extract_php`, `extract_blade` (regex) |
 | Swift | `.swift` | `extract_swift` |
 | Lua | `.lua`, `.toc` | `extract_lua` |
 | Zig | `.zig` | `extract_zig` |
@@ -83,9 +83,9 @@ The AST extraction pass supports 25 languages through tree-sitter language bindi
 | Objective-C | `.m`, `.mm` | `extract_objc` |
 | Julia | `.jl` | `extract_julia` |
 | Verilog / SystemVerilog | `.v`, `.sv` | `extract_verilog` |
-| Vue | `.vue` | `extract_js` |
-| Svelte | `.svelte` | `extract_js` |
-| Dart | `.dart` | `extract_dart` |
+| Vue | `.vue` | `extract_js` (tree-sitter) |
+| Svelte | `.svelte` | `extract_js` (tree-sitter) |
+| Dart | `.dart` | `extract_dart` (regex) |
 
 Non-code file types are handled by Claude semantic extraction:
 
@@ -169,6 +169,18 @@ Token reduction scales with corpus size. A 6-file corpus fits in a single contex
 **Cached by content hash.** Every extraction result is cached under `graphify-out/cache/{ast,semantic}/<sha256>.json`. The hash covers file contents and the path relative to the project root, so cache entries are portable across machines. Markdown files hash only the body below the YAML frontmatter, so metadata-only changes do not invalidate the cache.
 
 **Explicit provenance.** Every edge carries a `confidence` label and a `source_file` with `source_location`. The report separates what was found from what was guessed. AMBIGUOUS edges are surfaced for human review.
+
+## Key Insights: How the Graph Actually Works
+
+**Every file is already a network.** Before any cross-file analysis, each source file has internal structure: a file-level hub node, class nodes, method nodes, and edges showing which methods call which. This is the micro-network. The first time you run graphify on a project, you see this structure immediately -- no LLM needed.
+
+**Cross-file resolution is deferred, not parallel.** The AST walk doesn't try to resolve external imports while parsing. It collects unresolved callee names in a `raw_calls` list. After every file is processed, a global label-to-node map is built and all deferred calls are resolved at once. This keeps the walker language-agnostic -- no language needs to know how imports work in another language.
+
+**Confidence drops as scope increases.** Intra-file relationships are 100% certain (`EXTRACTED`). Cross-file relationships are reasoned but likely correct (`INFERRED`). Semantic relationships are useful hypotheses (`AMBIGUOUS`). The graph never lies about what it knows -- every edge carries its confidence label.
+
+**No vector database, no embeddings.** Community detection runs on graph topology alone. Leiden/Louvain finds communities by edge density. If two modules have many `imports` and `calls` edges between them, they cluster together. If Claude extracts a `semantically_similar_to` edge, that also influences clustering. The graph structure IS the similarity signal.
+
+**Member calls are intentionally skipped in cross-file resolution.** `obj.log()` is excluded because common method names (`log`, `run`, `init`) appear everywhere. Only bare function names like `authenticate()` are resolved cross-file, where the callee name is unique enough to be meaningful.
 
 ## Lazy Imports
 

@@ -189,9 +189,52 @@ hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
 }
 
 .nav-brand { font-family: monospace; font-weight: 600; font-size: 0.9rem; }
-.nav-links { display: flex; gap: 0.75rem; align-items: center; font-size: 0.85rem; flex-wrap: wrap; }
-.nav-links a { color: var(--fg-muted); }
-.nav-links a:hover { color: var(--fg); }
+
+.nav-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+/* Breadcrumb links -- muted, inline */
+.nav-breadcrumb {
+  color: var(--fg-soft);
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+}
+.nav-breadcrumb:hover { color: var(--fg); }
+
+/* Nav buttons (index, prev, next, theme) -- pill style */
+.nav-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg-muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-btn:hover {
+  border-color: var(--fg-muted);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+/* Next button -- accent border to draw attention */
+.nav-btn-next {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.nav-btn-next:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
 
 .theme-toggle {
   background: none;
@@ -202,9 +245,20 @@ hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
   cursor: pointer;
   font-family: monospace;
   font-size: 0.8rem;
+  line-height: 1;
 }
 
 .theme-toggle:hover { border-color: var(--fg-muted); color: var(--fg); }
+
+/* Bottom-of-page prev/next footer navigation */
+.nav-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
 
 .prose { min-height: 60vh; }
 

@@ -42,7 +42,7 @@ It is not a peer review (another person reads the docs and says "this makes sens
 
 ## Documentation Quality Standards (Iron Rules)
 
-These standards are non-negotiable. Every document must meet all eight.
+These standards are non-negotiable. Every document must meet all ten.
 
 ### 1. Detailed Sections with Code Snippets
 
@@ -120,6 +120,46 @@ Include actual file paths from the source codebase so readers can verify claims.
 Source: `graphify/extract.py:66` — LanguageConfig dataclass
 ```
 
+### 9. Aha Moments
+
+Every document must surface the **"Aha!" moments** — the clever design decisions, non-obvious tradeoffs, and "wait, that's smart" insights that make the code worth reading. These are what transform documentation from a reference manual into genuine understanding.
+
+An Aha moment answers: *Why did the author build it this way instead of the obvious way?*
+
+**Good examples:**
+- "Member calls are intentionally NOT resolved cross-file. `obj.log()` is excluded because common method names appear everywhere — only bare function names are resolved."
+- "The AST walk doesn't try to resolve external imports during parsing. Unresolved callees go into a `raw_calls` list and are resolved all at once in pass 2, keeping the walker language-agnostic."
+- "Normalized IDs let AST and LLM extractions merge: the AST produces `auth_digest_auth` while the LLM might produce `Auth-Digest-Auth`. Without normalization, every LLM edge would be dropped as dangling."
+
+**Bad examples:**
+- "The function processes the input and returns the output." (not an insight)
+- "This is how the code works." (describes mechanics, not motivation)
+
+Aha moments should appear as short callout paragraphs, typically prefixed with **"Aha:"** or **"Key insight:"**. Each document should have at least one.
+
+### 10. Navigation: Index + Prev/Next Buttons
+
+Every generated HTML page must have a consistent navigation bar with these elements:
+
+- **Brand** (left): `~/{project}/docs`
+- **Breadcrumbs** (right): last 3 pages before current, muted
+- **Index button** (right): pill-styled button linking back to `index.html`
+- **← prev button** (right): pill-styled button linking to the previous page (hidden on first page)
+- **next → button** (right): accent-colored pill button linking to the next page (hidden on last page)
+- **Theme button** (right): pill-styled toggle for dark/light
+
+All buttons use the `.nav-btn` class. The next button uses `.nav-btn-next` with an accent border to draw attention. The build script (`build.py`) handles this automatically via the `HTML_TEMPLATE`.
+
+### Phase 4: Generate HTML
+
+Run `python3 build.py <project>` to generate HTML. Verify:
+
+- All pages render correctly
+- Mermaid diagrams display
+- Dark/light theme works
+- Navigation bar shows index button, prev/next buttons with correct targets
+- Index page lists all documents
+
 ## Documentation Structure
 
 Every documentation project follows this structure:
@@ -188,6 +228,7 @@ Write documents in order (00 → 01 → 02 → ...). Each document must:
 - Start with a one-line summary of what the module/topic does
 - Include at least 2 mermaid diagrams
 - Include code snippets from the actual source (with file path references)
+- Include at least one Aha moment — a non-obvious design decision or clever insight
 - Link to related documents
 - End with a section pointing to the next logical document
 
@@ -240,6 +281,13 @@ Fix every discrepancy. There is no "close enough."
 3. **Missing features are harder to catch than wrong descriptions.** You can grep for wrong names, but you can't grep for features the docs don't mention. Walk the full public API surface explicitly.
 4. **The review must be done against the current source, not the README or ARCHITECTURE.md.** Those files are also descendants of the code and may themselves be stale.
 
+### From Graphify Documentation
+
+1. **Aha moments are the highest-signal content.** Readers care less about "what function X does" and more about "why the author deferred cross-file resolution instead of doing it inline." These insights are what make documentation worth reading vs. just reading the code.
+2. **Tree-sitter's `LanguageConfig` pattern deserves its own deep dive.** The fact that 21 languages share one AST walker via a config dataclass is a genuine architectural insight — it explains how the project scales to new languages without proportional code growth.
+3. **Relationships form at three scales (intra-file, cross-file, semantic), each with different confidence.** This is the core mental model for understanding any graphify output. Documents that explain it clearly prevent hours of confusion.
+4. **Network diagrams showing actual node/edge examples are worth more than abstract architecture diagrams.** A diagram showing `DigestAuth --uses--> Response` teaches more than a box labeled "Cross-file Resolver."
+
 ## Build System
 
 All documentation projects share a single build script:
@@ -269,9 +317,11 @@ python3 build.py graphify                      # build one project
 - [ ] Every public API surface is mentioned somewhere
 - [ ] At least 2 mermaid diagrams per document
 - [ ] At least 3 code snippets per document (with file path references)
+- [ ] At least 1 Aha moment — a non-obvious design decision or clever insight
 - [ ] Links to at least 2 related documents
 - [ ] First paragraph states the core concept clearly
 - [ ] No sentences with more than 30 words
 - [ ] HTML builds and renders correctly
 - [ ] Index page lists the document
+- [ ] Nav bar: index button, ← prev, next →, theme toggle all present and correct
 - [ ] Spec.md task is marked DONE

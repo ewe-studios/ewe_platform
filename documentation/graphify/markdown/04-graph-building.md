@@ -37,6 +37,8 @@ The `"source"` → `"source_file"` rename prints a warning like:
 
 Edges whose source or target do not match any node ID are silently dropped. This is expected behavior for stdlib or external import edges. Only real schema errors (not dangling edges) are printed as warnings — [`build.py:70-73`](graphify/build.py:70).
 
+**Aha: dangling edges are a feature, not a bug.** When `extract.py` produces an edge `auth_digest_auth --imports--> os`, the `os` node doesn't exist in the graph because stdlib modules aren't extracted. The edge is dropped, but the fact that it was dropped tells you this file imports from the standard library. The `GRAPH_REPORT.md` knowledge gaps section flags files with many dropped edges as potentially having untracked dependencies.
+
 ### ID Normalization via `_normalize_id()`
 
 Before dropping an edge, the function tries to reconcile mismatched IDs. `_normalize_id(s)` lowercases the string and replaces all non-alphanumeric characters with underscores, stripping leading/trailing underscores — [`build.py:32-39`](graphify/build.py:32).
@@ -47,6 +49,8 @@ _normalize_id("session-validate-token")  # → "session_validatetoken" (same res
 ```
 
 A normalized map `norm_to_id` lets edges survive when the LLM generates IDs with slightly different casing or punctuation than the AST extractor — [`build.py:80-94`](graphify/build.py:80).
+
+**Aha: this is how AST and LLM extractions merge.** The AST extractor produces IDs like `auth_digest_auth` while the LLM might produce `Auth-Digest-Auth`. Without normalization, every LLM edge would be dropped as dangling. The `norm_to_id` map reconciles these formats so both extraction methods contribute to the same graph.
 
 ### Edge Direction Preservation
 

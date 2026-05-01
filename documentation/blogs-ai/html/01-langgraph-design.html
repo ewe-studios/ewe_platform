@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangGraph -- Design from First Principles -- blogs-ai</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/blogs-ai/docs</span>
+    <div class="nav-actions">
+      <a href="00-minions.html" class="nav-breadcrumb">Stripe Minions -- One-Shot Coding Agents</a><a href="00-overview.html" class="nav-breadcrumb">LangChain -- Core Principles & Architecture</a><a href="00-production-agent-architecture.html" class="nav-breadcrumb">Conductor -- Production Agent Architecture</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="00-production-agent-architecture.html" class="nav-btn" title="Previous: Conductor -- Production Agent Architecture">← prev</a>
+      <a href="02-agent-harness.html" class="nav-btn nav-btn-next" title="Next: LangChain -- Agent Harness Anatomy">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>LangGraph -- Design from First Principles</h1>
+<h2>Purpose</h2>
+<p>LangGraph was built as a reboot of LangChain's chains and agents, starting fresh to address the core feedback: LangChain was easy to get started but hard to customize and scale. This document covers the design decisions that make LangGraph production-ready.</p>
+<p>Source: <code>github.com/langchain-ai/langgraph</code> Source: <a href="https://www.langchain.com/blog/building-langgraph">Building LangGraph</a></p>
+<h2>Aha Moments</h2>
+<p><strong>Aha: DAG frameworks can't handle agents.</strong> Agent computation graphs are cyclical (agents loop until done), which DAG algorithms like topological sort fundamentally cannot express.</p>
+<p><strong>Aha: Durable execution engines (Temporal, etc.) were designed before LLMs.</strong> They lack streaming, introduce inter-step latency noticeable to chatbot users, and their performance degrades with longer histories — a bad bet as agents get more complex.</p>
+<p><strong>Aha: Structured agents with discrete steps are non-negotiable.</strong> You can write an agent as a single function with one big while loop, but you lose checkpointing, human-in-the-loop, and portable state. Execution state of generators can't be saved in a format resumable on a different machine.</p>
+<h2>Why Previous Frameworks Didn't Work</h2>
+<div class="mermaid">
+flowchart LR
+    A[Agent Needs] --&gt; B[Loops/Cycles]
+    A --&gt; C[Streaming]
+    A --&gt; D[Checkpointing]
+    A --&gt; E[Human-in-the-loop]
+
+    B -.X.-&gt; F[DAG Frameworks\nAirflow, etc.]
+    C -.X.-&gt; G[Durable Engines\nTemporal, etc.]
+    D -.OK.-&gt; G
+    E -.OK.-&gt; G
+
+    F --&gt; H[Cannot express\ncyclic agent graphs]
+    G --&gt; I[No streaming support\nHigh inter-step latency\nDegrades with history length]
+
+    B --&gt; J[LangGraph:\nPregel/BSP algorithm]
+    C --&gt; J
+    D --&gt; J
+    E --&gt; J
+
+</div>
+<h2>The Pregel/BSP Execution Model</h2>
+<p>LangGraph chose Bulk Synchronous Parallel / Pregel over "no algorithm" because ad-hoc concurrency leads to non-deterministic behavior:</p>
+<pre><code class="language-python"># Conceptual structure — channels and nodes
+class Channel:
+    name: str
+    value: Any           # Current data
+    version: int         # Monotonically increasing
+
+class Node:
+    name: str
+    subscribes: list[str]  # Channel names
+    def run(self, state) -&gt; dict  # Returns updates to channels
+</code></pre>
+<p>The execution loop:</p>
+<ol><li>Write input to channels</li><li>Find all nodes subscribed to changed channels</li><li>Execute them in parallel (deterministic concurrency)</li><li>Write outputs back to channels</li><li>Synchronization barrier</li><li>Repeat until no nodes are ready → read output channels</li></ol>
+<h2>SDK Evolution: Three APIs</h2>
+<p>LangGraph offers three SDKs, all running on the same PregelLoop runtime:</p>
+<table><tr><th>SDK</th><th>Style</th><th>Use Case</th></tr><tr><td>**StateGraph** (current)</td><td>Declarative graph builder</td><td>Complex multi-node agents</td></tr><tr><td>**Imperative/Functional**</td><td>Direct function calls</td><td>Simple agents, closer to plain code</td></tr><tr><td>**Graph** (deprecated)</td><td>Original graph API</td><td>Early adopters, replaced by StateGraph</td></tr></table>
+<p>The runtime/SDK separation enabled this evolution without breaking changes:</p>
+<pre><code class="language-">┌──────────────────────────────────────┐
+│         SDK Layer (evolves)           │
+│  StateGraph  │  Imperative  │  Graph │
+├──────────────────────────────────────┤
+│         PregelLoop Runtime            │
+│  (stable contract, perf improved)     │
+├──────────────────────────────────────┤
+│       Checkpoint / Stream / Queue     │
+│       (features as building blocks)   │
+└──────────────────────────────────────┘
+</code></pre>
+<h2>Checkpointing: Resuming From Failure</h2>
+<p>Checkpointing saves snapshots of computation state at intermediate stages. This is critical because:</p>
+<ul><li>A 10-minute agent failing at minute 9 shouldn't restart from zero</li><li>Human-in-the-loop requires pausing and resuming</li><li>Time travel (redoing from a previous step) needs historical states</li></ul>
+<pre><code class="language-python"># Checkpoint interface (conceptual)
+from langgraph.checkpoint.memory import MemorySaver
+
+checkpointer = MemorySaver()  # Or SqliteSaver, PostgresSaver
+
+graph = StateGraph(State)
+# ... define nodes and edges ...
+app = graph.compile(checkpointer=checkpointer)
+
+# Run with checkpointing
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;conversation-1&quot;}}
+result = app.invoke(input, config)
+
+# Resume from checkpoint (same thread_id)
+result = app.invoke({&quot;continue&quot;: True}, config)
+</code></pre>
+<p>Checkpointer backends:</p>
+<ul><li><strong>MemorySaver</strong>: In-memory, for testing</li><li><strong>SqliteSaver</strong>: Local persistence</li><li><strong>PostgresSaver</strong>: Production, scalable</li></ul>
+<h2>Human-in-the-Loop: Interrupt/Resume</h2>
+<p>The interrupt pattern is as simple as adding <code>interrupt()</code> to a node:</p>
+<pre><code class="language-python">def review_node(state):
+    # Agent did work, now pause for human review
+    interrupt(&quot;Review the changes before proceeding?&quot;)
+    # After human approval, execution resumes here
+    return state
+</code></pre>
+<p>This enables UX patterns:</p>
+<ul><li><strong>Approve/reject actions</strong>: "Should I delete this file?"</li><li><strong>Edit next action</strong>: Human modifies the agent's planned step</li><li><strong>Clarifying questions</strong>: Agent asks user for more info</li><li><strong>Time travel</strong>: Replay from any checkpoint with modifications</li></ul>
+<h2>Streaming: Fighting Perceived Latency</h2>
+<p>LangGraph supports streaming at multiple levels:</p>
+<table><tr><th>Level</th><th>What Streams</th><th>Latency Feel</th></tr><tr><td>**Token**</td><td>LLM output token-by-token</td><td>Immediate</td></tr><tr><td>**Action**</td><td>Tool calls and their results</td><td>Seconds</td></tr><tr><td>**Node**</td><td>Start/end of each node</td><td>Coarse</td></tr></table>
+<pre><code class="language-python">for event in app.stream(input, stream_mode=&quot;updates&quot;):
+    for node_name, updates in event.items():
+        print(f&quot;Node {node_name}: {updates}&quot;)
+</code></pre>
+<p><strong>Aha: When you can't reduce actual latency, fight perceived latency.</strong> Showing useful information to the user while the agent runs — from progress bars to token-by-token streaming — keeps users engaged.</p>
+<h2>Task Queue: Decoupling Execution</h2>
+<p>LangGraph Server adds a task queue that:</p>
+<ul><li>Disconnects agent execution from the triggering HTTP request</li><li>Provides fair retry primitives</li><li>Handles backpressure when many agents start simultaneously</li></ul>
+<pre><code class="language-">HTTP Request → Queue → Worker → Agent Execution → Result
+     │              │         │
+     │ (200 OK      │ (acks)  │ (scales
+     │  + job ID)   │         │  horizontally)
+</code></pre>
+<p>This eliminates a common failure source: request timeouts killing long-running agent executions.</p>
+<h2>Parallelization Without Data Races</h2>
+<p>The Pregel algorithm provides deterministic parallelism:</p>
+<div class="mermaid">
+flowchart TD
+    A[Node A reads channel X] --&gt; B[Execute]
+    C[Node B reads channel Y] --&gt; B
+    B --&gt; D[Write to channels]
+    D --&gt; E[Synchronization barrier]
+    E --&gt; F[Next superstep]
+
+</div>
+<p>All nodes in a superstep read from the <em>same</em> channel state (from the end of the previous barrier). Writes are collected and applied atomically at the next barrier. No data races possible.</p>
+<h2>Distributed Execution: The Future</h2>
+<p>LangGraph's runtime/SDK split enables experimental distributed execution:</p>
+<ul><li>The runtime can be deployed across multiple workers</li><li>Each superstep's nodes run on different machines</li><li>Checkpoint state is shared via a backend (Postgres, Redis)</li><li>The SDK code doesn't change — same graph definition</li></ul>
+<p>This is how LangGraph scales from a single chatbot to distributed multi-agent systems without rewriting agent logic.</p>
+<h2>Production Tradeoffs Made</h2>
+<table><tr><th>Tradeoff</th><th>Decision</th><th>Rationale</th></tr><tr><td>Ease of start vs. production scale</td><td>Prioritized production</td><td>LangChain already solved "easy to start"</td></tr><tr><td>High-level abstraction vs. low control</td><td>Low control</td><td>Abstractions age poorly</td></tr><tr><td>Single SDK vs. multi-language</td><td>Multi (Python + JS)</td><td>Teams use both</td></tr><tr><td>Tight coupling to LangChain</td><td>Independent runtime</td><td>Can be used without LangChain</td></tr></table>
+<h2>Key Insights</h2>
+<ol><li><strong>LLMs broke the "code is source of truth" assumption.</strong> You write prompts and tool descriptions, but you don't know the logic until you run it. Traces become the source of truth.</li></ol>
+<ol><li><strong>Agent traces are fundamentally different from service traces.</strong> A typical distributed trace is a few hundred bytes. Agent traces can reach hundreds of megabytes for complex runs.</li></ol>
+<ol><li><strong>The execution algorithm matters.</strong> "No algorithm" feels simpler but produces non-deterministic results under concurrency. BSP/Pregel gives deterministic loops.</li></ol>
+<ol><li><strong>Features as building blocks, not bundles.</strong> Interrupt/resume doesn't get in your way until you reach for it — just add <code>interrupt()</code>.</li></ol>
+<p><a href="00-overview.md">See core principles overview → 00-overview.md</a> <a href="02-agent-harness.md">See agent harness patterns → 02-agent-harness.md</a> <a href="04-production-agents.md">See production deployment → 04-production-agents.md</a></p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

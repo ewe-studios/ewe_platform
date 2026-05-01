@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/graphify/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Graphify -- Overview</a></span> <a href="00-overview.html">← Graphify -- Overview</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Graphify -- Overview</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="00-overview.html" class="nav-btn" title="Previous: Graphify -- Overview">← prev</a>
+      <a href="02-detection.html" class="nav-btn nav-btn-next" title="Next: Detection">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
@@ -208,6 +210,42 @@ graph LR
     Validate[validate.py] -.-&gt;|validate_extraction| B
 
 </div>
+<h2>How Relationships Form the Network</h2>
+<p>The graph's value comes from how edges connect structural entities. Every edge has a <code>relation</code>, <code>confidence</code>, <code>source_file</code>, and <code>source_location</code> -- you can trace any connection back to the exact line of code that produced it.</p>
+<h3>Edge Anatomy</h3>
+<div class="mermaid">
+graph LR
+    A[DigestAuth] --&gt;|&quot;calls\nEXTRACTED\nL45&quot;| B[verify_token]
+    A -.-&gt;|&quot;uses\nINFERRED\nauth.py:15&quot;| C[Response]
+    D[concept:auth] -.-&gt;|&quot;AMBIGUOUS\nllm:extraction&quot;| A
+
+    style A fill:#1a1a2e,color:#ddd
+    style B fill:#16213e,color:#ddd
+    style C fill:#0f3460,color:#ddd
+    style D fill:#533483,color:#ddd
+
+</div>
+<h3>Relationship Density</h3>
+<p>The graph reveals which parts of a codebase are tightly coupled (many edges) vs. loosely coupled (few edges). A class with 20+ <code>calls</code> edges is a coordination hub. A class with zero incoming edges is dead code. A file that <code>imports</code> 15 other files is a facade or orchestrator.</p>
+<h3>Edge Categories by Origin</h3>
+<table><tr><th>Origin</th><th>Relations</th><th>Confidence</th><th>Certainty</th></tr><tr><td>AST walker (single file)</td><td>`contains`, `method`, `calls`, `imports`</td><td>`EXTRACTED`</td><td>Syntactically proven</td></tr><tr><td>Cross-file resolver</td><td>`uses`, `imports`, `calls`</td><td>`INFERRED`</td><td>Resolved by naming convention</td></tr><tr><td>LLM semantic extraction</td><td>`semantically_similar_to`, `related_to`</td><td>`AMBIGUOUS`</td><td>LLM judgment call</td></tr></table>
+<h3>The Network Effect</h3>
+<p>Individual files produce small trees. Cross-file resolution connects these trees into a forest. Community detection finds which clusters of trees grow together. The result is a map of architectural boundaries:</p>
+<pre><code class="language-">auth.py          models.py         handlers.py
+├─ DigestAuth ───┤                 ├─ login_handler ──calls──▶ authenticate()
+│  ├─ validate() │                 │
+│  └─ authenticate() ──uses──▶ Response
+└─ hash_password()│                 └─ logout_handler
+                  │
+                  ├─ Response      services.py
+                  └─ User          └─ EmailService
+                                      └─ send()
+                                         ▲
+                                    calls │
+                                          │
+                               password_reset_handler
+</code></pre>
+<p>The <code>calls</code> edge from <code>password_reset_handler</code> to <code>EmailService.send()</code> crosses three module boundaries. In a 500-file project, this edge is one of thousands -- but it tells you that the password reset flow depends on email delivery, which is architecturally significant.</p>
 <h2>Data Model</h2>
 <h3>Node Dict Schema</h3>
 <p>Every node in the extraction output follows this schema (enforced by <code>validate.py:6</code>):</p>

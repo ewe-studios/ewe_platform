@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/mastra/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="00-overview.html">Mastra -- Overview</a> <a href="01-architecture.html">Mastra -- Architecture</a> <a href="02-agent-core.html">Mastra -- Agent Core</a></span> <a href="02-agent-core.html">← Mastra -- Agent Core</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Mastra -- Overview</a><a href="01-architecture.html" class="nav-breadcrumb">Mastra -- Architecture</a><a href="02-agent-core.html" class="nav-breadcrumb">Mastra -- Agent Core</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="02-agent-core.html" class="nav-btn" title="Previous: Mastra -- Agent Core">← prev</a>
+      <a href="04-tool-system.html" class="nav-btn nav-btn-next" title="Next: Mastra -- Tool System">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">

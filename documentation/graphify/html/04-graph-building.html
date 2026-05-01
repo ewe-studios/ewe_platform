@@ -123,10 +123,12 @@
 <body>
   <nav class="nav">
     <span class="nav-brand">~/graphify/docs</span>
-    <div class="nav-links">
-      <a href="index.html">Index</a>
-      <span style="color:var(--fg-soft);font-size:0.75rem"><a href="01-architecture.html">Architecture</a> <a href="02-detection.html">Detection</a> <a href="03-extraction.html">Extraction</a></span> <a href="03-extraction.html">← Extraction</a>
-      <button class="theme-toggle" onclick="toggleTheme()">theme</button>
+    <div class="nav-actions">
+      <a href="01-architecture.html" class="nav-breadcrumb">Architecture</a><a href="02-detection.html" class="nav-breadcrumb">Detection</a><a href="03-extraction.html" class="nav-breadcrumb">Extraction</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="03-extraction.html" class="nav-btn" title="Previous: Extraction">← prev</a>
+      <a href="05-clustering.html" class="nav-btn nav-btn-next" title="Next: Graphify -- Clustering">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
     </div>
   </nav>
   <article class="prose">
@@ -152,12 +154,14 @@ G = build_from_json(extraction, directed=True)
 </code></pre>
 <h3>Dangling Edge Handling</h3>
 <p>Edges whose source or target do not match any node ID are silently dropped. This is expected behavior for stdlib or external import edges. Only real schema errors (not dangling edges) are printed as warnings — <a href="graphify/build.py:70"><code>build.py:70-73</code></a>.</p>
+<p><strong>Aha: dangling edges are a feature, not a bug.</strong> When <code>extract.py</code> produces an edge <code>auth_digest_auth --imports--> os</code>, the <code>os</code> node doesn't exist in the graph because stdlib modules aren't extracted. The edge is dropped, but the fact that it was dropped tells you this file imports from the standard library. The <code>GRAPH_REPORT.md</code> knowledge gaps section flags files with many dropped edges as potentially having untracked dependencies.</p>
 <h3>ID Normalization via <code>_normalize_id()</code></h3>
 <p>Before dropping an edge, the function tries to reconcile mismatched IDs. <code>_normalize_id(s)</code> lowercases the string and replaces all non-alphanumeric characters with underscores, stripping leading/trailing underscores — <a href="graphify/build.py:32"><code>build.py:32-39</code></a>.</p>
 <pre><code class="language-python">_normalize_id(&quot;Session_ValidateToken&quot;)  # → &quot;session_validatetoken&quot;
 _normalize_id(&quot;session-validate-token&quot;)  # → &quot;session_validatetoken&quot; (same result)
 </code></pre>
 <p>A normalized map <code>norm_to_id</code> lets edges survive when the LLM generates IDs with slightly different casing or punctuation than the AST extractor — <a href="graphify/build.py:80"><code>build.py:80-94</code></a>.</p>
+<p><strong>Aha: this is how AST and LLM extractions merge.</strong> The AST extractor produces IDs like <code>auth_digest_auth</code> while the LLM might produce <code>Auth-Digest-Auth</code>. Without normalization, every LLM edge would be dropped as dangling. The <code>norm_to_id</code> map reconciles these formats so both extraction methods contribute to the same graph.</p>
 <h3>Edge Direction Preservation</h3>
 <p>Even in undirected graphs, the original edge direction is preserved via <code>_src</code> and <code>_tgt</code> attributes stored on every edge. This prevents display functions from showing edges backwards — <a href="graphify/build.py:98"><code>build.py:98-102</code></a>.</p>
 <pre><code class="language-python"># Edge stored with direction metadata

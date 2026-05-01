@@ -3,7 +3,103 @@
 The `extract.py` module is the second stage of the Graphify pipeline. It parses source code files using tree-sitter, walks their ASTs, and produces a deterministic set of nodes and edges representing the structural relationships within each file. All AST edges are `EXTRACTED` -- meaning they are directly stated in the source, not inferred.
 
 - **Source file:** `/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.Graphify/graphify/graphify/graphify/extract.py` (3547 lines)
-- **Related documents:** [Architecture](01-architecture.md) | [Detection](02-detection.md)
+- **Related documents:** [Architecture](01-architecture.md) | [Detection](02-detection.md) | [Graph Building](04-graph-building.md)
+
+## Aha Moments: How Graphify Builds the Network
+
+These are the key design decisions that make the extraction work:
+
+**1. Every file is a micro-network.** Before any cross-file analysis exists, each file already has internal structure: a file-level hub node contains classes, classes contain methods, and methods call each other. The graph is built bottom-up -- local structure first, global connections second.
+
+**2. `raw_calls` as deferred resolution.** The extractor doesn't try to resolve external calls during the AST walk. Instead, every unresolved callee is saved to a `raw_calls` list: `{"caller_nid": ..., "callee": "ClassName", "is_member_call": false, ...}`. Pass 2 builds a global label-to-node map and resolves all deferred calls at once. This means the AST walk stays simple and language-agnostic -- no language needs to know how imports work in other languages.
+
+**3. Member calls are intentionally NOT resolved cross-file.** When `obj.log()` is called, the extractor marks `is_member_call: true` and excludes it from cross-file resolution. Common method names like `log`, `run`, `init` appear in hundreds of files -- resolving them would create thousands of false-positive edges. The `raw_calls` pass only resolves bare function names (`authenticate()`) where the callee name is unique enough to be meaningful.
+
+**4. The `LanguageConfig` dataclass makes all 21 tree-sitter languages share one walker.** Instead of 21 separate AST walkers, a single `_extract_generic()` function reads a config that maps tree-sitter node types to graphify concepts. A Python `class_definition` and a Rust `struct_item` are both just "something in `class_types`". Language-specific quirks (C/C++ declarator unwrapping, PHP helper functions, Swift enum cases) plug in as optional callbacks.
+
+**5. `seen_call_pairs` prevents duplicate edges.** If function A calls function B three times, only one `calls` edge is emitted. The `seen_call_pairs` set tracks `(caller_nid, tgt_nid)` pairs and skips duplicates.
+
+## Tree-Sitter AST Walk Deep Dive
+
+The core relationship-extraction engine is the recursive `walk()` function inside `_extract_generic()` (`extract.py:766-1330`). It processes every node in the tree-sitter syntax tree and produces nodes and edges:
+
+```python
+def walk(node, parent_class_nid: str | None = None) -> None:
+    t = node.type
+
+    # 1. Import statements → delegate to language-specific handler
+    if t in config.import_types:
+        if config.import_handler:
+            config.import_handler(node, source, file_nid, stem, edges, str_path)
+        return  # Don't recurse into import nodes
+
+    # 2. Class declarations → create node + "contains" edge from file
+    if t in config.class_types:
+        class_name = _read_text(node.child_by_field_name(config.name_field), source)
+        class_nid = _make_id(stem, class_name)
+        add_node(class_nid, class_name, line)
+        add_edge(file_nid, class_nid, "contains", line)
+        # Language-specific inheritance (Python superclasses, Java extends, etc.)
+        walk_class_body(node, class_nid)
+
+    # 3. Function/method declarations → create node + edge
+    if t in config.function_types:
+        func_name = resolve_function_name(node, config, source)
+        func_nid = _make_id(parent or stem, func_name)
+        add_node(func_nid, func_name, line)
+        add_edge(parent_class_nid or file_nid, func_nid, "contains" if parent_class_nid else "contains", line)
+
+    # 4. Call expressions → build call graph
+    if t in config.call_types:
+        callee_name = resolve_callee(node, config, source)
+        is_member_call = detect_member_access(node, config, source)
+        if callee_name:
+            tgt_nid = label_to_nid.get(callee_name.lower())
+            if tgt_nid and tgt_nid != caller_nid:
+                if (caller_nid, tgt_nid) not in seen_call_pairs:
+                    seen_call_pairs.add((caller_nid, tgt_nid))
+                    edges.append({"source": caller_nid, "target": tgt_nid, "relation": "calls", ...})
+            elif callee_name and not tgt_nid:
+                raw_calls.append({"caller_nid": caller_nid, "callee": callee_name,
+                                  "is_member_call": is_member_call, ...})
+
+    # 5. Recurse into children
+    for child in node.children:
+        walk(child, parent_class_nid)
+```
+
+### How `LanguageConfig` Drives the Walk
+
+The config tells the walker what each AST node type means in graph terms:
+
+```
+Node in tree:                          →  Graphify edge:
+─────────────────────────────────────────────────────────
+type in config.class_types             →  file ──contains──▶ Class
+type in config.function_types          →  file/Class ──contains──▶ func()
+type in config.call_types              →  caller ──calls──▶ callee
+type in config.import_types            →  file ──imports/imports_from──▶ module
+type in config.static_prop_types       →  Class ──uses_static_prop──▶ X
+                                       →  (PHP-specific)
+PHP config('key') call                 →  Class ──bound_to──▶ service
+PHP event listener property            →  event ──listened_by──▶ handler
+```
+
+### The `call_types` Edge Builder
+
+Call extraction is the most language-sensitive part because each language represents member access differently:
+
+| Language | Call Node Type | Accessor Pattern | Member Detection |
+|----------|---------------|-----------------|-----------------|
+| Python | `call` | `attribute` → `field` | `attribute.field` → member |
+| JavaScript | `call_expression` | `member_expression` | `.` or `?.` → member |
+| Rust | `call_expression` | `field_expression` | `.` → member |
+| C/C++ | `call_expression` | `field_expression` / `qualified_identifier` | both → member |
+| Java | `method_invocation` | `object` field | present → member |
+| PHP | `function_call_expression` | `member_call_expression` | type check → member |
+| Go | `call_expression` | `selector_expression` | `.` → member |
+
+When a callee is found, it's looked up in the per-file `label_to_nid` map. If found locally, a `calls` edge is emitted immediately with `EXTRACTED` confidence. If not found locally, it goes into `raw_calls` for pass 2 resolution.
 
 ## Two-Pass Extraction Overview
 
@@ -247,3 +343,83 @@ The main `extract()` function (`extract.py:3289`) returns:
 ```
 
 All `source_file` paths are relativized to the common root of the input paths, ensuring portability across machines (`extract.py:3451-3462`).
+
+## Network Formation: From Micro to Macro
+
+The graph builds up through three distinct scales, each adding a new layer of connectivity:
+
+### Scale 1: Intra-file (the micro-network)
+
+Within a single file, the AST walk creates a small network:
+
+```
+src/auth.py
+   │
+   ├──contains──▶ DigestAuth (class)
+   │                │
+   │                ├──method──▶ validate()
+   │                │              │
+   │                │              └──calls──▶ hash_password()
+   │                │
+   │                └──method──▶ authenticate()
+   │                               │
+   │                               └──calls──▶ verify_token()
+   │
+   └──contains──▶ hash_password()
+   └──contains──▶ verify_token()
+```
+
+These are all `EXTRACTED` edges -- directly visible in the syntax tree. No inference needed. Every relationship here is structurally certain.
+
+### Scale 2: Cross-file (the meso-network)
+
+Pass 2 connects files together by resolving imports and raw calls:
+
+```
+src/auth.py:DigestAuth ──uses(INFERRED)──▶ src/models.py:Response
+src/handlers.py:login_handler ──calls(INFERRED)──▶ src/auth.py:authenticate
+src/app.py:app ──imports(EXTRACTED)──▶ src/auth.py
+```
+
+Python `from .X import Y` becomes class-level `uses` edges. Java `import a.b.C` becomes class-level `imports` edges. Unresolved `raw_calls` become `calls` edges where the callee exists in another file. These edges are `INFERRED` because they depend on naming conventions -- `DigestAuth` uses `Response` because the import says `from models import Response`, not because the AST proves a data flow.
+
+### Scale 3: Semantic (the macro-network)
+
+When Claude semantic extraction runs (Pass 3 of the full pipeline), it adds concept nodes that don't exist in any AST:
+
+```
+concept:rate_limiting ──AMBIGUOUS──▶ src/auth.py:DigestAuth
+concept:authorization ──AMBIGUOUS──▶ src/auth.py:authenticate
+concept:token_expiry ──AMBIGUOUS──▶ src/auth.py:verify_token
+```
+
+These are `AMBIGUOUS` edges because the LLM is making judgment calls about conceptual relationships. They are valuable for understanding but flagged for review.
+
+### The Complete Picture
+
+```mermaid
+graph TD
+    subgraph "Scale 1: Intra-file"
+        F1[src/auth.py] -->|contains| C1[DigestAuth]
+        C1 -->|method| M1[validate]
+        C1 -->|method| M2[authenticate]
+        M1 -->|calls| H1[hash_password]
+        M2 -->|calls| H2[verify_token]
+    end
+
+    subgraph "Scale 2: Cross-file"
+        F2[src/models.py] -->|contains| C2[Response]
+        F3[src/handlers.py] -->|contains| H3[login_handler]
+    end
+
+    M2 -.->|uses INFERRED| C2
+    H3 -.->|calls INFERRED| M2
+
+    subgraph "Scale 3: Semantic"
+        CON1[concept:authorization]
+    end
+
+    CON1 -.->|AMBIGUOUS| M2
+```
+
+The key insight: **confidence drops as scope increases**. Intra-file relationships are 100% certain (`EXTRACTED`). Cross-file relationships are reasoned but likely correct (`INFERRED`). Semantic relationships are useful hypotheses (`AMBIGUOUS`). The graph never lies about what it knows -- every edge carries its confidence label.
