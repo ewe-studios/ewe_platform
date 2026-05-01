@@ -164,6 +164,7 @@ fn test_llama_with_smollm_model() {
     // Test generation with chat messages
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".to_string()),
+        soul: None,
         messages: vec![Messages::User {
             role: "user".to_string(),
             content: UserModelContent::Text(TextContent {
@@ -172,7 +173,7 @@ fn test_llama_with_smollm_model() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };

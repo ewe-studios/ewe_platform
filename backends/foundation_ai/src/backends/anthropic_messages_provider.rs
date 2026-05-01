@@ -23,7 +23,8 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::{
     Args, AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, UsageCosting, UsageReport,
+    CostStatus, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
+    UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -262,7 +263,7 @@ pub struct AnthropicImageSource {
 }
 
 /// Tool definition at the request level.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnthropicTool {
     pub name: String,
     pub description: String,
@@ -829,6 +830,10 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         }
     }
 
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        None
+    }
+
     fn costing(&self) -> GenerationResult<UsageReport> {
         Ok(empty_usage_report())
     }
@@ -1088,6 +1093,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: (u.input_tokens + u.output_tokens) as f64,
+                    status: CostStatus::Actual,
                 },
             });
 
@@ -1190,16 +1196,48 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 // Helpers
 // ============================================================================
 
+/// Flatten a ToolShed into a flat Vec<Tool> for provider APIs.
+pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
+    let mut tools = vec![
+        shed.shed.clone(),
+        shed.read.clone(),
+        shed.edit.clone(),
+        shed.write.clone(),
+        shed.search.clone(),
+    ];
+    if let Some(mem) = &shed.memory {
+        tools.push(mem.add.clone());
+        tools.push(mem.replace.clone());
+        tools.push(mem.remove.clone());
+    }
+    if let Some(delegate) = &shed.delegate {
+        tools.push(delegate.start.clone());
+        tools.push(delegate.check.clone());
+        tools.push(delegate.get.clone());
+    }
+    if let Some(bash) = &shed.bash {
+        tools.push(bash.clone());
+    }
+    if let Some(others) = &shed.others {
+        tools.extend(others.iter().cloned());
+    }
+    tools
+}
+
 pub fn build_anthropic_request(
     model_name: &str,
     interaction: &ModelInteraction,
     params: &ModelParams,
     streaming: bool,
 ) -> MessagesRequest {
-    let system = interaction
-        .system_prompt
-        .as_ref()
-        .map(|s| AnthropicSystemContent::Text(s.clone()));
+    // System: combine system_prompt + soul
+    let system_content = match (&interaction.system_prompt, &interaction.soul) {
+        (Some(sys), Some(soul)) => Some(format!("{sys}\n\n{soul}")),
+        (Some(sys), None) => Some(sys.clone()),
+        (None, Some(soul)) => Some(soul.clone()),
+        (None, None) => None,
+    };
+    let system = system_content.map(AnthropicSystemContent::Text);
 
     let messages: Vec<AnthropicMessage> = interaction
         .messages
@@ -1285,52 +1323,14 @@ pub fn build_anthropic_request(
         })
         .collect();
 
-    let tools = if interaction.tools.is_empty() {
-        None
-    } else {
-        Some(
-            interaction
-                .tools
-                .iter()
-                .map(|tool| {
-                    let mut properties = serde_json::Map::new();
-                    if let Some(args) = &tool.arguments {
-                        for arg in args {
-                            if let crate::types::Args::Named(key, value) = arg {
-                                let schema_type = match value {
-                                    crate::types::ArgType::Float32(_)
-                                    | crate::types::ArgType::Float64(_) => "number",
-                                    crate::types::ArgType::Usize(_)
-                                    | crate::types::ArgType::U8(_)
-                                    | crate::types::ArgType::U16(_)
-                                    | crate::types::ArgType::U32(_)
-                                    | crate::types::ArgType::U64(_)
-                                    | crate::types::ArgType::Isize(_)
-                                    | crate::types::ArgType::I8(_)
-                                    | crate::types::ArgType::I16(_)
-                                    | crate::types::ArgType::I32(_)
-                                    | crate::types::ArgType::I64(_) => "integer",
-                                    _ => "string",
-                                };
-                                properties.insert(
-                                    key.clone(),
-                                    serde_json::json!({ "type": schema_type }),
-                                );
-                            }
-                        }
-                    }
-                    AnthropicTool {
-                        name: tool.name.clone(),
-                        description: tool.description.clone(),
-                        input_schema: serde_json::json!({
-                            "type": "object",
-                            "properties": properties,
-                        }),
-                    }
-                })
-                .collect(),
-        )
-    };
+    // Tools: flatten ToolShed through AnthropicFormatter
+    let tools = interaction.tools_shed.as_ref().and_then(|shed| {
+        let all_tools = flatten_tools(shed);
+        AnthropicFormatter
+            .format_tools(&all_tools)
+            .ok()
+            .and_then(|v| serde_json::from_value(v).ok())
+    });
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
         crate::types::ToolChoice::Auto => AnthropicToolChoice::Auto,
@@ -1410,6 +1410,7 @@ pub fn parse_response(
                         cache_read: 0.0,
                         cache_write: 0.0,
                         total_tokens: 0.0,
+                        status: CostStatus::Actual,
                     },
                 },
                 content: ModelOutput::Text(TextContent {
@@ -1456,6 +1457,7 @@ pub fn parse_response(
                             cache_read: 0.0,
                             cache_write: 0.0,
                             total_tokens: 0.0,
+                            status: CostStatus::Actual,
                         },
                     },
                     content: ModelOutput::ToolCall {
@@ -1490,6 +1492,7 @@ pub fn parse_response(
                         cache_read: 0.0,
                         cache_write: 0.0,
                         total_tokens: 0.0,
+                        status: CostStatus::Actual,
                     },
                 },
                 content: ModelOutput::ThinkingContent {
@@ -1518,6 +1521,7 @@ pub fn parse_response(
                         cache_read: 0.0,
                         cache_write: 0.0,
                         total_tokens: 0.0,
+                        status: CostStatus::Actual,
                     },
                 },
                 content: ModelOutput::ThinkingContent {
@@ -1556,6 +1560,7 @@ pub fn parse_response(
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: 0.0,
+                    status: CostStatus::Actual,
                 },
             },
             content: ModelOutput::Text(TextContent {
@@ -1598,6 +1603,7 @@ pub fn empty_usage_report() -> UsageReport {
             cache_read: 0.0,
             cache_write: 0.0,
             total_tokens: 0.0,
+            status: CostStatus::Actual,
         },
     }
 }

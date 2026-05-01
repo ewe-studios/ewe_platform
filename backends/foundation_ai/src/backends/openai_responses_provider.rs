@@ -21,7 +21,7 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::{
     AuthProvider, GenerationMetadata, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, UsageCosting, UsageReport,
+    StopReason, TextContent, CostStatus, ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -138,6 +138,10 @@ pub struct ResponseRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub tools: Option<Vec<ResponseTool>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_choice: Option<ResponseToolChoice>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_output_tokens: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f32>,
@@ -149,6 +153,42 @@ pub struct ResponseRequest {
     pub truncate: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub previous_response_id: Option<String>,
+}
+
+/// Tool definition for the Responses API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseTool {
+    #[serde(rename = "type")]
+    pub tool_type: String,
+    pub function: ResponseFunction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseFunction {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parameters: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Tool choice for the Responses API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ResponseToolChoice {
+    Simple(String),
+    Function {
+        #[serde(rename = "type")]
+        r#type: String,
+        function: ResponseToolChoiceFunction,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseToolChoiceFunction {
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -618,12 +658,69 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         streaming: bool,
     ) -> ResponseRequest {
         let input = build_response_input(interaction);
-        let instructions = interaction.system_prompt.clone();
+
+        // Instructions: combine system_prompt + soul
+        let instructions = match (&interaction.system_prompt, &interaction.soul) {
+            (Some(sys), Some(soul)) => Some(format!("{sys}\n\n{soul}")),
+            (Some(sys), None) => Some(sys.clone()),
+            (None, Some(soul)) => Some(soul.clone()),
+            (None, None) => None,
+        };
+
+        // Tools: flatten ToolShed into ResponseTool array
+        let tools = interaction.tools_shed.as_ref().map(|shed| {
+            flatten_tools(shed)
+                .iter()
+                .map(|tool| ResponseTool {
+                    tool_type: String::from("function"),
+                    function: ResponseFunction {
+                        name: tool.name.clone(),
+                        description: Some(tool.description.clone()),
+                        parameters: tool.arguments.as_ref().map(|args| {
+                            let mut properties = serde_json::Map::new();
+                            for arg in args {
+                                if let crate::types::Args::Named(key, value) = arg {
+                                    let schema_type = match value {
+                                        crate::types::ArgType::Float32(_)
+                                        | crate::types::ArgType::Float64(_) => "number",
+                                        crate::types::ArgType::Usize(_)
+                                        | crate::types::ArgType::U8(_)
+                                        | crate::types::ArgType::U16(_)
+                                        | crate::types::ArgType::U32(_)
+                                        | crate::types::ArgType::U64(_)
+                                        | crate::types::ArgType::Isize(_)
+                                        | crate::types::ArgType::I8(_)
+                                        | crate::types::ArgType::I16(_)
+                                        | crate::types::ArgType::I32(_)
+                                        | crate::types::ArgType::I64(_) => "integer",
+                                        _ => "string",
+                                    };
+                                    properties.insert(
+                                        key.clone(),
+                                        serde_json::json!({ "type": schema_type }),
+                                    );
+                                }
+                            }
+                            serde_json::json!({
+                                "type": "object",
+                                "properties": properties,
+                            })
+                        }),
+                        strict: None,
+                    },
+                })
+                .collect::<Vec<_>>()
+        }).filter(|t: &Vec<ResponseTool>| !t.is_empty());
+
+        // Tool choice
+        let tool_choice = interaction.tool_choice.as_ref().map(convert_tool_choice);
 
         ResponseRequest {
             model: self.model_name.clone(),
             input,
             instructions,
+            tools,
+            tool_choice,
             max_output_tokens: if params.max_tokens > 0 {
                 Some(params.max_tokens)
             } else {
@@ -727,6 +824,10 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
             model_location: None,
             lora_location: None,
         }
+    }
+
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        None
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
@@ -919,6 +1020,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: u.total_tokens as f64,
+                    status: CostStatus::Actual,
                 },
             });
 
@@ -1116,6 +1218,7 @@ fn parse_response(response: &Response, model_id: &ModelId) -> GenerationResult<M
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: u.total_tokens as f64,
+                status: CostStatus::Actual,
             },
         });
 
@@ -1156,6 +1259,7 @@ fn empty_usage_report() -> UsageReport {
             cache_read: 0.0,
             cache_write: 0.0,
             total_tokens: 0.0,
+            status: CostStatus::Actual,
         },
     }
 }
@@ -1203,6 +1307,52 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 }
 
 // ============================================================================
+// Helpers
+// ============================================================================
+
+/// Flatten a ToolShed into a Vec<Tool> for formatting.
+pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
+    let mut tools = vec![
+        shed.shed.clone(),
+        shed.read.clone(),
+        shed.edit.clone(),
+        shed.write.clone(),
+        shed.search.clone(),
+    ];
+    if let Some(mem) = &shed.memory {
+        tools.push(mem.add.clone());
+        tools.push(mem.replace.clone());
+        tools.push(mem.remove.clone());
+    }
+    if let Some(delegate) = &shed.delegate {
+        tools.push(delegate.start.clone());
+        tools.push(delegate.check.clone());
+        tools.push(delegate.get.clone());
+    }
+    if let Some(bash) = &shed.bash {
+        tools.push(bash.clone());
+    }
+    if let Some(others) = &shed.others {
+        tools.extend(others.iter().cloned());
+    }
+    tools
+}
+
+fn convert_tool_choice(choice: &crate::types::ToolChoice) -> ResponseToolChoice {
+    match choice {
+        crate::types::ToolChoice::Auto => ResponseToolChoice::Simple(String::from("auto")),
+        crate::types::ToolChoice::None => ResponseToolChoice::Simple(String::from("none")),
+        crate::types::ToolChoice::Required => ResponseToolChoice::Simple(String::from("required")),
+        crate::types::ToolChoice::Function(f) => ResponseToolChoice::Function {
+            r#type: String::from("function"),
+            function: ResponseToolChoiceFunction {
+                name: f.function.name.clone(),
+            },
+        },
+    }
+}
+
+// ============================================================================
 // Tests
 // ============================================================================
 
@@ -1216,6 +1366,8 @@ mod tests {
             model: "o1".into(),
             input: ResponseInput::Text("Hello".into()),
             instructions: Some("Be helpful".into()),
+            tools: None,
+            tool_choice: None,
             max_output_tokens: Some(100),
             temperature: Some(1.0),
             top_p: None,
@@ -1353,6 +1505,7 @@ mod tests {
     fn test_build_response_input_from_messages() {
         let interaction = ModelInteraction {
             system_prompt: Some("Be helpful".into()),
+            soul: None,
             messages: vec![Messages::User {
                 role: "user".into(),
                 content: crate::types::UserModelContent::Text(TextContent {
@@ -1361,7 +1514,7 @@ mod tests {
                 }),
                 signature: None,
             }],
-            tools: vec![],
+            tools_shed: None,
             chat_template: None,
             tool_choice: None,
         };

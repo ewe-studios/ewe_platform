@@ -5,7 +5,7 @@
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
+    CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
     ModelProviders, StopReason, TextContent, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -56,6 +56,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 fn make_interaction(prompt: &str) -> ModelInteraction {
     ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![foundation_ai::types::Messages::User {
             role: String::from("user"),
             content: UserModelContent::Text(TextContent {
@@ -64,7 +65,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     }
@@ -431,6 +432,7 @@ fn test_llama_server_generate() {
 
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".into()),
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -439,7 +441,7 @@ fn test_llama_server_generate() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -477,6 +479,7 @@ fn test_llama_server_streaming() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -485,7 +488,7 @@ fn test_llama_server_streaming() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -515,6 +518,7 @@ fn test_llama_server_multi_turn() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![
             Messages::User {
                 role: "user".into(),
@@ -545,6 +549,7 @@ fn test_llama_server_multi_turn() {
                         cache_read: 0.0,
                         cache_write: 0.0,
                         total_tokens: 0.0,
+                        status: CostStatus::Estimated,
                     },
                 },
                 provider: ModelProviders::LLAMACPP,
@@ -561,7 +566,7 @@ fn test_llama_server_multi_turn() {
                 signature: None,
             },
         ],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -592,6 +597,7 @@ fn test_llama_server_max_tokens() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -600,7 +606,7 @@ fn test_llama_server_max_tokens() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -632,6 +638,7 @@ fn test_llama_server_resolve_model() {
     // Generate a minimal request to verify the connection.
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -640,7 +647,7 @@ fn test_llama_server_resolve_model() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };

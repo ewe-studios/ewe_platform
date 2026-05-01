@@ -24,7 +24,7 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::{
     Args, AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, UsageCosting, UsageReport,
+    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, CostStatus, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -636,6 +636,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: 0.0,
+                    status: CostStatus::Actual,
                 },
             },
             content: ModelOutput::Embedding {
@@ -800,6 +801,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             model_location: None,
             lora_location: None,
         }
+    }
+
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        None
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
@@ -1054,6 +1059,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: u.total_tokens as f64,
+                    status: CostStatus::Actual,
                 },
             });
 
@@ -1532,6 +1538,34 @@ impl std::error::Error for OpenAIError {}
 // Helper Functions
 // ============================================================================
 
+/// Flatten a ToolShed into a flat Vec<Tool> for provider APIs.
+pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
+    let mut tools = vec![
+        shed.shed.clone(),
+        shed.read.clone(),
+        shed.edit.clone(),
+        shed.write.clone(),
+        shed.search.clone(),
+    ];
+    if let Some(mem) = &shed.memory {
+        tools.push(mem.add.clone());
+        tools.push(mem.replace.clone());
+        tools.push(mem.remove.clone());
+    }
+    if let Some(delegate) = &shed.delegate {
+        tools.push(delegate.start.clone());
+        tools.push(delegate.check.clone());
+        tools.push(delegate.get.clone());
+    }
+    if let Some(bash) = &shed.bash {
+        tools.push(bash.clone());
+    }
+    if let Some(others) = &shed.others {
+        tools.extend(others.iter().cloned());
+    }
+    tools
+}
+
 fn empty_usage_report() -> UsageReport {
     UsageReport {
         input: 0.0,
@@ -1546,6 +1580,7 @@ fn empty_usage_report() -> UsageReport {
             cache_read: 0.0,
             cache_write: 0.0,
             total_tokens: 0.0,
+            status: CostStatus::Actual,
         },
     }
 }
@@ -1584,10 +1619,17 @@ fn build_chat_request(
 ) -> ChatCompletionRequest {
     let mut messages = Vec::new();
 
-    if let Some(ref system) = interaction.system_prompt {
+    // System: combine system_prompt + soul
+    let system_content = match (&interaction.system_prompt, &interaction.soul) {
+        (Some(sys), Some(soul)) => Some(format!("{sys}\n\n{soul}")),
+        (Some(sys), None) => Some(sys.clone()),
+        (None, Some(soul)) => Some(soul.clone()),
+        (None, None) => None,
+    };
+    if let Some(content) = system_content {
         messages.push(OpenAIMessage {
             role: String::from("system"),
-            content: Some(OpenAIMessageContent::Text(system.clone())),
+            content: Some(OpenAIMessageContent::Text(content)),
             tool_calls: None,
             tool_call_id: None,
             refusal: None,
@@ -1714,53 +1756,48 @@ fn build_chat_request(
         }
     }
 
-    let tools = if interaction.tools.is_empty() {
-        None
-    } else {
-        Some(
-            interaction
-                .tools
-                .iter()
-                .map(|tool| OpenAITool {
-                    tool_type: String::from("function"),
-                    function: OpenAIFunction {
-                        name: tool.name.clone(),
-                        description: Some(tool.description.clone()),
-                        parameters: tool.arguments.as_ref().map(|args| {
-                            let mut properties = serde_json::Map::new();
-                            for arg in args {
-                                if let crate::types::Args::Named(key, value) = arg {
-                                    let schema_type = match value {
-                                        crate::types::ArgType::Float32(_)
-                                        | crate::types::ArgType::Float64(_) => "number",
-                                        crate::types::ArgType::Usize(_)
-                                        | crate::types::ArgType::U8(_)
-                                        | crate::types::ArgType::U16(_)
-                                        | crate::types::ArgType::U32(_)
-                                        | crate::types::ArgType::U64(_)
-                                        | crate::types::ArgType::Isize(_)
-                                        | crate::types::ArgType::I8(_)
-                                        | crate::types::ArgType::I16(_)
-                                        | crate::types::ArgType::I32(_)
-                                        | crate::types::ArgType::I64(_) => "integer",
-                                        _ => "string",
-                                    };
-                                    properties.insert(
-                                        key.clone(),
-                                        serde_json::json!({ "type": schema_type }),
-                                    );
-                                }
+    let tools = interaction.tools_shed.as_ref().map(|shed| {
+        flatten_tools(shed)
+            .iter()
+            .map(|tool| OpenAITool {
+                tool_type: String::from("function"),
+                function: OpenAIFunction {
+                    name: tool.name.clone(),
+                    description: Some(tool.description.clone()),
+                    parameters: tool.arguments.as_ref().map(|args| {
+                        let mut properties = serde_json::Map::new();
+                        for arg in args {
+                            if let crate::types::Args::Named(key, value) = arg {
+                                let schema_type = match value {
+                                    crate::types::ArgType::Float32(_)
+                                    | crate::types::ArgType::Float64(_) => "number",
+                                    crate::types::ArgType::Usize(_)
+                                    | crate::types::ArgType::U8(_)
+                                    | crate::types::ArgType::U16(_)
+                                    | crate::types::ArgType::U32(_)
+                                    | crate::types::ArgType::U64(_)
+                                    | crate::types::ArgType::Isize(_)
+                                    | crate::types::ArgType::I8(_)
+                                    | crate::types::ArgType::I16(_)
+                                    | crate::types::ArgType::I32(_)
+                                    | crate::types::ArgType::I64(_) => "integer",
+                                    _ => "string",
+                                };
+                                properties.insert(
+                                    key.clone(),
+                                    serde_json::json!({ "type": schema_type }),
+                                );
                             }
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": properties,
-                            })
-                        }),
-                    },
-                })
-                .collect(),
-        )
-    };
+                        }
+                        serde_json::json!({
+                            "type": "object",
+                            "properties": properties,
+                        })
+                    }),
+                },
+            })
+            .collect::<Vec<_>>()
+    }).filter(|t: &Vec<OpenAITool>| !t.is_empty());
 
     let response_format = params.output_format.as_ref().map(|fmt| match fmt {
         crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
@@ -1883,6 +1920,7 @@ fn parse_chat_response(
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: u.total_tokens as f64,
+                status: CostStatus::Actual,
             },
         });
 
@@ -2487,6 +2525,7 @@ mod tests {
 
         let mut interaction = ModelInteraction {
             system_prompt: Some("You are helpful".into()),
+            soul: Some("Be concise and technical".into()),
             messages: vec![crate::types::Messages::User {
                 role: "user".into(),
                 content: crate::types::UserModelContent::Text(TextContent {
@@ -2495,7 +2534,7 @@ mod tests {
                 }),
                 signature: None,
             }],
-            tools: vec![],
+            tools_shed: None,
             chat_template: None,
             tool_choice: Some(ToolChoice::Auto),
         };

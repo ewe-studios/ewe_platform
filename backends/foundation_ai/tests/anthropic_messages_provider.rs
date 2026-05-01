@@ -8,8 +8,8 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviders, StopReason, TextContent, UsageCosting, UsageReport, UserModelContent,
+    Args, ArgType, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
+    ModelProviders, StopReason, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -56,6 +56,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 fn make_interaction(prompt: &str) -> ModelInteraction {
     ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: String::from("user"),
             content: UserModelContent::Text(TextContent {
@@ -64,7 +65,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     }
@@ -311,6 +312,7 @@ fn test_provider_generate_multimodal() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Image(ImageContent {
@@ -319,7 +321,7 @@ fn test_provider_generate_multimodal() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -376,6 +378,7 @@ fn test_llama_server_anthropic_generate() {
 
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".into()),
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -384,7 +387,7 @@ fn test_llama_server_anthropic_generate() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -422,6 +425,7 @@ fn test_llama_server_anthropic_streaming() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -430,7 +434,7 @@ fn test_llama_server_anthropic_streaming() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -460,6 +464,7 @@ fn test_llama_server_anthropic_multi_turn() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![
             Messages::User {
                 role: "user".into(),
@@ -490,6 +495,7 @@ fn test_llama_server_anthropic_multi_turn() {
                         cache_read: 0.0,
                         cache_write: 0.0,
                         total_tokens: 0.0,
+                        status: CostStatus::Estimated,
                     },
                 },
                 provider: ModelProviders::ANTHROPIC,
@@ -506,7 +512,7 @@ fn test_llama_server_anthropic_multi_turn() {
                 signature: None,
             },
         ],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -537,6 +543,7 @@ fn test_llama_server_anthropic_max_tokens() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -545,7 +552,7 @@ fn test_llama_server_anthropic_max_tokens() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -575,6 +582,7 @@ fn test_llama_server_anthropic_resolve_model() {
 
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -583,7 +591,7 @@ fn test_llama_server_anthropic_resolve_model() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -608,10 +616,6 @@ use foundation_ai::backends::anthropic_messages_provider::{
     build_anthropic_request, empty_usage_report, exponential_backoff, format_http_error,
     is_retryable_status, map_stop_reason, parse_anthropic_error, parse_response,
 };
-use foundation_ai::types::{
-    ArgType, Args, ImageContent, MimeType, Tool,
-};
-use std::collections::HashMap;
 use std::time::SystemTime;
 
 // --- Config tests ---
@@ -1061,6 +1065,7 @@ fn test_parse_response_thinking() {
 fn test_build_anthropic_request_basic() {
     let interaction = ModelInteraction {
         system_prompt: Some("You are helpful".into()),
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
@@ -1069,7 +1074,7 @@ fn test_build_anthropic_request_basic() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -1087,19 +1092,31 @@ fn test_build_anthropic_request_basic() {
 
 #[test]
 fn test_build_anthropic_request_with_tools() {
+    let test_tool = Tool {
+        id: "tool_1".into(),
+        name: "get_weather".into(),
+        description: "Get weather info".into(),
+        arguments: Some(vec![Args::Named(
+            "location".into(),
+            ArgType::Text("Paris".into()),
+        )]),
+        returns: None,
+    };
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
+        tools_shed: Some(ToolShed {
+            shed: test_tool.clone(),
+            memory: None,
+            delegate: None,
+            read: test_tool.clone(),
+            edit: test_tool.clone(),
+            write: test_tool.clone(),
+            search: test_tool.clone(),
+            bash: None,
+            others: None,
+        }),
         messages: vec![],
-        tools: vec![Tool {
-            id: "tool_1".into(),
-            name: "get_weather".into(),
-            description: "Get weather info".into(),
-            arguments: Some(vec![Args::Named(
-                "location".into(),
-                ArgType::Text("Paris".into()),
-            )]),
-            returns: None,
-        }],
         chat_template: None,
         tool_choice: None,
     };
@@ -1109,7 +1126,7 @@ fn test_build_anthropic_request_with_tools() {
 
     assert!(request.tools.is_some());
     let tools = request.tools.unwrap();
-    assert_eq!(tools.len(), 1);
+    assert_eq!(tools.len(), 5); // shed + read + edit + write + search
     assert_eq!(tools[0].name, "get_weather");
     assert_eq!(tools[0].description, "Get weather info");
 }
@@ -1118,6 +1135,7 @@ fn test_build_anthropic_request_with_tools() {
 fn test_build_anthropic_request_image() {
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![Messages::User {
             role: "user".into(),
             content: UserModelContent::Image(ImageContent {
@@ -1126,7 +1144,7 @@ fn test_build_anthropic_request_image() {
             }),
             signature: None,
         }],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };
@@ -1148,6 +1166,7 @@ fn test_build_anthropic_request_image() {
 fn test_build_anthropic_request_tool_result() {
     let interaction = ModelInteraction {
         system_prompt: None,
+        soul: None,
         messages: vec![
             Messages::Assistant {
                 model: ModelId::Name("test".into(), None),
@@ -1178,7 +1197,7 @@ fn test_build_anthropic_request_tool_result() {
                 signature: None,
             },
         ],
-        tools: vec![],
+        tools_shed: None,
         chat_template: None,
         tool_choice: None,
     };

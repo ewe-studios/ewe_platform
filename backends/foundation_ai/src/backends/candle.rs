@@ -23,7 +23,7 @@ use crate::errors::{
 use crate::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
     ModelProviders, ModelSpec, ModelState, StopReason, TextBasedFormatter, TextContent,
-    UsageCosting, UsageReport, UserModelContent,
+    CostStatus, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -578,6 +578,7 @@ impl Model for CandleModels {
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
+            status: CostStatus::Actual,
             },
         }))
     }
@@ -662,6 +663,7 @@ impl Model for CandleModels {
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
+            status: CostStatus::Actual,
             },
         };
 
@@ -862,6 +864,7 @@ impl Iterator for CandleStream {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: 0.0,
+                status: CostStatus::Actual,
                 },
             },
             content: ModelOutput::Text(TextContent {
@@ -888,18 +891,90 @@ fn forward(state: &mut CandleModelsState, input: &Tensor, seq_start: usize) -> G
     }
 }
 
-fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> String {
-    if interaction.messages.is_empty() {
-        return interaction
-            .system_prompt
-            .clone()
-            .unwrap_or_default();
+fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
+    let mut tools = vec![
+        shed.shed.clone(),
+        shed.read.clone(),
+        shed.edit.clone(),
+        shed.write.clone(),
+        shed.search.clone(),
+    ];
+    if let Some(mem) = &shed.memory {
+        tools.push(mem.add.clone());
+        tools.push(mem.replace.clone());
+        tools.push(mem.remove.clone());
     }
+    if let Some(delegate) = &shed.delegate {
+        tools.push(delegate.start.clone());
+        tools.push(delegate.check.clone());
+        tools.push(delegate.get.clone());
+    }
+    if let Some(bash) = &shed.bash {
+        tools.push(bash.clone());
+    }
+    if let Some(others) = &shed.others {
+        tools.extend(others.iter().cloned());
+    }
+    tools
+}
 
+fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> String {
     let mut parts = Vec::new();
-    if let Some(sys) = &interaction.system_prompt {
+
+    // System section: combine system_prompt + soul
+    let system_content = match (&interaction.system_prompt, &interaction.soul) {
+        (Some(sys), Some(soul)) => Some(format!("{sys}\n\n{soul}")),
+        (Some(sys), None) => Some(sys.clone()),
+        (None, Some(soul)) => Some(soul.clone()),
+        (None, None) => None,
+    };
+
+    if let Some(sys) = &system_content {
         parts.push(format!("System: {sys}"));
     }
+
+    // Tool definitions from tools_shed
+    if let Some(shed) = &interaction.tools_shed {
+        let all_tools = flatten_tools(shed);
+        if !all_tools.is_empty() {
+            let formatter = TextBasedFormatter;
+            if let Some(instructions) = formatter.tool_calling_instructions() {
+                parts.push(format!("System: {instructions}"));
+            }
+            let tool_defs = all_tools
+                .iter()
+                .map(|t| {
+                    let args = t
+                        .arguments
+                        .as_ref()
+                        .map(|args| {
+                            args.iter()
+                                .filter_map(|a| {
+                                    if let crate::types::Args::Named(key, _) = a {
+                                        Some(key.clone())
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        })
+                        .unwrap_or_default();
+                    format!("- {}({})", t.name, args)
+                })
+                .join("\n");
+            parts.push(format!("Tools:\n{tool_defs}"));
+        }
+    }
+
+    if interaction.messages.is_empty() {
+        if parts.is_empty() {
+            return interaction.system_prompt.clone().unwrap_or_default();
+        }
+        parts.push("Assistant:".to_string());
+        return parts.join("\n");
+    }
+
     for msg in &interaction.messages {
         match msg {
             Messages::User { content, .. } => {

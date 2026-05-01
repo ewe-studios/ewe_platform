@@ -623,6 +623,17 @@ pub enum Args {
     Unnamed(ArgType),
 }
 
+/// Status of a cost calculation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CostStatus {
+    /// Calculated from pre-call token estimation.
+    Estimated,
+    /// Calculated from actual API response usage.
+    Actual,
+    /// Pricing unavailable for used tokens.
+    Unknown,
+}
+
 /// [`UsageCosting`] represents the overall costing in actual currency value.
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UsageCosting {
@@ -632,6 +643,29 @@ pub struct UsageCosting {
     pub cache_read: f64,
     pub cache_write: f64,
     pub total_tokens: f64,
+    /// Status of this cost calculation.
+    pub status: CostStatus,
+}
+
+impl UsageCosting {
+    /// Computed total USD cost.
+    #[must_use]
+    pub fn total(&self) -> f64 {
+        self.input + self.output + self.cache_read + self.cache_write
+    }
+
+    /// Zeroed cost with the given status.
+    pub fn zero(status: CostStatus) -> Self {
+        Self {
+            currency: String::from("USD"),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status,
+        }
+    }
 }
 
 /// [`UsageReport`] represents the accumulated usage at the point in time of
@@ -938,10 +972,38 @@ pub struct ToolFunctionRef {
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct MemoryTool {
+    pub add: Tool,
+    pub replace: Tool,
+    pub remove: Tool,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct DelegationTool {
+    pub start: Tool,
+    pub check: Tool,
+    pub get: Tool,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ToolShed {
+    pub shed: Tool,
+    pub memory: Option<MemoryTool>,
+    pub delegate: Option<DelegationTool>,
+    pub read: Tool,
+    pub edit: Tool,
+    pub write: Tool,
+    pub search: Tool,
+    pub bash: Option<Tool>,
+    pub others: Option<Vec<Tool>>,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelInteraction {
     pub system_prompt: Option<String>,
+    pub soul: Option<String>,
+    pub tools_shed: Option<ToolShed>,
     pub messages: Vec<Messages>,
-    pub tools: Vec<Tool>,
     pub chat_template: Option<String>,
     /// Strategy for tool selection. When `None`, the provider's default
     /// behavior is used (typically auto).
@@ -1236,6 +1298,12 @@ pub trait Model {
     type Formatter: ToolFormatter;
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
+
+    /// Returns the `ModelProviderDescriptor` for this model instance,
+    /// which contains pricing (`ModelUsageCosting`), context window, etc.
+    /// Returns `None` for dynamically loaded or local models without
+    /// descriptor metadata.
+    fn descriptor(&self) -> Option<ModelProviderDescriptor>;
 
     /// [`costing`] returns model usage costing report.
     ///
