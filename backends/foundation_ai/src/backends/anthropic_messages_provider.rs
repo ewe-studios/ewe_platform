@@ -21,10 +21,10 @@ use foundation_errstacks::ErrorTrace;
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    Args, AuthProvider, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    CostStatus, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
-    UsageCosting, UsageReport,
+    StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, UsageCosting,
+    UsageReport,
 };
 
 // ============================================================================
@@ -125,11 +125,7 @@ impl AnthropicConfig {
             .trim_start_matches('/');
         if self.messages_endpoint.is_some() {
             // Custom endpoint: append directly to base_url.
-            format!(
-                "{}/{}",
-                self.base_url.trim_end_matches('/'),
-                path
-            )
+            format!("{}/{}", self.base_url.trim_end_matches('/'), path)
         } else {
             // Default: /{api_version}/{endpoint}
             format!(
@@ -371,7 +367,8 @@ pub struct AnthropicMessagesProvider<R: DnsResolver = SystemDnsResolver> {
     api_key: Option<ConfidentialText>,
     http_client: Option<SimpleHttpClient<R>>,
     resolver: Option<R>,
-    models_cache: Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
+    models_cache:
+        Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
 impl Default for AnthropicMessagesProvider<SystemDnsResolver> {
@@ -439,9 +436,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
                     AuthCredential::SecretOnly(key) => {
                         self.api_key = Some(key.clone());
                     }
-                    AuthCredential::ClientSecret {
-                        client_secret, ..
-                    } => {
+                    AuthCredential::ClientSecret { client_secret, .. } => {
                         self.api_key = Some(client_secret.clone());
                     }
                     AuthCredential::OAuth(cred) => {
@@ -581,7 +576,10 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
     fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
         let mut headers = Vec::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::from("x-api-key".to_string()), key.get().clone()));
+            headers.push((
+                SimpleHeader::from("x-api-key".to_string()),
+                key.get().clone(),
+            ));
         }
         headers.push((
             SimpleHeader::from("anthropic-version".to_string()),
@@ -685,39 +683,17 @@ impl ToolFormatter for AnthropicFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let mut properties = serde_json::Map::new();
-                    if let Some(args) = &tool.arguments {
-                        for arg in args {
-                            if let Args::Named(key, value) = arg {
-                                let schema_type = match value {
-                                    crate::types::ArgType::Float32(_)
-                                    | crate::types::ArgType::Float64(_) => "number",
-                                    crate::types::ArgType::Usize(_)
-                                    | crate::types::ArgType::U8(_)
-                                    | crate::types::ArgType::U16(_)
-                                    | crate::types::ArgType::U32(_)
-                                    | crate::types::ArgType::U64(_)
-                                    | crate::types::ArgType::Isize(_)
-                                    | crate::types::ArgType::I8(_)
-                                    | crate::types::ArgType::I16(_)
-                                    | crate::types::ArgType::I32(_)
-                                    | crate::types::ArgType::I64(_) => "integer",
-                                    _ => "string",
-                                };
-                                properties.insert(
-                                    key.clone(),
-                                    serde_json::json!({ "type": schema_type }),
-                                );
-                            }
-                        }
-                    }
+                    // Use the Args schema if present, otherwise default to empty object
+                    let input_schema = tool.arguments.as_ref()
+                        .map(|a| a.schema.clone())
+                        .unwrap_or_else(|| serde_json::json!({
+                            "type": "object",
+                            "properties": {},
+                        }));
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,
-                        "input_schema": {
-                            "type": "object",
-                            "properties": properties,
-                        },
+                        "input_schema": input_schema,
                     })
                 })
                 .collect(),
@@ -732,11 +708,12 @@ impl ToolFormatter for AnthropicFormatter {
         &self,
         response: &str,
     ) -> Result<crate::types::ExtractResult, ErrorTrace<ToolCallingError>> {
-        let parsed: serde_json::Value =
-            serde_json::from_str(response).map_err(|e| {
-                ErrorTrace::new(ToolCallingError::Extract { reason: e.to_string() })
-                    .attach("source=anthropic_response")
-            })?;
+        let parsed: serde_json::Value = serde_json::from_str(response).map_err(|e| {
+            ErrorTrace::new(ToolCallingError::Extract {
+                reason: e.to_string(),
+            })
+            .attach("source=anthropic_response")
+        })?;
 
         let mut calls = Vec::new();
         let mut text_parts = Vec::new();
@@ -745,9 +722,20 @@ impl ToolFormatter for AnthropicFormatter {
             for block in content {
                 match block.get("type").and_then(|v| v.as_str()) {
                     Some("tool_use") => {
-                        let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let input = block.get("input").cloned().unwrap_or(serde_json::Value::Null);
+                        let id = block
+                            .get("id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let name = block
+                            .get("name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let input = block
+                            .get("input")
+                            .cloned()
+                            .unwrap_or(serde_json::Value::Null);
                         let arguments: Option<HashMap<String, crate::types::ArgType>> =
                             serde_json::from_value(input.clone()).ok();
                         calls.push(ModelOutput::ToolCall {
@@ -801,7 +789,8 @@ impl ToolFormatter for AnthropicFormatter {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
-            }).attach("source=anthropic_formatter"));
+            })
+            .attach("source=anthropic_formatter"));
         };
 
         let content_str = match content {
@@ -959,7 +948,10 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
 
         match item {
             Stream::Next(parse_result) => {
-                let Event::Message { data, event_type, .. } = &parse_result.event else {
+                let Event::Message {
+                    data, event_type, ..
+                } = &parse_result.event
+                else {
                     return Some(Stream::Ignore);
                 };
 
@@ -1064,9 +1056,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                     "ping" | _ => Some(Stream::Ignore),
                 }
             }
-            Stream::Pending(_) => {
-                Some(Stream::Pending(ModelState::GeneratingTokens(None)))
-            }
+            Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
@@ -1304,9 +1294,7 @@ pub fn build_anthropic_request(
                 }),
                 ModelOutput::Image(_) | ModelOutput::Embedding { .. } => None,
             },
-            Messages::ToolResult {
-                id, content, ..
-            } => {
+            Messages::ToolResult { id, content, .. } => {
                 let text = match content {
                     crate::types::UserModelContent::Text(tc) => tc.content.clone(),
                     crate::types::UserModelContent::Image(_) => String::from("[Image]"),
@@ -1423,11 +1411,7 @@ pub fn parse_response(
                 signature: None,
                 metadata: None,
             },
-            AnthropicContentBlock::ToolUse {
-                id,
-                name,
-                input,
-            } => {
+            AnthropicContentBlock::ToolUse { id, name, input } => {
                 let arguments: Option<HashMap<String, crate::types::ArgType>> =
                     serde_json::from_value(input.clone())
                         .ok()
@@ -1641,7 +1625,6 @@ pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5);
     base_secs.min(30)
 }
-
 
 pub fn parse_anthropic_error(body: &str) -> Option<String> {
     #[derive(Deserialize)]
