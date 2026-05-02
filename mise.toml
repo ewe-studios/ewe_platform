@@ -1129,6 +1129,57 @@ run = 'echo "✓ All quality checks passed"'
 # Tasks - Help
 # =============================================================================
 
+[tasks."sys:arch:qemu"]
+description = "Install QEMU with SPICE/UI support on Arch Linux (yay or sudo pacman)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Packages needed for full QEMU UI (SPICE + VNC + virtio-vga + GTK)
+PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf)
+
+echo "Installing QEMU with SPICE/UI support on Arch Linux..."
+echo "Packages: ${PKGS[*]}"
+echo ""
+
+if command -v yay &>/dev/null; then
+    echo "Using yay (AUR helper)..."
+    yay -Syu --needed --noconfirm "${PKGS[@]}"
+elif command -v pacman &>/dev/null; then
+    echo "Using pacman (requires sudo)..."
+    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+else
+    echo "ERROR: Neither yay nor pacman found. Install QEMU manually or use your distro's package manager."
+    exit 1
+fi
+
+echo ""
+echo "✓ QEMU with SPICE/UI support installed"
+"""
+
+[tasks."sys:arch:testbed"]
+description = "Install all testbed dependencies on Arch Linux (QEMU, OVMF, viewer, SSH tools)"
+depends = ["sys:arch:qemu"]
+run = """
+#!/usr/bin/env bash
+set -e
+
+PKGS=(gvncviewer openssh curl)
+echo "Installing additional testbed tools..."
+
+if command -v yay &>/dev/null; then
+    yay -Syu --needed --noconfirm "${PKGS[@]}"
+elif command -v pacman &>/dev/null; then
+    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+else
+    echo "ERROR: Neither yay nor pacman found."
+    exit 1
+fi
+
+echo ""
+echo "✓ All testbed dependencies installed"
+"""
+
 [tasks.help]
 description = "Show help message with all available tasks"
 run = """
@@ -1142,6 +1193,10 @@ echo "  setup:tools        Install rustfmt, clippy, cargo-nextest, etc."
 echo "  setup:wasm         Install WASM targets"
 echo "  setup:cloudflare   Install Cloudflare tools (wrangler, miniflare)"
 echo "  setup:check        Verify installed tools"
+echo ""
+echo "System (Arch Linux):"
+echo "  sys:arch:qemu      Install QEMU with SPICE/UI + OVMF (yay or sudo pacman)"
+echo "  sys:arch:testbed   Install all testbed dependencies (QEMU + SSH + viewer)"
 echo ""
 echo "Cloudflare (R2, D1):"
 echo "  cf:login           Authenticate with Cloudflare"
