@@ -2693,7 +2693,6 @@ dependencies = [
  "image",
  "indicatif 0.17.11",
  "libc",
- "reqwest",
  "serde",
  "serde_json",
  "ssh2",

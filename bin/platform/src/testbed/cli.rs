@@ -2,6 +2,7 @@ use std::path::Path;
 
 use foundation_testbed::config::{self, get_profile, DisplayMode, VmProfile};
 use foundation_testbed::doctor;
+use foundation_testbed::import;
 use foundation_testbed::qemu::{self, QemuConfig};
 use foundation_testbed::qemu::disk;
 use foundation_testbed::qemu::snapshot;
@@ -21,18 +22,8 @@ pub fn cmd_start(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 
     println!("Starting VM '{}' ({} mode)...", profile.name, if headful { "headful" } else { "headless" });
 
-    // Check if image exists, if not try to download
-    let disk_path = profile.image_cache_path();
-    if !disk::info(&disk_path).is_ok() {
-        if let Some(url) = profile.prebaked_url {
-            println!("Downloading VM image from {}...", url);
-            // Would use import::download_from_url
-        } else {
-            println!("No image found at {:?}. Create one with: qemu-img create -f qcow2 {:?} {}G",
-                disk_path, disk_path, profile.disk_gb);
-            disk::create(&disk_path, profile.disk_gb)?;
-        }
-    }
+    // Ensure image is available (downloads if needed)
+    let disk_path = import::ensure_image(&profile)?;
 
     let vm = QemuConfig::new(profile.clone(), display).launch()?;
 
@@ -63,7 +54,7 @@ pub fn cmd_start(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     println!("  Display: {info}");
 
     // Keep the process alive
-    let pid = vm.pid;
+    let _pid = vm.pid;
     std::mem::drop(vm);
 
     println!("VM running in background. Use 'ewe_platform testbed stop {name}' to shut down.");
@@ -94,6 +85,31 @@ pub fn cmd_stop(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 
     // Clean up state
     state::delete(name)?;
+
+    Ok(())
+}
+
+pub fn cmd_import(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    let name = args.get_one::<String>("profile").unwrap();
+    let profile = resolve_profile(name)?;
+
+    if import::is_cached(&profile) {
+        let path = profile.image_cache_path();
+        println!("Image already cached at {:?}", path);
+        return Ok(());
+    }
+
+    // Ensure cache directory exists
+    std::fs::create_dir_all(config::image_cache_dir())?;
+
+    println!("Downloading image for profile '{}'...", profile.name);
+
+    let result = import::ensure_image(&profile)?;
+    println!("Image downloaded to {:?}", result);
+
+    let meta = std::fs::metadata(&result)?;
+    let size_gb = meta.len() as f64 / 1_073_741_824.0;
+    println!("  Size: {:.2} GB", size_gb);
 
     Ok(())
 }

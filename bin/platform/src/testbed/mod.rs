@@ -62,6 +62,12 @@ pub fn register(command: clap::Command) -> clap::Command {
                 .arg(clap::Arg::new("kind").long("kind").default_value("build")),
         )
         .subcommand(
+            clap::Command::new("import")
+                .about("Download a VM image for the given profile")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true)),
+        )
+        .subcommand(
             clap::Command::new("doctor")
                 .about("Health checks for host and/or VM")
                 .arg(clap::Arg::new("profile")),
@@ -135,6 +141,7 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         Some(("run", m)) => cli::cmd_run(m),
         Some(("screenshot", m)) => cli::cmd_screenshot(m),
         Some(("logs", m)) => cli::cmd_logs(m),
+        Some(("import", m)) => cli::cmd_import(m),
         Some(("doctor", m)) => cli::cmd_doctor(m),
         Some(("push", m)) => cli::cmd_push(m),
         Some(("pull", m)) => cli::cmd_pull(m),
