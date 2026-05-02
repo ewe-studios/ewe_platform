@@ -25,11 +25,17 @@
 //! - **import** — Image download, cache management, Vagrant Cloud integration
 //! - **bootstrap** — VM bootstrapping with mise + nushell
 //! - **build** — Build pipeline, code sync, artifact retrieval
+//! - **runner** — Binary launcher, screenshots, logs, file transfer, UI automation
+//! - **state** — Persistent VM state management
+//! - **doctor** — Host and VM health checks
 
 pub mod bootstrap;
 pub mod build;
 pub mod config;
+pub mod doctor;
 pub mod import;
 pub mod qemu;
+pub mod runner;
 pub mod ssh;
+pub mod state;
 pub mod winrm;
