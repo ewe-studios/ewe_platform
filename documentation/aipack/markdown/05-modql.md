@@ -83,6 +83,8 @@ Source: `rust-modql/src/filter/json/`. The filter language uses a concise JSON s
 }
 ```
 
+**Aha:** The `$`-suffix operator syntax (`$gte`, `$contains`, `$is_null`) is designed to be deserialized directly by serde without custom parsing. Each field name maps to a struct field, and the operator suffix is extracted by the deserializer. This means the filter syntax works naturally with JSON APIs — clients can send filters as JSON objects without any query language parsing on the server. Source: `rust-modql/src/filter/json/ovs_de_*.rs`.
+
 ## SeaQuery Integration
 
 Source: `rust-modql/src/filter/into_sea/`. Converts modql filters into SeaQuery `Condition` objects, enabling use with any SeaQuery-compatible database backend (PostgreSQL, MySQL, SQLite).

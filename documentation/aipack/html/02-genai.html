@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>genai — Multi-Provider AI Client Library for Rust -- aipack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/aipack/docs</span>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Overview — Jeremy Chone's Rust AI/Dev Crate Collection</a><a href="01-architecture.html" class="nav-breadcrumb">Architecture — Crate Structures and Module Dependencies</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="01-architecture.html" class="nav-btn" title="Previous: Architecture — Crate Structures and Module Dependencies">← prev</a>
+      <a href="03-rpc-router.html" class="nav-btn nav-btn-next" title="Next: rpc-router — JSON-RPC 2.0 Router with Procedural Macros">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>genai — Multi-Provider AI Client</h1>
+<p>genai is a unified Rust client library for 19 AI providers. Write one <code>Client</code> call, and it routes to OpenAI, Anthropic, Gemini, Ollama, or any other supported provider via the adapter pattern.</p>
+<p>Source: <code>rust-genai/src/</code> — 110+ files, ~5000 lines.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    Client[Client] --&gt; Builder[ClientBuilder]
+    Builder --&gt; Config[ClientConfig&lt;br/&gt;API keys, endpoints, headers]
+    Builder --&gt; WebClient[WebClient&lt;br/&gt;reqwest HTTP client]
+
+    Client --&gt; Chat[chat()]
+    Client --&gt; Embed[embed()]
+
+    subgraph &quot;Resolver Layer&quot;
+        AuthResolver[AuthResolver&lt;br/&gt;API key from env/config]
+        EndpointResolver[EndpointResolver&lt;br/&gt;Base URL per adapter]
+        ModelMapper[ModelMapper&lt;br/&gt;Model name normalization]
+        TargetResolver[ServiceTargetResolver&lt;br/&gt;Custom routing]
+    end
+
+    subgraph &quot;Adapter Layer&quot;
+        Dispatcher[Dispatcher&lt;br/&gt;match on AdapterKind]
+        AdapterKind[AdapterKind enum&lt;br/&gt;19 providers]
+        subgraph &quot;19 Adapters&quot;
+            OpenAI[openai/]
+            Anthropic[anthropic/]
+            Gemini[gemini/]
+            Ollama[ollama/]
+            Others[...]
+        end
+        Streamer[Stream intermediates&lt;br/&gt;SSE parsing per protocol]
+    end
+
+    subgraph &quot;Chat Module&quot;
+        ChatRequest[ChatRequest&lt;br/&gt;system, messages, tools]
+        ChatResponse[ChatResponse&lt;br/&gt;text, tool_calls, usage]
+        ChatStream[ChatStream&lt;br/&gt;async stream of chunks]
+        ToolDef[Tool definitions&lt;br/&gt;JSON schema]
+    end
+
+    Chat --&gt; Dispatcher
+    Chat --&gt; AuthResolver
+    Chat --&gt; EndpointResolver
+    Dispatcher --&gt; AdapterKind
+    AdapterKind --&gt; OpenAI
+    AdapterKind --&gt; Anthropic
+    AdapterKind --&gt; Gemini
+    AdapterKind --&gt; Ollama
+    AdapterKind --&gt; Others
+    OpenAI --&gt; Streamer
+    Anthropic --&gt; Streamer
+    Gemini --&gt; Streamer
+    Streamer --&gt; ChatStream
+
+</div>
+<h2>The Client</h2>
+<p>Source: <code>genai/src/client/client_types.rs:12-14</code>.</p>
+<pre><code class="language-rust">pub struct Client {
+    pub(super) inner: Arc&lt;ClientInner&gt;,
+}
+</code></pre>
+<p>The client is <code>Clone</code> and thread-safe via <code>Arc</code>. Construction:</p>
+<pre><code class="language-rust">// Default — keys from environment variables
+let client = Client::default();
+
+// Builder — explicit configuration
+let client = Client::builder()
+    .with_auth_map(AuthMap::from_env())
+    .with_option_header(&quot;Custom-Header&quot;, &quot;value&quot;)
+    .build();
+</code></pre>
+<p>Source: <code>genai/src/client/builder.rs</code>.</p>
+<h2>Adapter System</h2>
+<p>Source: <code>genai/src/adapter/adapter_kind.rs</code>. The <code>AdapterKind</code> enum covers 19 providers:</p>
+<table><tr><th>Adapter</th><th>Protocol</th><th>Key Env Var</th><th>Model Prefix</th></tr><tr><td>`OpenAI`</td><td>OpenAI Chat Completions</td><td>`OPENAI_API_KEY`</td><td>`gpt-`, `o1`, `o3`, `o4`, `codex`</td></tr><tr><td>`OpenAIResp`</td><td>OpenAI Responses API</td><td>`OPENAI_API_KEY`</td><td>`gpt-5`, `gpt-*pro*`, `gpt-*codex*`</td></tr><tr><td>`Anthropic`</td><td>Anthropic native</td><td>`ANTHROPIC_API_KEY`</td><td>`claude`</td></tr><tr><td>`Gemini`</td><td>Gemini native</td><td>`GEMINI_API_KEY`</td><td>`gemini`</td></tr><tr><td>`Ollama`</td><td>Ollama native</td><td>`OLLAMA_API_KEY`</td><td>fallback (anything else)</td></tr><tr><td>`OllamaCloud`</td><td>Ollama Cloud + Bearer</td><td>`OLLAMA_CLOUD_API_KEY`</td><td>`ollama_cloud::`</td></tr><tr><td>`Cohere`</td><td>Cohere native</td><td>`COHERE_API_KEY`</td><td>`command`, `embed-`</td></tr><tr><td>`DeepSeek`</td><td>OpenAI-compatible</td><td>`DEEPSEEK_API_KEY`</td><td>`deepseek-`</td></tr><tr><td>`Groq`</td><td>OpenAI-compatible</td><td>`GROQ_API_KEY`</td><td>`groq::` prefix required</td></tr><tr><td>`xAi`</td><td>OpenAI-compatible</td><td>`XAI_API_KEY`</td><td>`grok`</td></tr><tr><td>`Zai`</td><td>OpenAI-compatible</td><td>`ZAI_API_KEY`</td><td>`glm`</td></tr><tr><td>`BigModel`</td><td>OpenAI-compatible</td><td>`BIGMODEL_API_KEY`</td><td>`bigmodel::`</td></tr><tr><td>`Fireworks`</td><td>OpenAI-compatible</td><td>`FIREWORKS_API_KEY`</td><td>contains `fireworks`</td></tr><tr><td>`Together`</td><td>OpenAI-compatible</td><td>`TOGETHER_API_KEY`</td><td>`together::`</td></tr><tr><td>`Nebius`</td><td>OpenAI-compatible</td><td>`NEBIUS_API_KEY`</td><td>`nebius::`</td></tr><tr><td>`Mimo`</td><td>OpenAI-compatible</td><td>`MIMO_API_KEY`</td><td>`mimo-`</td></tr><tr><td>`Aliyun`</td><td>OpenAI-compatible</td><td>`ALIYUN_API_KEY`</td><td>`aliyun::`</td></tr><tr><td>`Vertex`</td><td>Google Vertex AI</td><td>`VERTEX_API_KEY`</td><td>`vertex::`</td></tr><tr><td>`GithubCopilot`</td><td>GitHub Models gateway</td><td>`GITHUB_COPILOT_API_KEY`</td><td>`github_copilot::`</td></tr></table>
+<p>Source: <code>genai/src/adapter/adapter_kind.rs:180-252</code> (<code>from_model</code>).</p>
+<p><strong>Aha:</strong> Automatic model-to-adapter routing uses prefix matching: <code>gpt-*</code> → OpenAI, <code>claude</code> → Anthropic, <code>gemini</code> → Gemini. Unknown models fall back to Ollama. Since v0.6.0, some adapters (Groq, DeepSeek) require explicit namespace prefixes like <code>groq::model_name</code> because dynamic <code>list_names</code> made automatic matching ambiguous. Source: <code>genai/src/adapter/adapter_kind.rs:206-207</code>.</p>
+<p>Namespace routing: <code>adapter::model_name</code> (e.g., <code>vertex::claude-sonnet-4-6</code>, <code>nebius::Qwen/Qwen3-235B-A22B</code>).</p>
+<h2>Chat API</h2>
+<p>Source: <code>genai/src/chat/</code>. The chat module covers the full conversation lifecycle.</p>
+<h3>ChatRequest</h3>
+<p>Source: <code>genai/src/chat/chat_request.rs:10-33</code>.</p>
+<pre><code class="language-rust">pub struct ChatRequest {
+    pub system: Option&lt;String&gt;,           // System prompt
+    pub messages: Vec&lt;ChatMessage&gt;,       // Conversation history
+    pub tools: Option&lt;Vec&lt;Tool&gt;&gt;,         // Available tools
+    pub previous_response_id: Option&lt;String&gt;,  // OpenAI Responses API stateful sessions
+    pub store: Option&lt;bool&gt;,              // Whether to store response for session
+}
+</code></pre>
+<p>Constructor shortcuts:</p>
+<table><tr><th>Method</th><th>Usage</th></tr><tr><td>`ChatRequest::from_system("...")`</td><td>System prompt only</td></tr><tr><td>`ChatRequest::from_user("...")`</td><td>Single user message</td></tr><tr><td>`ChatRequest::from_messages(vec![...])`</td><td>Full message list</td></tr></table>
+<h3>ChatMessage</h3>
+<p>Source: <code>genai/src/chat/chat_message.rs</code>. Messages have a role and content:</p>
+<pre><code class="language-rust">pub struct ChatMessage {
+    pub role: ChatRole,     // System, User, Assistant, Tool
+    pub content: MessageContent,
+}
+</code></pre>
+<p><code>MessageContent</code> supports text, images (<code>binary.rs</code>), audio, and multi-part content.</p>
+<h3>ChatResponse</h3>
+<p>Source: <code>genai/src/chat/chat_response.rs</code>.</p>
+<pre><code class="language-rust">pub struct ChatResponse {
+    pub content: Option&lt;String&gt;,        // Text response
+    pub tool_calls: Option&lt;Vec&lt;ToolCall&gt;&gt;,  // Tool call requests
+    pub usage: Option&lt;Usage&gt;,           // Token usage
+    pub response_id: Option&lt;String&gt;,    // For stateful sessions (OpenAI Responses)
+}
+</code></pre>
+<h3>Streaming</h3>
+<p>Source: <code>genai/src/chat/chat_stream.rs</code>. Returns an <code>impl Stream</code> yielding <code>ChatStreamChunk</code>. Each adapter parses its own SSE format:</p>
+<ul><li>OpenAI: <code>data: {...}</code> lines</li><li>Anthropic: <code>data: {...}</code> with <code>message_start</code>, <code>content_block_start</code>, etc.</li><li>Gemini: native streaming protocol with thinking budget support</li></ul>
+<p>Source: <code>genai/src/adapter/adapters/*/streamer.rs</code>.</p>
+<h3>Tool Use</h3>
+<p>Source: <code>genai/src/chat/tool/</code>. Function calling is supported:</p>
+<pre><code class="language-rust">pub struct Tool {
+    pub name: ToolName,              // e.g., &quot;get_weather&quot;
+    pub description: Option&lt;String&gt;, // Description for the LLM
+    pub schema: Option&lt;Value&gt;,       // JSON Schema for parameters
+    pub strict: Option&lt;bool&gt;,        // Strict schema validation (OpenAI)
+    pub config: Option&lt;ToolConfig&gt;,  // Provider-specific config
+}
+</code></pre>
+<p>Source: <code>genai/src/chat/tool/tool_base.rs:5-50</code>.</p>
+<p>The tool call loop:</p>
+<div class="mermaid">
+sequenceDiagram
+    participant App as Application
+    participant Client as genai Client
+    participant Adapter as Adapter (e.g., OpenAI)
+    participant Model as AI Model
+    participant Tools as Tool Executor
+
+    App-&gt;&gt;Client: ChatRequest { tools: [Tool] }
+    Client-&gt;&gt;Adapter: dispatch_chat()
+    Adapter-&gt;&gt;Model: HTTP POST with tool schema
+    Model-&gt;&gt;Adapter: Response with ToolCall
+    Adapter-&gt;&gt;Client: ChatResponse { tool_calls }
+    Client-&gt;&gt;App: ChatResponse
+    App-&gt;&gt;Tools: Execute tool calls
+    Tools-&gt;&gt;App: Tool results
+    App-&gt;&gt;Client: ChatRequest { messages + tool responses }
+    Client-&gt;&gt;Adapter: dispatch_chat()
+    Adapter-&gt;&gt;Model: HTTP POST with tool results
+    Model-&gt;&gt;Adapter: Final text response
+    Adapter-&gt;&gt;Client: ChatResponse { content }
+    Client-&gt;&gt;App: ChatResponse
+
+</div>
+<p>Source: <code>genai/examples/c20-tooluse.rs</code>, <code>genai/examples/c21-tooluse-streaming.rs</code>, <code>genai/examples/c22-tooluse-deterministic.rs</code>.</p>
+<h2>Embedding API</h2>
+<p>Source: <code>genai/src/embed/</code>.</p>
+<pre><code class="language-rust">let response = client.embed(
+    &quot;text-embedding-3-small&quot;,
+    vec![&quot;Hello world&quot;.to_string()],
+).await?;
+</code></pre>
+<p>Supported providers: OpenAI, Gemini, Cohere. Each adapter has an <code>embed.rs</code> module.</p>
+<h2>Resolver System</h2>
+<p>Source: <code>genai/src/resolver/</code>.</p>
+<table><tr><th>Resolver</th><th>Purpose</th></tr><tr><td>`AuthResolver`</td><td>Resolve API keys from env, config, or custom source</td></tr><tr><td>`EndpointResolver`</td><td>Resolve base URLs per adapter (including custom endpoints)</td></tr><tr><td>`ModelMapper`</td><td>Normalize model names (strip prefixes, handle aliases)</td></tr><tr><td>`ServiceTargetResolver`</td><td>Custom routing — override which adapter handles a model</td></tr></table>
+<h2>Web Client</h2>
+<p>Source: <code>genai/src/webc/</code>. Wraps <code>reqwest</code> with:</p>
+<ul><li>Custom headers per request</li><li>Timeout configuration</li><li>SSE parsing (<code>event_source_stream.rs</code>)</li><li>Response streaming (<code>web_stream.rs</code>)</li></ul>
+<h2>Error Handling</h2>
+<p>Source: <code>genai/src/error.rs</code>. The <code>Error</code> enum covers:</p>
+<table><tr><th>Category</th><th>Variants</th></tr><tr><td>Input validation</td><td>`ChatReqHasNoMessages`, `LastChatMessageIsNotUser`</td></tr><tr><td>Model support</td><td>`MessageRoleNotSupported`, `MessageContentTypeNotSupported`</td></tr><tr><td>Response parsing</td><td>`NoChatResponseFromModel`, `StreamError`</td></tr><tr><td>HTTP transport</td><td>`WebClientError` (with status code)</td></tr><tr><td>Tool use</td><td>`ToolCallError`</td></tr><tr><td>Auth</td><td>`AuthResolverError`</td></tr><tr><td>Adapter</td><td>`AdapterError` (wrapped from individual adapters)</td></tr></table>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="03-rpc-router.md">03-rpc-router.md</a> for the JSON-RPC router, or <a href="06-agentic.md">06-agentic.md</a> for the MCP protocol library.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

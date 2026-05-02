@@ -112,6 +112,8 @@ Source: `rust-rpc-router/src/rpc_response/`.
 
 Error codes follow JSON-RPC 2.0 spec: `-32600` (Invalid Request), `-32601` (Method Not Found), `-32602` (Invalid Params), `-32603` (Internal Error).
 
+**Aha:** The handler trait is implemented via Rust's blanket impl system — any async function with the right signature automatically becomes an RPC handler without manual trait implementation. The `RpcHandler` trait uses variadic generics-like patterns through procedural macros to accept functions with any number of resource + params arguments. Source: `rust-rpc-router/src/handler/handler.rs`.
+
 ## Error Handling
 
 Source: `rust-rpc-router/src/error.rs` and `rust-rpc-router/src/handler/handler_error.rs`.

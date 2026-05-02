@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aipack -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/aipack/docs</span>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+
+  <h1>aipack Documentation</h1>
+  <p>Jeremy Chone's Rust crate collection: genai (19 AI providers), rpc-router (JSON-RPC 2.0), sqlb (SQL builder), modql (query language), agentic (MCP protocol), udiffx (diff parser), and 7 utility crates.</p>
+  <ul class="doc-index">
+    <li><a href="00-overview.html">Overview — Jeremy Chone's Rust AI/Dev Crate Collection</a></li>
+<li><a href="01-architecture.html">Architecture — Crate Structures and Module Dependencies</a></li>
+<li><a href="02-genai.html">genai — Multi-Provider AI Client Library for Rust</a></li>
+<li><a href="03-rpc-router.html">rpc-router — JSON-RPC 2.0 Router with Procedural Macros</a></li>
+<li><a href="04-sqlb.html">sqlb — Simple, Expressive SQL Builder for Rust</a></li>
+<li><a href="05-modql.html">modql — Model Query Language for Filtering and Ordering</a></li>
+<li><a href="06-agentic.html">agentic — MCP Protocol Client/Server for Agent2Agent Systems</a></li>
+<li><a href="07-udiffx.html">udiffx — LLM-Optimized Unified Diff Parser and Applier</a></li>
+<li><a href="08-utilities.html">Utilities — simple-fs, uuid-extra, pretty-sqlite, dinf, htmd, webdev, webtk</a></li>
+<li><a href="README.html">aipack — Documentation Index</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
