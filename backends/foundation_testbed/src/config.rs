@@ -157,6 +157,128 @@ pub fn list_profiles() -> &'static [VmProfile] {
     PROFILES
 }
 
+// ── User Config Override ─────────────────────────────────────────────────────
+
+/// User-provided profile overrides from `testbed.toml` (cwd by default).
+///
+/// Fields are optional — only specified fields override the default profile.
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserVmProfile {
+    pub os: Option<String>,
+    pub image_name: Option<String>,
+    pub ssh_port: Option<u16>,
+    pub rdp_port: Option<u16>,
+    pub winrm_port: Option<u16>,
+    pub vnc_port: Option<u16>,
+    pub user: Option<String>,
+    pub pass: Option<String>,
+    pub bootstrap: Option<String>,
+    pub memory_mib: Option<u32>,
+    pub cpu_cores: Option<u32>,
+    pub disk_gb: Option<u32>,
+    pub prebaked_url: Option<String>,
+}
+
+/// Top-level user config file format.
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserConfig {
+    #[serde(default)]
+    pub profiles: Vec<UserProfileEntry>,
+}
+
+/// A named profile entry in the user config.
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserProfileEntry {
+    pub name: String,
+    #[serde(flatten)]
+    pub profile: UserVmProfile,
+}
+
+/// Load user config from `testbed.toml` in the current working directory.
+///
+/// Returns None if the file doesn't exist or can't be parsed.
+pub fn load_user_config() -> Option<UserConfig> {
+    let config_path = user_config_path();
+    if !config_path.exists() {
+        return None;
+    }
+    let content = std::fs::read_to_string(&config_path).ok()?;
+    toml::from_str(&content).ok()
+}
+
+/// Resolve a profile, applying any user config overrides.
+pub fn get_profile_with_config(name: &str) -> Result<VmProfile> {
+    let base = get_profile(name)?;
+    let mut profile = base.clone();
+
+    // Apply user config override if present
+    if let Some(config) = load_user_config() {
+        if let Some(entry) = config.profiles.iter().find(|e| e.name == name) {
+            apply_user_override(&mut profile, &entry.profile);
+        }
+    }
+
+    Ok(profile)
+}
+
+/// Apply user overrides to a profile.
+fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
+    let o = override_;
+
+    if let Some(ref os) = o.os {
+        profile.os = match os.as_str() {
+            "windows" => GuestOs::Windows,
+            "linux" => GuestOs::Linux,
+            _ => profile.os,
+        };
+    }
+    if let Some(ref image_name) = o.image_name {
+        profile.image_name = Box::leak(image_name.clone().into_boxed_str());
+    }
+    if let Some(p) = o.ssh_port {
+        profile.ssh_port = p;
+    }
+    if let Some(p) = o.rdp_port {
+        profile.rdp_port = Some(p);
+    }
+    if let Some(p) = o.winrm_port {
+        profile.winrm_port = Some(p);
+    }
+    if let Some(p) = o.vnc_port {
+        profile.vnc_port = p;
+    }
+    if let Some(ref user) = o.user {
+        profile.user = Box::leak(user.clone().into_boxed_str());
+    }
+    if let Some(ref pass) = o.pass {
+        profile.pass = Box::leak(pass.clone().into_boxed_str());
+    }
+    if let Some(ref bootstrap) = o.bootstrap {
+        profile.bootstrap = match bootstrap.as_str() {
+            "full" => BootstrapMode::Full,
+            "ssh_only" => BootstrapMode::SshOnly,
+            _ => profile.bootstrap,
+        };
+    }
+    if let Some(m) = o.memory_mib {
+        profile.memory_mib = m;
+    }
+    if let Some(c) = o.cpu_cores {
+        profile.cpu_cores = c;
+    }
+    if let Some(d) = o.disk_gb {
+        profile.disk_gb = d;
+    }
+    if let Some(ref url) = o.prebaked_url {
+        profile.prebaked_url = Some(Box::leak(url.clone().into_boxed_str()));
+    }
+}
+
+/// Path to the user config file: `./testbed.toml`.
+pub fn user_config_path() -> std::path::PathBuf {
+    std::path::PathBuf::from("testbed.toml")
+}
+
 // ── Directories ──────────────────────────────────────────────────────────────
 
 /// Base cache directory: `~/.cache/foundation_testbed/`

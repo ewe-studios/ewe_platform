@@ -37,3 +37,18 @@ serde_json = "1"
 # Error handling
 anyhow = "1"
 derive_more = { version = "2", features = ["display", "error", "from"] }
+
+# Image processing (screenshot validation)
+image = "0.25"
+
+# Process checks (kill(pid, 0) for stale detection)
+libc = "0.2"
+
+# Time formatting (state timestamps)
+chrono = "0.4"
+
+# Config file parsing
+toml = "0.8"
+
+# Disk space checking (doctor command)
+fs2 = "0.4"

@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use crate::config::{GuestOs, Result, TestbedError, VmProfile};
+use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
 
 /// Capture a screenshot of the VM display.
@@ -58,7 +58,6 @@ $bmp.Dispose()
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_capture_uses_correct_paths() {

@@ -16,6 +16,7 @@ mod sandbox_app;
 mod tcp_capture;
 mod wasm_bins;
 mod watchful;
+mod testbed;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -35,6 +36,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
     commander = sandbox::register(commander);
     commander = gen_api::register(commander);
     commander = wasm_bins::register(commander);
+    commander = testbed::register(commander);
 
     let matches = commander.get_matches();
     match matches.subcommand() {
@@ -47,6 +49,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("watch", arguments)) => watchful::run(arguments)?,
         Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,
         Some(("gen_model_descriptors", arguments)) => models::run(arguments)?,
+        Some(("testbed", arguments)) => testbed::run(arguments)?,
         _ => {}
     }
 
