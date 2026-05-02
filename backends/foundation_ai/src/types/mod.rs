@@ -888,6 +888,7 @@ pub struct ToolParam {
     pub description: String,
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Messages {
     User {
@@ -1138,6 +1139,11 @@ pub enum ToolCallingError {
 /// representation and the format expected by its API.
 pub trait ToolFormatter: Default + Send + Sync {
     /// Convert internal `Tool[]` definitions to provider-specific tool schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the tool schema cannot be serialized to the
+    /// provider's expected format.
     fn format_tools(
         &self,
         tools: &[Tool],
@@ -1151,12 +1157,21 @@ pub trait ToolFormatter: Default + Send + Sync {
     fn tool_calling_instructions(&self) -> Option<String>;
 
     /// Extract tool calls from provider response text.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the response contains malformed tool call data.
     fn extract_tool_calls(
         &self,
         response: &str,
     ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>>;
 
     /// Format a tool execution result into provider message structure.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the tool result cannot be serialized to the
+    /// provider's expected format.
     fn format_tool_response(
         &self,
         result: &Messages,

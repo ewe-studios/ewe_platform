@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>End-to-End Data Flows — Check Resolution, Policy Management, REST Queries, and Telemetry Ingestion -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <a href="05-pgauthz.html" class="nav-breadcrumb">pgauthz — PostgreSQL Extension for Zanzibar-Style Authorization</a><a href="06-dbrest.html" class="nav-breadcrumb">dbrest — High-Performance REST API for PostgreSQL and SQLite</a><a href="07-zradar.html" class="nav-breadcrumb">zradar — Telemetry Ingestion and Storage Platform</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="07-zradar.html" class="nav-btn" title="Previous: zradar — Telemetry Ingestion and Storage Platform">← prev</a>
+      <a href="09-cross-cutting.html" class="nav-btn nav-btn-next" title="Next: Cross-Cutting Concerns — Error Handling, Observability, Testing, and Deployment">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Data Flow — End-to-End Flows</h1>
+<p>This document traces the complete execution paths for the four major workflows across the projects.</p>
+<h2>Flow 1: Authorization Check via pgauthz</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant App as Application (SQL)
+    participant PG as PostgreSQL
+    participant pgauthz as pgauthz extension
+    participant Cache as TypeSystem Cache
+    participant SPI as PostgresDatastore (SPI)
+    participant Resolver as CoreResolver
+    participant Tables as authz.* tables
+
+    App-&gt;&gt;PG: SELECT pgauthz_check(&#x27;document&#x27;,&#x27;doc1&#x27;,&#x27;viewer&#x27;,&#x27;user&#x27;,&#x27;alice&#x27;)
+    PG-&gt;&gt;pgauthz: pgauthz_check()
+    pgauthz-&gt;&gt;pgauthz: validate_check_args()
+    pgauthz-&gt;&gt;Cache: load_typesystem_cached()
+    Cache-&gt;&gt;SPI: read_latest_authorization_policy()
+    SPI-&gt;&gt;Tables: SELECT FROM authz.authorization_policy
+    Tables-&gt;&gt;SPI: policy row
+    SPI-&gt;&gt;Cache: Policy definition
+    Cache-&gt;&gt;pgauthz: Arc&lt;TypeSystem&gt;
+    pgauthz-&gt;&gt;SPI: read_latest_revision()
+    SPI-&gt;&gt;Tables: SELECT FROM authz.revision
+    Tables-&gt;&gt;SPI: revision ULID
+    SPI-&gt;&gt;pgauthz: quantized revision
+    pgauthz-&gt;&gt;Resolver: CoreResolver::new(datastore, provider)
+    Resolver-&gt;&gt;Resolver: with_result_cache() + with_tuple_cache()
+    pgauthz-&gt;&gt;Resolver: LocalDispatcher.dispatch_check(request)
+    Resolver-&gt;&gt;Resolver: resolve_check() — walk model graph
+    loop For each relation in expression
+        Resolver-&gt;&gt;SPI: read_tuples(filter)
+        SPI-&gt;&gt;Tables: SELECT FROM authz.tuple
+        Tables-&gt;&gt;SPI: matching tuples
+        SPI-&gt;&gt;Resolver: tuples
+    end
+    Resolver-&gt;&gt;pgauthz: CheckResult::Allowed/Denied
+    pgauthz-&gt;&gt;pgauthz: record metrics
+    pgauthz-&gt;&gt;PG: return boolean
+    PG-&gt;&gt;App: true or false
+
+</div>
+<p>Source: <code>pgauthz/crates/pgauthz/src/check_functions.rs:17-143</code> (<code>do_check</code>).</p>
+<h2>Flow 2: Policy Definition and Validation</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant App as Application (SQL)
+    participant PG as PostgreSQL
+    participant pgauthz as pgauthz extension
+    participant Parser as model_parser
+    participant Validator as model_validator
+    participant CEL as cel module
+    participant SPI as PostgresDatastore
+    participant Tables as authz.* tables
+
+    App-&gt;&gt;PG: SELECT pgauthz_define_policy(&#x27;type user {} ...&#x27;)
+    PG-&gt;&gt;pgauthz: pgauthz_define_policy()
+    pgauthz-&gt;&gt;SPI: PostgresDatastore::new()
+    pgauthz-&gt;&gt;SPI: write_authorization_policy(policy)
+    SPI-&gt;&gt;Parser: parse_dsl(definition)
+    Parser-&gt;&gt;Parser: pest parse → ModelFile
+    Parser-&gt;&gt;SPI: AST
+    SPI-&gt;&gt;Validator: validate_model(ModelFile)
+    Validator-&gt;&gt;Validator: check duplicates, undefined refs, cycles
+    Validator-&gt;&gt;SPI: Ok or Err(ValidationErrors)
+    SPI-&gt;&gt;CEL: compile each condition expression
+    CEL-&gt;&gt;CEL: cel::Program::compile()
+    CEL-&gt;&gt;SPI: Ok or Err(CelError)
+    SPI-&gt;&gt;SPI: generate ULID
+    SPI-&gt;&gt;Tables: INSERT INTO authz.authorization_policy
+    Tables-&gt;&gt;SPI: OK
+    SPI-&gt;&gt;Tables: INSERT INTO authz.revision
+    Tables-&gt;&gt;SPI: OK
+    SPI-&gt;&gt;pgauthz: policy ID
+    pgauthz-&gt;&gt;PG: return policy ID
+    PG-&gt;&gt;App: ULID string
+
+</div>
+<p>Source: <code>authz-datastore-pgx/src/lib.rs:254-313</code> (PolicyWriter impl).</p>
+<p><strong>Aha:</strong> Policy writing is a three-stage validation gate: parse → validate → CEL compile. If any stage fails, the policy is rejected and nothing is written to the database. This prevents a partially-valid policy from becoming the "latest" and breaking all subsequent checks.</p>
+<h2>Flow 3: Relationship Write with Validation</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant App as Application (SQL)
+    participant PG as PostgreSQL
+    participant pgauthz as pgauthz extension
+    participant SPI as PostgresDatastore
+    participant Parser as model_parser
+    participant Tables as authz.* tables
+
+    App-&gt;&gt;PG: SELECT pgauthz_add_relation(&#x27;document&#x27;,&#x27;doc1&#x27;,&#x27;viewer&#x27;,&#x27;user&#x27;,&#x27;alice&#x27;)
+    PG-&gt;&gt;pgauthz: pgauthz_add_relation()
+    pgauthz-&gt;&gt;pgauthz: write_relationships([tuple], [])
+    pgauthz-&gt;&gt;SPI: write_tuples(writes, deletes)
+    SPI-&gt;&gt;SPI: read_latest_authorization_policy()
+    SPI-&gt;&gt;Parser: parse_dsl(definition)
+    Parser-&gt;&gt;SPI: ModelFile
+    SPI-&gt;&gt;SPI: validate tuple against model
+    SPI-&gt;&gt;Tables: INSERT INTO authz.tuple (ON CONFLICT DO UPDATE)
+    Tables-&gt;&gt;SPI: OK
+    SPI-&gt;&gt;Tables: INSERT INTO authz.changelog (&#x27;write&#x27;, ulid)
+    Tables-&gt;&gt;SPI: OK
+    SPI-&gt;&gt;Tables: INSERT INTO authz.revision (revision_id)
+    Tables-&gt;&gt;SPI: OK
+    SPI-&gt;&gt;pgauthz: revision ULID
+    pgauthz-&gt;&gt;pgauthz: record tuple write metrics
+    pgauthz-&gt;&gt;PG: return revision ULID
+    PG-&gt;&gt;App: ULID string
+
+</div>
+<p>Source: <code>authz-datastore-pgx/src/lib.rs:557-669</code> (TupleWriter impl).</p>
+<h2>Flow 4: Watch API — Reading Changes</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant App as Application (SQL)
+    participant PG as PostgreSQL
+    participant pgauthz as pgauthz extension
+    participant SPI as PostgresDatastore
+    participant Tables as authz.changelog
+
+    App-&gt;&gt;PG: SELECT * FROM pgauthz_read_changes(&#x27;document&#x27;, NULL, 100)
+    PG-&gt;&gt;pgauthz: pgauthz_read_changes()
+    pgauthz-&gt;&gt;pgauthz: validate_read_changes_args()
+    pgauthz-&gt;&gt;SPI: read_changes(&#x27;document&#x27;, None, 100)
+    SPI-&gt;&gt;Tables: SELECT FROM authz.changelog WHERE object_type=&#x27;document&#x27; ORDER BY ulid LIMIT 100
+    Tables-&gt;&gt;SPI: changelog rows
+    SPI-&gt;&gt;pgauthz: Vec&lt;ChangelogEntry&gt;
+    pgauthz-&gt;&gt;PG: TableIterator rows
+    PG-&gt;&gt;App: (object_type, object_id, relation, subject_type, subject_id, operation, ulid)
+
+</div>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:308-354</code> and <code>authz-datastore-pgx/src/lib.rs:674-725</code>.</p>
+<p>The Watch API enables clients to poll for changes since a known ULID cursor, implementing a simplified version of Zanzibar's consistency model.</p>
+<h2>Flow 5: dbrest REST Query</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Client as HTTP Client
+    participant axum as axum Router
+    participant Auth as JWT middleware
+    participant Req as ApiRequest
+    participant Plan as action_plan
+    participant Query as query generator
+    participant Schema as SchemaCache
+    participant Backend as DatabaseBackend
+    participant DB as PostgreSQL/SQLite
+
+    Client-&gt;&gt;axum: GET /documents?select=*&amp;status=eq.active
+    axum-&gt;&gt;Auth: JWT middleware
+    Auth-&gt;&gt;Auth: validate token (cached)
+    Auth-&gt;&gt;axum: AuthResult
+    axum-&gt;&gt;Req: Parse request
+    Req-&gt;&gt;Req: Extract: method, path, params, headers
+    Req-&gt;&gt;Schema: lookup table schema
+    Schema-&gt;&gt;Req: columns, types, PKs
+    Req-&gt;&gt;Plan: Build action plan
+    Plan-&gt;&gt;Query: Generate SQL
+    Query-&gt;&gt;Backend: execute(sql, params)
+    Backend-&gt;&gt;DB: Run prepared statement
+    DB-&gt;&gt;Backend: Result rows
+    Backend-&gt;&gt;Query: Raw values
+    Query-&gt;&gt;axum: JSON response body
+    axum-&gt;&gt;Client: 200 OK + JSON
+
+</div>
+<p>Source: <code>dbrest/src/main.rs</code> (server startup), <code>dbrest-core/src/api_request/</code> (request parsing), <code>dbrest-core/src/plan/</code> (action planning).</p>
+<h2>Flow 6: OTLP Telemetry Ingestion</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant SDK as OTel SDK
+    participant tonic as tonic gRPC server
+    participant api_optel as api-optel service
+    participant Models as zradar-models
+    participant Writer as TelemetryWriter
+    participant Plugin as plugin-clickhouse
+    participant CH[(ClickHouse)]
+
+    SDK-&gt;&gt;tonic: ExportTraceServiceRequest (gRPC)
+    tonic-&gt;&gt;api_optel: Route to OTLP handler
+    api_optel-&gt;&gt;Models: Parse OTLP protobuf
+    Models-&gt;&gt;Models: Convert to internal types
+    Models-&gt;&gt;Writer: write_spans(batch)
+    Writer-&gt;&gt;Plugin: ClickHouse INSERT batch
+    Plugin-&gt;&gt;CH: Batch insert (LZ4 compressed)
+    CH-&gt;&gt;Plugin: OK
+    Plugin-&gt;&gt;Writer: OK
+    Writer-&gt;&gt;Models: OK
+    Models-&gt;&gt;api_optel: OK
+    api_optel-&gt;&gt;tonic: ExportTraceServiceResponse
+    tonic-&gt;&gt;SDK: OK
+
+</div>
+<p>Source: <code>zradar/crates/services/api-optel/</code> (OTLP service), <code>zradar/crates/plugins/zradar-plugin-clickhouse/</code> (ClickHouse writer).</p>
+<h2>Flow 7: Revision-Based Cache Invalidation</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Write as Tuple/Policy Write
+    participant SPI as PostgresDatastore
+    participant Revision as authz.revision
+    participant Check as pgauthz_check
+    participant Cache as Result/Tuple Cache
+
+    Write-&gt;&gt;SPI: write_tuples(...)
+    SPI-&gt;&gt;Revision: INSERT revision (new ULID)
+    Revision-&gt;&gt;SPI: new_revision_id
+    Note over Check,Cache: Next check uses NEW revision
+    Check-&gt;&gt;SPI: read_latest_revision()
+    SPI-&gt;&gt;Revision: SELECT latest revision
+    Revision-&gt;&gt;SPI: new_revision_id
+    SPI-&gt;&gt;Check: quantize(new_revision_id)
+    Check-&gt;&gt;Cache: lookup key = new_revision:...
+    Note over Cache: Old keys (old_revision:...) are ORPHANED
+    Cache-&gt;&gt;Check: MISS (new revision)
+    Check-&gt;&gt;SPI: read from datastore
+    SPI-&gt;&gt;Cache: insert key = new_revision:...
+
+</div>
+<p><strong>Aha:</strong> Cache invalidation is achieved without explicit invalidation. Each write creates a new revision. Each check reads the latest revision and includes it in the cache key. Old cache entries (keyed by previous revisions) are never looked up again — they naturally expire. This is simpler than invalidation and immune to race conditions.</p>
+<h2>Flow 8: zradar Plugin Loading</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Server as zradar-server
+    participant Registry as zradar-plugins
+    participant FS as Filesystem
+    participant Postgres as plugin-postgres
+    participant ClickHouse as plugin-clickhouse
+    participant Config as Configuration
+
+    Server-&gt;&gt;Config: Load config (which plugins to enable)
+    Config-&gt;&gt;Server: plugin list
+    Server-&gt;&gt;Registry: load_plugins(plugins)
+    alt Static linking (rlib)
+        Registry-&gt;&gt;Registry: Initialize plugin crates directly
+    else Dynamic loading (cdylib)
+        Registry-&gt;&gt;FS: dlopen(&quot;libzradar_plugin_postgres.so&quot;)
+        FS-&gt;&gt;Registry: Library handle
+        Registry-&gt;&gt;Registry: Call plugin init function
+    end
+    Registry-&gt;&gt;Postgres: Initialize (connect pool)
+    Registry-&gt;&gt;ClickHouse: Initialize (connect pool)
+    Postgres-&gt;&gt;Registry: Register as TelemetryWriter
+    ClickHouse-&gt;&gt;Registry: Register as TelemetryWriter
+    Registry-&gt;&gt;Server: Plugin registry ready
+
+</div>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="09-cross-cutting.md">09-cross-cutting.md</a> for error handling, observability, and testing patterns shared across all four projects.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

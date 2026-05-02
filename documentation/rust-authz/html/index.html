@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rust-authz -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+
+  <h1>rust-authz Documentation</h1>
+  <p>Four Rust crates: Zanzibar-style FGA authorization engine (authz-core), PostgreSQL extension (pgauthz), auto-generated REST API for databases (dbrest), and telemetry ingestion platform (zradar).</p>
+  <ul class="doc-index">
+    <li><a href="00-overview.html">Overview — What These Crates Are and Why They Exist</a></li>
+<li><a href="01-architecture.html">Architecture — Dependency Graph, Layer Diagram, and Module Map</a></li>
+<li><a href="02-authz-core-model.html">authz-core — Model DSL, Parser, AST, Validator, and Type System</a></li>
+<li><a href="03-authz-core-resolver.html">authz-core — CoreResolver, Check Resolution, Set Operations, and Caching</a></li>
+<li><a href="04-authz-core-conditions.html">authz-core — CEL Conditions, Context, and Attribute-Based Access Control</a></li>
+<li><a href="05-pgauthz.html">pgauthz — PostgreSQL Extension for Zanzibar-Style Authorization</a></li>
+<li><a href="06-dbrest.html">dbrest — High-Performance REST API for PostgreSQL and SQLite</a></li>
+<li><a href="07-zradar.html">zradar — Telemetry Ingestion and Storage Platform</a></li>
+<li><a href="08-data-flow.html">End-to-End Data Flows — Check Resolution, Policy Management, REST Queries, and Telemetry Ingestion</a></li>
+<li><a href="09-cross-cutting.html">Cross-Cutting Concerns — Error Handling, Observability, Testing, and Deployment</a></li>
+<li><a href="README.html">rust-authz — Documentation Index</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

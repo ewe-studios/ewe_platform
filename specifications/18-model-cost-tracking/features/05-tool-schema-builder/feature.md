@@ -1,3 +1,9 @@
+---
+name: "Tool Schema Builder"
+status: "completed"
+priority: "high"
+---
+
 # Feature 05: Tool Schema Builder
 
 ## Summary

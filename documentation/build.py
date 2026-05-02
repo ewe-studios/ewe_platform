@@ -497,6 +497,8 @@ def build(project_dir: str):
         'graphify': "Knowledge graph extraction tool. Turns mixed-media corpora into queryable graphs via tree-sitter AST, Whisper transcription, and Claude semantic extraction. 71.5x token reduction, 25 languages, 14 platform integrations.",
         'mastra': "TypeScript-first AI agent framework. Unified model router, workflow-based agentic loop, built-in memory, processor pipeline, and multi-model fallbacks.",
         'resonate': "Distributed computing framework. Durable execution, task coordination, and event-driven workflows for reliable background processing.",
+        'rust-authz': "Four Rust crates: Zanzibar-style FGA authorization engine (authz-core), PostgreSQL extension (pgauthz), auto-generated REST API for databases (dbrest), and telemetry ingestion platform (zradar).",
+        'aipack': "Jeremy Chone's Rust crate collection: genai (19 AI providers), rpc-router (JSON-RPC 2.0), sqlb (SQL builder), modql (query language), agentic (MCP protocol), udiffx (diff parser), and 7 utility crates.",
         'voice-agent-server': "Voice AI assistant server. Express.js REST API managing Vapi voice assistants and phone numbers with 11Labs synthesis.",
     }
     desc = descriptions.get(project_name, f"Documentation for {project_name}.")
@@ -527,7 +529,7 @@ if __name__ == '__main__':
     else:
         # Default: build pi, hermes, open-pencil, and autoresearch from this directory
         base = Path(__file__).resolve().parent
-        for proj in ['pi', 'hermes', 'open-pencil', 'autoresearch', 'paperclip', 'voice-agent-server', 'graphify', 'mastra', 'resonate']:
+        for proj in ['pi', 'hermes', 'open-pencil', 'autoresearch', 'paperclip', 'voice-agent-server', 'graphify', 'mastra', 'resonate', 'rust-authz']:
             p = base / proj
             if p.exists():
                 build(str(p))
