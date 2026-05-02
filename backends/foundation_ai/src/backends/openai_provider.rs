@@ -251,6 +251,7 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
 
     /// Perform a single HTTP request attempt and parse the JSON response.
     /// Returns `Err((status, retry_after, message))` on HTTP errors.
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
@@ -532,6 +533,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
     }
 
     /// Perform a single HTTP request attempt and parse the JSON response.
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
@@ -589,11 +591,12 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             .messages
             .iter()
             .filter_map(|msg| {
-                if let Messages::User { content, .. } = msg {
-                    match content {
-                        crate::types::UserModelContent::Text(tc) => Some(tc.content.clone()),
-                        _ => None,
-                    }
+                if let Messages::User {
+                    content: crate::types::UserModelContent::Text(tc),
+                    ..
+                } = msg
+                {
+                    Some(tc.content.clone())
                 } else {
                     None
                 }
@@ -1632,6 +1635,7 @@ fn model_id_to_string(id: &ModelId) -> String {
 }
 
 #[allow(clippy::too_many_lines)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn build_chat_request(
     model_name: &str,
     interaction: &ModelInteraction,
@@ -1666,6 +1670,7 @@ fn build_chat_request(
                     }
                     crate::types::UserModelContent::Image(img) => {
                         let mime_str = match img.mime_type {
+                            #[allow(clippy::match_same_arms)]
                             crate::types::MimeType::ImagePng => "image/png",
                             crate::types::MimeType::ImageJpeg => "image/jpeg",
                             crate::types::MimeType::ImageGif => "image/gif",
@@ -1734,6 +1739,7 @@ fn build_chat_request(
                     });
                 }
                 ModelOutput::Image(img) => {
+                    #[allow(clippy::match_same_arms)]
                     let mime_str = match img.mime_type {
                         crate::types::MimeType::ImagePng => "image/png",
                         crate::types::MimeType::ImageJpeg => "image/jpeg",
@@ -1882,7 +1888,7 @@ fn parse_chat_response(
             .iter()
             .filter_map(|p| match p {
                 OpenAIContentPart::Text { text } => Some(text.clone()),
-                _ => None,
+                OpenAIContentPart::ImageUrl { .. } => None,
             })
             .collect::<Vec<_>>()
             .join("\n"),
@@ -1965,16 +1971,16 @@ fn parse_chat_response(
             provider: ModelProviders::OPENAI,
             error_detail: None,
             signature: None,
-            metadata: build_metadata(&choice.logprobs, &response.system_fingerprint, &message.refusal),
+            metadata: build_metadata(choice.logprobs.as_ref(), response.system_fingerprint.as_ref(), message.refusal.as_ref()),
         },
         usage_report,
     ))
 }
 
 fn build_metadata(
-    logprobs: &Option<OpenAILogProbs>,
-    system_fingerprint: &Option<String>,
-    refusal: &Option<String>,
+    logprobs: Option<&OpenAILogProbs>,
+    system_fingerprint: Option<&String>,
+    refusal: Option<&String>,
 ) -> Option<Vec<crate::types::GenerationMetadata>> {
     let mut metadata = Vec::new();
 

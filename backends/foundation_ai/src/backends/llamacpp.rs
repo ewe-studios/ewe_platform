@@ -375,7 +375,7 @@ impl Model for LlamaModels {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
-        LlamaCppStream::new(self.clone(), interaction, specs)
+        LlamaCppStream::new(self.clone(), &interaction, specs)
     }
 }
 
@@ -479,7 +479,7 @@ impl LlamaCppStream {
                             props.keys().cloned().collect::<Vec<_>>().join(", ")
                         })
                         .unwrap_or_default();
-                    let _ = write!(prompt, "- {}({})\n", tool.name, args);
+                    let _ = writeln!(prompt, "- {}({})", tool.name, args);
                 }
             }
         }
@@ -761,7 +761,7 @@ fn apply_chat_template(
                         props.keys().cloned().collect::<Vec<_>>().join(", ")
                     })
                     .unwrap_or_default();
-                system_content.push_str(&format!("- {}({})\n", tool.name, args));
+                let _ = writeln!(system_content, "- {}({})", tool.name, args);
             }
         }
     }

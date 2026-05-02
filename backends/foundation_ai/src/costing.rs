@@ -163,6 +163,7 @@ impl CostAccumulator {
 ///   each float ≈ 4 chars, but the semantic compression is high,
 ///   so we use a very aggressive chars-per-token ratio.
 #[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn estimate_tokens(messages: &[Messages]) -> UsageReport {
     use crate::types::{UserModelContent};
 
@@ -184,7 +185,8 @@ pub fn estimate_tokens(messages: &[Messages]) -> UsageReport {
         input += MESSAGE_OVERHEAD;
 
         match msg {
-            Messages::User { content, .. } => match content {
+            Messages::User { content, .. }
+            | Messages::ToolResult { content, .. } => match content {
                 UserModelContent::Text(tc) => {
                     input += tc.content.len() as f64 / CHARS_PER_TOKEN;
                 }
@@ -212,15 +214,6 @@ pub fn estimate_tokens(messages: &[Messages]) -> UsageReport {
                 }
                 ModelOutput::Embedding { values, .. } => {
                     input += values.len() as f64 / EMBED_VALUES_PER_TOKEN;
-                }
-            },
-            Messages::ToolResult { content, .. } => match content {
-                UserModelContent::Text(tc) => {
-                    input += tc.content.len() as f64 / CHARS_PER_TOKEN;
-                }
-                UserModelContent::Image(img) => {
-                    images += TOKENS_PER_IMAGE;
-                    input += img.b64.len() as f64 / BASE64_CHARS_PER_TOKEN;
                 }
             },
         }

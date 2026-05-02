@@ -1310,6 +1310,7 @@ fn parse_models_dev_response(body: &str, _source: &'static str) -> Vec<ModelEntr
     models
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn parse_openrouter_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
     let data: OpenRouterResponse = match serde_json::from_str(body) {
         Ok(d) => d,
@@ -1373,6 +1374,7 @@ fn parse_openrouter_response(body: &str, _source: &'static str) -> Vec<ModelEntr
     models
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
     let data: AiGatewayResponse = match serde_json::from_str(body) {
         Ok(d) => d,
@@ -1430,6 +1432,10 @@ fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntr
 ///
 /// Returns `GenModelError` if HTTP or JSON parsing fails fatally.
 /// Individual source failures are logged and skipped.
+///
+/// # Panics
+///
+/// Panics if the valtron execution fails to return a stream.
 pub fn generate_model_descriptors() -> Result<GenerationResult, BoxedError> {
     let _guard = valtron::initialize_pool(100, None);
 

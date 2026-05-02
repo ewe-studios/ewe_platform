@@ -622,6 +622,7 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
         }
     }
 
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
@@ -956,6 +957,7 @@ struct AnthropicStream<R: DnsResolver + 'static> {
 impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
     type Item = Stream<Messages, ModelState>;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         // Drain buffered final messages first.
         if self.final_message_index < self.final_messages.len() {
@@ -1066,6 +1068,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                             }
                         }
                     }
+                    #[allow(clippy::match_same_arms)]
                     "content_block_stop" => Some(Stream::Ignore),
                     "message_delta" => {
                         let Ok(StreamEvent::MessageDelta { delta, usage }) =
@@ -1086,7 +1089,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                         self.cumulative_cost.borrow_mut().add(&report.cost);
                         Some(Stream::Ignore)
                     }
-                    "ping" | _ => Some(Stream::Ignore),
+                    _ => Some(Stream::Ignore),
                 }
             }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
@@ -1239,6 +1242,7 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
     tools
 }
 
+#[allow(clippy::too_many_lines, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn build_anthropic_request(
     model_name: &str,
     interaction: &ModelInteraction,
@@ -1267,6 +1271,7 @@ pub fn build_anthropic_request(
                 }),
                 crate::types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
+                        #[allow(clippy::match_same_arms)]
                         crate::types::MimeType::ImagePng => "image/png",
                         crate::types::MimeType::ImageJpeg => "image/jpeg",
                         crate::types::MimeType::ImageGif => "image/gif",
@@ -1345,8 +1350,7 @@ pub fn build_anthropic_request(
     });
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto => AnthropicToolChoice::Auto,
-        crate::types::ToolChoice::None => AnthropicToolChoice::Auto, // Anthropic doesn't have "none"
+        crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => AnthropicToolChoice::Auto,
         crate::types::ToolChoice::Required => AnthropicToolChoice::Any,
         crate::types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
             name: f.function.name.clone(),
@@ -1422,6 +1426,13 @@ fn make_usage_report(
     UsageReport { cost: costing, ..usage }
 }
 
+/// Parse an Anthropic Messages API response into messages and a usage report.
+///
+/// # Errors
+///
+/// This function currently always succeeds, but returns `GenerationResult`
+/// for API consistency with other provider parse functions.
+#[allow(clippy::too_many_lines)]
 pub fn parse_response(
     response: &MessagesResponse,
     model_id: &ModelId,
@@ -1548,12 +1559,10 @@ pub fn parse_response(
 #[must_use]
 pub fn map_stop_reason(reason: &Option<String>) -> StopReason {
     match reason.as_deref() {
-        Some("end_turn") => StopReason::Stop,
-        Some("stop_sequence") => StopReason::Stop,
+        Some("end_turn" | "stop_sequence") | None => StopReason::Stop,
         Some("max_tokens") => StopReason::Length,
         Some("tool_use") => StopReason::ToolUse,
         Some(other) => StopReason::Message(other.to_string()),
-        None => StopReason::Stop,
     }
 }
 

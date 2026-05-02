@@ -1,6 +1,6 @@
 ---
 name: "Provider Prompt Assembly"
-status: "uncompleted"
+status: "completed"
 priority: "high"
 ---
 
