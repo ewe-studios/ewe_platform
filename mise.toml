@@ -13,7 +13,16 @@
 [env]
 CARGO_TERM_COLOR = "always"
 PROJECT_ROOT = "{{config_root}}"
-_.path = ["./node_modules/.bin", "./tools/depot_tools"]
+TOOLS_DIR = "{{config_root}}/tools"
+DEPOT_DIR = "{{env.TOOLS_DIR}}/depot_tools"
+DAWN_DIR = "{{env.TOOLS_DIR}}/dawn"
+EMSDK_DIR = "{{env.TOOLS_DIR}}/emsdk"
+WHISPER_DIR = "{{env.TOOLS_DIR}}/whisper.cpp"
+LLAMA_SUBMODULE_PATH = "tools/llama.cpp"
+LLAMA_DIR = "{{config_root}}/{{env.LLAMA_SUBMODULE_PATH}}"
+LLAMA_BINDINGS_DIR = "{{config_root}}/infrastructure/llama-bindings"
+LLAMA_SYMLINK_DIR = "{{env.LLAMA_BINDINGS_DIR}}/llama.cpp"
+_.path = ["./node_modules/.bin", "{{env.DEPOT_DIR}}"]
 
 # =============================================================================
 # Test model — single source of truth for llama-server integration tests.
@@ -51,11 +60,12 @@ depends = ["setup:tools", "setup:wasm", "setup:cloudflare"]
 run = 'echo "✓ Development environment setup complete"'
 
 [tasks."setup:tools"]
-description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit"
+description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit, and C/C++ toolchains"
+depends = ["tools:llama:init", "tools:emsdk:init", "tools:dawn:clone"]
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
-echo "Installing pnmp tools..."
+echo "Installing pnpm dependencies..."
 pnpm install
 echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
 """
@@ -74,13 +84,12 @@ description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gcl
 run = """
 #!/usr/bin/env bash
 set -e
-DEPOT_DIR="$PROJECT_ROOT/tools/depot_tools"
 if [ -d "$DEPOT_DIR/.git" ]; then
     echo "depot_tools already present, updating..."
     git -C "$DEPOT_DIR" pull --ff-only
 else
     echo "Cloning depot_tools into $DEPOT_DIR..."
-    mkdir -p "$PROJECT_ROOT/tools"
+    mkdir -p "$TOOLS_DIR"
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$DEPOT_DIR"
 fi
 echo "✓ depot_tools installed. Ensure tools/depot_tools is on PATH (mise handles this)."
@@ -92,12 +101,11 @@ depends = ["setup:depot-tools"]
 run = """
 #!/usr/bin/env bash
 set -e
-DAWN_DIR="$PROJECT_ROOT/tools/dawn"
 if [ -d "$DAWN_DIR/.git" ]; then
     echo "Dawn already cloned at $DAWN_DIR"
 else
     echo "Cloning Dawn into $DAWN_DIR..."
-    mkdir -p "$PROJECT_ROOT/tools"
+    mkdir -p "$TOOLS_DIR"
     git clone https://dawn.googlesource.com/dawn "$DAWN_DIR"
 fi
 
@@ -110,6 +118,47 @@ fi
 echo "Running gclient sync..."
 gclient sync
 echo "✓ Dawn cloned and synced at $DAWN_DIR"
+"""
+
+[tasks."tools:llama:symlink"]
+description = "Create symlink from LLAMA_SYMLINK_DIR to ../../tools/llama.cpp"
+run = """
+#!/usr/bin/env bash
+set -e
+LINK="$LLAMA_SYMLINK_DIR"
+TARGET="../../{{env.LLAMA_SUBMODULE_PATH}}"
+if [ -L "$LINK" ]; then
+    echo "Symlink already exists: $LINK"
+else
+    if [ -d "$LINK" ]; then
+        echo "ERROR: directory exists at $LINK, cannot create symlink"
+        echo "Remove the directory first, then re-run this task"
+        exit 1
+    fi
+    ln -s "$TARGET" "$LINK"
+    echo "Created symlink: $LINK -> $TARGET"
+fi
+"""
+
+[tasks."tools:llama:init"]
+description = "Initialize and update llama.cpp submodule"
+depends = ["tools:llama:symlink"]
+run = """
+#!/usr/bin/env bash
+set -e
+echo "Initializing llama.cpp submodule..."
+git submodule update --init --recursive {{env.LLAMA_SUBMODULE_PATH}}
+echo "✓ llama.cpp submodule ready"
+"""
+
+[tasks."tools:emsdk:init"]
+description = "Initialize and update emsdk submodule"
+run = """
+#!/usr/bin/env bash
+set -e
+echo "Initializing emsdk submodule..."
+git submodule update --init --recursive tools/emsdk
+echo "✓ emsdk submodule ready"
 """
 
 [tasks."setup:cloudflare"]
@@ -155,7 +204,7 @@ run = """
 git submodule update --remote .agents
 git submodule update --remote tools/dawn
 git submodule update --remote tools/emsdk
-git submodule update --remote infrastructure/llama-bindings/llama.cpp/
+git submodule update --remote {{env.LLAMA_SUBMODULE_PATH}}
 """
 
 # =============================================================================
@@ -503,7 +552,6 @@ ls -lh "$PROJECT_ROOT/support/bin/llama-server"
 description = "Clean llama-server build artifacts (both CMake and support/bin)"
 run = """
 #!/usr/bin/env bash
-LLAMA_DIR="$PROJECT_ROOT/infrastructure/llama-bindings/llama.cpp"
 if [ -d "$LLAMA_DIR/build" ]; then
     echo "Cleaning llama.cpp build directory..."
     rm -rf "$LLAMA_DIR/build"
