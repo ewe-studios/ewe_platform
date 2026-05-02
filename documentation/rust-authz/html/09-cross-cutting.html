@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cross-Cutting Concerns — Error Handling, Observability, Testing, and Deployment -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <a href="06-dbrest.html" class="nav-breadcrumb">dbrest — High-Performance REST API for PostgreSQL and SQLite</a><a href="07-zradar.html" class="nav-breadcrumb">zradar — Telemetry Ingestion and Storage Platform</a><a href="08-data-flow.html" class="nav-breadcrumb">End-to-End Data Flows — Check Resolution, Policy Management, REST Queries, and Telemetry Ingestion</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-data-flow.html" class="nav-btn" title="Previous: End-to-End Data Flows — Check Resolution, Policy Management, REST Queries, and Telemetry Ingestion">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: rust-authz — Documentation Index">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Cross-Cutting Patterns</h1>
+<p>This document covers patterns shared across all four projects: error handling strategies, observability setup, testing approaches, release profiles, and deployment considerations.</p>
+<h2>Error Handling Architecture</h2>
+<p>All four projects use structured error types with <code>thiserror</code> derives, but each maps errors to its hosting environment differently.</p>
+<h3>authz-core: Domain Errors</h3>
+<p>Source: <code>authz-core/src/error.rs</code>. The <code>AuthzError</code> enum covers the authorization domain:</p>
+<table><tr><th>Variant</th><th>Meaning</th></tr><tr><td>`Validation { field, message }`</td><td>Input validation failure</td></tr><tr><td>`ModelParse(String)`</td><td>DSL grammar parse failure</td></tr><tr><td>`ModelValidation(String)`</td><td>Semantic model validation failure</td></tr><tr><td>`ModelNotFound`</td><td>No policy exists</td></tr><tr><td>`RelationshipValidation(String)`</td><td>Tuple doesn't match model</td></tr><tr><td>`RelationNotFound { object_type, relation }`</td><td>Relation undefined on type</td></tr><tr><td>`MaxDepthExceeded`</td><td>Recursion limit hit</td></tr><tr><td>`ResolutionError(String)`</td><td>Graph walk failure</td></tr><tr><td>`Datastore(String)`</td><td>Database/infrastructure failure</td></tr><tr><td>`CachePoisoned`</td><td>Mutex/lock failure</td></tr><tr><td>`Internal(String)`</td><td>Catch-all</td></tr></table>
+<p>Source: <code>authz-core/src/error.rs:6-49</code>.</p>
+<p>authz-core has no HTTP status codes or PostgreSQL SQLSTATE mappings — it is a pure library that reports domain errors, leaving the consumer to decide how to surface them.</p>
+<h3>pgauthz: PostgreSQL SQLSTATE Mapping</h3>
+<p>Source: <code>pgauthz/crates/pgauthz/src/errors.rs</code>. pgauthz maps <code>AuthzError</code> to PostgreSQL SQLSTATE codes via <code>ereport!</code>:</p>
+<table><tr><th>AuthzError</th><th>PgSqlErrorCode</th><th>SQLSTATE</th></tr><tr><td>`Validation`</td><td>`ERRCODE_INVALID_PARAMETER_VALUE`</td><td>22023</td></tr><tr><td>`ModelParse`</td><td>`ERRCODE_DATA_EXCEPTION`</td><td>22000</td></tr><tr><td>`ModelValidation`</td><td>`ERRCODE_CHECK_VIOLATION`</td><td>23514</td></tr><tr><td>`ModelNotFound`</td><td>`ERRCODE_NO_DATA_FOUND`</td><td>02000</td></tr><tr><td>`RelationshipValidation`</td><td>`ERRCODE_CHECK_VIOLATION`</td><td>23514</td></tr><tr><td>`RelationNotFound`</td><td>`ERRCODE_UNDEFINED_OBJECT`</td><td>42704</td></tr><tr><td>`MaxDepthExceeded`</td><td>`ERRCODE_PROGRAM_LIMIT_EXCEEDED`</td><td>54000</td></tr><tr><td>`Datastore`</td><td>`ERRCODE_EXTERNAL_ROUTINE_EXCEPTION`</td><td>38000</td></tr><tr><td>`ResolutionError`, `CachePoisoned`, `Internal`</td><td>`ERRCODE_INTERNAL_ERROR`</td><td>XX000</td></tr></table>
+<p>Source: <code>pgauthz/crates/pgauthz/src/errors.rs:7-60</code>.</p>
+<p><strong>Aha:</strong> The <code>raise_authz_error</code> function records the error metric via <code>crate::metrics::record_error(error_type, "authz_operation")</code> before calling <code>ereport!</code>. This means errors are tracked in OpenTelemetry even when they terminate the PostgreSQL transaction.</p>
+<h3>dbrest: HTTP Status Codes + DBRST Error Codes</h3>
+<p>Source: <code>dbrest/crates/dbrest-core/src/error/mod.rs</code>. dbrest has the most elaborate error system — a large <code>Error</code> enum with over 50 variants, each mapped to:</p>
+<ol><li><strong>DBRST error code</strong> — a project-specific code string (e.g., <code>DBRST205</code> for TableNotFound). Source: <code>dbrest/crates/dbrest-core/src/error/codes.rs</code>. Codes are organized in ranges: 000-099 (config), 100-199 (request), 200-299 (schema), 300-399 (auth), 400-499 (action), 500-599 (database), 999 (internal).</li></ol>
+<ol><li><strong>HTTP status code</strong> — via <code>Error::status()</code>:</li></ol>
+<table><tr><th>Error Category</th><th>HTTP Status</th></tr><tr><td>Config (DbConnection, UnsupportedPgVersion)</td><td>503</td></tr><tr><td>Request parsing (invalid params, body, filters)</td><td>400</td></tr><tr><td>Not found (TableNotFound, ColumnNotFound)</td><td>404</td></tr><tr><td>Ambiguous (multiple relationships)</td><td>300</td></tr><tr><td>Auth (JWT errors)</td><td>401</td></tr><tr><td>Permission denied</td><td>403</td></tr><tr><td>Not insertable/updatable/deletable</td><td>405</td></tr><tr><td>Unique/foreign key/check violations</td><td>409</td></tr><tr><td>Single object expected</td><td>406</td></tr><tr><td>Internal/Database</td><td>500</td></tr></table>
+<p>Source: <code>dbrest/crates/dbrest-core/src/error/mod.rs:351-443</code>.</p>
+<ol><li><strong>JSON response</strong> — with <code>code</code>, <code>message</code>, <code>details</code>, and <code>hint</code> fields. Source: <code>dbrest/crates/dbrest-core/src/error/response.rs:27-41</code>.</li></ol>
+<p>dbrest also provides <code>ResultExt</code> trait for error context chaining and <code>bail!</code> / <code>ensure!</code> macros for early returns:</p>
+<pre><code class="language-rust">// dbrest/crates/dbrest-core/src/error/response.rs:131-178
+#[macro_export]
+macro_rules! bail {
+    ($err:expr) =&gt; { return Err($err.into()); };
+}
+
+#[macro_export]
+macro_rules! ensure! {
+    ($cond:expr, $err:expr) =&gt; {
+        if !$cond { return Err($err.into()); }
+    };
+}
+</code></pre>
+<h3>zradar: Plugin Errors</h3>
+<p>Source: <code>zradar/crates/core/zradar-plugins/src/error.rs</code>. Uses <code>thiserror</code> with <code>anyhow::Error</code> as a catch-all:</p>
+<table><tr><th>Variant</th><th>Meaning</th></tr><tr><td>`NotFound(String)`</td><td>Plugin not found by name</td></tr><tr><td>`AlreadyRegistered(String)`</td><td>Duplicate plugin name</td></tr><tr><td>`InvalidConfig(String)`</td><td>Bad plugin configuration</td></tr><tr><td>`InitializationFailed(String)`</td><td>Plugin init returned error</td></tr><tr><td>`LoadFailed(String)`</td><td>dlopen or static load failure</td></tr><tr><td>`VersionMismatch`</td><td>Plugin API version mismatch</td></tr><tr><td>`TypeMismatch`</td><td>Expected vs actual plugin type</td></tr><tr><td>`DependencyMissing`</td><td>Required plugin dependency not loaded</td></tr><tr><td>`OperationFailed`</td><td>Generic operation failure</td></tr><tr><td>`MigrationFailed`</td><td>Database migration failure</td></tr><tr><td>`MigrationChecksumMismatch`</td><td>Migration integrity check failed</td></tr><tr><td>`Other(anyhow::Error)`</td><td>Transparent catch-all</td></tr></table>
+<p>Source: <code>zradar/crates/core/zradar-plugins/src/error.rs:6-43</code>.</p>
+<div class="mermaid">
+flowchart LR
+    subgraph &quot;authz-core&quot;
+        AE[AuthzError&lt;br/&gt;thiserror enum]
+    end
+
+    subgraph &quot;pgauthz&quot;
+        raise[raise_authz_error]
+        ereport[ereport! via pgrx]
+        metrics[record_error metric]
+    end
+
+    subgraph &quot;dbrest&quot;
+        DE[Error enum&lt;br/&gt;50+ variants]
+        codes[DBRST codes&lt;br/&gt;categorized ranges]
+        status[HTTP status mapping]
+        json[ErrorResponse JSON&lt;br/&gt;code + message + hint]
+    end
+
+    subgraph &quot;zradar&quot;
+        PE[PluginError&lt;br/&gt;thiserror + anyhow]
+    end
+
+    AE --&gt; raise
+    raise --&gt; metrics
+    raise --&gt; ereport
+    DE --&gt; codes
+    DE --&gt; status
+    DE --&gt; json
+
+</div>
+<h2>Observability Patterns</h2>
+<h3>Tracing</h3>
+<p>All four projects use <code>tracing</code> for structured logging, but configure it differently based on their hosting environment.</p>
+<table><tr><th>Project</th><th>Tracing Target</th><th>Configuration</th></tr><tr><td>authz-core</td><td>Standard tracing subscriber</td><td>Enabled by consumers</td></tr><tr><td>pgauthz</td><td>Custom `PgxTracingLayer` → `ereport!`</td><td>GUC-controlled level</td></tr><tr><td>dbrest</td><td>`tracing` + optional OTLP exporter</td><td>Config file + env</td></tr><tr><td>zradar</td><td>Standard tracing subscriber</td><td>Config file</td></tr></table>
+<p><strong>pgauthz tracing bridge:</strong> Source: <code>pgauthz/crates/pgauthz/src/tracing_bridge.rs</code>. The <code>PgxTracingLayer</code> implements <code>tracing_subscriber::Layer</code> and forwards events to pgrx log levels:</p>
+<table><tr><th>tracing Level</th><th>pgrx Level</th></tr><tr><td>ERROR</td><td>`pgrx::error!` (aborts transaction)</td></tr><tr><td>WARN</td><td>`pgrx::warning!`</td></tr><tr><td>INFO</td><td>`pgrx::info!`</td></tr><tr><td>DEBUG</td><td>`pgrx::notice!`</td></tr><tr><td>TRACE</td><td>`pgrx::notice!`</td></tr></table>
+<p>Source: <code>pgauthz/crates/pgauthz/src/tracing_bridge.rs:111-117</code>.</p>
+<p><strong>Aha:</strong> The tracing bridge also extracts <code>cache_level</code> fields from events to record cache hit metrics. When a <code>cache_hit</code> event is recorded, the <code>PgxTracingLayer</code> calls <code>crate::metrics::record_cache_hit(level)</code>. This means cache metrics are piggybacked on structured log events rather than instrumented inline at every cache call site. Source: <code>pgauthz/crates/pgauthz/src/tracing_bridge.rs:93-97</code>.</p>
+<h3>OpenTelemetry</h3>
+<table><tr><th>Project</th><th>OTLP Traces</th><th>OTLP Metrics</th><th>Notes</th></tr><tr><td>pgauthz</td><td>Yes (tonic exporter)</td><td>Yes</td><td>GUC-controlled, ratio-based sampling</td></tr><tr><td>dbrest</td><td>Yes (optional)</td><td>Yes (periodic reader)</td><td>Config file, pool metrics reporter</td></tr><tr><td>zradar</td><td>Yes</td><td>Yes</td><td>api-optel converts OTLP → internal types</td></tr><tr><td>authz-core</td><td>No</td><td>No</td><td>Pure library, no OTLP dependency</td></tr></table>
+<p><strong>pgauthz OTLP:</strong> Source: <code>pgauthz/crates/pgauthz/src/telemetry.rs</code>. Initializes a global <code>SdkTracerProvider</code> with:</p>
+<ul><li>Endpoint from GUC</li><li>Service name from GUC</li><li>Sampling ratio (TraceIdRatioBased) from GUC</li></ul>
+<p>Source: <code>pgauthz/crates/pgauthz/src/telemetry.rs:27-72</code>.</p>
+<p><strong>dbrest OTLP:</strong> Source: <code>dbrest/src/main.rs:84-183</code>. Two separate exporters:</p>
+<ul><li>Tracing: <code>SdkTracerProvider</code> with <code>PeriodicReader</code> + W3C TraceContext propagator</li><li>Metrics: <code>PeriodicReader</code> with configurable interval</li></ul>
+<h3>Metrics</h3>
+<p><strong>pgauthz metrics:</strong> Source: <code>pgauthz/crates/pgauthz/src/metrics.rs</code>. 12 named metrics:</p>
+<table><tr><th>Metric Name</th><th>Type</th><th>Description</th></tr><tr><td>`pgauthz.check.duration`</td><td>Histogram</td><td>Authorization check duration (seconds)</td></tr><tr><td>`pgauthz.check.total`</td><td>Counter</td><td>Total check count (with result, object_type, relation labels)</td></tr><tr><td>`pgauthz.write_tuples.total`</td><td>Counter</td><td>Tuple write/delete count</td></tr><tr><td>`pgauthz.read_tuples.total`</td><td>Counter</td><td>Tuple read count</td></tr><tr><td>`pgauthz.errors.total`</td><td>Counter</td><td>Error count (with error_type, operation labels)</td></tr><tr><td>`pgauthz.cache.hits.total`</td><td>Counter</td><td>Cache hit count (with cache_level label)</td></tr><tr><td>`pgauthz.cache.misses.total`</td><td>Counter</td><td>Cache miss count</td></tr><tr><td>`pgauthz.resolution.depth`</td><td>Histogram</td><td>Permission tree traversal depth</td></tr><tr><td>`pgauthz.resolution.dispatch_count`</td><td>Histogram</td><td>Sub-dispatches per check</td></tr><tr><td>`pgauthz.resolution.datastore_queries`</td><td>Histogram</td><td>Datastore queries per check</td></tr><tr><td>`pgauthz.tuples.read_count`</td><td>Histogram</td><td>Tuples read per operation</td></tr><tr><td>`pgauthz.model.load_duration`</td><td>Histogram</td><td>Model loading duration</td></tr></table>
+<p><strong>dbrest metrics:</strong> Source: <code>dbrest/crates/dbrest-core/src/app/metrics.rs</code>. Reports connection pool gauges every 15 seconds:</p>
+<ul><li><code>db.pool.connections.active</code></li><li><code>db.pool.connections.idle</code></li><li><code>db.pool.connections.max</code></li></ul>
+<p>Uses the <code>metrics</code> crate facade (<code>metrics::gauge!</code>).</p>
+<p><strong>zradar metrics:</strong> Source: <code>zradar/crates/services/api-optel/src/metrics_converter.rs</code>. Converts OTLP metric data points to internal types for storage. Also has functional test scenarios in <code>zradar/test_functional/scenarios/test_metrics.rs</code>.</p>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Tracing&quot;
+        T1[tracing macros]
+        T2[tracing_subscriber]
+        T3[OTLP exporter]
+    end
+
+    subgraph &quot;pgauthz&quot;
+        P1[PgxTracingLayer]
+        P2[ereport!]
+        P3[OTLP via tonic]
+        P4[metrics counter/histogram]
+    end
+
+    subgraph &quot;dbrest&quot;
+        D1[tracing]
+        D2[OTLP optional]
+        D3[pool metrics reporter]
+    end
+
+    subgraph &quot;zradar&quot;
+        Z1[tracing]
+        Z2[api-optel OTLP receiver]
+        Z3[metrics converter]
+    end
+
+    T1 --&gt; T2
+    T2 --&gt; T3
+    T2 --&gt; P1
+    P1 --&gt; P2
+    T1 --&gt; D1
+    D1 --&gt; D2
+    T1 --&gt; Z1
+    Z1 --&gt; Z2
+    Z2 --&gt; Z3
+
+</div>
+<h2>Testing Approaches</h2>
+<p>Each project uses a different testing strategy appropriate to its deployment context.</p>
+<h3>authz-core: Unit Tests In-Tree</h3>
+<p>authz-core tests are inline <code>#[cfg(test)]</code> modules within each source file. Tests cover:</p>
+<ul><li>Model parser: valid/invalid DSL parsing</li><li>Model validator: duplicate types, undefined references, cycle detection</li><li>Core resolver: check results, recursion depth, cycle detection</li><li>CEL conditions: compile/evaluate flow, missing parameters</li></ul>
+<p>This is possible because authz-core has no external dependencies on PostgreSQL or HTTP — it's a pure library.</p>
+<h3>pgauthz: Matrix Testing Framework + Integration Tests</h3>
+<p>Source: <code>pgauthz/crates/pgauthz/src/matrix_runner.rs</code> and <code>pgauthz/tests/</code>. pgauthz has a YAML-based test matrix:</p>
+<pre><code class="language-yaml">name: &quot;basic_check&quot;
+model: |
+  type user {}
+  type document {
+    relations define viewer: [user]
+  }
+tests:
+  - name: &quot;allow_viewer&quot;
+    setup:
+      tuples:
+        - object: &quot;document:doc1&quot;
+          relation: &quot;viewer&quot;
+          subject: &quot;user:alice&quot;
+    assertions:
+      - type: &quot;Check&quot;
+        object: &quot;document:doc1&quot;
+          relation: &quot;viewer&quot;
+          subject: &quot;user:alice&quot;
+          allowed: true
+</code></pre>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:758-788</code>. Test matrix covers:</p>
+<ul><li>Basic checks</li><li>Direct assignments</li><li>Tuple operations (write/delete)</li><li>Model operations</li><li>Set operations (union, intersection, exclusion)</li><li>Wildcard semantics</li><li>Nested groups and exclusions</li><li>Identifier edge cases</li><li>Expand semantics</li><li>List objects/subjects</li><li>Conditions and context</li><li>Expiration semantics</li></ul>
+<p>Integration tests:</p>
+<ul><li><code>tests/integration_e2e.rs</code> — end-to-end tests through SQL functions</li><li><code>tests/integration_pgauthz.rs</code> — pgauthz-specific function tests</li><li><code>tests/test_tracing.sql</code> — SQL-level tracing verification</li></ul>
+<h3>dbrest: Integration Tests + Benchmarks</h3>
+<p><strong>Integration tests:</strong> Source: <code>dbrest/tests/</code>. 8 test files:</p>
+<table><tr><th>File</th><th>Coverage</th></tr><tr><td>`api_request_integration.rs`</td><td>HTTP request parsing</td></tr><tr><td>`auth_integration.rs`</td><td>JWT authentication</td></tr><tr><td>`e2e_app.rs`</td><td>Full app end-to-end</td></tr><tr><td>`e2e_sqlite.rs`</td><td>SQLite-specific e2e</td></tr><tr><td>`plan_integration.rs`</td><td>Action planning</td></tr><tr><td>`query_integration.rs`</td><td>SQL query generation</td></tr><tr><td>`schema_cache_integration.rs`</td><td>Schema introspection</td></tr><tr><td>`sse_integration.rs`</td><td>Server-Sent Events</td></tr><tr><td>`sse_sqlite.rs`</td><td>SSE on SQLite</td></tr><tr><td>`common/mod.rs`</td><td>Shared test fixtures</td></tr></table>
+<p><strong>Benchmarks:</strong> Source: <code>dbrest/Cargo.toml</code>. 4 benchmark targets (<code>harness = false</code>):</p>
+<table><tr><th>Benchmark</th><th>Purpose</th></tr><tr><td>`micro_benchmarks`</td><td>Individual component performance</td></tr><tr><td>`integration_benchmarks`</td><td>End-to-end request latency</td></tr><tr><td>`load_tester`</td><td>Concurrent request throughput</td></tr><tr><td>`bench_metrics`</td><td>Metrics overhead measurement</td></tr></table>
+<p>Source: <code>dbrest/benches/bench_metrics.rs</code>. Benchmarks output JSON for comparison against PostgREST (the reference implementation). Docker compose files exist for benchmarking:</p>
+<ul><li><code>docker-compose.bench.yml</code> — dbrest benchmark instance</li><li><code>docker-compose.bench-postgrest.yml</code> — PostgREST comparison instance</li></ul>
+<h3>zradar: Functional Test Scenarios</h3>
+<p>Source: <code>zradar/test_functional/</code>. Black-box API tests through public HTTP and gRPC endpoints only (no direct database access):</p>
+<table><tr><th>Scenario File</th><th>Coverage</th></tr><tr><td>`test_health.rs`</td><td>Health check endpoints</td></tr><tr><td>`test_auth.rs`</td><td>Authentication</td></tr><tr><td>`test_organizations.rs`</td><td>Organization CRUD</td></tr><tr><td>`test_projects.rs`</td><td>Project CRUD</td></tr><tr><td>`test_api_keys.rs`</td><td>API key management</td></tr><tr><td>`test_tracing.rs`</td><td>Trace ingestion</td></tr><tr><td>`test_e2e.rs`</td><td>End-to-end flows</td></tr><tr><td>`test_scores.rs`</td><td>Scoring endpoints</td></tr><tr><td>`test_query_api.rs`</td><td>Query API</td></tr><tr><td>`test_telemetry_storage.rs`</td><td>Telemetry storage</td></tr><tr><td>`test_span_types.rs`</td><td>Span type handling</td></tr><tr><td>`test_analytics.rs`</td><td>Analytics queries</td></tr><tr><td>`test_metrics.rs`</td><td>Metrics ingestion</td></tr><tr><td>`test_logs.rs`</td><td>Log ingestion</td></tr></table>
+<p>Test helpers:</p>
+<ul><li><code>helpers/api_client.rs</code> — HTTP client wrapper</li><li><code>helpers/grpc_client.rs</code> — gRPC client for OTLP</li><li><code>helpers/db_client.rs</code> — Database client</li><li><code>helpers/fixtures.rs</code> — Test data fixtures</li><li><code>helpers/test_helpers.rs</code> — Shared setup/teardown</li></ul>
+<p>Run with: <code>cargo test --test functional_tests -- --ignored</code></p>
+<div class="mermaid">
+flowchart LR
+    subgraph &quot;authz-core&quot;
+        U[#[cfg(test)]&lt;br/&gt;inline unit tests]
+    end
+
+    subgraph &quot;pgauthz&quot;
+        M[matrix YAML tests&lt;br/&gt;25+ scenarios]
+        I[integration tests&lt;br/&gt;e2e via SQL]
+    end
+
+    subgraph &quot;dbrest&quot;
+        IT[integration tests&lt;br/&gt;8 test files]
+        B[benchmarks&lt;br/&gt;4 targets]
+    end
+
+    subgraph &quot;zradar&quot;
+        F[functional tests&lt;br/&gt;14 scenario modules]
+        H[helpers&lt;br/&gt;api/grpc/db clients]
+    end
+
+    U --&gt;|pure library| U
+    M --&gt;|pgrx-based| I
+    IT --&gt;|SQLite/PG| B
+    F --&gt;|HTTP/gRPC| H
+
+</div>
+<h2>Release Profiles</h2>
+<h3>dbrest and zradar</h3>
+<p>Both projects share the same aggressive release profile:</p>
+<pre><code class="language-toml">[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+</code></pre>
+<p>Source: <code>dbrest/Cargo.toml:128-131</code> and <code>zradar/Cargo.toml:113-117</code>.</p>
+<table><tr><th>Setting</th><th>Effect</th></tr><tr><td>`opt-level = 3`</td><td>Maximum optimization</td></tr><tr><td>`lto = true`</td><td>Link-time optimization across all crates</td></tr><tr><td>`codegen-units = 1`</td><td>Single compilation unit (enables cross-crate inlining)</td></tr><tr><td>`strip = true`</td><td>Remove debug symbols from binary (smaller deploy size)</td></tr></table>
+<p><strong>Aha:</strong> dbrest does not include <code>strip = true</code> in its profile (unlike zradar). Source: <code>dbrest/Cargo.toml:128-131</code>. This means dbrest's release binary retains debug symbols, which may be intentional for production debugging.</p>
+<h3>authz-core and pgauthz</h3>
+<p>Neither authz-core nor pgauthz defines a custom <code>[profile.release]</code>. They inherit the default Cargo release profile (opt-level 3, no LTO). This is appropriate because:</p>
+<ul><li>authz-core is a library, compiled as part of pgauthz's build</li><li>pgauthz uses pgrx's build system which manages its own release settings</li></ul>
+<h2>Deployment Considerations</h2>
+<h3>Container Images</h3>
+<table><tr><th>Project</th><th>Dockerfile</th><th>docker-compose</th></tr><tr><td>pgauthz</td><td>`pgauthz/Dockerfile`</td><td>None</td></tr><tr><td>dbrest</td><td>`dbrest/Dockerfile`</td><td>`docker-compose.bench.yml`</td></tr><tr><td>zradar</td><td>`zradar/Dockerfile`</td><td>`docker-compose.yml`, `docker-compose.test.yml`</td></tr></table>
+<p>Source: Filesystem at <code>pgauthz/Dockerfile</code>, <code>dbrest/Dockerfile</code>, <code>zradar/Dockerfile</code>.</p>
+<h3>pgauthz: PostgreSQL Extension</h3>
+<p>Deployed as a <code>.so</code> extension file into PostgreSQL's <code>lib/</code> directory and <code>shared_extension/</code> directory. Requires:</p>
+<ul><li>PostgreSQL 14+ (pgrx compatibility)</li><li><code>CREATE EXTENSION pgauthz</code> to bootstrap schema</li><li>GUC configuration for OTLP/check strategy</li></ul>
+<h3>dbrest: Standalone Binary</h3>
+<p>Deployed as a single binary. Supports:</p>
+<ul><li>SQLite: No external dependencies, single <code>.db</code> file</li><li>PostgreSQL: Requires running PostgreSQL instance</li></ul>
+<p>Configuration via CLI args, TOML file, or environment variables (<code>DBREST_*</code>).</p>
+<h3>zradar: Multi-Service Deployment</h3>
+<p>Deployed as two binaries:</p>
+<ul><li><code>zradar-server</code> — HTTP/REST + OTLP gRPC endpoints</li><li><code>zradar-worker</code> — Background job processor</li></ul>
+<p>Requires:</p>
+<ul><li>PostgreSQL (business entities)</li><li>ClickHouse (telemetry storage)</li><li>Optional: Redis (job queue), S3 (object storage)</li></ul>
+<p>Configuration via TOML files with plugin enable/disable flags.</p>
+<h2>What to Read Next</h2>
+<p>Continue with the <a href="README.md">README</a> for the documentation index and navigation guide.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
