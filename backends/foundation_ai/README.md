@@ -868,3 +868,114 @@ All providers implement the same two traits:
 The uniform API means you can swap Anthropic for Ollama or OpenAI for
 llama.cpp by changing only the provider instantiation — the rest of your code
 (messages, params, output extraction) stays identical.
+
+## Working with a Model Instance
+
+Once you have a `Model` from any provider, the API is identical. The
+`Model` trait exposes six methods:
+
+```rust
+// spec() — metadata about the loaded model
+let spec = model.spec();
+println!("Model: {}", spec.name);
+
+// descriptor() — pricing, context window, provider info (None for local models)
+if let Some(desc) = model.descriptor() {
+    println!("Context window: {}", desc.context_window);
+    println!("Pricing: ${:.2} per M input tokens", desc.cost.input);
+}
+
+// generate() — blocking inference, returns Vec<Messages>
+let outputs = model.generate(interaction, None).unwrap();
+
+// stream() — token-by-token streaming
+let mut stream = model.stream(interaction, None).unwrap();
+
+// costing() — cumulative usage report for this model instance
+let usage = model.costing().unwrap();
+println!("Total tokens used: {}", usage.total_tokens);
+```
+
+### Multi-turn conversations
+
+Pass previous messages back in the `messages` array to continue a
+conversation. The model remembers context from the entire message history:
+
+```rust
+let turn1 = model.generate(interaction1, None).unwrap();
+
+// Build turn 2 by appending the assistant's response
+let turn2_interaction = ModelInteraction {
+    messages: vec![
+        user_message,                // first user turn
+        turn1[0].clone(),            // assistant response
+        Messages::User {             // follow-up
+            role: "user".into(),
+            content: UserModelContent::Text(TextContent {
+                content: "Tell me more.".into(),
+                signature: None,
+            }),
+            signature: None,
+        },
+    ],
+    ..Default::default() // or construct with system_prompt, tools_shed, etc.
+};
+
+let turn2 = model.generate(turn2_interaction, None).unwrap();
+```
+
+### Extracting response content
+
+Each provider returns the same `Messages` enum. Pattern-match to extract
+what you need:
+
+```rust
+for msg in outputs {
+    match msg {
+        Messages::Assistant { content, stop_reason, usage, .. } => {
+            match content {
+                ModelOutput::Text(tc) => println!("{}", tc.content),
+                ModelOutput::ThinkingContent { thinking, .. } => eprintln!("{thinking}"),
+                ModelOutput::ToolCall { id, name, arguments, .. } => {
+                    // Handle tool call — see Tool Calling section
+                }
+                ModelOutput::Image(ic) => {
+                    // Base64 image data with ic.mime_type
+                }
+                ModelOutput::Embedding { dimensions, values } => {
+                    // Vector for RAG / semantic search
+                }
+            }
+            println!("Tokens: {:.0}", usage.total_tokens);
+        }
+        _ => {}
+    }
+}
+```
+
+### Passing per-call parameters
+
+Override defaults for a single call with `ModelParams`:
+
+```rust
+let params = ModelParams {
+    max_tokens: 512,
+    temperature: 0.3,
+    seed: Some(42),
+    ..Default::default()
+};
+
+let outputs = model.generate(interaction, Some(params)).unwrap();
+```
+
+### Inspecting model pricing
+
+Use the descriptor to check costs before sending a request:
+
+```rust
+if let Some(desc) = model.descriptor() {
+    let estimated = estimate_tokens(&interaction.messages);
+    let cost = calculate_cost(&desc.cost, &estimated, CostStatus::Estimated);
+    println!("Estimated cost: ${:.4}", cost.input + cost.output);
+}
+```
