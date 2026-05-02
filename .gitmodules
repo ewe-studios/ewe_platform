@@ -8,6 +8,9 @@
 	path = tools/dawn
 	depth = 1
 	url = https://github.com/google/dawn.git
+[submodule "tools/whisper.cpp"]
+	path = tools/whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp.git
 [submodule "infrastructure/llama-bindings/llama.cpp"]
 	path = infrastructure/llama-bindings/llama.cpp
 	url = https://github.com/ggml-org/llama.cpp
