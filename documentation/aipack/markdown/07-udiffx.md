@@ -84,6 +84,8 @@ Source: `rust-udiffx/src/patch_completer/`. When LLMs output incomplete patches 
 2. **Matches** hunks to actual file content using fuzzy matching (`matchers.rs`)
 3. **Completes** the patch with correct context lines (`complete.rs`)
 
+**Aha:** The patch completer uses fuzzy matching because LLMs frequently produce diffs with approximate line numbers or truncated context. Instead of rejecting incomplete patches outright (like `git apply` would), udiffx attempts to find the correct insertion point by matching the diff's content lines against the actual file. This makes it significantly more tolerant of LLM hallucination while still producing correct results.
+
 This is critical for LLM reliability — LLMs often produce diffs with approximate line numbers or truncated context.
 
 ### Filesystem Guard

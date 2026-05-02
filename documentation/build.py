@@ -529,7 +529,7 @@ if __name__ == '__main__':
     else:
         # Default: build pi, hermes, open-pencil, and autoresearch from this directory
         base = Path(__file__).resolve().parent
-        for proj in ['pi', 'hermes', 'open-pencil', 'autoresearch', 'paperclip', 'voice-agent-server', 'graphify', 'mastra', 'resonate', 'rust-authz']:
+        for proj in ['pi', 'hermes', 'open-pencil', 'autoresearch', 'paperclip', 'voice-agent-server', 'graphify', 'mastra', 'resonate', 'rust-authz', 'aipack']:
             p = base / proj
             if p.exists():
                 build(str(p))

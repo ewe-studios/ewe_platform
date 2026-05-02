@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Utilities — simple-fs, uuid-extra, pretty-sqlite, dinf, htmd, webdev, webtk -- aipack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/aipack/docs</span>
+    <div class="nav-actions">
+      <a href="05-modql.html" class="nav-breadcrumb">modql — Model Query Language for Filtering and Ordering</a><a href="06-agentic.html" class="nav-breadcrumb">agentic — MCP Protocol Client/Server for Agent2Agent Systems</a><a href="07-udiffx.html" class="nav-breadcrumb">udiffx — LLM-Optimized Unified Diff Parser and Applier</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="07-udiffx.html" class="nav-btn" title="Previous: udiffx — LLM-Optimized Unified Diff Parser and Applier">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: aipack — Documentation Index">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Utility Crates</h1>
+<p>This document covers the smaller utility crates in the collection: filesystem access, UUID encoding, SQLite pretty printing, directory info CLI, HTML-to-Markdown conversion, and web development tools.</p>
+<h2>simple-fs — Filesystem API</h2>
+<p>Source: <code>rust-simple-fs/src/</code> — 38 files, ~1263 lines.</p>
+<p>A high-level filesystem API with convenient JSON/TOML/YAML serialization, glob-based file listing, and safe removal operations.</p>
+<h3>Core Types</h3>
+<table><tr><th>Type</th><th>Source</th><th>Purpose</th></tr><tr><td>`SPath`</td><td>`spath.rs`</td><td>Path abstraction with normalization</td></tr><tr><td>`SFile`</td><td>`file.rs`</td><td>File read/write operations</td></tr><tr><td>`SDir`</td><td>`dir.rs`</td><td>Directory operations (create, list, remove)</td></tr><tr><td>`Smeta`</td><td>`common/smeta.rs`</td><td>File metadata wrapper</td></tr></table>
+<h3>Feature Traits</h3>
+<p>Source: <code>rust-simple-fs/src/featured/</code>.</p>
+<table><tr><th>Feature</th><th>Purpose</th></tr><tr><td>`with_json`</td><td>Load/save files as JSON, NDJSON streaming</td></tr><tr><td>`with_toml`</td><td>Load/save files as TOML</td></tr></table>
+<pre><code class="language-rust">// Load a struct from a JSON file
+let config = Config::load_from_json_file(&quot;config.json&quot;)?;
+
+// Save a struct to a JSON file
+config.save_to_json_file(&quot;config.json&quot;)?;
+</code></pre>
+<h3>File Listing</h3>
+<p>Source: <code>rust-simple-fs/src/list/</code>. Glob-pattern file listing with sorting:</p>
+<pre><code class="language-rust">let files = globs_file_iter(&amp;[&quot;**/*.rs&quot;, &quot;!**/target/**&quot;], &amp;options)?;
+</code></pre>
+<h3>Safe Removal</h3>
+<p>Source: <code>rust-simple-fs/src/safer/</code>. Safe file removal with:</p>
+<ul><li>Trash (move to recycle bin) instead of permanent delete</li><li>Guards to prevent accidental deletion of important paths</li><li>Configurable safety checks</li></ul>
+<p><strong>Aha:</strong> The <code>safer</code> module prevents catastrophic mistakes like <code>rm -rf /</code> by maintaining a whitelist of "safe to remove" paths and rejecting operations on system directories. The trash implementation uses platform-specific APIs (freedesktop.org trash spec on Linux, Trash API on macOS, Recycle Bin on Windows) rather than simple file moves.</p>
+<h3>Span Reading</h3>
+<p>Source: <code>rust-simple-fs/src/span/</code>. Read specific line/CSV ranges from files:</p>
+<pre><code class="language-rust">let lines = read_line_spans(&quot;file.rs&quot;, &amp;[LineSpan { from: 10, to: 20 }])?;
+</code></pre>
+<h3>Directory Reshaping</h3>
+<p>Source: <code>rust-simple-fs/src/reshape/</code>. Normalize and collapse directory structures.</p>
+<h2>uuid-extra — UUID Encoding</h2>
+<p>Source: <code>rust-uuid-extra/src/</code> — 994 lines.</p>
+<p>Base64 and Base58 encoding utilities for UUIDs. Compact representations for URLs and identifiers:</p>
+<pre><code class="language-rust">let uuid = Uuid::new_v4();
+let base64 = uuid.to_base64();  // e.g., &quot;ABC123xyz...&quot;
+let base58 = uuid.to_base58();  // e.g., &quot;7nW8pQ...&quot;
+</code></pre>
+<p>Safe for URL-safe identifiers that are shorter than standard UUID strings.</p>
+<h2>pretty-sqlite — SQLite Pretty Printer</h2>
+<p>Source: <code>rust-pretty-sqlite/src/</code> — 207 lines.</p>
+<p>Pretty-prints SQLite query results as formatted tables for test and dev output. Uses <code>rusqlite</code> for queries and <code>prettytable</code> for formatting.</p>
+<h2>dinf — Directory Info CLI</h2>
+<p>Source: <code>rust-dinf/src/</code> — 572 lines.</p>
+<p>Command-line tool for directory information:</p>
+<ul><li>File counts by type</li><li>Total size</li><li>Directory tree visualization</li><li>Configurable depth and patterns</li></ul>
+<h2>htmd — HTML to Markdown</h2>
+<p>Source: <code>htmd/src/</code> — 1278 lines. Author: letmutex.</p>
+<p>Converts HTML to Markdown, inspired by turndown.js. Uses <code>html5ever</code> for HTML parsing. Supports:</p>
+<ul><li>Headings, paragraphs, lists, tables</li><li>Code blocks with language hints</li><li>Links, images, blockquotes</li><li>Custom element handling</li></ul>
+<h2>webdev — Local Development Server</h2>
+<p>Source: <code>rust-webdev/src/</code> — 314 lines.</p>
+<p>Simple local web server for localhost development. NOT FOR PRODUCTION. Serves static files from a local directory with:</p>
+<ul><li>MIME type detection</li><li>Directory listing</li><li>CORS headers</li></ul>
+<h2>webtk — Web Asset Toolkit</h2>
+<p>Source: <code>rust-webtk/src/</code> — 56 lines.</p>
+<p>Utility to transpile, generate, and mix web assets. Provides CLI commands for asset pipeline operations.</p>
+<h2>What to Read Next</h2>
+<p>Continue with the <a href="README.md">README</a> for the documentation index.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

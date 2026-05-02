@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aipack — Documentation Index -- aipack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/aipack/docs</span>
+    <div class="nav-actions">
+      <a href="06-agentic.html" class="nav-breadcrumb">agentic — MCP Protocol Client/Server for Agent2Agent Systems</a><a href="07-udiffx.html" class="nav-breadcrumb">udiffx — LLM-Optimized Unified Diff Parser and Applier</a><a href="08-utilities.html" class="nav-breadcrumb">Utilities — simple-fs, uuid-extra, pretty-sqlite, dinf, htmd, webdev, webtk</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-utilities.html" class="nav-btn" title="Previous: Utilities — simple-fs, uuid-extra, pretty-sqlite, dinf, htmd, webdev, webtk">← prev</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>aipack Documentation</h1>
+<p>Jeremy Chone's Rust crate collection — 13 crates covering AI providers, JSON-RPC routing, SQL builders, MCP protocol support, and developer tools.</p>
+<h2>Getting Started</h2>
+<p>Start here: <a href="markdown/00-overview.md">00-overview.md</a> — high-level introduction to all 13 crates and how they connect.</p>
+<h2>Documents</h2>
+<h3>Foundation</h3>
+<ul><li><strong><a href="00-overview.html">00-overview</a></strong> — Crate collection overview, key numbers, crate catalog</li><li><strong><a href="01-architecture.html">01-architecture</a></strong> — Module structures, dependency diagrams for all crates</li></ul>
+<h3>AI Layer</h3>
+<ul><li><strong><a href="02-genai.html">02-genai</a></strong> — Multi-provider AI client (19 providers: OpenAI, Anthropic, Gemini, Ollama, etc.) — chat API, embeddings, tool use, streaming, adapter system</li><li><strong><a href="06-agentic.md">06-agentic</a></strong> — MCP protocol client/server (HTTP + stdio transports, tools, resources, prompts, sampling, capability negotiation)</li></ul>
+<h3>Data Layer</h3>
+<ul><li><strong><a href="04-sqlb.html">04-sqlb</a></strong> — Simple, expressive SQL builder (SELECT/INSERT/UPDATE/DELETE) with sqlx integration</li><li><strong><a href="05-modql.html">05-modql</a></strong> — Model Query Language (filter operators, JSON filter syntax, SeaQuery/SQLite adapters, pagination)</li></ul>
+<h3>Transport Layer</h3>
+<ul><li><strong><a href="03-rpc-router.html">03-rpc-router</a></strong> — JSON-RPC 2.0 router with procedural macros (RpcResource, RpcParams, RpcHandlerError)</li></ul>
+<h3>Dev Tools</h3>
+<ul><li><strong><a href="07-udiffx.html">07-udiffx</a></strong> — LLM-optimized unified diff parser/applier with patch completion</li><li><strong><a href="08-utilities.html">08-utilities</a></strong> — Utility crates: simple-fs (filesystem API), uuid-extra (UUID encoding), pretty-sqlite, dinf, htmd (HTML→Markdown), webdev, webtk</li></ul>
+<h2>Quick Reference</h2>
+<table><tr><th>Crate</th><th>Version</th><th>Files</th><th>Purpose</th></tr><tr><td>`genai`</td><td>0.6.0-beta.19</td><td>110+</td><td>Multi-provider AI client (19 providers)</td></tr><tr><td>`agentic`</td><td>0.0.5</td><td>54</td><td>MCP protocol client/server</td></tr><tr><td>`rpc-router`</td><td>0.2.1</td><td>32</td><td>JSON-RPC 2.0 router</td></tr><tr><td>`sqlb`</td><td>0.4.0</td><td>9</td><td>SQL builder</td></tr><tr><td>`modql`</td><td>0.5.0-alpha.9</td><td>40+</td><td>Model Query Language</td></tr><tr><td>`udiffx`</td><td>0.1.42</td><td>17</td><td>Unified diff parser</td></tr><tr><td>`simple-fs`</td><td>0.12.0</td><td>38</td><td>Filesystem API</td></tr><tr><td>`uuid-extra`</td><td>0.0.3</td><td>—</td><td>UUID base64/base58 encoding</td></tr><tr><td>`pretty-sqlite`</td><td>0.5.1</td><td>—</td><td>SQLite pretty printer</td></tr><tr><td>`dinf`</td><td>0.1.5</td><td>—</td><td>Directory info CLI</td></tr><tr><td>`htmd`</td><td>0.5.4</td><td>—</td><td>HTML to Markdown converter</td></tr><tr><td>`webdev`</td><td>0.1.1</td><td>—</td><td>Local dev web server</td></tr><tr><td>`webtk`</td><td>0.1.1</td><td>—</td><td>Web asset toolkit</td></tr></table>
+<h2>Source Locations</h2>
+<p>All source code lives under <code>/home/darkvoid/Boxxed/@formulas/src.rust/src.llamacpp/src.jeremychone/</code>:</p>
+<pre><code class="language-">rust-genai/        — Multi-provider AI client library
+rust-agentic/      — MCP protocol support
+rust-rpc-router/   — JSON-RPC router (+ rpc-router-macros)
+rust-sqlb/         — SQL builder (+ sqlb-macros)
+rust-modql/        — Model Query Language (+ modql-macros)
+rust-udiffx/       — Unified diff parser
+rust-simple-fs/    — Filesystem API
+rust-uuid-extra/   — UUID encoding utilities
+rust-pretty-sqlite/— SQLite pretty printer
+rust-dinf/         — Directory info CLI
+htmd/              — HTML to Markdown (letmutex)
+rust-webdev/       — Local dev server
+rust-webtk/        — Web asset toolkit
+</code></pre>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

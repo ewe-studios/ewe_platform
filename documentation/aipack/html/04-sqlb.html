@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>sqlb — Simple, Expressive SQL Builder for Rust -- aipack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/aipack/docs</span>
+    <div class="nav-actions">
+      <a href="01-architecture.html" class="nav-breadcrumb">Architecture — Crate Structures and Module Dependencies</a><a href="02-genai.html" class="nav-breadcrumb">genai — Multi-Provider AI Client Library for Rust</a><a href="03-rpc-router.html" class="nav-breadcrumb">rpc-router — JSON-RPC 2.0 Router with Procedural Macros</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="03-rpc-router.html" class="nav-btn" title="Previous: rpc-router — JSON-RPC 2.0 Router with Procedural Macros">← prev</a>
+      <a href="05-modql.html" class="nav-btn nav-btn-next" title="Next: modql — Model Query Language for Filtering and Ordering">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>sqlb — SQL Builder</h1>
+<p>sqlb is a simple, expressive, and progressive SQL builder for Rust. It provides a fluent API for constructing SELECT, INSERT, UPDATE, and DELETE queries, with integration into sqlx for execution.</p>
+<p>Source: <code>rust-sqlb/src/</code> — 9 files, ~1217 lines.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Core&quot;
+        Field[Field — key-value pairs]
+        HasFields[&quot;HasFields trait&lt;br/&gt;#[derive(Fields)]&quot;]
+        Whereable[Whereable trait — filter conditions]
+        SqlBuilder[SqlBuilder trait — common SQL construction]
+    end
+
+    subgraph &quot;SQL Builders&quot;
+        Select[SelectSqlBuilder]
+        Insert[InsertSqlBuilder]
+        Update[UpdateSqlBuilder]
+        Delete[DeleteSqlBuilder]
+    end
+
+    subgraph &quot;Value Types&quot;
+        Raw[Raw — raw SQL fragments]
+        SqlxBindable[SqlxBindable — sqlx integration]
+    end
+
+    subgraph &quot;Execution&quot;
+        SqlxExec[sqlx_exec module&lt;br/&gt;execute + collect results]
+    end
+
+    HasFields --&gt; Field
+    Field --&gt; Whereable
+    Whereable --&gt; SqlBuilder
+    SqlBuilder --&gt; Select
+    SqlBuilder --&gt; Insert
+    SqlBuilder --&gt; Update
+    SqlBuilder --&gt; Delete
+    Raw --&gt; Select
+    SqlxBindable --&gt; SqlxExec
+    SqlxExec --&gt; Select
+    SqlxExec --&gt; Insert
+    SqlxExec --&gt; Update
+    SqlxExec --&gt; Delete
+
+</div>
+<h2>Core Types</h2>
+<h3>Field and HasFields</h3>
+<p>Source: <code>rust-sqlb/src/core.rs</code>. The <code>Field</code> type represents a key-value pair for column names and values.</p>
+<pre><code class="language-rust">pub struct Field {
+    pub name: String,
+    pub value: serde_json::Value,
+}
+</code></pre>
+<p>The <code>HasFields</code> trait is derived via <code>#[derive(Fields)]</code> from <code>sqlb-macros</code>:</p>
+<pre><code class="language-rust">#[derive(Fields)]
+pub struct User {
+    pub name: String,
+    pub email: String,
+}
+</code></pre>
+<p>Source: <code>rust-sqlb/src/lib.rs:27</code>.</p>
+<h3>Whereable</h3>
+<p>Source: <code>rust-sqlb/src/core.rs</code>. The <code>Whereable</code> trait provides filter conditions:</p>
+<pre><code class="language-rust">// Single condition
+User { name: &quot;Alice&quot;.to_string(), .. }.as_where()
+
+// Multiple conditions via Vec&lt;Field&gt;
+vec![field!(&quot;name = Alice&quot;), field!(&quot;age &gt; 18&quot;)].as_where()
+</code></pre>
+<h2>Query Builders</h2>
+<h3>SELECT</h3>
+<p>Source: <code>rust-sqlb/src/select.rs</code>.</p>
+<pre><code class="language-rust">let sql = select(&quot;users&quot;)
+    .columns(&amp;[&quot;id&quot;, &quot;name&quot;, &quot;email&quot;])
+    .where_eq(&quot;id&quot;, 1)
+    .order_by(&quot;name&quot;)
+    .limit(10)
+    .build()?;
+// SELECT id, name, email FROM users WHERE id = ? ORDER BY name LIMIT 10
+</code></pre>
+<h3>INSERT</h3>
+<p>Source: <code>rust-sqlb/src/insert.rs</code>.</p>
+<pre><code class="language-rust">let sql = insert(&quot;users&quot;)
+    .data(&amp;user)  // any HasFields type
+    .build()?;
+// INSERT INTO users (name, email) VALUES (?, ?)
+</code></pre>
+<h3>UPDATE</h3>
+<p>Source: <code>rust-sqlb/src/update.rs</code>.</p>
+<pre><code class="language-rust">let sql = update(&quot;users&quot;)
+    .data(&amp;user)
+    .where_eq(&quot;id&quot;, 1)
+    .build()?;
+// UPDATE users SET name = ?, email = ? WHERE id = ?
+</code></pre>
+<h3>DELETE</h3>
+<p>Source: <code>rust-sqlb/src/delete.rs</code>.</p>
+<pre><code class="language-rust">let sql = delete(&quot;users&quot;)
+    .where_eq(&quot;id&quot;, 1)
+    .build()?;
+// DELETE FROM users WHERE id = ?
+</code></pre>
+<h2>sqlx Integration</h2>
+<p>Source: <code>rust-sqlb/src/sqlx_exec.rs</code>. The <code>sqlx_exec</code> module provides <code>execute()</code> and <code>collect()</code> functions that:</p>
+<ol><li>Build the SQL string and parameter list</li><li>Execute via sqlx's query infrastructure</li><li>Collect results into typed structs</li></ol>
+<h2>Value Types</h2>
+<p>Source: <code>rust-sqlb/src/val.rs</code>.</p>
+<table><tr><th>Type</th><th>Purpose</th></tr><tr><td>`Raw(String)`</td><td>Pass raw SQL fragments without parameterization</td></tr><tr><td>`SqlxBindable`</td><td>Trait for converting `serde_json::Value` to sqlx bindable types</td></tr></table>
+<p><strong>Aha:</strong> sqlb uses <code>serde_json::Value</code> as the internal representation for all field values, regardless of the actual Rust type. This means the <code>#[derive(Fields)]</code> macro serializes any struct field to JSON first, then converts to the appropriate database type during query execution. This simplifies the type system at the cost of an intermediate JSON allocation — a deliberate trade-off for simplicity over performance. Source: <code>rust-sqlb/src/core.rs</code> and <code>rust-sqlb/src/val.rs</code>.</p>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="05-modql.md">05-modql.md</a> for the Model Query Language that extends sqlb's filtering capabilities.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

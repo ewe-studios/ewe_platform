@@ -154,6 +154,8 @@ Source: `rust-sqlb/src/val.rs`.
 | `Raw(String)` | Pass raw SQL fragments without parameterization |
 | `SqlxBindable` | Trait for converting `serde_json::Value` to sqlx bindable types |
 
+**Aha:** sqlb uses `serde_json::Value` as the internal representation for all field values, regardless of the actual Rust type. This means the `#[derive(Fields)]` macro serializes any struct field to JSON first, then converts to the appropriate database type during query execution. This simplifies the type system at the cost of an intermediate JSON allocation — a deliberate trade-off for simplicity over performance. Source: `rust-sqlb/src/core.rs` and `rust-sqlb/src/val.rs`.
+
 ## What to Read Next
 
 Continue with [05-modql.md](05-modql.md) for the Model Query Language that extends sqlb's filtering capabilities.

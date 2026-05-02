@@ -127,6 +127,8 @@ Source: `rust-agentic/src/mcp/capabilities/`.
 
 Source: `rust-agentic/src/mcp/lifecycle.rs`. Manages the `initialize` → `initialized` handshake and graceful shutdown.
 
+**Aha:** The `SamplingHandler` trait bridges MCP's sampling protocol with the `genai` client — the MCP server can delegate LLM calls back to the client, which then routes to any of genai's 19 providers. This means an MCP server running on a low-power device can use a remote model (GPT-4, Claude) via the client's sampling handler, without the server needing its own AI credentials.
+
 ## What to Read Next
 
 Continue with [07-udiffx.md](07-udiffx.md) for the unified diff parser.

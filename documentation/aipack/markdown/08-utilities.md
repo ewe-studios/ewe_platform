@@ -53,6 +53,8 @@ Source: `rust-simple-fs/src/safer/`. Safe file removal with:
 - Guards to prevent accidental deletion of important paths
 - Configurable safety checks
 
+**Aha:** The `safer` module prevents catastrophic mistakes like `rm -rf /` by maintaining a whitelist of "safe to remove" paths and rejecting operations on system directories. The trash implementation uses platform-specific APIs (freedesktop.org trash spec on Linux, Trash API on macOS, Recycle Bin on Windows) rather than simple file moves.
+
 ### Span Reading
 
 Source: `rust-simple-fs/src/span/`. Read specific line/CSV ranges from files:
