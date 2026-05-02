@@ -906,6 +906,8 @@ let turn1 = model.generate(interaction1, None).unwrap();
 
 // Build turn 2 by appending the assistant's response
 let turn2_interaction = ModelInteraction {
+    system_prompt: None,
+    soul: None,
     messages: vec![
         user_message,                // first user turn
         turn1[0].clone(),            // assistant response
@@ -918,7 +920,9 @@ let turn2_interaction = ModelInteraction {
             signature: None,
         },
     ],
-    ..Default::default() // or construct with system_prompt, tools_shed, etc.
+    tools_shed: None,
+    chat_template: None,
+    tool_choice: None,
 };
 
 let turn2 = model.generate(turn2_interaction, None).unwrap();
