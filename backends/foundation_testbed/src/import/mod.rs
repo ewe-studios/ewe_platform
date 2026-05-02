@@ -2,6 +2,7 @@
 //!
 //! Coordinates downloading, validation, and caching of pre-built qcow2
 //! images. Supports direct URLs and Vagrant Cloud as sources.
+//! Automatically extracts qcow2 from vagrant box archives (tar or gzip).
 
 use std::path::Path;
 
@@ -16,6 +17,7 @@ const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 ///
 /// If the image already exists, returns the cached path. Otherwise
 /// downloads it from the profile's `prebaked_url` or a default URL.
+/// Handles both direct qcow2 downloads and vagrant box extraction.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     let dest = profile.image_cache_path();
 
@@ -27,8 +29,19 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     // Determine source URL
     let url = resolve_image_url(profile)?;
 
-    // Download
-    download::download(&url, &dest)?;
+    // Download to a temp location first (in case it's a vagrant box)
+    let temp_dest = dest.with_extension("downloading");
+    download::download(&url, &temp_dest)?;
+
+    // Check if it's a vagrant box and extract qcow2
+    if is_vagrant_box(&temp_dest) {
+        extract_qcow2_from_box(&temp_dest, &dest)?;
+        let _ = std::fs::remove_file(&temp_dest);
+    } else {
+        std::fs::rename(&temp_dest, &dest).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("moving downloaded image to {dest:?}: {e}"),
+        })?;
+    }
 
     // Validate size
     validate_image(&dest)?;
@@ -69,11 +82,90 @@ pub fn cached_size(profile: &VmProfile) -> Result<u64> {
     Ok(metadata.len())
 }
 
+// ── Vagrant box detection and extraction ─────────────────────────────────────
+
+/// Check if a downloaded file looks like a vagrant box (tar or gzip-compressed tar).
+fn is_vagrant_box(path: &Path) -> bool {
+    // Check for gzip magic: 0x1f 0x8b
+    if let Ok(mut f) = std::fs::File::open(path) {
+        let mut buf = [0u8; 2];
+        if std::io::Read::read_exact(&mut f, &mut buf).is_ok() {
+            if buf[0] == 0x1f && buf[1] == 0x8b {
+                return true;
+            }
+        }
+    }
+    // Fallback: try tar -tf and see if it works
+    std::process::Command::new("tar")
+        .args(["-tf", path.to_str().unwrap()])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
+/// Extract the qcow2 disk image from a vagrant box archive.
+///
+/// Vagrant boxes can be plain tar or gzip-compressed tar. They typically
+/// contain `box.img`, `box_0.img`, or `*.qcow2` as the disk image.
+fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
+    // List entries to find the disk image
+    let output = std::process::Command::new("tar")
+        .arg("-tf")
+        .arg(box_path)
+        .output()
+        .map_err(|e| TestbedError::Qcow2Error {
+            message: format!("listing vagrant box contents: {e}"),
+        })?;
+
+    if !output.status.success() {
+        return Err(TestbedError::Qcow2Error {
+            message: format!("failed to list vagrant box: {}", String::from_utf8_lossy(&output.stderr)),
+        });
+    }
+
+    // Find the disk image entry
+    let entries: String = String::from_utf8_lossy(&output.stdout).to_string();
+    let disk_entry = entries.lines().find(|name| {
+        let n = name.trim();
+        n == "box.img" || n == "box_0.img" || n.ends_with(".qcow2") || n.ends_with(".img")
+    }).ok_or_else(|| TestbedError::Qcow2Error {
+        message: "no disk image found in vagrant box (expected box.img, box_0.img, *.qcow2, or *.img)".to_string(),
+    })?;
+
+    // Extract the specific file to a temp location
+    let temp_extract = dest.with_extension("extracting");
+    let out_file = std::fs::File::create(&temp_extract).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("creating {temp_extract:?}: {e}"),
+    })?;
+
+    let status = std::process::Command::new("tar")
+        .args(["-xf", box_path.to_str().unwrap(), "-O", disk_entry])
+        .stdout(out_file)
+        .status()
+        .map_err(|e| TestbedError::Qcow2Error {
+            message: format!("extracting disk image: {e}"),
+        })?;
+
+    if !status.success() {
+        let _ = std::fs::remove_file(&temp_extract);
+        return Err(TestbedError::Qcow2Error {
+            message: "failed to extract disk image from vagrant box".to_string(),
+        });
+    }
+
+    // Move to final destination
+    std::fs::rename(&temp_extract, dest).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("moving extracted disk to {dest:?}: {e}"),
+    })?;
+
+    Ok(())
+}
+
 // ── URL resolution ──────────────────────────────────────────────────────────
 
 /// Resolve the image URL for a profile.
 ///
-/// Priority: profile.prebaked_url → hardcoded defaults → error.
+/// Priority: profile.prebaked_url → Vagrant Cloud lookup → error.
 fn resolve_image_url(profile: &VmProfile) -> Result<String> {
     if let Some(url) = profile.prebaked_url {
         return Ok(url.to_string());
@@ -90,41 +182,38 @@ fn resolve_image_url(profile: &VmProfile) -> Result<String> {
     })
 }
 
-/// Query Vagrant Cloud for a qcow2 download URL.
+/// Query Vagrant Cloud for a libvirt download URL.
 ///
-/// Vagrant Cloud API: GET /vagrant/2022-09-30/registry/{provider}/box/{box_name}/versions
-/// We check known Vagrant boxes for qcow2 images.
+/// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
 fn query_vagrant_cloud(profile: &VmProfile) -> Option<String> {
-    // Map profile image names to Vagrant Cloud boxes
     let vagrant_box = match profile.image_name {
-        "windows-11-x86_64.qcow2" => None, // Windows boxes aren't on Vagrant Cloud
-        "ubuntu-24.04-x86_64.qcow2" => Some("generic/ubuntu2404"),
+        "windows-11-x86_64.qcow2" => Some("gusztavvargadr/windows-11"),
+        "ubuntu-24.04-x86_64.qcow2" => Some("alvistack/ubuntu-24.04"),
         _ => None,
     };
 
     let box_name = vagrant_box?;
+    let api_url = format!("https://app.vagrantup.com/api/v2/box/{box_name}");
 
-    let url = format!(
-        "https://app.vagrantup.com/api/v2/box/{box_name}"
-    );
-
-    // Quick HTTP fetch (blocking)
-    let client = reqwest::blocking::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
+    // Use curl subprocess to avoid tokio runtime conflicts
+    let output = std::process::Command::new("curl")
+        .args(["-s", "-L", "--max-redirs", "5", "-m", "30", &api_url])
+        .output()
         .ok()?;
 
-    let response = client.get(&url).send().ok()?;
-    if !response.status().is_success() {
+    if !output.status.success() {
         return None;
     }
 
-    let json: serde_json::Value = response.json().ok()?;
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).ok()?;
 
-    // Find a provider with qcow2 format
+    // Find libvirt provider
     if let Some(providers) = json.get("current_version")?.get("providers")?.as_array() {
         for provider in providers {
             if provider.get("name")?.as_str()? == "libvirt" {
+                if let Some(dl) = provider.get("download_url")?.as_str() {
+                    return Some(dl.to_string());
+                }
                 if let Some(url) = provider.get("url")?.as_str() {
                     return Some(url.to_string());
                 }
@@ -168,7 +257,6 @@ mod tests {
 
     #[test]
     fn test_validate_image_rejects_small_file() {
-        // Create a small file
         let path = std::path::PathBuf::from("/tmp/test_small_image.qcow2");
         std::fs::write(&path, b"tiny").unwrap();
         let err = validate_image(&path).unwrap_err();
