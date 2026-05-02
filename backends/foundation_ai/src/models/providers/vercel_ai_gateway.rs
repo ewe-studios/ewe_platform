@@ -101,7 +101,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 4.0,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -171,7 +171,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 5.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -237,7 +237,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 4.0,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -254,8 +254,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.001,
             cache_write: 0.125,
         },
@@ -271,7 +271,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.4,
             cache_read: 0.04,
             cache_write: 0.5,
@@ -289,7 +289,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.6,
-            output: 3.5999999999999996,
+            output: 3.599_999_999_999_999_6,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -307,7 +307,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.5,
             output: 3.0,
-            cache_read: 0.09999999999999999,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 0.625,
         },
         context_window: 1_000_000,
@@ -339,7 +339,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.7999999999999999,
+            input: 0.799_999_999_999_999_9,
             output: 4.0,
             cache_read: 0.08,
             cache_write: 1.0,
@@ -375,7 +375,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 5.0,
-            cache_read: 0.09999999999999999,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 1.25,
         },
         context_window: 200_000,
@@ -544,7 +544,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.25,
-            output: 0.8999999999999999,
+            output: 0.899_999_999_999_999_9,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -562,7 +562,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 2.0,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 256_000,
@@ -732,7 +732,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.15,
             output: 0.6,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 1_048_576,
@@ -781,8 +781,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
             cache_write: 0.0,
         },
@@ -817,7 +817,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.5,
             output: 3.0,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -834,7 +834,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 12.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -868,7 +868,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 12.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -884,7 +884,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.13,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -901,7 +901,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.14,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -919,7 +919,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 0.75,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 128_000,
@@ -1071,7 +1071,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.24,
-            output: 0.9700000000000001,
+            output: 0.970_000_000_000_000_1,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1087,7 +1087,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.16999999999999998,
+            input: 0.169_999_999_999_999_98,
             output: 0.66,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1224,7 +1224,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.3,
-            output: 0.8999999999999999,
+            output: 0.899_999_999_999_999_9,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1240,7 +1240,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1257,7 +1257,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1274,7 +1274,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1291,8 +1291,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1325,7 +1325,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1342,7 +1342,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1393,7 +1393,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.5700000000000001,
+            input: 0.570_000_000_000_000_1,
             output: 2.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1480,7 +1480,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.6,
             output: 3.0,
-            cache_read: 0.09999999999999999,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 0.0,
         },
         context_window: 262_114,
@@ -1512,7 +1512,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.6,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1530,7 +1530,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.06,
-            output: 0.22999999999999998,
+            output: 0.229_999_999_999_999_98,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1580,9 +1580,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
-            output: 1.5999999999999999,
-            cache_read: 0.09999999999999999,
+            input: 0.399_999_999_999_999_97,
+            output: 1.599_999_999_999_999_9,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 0.0,
         },
         context_window: 1_047_576,
@@ -1597,9 +1597,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
-            cache_read: 0.024999999999999998,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 1_047_576,
@@ -1701,7 +1701,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 2.0,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 400_000,
@@ -1716,8 +1716,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.39999999999999997,
+            input: 0.049_999_999_999_999_996,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.005,
             cache_write: 0.0,
         },
@@ -1786,7 +1786,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 2.0,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 400_000,
@@ -1971,7 +1971,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.25,
             cache_read: 0.02,
             cache_write: 0.0,
@@ -2039,8 +2039,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.19999999999999998,
+            input: 0.049_999_999_999_999_996,
+            output: 0.199_999_999_999_999_98,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -2294,9 +2294,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2311,9 +2311,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2328,9 +2328,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2345,9 +2345,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2364,7 +2364,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2381,7 +2381,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2398,7 +2398,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2415,7 +2415,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2432,7 +2432,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2449,7 +2449,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -2466,7 +2466,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.25,
             output: 2.5,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -2481,7 +2481,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.5,
             cache_read: 0.02,
             cache_write: 0.0,
@@ -2498,7 +2498,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.01,
             cache_write: 0.0,
@@ -2517,7 +2517,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 3.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -2532,7 +2532,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.08,
             cache_write: 0.0,
@@ -2551,7 +2551,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 3.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_050_000,
@@ -2583,7 +2583,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://ai-gateway.vercel.sh"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.1,
             cache_read: 0.03,
             cache_write: 0.0,
@@ -2601,7 +2601,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.6,
-            output: 1.7999999999999998,
+            output: 1.799_999_999_999_999_8,
             cache_read: 0.11,
             cache_write: 0.0,
         },
@@ -2635,8 +2635,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.3,
-            output: 0.8999999999999999,
-            cache_read: 0.049999999999999996,
+            output: 0.899_999_999_999_999_9,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 128_000,
@@ -2686,7 +2686,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.07,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -2703,7 +2703,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.06,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
             cache_write: 0.0,
         },
@@ -2720,8 +2720,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 1.0,
-            output: 3.1999999999999997,
-            cache_read: 0.19999999999999998,
+            output: 3.199_999_999_999_999_7,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 202_800,

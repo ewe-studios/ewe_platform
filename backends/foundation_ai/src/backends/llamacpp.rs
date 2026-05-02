@@ -22,6 +22,7 @@ use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::token::LlamaToken;
 
 use std::cell::RefCell;
+use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::time::SystemTime;
@@ -249,7 +250,6 @@ struct LlamaModelsInner {
     #[allow(dead_code)]
     sampler: Option<LlamaSampler>,
     spec: ModelSpec,
-    last_usage: Option<UsageReport>,
     pricing: ModelUsageCosting,
     cumulative_cost: CostAccumulator,
 }
@@ -279,7 +279,6 @@ impl LlamaModels {
                 context,
                 sampler: None,
                 spec,
-                last_usage: None,
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
             })),
@@ -309,7 +308,7 @@ impl Model for LlamaModels {
             provider: ModelProviders::LLAMACPP,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
-            cost: inner.pricing.clone(),
+            cost: inner.pricing,
             context_window: 0,
             max_tokens: 0,
         })
@@ -426,7 +425,7 @@ impl LlamaCppStream {
     /// Returns a `GenerationError` if stream initialization fails.
     pub fn new(
         model: LlamaModels,
-        interaction: ModelInteraction,
+        interaction: &ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Self> {
         // Initialize backend upfront - this is where we can properly report errors
@@ -480,7 +479,7 @@ impl LlamaCppStream {
                             props.keys().cloned().collect::<Vec<_>>().join(", ")
                         })
                         .unwrap_or_default();
-                    prompt.push_str(&format!("- {}({})\n", tool.name, args));
+                    let _ = write!(prompt, "- {}({})\n", tool.name, args);
                 }
             }
         }
@@ -690,7 +689,7 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
-/// Flatten a ToolShed into a Vec<Tool> for formatting.
+/// Flatten a `ToolShed` into a Vec<Tool> for formatting.
 fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
     let mut tools = vec![
         shed.shed.clone(),
@@ -721,7 +720,7 @@ fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
 /// Apply a chat template to the interaction messages.
 ///
 /// Uses a custom template if provided, otherwise falls back to the model's default.
-/// Prepends a system message combining system_prompt + soul + tool definitions.
+/// Prepends a system message combining `system_prompt` + soul + tool definitions.
 fn apply_chat_template(
     model: &LlamaModel,
     interaction: &ModelInteraction,

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing & System Limits -- turbopuffer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/turbopuffer/docs</span>
+    <div class="nav-actions">
+      <a href="06-consistency.html" class="nav-breadcrumb">Consistency Model</a><a href="07-api-and-sdks.html" class="nav-breadcrumb">API & SDKs</a><a href="08-turbogrep.html" class="nav-breadcrumb">Turbogrep CLI</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-turbogrep.html" class="nav-btn" title="Previous: Turbogrep CLI">← prev</a>
+      <a href="10-performance.html" class="nav-btn nav-btn-next" title="Next: Performance Benchmarks">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Pricing & System Limits</h1>
+<h2>Pricing Tiers</h2>
+<table><tr><th>Feature</th><th>Launch</th><th>Scale</th><th>Enterprise</th></tr><tr><td>**Deployment**</td><td>Multi-tenant</td><td>Multi-tenant</td><td>Multi-tenant + Single-tenant + BYOC</td></tr><tr><td>**Min usage**</td><td>$64/month</td><td>$256/month</td><td>>= $4,096/month (35% premium)</td></tr><tr><td>**SSO**</td><td>No</td><td>Yes</td><td>Yes</td></tr><tr><td>**Audit Logs**</td><td>No</td><td>Yes</td><td>Yes</td></tr><tr><td>**HIPAA BAA**</td><td>No</td><td>Yes</td><td>Yes</td></tr><tr><td>**CMEK**</td><td>No</td><td>No</td><td>Yes (Per Namespace)</td></tr><tr><td>**Private Networking**</td><td>No</td><td>No</td><td>Yes</td></tr><tr><td>**Support**</td><td>Community Slack/Email</td><td>Community + Private Slack, 8-5 hrs</td><td>24/7 + SLA 99.95%</td></tr><tr><td>**Uptime SLA**</td><td>None</td><td>None</td><td>99.95%</td></tr></table>
+<p><strong>Key pricing insight:</strong> The minimum usage model means you pay for what you use, with a floor. On the Launch tier, if you use $20 of storage and queries, you still pay $64. On Enterprise, minimum is $4,096/month but you get single-tenant deployment, customer-managed encryption keys (CMEK), and private networking.</p>
+<h2>System Limits</h2>
+<h3>Scale</h3>
+<table><tr><th>Metric</th><th>Production Observed</th><th>Current Limit</th></tr><tr><td>Max documents (global)</td><td>3.5T+ @ 13PB+</td><td>Unlimited</td></tr><tr><td>Max documents (per namespace)</td><td>500M+ @ 2TB</td><td>500M @ 2TB</td></tr><tr><td>Max namespaces</td><td>100M+</td><td>Unlimited</td></tr><tr><td>Max pinned namespaces</td><td>256</td><td>256 (contact for custom)</td></tr></table>
+<h3>Vectors</h3>
+<table><tr><th>Metric</th><th>Limit</th></tr><tr><td>Max vector columns</td><td>2</td></tr><tr><td>Max dimensions (dense)</td><td>10,752</td></tr><tr><td>Max dimensions (sparse)</td><td>30,522 total, 1,024 per vector</td></tr></table>
+<h3>Throughput</h3>
+<table><tr><th>Metric</th><th>Production Observed</th><th>Current Limit (per namespace)</th></tr><tr><td>Max write throughput (global)</td><td>10M+ writes/s @ 32GB/s</td><td>Unlimited</td></tr><tr><td>Max write throughput (per ns)</td><td>32k+ writes/s @ 64MB/s</td><td>10k writes/s @ 32 MB/s</td></tr><tr><td>Max queries (global)</td><td>25k+ queries/s</td><td>Unlimited</td></tr><tr><td>Max queries (per ns)</td><td>1k+ queries/s</td><td>1k writes/s</td></tr></table>
+<h3>Documents</h3>
+<table><tr><th>Metric</th><th>Limit</th></tr><tr><td>Max upsert batch size</td><td>512 MB</td></tr><tr><td>Max document size</td><td>64 MiB</td></tr><tr><td>Max attribute value size</td><td>8 MiB</td></tr></table>
+<h2>Regions</h2>
+<h3>GCP Regions</h3>
+<table><tr><th>Region</th><th>Location</th></tr><tr><td>`gcp-us-central1`</td><td>Iowa</td></tr><tr><td>`gcp-us-west1`</td><td>Oregon</td></tr><tr><td>`gcp-us-east4`</td><td>N. Virginia</td></tr><tr><td>`gcp-northamerica-northeast2`</td><td>Toronto</td></tr><tr><td>`gcp-europe-west3`</td><td>Frankfurt</td></tr><tr><td>`gcp-asia-southeast1`</td><td>Singapore</td></tr><tr><td>`gcp-asia-northeast3`</td><td>Seoul</td></tr></table>
+<h3>AWS Regions</h3>
+<table><tr><th>Region</th><th>Location</th></tr><tr><td>`aws-us-east-1`</td><td>N. Virginia</td></tr><tr><td>`aws-us-east-2`</td><td>Ohio</td></tr><tr><td>`aws-us-west-2`</td><td>Oregon</td></tr><tr><td>`aws-eu-central-1`</td><td>Frankfurt</td></tr><tr><td>`aws-eu-west-1`</td><td>Ireland</td></tr><tr><td>`aws-eu-west-2`</td><td>London</td></tr><tr><td>`aws-ap-southeast-2`</td><td>Sydney</td></tr><tr><td>`aws-ca-central-1`</td><td>Montreal</td></tr><tr><td>`aws-ap-south-1`</td><td>Mumbai</td></tr><tr><td>`aws-sa-east-1`</td><td>Sao Paulo</td></tr></table>
+<p><strong>Azure:</strong> Available for BYOC only (no public regions yet).</p>
+<p>Source: <code>turbogrep/src/turbopuffer.rs:14-26</code> — <code>TURBOPUFFER_REGIONS</code> constant lists the 11 regions that <code>tg</code> auto-pings to find the closest:</p>
+<pre><code class="language-rust">const TURBOPUFFER_REGIONS: &amp;[&amp;str] = &amp;[
+    &quot;gcp-us-central1&quot;, &quot;gcp-us-west1&quot;, &quot;gcp-us-east4&quot;,
+    &quot;gcp-northamerica-northeast2&quot;, &quot;gcp-europe-west3&quot;,
+    &quot;gcp-asia-southeast1&quot;, &quot;aws-ap-southeast-2&quot;,
+    &quot;aws-eu-central-1&quot;, &quot;aws-us-east-1&quot;,
+    &quot;aws-us-east-2&quot;, &quot;aws-us-west-2&quot;,
+];
+</code></pre>
+<h2>Namespace Pinning</h2>
+<p>Namespace pinning reserves dedicated compute and NVMe SSD for a specific namespace:</p>
+<ul><li>Guarantees predictable latency (no noisy neighbor)</li><li>Bypasses the multi-tenant scheduling</li><li>Costs more but provides dedicated resources</li><li>Limited to 256 pinned namespaces per organization (contact for custom limits)</li></ul>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Multi-Tenant (Launch/Scale)&quot;
+        LB1[&quot;Load Balancer&quot;] --&gt; QN1[&quot;Query Node (shared)&quot;]
+        LB1 --&gt; QN2[&quot;Query Node (shared)&quot;]
+        QN1 --&gt; NS1[&quot;Namespace A&quot;]
+        QN1 --&gt; NS2[&quot;Namespace B&quot;]
+        QN2 --&gt; NS3[&quot;Namespace C&quot;]
+        QN2 --&gt; NS4[&quot;Namespace D&quot;]
+    end
+    
+    subgraph &quot;Pinned Namespace (Enterprise)&quot;
+        LB2[&quot;Load Balancer&quot;] --&gt; PQN[&quot;Dedicated Query Node&quot;]
+        PQN --&gt; PNS[&quot;Pinned Namespace&quot;]
+        PQN -. &quot;Reserved NVMe&quot; .-&gt; PNS
+    end
+
+</div>
+<h2>Region Auto-Detection</h2>
+<p>The <code>turbogrep</code> CLI auto-detects the closest region by pinging all 11 regions concurrently on first run:</p>
+<p>Source: <code>turbogrep/src/turbopuffer.rs:75-103</code> — <code>find_closest_region()</code>:</p>
+<pre><code class="language-rust">pub async fn find_closest_region() -&gt; Result&lt;String, TurbopufferError&gt; {
+    let ping_futures: Vec&lt;_&gt; = TURBOPUFFER_REGIONS
+        .iter()
+        .map(|&amp;region| async move {
+            match ping(Some(region)).await {
+                Ok(latency) =&gt; Some((region.to_string(), latency)),
+                Err(_e) =&gt; None,
+            }
+        })
+        .collect();
+    let results = join_all(ping_futures).await;
+    // Pick lowest latency region...
+}
+</code></pre>
+<p>Source: <code>turbogrep/src/config.rs:51-62</code> — Auto-save detected region to config:</p>
+<pre><code class="language-rust">if settings.turbopuffer_region.is_none() {
+    match crate::turbopuffer::find_closest_region().await {
+        Ok(best_region) =&gt; {
+            settings.turbopuffer_region = Some(best_region);
+            config_changed = true;
+        }
+        Err(_e) =&gt; {
+            settings.turbopuffer_region = Some(&quot;gcp-us-east4&quot;.to_string());
+            config_changed = true;
+        }
+    }
+}
+</code></pre>
+<h2>Why Object Storage Makes It Cheap</h2>
+<p>The pricing advantage comes from the architecture:</p>
+<div class="mermaid">
+flowchart LR
+    subgraph &quot;Traditional Vector DB&quot;
+        T1[&quot;Provisioned compute\n(pay 24/7)&quot;] --&gt; T2[&quot;Local SSD storage\n$100-200/TB/mo&quot;]
+        T2 --&gt; T3[&quot;3x replication\nfor HA&quot;]
+        T3 --&gt; T4[&quot;$500+/TB/mo\ntotal cost&quot;]
+    end
+    
+    subgraph &quot;Turbopuffer&quot;
+        S1[&quot;Serverless compute\n(pay per query)&quot;] --&gt; S2[&quot;S3 object storage\n$23/TB/mo&quot;]
+        S2 --&gt; S3[&quot;S3 replication\n(included)&quot;]
+        S3 --&gt; S4[&quot;$50-100/TB/mo\ntotal cost&quot;]
+    end
+
+</div>
+<table><tr><th>Cost Component</th><th>Traditional Vector DB</th><th>Turbopuffer</th></tr><tr><td>Storage</td><td>Provisioned SSD ($100-200/TB/month)</td><td>S3 Standard ($23/TB/month)</td></tr><tr><td>Compute</td><td>Always-on (pay 24/7)</td><td>Serverless (pay per query/write)</td></tr><tr><td>Replication</td><td>3x copies (for HA)</td><td>S3 handles replication (included)</td></tr><tr><td>Idle cost</td><td>Full provisioned cost</td><td>Near-zero (only storage)</td></tr></table>
+<p><strong>Aha:</strong> The $64/month Launch tier minimum is not arbitrary — it represents the baseline cost of running the multi-tenant infrastructure (load balancers, query nodes, indexer nodes) regardless of usage. The 35% premium on Enterprise reflects the additional infrastructure cost of single-tenant deployments and CMEK management.</p>
+<p>Source: <code>turbogrep/src/turbopuffer.rs:199-200</code> — Write batch limits enforced client-side:</p>
+<pre><code class="language-rust">const BATCH_SIZE: usize = 1000;
+const CONCURRENT_REQUESTS: usize = 4;
+</code></pre>
+<p>See <a href="10-performance.md">Performance Benchmarks</a> for production scale numbers and how turbopuffer compares against Lucene/Tantivy benchmarks.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API & SDKs -- turbopuffer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/turbopuffer/docs</span>
+    <div class="nav-actions">
+      <a href="04-full-text-search.html" class="nav-breadcrumb">Full-Text Search: BM25</a><a href="05-native-filtering.html" class="nav-breadcrumb">Native Filtering</a><a href="06-consistency.html" class="nav-breadcrumb">Consistency Model</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="06-consistency.html" class="nav-btn" title="Previous: Consistency Model">← prev</a>
+      <a href="08-turbogrep.html" class="nav-btn nav-btn-next" title="Next: Turbogrep CLI">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>API & SDKs</h1>
+<p>Turbopuffer provides a REST API and officially generated SDKs for Go, Python, TypeScript, and Java. The SDKs are generated from an OpenAPI specification using Stainless, with custom type generation for the filter and <code>rank_by</code> query syntax.</p>
+<h2>REST API</h2>
+<p><strong>Base URL:</strong> <code>https://{region}.turbopuffer.com/v2/namespaces/{namespace}</code></p>
+<p><strong>Authentication:</strong> Bearer token via <code>TURBOPUFFER_API_KEY</code> environment variable.</p>
+<h3>Core Endpoints</h3>
+<table><tr><th>Method</th><th>Path</th><th>Description</th></tr><tr><td>`POST`</td><td>`/v2/namespaces/{ns}`</td><td>Upsert rows, delete by filter, set schema</td></tr><tr><td>`POST`</td><td>`/v2/namespaces/{ns}/query`</td><td>Query with ranking, filters, and consistency</td></tr><tr><td>`DELETE`</td><td>`/v2/namespaces/{ns}`</td><td>Delete entire namespace</td></tr><tr><td>`GET`</td><td>`/v2/namespaces/{ns}`</td><td>Get namespace metadata</td></tr><tr><td>`GET`</td><td>`/v2/namespaces`</td><td>List all namespaces</td></tr></table>
+<h3>Write Request</h3>
+<pre><code class="language-json">POST /v2/namespaces/{ns}
+{
+    &quot;upsert_rows&quot;: [
+        {
+            &quot;id&quot;: 123,
+            &quot;vector&quot;: &quot;&lt;base64 f32 bytes&gt;&quot;,
+            &quot;path&quot;: &quot;src/main.rs&quot;,
+            &quot;file_hash&quot;: 1234567890
+        }
+    ],
+    &quot;delete_by_filter&quot;: [&quot;path&quot;, &quot;Eq&quot;, &quot;src/old.rs&quot;],
+    &quot;distance_metric&quot;: &quot;cosine_distance&quot;,
+    &quot;schema&quot;: {
+        &quot;file_hash&quot;: &quot;uint&quot;,
+        &quot;path&quot;: &quot;string&quot;
+    }
+}
+</code></pre>
+<p>Source: <code>turbogrep/src/turbopuffer.rs:263-295</code> — Request body construction in <code>write_batch()</code>.</p>
+<h3>Query Request</h3>
+<pre><code class="language-json">POST /v2/namespaces/{ns}/query
+{
+    &quot;rank_by&quot;: [&quot;vector&quot;, &quot;ANN&quot;, &lt;query_vector&gt;],
+    &quot;top_k&quot;: 10,
+    &quot;filters&quot;: [&quot;status&quot;, &quot;Eq&quot;, &quot;active&quot;],
+    &quot;consistency&quot;: { &quot;level&quot;: &quot;eventual&quot; },
+    &quot;exclude_attributes&quot;: [&quot;vector&quot;]
+}
+</code></pre>
+<p>Source: <code>turbogrep/src/turbopuffer.rs:362-371</code>.</p>
+<h3>Additional Operations</h3>
+<table><tr><th>Operation</th><th>Description</th></tr><tr><td>Copy namespace</td><td>Create a copy of a namespace (for backups, migrations)</td></tr><tr><td>Export</td><td>Export all rows from a namespace</td></tr><tr><td>Warm cache</td><td>Pre-warm the cache for a namespace</td></tr><tr><td>Recall endpoint</td><td>Measure search recall quality</td></tr><tr><td>Aggregations</td><td>Aggregate results by attribute values</td></tr><tr><td>Multi-query</td><td>Up to 16 queries per request</td></tr></table>
+<h2>SDK Generation: Stainless + Apigen</h2>
+<p>Turbopuffer uses a two-stage code generation approach:</p>
+<div class="mermaid">
+sequenceDiagram
+    participant OAS as OpenAPI Spec
+    participant S as Stainless
+    participant A as Apigen
+    participant SDK as Generated SDK
+    
+    OAS-&gt;&gt;S: Standard types (rows, schema, metadata)
+    S-&gt;&gt;SDK: CRUD client, pagination, retries
+    
+    OAS-&gt;&gt;A: Filter/RankBy schemas
+    Note over A: Parse ArrayTuple, AnyOf, Ref&lt;br/&gt;Generate turbolisp types
+    A-&gt;&gt;SDK: Filter types, rank_by types
+
+</div>
+<h3>How Apigen Works</h3>
+<div class="mermaid">
+flowchart LR
+    OAS[&quot;OpenAPI Spec\nYAML&quot;] --&gt; Stainless[&quot;Stainless SDK Generator&quot;]
+    OAS --&gt; Apigen[&quot;turbopuffer-apigen\nCustom Generator&quot;]
+    
+    Stainless --&gt; Go[&quot;Go SDK&quot;]
+    Stainless --&gt; Py[&quot;Python SDK&quot;]
+    Stainless --&gt; TS[&quot;TypeScript SDK&quot;]
+    Stainless --&gt; Java[&quot;Java SDK&quot;]
+    
+    Apigen --&gt; GoTypes[&quot;filter/rank_by types\n(Go)&quot;]
+    Apigen --&gt; PyTypes[&quot;filter/rank_by types\n(Python)&quot;]
+    Apigen --&gt; TSTypes[&quot;filter/rank_by types\n(TypeScript)&quot;]
+
+</div>
+<p><strong>Why two generators?</strong></p>
+<p>Stainless handles the standard CRUD types (rows, schema, metadata) but cannot generate turbopuffer's filter and <code>rank_by</code> types. These use a "turbolisp" query syntax — a nested S-expression DSL that OpenAPI cannot express as a schema.</p>
+<p>Source: <code>turbopuffer-apigen/src/main.rs</code> — Reads <code>.stats.yml</code> to discover OpenAPI spec URL, downloads it, filters schemas matching <code>Aggregate<em></code>, <code>Filter</em></code>, <code>RankBy*</code> prefixes, dispatches to language-specific codegen.</p>
+<h2>The Turbolisp Query Syntax</h2>
+<p>Filters and <code>rank_by</code> expressions use a nested array syntax:</p>
+<pre><code class="language-">[&quot;And&quot;, [
+  [&quot;field1&quot;, &quot;Eq&quot;, &quot;value1&quot;],
+  [&quot;Or&quot;, [
+    [&quot;field2&quot;, &quot;Gt&quot;, 100],
+    [&quot;field2&quot;, &quot;Lt&quot;, -100]
+  ]]
+]]
+</code></pre>
+<p>This is impossible to express in OpenAPI's type system because:</p>
+<ul><li>Arrays contain mixed types (string operator, field name, value)</li><li>Recursive nesting (And/Or contain more expressions)</li><li>Operator strings are context-dependent (Eq vs Gt vs ContainsAllTokens)</li></ul>
+<h3>Apigen Code Generation</h3>
+<p>Source: <code>turbopuffer-apigen/src/codegen.rs</code> — Parses OpenAPI schema variants:</p>
+<ul><li><code>AnyOf</code> — Union types (filter can be multiple forms)</li><li><code>Object</code> — Named fields</li><li><code>ArrayList</code> — Homogeneous arrays</li><li><code>ArrayTuple</code> — Heterogeneous arrays (the turbolisp syntax)</li><li><code>String</code>, <code>Number</code>, <code>Const</code>, <code>Ref</code>, <code>Any</code> — Primitive types</li></ul>
+<p>Language backends:</p>
+<ul><li><strong>Go</strong> (<code>codegen/go.rs</code>, ~401 lines) — Most complete. Converts tuples to structs with <code>MarshalJSON</code> that serializes back to arrays. Generates sealed interfaces for <code>anyOf</code> refs.</li><li><strong>TypeScript</strong> (<code>codegen/typescript.rs</code>, ~102 lines) — Union types, tuples as <code>[T1, T2, ...]</code>.</li><li><strong>Python</strong> (<code>codegen/python.rs</code>, ~190 lines) — <code>Union[...]</code>, <code>Tuple[...]</code>, <code>Literal["const"]</code>. Topological sort for dependency ordering.</li><li><strong>Java</strong> (<code>codegen/java.rs</code>, ~7 lines) — Currently unimplemented.</li></ul>
+<h2>Official SDKs</h2>
+<h3>Go SDK (<code>turbopuffer-go/</code>)</h3>
+<ul><li>Go 1.18+, uses Go 1.24 <code>omitzero</code> JSON semantics</li><li><code>param.Opt[T]</code> for optional fields, <code>param.Null[T]()</code> for explicit null</li><li>Sealed interfaces for union types via <code>sealed_{Type}()</code> method pattern</li><li>Middleware support, custom HTTP client</li><li>Auto-retries: 2x exponential backoff on connection errors, 408, 409, 429, 5xx</li><li>Default timeout: 60 seconds</li></ul>
+<h3>Python SDK (<code>turbopuffer-python/</code>)</h3>
+<ul><li>Python 3.8+, TypedDict for request params, Pydantic for responses</li><li>Both sync (<code>Turbopuffer</code>) and async (<code>AsyncTurbopuffer</code>) clients via httpx</li><li><code>[fast]</code> extra for C-accelerated JSON encoding</li><li><code>.with_raw_response.</code> and <code>.with_streaming_response.</code> prefixes for low-level access</li><li>Auto-paging iterators across all list operations</li></ul>
+<h3>TypeScript SDK (<code>turbopuffer-typescript/</code>)</h3>
+<ul><li>Uses global <code>fetch()</code>, customizable for edge runtimes</li><li><code>APIPromise</code> with <code>.asResponse()</code> and <code>.withResponse()</code> methods</li><li>Supports Node, Deno, Bun, Cloudflare Workers, Vercel Edge</li><li>Auto-paging iterators</li></ul>
+<h3>Java SDK (<code>turbopuffer-java/</code>)</h3>
+<ul><li>Kotlin-based, 3 artifacts: core, okhttp client, combined</li><li>Java 8+, builder pattern, immutable classes</li><li><code>async()</code> method returns <code>CompletableFuture</code></li><li><code>JsonField<T></code> for optional/null/missing distinction</li><li><code>JsonValue</code> for undocumented API values</li></ul>
+<h3>LangChain Integration (<code>langchain-turbopuffer/</code>)</h3>
+<p>Vector store integration for LangChain (Python and TypeScript):</p>
+<ul><li><code>TurbopufferVectorStore</code> class</li><li>Supports embedding functions from LangChain</li><li>Similarity search with optional filters</li></ul>
+<h2>SDK Benchmarking</h2>
+<p>The <code>turbopuffer-sdk-bench/</code> directory contains micro-benchmarks for the Python and TypeScript SDKs:</p>
+<ul><li><code>bench_upsert.py</code> — Write/upsert performance using <code>pyperf</code></li><li><code>bench_query.py</code> — Query performance</li><li><code>bench_query_scale.py</code> — Query at scale</li></ul>
+<p>Baseline vs experiment comparison workflow.</p>
+<p><strong>Aha:</strong> The two-stage code generation (Stainless + apigen) is a pragmatic solution to a common API design problem: your API has a custom query syntax that's more expressive than REST, but OpenAPI can't describe it. Instead of hacking the OpenAPI spec or hand-writing types, apigen reads the same spec and generates only the types that Stainless can't handle. This keeps the standard SDKs auto-generated (easy to regenerate when the API changes) while handling the custom syntax in a separate, focused code generator.</p>
+<p>Source paths:</p>
+<ul><li><code>turbopuffer-apigen/src/main.rs</code> — Entry point, OpenAPI download, schema filtering</li><li><code>turbopuffer-apigen/src/codegen.rs</code> — Schema parsing, variant types</li><li><code>turbopuffer-apigen/src/codegen/go.rs</code> — Go type generation (most complete)</li><li><code>turbopuffer-go/</code>, <code>turbopuffer-python/</code>, <code>turbopuffer-typescript/</code>, <code>turbopuffer-java/</code> — Generated SDKs</li></ul>
+<p>See <a href="08-turbogrep.md">Turbogrep CLI</a> for how the <code>turbogrep</code> tool uses these APIs directly without the SDK, and <a href="05-native-filtering.md">Native Filtering</a> for the full filter syntax.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -475,7 +475,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 /// A model handle for the `OpenAI` provider implementing [`Model`].
 ///
 /// The `F` type parameter allows customizing the tool formatter. When used
-/// natively with OpenAI it defaults to `OpenAIFormatter`; when used as a
+/// natively with `OpenAI` it defaults to `OpenAIFormatter`; when used as a
 /// proxy to other endpoints the caller can supply a different formatter.
 pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = SystemDnsResolver> {
     config: OpenAIConfig,
@@ -670,7 +670,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
 // OpenAI Tool Formatter
 // ============================================================================
 
-/// Formatter for OpenAI's native tool calling format.
+/// Formatter for `OpenAI`'s native tool calling format.
 ///
 /// Tool defs: `{type: "function", function: {name, description, parameters}}`
 /// Tool calls: `{id: "...", type: "function", function: {name, arguments: "..."}}`
@@ -688,12 +688,10 @@ impl ToolFormatter for OpenAIFormatter {
                 .iter()
                 .map(|tool| {
                     // Use the Args schema if present, otherwise default to empty object
-                    let parameters = tool.arguments.as_ref()
-                        .map(|a| a.schema.clone())
-                        .unwrap_or_else(|| serde_json::json!({
+                    let parameters = tool.arguments.as_ref().map_or_else(|| serde_json::json!({
                             "type": "object",
                             "properties": {},
-                        }));
+                        }), |a| a.schema.clone());
                     serde_json::json!({
                         "type": "function",
                         "function": {
@@ -804,7 +802,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             provider: ModelProviders::OPENAI,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
-            cost: self.pricing.clone(),
+            cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
         })
@@ -893,7 +891,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             finish_reason: None,
             usage: None,
             done: false,
-            pricing: self.pricing.clone(),
+            pricing: self.pricing,
             cumulative_cost: Rc::clone(&self.cumulative_cost),
         })
     }
@@ -1062,8 +1060,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
 
         let usage_report = self
             .usage
-            .as_ref()
-            .map(|u| {
+            .as_ref().map_or_else(empty_usage_report, |u| {
                 #[allow(clippy::cast_precision_loss)]
                 let usage = UsageReport {
                     input: u.prompt_tokens as f64,
@@ -1083,8 +1080,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
                 };
                 let costing = calculate_cost(&self.pricing, &usage, CostStatus::Actual);
                 UsageReport { cost: costing, ..usage }
-            })
-            .unwrap_or_else(empty_usage_report);
+            });
 
         let content = if self.tool_calls.is_empty() {
             ModelOutput::Text(TextContent {
@@ -1169,7 +1165,7 @@ pub struct ChatCompletionRequest {
     pub top_logprobs: Option<usize>,
 }
 
-/// Wire format for OpenAI `response_format` field.
+/// Wire format for `OpenAI` `response_format` field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum OpenAIResponseFormat {
@@ -1191,7 +1187,7 @@ pub struct OpenAIJsonSchema {
     pub strict: Option<bool>,
 }
 
-/// Wire format for OpenAI `tool_choice` field.
+/// Wire format for `OpenAI` `tool_choice` field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OpenAIToolChoice {
@@ -1224,7 +1220,7 @@ pub struct OpenAIMessage {
     pub refusal: Option<String>,
 }
 
-/// Content for an OpenAI message — either simple text or multimodal parts.
+/// Content for an `OpenAI` message — either simple text or multimodal parts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum OpenAIMessageContent {
@@ -1362,7 +1358,7 @@ pub struct OpenAIUsage {
     pub total_tokens: u64,
 }
 
-/// Wire format — OpenAI's logprobs in the response.
+/// Wire format — `OpenAI`'s logprobs in the response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenAILogProbs {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1562,7 +1558,8 @@ impl std::error::Error for OpenAIError {}
 // Helper Functions
 // ============================================================================
 
-/// Flatten a ToolShed into a flat Vec<Tool> for provider APIs.
+/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
+#[must_use]
 pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
     let mut tools = vec![
         shed.shed.clone(),
@@ -1902,8 +1899,7 @@ fn parse_chat_response(
 
     let usage_report = response
         .usage
-        .as_ref()
-        .map(|u| {
+        .as_ref().map_or_else(empty_usage_report, |u| {
             #[allow(clippy::cast_precision_loss)]
             let usage = UsageReport {
                 input: u.prompt_tokens as f64,
@@ -1923,8 +1919,7 @@ fn parse_chat_response(
             };
             let costing = calculate_cost(pricing, &usage, CostStatus::Actual);
             UsageReport { cost: costing, ..usage }
-        })
-        .unwrap_or_else(empty_usage_report);
+        });
 
     let output = if let Some(tool_calls) = &message.tool_calls {
         if let Some(tc) = tool_calls.first() {

@@ -319,7 +319,7 @@ impl Quantization {
     #[must_use]
     pub fn to_filename_format(&self) -> String {
         match self {
-            Quantization::None | Quantization::Default => "".to_string(),
+            Quantization::None | Quantization::Default => String::new(),
             Quantization::F16 => "F16".to_string(),
             Quantization::Q2K => "Q2_K".to_string(),
             Quantization::Q2_KS => "Q2_KS".to_string(),
@@ -391,10 +391,10 @@ pub struct ModelParams {
     /// Constrain the model's output format (text, JSON, schema).
     pub output_format: Option<OutputFormat>,
     /// Penalize new tokens based on their frequency in the text so far
-    /// (-2.0 to 2.0, provider-specific; OpenAI only).
+    /// (-2.0 to 2.0, provider-specific; `OpenAI` only).
     pub frequency_penalty: Option<f32>,
     /// Penalize new tokens based on whether they appear in the text so far
-    /// (-2.0 to 2.0, provider-specific; OpenAI only).
+    /// (-2.0 to 2.0, provider-specific; `OpenAI` only).
     pub presence_penalty: Option<f32>,
     /// Modify likelihood of specified tokens (-2.0 to 2.0, provider-specific).
     pub logit_bias: Option<HashMap<String, f32>>,
@@ -650,6 +650,7 @@ impl Args {
     /// Create an `Args` from a `ValidationOptions` (produced by a scheme builder).
     ///
     /// The schema is extracted from the `ValidationOptions` via `.clone_schema()`.
+    #[must_use]
     pub fn new(opts: foundation_jsonschema::ValidationOptions) -> Self {
         let schema = opts.clone_schema();
         Self {
@@ -661,6 +662,7 @@ impl Args {
     /// Create an `Args` from a raw JSON Schema value.
     ///
     /// Wraps the value in a fresh `ValidationOptions` with the schema embedded.
+    #[must_use]
     pub fn from_value(value: serde_json::Value) -> Self {
         Self {
             validator: foundation_jsonschema::ValidationOptions::with_schema(value.clone()),
@@ -729,6 +731,7 @@ impl UsageCosting {
     }
 
     /// Zeroed cost with the given status.
+    #[must_use]
     pub fn zero(status: CostStatus) -> Self {
         Self {
             currency: String::from("USD"),
@@ -775,7 +778,7 @@ pub enum UserModelContent {
 /// Constrain the model's output format.
 ///
 /// Used by `ModelParams::output_format` to request structured output
-/// from providers that support it (e.g., OpenAI `response_format`).
+/// from providers that support it (e.g., `OpenAI` `response_format`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum OutputFormat {
     /// Plain text output (default).
@@ -833,7 +836,7 @@ pub struct RefusalLogProb {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum GenerationMetadata {
-    /// Log probabilities for each generated token (OpenAI).
+    /// Log probabilities for each generated token (`OpenAI`).
     LogProbs {
         /// Per-token log probability and alternative tokens.
         content: Vec<ContentLogProb>,
@@ -841,7 +844,7 @@ pub enum GenerationMetadata {
         #[serde(skip_serializing_if = "Option::is_none")]
         refusal: Option<Vec<RefusalLogProb>>,
     },
-    /// System fingerprint for reproducibility (OpenAI).
+    /// System fingerprint for reproducibility (`OpenAI`).
     SystemFingerprint(String),
     /// Timing information for generation (local backends).
     Timing {
@@ -1194,7 +1197,7 @@ fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
         serde_json::Value::Null => ArgType::Text(String::new()),
         serde_json::Value::Array(arr) => ArgType::Text(
             arr.iter()
-                .map(|v| v.to_string())
+                .map(std::string::ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(", "),
         ),
@@ -1227,14 +1230,12 @@ impl ToolFormatter for TextBasedFormatter {
                     // Use the Args schema if present, otherwise default to empty object
                     let params = tool
                         .arguments
-                        .as_ref()
-                        .map(|a| a.schema.clone())
-                        .unwrap_or_else(|| {
+                        .as_ref().map_or_else(|| {
                             serde_json::json!({
                                 "type": "object",
                                 "properties": {},
                             })
-                        });
+                        }, |a| a.schema.clone());
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,

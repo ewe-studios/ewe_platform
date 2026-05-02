@@ -693,12 +693,10 @@ impl ToolFormatter for AnthropicFormatter {
                 .iter()
                 .map(|tool| {
                     // Use the Args schema if present, otherwise default to empty object
-                    let input_schema = tool.arguments.as_ref()
-                        .map(|a| a.schema.clone())
-                        .unwrap_or_else(|| serde_json::json!({
+                    let input_schema = tool.arguments.as_ref().map_or_else(|| serde_json::json!({
                             "type": "object",
                             "properties": {},
-                        }));
+                        }), |a| a.schema.clone());
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,
@@ -837,7 +835,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             provider: ModelProviders::ANTHROPIC,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
-            cost: self.pricing.clone(),
+            cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
         })
@@ -924,7 +922,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             done: false,
             final_messages: Vec::new(),
             final_message_index: 0,
-            pricing: self.pricing.clone(),
+            pricing: self.pricing,
             cumulative_cost: Rc::clone(&self.cumulative_cost),
         })
     }
@@ -989,7 +987,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                 };
 
                 // Anthropic uses named events; skip if no event name
-                let event_name = event_type.as_ref().map(String::as_str).unwrap_or("");
+                let event_name = event_type.as_ref().map_or("", String::as_str);
                 if event_name.is_empty() {
                     return Some(Stream::Ignore);
                 }
@@ -1103,8 +1101,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
     fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {
         let usage_report = self
             .usage
-            .as_ref()
-            .map(|u| {
+            .as_ref().map_or_else(empty_usage_report, |u| {
                 make_usage_report(
                     u.input_tokens,
                     u.output_tokens,
@@ -1112,8 +1109,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     u.cache_creation_input_tokens,
                     &self.pricing,
                 )
-            })
-            .unwrap_or_else(empty_usage_report);
+            });
 
         let stop_reason = map_stop_reason(&self.stop_reason);
 
@@ -1214,7 +1210,8 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 // Helpers
 // ============================================================================
 
-/// Flatten a ToolShed into a flat Vec<Tool> for provider APIs.
+/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
+#[must_use]
 pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
     let mut tools = vec![
         shed.shed.clone(),
@@ -1303,8 +1300,7 @@ pub fn build_anthropic_request(
                 } => {
                     let input = arguments
                         .as_ref()
-                        .map(|args| serde_json::to_value(args).unwrap_or(serde_json::Value::Null))
-                        .unwrap_or(serde_json::Value::Null);
+                        .map_or(serde_json::Value::Null, |args| serde_json::to_value(args).unwrap_or(serde_json::Value::Null));
                     Some(AnthropicMessage {
                         role: AnthropicRole::Assistant,
                         content: vec![AnthropicContentBlock::ToolUse {
@@ -1371,12 +1367,12 @@ pub fn build_anthropic_request(
         messages,
         max_tokens,
         temperature: if params.temperature > 0.0 {
-            Some(params.temperature as f64)
+            Some(f64::from(params.temperature))
         } else {
             None
         },
         top_p: if params.top_p > 0.0 && params.top_p < 1.0 {
-            Some(params.top_p as f64)
+            Some(f64::from(params.top_p))
         } else {
             None
         },
@@ -1407,18 +1403,18 @@ fn make_usage_report(
 ) -> UsageReport {
     #[allow(clippy::cast_precision_loss)]
     let usage = crate::types::UsageReport {
-        input: input_tokens as f64,
-        output: output_tokens as f64,
-        cache_read: cache_read as f64,
-        cache_write: cache_write as f64,
-        total_tokens: (input_tokens + output_tokens) as f64,
+        input: f64::from(input_tokens),
+        output: f64::from(output_tokens),
+        cache_read: f64::from(cache_read),
+        cache_write: f64::from(cache_write),
+        total_tokens: f64::from(input_tokens + output_tokens),
         cost: crate::types::UsageCosting {
             currency: String::from("USD"),
             input: 0.0,
             output: 0.0,
             cache_read: 0.0,
             cache_write: 0.0,
-            total_tokens: (input_tokens + output_tokens) as f64,
+            total_tokens: f64::from(input_tokens + output_tokens),
             status: CostStatus::Actual,
         },
     };
@@ -1549,6 +1545,7 @@ pub fn parse_response(
     Ok((messages, report))
 }
 
+#[must_use]
 pub fn map_stop_reason(reason: &Option<String>) -> StopReason {
     match reason.as_deref() {
         Some("end_turn") => StopReason::Stop,
@@ -1560,6 +1557,7 @@ pub fn map_stop_reason(reason: &Option<String>) -> StopReason {
     }
 }
 
+#[must_use]
 pub fn empty_usage_report() -> UsageReport {
     UsageReport {
         input: 0.0,
@@ -1604,15 +1602,18 @@ fn model_id_to_string(id: &ModelId) -> String {
     }
 }
 
+#[must_use]
 pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
+#[must_use]
 pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5);
     base_secs.min(30)
 }
 
+#[must_use]
 pub fn parse_anthropic_error(body: &str) -> Option<String> {
     #[derive(Deserialize)]
     struct AnthropicErrorResponse {
@@ -1636,6 +1637,7 @@ pub fn parse_anthropic_error(body: &str) -> Option<String> {
         })
 }
 
+#[must_use]
 pub fn format_http_error(status_code: usize, detail: &str) -> String {
     match status_code {
         401 => format!("Authentication failed: {detail}"),

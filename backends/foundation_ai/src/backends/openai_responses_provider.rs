@@ -1,4 +1,4 @@
-//! OpenAI Responses API provider for reasoning models (o1, o3, o1-pro, etc.).
+//! `OpenAI` Responses API provider for reasoning models (o1, o3, o1-pro, etc.).
 //!
 //! Implements the `/v1/responses` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
@@ -327,7 +327,7 @@ pub enum ResponseEvent {
 // Provider
 // ============================================================================
 
-/// OpenAI Responses API provider implementing [`ModelProvider`].
+/// `OpenAI` Responses API provider implementing [`ModelProvider`].
 pub struct ResponsesProvider<R: DnsResolver = SystemDnsResolver> {
     config: ResponsesConfig,
     api_key: Option<ConfidentialText>,
@@ -1282,7 +1282,8 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 // Helpers
 // ============================================================================
 
-/// Flatten a ToolShed into a Vec<Tool> for formatting.
+/// Flatten a `ToolShed` into a Vec<Tool> for formatting.
+#[must_use]
 pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
     let mut tools = vec![
         shed.shed.clone(),
