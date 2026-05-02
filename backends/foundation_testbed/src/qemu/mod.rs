@@ -16,7 +16,7 @@ use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::config::{ensure_dirs, monitor_dir, DisplayMode, Result, TestbedError, VmProfile};
+use crate::config::{ensure_dirs, monitor_dir, DisplayMode, GuestOs, Result, TestbedError, VmProfile};
 
 /// A running QEMU VM instance.
 ///
@@ -136,6 +136,11 @@ impl QemuConfig {
         monitor.set_nonblocking(true).ok();
 
         let pid = process.id();
+
+        // Auto-launch VNC viewer for headful mode
+        if self.display_mode == DisplayMode::Headful {
+            display::launch_viewer(DisplayMode::Headful, resolved.vnc_port);
+        }
 
         Ok(QemuVm {
             process,
@@ -264,7 +269,7 @@ fn build_qemu_args(
     disk_path: &std::path::Path,
     ports: &ResolvedPorts,
     monitor_path: &std::path::Path,
-    display: DisplayMode,
+    _display: DisplayMode,
 ) -> Vec<String> {
     let mut args = Vec::new();
 
@@ -282,6 +287,18 @@ fn build_qemu_args(
     // CPU model
     args.push("-cpu".to_string());
     args.push("host".to_string());
+
+    // UEFI/OVMF firmware for Windows (required for boot)
+    if profile.os == GuestOs::Windows {
+        let vars_path = crate::config::state_dir().join(format!("{}.nvram", profile.name));
+        if !vars_path.exists() {
+            let _ = std::fs::copy("/usr/share/edk2/x64/OVMF_VARS.4m.fd", &vars_path);
+        }
+        args.push("-drive".to_string());
+        args.push("file=/usr/share/edk2/x64/OVMF_CODE.4m.fd,if=pflash,format=raw,readonly=on".to_string());
+        args.push("-drive".to_string());
+        args.push(format!("file={},if=pflash,format=raw", vars_path.display()));
+    }
 
     // Disk
     args.push("-drive".to_string());
@@ -306,7 +323,7 @@ fn build_qemu_args(
 
     // GPU
     args.push("-vga".to_string());
-    args.push("virtio".to_string());
+    args.push("std".to_string());
 
     // Monitor
     args.push("-monitor".to_string());
@@ -315,17 +332,9 @@ fn build_qemu_args(
         monitor_path.display()
     ));
 
-    // Display
-    match display {
-        DisplayMode::Headless => {
-            args.push("-display".to_string());
-            args.push(format!("vnc=:{}", ports.vnc_port - 5900));
-        }
-        DisplayMode::Headful => {
-            args.push("-display".to_string());
-            args.push("spice-app".to_string());
-        }
-    }
+    // Display (both modes use VNC; headful auto-launches viewer)
+    args.push("-display".to_string());
+    args.push(format!("vnc=:{}", ports.vnc_port - 5900));
 
     // No reboot on panic (for headless CI)
     args.push("-no-reboot".to_string());
