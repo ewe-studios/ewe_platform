@@ -403,8 +403,8 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
             let result = self.do_request::<T>(url, body)?;
             match result {
                 Ok(value) => return Ok(value),
-                Err((_status, retry_after, msg)) => {
-                    if attempt >= max_retries || !is_retryable_status(_status) {
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
                         return Err(GenerationError::Backend(msg));
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
@@ -415,6 +415,7 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
         }
     }
 
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
@@ -726,8 +727,8 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
             let result = self.do_request::<T>(url, body)?;
             match result {
                 Ok(value) => return Ok(value),
-                Err((_status, retry_after, msg)) => {
-                    if attempt >= max_retries || !is_retryable_status(_status) {
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
                         return Err(GenerationError::Backend(msg));
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
@@ -738,6 +739,7 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         }
     }
 
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
@@ -820,7 +822,7 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         let url = self.build_url("responses");
         let response: Response = self.execute_request(&url, &body)?;
 
-        let message = parse_response(&response, &self.model_id)?;
+        let message = parse_response(&response, &self.model_id);
         Ok(vec![message])
     }
 
@@ -937,12 +939,8 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
                                 metadata: None,
                             }));
                         }
-                        ResponseEvent::ResponseCompleted { response } => {
-                            self.response = Some(response);
-                            self.done = true;
-                            return Some(Stream::Next(self.build_final_message()));
-                        }
-                        ResponseEvent::ResponseFailed { response } => {
+                        ResponseEvent::ResponseCompleted { response }
+                        | ResponseEvent::ResponseFailed { response } => {
                             self.response = Some(response);
                             self.done = true;
                             return Some(Stream::Next(self.build_final_message()));
@@ -997,9 +995,8 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
             });
 
         let stop_reason = match response.status.as_str() {
-            "completed" => StopReason::Stop,
+            "completed" | "in_progress" => StopReason::Stop,
             "failed" => StopReason::Error,
-            "in_progress" => StopReason::Stop,
             other => StopReason::Message(other.to_string()),
         };
 
@@ -1036,6 +1033,7 @@ fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
                 }),
                 crate::types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
+                        #[allow(clippy::match_same_arms)]
                         crate::types::MimeType::ImagePng => "image/png",
                         crate::types::MimeType::ImageJpeg => "image/jpeg",
                         crate::types::MimeType::ImageGif => "image/gif",
@@ -1101,8 +1099,9 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
             ResponseOutputItem::Message { content, .. } => {
                 let text: String = content
                     .iter()
-                    .filter_map(|c| match c {
-                        ResponseOutputContent::OutputText { text } => Some(text.clone()),
+                    .map(|c| {
+                        let ResponseOutputContent::OutputText { text } = c;
+                        text.clone()
                     })
                     .collect::<Vec<_>>()
                     .join("\n");
@@ -1172,7 +1171,7 @@ fn build_response_metadata(
     }
 }
 
-fn parse_response(response: &Response, model_id: &ModelId) -> GenerationResult<Messages> {
+fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     #[allow(clippy::cast_precision_loss)]
     let usage = response
         .usage
@@ -1195,16 +1194,15 @@ fn parse_response(response: &Response, model_id: &ModelId) -> GenerationResult<M
         });
 
     let stop_reason = match response.status.as_str() {
-        "completed" => StopReason::Stop,
+        "completed" | "in_progress" => StopReason::Stop,
         "failed" => StopReason::Error,
-        "in_progress" => StopReason::Stop,
         other => StopReason::Message(other.to_string()),
     };
 
     let content = extract_output(&response.output);
     let metadata = build_response_metadata(&response.output);
 
-    Ok(Messages::Assistant {
+    Messages::Assistant {
         model: model_id.clone(),
         timestamp: SystemTime::now(),
         usage,
@@ -1214,7 +1212,7 @@ fn parse_response(response: &Response, model_id: &ModelId) -> GenerationResult<M
         error_detail: response.error.as_ref().map(|e| e.message.clone()),
         signature: None,
         metadata,
-    })
+    }
 }
 
 fn empty_usage_report() -> UsageReport {
