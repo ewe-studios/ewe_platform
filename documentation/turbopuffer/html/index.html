@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>turbopuffer -- Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/turbopuffer/docs</span>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+
+  <h1>turbopuffer Documentation</h1>
+  <p>Documentation for turbopuffer.</p>
+  <ul class="doc-index">
+    <li><a href="00-overview.html">What is Turbopuffer</a></li>
+<li><a href="01-architecture.html">System Architecture</a></li>
+<li><a href="02-storage-s3.html">S3 Storage Engine</a></li>
+<li><a href="03-vector-index.html">Vector Index: SPFresh</a></li>
+<li><a href="04-full-text-search.html">Full-Text Search: BM25</a></li>
+<li><a href="05-native-filtering.html">Native Filtering</a></li>
+<li><a href="06-consistency.html">Consistency Model</a></li>
+<li><a href="07-api-and-sdks.html">API & SDKs</a></li>
+<li><a href="08-turbogrep.html">Turbogrep CLI</a></li>
+<li><a href="09-pricing-and-limits.html">Pricing & System Limits</a></li>
+<li><a href="10-performance.html">Performance Benchmarks</a></li>
+<li><a href="README.html">Turbopuffer Documentation</a></li>
+
+  </ul>
+
+  <hr>
+  <p style="color: var(--fg-soft); font-size: 0.85rem;">
+    Generated from markdown. Mermaid diagrams require JavaScript. Dark mode supported.
+  </p>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

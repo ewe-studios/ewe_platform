@@ -34,7 +34,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.09,
-            output: 0.44999999999999996,
+            output: 0.449_999_999_999_999_96,
             cache_read: 0.09,
             cache_write: 0.0,
         },
@@ -50,7 +50,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.6,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -135,8 +135,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.7999999999999999,
-            output: 3.1999999999999997,
+            input: 0.799_999_999_999_999_9,
+            output: 3.199_999_999_999_999_7,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -169,7 +169,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.7999999999999999,
+            input: 0.799_999_999_999_999_9,
             output: 4.0,
             cache_read: 0.08,
             cache_write: 1.0,
@@ -222,7 +222,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 5.0,
-            cache_read: 0.09999999999999999,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 1.25,
         },
         context_window: 200_000,
@@ -391,7 +391,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.15,
-            output: 0.44999999999999996,
+            output: 0.449_999_999_999_999_96,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -560,8 +560,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -612,7 +612,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.32,
-            output: 0.8899999999999999,
+            output: 0.889_999_999_999_999_9,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -628,7 +628,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.77,
             cache_read: 0.135,
             cache_write: 0.0,
@@ -680,7 +680,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.5,
-            output: 2.1500000000000004,
+            output: 2.150_000_000_000_000_4,
             cache_read: 0.35,
             cache_write: 0.0,
         },
@@ -697,7 +697,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.21,
-            output: 0.7899999999999999,
+            output: 0.789_999_999_999_999_9,
             cache_read: 0.13,
             cache_write: 0.0,
         },
@@ -766,7 +766,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.435,
             output: 0.87,
-            cache_read: 0.003625,
+            cache_read: 0.003_625,
             cache_write: 0.0,
         },
         context_window: 1_048_576,
@@ -798,10 +798,10 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
-            cache_read: 0.024999999999999998,
-            cache_write: 0.08333333333333334,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
+            cache_read: 0.024_999_999_999_999_998,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_000_000,
         max_tokens: 8192,
@@ -835,7 +835,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
             input: 0.3,
             output: 2.5,
             cache_read: 0.03,
-            cache_write: 0.08333333333333334,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_535,
@@ -849,10 +849,10 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
-            cache_write: 0.08333333333333334,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_535,
@@ -866,10 +866,10 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
-            cache_write: 0.08333333333333334,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_535,
@@ -936,8 +936,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.5,
             output: 3.0,
-            cache_read: 0.049999999999999996,
-            cache_write: 0.08333333333333334,
+            cache_read: 0.049_999_999_999_999_996,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_536,
@@ -953,8 +953,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 1.5,
-            cache_read: 0.024999999999999998,
-            cache_write: 0.08333333333333334,
+            cache_read: 0.024_999_999_999_999_998,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_536,
@@ -970,7 +970,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 12.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.375,
         },
         context_window: 1_048_576,
@@ -987,7 +987,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 12.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.375,
         },
         context_window: 1_048_576,
@@ -1104,9 +1104,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.09999999999999999,
-            cache_read: 0.049999999999999996,
+            input: 0.049_999_999_999_999_996,
+            output: 0.099_999_999_999_999_99,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -1123,7 +1123,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 0.75,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 128_000,
@@ -1206,8 +1206,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
-            output: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1224,7 +1224,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.02,
-            output: 0.049999999999999996,
+            output: 0.049_999_999_999_999_996,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1240,7 +1240,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.32,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1291,7 +1291,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.2,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1394,7 +1394,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.3,
-            output: 0.8999999999999999,
+            output: 0.899_999_999_999_999_9,
             cache_read: 0.03,
             cache_write: 0.0,
         },
@@ -1410,7 +1410,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.04,
             cache_write: 0.0,
@@ -1427,7 +1427,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.04,
             cache_write: 0.0,
@@ -1444,7 +1444,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.01,
             cache_write: 0.0,
@@ -1461,8 +1461,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
-            output: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
+            output: 0.199_999_999_999_999_98,
             cache_read: 0.02,
             cache_write: 0.0,
         },
@@ -1478,8 +1478,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.01,
             cache_write: 0.0,
         },
@@ -1514,7 +1514,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 128_000,
@@ -1531,7 +1531,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -1548,7 +1548,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -1565,7 +1565,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.5,
             output: 1.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 262_144,
@@ -1580,7 +1580,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.04,
             cache_write: 0.0,
@@ -1597,7 +1597,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.04,
             cache_write: 0.0,
@@ -1631,7 +1631,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.6,
             cache_read: 0.02,
             cache_write: 0.0,
@@ -1666,7 +1666,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.075,
-            output: 0.19999999999999998,
+            output: 0.199_999_999_999_999_98,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1684,7 +1684,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 65_536,
@@ -1718,7 +1718,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 6.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -1733,7 +1733,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.01,
             cache_write: 0.0,
@@ -1750,7 +1750,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.5700000000000001,
+            input: 0.570_000_000_000_000_1,
             output: 2.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1767,7 +1767,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -1869,8 +1869,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1886,8 +1886,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.19999999999999998,
+            input: 0.049_999_999_999_999_996,
+            output: 0.199_999_999_999_999_98,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -1938,7 +1938,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.09,
-            output: 0.44999999999999996,
+            output: 0.449_999_999_999_999_96,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -2175,9 +2175,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
-            output: 1.5999999999999999,
-            cache_read: 0.09999999999999999,
+            input: 0.399_999_999_999_999_97,
+            output: 1.599_999_999_999_999_9,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 0.0,
         },
         context_window: 1_047_576,
@@ -2192,9 +2192,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.39999999999999997,
-            cache_read: 0.024999999999999998,
+            input: 0.099_999_999_999_999_99,
+            output: 0.399_999_999_999_999_97,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 1_047_576,
@@ -2364,7 +2364,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.25,
             output: 2.0,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 400_000,
@@ -2379,8 +2379,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.39999999999999997,
+            input: 0.049_999_999_999_999_996,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
             cache_write: 0.0,
         },
@@ -2634,7 +2634,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.25,
             cache_read: 0.02,
             cache_write: 0.0,
@@ -3059,7 +3059,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.1,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3077,7 +3077,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.36,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3094,7 +3094,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.04,
-            output: 0.09999999999999999,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3112,7 +3112,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.04,
             output: 4.16,
-            cache_read: 0.20800000000000002,
+            cache_read: 0.208_000_000_000_000_02,
             cache_write: 0.0,
         },
         context_window: 32_768,
@@ -3129,7 +3129,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.26,
             output: 0.78,
-            cache_read: 0.052000000000000005,
+            cache_read: 0.052_000_000_000_000_005,
             cache_write: 0.325,
         },
         context_window: 1_000_000,
@@ -3180,7 +3180,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.0325,
             output: 0.13,
-            cache_read: 0.006500000000000001,
+            cache_read: 0.006_500_000_000_000_001,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -3229,8 +3229,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.45499999999999996,
-            output: 1.8199999999999998,
+            input: 0.454_999_999_999_999_96,
+            output: 1.819_999_999_999_999_8,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3247,7 +3247,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.071,
-            output: 0.09999999999999999,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3263,7 +3263,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.14950000000000002,
+            input: 0.149_500_000_000_000_02,
             output: 1.495,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3315,7 +3315,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.08,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.08,
             cache_write: 0.0,
         },
@@ -3348,9 +3348,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.049999999999999996,
-            output: 0.39999999999999997,
-            cache_read: 0.049999999999999996,
+            input: 0.049_999_999_999_999_996,
+            output: 0.399_999_999_999_999_97,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 40_960,
@@ -3366,7 +3366,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.22,
-            output: 1.7999999999999998,
+            output: 1.799_999_999_999_999_8,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3402,7 +3402,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
             input: 0.195,
             output: 0.975,
             cache_read: 0.039,
-            cache_write: 0.24375,
+            cache_write: 0.243_75,
         },
         context_window: 1_000_000,
         max_tokens: 65_536,
@@ -3417,7 +3417,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.12,
-            output: 0.7999999999999999,
+            output: 0.799_999_999_999_999_9,
             cache_read: 0.07,
             cache_write: 0.0,
         },
@@ -3552,7 +3552,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.88,
             cache_read: 0.11,
             cache_write: 0.0,
@@ -3620,8 +3620,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.10400000000000001,
-            output: 0.41600000000000004,
+            input: 0.104_000_000_000_000_01,
+            output: 0.416_000_000_000_000_04,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3739,7 +3739,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.15,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3759,7 +3759,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
             input: 0.065,
             output: 0.26,
             cache_read: 0.0,
-            cache_write: 0.08125,
+            cache_write: 0.081_25,
         },
         context_window: 1_000_000,
         max_tokens: 65_536,
@@ -3790,7 +3790,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.4,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3861,7 +3861,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
             input: 0.325,
             output: 1.95,
             cache_read: 0.0,
-            cache_write: 0.40625,
+            cache_write: 0.406_25,
         },
         context_window: 1_000_000,
         max_tokens: 65_536,
@@ -3875,8 +3875,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -3943,7 +3943,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
             output: 0.3,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3977,7 +3977,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.16999999999999998,
+            input: 0.169_999_999_999_999_98,
             output: 0.43,
             cache_read: 0.0,
             cache_write: 0.0,
@@ -3994,8 +3994,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
-            output: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -4130,9 +4130,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -4147,9 +4147,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 0.5,
-            cache_read: 0.049999999999999996,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -4166,7 +4166,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.25,
             output: 2.5,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 2_000_000,
@@ -4183,7 +4183,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.25,
             output: 2.5,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_000_000,
@@ -4198,7 +4198,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.19999999999999998,
+            input: 0.199_999_999_999_999_98,
             output: 1.5,
             cache_read: 0.02,
             cache_write: 0.0,
@@ -4232,7 +4232,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.08,
             cache_write: 0.0,
@@ -4251,7 +4251,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 3.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_048_576,
@@ -4266,7 +4266,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
-            input: 0.39999999999999997,
+            input: 0.399_999_999_999_999_97,
             output: 2.0,
             cache_read: 0.08,
             cache_write: 0.0,
@@ -4285,7 +4285,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 3.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.0,
         },
         context_window: 1_048_576,
@@ -4300,8 +4300,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 0.09999999999999999,
-            output: 0.09999999999999999,
+            input: 0.099_999_999_999_999_99,
+            output: 0.099_999_999_999_999_99,
             cache_read: 0.0,
             cache_write: 0.0,
         },
@@ -4336,7 +4336,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.13,
             output: 0.85,
-            cache_read: 0.024999999999999998,
+            cache_read: 0.024_999_999_999_999_998,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -4369,7 +4369,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.6,
-            output: 1.7999999999999998,
+            output: 1.799_999_999_999_999_8,
             cache_read: 0.11,
             cache_write: 0.0,
         },
@@ -4403,8 +4403,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::TextAndImages,
         cost: ModelUsageCosting {
             input: 0.3,
-            output: 0.8999999999999999,
-            cache_read: 0.049999999999999996,
+            output: 0.899_999_999_999_999_9,
+            cache_read: 0.049_999_999_999_999_996,
             cache_write: 0.0,
         },
         context_window: 131_072,
@@ -4437,7 +4437,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.06,
-            output: 0.39999999999999997,
+            output: 0.399_999_999_999_999_97,
             cache_read: 0.01,
             cache_write: 0.0,
         },
@@ -4487,9 +4487,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         base_url: Some("https://openrouter.ai/api/v1"),
         inputs: MessageType::Text,
         cost: ModelUsageCosting {
-            input: 1.0499999999999998,
+            input: 1.049_999_999_999_999_8,
             output: 3.5,
-            cache_read: 0.5249999999999999,
+            cache_read: 0.524_999_999_999_999_9,
             cache_write: 0.0,
         },
         context_window: 202_752,
@@ -4523,7 +4523,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 1.0,
             output: 5.0,
-            cache_read: 0.09999999999999999,
+            cache_read: 0.099_999_999_999_999_99,
             cache_write: 1.25,
         },
         context_window: 200_000,
@@ -4574,8 +4574,8 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 0.5,
             output: 3.0,
-            cache_read: 0.049999999999999996,
-            cache_write: 0.08333333333333334,
+            cache_read: 0.049_999_999_999_999_996,
+            cache_write: 0.083_333_333_333_333_34,
         },
         context_window: 1_048_576,
         max_tokens: 65_536,
@@ -4591,7 +4591,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &[
         cost: ModelUsageCosting {
             input: 2.0,
             output: 12.0,
-            cache_read: 0.19999999999999998,
+            cache_read: 0.199_999_999_999_999_98,
             cache_write: 0.375,
         },
         context_window: 1_048_576,

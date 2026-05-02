@@ -6,7 +6,7 @@
 //! responses into `UsageReport`, but all `UsageCosting` fields were hard-coded
 //! to `$0.0`. The pricing data already lives in `ModelUsageCosting` on each
 //! `ModelProviderDescriptor` (per-million-token rates for input, output,
-//! cache_read, cache_write). This module bridges the gap.
+//! `cache_read`, `cache_write`). This module bridges the gap.
 //!
 //! # Design rationale
 //!
@@ -67,10 +67,11 @@ use crate::types::{CostStatus, Messages, ModelOutput, ModelUsageCosting, UsageCo
 /// Calculate cost from token usage and model pricing.
 ///
 /// Formula: `(price_per_million / 1_000_000) * token_count`
-/// for each of input, output, cache_read, cache_write.
+/// for each of input, output, `cache_read`, `cache_write`.
 ///
 /// If pricing for a used token type is zero (free model),
 /// that component costs $0 but the status is still `Actual`.
+#[must_use]
 pub fn calculate_cost(
     pricing: &ModelUsageCosting,
     usage: &UsageReport,
@@ -104,6 +105,7 @@ pub struct CostAccumulator {
 }
 
 impl CostAccumulator {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -117,6 +119,7 @@ impl CostAccumulator {
         self.call_count += 1;
     }
 
+    #[must_use]
     pub fn result(&self) -> UsageCosting {
         UsageCosting {
             currency: String::from("USD"),
@@ -133,6 +136,7 @@ impl CostAccumulator {
         }
     }
 
+    #[must_use]
     pub fn call_count(&self) -> u64 {
         self.call_count
     }
@@ -158,6 +162,7 @@ impl CostAccumulator {
 /// - **100.0 values/token**: Embedding vectors are dense float arrays;
 ///   each float ≈ 4 chars, but the semantic compression is high,
 ///   so we use a very aggressive chars-per-token ratio.
+#[must_use]
 pub fn estimate_tokens(messages: &[Messages]) -> UsageReport {
     use crate::types::{UserModelContent};
 
@@ -241,6 +246,7 @@ pub fn estimate_tokens(messages: &[Messages]) -> UsageReport {
 }
 
 /// Sum the total cost of a list of messages.
+#[must_use]
 pub fn message_cost(messages: &[Messages]) -> UsageCosting {
     let mut input = 0.0;
     let mut output = 0.0;

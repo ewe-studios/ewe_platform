@@ -147,7 +147,7 @@ graph TD
     Transport --&gt; Network[Network Trait]
     Network --&gt; HttpNetwork
     Network --&gt; LocalNetwork
-    
+
     Macro[#resonate_sdk::function] --&gt; Durable[Durable Trait]
     Durable --&gt; Registry
 
@@ -173,31 +173,294 @@ async fn main() {
         .expect(&quot;workflow failed&quot;);
 }
 </code></pre>
-<h3>The Function Macro</h3>
+<hr>
+<h2>Deep Dive: The <code>#[resonate_sdk::function]</code> Proc Macro</h2>
+<p>This section details exactly what the macro generates, why the zero-sized type pattern is used, and how the generated code connects to the runtime.</p>
+<h3>Source: <code>resonate-macros/src/lib.rs</code></h3>
+<p>The macro is an <strong>attribute proc macro</strong> (<code>#[proc_macro_attribute]</code>). When you write:</p>
 <pre><code class="language-rust">#[resonate_sdk::function]
-async fn process_order(ctx: &amp;Context, order: Order) -&gt; Result&lt;Receipt&gt; {
-    let payment = ctx.run(charge_card, order.payment).await?;
-    let shipment = ctx.run(ship_items, order.items).await?;
-    Ok(Receipt { payment, shipment })
+async fn charge_card(ctx: &amp;Context, payment: Payment) -&gt; Result&lt;Receipt&gt; {
+    // body
 }
 </code></pre>
-<p>The <code>#[resonate_sdk::function]</code> macro detects the function kind from the first parameter:</p>
-<table><tr><th>First Parameter</th><th>Kind</th><th>Capability</th></tr><tr><td>`&Context`</td><td>Workflow</td><td>Can orchestrate sub-tasks via `ctx.run()`, `ctx.rpc()`, `ctx.sleep()`</td></tr><tr><td>`&Info`</td><td>Leaf with metadata</td><td>Read-only access to execution metadata (ID, tags)</td></tr><tr><td>*(anything else)*</td><td>Pure leaf</td><td>Stateless computation, no Context needed</td></tr></table>
-<p>The macro generates a <code>Durable</code> trait implementation that wraps the function for type-erased registration.</p>
-<h3>The Info Struct</h3>
-<p>Functions that take <code>&Info</code> instead of <code>&Context</code> get read-only access to execution metadata without orchestration capabilities:</p>
-<pre><code class="language-rust">#[resonate_sdk::function]
-fn leaf_with_info(info: &amp;Info, data: Input) -&gt; Result&lt;Output&gt; {
-    let task_id = info.id();           // Current task/promise ID
-    let tags = info.tags();            // Tags from the promise
-    let attempt = info.attempt();      // Retry attempt number
-    let created_at = info.created_at(); // When this promise was created
-    
-    // Pure computation — no durable operations available
-    process(data, tags)
+<p>The macro consumes the entire function definition and replaces it with three pieces of generated code:</p>
+<h3>1. A hidden <code>#[doc(hidden)]</code> unit struct</h3>
+<pre><code class="language-rust">#[derive(Debug, Clone, Copy)]
+#[doc(hidden)]
+pub struct __Durable_ChargeCard;
+</code></pre>
+<p>This is a <strong>zero-sized type</strong> (ZST) — it carries no data at runtime. The struct is derived with <code>Clone</code> and <code>Copy</code> so it can be freely duplicated. The <code>__Durable_</code> prefix plus PascalCase naming ensures it won't collide with user types.</p>
+<h3>2. A <code>const</code> alias with the original function name</h3>
+<pre><code class="language-rust">#[allow(non_upper_case_globals)]
+pub const charge_card: __Durable_ChargeCard = __Durable_ChargeCard;
+</code></pre>
+<p>This is the key to why <code>ctx.run(charge_card, args)</code> compiles. <code>charge_card</code> is <strong>not a function pointer</strong> — it is a <code>const</code> holding the unit struct. This means:</p>
+<ul><li><code>charge_card</code> has a concrete type (<code>__Durable_ChargeCard</code>) that can be used as a generic parameter.</li><li>No runtime memory is allocated for the "value" — it's a compile-time constant.</li><li>The original function name is still available as a value, matching how you'd call a function, but semantically it's a type.</li></ul>
+<h3>3. A <code>Durable<Args, T></code> trait implementation</h3>
+<pre><code class="language-rust">impl Durable&lt;(Payment,), Result&lt;Receipt&gt;&gt; for __Durable_ChargeCard {
+    const NAME: &amp;&#x27;static str = &quot;charge_card&quot;;
+    const KIND: DurableKind = DurableKind::Workflow;
+
+    async fn execute(
+        &amp;self,
+        env: ExecutionEnv&lt;&#x27;_&gt;,
+        args: (Payment,),
+    ) -&gt; Result&lt;Receipt&gt; {
+        let ctx = env.into_context();
+        let payment = args.0;
+        async move {
+            // original function body inlined here
+        }.await
+    }
 }
 </code></pre>
-<table><tr><th>Method</th><th>Returns</th></tr><tr><td>`id()`</td><td>Task/promise ID</td></tr><tr><td>`tags()`</td><td>Promise tags map</td></tr><tr><td>`attempt()`</td><td>Current retry attempt</td></tr><tr><td>`created_at()`</td><td>Creation timestamp</td></tr></table>
+<p>The <code>Durable</code> trait is defined in <code>durable.rs:45-57</code>:</p>
+<pre><code class="language-rust">pub trait Durable&lt;Args, T&gt;: Send + Sync + &#x27;static {
+    const NAME: &amp;&#x27;static str;
+    const KIND: DurableKind;
+    fn execute(&amp;self, env: ExecutionEnv&lt;&#x27;_&gt;, args: Args) -&gt; impl Future&lt;Output = Result&lt;T&gt;&gt; + Send;
+}
+</code></pre>
+<p><strong>Type parameters</strong>: <code>Args</code> is the function's input (tuple for multi-arg, single type for one arg, <code>()</code> for zero args). <code>T</code> is extracted from the <code>Result<T></code> return type.</p>
+<h3>How the macro detects function kind</h3>
+<p>The macro inspects the <strong>first parameter's type</strong> (<code>lib.rs:301-318</code>):</p>
+<table><tr><th>First parameter type</th><th>`FunctionKind`</th><th>`KIND` constant</th><th>What happens in `execute`</th></tr><tr><td>`&Context`</td><td>`Workflow`</td><td>`DurableKind::Workflow`</td><td>`env.into_context()` is called to extract `&Context`</td></tr><tr><td>`&Info`</td><td>`LeafWithInfo`</td><td>`DurableKind::Function`</td><td>`env.into_info()` is called to extract `&Info`</td></tr><tr><td>anything else</td><td>`PureLeaf`</td><td>`DurableKind::Function`</td><td>`env` is ignored (`let _ = env;`)</td></tr></table>
+<p>The detection uses <code>is_reference_to()</code>, which checks if the type is a <code>&Type</code> where the inner type's path ends with the given name (<code>lib.rs:321-330</code>). This means <code>&resonate_sdk::Context</code> and <code>&Context</code> both match.</p>
+<h3>Args type assembly</h3>
+<pre><code class="language-">0 user params  →  Args = ()
+1 user param   →  Args = T  (the type directly, no tuple wrapper)
+2+ user params →  Args = (T1, T2, ...)
+</code></pre>
+<p>This matters for how args are destructured in <code>execute</code>:</p>
+<ul><li>Single arg: <code>let name = args;</code> — no tuple indexing.</li><li>Multiple args: <code>let name0 = args.0; let name1 = args.1;</code> — tuple indexing.</li></ul>
+<h3>The <code>name = "..."</code> attribute</h3>
+<p>The macro supports an optional attribute to override the registered name:</p>
+<pre><code class="language-rust">#[resonate_sdk::function(name = &quot;payment.process&quot;)]
+async fn process_payment(ctx: &amp;Context, payment: Payment) -&gt; Result&lt;Receipt&gt; { ... }
+</code></pre>
+<p>This sets <code>const NAME</code> to <code>"payment.process"</code> instead of the function's identifier.</p>
+<h3>ExecutionEnv: the bridge between registry and function</h3>
+<p><code>ExecutionEnv</code> (<code>durable.rs:12-37</code>) is an enum:</p>
+<pre><code class="language-rust">pub enum ExecutionEnv&lt;&#x27;a&gt; {
+    Function(&amp;&#x27;a Info),    // leaf function — read-only metadata
+    Workflow(&amp;&#x27;a Context), // workflow — full orchestration capability
+}
+</code></pre>
+<p>The <code>into_context()</code> and <code>into_info()</code> methods panic if called on the wrong variant. This means the macro's kind detection <strong>must</strong> match the actual usage — if you write <code>ctx: &Context</code> but the runtime passes <code>ExecutionEnv::Function</code>, you'll get a panic at execution time.</p>
+<h3>What the macro does NOT generate</h3>
+<ul><li><strong>No registration</strong>: The macro doesn't auto-register the function. You still call <code>resonate.register(charge_card)</code>.</li><li><strong>No serialization</strong>: The macro doesn't handle ser/de of args. That happens at the registry/transport layer.</li><li><strong>No promise management</strong>: The macro doesn't create or settle promises. That's the <code>Context</code>/<code>Effects</code> layer's job.</li><li><strong>No error handling wrapper</strong>: Panics are caught by <code>Core</code> via <code>std::panic::catch_unwind()</code>, not by the macro.</li></ul>
+<hr>
+<h2>Deep Dive: How <code>ctx.run(charge_card, order.payment)</code> Resolves the Function</h2>
+<p>This is the most surprising part of the SDK: how does passing <code>charge_card</code> (which looks like a function name) resolve to the correct function identity, and how does the runtime know which function to execute?</p>
+<h3>The answer: it's not a function, it's a type</h3>
+<p>As explained above, <code>charge_card</code> is a <strong>const zero-sized struct</strong> that implements <code>Durable</code>. The macro ensures:</p>
+<ol><li><strong>Type-level identity</strong>: <code>charge_card</code> has type <code>__Durable_ChargeCard</code>, which implements <code>Durable<(Payment,), Result<Receipt>></code>. This is the compile-time identity.</li><li><strong>Static <code>NAME</code> constant</strong>: <code>__Durable_ChargeCard::NAME</code> is <code>"charge_card"</code> (or the custom name from the attribute). This is the runtime name used for function registry lookup.</li><li><strong>Static <code>KIND</code> constant</strong>: <code>__Durable_ChargeCard::KIND</code> tells the runtime whether to create a <code>Context</code> or <code>Info</code> for execution.</li></ol>
+<h3>The call chain, step by step</h3>
+<p><strong>Step 1 — <code>ctx.run(func, args)</code></strong> (<code>context.rs:244-259</code>):</p>
+<pre><code class="language-rust">pub fn run&lt;D, Args, T&gt;(&amp;self, func: D, args: Args) -&gt; RunTask&lt;&#x27;_, D, Args, T&gt;
+where
+    D: Durable&lt;Args, T&gt;,
+    Args: Serialize,
+</code></pre>
+<p>The generic <code>D</code> is constrained to <code>Durable<Args, T></code>. When you pass <code>charge_card</code>, the compiler infers <code>D = __Durable_ChargeCard</code>. The function does <strong>not</strong> execute anything yet — it returns a <code>RunTask</code> builder struct.</p>
+<p><strong>Step 2 — Deterministic child ID generation</strong> (<code>context.rs:120-123</code>):</p>
+<pre><code class="language-rust">fn next_id(&amp;self) -&gt; String {
+    let seq = self.seq.fetch_add(1, Ordering::Relaxed);
+    format!(&quot;{}.{}&quot;, self.id, seq)
+}
+</code></pre>
+<p>The ID is purely based on the <strong>position</strong> in the execution flow, not the function itself. If <code>charge_card</code> is the first <code>ctx.run()</code> call in a workflow with ID <code>"order.123"</code>, the child gets ID <code>"order.123.0"</code>. This is critical for durability — on replay, the same position gets the same ID.</p>
+<p><strong>Step 3 — Promise creation on <code>.await</code></strong> (<code>context.rs:719-720</code>):</p>
+<pre><code class="language-rust">let req = ctx.local_create_req(&amp;child_id, &amp;args, timeout_override)?;
+let record = consume_promise_record(cell, req, &amp;ctx.effects).await?;
+</code></pre>
+<p>The <code>local_create_req</code> (<code>context.rs:174-192</code>) builds a <code>PromiseCreateReq</code> with tags:</p>
+<ul><li><code>resonate:scope = "local"</code> — distinguishes from remote calls</li><li><code>resonate:branch = self.branch_id</code> — links to the workflow's branch</li><li><code>resonate:parent = self.id</code> — parent context ID</li><li><code>resonate:origin = self.origin_id</code> — root workflow ID</li></ul>
+<p><strong>Step 4 — Execution dispatch</strong> (<code>context.rs:733-745</code>):</p>
+<pre><code class="language-rust">let info = ctx.child_info(&amp;child_id, D::NAME, timeout_at);
+let child_ctx = ctx.child(&amp;child_id, D::NAME, timeout_at);
+
+let env = match D::KIND {
+    DurableKind::Function =&gt; ExecutionEnv::Function(&amp;info),
+    DurableKind::Workflow =&gt; ExecutionEnv::Workflow(&amp;child_ctx),
+};
+let result = func.execute(env, args).await;
+</code></pre>
+<p>Here <code>D::NAME</code> and <code>D::KIND</code> are the <strong>associated constants</strong> from the <code>Durable</code> trait impl. These are resolved at compile time from the generic type parameter. <code>func.execute()</code> calls the inlined function body generated by the macro.</p>
+<h3>Why not use function pointers or trait objects?</h3>
+<p>Function pointers (<code>fn()</code>) don't carry type information for args/return types and can't have associated constants. Trait objects (<code>&dyn Durable</code>) lose the <code>Args</code> and <code>T</code> type parameters and require <code>dyn</code> dispatch. The ZST + <code>Durable</code> trait approach gives:</p>
+<ul><li><strong>Zero runtime cost</strong>: the struct is a ZST, so passing it is free.</li><li><strong>Full type safety</strong>: the compiler enforces <code>Args</code> and <code>T</code> match.</li><li><strong>Static dispatch</strong>: no vtable lookups, all resolved at compile time.</li><li><strong>Associated constants</strong>: <code>NAME</code> and <code>KIND</code> are compile-time constants.</li></ul>
+<hr>
+<h2>Deep Dive: How <code>ctx.sleep()</code> Identifies the Correct Promise Across Replays</h2>
+<p><code>ctx.sleep()</code> looks like a simple timer, but its durability mechanism is the same as every other context operation — it's a promise with a special tag.</p>
+<h3>Sleep is a promise, not a special primitive</h3>
+<p><code>ctx.sleep(duration)</code> (<code>context.rs:319-328</code>):</p>
+<pre><code class="language-rust">pub fn sleep(&amp;self, duration: Duration) -&gt; SleepTask&lt;&#x27;_&gt; {
+    let child_id = self.next_id();   // deterministic: parent_id.seq
+    let req = self.sleep_create_req(&amp;child_id, duration);
+    SleepTask { child_id, ctx: self, req, record: OnceCell::new() }
+}
+</code></pre>
+<p>The <code>sleep_create_req</code> (<code>context.rs:286-303</code>) sets:</p>
+<pre><code class="language-rust">tags.insert(&quot;resonate:timer&quot;.to_string(), &quot;true&quot;.to_string());
+// plus: scope=global, branch=id, parent=parent_id, origin=origin_id
+</code></pre>
+<p>The <code>timeout_at</code> is set to <code>now + duration</code> (capped to the parent's timeout).</p>
+<h3>First execution: what happens</h3>
+<p>When <code>.await</code> is called (<code>context.rs:1065-1090</code>):</p>
+<ol><li><strong>Create the promise</strong> on the server via <code>effects.create_promise(req)</code>. The server stores it as <code>Pending</code> with <code>resonate:timer=true</code> and a <code>timeout_at</code>.</li><li><strong>Check the state</strong>: the server returns the promise record. If <code>Pending</code> (the normal case for a new sleep), the SDK pushes <code>child_id</code> to <code>spawned_remote</code> and returns <code>Error::Suspended</code>.</li><li><strong>The workflow suspends</strong>: <code>Core::suspend_task()</code> sends the list of remote promise IDs to the server via <code>task.suspend</code>. The server registers the task as an awaiter on each promise and transitions the task to <code>Suspended</code> state.</li></ol>
+<h3>Server-side timer resolution</h3>
+<p>The server maintains a <code>p_timeouts</code> list (<code>network.rs:1234-1243</code>). On each <code>tick()</code>:</p>
+<pre><code class="language-rust">for pt in &amp;self.p_timeouts {
+    if now &gt;= pt.timeout {
+        if let Some(p) = self.promises.get(&amp;pt.id) {
+            if p.state == PromiseState::Pending {
+                // Settle it
+                let state = self.timeout_state(&amp;p.tags);  // line 1226
+                // state = Resolved if resonate:timer=true, else RejectedTimedout
+            }
+        }
+    }
+}
+</code></pre>
+<p><code>timeout_state()</code> (<code>network.rs:1226-1232</code>) is the key:</p>
+<pre><code class="language-rust">fn timeout_state(&amp;self, tags: &amp;HashMap&lt;String, String&gt;) -&gt; PromiseState {
+    if tags.get(&quot;resonate:timer&quot;).is_some_and(|v| v == &quot;true&quot;) {
+        PromiseState::Resolved   // timers resolve (success)
+    } else {
+        PromiseState::RejectedTimedout  // normal promises reject on timeout
+    }
+}
+</code></pre>
+<p>So a sleep promise <strong>resolves</strong> (not rejects) when the timer fires. This means <code>ctx.sleep().await</code> returns <code>Ok(())</code>, not an error.</p>
+<h3>Replay: how the SDK knows the sleep was already created</h3>
+<p>On re-execution after a crash or resume:</p>
+<ol><li>The workflow is re-dispatched with the same task ID.</li><li>The server returns a <strong>preload</strong> of all resolved promises in the same <code>resonate:branch</code> (<code>network.rs:1209-1224</code>).</li><li>These preloaded promises are inserted into the <code>Effects</code> cache (<code>effects.rs:20-33</code>).</li><li>When the re-executed workflow reaches the same <code>ctx.sleep()</code> call:</li></ol>
+<ul><li><code>next_id()</code> produces the <strong>same</strong> <code>child_id</code> (deterministic: <code>{parent_id}.{seq}</code>).</li><li><code>consume_promise_record</code> calls <code>effects.create_promise(req)</code>.</li><li><code>create_promise</code> checks the cache first (<code>effects.rs:39</code>): <code>if let Some(cached) = self.cache.get(&req.id)</code>.</li><li><strong>The sleep promise is found in the cache</strong> with state <code>Resolved</code> (timer already fired).</li><li><code>record.as_result::<()>()</code> returns <code>Some(Ok(()))</code> — the <code>.await</code> returns immediately without creating a new server promise or waiting.</li></ul>
+<h3>The key insight: position-based ID, not content-based ID</h3>
+<p>The sleep promise's ID is <strong>not</strong> derived from the duration, timestamp, or any content of the sleep call. It's purely <code>{parent_context_id}.{sequential_counter}</code>. This means:</p>
+<ul><li>If you insert a <code>ctx.run()</code> call <strong>before</strong> a <code>ctx.sleep()</code>, the sleep's ID changes on replay (because <code>seq</code> increments earlier).</li><li>This is the same constraint as the TypeScript SDK — the execution path must be deterministic.</li><li>The <code>OnceCell</code> ensures the promise is created at most once per <code>RunTask</code>/<code>SleepTask</code> instance.</li></ul>
+<h3>What happens if the sleep hasn't fired yet</h3>
+<p>If the promise is <code>Pending</code> (sleep still running), the SDK:</p>
+<ol><li>Pushes the child_id to <code>spawned_remote</code>.</li><li>Returns <code>Error::Suspended</code>.</li><li>The parent workflow suspends on the server.</li><li>When the timer fires, the server resolves the promise, calls <code>resume_awaiters()</code>, and re-dispatches the workflow.</li><li>On re-execution, the promise is <code>Resolved</code> in the preload, so the sleep returns immediately.</li></ol>
+<hr>
+<h2>Deep Dive: Tasks vs Promises — Storage, Relationship, and Lifecycle</h2>
+<p>Tasks and promises are <strong>distinct but coupled</strong> primitives. Understanding their separation is essential to understanding how Resonate works.</p>
+<h3>They live in separate HashMaps</h3>
+<p>In <code>ServerState</code> (<code>network.rs:139-146</code>):</p>
+<pre><code class="language-rust">struct ServerState {
+    promises: HashMap&lt;String, DurablePromise&gt;,
+    tasks: HashMap&lt;String, Task&gt;,
+    // ...
+}
+</code></pre>
+<h3>Promise: the durability primitive</h3>
+<p>A <code>DurablePromise</code> (<code>network.rs:36-47</code>) stores:</p>
+<table><tr><th>Field</th><th>Purpose</th></tr><tr><td>`id`</td><td>Unique identifier (shared with its task)</td></tr><tr><td>`state`</td><td>`Pending`, `Resolved`, `Rejected`, `RejectedCanceled`, `RejectedTimedout`</td></tr><tr><td>`param`</td><td>Input data (what was passed to create the promise)</td></tr><tr><td>`value`</td><td>Output data (the result after settlement)</td></tr><tr><td>`tags`</td><td>Metadata map (`resonate:scope`, `resonate:target`, `resonate:timer`, etc.)</td></tr><tr><td>`timeout_at`</td><td>Absolute millisecond timestamp for auto-timeout</td></tr><tr><td>`awaiters`</td><td>`HashSet<String>` of task IDs waiting on this promise</td></tr><tr><td>`subscribers`</td><td>`HashSet<String>` of listener addresses (for push notifications)</td></tr></table>
+<p><strong>Promise lifecycle</strong>: <code>Pending</code> → <code>Resolved</code>/<code>Rejected</code>/<code>RejectedCanceled</code>/<code>RejectedTimedout</code></p>
+<p>Promises are created via <code>promise.create</code> and settled via <code>promise.settle</code>. Once settled, they cannot be changed.</p>
+<h3>Task: the execution primitive</h3>
+<p>A <code>Task</code> (<code>network.rs:67-74</code>) stores:</p>
+<table><tr><th>Field</th><th>Purpose</th></tr><tr><td>`id`</td><td>Unique identifier (matches its promise ID)</td></tr><tr><td>`state`</td><td>`Pending`, `Acquired`, `Suspended`, `Halted`, `Fulfilled`</td></tr><tr><td>`version`</td><td>Monotonically increasing counter (bumped on each re-dispatch)</td></tr><tr><td>`pid`</td><td>Process ID of the worker that acquired this task</td></tr><tr><td>`ttl`</td><td>Lease timeout (heartbeat must refresh before this)</td></tr><tr><td>`resumes`</td><td>`HashSet<String>` of promise IDs that resolved while this task was acquired</td></tr></table>
+<p><strong>Task lifecycle</strong>: <code>Pending</code> → <code>Acquired</code> → <code>Suspended</code> or <code>Fulfilled</code></p>
+<p>Tasks are acquired by workers and represent units of work that need to be done.</p>
+<h3>How tasks and promises are linked</h3>
+<p><strong>Every task shares its ID with a promise</strong>, but not every promise has a task.</p>
+<table><tr><th>Promise type</th><th>Has a task?</th><th>Why</th></tr><tr><td>`ctx.run()` (local)</td><td>**No**</td><td>Local promises are created and settled by the same worker. No task dispatch needed.</td></tr><tr><td>`ctx.rpc()` (remote)</td><td>**Yes**</td><td>The `resonate:target` tag triggers auto-task-creation and dispatch (`network.rs:442-469`).</td></tr><tr><td>`ctx.sleep()` (timer)</td><td>**No**</td><td>Timer promises are resolved by the server's tick loop, not by a worker.</td></tr><tr><td>`ctx.promise()` (latent)</td><td>**No**</td><td>Latent promises are resolved externally.</td></tr><tr><td>Root workflow invocation</td><td>**Yes**</td><td>The root has a `resonate:target` tag pointing to the worker group.</td></tr></table>
+<p><strong>Auto-task-creation</strong> (<code>network.rs:442-469</code>): when <code>promise.create</code> sees a <code>resonate:target</code> tag, it automatically creates a task with the same ID, sets it to <code>Pending</code>, and sends an <code>execute</code> message to the target address.</p>
+<h3>The awaiter mechanism</h3>
+<p>When a task suspends waiting on remote promises (<code>task.suspend</code>), the server registers it as an <strong>awaiter</strong> on each promise (<code>network.rs:906-918</code>):</p>
+<pre><code class="language-rust">for awaited_id in &amp;callbacks {
+    match self.promises.get_mut(awaited_id) {
+        Some(p) if p.state == PromiseState::Pending =&gt; {
+            p.awaiters.insert(task_id.to_string());
+        }
+        Some(_) =&gt; any_settled = true,  // already settled
+        None =&gt; {}  // doesn&#x27;t exist
+    }
+}
+</code></pre>
+<p>When a promise settles, <code>resume_awaiters()</code> (<code>network.rs:1142-1181</code>) finds all tasks in the <code>awaiters</code> set and transitions them from <code>Suspended</code> back to <code>Pending</code> with a version bump, then dispatches an <code>execute</code> message.</p>
+<h3>The preload optimization</h3>
+<p>When a task is acquired (<code>task.acquire</code>), the server returns all resolved promises in the same <code>resonate:branch</code> as a <strong>preload</strong> array (<code>network.rs:1209-1224</code>):</p>
+<pre><code class="language-rust">fn preload(&amp;self, promise_id: &amp;str) -&gt; Vec&lt;serde_json::Value&gt; {
+    let branch = ...;  // from the promise&#x27;s tags
+    self.promises.values()
+        .filter(|p| p.id != promise_id &amp;&amp; p.tags.get(&quot;resonate:branch&quot;) == Some(&amp;branch))
+        .map(|p| p.to_record())
+        .collect()
+}
+</code></pre>
+<p>This enables the SDK to replay without network round-trips for already-completed child operations.</p>
+<h3>Database schema perspective</h3>
+<p>In a production deployment (PostgreSQL/MySQL), these map to separate tables. The <code>LocalNetwork</code> in-memory implementation uses <code>HashMap</code>s, but the server's real persistence layer uses:</p>
+<ul><li><code>promises</code> table — stores promise state, param, value, tags, timeouts</li><li><code>tasks</code> table — stores task state, version, pid, ttl</li><li><code>promises.awaiters</code> — typically a join table or JSON array</li><li><code>promises.subscribers</code> — typically a join table</li></ul>
+<hr>
+<h2>Deep Dive: Callback Mechanism — How Suspended Workflows Resume</h2>
+<p>The callback system has <strong>two distinct channels</strong>: awaiters (task-to-task) and subscribers (push notifications). They serve different purposes and operate at different levels.</p>
+<h3>Channel 1: Awaiters (task-to-task resume)</h3>
+<p>Awaiters are the primary mechanism for workflow continuation after suspension.</p>
+<p><strong>Registration</strong> — When a workflow suspends:</p>
+<ol><li>The SDK's <code>Core::suspend_task()</code> collects the list of remote promise IDs the workflow is waiting on.</li><li>For each awaited promise, it sends a <code>PromiseRegisterCallbackData { awaited, awaiter: task_id }</code> action.</li><li>The server's <code>task_suspend()</code> (<code>network.rs:903-919</code>) inserts the task_id into each promise's <code>awaiters</code> HashSet.</li></ol>
+<p><strong>Resolution</strong> — When a promise settles:</p>
+<ol><li><code>resume_awaiters()</code> (<code>network.rs:1142-1181</code>) is called.</li><li>For each task in the promise's <code>awaiters</code> set:</li></ol>
+<ul><li>If <code>Suspended</code>: transition to <code>Pending</code>, bump version, set <code>resumes = {promise_id}</code>, dispatch <code>execute</code>.</li><li>If <code>Pending</code>/<code>Acquired</code>/<code>Halted</code>: just add the promise_id to <code>resumes</code>.</li></ul>
+<ol><li>The <code>awaiters</code> set is cleared.</li></ol>
+<p><strong>The <code>resumes</code> set</strong> is a critical detail. If a promise resolves while a task is still running (between await points), the task isn't suspended yet. The <code>resumes</code> set accumulates these "early" resolutions. When the task later tries to suspend, the server checks <code>resumes</code> (<code>network.rs:870-882</code>):</p>
+<pre><code class="language-rust">if has_resumes {
+    // Redirect: re-execute with preload of the already-resolved promises
+    return json!({ &quot;status&quot;: 300, &quot;redirect&quot;: true, &quot;preload&quot;: preload });
+}
+</code></pre>
+<p>The <strong>300 redirect</strong> is key — instead of suspending and waiting for a re-dispatch, the task immediately re-executes with the preloaded promise states. This is an optimization that avoids a full suspend/resume cycle.</p>
+<h3>Channel 2: Subscribers (push notification listeners)</h3>
+<p>Subscribers are used for <strong>real-time push notifications</strong> to external listeners (like the SDK's in-process handle system).</p>
+<p><strong>Registration</strong> — When <code>handle.create</code> or similar is called:</p>
+<ol><li>The SDK calls <code>promise_register_listener(awaited, address)</code> on the server.</li><li>The server inserts the <code>address</code> into the promise's <code>subscribers</code> HashSet (<code>network.rs:519-542</code>).</li><li>Only <code>Pending</code> promises get subscribers — already-settled promises return their result directly.</li></ol>
+<p><strong>Notification</strong> — When a promise settles:</p>
+<ol><li><code>notify_subscribers()</code> (<code>network.rs:1184-1206</code>) is called.</li><li>For each subscriber address, an <code>unblock</code> message is pushed:</li></ol>
+<p>   ``<code>json    { "kind": "unblock", "data": { "promise": { /<em> promise record </em>/ } } }    </code>``</p>
+<ol><li>The subscribers set is cleared (one-shot notification).</li></ol>
+<h3>SDK-side message dispatch</h3>
+<p>The SDK's transport layer receives messages via <code>recv()</code> callback (<code>resonate.rs</code>):</p>
+<ul><li><strong><code>execute</code> message</strong>: spawns <code>core.on_message()</code> to handle task execution (acquire → run → settle/suspend).</li><li><strong><code>unblock</code> message</strong>: sends the settled promise result through a <code>watch::Sender</code>, unblocking any <code>DurableFuture</code> or <code>RemoteFuture</code> waiting on it.</li></ul>
+<h3>The subscription refresh mechanism</h3>
+<p>A background task runs every 60 seconds (<code>resonate.rs:660-702</code>):</p>
+<ol><li>Iterate over all pending promises in the SDK's subscription map.</li><li>Re-register listeners for each one with the server.</li><li>This handles server restarts or connection drops where listener registrations were lost.</li></ol>
+<h3>End-to-end flow: rpc → suspend → resume</h3>
+<pre><code class="language-">Workflow A: ctx.rpc(&quot;remote_fn&quot;, args).await
+
+Step 1 (first execution):
+  A. ctx.rpc creates a remote promise with resonate:target tag
+  B. Server auto-creates a task and dispatches execute to target worker
+  C. Promise is Pending, so RPC pushes child_id to spawned_remote
+  D. Returns Error::Suspended
+  E. Core::suspend_task() registers A as awaiter on the remote promise
+  F. Task A → Suspended
+
+Step 2 (remote worker executes):
+  A. Worker acquires the remote task
+  B. Executes remote_fn
+  C. Settles the remote promise with the result
+
+Step 3 (promise settlement):
+  A. Server calls resume_awaiters() on the settled promise
+  B. Finds task A in awaiters set
+  C. Transitions A from Suspended → Pending, bumps version
+  D. Dispatches execute message to A&#x27;s worker group
+
+Step 4 (workflow A resumes):
+  A. SDK receives execute message, calls core.on_message()
+  B. Re-acquires task A with new version
+  C. Re-executes the workflow function
+  D. ctx.rpc reaches the same child_id (deterministic)
+  E. create_promise finds the promise already Resolved in preload
+  F. record.as_result() returns the result immediately
+  G. Workflow continues past the ctx.rpc() call
+</code></pre>
+<h3>Callback vs Promise: is a callback a promise?</h3>
+<p>No. A callback is a <strong>registration</strong>, not a data structure. The awaiters and subscribers are <code>HashSet</code>s stored <strong>on</strong> the promise. When a promise settles, these sets determine who gets notified. The promise is the durable data; the callback registration is transient metadata on that data.</p>
+<hr>
 <h2>Context API (Durable World)</h2>
 <h3>Sequential Execution</h3>
 <pre><code class="language-rust">#[resonate_sdk::function]
@@ -247,10 +510,10 @@ async fn orchestrator(ctx: &amp;Context, data: Data) -&gt; Result&lt;Combined&gt
 <pre><code class="language-rust">#[resonate_sdk::function]
 async fn scheduled_workflow(ctx: &amp;Context, config: Config) -&gt; Result&lt;()&gt; {
     ctx.run(initial_setup, config.clone()).await?;
-    
+
     // Sleep for 1 hour — survives crashes
     ctx.sleep(Duration::from_secs(3600)).await?;
-    
+
     ctx.run(follow_up, config).await?;
     Ok(())
 }
@@ -262,6 +525,7 @@ async fn scheduled_workflow(ctx: &amp;Context, config: Config) -&gt; Result&lt;(
     .target(&quot;gpu-workers&quot;)               // Route to specific worker group
     .await?;
 </code></pre>
+<hr>
 <h2>Execution Model</h2>
 <div class="mermaid">
 sequenceDiagram
@@ -276,7 +540,7 @@ sequenceDiagram
     N--&gt;&gt;C: Acquired (preload: resolved promises)
     C-&gt;&gt;T: tokio::spawn(execute_fn)
     T-&gt;&gt;Ctx: fn(ctx, args)
-    
+
     Ctx-&gt;&gt;E: ctx.run(child_fn, args)
     E-&gt;&gt;N: promise.create(child_id)
     E-&gt;&gt;T: tokio::spawn(child_fn)
@@ -312,18 +576,17 @@ sequenceDiagram
 }
 </code></pre>
 <p>A panic doesn't permanently fail the promise — the task is released and another worker can retry.</p>
+<hr>
 <h2>The Durable Trait</h2>
-<pre><code class="language-rust">pub trait Durable: Send + Sync + &#x27;static {
-    fn name(&amp;self) -&gt; &amp;str;
-    fn execute(
-        &amp;self,
-        env: ExecutionEnv,
-        args: Vec&lt;u8&gt;,
-    ) -&gt; Pin&lt;Box&lt;dyn Future&lt;Output = Result&lt;Vec&lt;u8&gt;&gt;&gt; + Send&gt;&gt;;
+<pre><code class="language-rust">pub trait Durable&lt;Args, T&gt;: Send + Sync + &#x27;static {
+    const NAME: &amp;&#x27;static str;
+    const KIND: DurableKind;
+    fn execute(&amp;self, env: ExecutionEnv&lt;&#x27;_&gt;, args: Args) -&gt; impl Future&lt;Output = Result&lt;T&gt;&gt; + Send;
 }
 </code></pre>
 <p>The <code>#[resonate_sdk::function]</code> macro generates implementations that handle:</p>
 <ul><li>Deserializing args from bytes (via codec)</li><li>Creating the appropriate Context/Info</li><li>Calling the user function</li><li>Serializing the return value to bytes</li></ul>
+<hr>
 <h2>Effects (Durable Operations)</h2>
 <p><code>effects.rs</code> provides the bridge between Context API calls and network operations:</p>
 <pre><code class="language-rust">impl Effects {
@@ -348,6 +611,7 @@ sequenceDiagram
 <h3>Promise Cache (DashMap)</h3>
 <p>The SDK uses <code>DashMap</code> (lock-free concurrent hashmap) to cache promise states during execution. This enables:</p>
 <ul><li>Preload optimization (bulk-insert resolved promises at task acquisition)</li><li>Idempotent local operations (don't re-create existing promises)</li><li>Fast replay (return cached results without network call)</li></ul>
+<hr>
 <h2>Dependency Injection</h2>
 <p>Functions can access shared state via typed dependency injection:</p>
 <pre><code class="language-rust">// Register dependency
@@ -366,9 +630,10 @@ async fn query_user(ctx: &amp;Context, user_id: String) -&gt; Result&lt;User&gt;
 }
 </code></pre>
 <p>Dependencies are stored in a type-keyed <code>Arc</code> map.</p>
+<hr>
 <h2>Network & Transport</h2>
 <h3>Network Trait</h3>
-<pre><code class="language-rust">#[async_trait]
+<pre><code class="language-rust">#[async_trait::async_trait]
 pub trait Network: Send + Sync {
     async fn request(&amp;self, msg: Message) -&gt; Result&lt;Response&gt;;
 }
@@ -384,6 +649,7 @@ let resonate = Resonate::new(ResonateConfig {
 // Local mode (testing, single-process)
 let resonate = Resonate::local();
 </code></pre>
+<hr>
 <h2>Heartbeat</h2>
 <p>A background tokio task sends heartbeats during execution:</p>
 <pre><code class="language-rust">// Spawned when task is acquired
@@ -398,13 +664,16 @@ tokio::spawn(async move {
 });
 </code></pre>
 <p>If the heartbeat fails (task was released due to timeout), the execution is aborted.</p>
+<hr>
 <h2>Client APIs (Ephemeral World)</h2>
 <table><tr><th>Method</th><th>Description</th></tr><tr><td>`resonate.run(id, fn, args)`</td><td>Execute locally, return result</td></tr><tr><td>`resonate.rpc(id, fn_name, args)`</td><td>Execute remotely (by name)</td></tr><tr><td>`resonate.schedule(name, cron, fn, args)`</td><td>Cron-based execution</td></tr><tr><td>`resonate.get(id)`</td><td>Get handle to existing execution</td></tr><tr><td>`resonate.stop()`</td><td>Graceful shutdown</td></tr><tr><td>`resonate.promises`</td><td>Sub-client for raw promise operations</td></tr><tr><td>`resonate.schedules`</td><td>Sub-client for schedule management</td></tr></table>
+<hr>
 <h2>Environment Variables</h2>
 <table><tr><th>Variable</th><th>Description</th><th>Default</th></tr><tr><td>`RESONATE_URL`</td><td>Full server URL</td><td>*(local mode)*</td></tr><tr><td>`RESONATE_HOST`</td><td>Server hostname</td><td>*(unset)*</td></tr><tr><td>`RESONATE_PORT`</td><td>Server port</td><td>`8001`</td></tr><tr><td>`RESONATE_TOKEN`</td><td>JWT auth token</td><td>*(unset)*</td></tr><tr><td>`RESONATE_PREFIX`</td><td>Promise ID prefix</td><td>*(empty)*</td></tr></table>
 <p>Constructor arguments override environment variables. No URL = local mode.</p>
+<hr>
 <h2>Source Paths</h2>
-<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`resonate/src/resonate.rs`</td><td>Client entry point, config, registration</td></tr><tr><td>`resonate/src/context.rs`</td><td>Durable world API (run, rpc, sleep, spawn)</td></tr><tr><td>`resonate/src/core.rs`</td><td>Task lifecycle (acquire → execute → settle/suspend)</td></tr><tr><td>`resonate/src/durable.rs`</td><td>Durable trait definition</td></tr><tr><td>`resonate/src/effects.rs`</td><td>Promise creation, caching, settlement</td></tr><tr><td>`resonate/src/futures.rs`</td><td>Custom future types for spawn handles</td></tr><tr><td>`resonate/src/handle.rs`</td><td>Execution handle (await result)</td></tr><tr><td>`resonate/src/heartbeat.rs`</td><td>Lease extension loop</td></tr><tr><td>`resonate/src/network.rs`</td><td>Network trait definition</td></tr><tr><td>`resonate/src/http_network.rs`</td><td>HTTP implementation</td></tr><tr><td>`resonate/src/transport.rs`</td><td>Transport wrapper (Arc<Network>)</td></tr><tr><td>`resonate/src/registry.rs`</td><td>Function registry</td></tr><tr><td>`resonate/src/codec.rs`</td><td>Serialization (JSON default)</td></tr><tr><td>`resonate/src/types.rs`</td><td>Protocol types, promise states</td></tr><tr><td>`resonate/src/options.rs`</td><td>Builder pattern options</td></tr><tr><td>`resonate/src/promises.rs`</td><td>Promise sub-client</td></tr><tr><td>`resonate/src/info.rs`</td><td>Read-only execution metadata</td></tr><tr><td>`resonate/src/error.rs`</td><td>Error types</td></tr><tr><td>`resonate-macros/src/lib.rs`</td><td>Proc macro (#[function])</td></tr></table>
+<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`resonate/src/resonate.rs`</td><td>Client entry point, config, registration</td></tr><tr><td>`resonate/src/context.rs`</td><td>Durable world API (run, rpc, sleep, spawn)</td></tr><tr><td>`resonate/src/core.rs`</td><td>Task lifecycle (acquire → execute → settle/suspend)</td></tr><tr><td>`resonate/src/durable.rs`</td><td>Durable trait definition</td></tr><tr><td>`resonate/src/effects.rs`</td><td>Promise creation, caching, settlement</td></tr><tr><td>`resonate/src/futures.rs`</td><td>Custom future types for spawn handles</td></tr><tr><td>`resonate/src/handle.rs`</td><td>Execution handle (await result)</td></tr><tr><td>`resonate/src/heartbeat.rs`</td><td>Lease extension loop</td></tr><tr><td>`resonate/src/network.rs`</td><td>Network trait definition + LocalNetwork server</td></tr><tr><td>`resonate/src/http_network.rs`</td><td>HTTP implementation</td></tr><tr><td>`resonate/src/transport.rs`</td><td>Transport wrapper (Arc<Network>)</td></tr><tr><td>`resonate/src/registry.rs`</td><td>Function registry</td></tr><tr><td>`resonate/src/codec.rs`</td><td>Serialization (JSON default)</td></tr><tr><td>`resonate/src/types.rs`</td><td>Protocol types, promise states</td></tr><tr><td>`resonate/src/options.rs`</td><td>Builder pattern options</td></tr><tr><td>`resonate/src/promises.rs`</td><td>Promise sub-client</td></tr><tr><td>`resonate/src/info.rs`</td><td>Read-only execution metadata</td></tr><tr><td>`resonate/src/error.rs`</td><td>Error types</td></tr><tr><td>`resonate-macros/src/lib.rs`</td><td>Proc macro (#[function])</td></tr></table>
   </article>
   <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
 </body>

@@ -20,6 +20,7 @@ pub mod xai;
 /// Returns a combined slice of all provider model descriptors.
 ///
 /// Uses `LazyLock` to concatenate per-provider static slices once.
+#[must_use]
 pub fn model_descriptors() -> &'static [ModelProviderDescriptor] {
     static ALL: std::sync::LazyLock<Vec<ModelProviderDescriptor>> =
         std::sync::LazyLock::new(|| {

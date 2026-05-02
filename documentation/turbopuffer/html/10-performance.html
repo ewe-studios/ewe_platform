@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Performance Benchmarks -- turbopuffer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/turbopuffer/docs</span>
+    <div class="nav-actions">
+      <a href="07-api-and-sdks.html" class="nav-breadcrumb">API & SDKs</a><a href="08-turbogrep.html" class="nav-breadcrumb">Turbogrep CLI</a><a href="09-pricing-and-limits.html" class="nav-breadcrumb">Pricing & System Limits</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="09-pricing-and-limits.html" class="nav-btn" title="Previous: Pricing & System Limits">← prev</a>
+      <a href="README.html" class="nav-btn nav-btn-next" title="Next: Turbopuffer Documentation">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Performance Benchmarks</h1>
+<p>Turbopuffer's performance characteristics are defined by its object storage architecture: cold queries pay object storage latency, warm queries are limited by local computation. Production scale numbers demonstrate that this tradeoff works at billion-document scale.</p>
+<h2>Cold vs Warm Query Latency</h2>
+<h3>Cold Query (from Object Storage)</h3>
+<table><tr><th>Metric</th><th>1M Documents</th></tr><tr><td>p50</td><td>343ms</td></tr><tr><td>p90</td><td>444ms</td></tr><tr><td>p99</td><td>554ms</td></tr></table>
+<div class="mermaid">
+flowchart LR
+    subgraph &quot;Cold Query: ~400ms total&quot;
+        S1[&quot;Download centroid index\n~100ms&quot;] --&gt; S2[&quot;Find closest centroids\n&lt;1ms&quot;]
+        S2 --&gt; S3[&quot;Fetch vector clusters\n~100ms&quot;]
+        S3 --&gt; S4[&quot;Compute distances\n&lt;1ms&quot;]
+        S4 --&gt; S5[&quot;Consistency GET\n~100ms&quot;]
+        S5 --&gt; S6[&quot;Return results&quot;]
+    end
+
+</div>
+<h3>Warm Query (cached on NVMe/memory)</h3>
+<table><tr><th>Metric</th><th>1M Documents</th></tr><tr><td>p50</td><td>8ms</td></tr><tr><td>p99</td><td>~20ms</td></tr></table>
+<div class="mermaid">
+flowchart LR
+    subgraph &quot;Warm Query: ~8ms total&quot;
+        W1[&quot;Read index from cache\n&lt;1ms&quot;] --&gt; W2[&quot;Execute query\n&lt;5ms&quot;]
+        W2 --&gt; W3[&quot;Consistency GET\n~10ms&quot;]
+        W3 --&gt; W4[&quot;Return results&quot;]
+    end
+
+</div>
+<p>Cold query breakdown:</p>
+<ol><li>Download centroid index (~100ms)</li><li>Find closest centroids locally (<1ms)</li><li>Fetch vectors for closest clusters (~100ms)</li><li>Compute distances locally (<1ms)</li><li>Consistency check via conditional GET (~100ms)</li><li>Return results</li></ol>
+<h3>Warm Query (cached on NVMe/memory)</h3>
+<table><tr><th>Metric</th><th>1M Documents</th></tr><tr><td>p50</td><td>8ms</td></tr><tr><td>p99</td><td>~20ms</td></tr></table>
+<p>Warm query breakdown:</p>
+<ol><li>Read index from local cache (<1ms)</li><li>Execute query locally (<5ms)</li><li>Consistency check (~10ms, skip with eventual consistency)</li></ol>
+<h2>Write Performance</h2>
+<table><tr><th>Metric</th><th>Value</th></tr><tr><td>Write latency (p50)</td><td>285ms for 500kB</td></tr><tr><td>Max writes/s per namespace</td><td>32k+ @ 64MB/s (production)</td></tr><tr><td>Max writes/s global</td><td>10M+ @ 32GB/s</td></tr><tr><td>WAL entry rate</td><td>1 per second per namespace</td></tr></table>
+<p>Writes are dominated by S3 PUT latency (~100ms roundtrip) plus serialization time. The 285ms p50 includes batching concurrent writes into a single WAL entry.</p>
+<h2>Production Scale</h2>
+<table><tr><th>Metric</th><th>Production Observed</th></tr><tr><td>Total documents</td><td>3.5 trillion+</td></tr><tr><td>Total data</td><td>13+ petabytes</td></tr><tr><td>Write throughput</td><td>10M+ writes/s at 32 GB/s</td></tr><tr><td>Query throughput</td><td>25k+ queries/s globally</td></tr><tr><td>Single query scope</td><td>100B+ documents at 10TB</td></tr></table>
+<h2>Search Benchmark Game</h2>
+<p>The <code>search-benchmark-game</code> compares 33 search engines on the English Wikipedia corpus using AOL-derived queries:</p>
+<h3>Engines Compared</h3>
+<table><tr><th>Engine</th><th>Versions Tested</th></tr><tr><td>Lucene</td><td>7.2.1, 8.0.0, 8.10.1, 9.9.2, 9.12.0, 10.3.0 (+ bipartite variants)</td></tr><tr><td>Tantivy</td><td>0.6 through 0.25 (13 versions)</td></tr><tr><td>Bleve</td><td>0.8.0 (boltdb + scorch backends)</td></tr><tr><td>Bluge</td><td>0.2.2</td></tr><tr><td>PISA</td><td>0.8.2</td></tr><tr><td>Rucene</td><td>0.1</td></tr><tr><td>Turbopuffer</td><td>Current</td></tr></table>
+<h3>Benchmark Methodology</h3>
+<p>Source: <code>search-benchmark-game/</code> — Each engine has <code>build_index.rs</code> and <code>do_query.rs</code> binaries:</p>
+<ul><li><strong>Single-threaded</strong> execution</li><li><strong>10 runs</strong>, best score kept (GC-insensitive)</li><li><strong>Query types:</strong> <code>intersection</code>, <code>union</code>, <code>phrase</code></li><li><strong>Collection modes:</strong> <code>COUNT</code>, <code>TOP 10</code>, <code>TOP 10 + COUNT</code></li><li><strong>Corpus:</strong> English Wikipedia with AOL-derived queries</li></ul>
+<h3>Turbopuffer Engine</h3>
+<p>Source: <code>search-benchmark-game/engines/turbopuffer/src/bin/build_index.rs</code>:</p>
+<pre><code class="language-rust">// Build index: reads JSON lines from stdin
+// Batches at 10K documents, 32 concurrent upserts to localhost:3001
+// Schema: full_text_search with BM25 (k1=0.9, b=0.4)
+</code></pre>
+<p>Source: <code>search-benchmark-game/engines/turbopuffer/src/bin/do_query.rs</code>:</p>
+<pre><code class="language-rust">// Read &lt;COMMAND&gt;\t&lt;query&gt; from stdin
+// Commands: TOP_10, COUNT, TOP_100_FILTER_80%, etc.
+// rank_by: [&quot;text&quot;, &quot;BM25&quot;, query]
+// Filters: ContainsAllTokens, ContainsAnyToken
+// Asserts exhaustive_search_count == 0 to ensure full indexing
+</code></pre>
+<h2>Rust Zero-Cost Abstractions vs SIMD</h2>
+<p>The blog post "Rust zero-cost abstractions vs. SIMD" (Feb 18, 2026) describes how turbopuffer optimizes the distance computation hot path:</p>
+<ul><li><strong>Naive approach:</strong> Iterate over f32 vectors with a simple loop</li><li><strong>SIMD approach:</strong> Use AVX2/AVX-512 intrinsics to compute 8-16 distances per instruction</li><li><strong>Zero-cost abstraction approach:</strong> Use Rust iterators with <code>.zip()</code> and <code>.map()</code>, letting the compiler auto-vectorize</li></ul>
+<p>Results showed that hand-written SIMD outperforms naive loops by 4-8x, but Rust's iterator abstractions (with proper compiler flags) come within 10-20% of hand-written SIMD — validating the "zero-cost abstraction" claim for this workload.</p>
+<h2>Pre-Warming</h2>
+<p>Cold queries can be eliminated by pre-warming namespaces:</p>
+<ol><li>Send a <code>warm_cache</code> API request for a namespace</li><li>Turbopuffer loads the namespace into NVMe cache</li><li>Subsequent queries are warm (~8ms p50)</li></ol>
+<p>This is useful before latency-sensitive operations (e.g., user-facing search during peak hours).</p>
+<h2>ANN v3: 200ms p99 Over 100 Billion Vectors</h2>
+<p>The ANN v3 index (Jan 21, 2026) achieved:</p>
+<ul><li><strong>p99 query latency: 200ms</strong> over 100 billion vectors</li><li><strong>Recall@10: 90-100%</strong></li><li>Improvements: better centroid initialization, hierarchical centroids, SIMD-optimized distance computation, improved cache utilization</li></ul>
+<h2>Consistency Check Overhead</h2>
+<table><tr><th>Mode</th><th>Additional Latency</th></tr><tr><td>Strong consistency</td><td>~10ms (S3 conditional GET: p50=10ms, p90=17ms)</td></tr><tr><td>Eventual consistency</td><td>0ms (skips consistency check)</td></tr></table>
+<p>For sub-10ms warm queries, eventual consistency is required. The tradeoff is potential staleness of up to ~1 hour in worst case (when namespace has >128MiB of outstanding writes).</p>
+<h2>SDK Benchmarks</h2>
+<p>The <code>turbopuffer-sdk-bench/</code> directory contains micro-benchmarks:</p>
+<ul><li><code>bench_upsert.py</code> — Measures upsert throughput and latency</li><li><code>bench_query.py</code> — Measures query latency and throughput</li><li><code>bench_query_scale.py</code> — Measures query performance at scale</li></ul>
+<p>Uses <code>pyperf</code> for statistically rigorous benchmarking with baseline vs experiment comparison.</p>
+<p><strong>Aha:</strong> The benchmark game's methodology (10 runs, best score, single-threaded) is specifically designed to be GC-insensitive. This matters because JVM-based engines (Lucene) can have GC pauses that skew average results. Taking the best of 10 runs isolates the engine's best performance from GC noise. Turbopuffer benefits from this methodology because its stateless architecture has no GC pauses — every run is consistent.</p>
+<p>See <a href="02-storage-s3.md">S3 Storage Engine</a> for why cold queries take 3-4 roundtrips, and <a href="03-vector-index.md">Vector Index</a> for how ANN v3 achieves 200ms p99.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
