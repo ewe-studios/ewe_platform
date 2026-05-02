@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>authz-core — Model DSL, Parser, AST, Validator, and Type System -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <a href="00-overview.html" class="nav-breadcrumb">Overview — What These Crates Are and Why They Exist</a><a href="01-architecture.html" class="nav-breadcrumb">Architecture — Dependency Graph, Layer Diagram, and Module Map</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="01-architecture.html" class="nav-btn" title="Previous: Architecture — Dependency Graph, Layer Diagram, and Module Map">← prev</a>
+      <a href="03-authz-core-resolver.html" class="nav-btn nav-btn-next" title="Next: authz-core — CoreResolver, Check Resolution, Set Operations, and Caching">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>authz-core Model Layer</h1>
+<p>The model layer transforms a text-based authorization policy into a validated, queryable type system. This is the foundation that the resolver uses to answer permission checks.</p>
+<h2>The Pipeline</h2>
+<div class="mermaid">
+flowchart LR
+    A[Model DSL text] --&gt; B[model_parser&lt;br/&gt;parse_dsl]
+    B --&gt; C[ModelFile AST]
+    C --&gt; D[model_validator&lt;br/&gt;validate_model]
+    D --&gt; E{Valid?}
+    E --&gt;|Yes| F[TypeSystem]
+    E --&gt;|No| G[Vec&lt;ValidationError&gt;]
+    F --&gt; H[get_type, get_relation,&lt;br/&gt;is_valid_tuple]
+
+</div>
+<p>Source: <code>authz-core/src/lib.rs:12-16</code> — the main workflow is parse → build type system → implement TupleReader → construct CoreResolver.</p>
+<h2>The Model DSL Grammar</h2>
+<p>The DSL is defined in <code>authz-core/src/model.pest</code> using the pest parser generator. It is inspired by OpenFGA syntax but has its own precedence rules and extensions.</p>
+<h3>Grammar Structure</h3>
+<p>Source: <code>authz-core/src/model.pest</code> — 73 lines defining the complete grammar.</p>
+<pre><code class="language-">// Token-level rules
+WHITESPACE = _{ &quot; &quot; | &quot;\t&quot; | &quot;\r&quot; | &quot;\n&quot; }
+COMMENT    = _{ &quot;//&quot; ~ (!&quot;\n&quot; ~ ANY)* | &quot;/*&quot; ~ (!&quot;*/&quot; ~ ANY)* ~ &quot;*/&quot; }
+identifier = @{ (ASCII_ALPHA | &quot;_&quot;) ~ ((ASCII_ALPHANUMERIC | &quot;_&quot;) | (&quot;-&quot; ~ (ASCII_ALPHANUMERIC | &quot;_&quot;)))* }
+
+// Top-level
+file = { SOI ~ WHITESPACE* ~ (COMMENT ~ WHITESPACE*)* ~ (type_def | condition_def)* ~ WHITESPACE* ~ (COMMENT ~ WHITESPACE*)* ~ EOI }
+</code></pre>
+<p>The file rule allows zero or more <code>type_def</code> and <code>condition_def</code> blocks in any order. An empty file or comment-only file is valid — it produces an empty <code>ModelFile</code>.</p>
+<h3>Type Definitions</h3>
+<pre><code class="language-">type_def = { &quot;type&quot; ~ identifier ~ &quot;{&quot; ~ relations_block? ~ permissions_block? ~ &quot;}&quot; }
+relations_block = { &quot;relations&quot; ~ relation_def+ }
+permissions_block = { &quot;permissions&quot; ~ permission_def+ }
+</code></pre>
+<p>Types use different syntax for relations vs permissions:</p>
+<pre><code class="language-">relation_def = { &quot;define&quot; ~ identifier ~ &quot;:&quot; ~ relation_expr }
+permission_def = { &quot;define&quot; ~ identifier ~ &quot;=&quot; ~ relation_expr }
+</code></pre>
+<p><strong>Aha:</strong> Relations use colon syntax (<code>define viewer: [user]</code>) while permissions use equals (<code>define can_view = viewer + owner</code>). This is not cosmetic — the colon syntax indicates a <strong>directly assignable</strong> relation (tuples can be written for it), while the equals syntax indicates a <strong>computed</strong> relation (derived from other relations). The resolver only accepts tuple writes for colon-defined relations.</p>
+<p>Source: <code>authz-core/src/model_ast.rs:13</code> — permissions are stored in a separate <code>Vec<RelationDef></code> from relations on the same <code>TypeDef</code>.</p>
+<h3>Expression Precedence</h3>
+<pre><code class="language-">relation_expr  = { exclusion_expr }
+exclusion_expr = { intersection_expr ~ (&quot;-&quot; ~ intersection_expr)? }
+intersection_expr = { union_expr ~ (&quot;&amp;&quot; ~ union_expr)* }
+union_expr     = { primary_expr ~ (&quot;+&quot; ~ primary_expr)* }
+</code></pre>
+<p>The precedence (lowest to highest binding):</p>
+<table><tr><th>Operator</th><th>Precedence</th><th>Example</th><th>Parses As</th></tr><tr><td>`-` (exclusion)</td><td>Lowest</td><td>`a & b - c`</td><td>`(a & b) - c`</td></tr><tr><td>`&` (intersection)</td><td>Middle</td><td>`a + b & c`</td><td>`a + (b & c)`</td></tr><tr><td>`+` (union)</td><td>Highest</td><td>`a + b + c`</td><td>`Union([a, b, c])`</td></tr></table>
+<p>Source: <code>authz-core/src/model_parser.rs:570-608</code> — the test <code>test_parse_mixed_precedence_first_and_second_plus_third</code> confirms <code>first & second + third</code> parses as <code>Intersection([first, Union([second, third])])</code>.</p>
+<h3>Primary Expressions</h3>
+<pre><code class="language-">primary_expr = { direct_assignment | tuple_to_userset | computed_userset }
+computed_userset = { identifier }
+tuple_to_userset = { identifier ~ &quot;-&gt;&quot; ~ identifier }
+direct_assignment = { &quot;[&quot; ~ (assignable_target ~ (&quot;|&quot; ~ assignable_target)*)? ~ &quot;]&quot; }
+assignable_target = { type_spec ~ &quot;#&quot; ~ identifier | type_spec ~ &quot;:*&quot; | type_spec ~ &quot;with&quot; ~ identifier | type_spec }
+</code></pre>
+<p>Five expression types map to five AST variants:</p>
+<table><tr><th>DSL Syntax</th><th>AST Variant</th><th>Meaning</th></tr><tr><td>`[user]`</td><td>`DirectAssignment([Type("user")])`</td><td>Direct type assignment</td></tr><tr><td>`[user \</td><td>group#member]`</td><td>`DirectAssignment([Type("user"), Userset{group, member}])`</td><td>Mixed types and usersets</td></tr><tr><td>`[user:*]`</td><td>`DirectAssignment([Wildcard("user")])`</td><td>Wildcard — all users of type</td></tr><tr><td>`[user with ip_check]`</td><td>`DirectAssignment([Conditional{Type("user"), "ip_check"}])`</td><td>Conditional assignment</td></tr><tr><td>`viewer`</td><td>`ComputedUserset("viewer")`</td><td>Rewrite to another relation</td></tr><tr><td>`parent->viewer`</td><td>`TupleToUserset{tupleset: "parent", computed_userset: "viewer"}`</td><td>Traverse a tuple</td></tr><tr><td>`a + b`</td><td>`Union([a, b])`</td><td>Union (OR)</td></tr><tr><td>`a & b`</td><td>`Intersection([a, b])`</td><td>Intersection (AND)</td></tr><tr><td>`a - b`</td><td>`Exclusion{base: a, subtract: b}`</td><td>Exclusion (NOT)</td></tr></table>
+<h3>Condition Definitions</h3>
+<pre><code class="language-">condition_def = { &quot;condition&quot; ~ identifier ~ &quot;(&quot; ~ (condition_param ~ (&quot;,&quot; ~ condition_param)*)? ~ &quot;)&quot; ~ &quot;{&quot; ~ condition_expr ~ &quot;}&quot; }
+condition_param = { identifier ~ &quot;:&quot; ~ param_type }
+param_type = { &quot;string&quot; | &quot;int&quot; | &quot;bool&quot; | &quot;list&lt;string&gt;&quot; | &quot;list&lt;int&gt;&quot; | &quot;list&lt;bool&gt;&quot; | &quot;map&lt;string, string&gt;&quot; }
+condition_expr = { (!&quot;}&quot; ~ ANY)+ }
+</code></pre>
+<p>Source: <code>authz-core/src/model.pest:66-72</code>. The condition expression is stored as a raw string — it is compiled to CEL at write-time (pgauthz) or evaluation-time (authz-core).</p>
+<h2>The Parser</h2>
+<p>Source: <code>authz-core/src/model_parser.rs</code> — 214 lines of parser logic.</p>
+<p>The <code>parse_dsl</code> function is the entry point:</p>
+<pre><code class="language-rust">// authz-core/src/model_parser.rs:15
+pub fn parse_dsl(dsl: &amp;str) -&gt; Result&lt;ModelFile, pest::error::Error&lt;Rule&gt;&gt; {
+    let mut pairs = ModelParser::parse(Rule::file, dsl)?;
+    let file = pairs.next().expect(&quot;parser should return file root&quot;);
+    // ... walk pairs, build AST nodes
+    Ok(ModelFile { type_defs, condition_defs })
+}
+</code></pre>
+<p>The parser uses pest's generated <code>ModelParser</code> (derived from <code>model.pest</code>) to tokenize the input, then walks the parse tree recursively:</p>
+<pre><code class="language-">parse_dsl → build_type_def → build_relations_block → build_relation_def → build_relation_expr
+                                                                        → build_union_expr
+                                                                        → build_intersection_expr
+                                                                        → build_exclusion_expr
+                                                                        → build_primary_expr
+                                                                        → build_assignable_target
+           → build_condition_def → build_condition_param
+</code></pre>
+<h3>Parser Edge Cases</h3>
+<ul><li><strong>Whitespace-only input</strong>: returns empty <code>ModelFile</code> (no types, no conditions). Source: <code>model_parser.rs:320-339</code>.</li><li><strong>Comment-only input</strong>: returns empty <code>ModelFile</code>. Source: <code>model_parser.rs:341-361</code>.</li><li><strong>Invalid syntax</strong>: returns <code>pest::error::Error<Rule></code>. Source: <code>model_parser.rs:364-368</code>.</li><li><strong>Identifier with hyphens</strong>: <code>my-type</code> is valid (hyphens allowed after first char). Source: <code>model.pest:10</code>.</li></ul>
+<h2>The AST</h2>
+<p>Source: <code>authz-core/src/model_ast.rs</code> — 64 lines of serde-serializable types.</p>
+<pre><code class="language-rust">// authz-core/src/model_ast.rs:4-7
+pub struct ModelFile {
+    pub type_defs: Vec&lt;TypeDef&gt;,
+    pub condition_defs: Vec&lt;ConditionDef&gt;,
+}
+
+pub struct TypeDef {
+    pub name: String,
+    pub relations: Vec&lt;RelationDef&gt;,
+    pub permissions: Vec&lt;RelationDef&gt;,
+}
+
+pub struct RelationDef {
+    pub name: String,
+    pub expression: RelationExpr,
+}
+</code></pre>
+<h3>RelationExpr Enum</h3>
+<pre><code class="language-rust">// authz-core/src/model_ast.rs:23-36
+pub enum RelationExpr {
+    Union(Vec&lt;RelationExpr&gt;),
+    Intersection(Vec&lt;RelationExpr&gt;),
+    Exclusion { base: Box&lt;RelationExpr&gt;, subtract: Box&lt;RelationExpr&gt; },
+    ComputedUserset(String),
+    TupleToUserset { computed_userset: String, tupleset: String },
+    DirectAssignment(Vec&lt;AssignableTarget&gt;),
+}
+</code></pre>
+<h3>AssignableTarget Enum</h3>
+<pre><code class="language-rust">// authz-core/src/model_ast.rs:39-50
+pub enum AssignableTarget {
+    Type(String),
+    Userset { type_name: String, relation: String },
+    Wildcard(String),
+    Conditional { target: Box&lt;AssignableTarget&gt;, condition: String },
+}
+</code></pre>
+<h3>ConditionDef</h3>
+<pre><code class="language-rust">// authz-core/src/model_ast.rs:53-63
+pub struct ConditionDef {
+    pub name: String,
+    pub params: Vec&lt;ConditionParam&gt;,
+    pub expression: String,
+}
+
+pub struct ConditionParam {
+    pub name: String,
+    pub param_type: String,
+}
+</code></pre>
+<h2>The Validator</h2>
+<p>Source: <code>authz-core/src/model_validator.rs</code> — 679 lines of semantic validation.</p>
+<p>The parser checks syntax; the validator checks semantics. A model can be syntactically valid but semantically broken.</p>
+<pre><code class="language-rust">// authz-core/src/model_validator.rs:133
+pub fn validate_model(model: &amp;ModelFile) -&gt; Result&lt;(), Vec&lt;ValidationError&gt;&gt;
+</code></pre>
+<h3>Validation Checks</h3>
+<table><tr><th>Check</th><th>Category</th><th>Example Error</th></tr><tr><td>Duplicate type names</td><td>`DuplicateType`</td><td>`type user {} type user {}`</td></tr><tr><td>Duplicate relation names</td><td>`DuplicateRelation`</td><td>Two `define viewer:` in same type</td></tr><tr><td>Undefined relations in computed usersets</td><td>`UndefinedRelation`</td><td>`define viewer: editors` where `editors` not defined</td></tr><tr><td>Undefined relations in TTU tupleset</td><td>`UndefinedRelation`</td><td>`define viewer: parents->viewer` where `parents` not defined</td></tr><tr><td>Undefined types in direct assignments</td><td>`UndefinedType`</td><td>`define viewer: [nonexistent]`</td></tr><tr><td>Undefined condition references</td><td>`UndefinedCondition`</td><td>`define viewer: [user with unknown_cond]`</td></tr><tr><td>Cycles in computed usersets</td><td>`CycleDetected`</td><td>`define viewer: viewer` (self-cycle)</td></tr></table>
+<h3>Cycle Detection</h3>
+<p>Source: <code>authz-core/src/model_validator.rs:29-45</code>. The validator builds a directed graph of computed userset dependencies per type, then runs DFS with three-color marking (Unvisited/Visiting/Visited).</p>
+<pre><code class="language-rust">// authz-core/src/model_validator.rs:76-119
+fn detect_cycle_dfs(...) {
+    state.insert(relation.to_string(), VisitState::Visiting);
+    stack.push(relation.to_string());
+    // ... walk neighbors
+    // If we find a Visiting node, we have a cycle
+    stack.pop();
+    state.insert(relation.to_string(), VisitState::Visited);
+}
+</code></pre>
+<p>The cycle path is reported: <code>document#viewer -> document#editor -> document#viewer</code>. Source: <code>model_validator.rs:99-103</code>.</p>
+<h3>What the Validator Does NOT Check</h3>
+<ul><li><strong>TTU computed_userset targets</strong>: The validator can't verify that <code>parent->viewer</code>'s <code>viewer</code> exists on the target type, because the target type is determined at runtime from tuple data. Source: <code>model_validator.rs:249-250</code>.</li><li><strong>Cross-type relation references</strong>: If <code>folder#viewer</code> references <code>folder#viewer</code> in a TTU, the validator doesn't check that the target type actually has that relation.</li></ul>
+<h2>The Type System</h2>
+<p>Source: <code>authz-core/src/type_system.rs</code> — 347 lines wrapping a <code>ModelFile</code> with query methods.</p>
+<pre><code class="language-rust">// authz-core/src/type_system.rs:11-13
+pub struct TypeSystem {
+    model: ModelFile,
+}
+</code></pre>
+<h3>Query Methods</h3>
+<table><tr><th>Method</th><th>Purpose</th><th>Returns</th></tr><tr><td>`get_all_types()`</td><td>List all type definitions</td><td>`&[TypeDef]`</td></tr><tr><td>`get_type(name)`</td><td>Find a type by name</td><td>`Option<&TypeDef>`</td></tr><tr><td>`get_relation(type_name, relation)`</td><td>Find a relation on a type (searches relations + permissions)</td><td>`Option<&RelationDef>`</td></tr><tr><td>`is_permission(type_name, relation)`</td><td>Check if a relation is a permission (not a relation)</td><td>`bool`</td></tr><tr><td>`get_condition(name)`</td><td>Find a condition by name</td><td>`Option<&ConditionDef>`</td></tr><tr><td>`get_directly_related_types(type_name, relation)`</td><td>Extract all `AssignableTarget`s from a relation's expression</td><td>`Vec<AssignableTarget>`</td></tr><tr><td>`is_valid_tuple(&Tuple)`</td><td>Validate a tuple against the model schema</td><td>`Result<(), String>`</td></tr></table>
+<h3>Tuple Validation</h3>
+<p>Source: <code>authz-core/src/type_system.rs:77-143</code>. The <code>is_valid_tuple</code> method:</p>
+<ol><li>Checks the <code>object_type</code> exists in the model</li><li>Checks the <code>relation</code> exists in the type's relations (not permissions — only colon-syntax relations accept tuples)</li><li>Extracts assignable targets from the relation's expression</li><li>If no direct assignments exist (computed userset or TTU), any subject is allowed</li><li>Otherwise, checks that <code>subject_type</code> matches one of the allowed targets</li></ol>
+<pre><code class="language-rust">// authz-core/src/type_system.rs:107-115
+let subject_allowed = allowed_targets.iter().any(|target| match target {
+    AssignableTarget::Type(type_name) =&gt; type_name == &amp;tuple.subject_type,
+    AssignableTarget::Userset { type_name, .. } =&gt; type_name == &amp;tuple.subject_type,
+    AssignableTarget::Wildcard(type_name) =&gt; type_name == &amp;tuple.subject_type,
+    AssignableTarget::Conditional { target, .. } =&gt; match target.as_ref() {
+        AssignableTarget::Type(type_name) =&gt; type_name == &amp;tuple.subject_type,
+        _ =&gt; false,
+    },
+});
+</code></pre>
+<p><strong>Aha:</strong> <code>is_valid_tuple</code> only checks relations (colon syntax), not permissions (equals syntax). This enforces the semantic distinction: permissions are derived, so you can't write tuples directly to them. A tuple <code>document:1#can_view@user:alice</code> is invalid even if <code>can_view</code> exists as a permission, because permissions aren't stored — they're computed.</p>
+<h2>Real-World Model Example</h2>
+<pre><code class="language-">type user {}
+
+type organization {
+    relations
+        define member: [user]
+        define admin: [user]
+}
+
+type folder {
+    relations
+        define parent: [folder]
+        define owner: [user]
+        define editor: [user | organization#member]
+        define viewer: [user | organization#member]
+    permissions
+        define can_view = viewer + editor + owner
+        define can_edit = editor + owner
+        define can_delete = owner
+}
+
+type document {
+    relations
+        define parent: [folder]
+        define owner: [user]
+        define editor: [user | group#member | team#member]
+        define viewer: [user | group#member]
+    permissions
+        define can_view = viewer + editor + owner + parent-&gt;can_view
+        define can_edit = editor + owner + parent-&gt;can_edit
+        define can_delete = owner
+        define can_comment = can_view
+}
+
+condition ip_check(ip: string) {
+    ip == &quot;127.0.0.1&quot;
+}
+</code></pre>
+<p>Source: <code>authz-core/src/model_parser.rs:509-543</code> — this is the <code>test_parse_complex_real_world</code> test case. It produces 4 types with a total of 20 relations and 1 condition.</p>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="03-authz-core-resolver.md">03-authz-core-resolver.md</a> for the check resolution engine that uses the TypeSystem to answer permission queries.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

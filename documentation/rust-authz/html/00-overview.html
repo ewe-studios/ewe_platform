@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview — What These Crates Are and Why They Exist -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      
+      <a href="01-architecture.html" class="nav-btn nav-btn-next" title="Next: Architecture — Dependency Graph, Layer Diagram, and Module Map">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Overview — Rust Authz Crates</h1>
+<p>Four Rust crates form an authorization and data-services ecosystem. They share traits, patterns, and a design philosophy: <strong>database-agnostic cores with pluggable backends</strong>.</p>
+<h2>The Four Projects</h2>
+<h3>authz-core</h3>
+<p>A database- and transport-agnostic Zanzibar-style fine-grained authorization engine. It parses a custom model DSL into an AST, validates it semantically, and resolves permission checks by walking the model graph. It has <strong>zero datastore dependencies</strong> — all data access goes through the <code>TupleReader</code> trait.</p>
+<p>Source: <code>authz-core/src/lib.rs</code> — 14 public modules, no feature flags.</p>
+<h3>pgauthz</h3>
+<p>A PostgreSQL extension (via pgrx) that wraps authz-core as SQL functions. It implements <code>TupleReader</code>, <code>TupleWriter</code>, <code>PolicyReader</code>, <code>PolicyWriter</code>, and <code>RevisionReader</code> using PostgreSQL's SPI interface. The extension exposes functions like <code>pgauthz_check()</code>, <code>pgauthz_add_relation()</code>, and <code>pgauthz_define_policy()</code> directly in SQL.</p>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs</code> — pgrx extension with GUC configuration, caching, metrics, and OpenTelemetry.</p>
+<h3>dbrest</h3>
+<p>A high-performance REST API layer for PostgreSQL and SQLite databases. It auto-generates REST endpoints from database schema introspection. The architecture is pluggable: a <code>DatabaseBackend</code> trait and <code>SqlDialect</code> trait separate the core from database-specific implementations.</p>
+<p>Source: <code>dbrest/src/main.rs</code> — binary crate that re-exports <code>dbrest-core</code>, <code>dbrest-postgres</code>, and <code>dbrest-sqlite</code>.</p>
+<h3>zradar</h3>
+<p>A telemetry ingestion and storage platform with a layered plugin architecture. It ingests OpenTelemetry Protocol (OTLP) traces, metrics, and logs, then stores them in pluggable backends (PostgreSQL, ClickHouse, S3, Redis, local filesystem). The architecture has four layers: core traits, plugin implementations, business logic services, and application binaries.</p>
+<p>Source: <code>zradar/Cargo.toml</code> — workspace with 15 member crates across 4 layers.</p>
+<h2>How They Connect</h2>
+<div class="mermaid">
+flowchart LR
+    A[authz-core] --&gt; B[pgauthz]
+    A -.traits.-.&gt; C[dbrest]
+    A -.pattern.-.&gt; D[zradar]
+    B -.pgrx/SPI.-.&gt; PG[(PostgreSQL)]
+    C -.sqlx.-.&gt; PG
+    C -.sqlx.-.&gt; SQ[(SQLite)]
+    D -.plugins.-.&gt; PG
+    D -.plugins.-.&gt; CH[(ClickHouse)]
+    D -.plugins.-.&gt; S3[(S3)]
+
+</div>
+<p>The connection is architectural, not just dependency-based:</p>
+<ul><li><strong>pgauthz</strong> directly depends on authz-core and implements its datastore traits via PostgreSQL SPI</li><li><strong>dbrest</strong> shares the same pluggable-backend pattern (traits + concrete implementations)</li><li><strong>zradar</strong> extends the pattern further with a full plugin system (dynamic loading, multiple storage backends)</li></ul>
+<h2>Key Numbers</h2>
+<table><tr><th>Metric</th><th>Value</th><th>Source</th></tr><tr><td>authz-core modules</td><td>14</td><td>`authz-core/src/lib.rs:97-109`</td></tr><tr><td>authz-core MSRV</td><td>Rust 1.85</td><td>`authz-core/Cargo.toml`</td></tr><tr><td>dbrest MSRV</td><td>Rust 1.91</td><td>`dbrest/Cargo.toml`</td></tr><tr><td>dbrest sub-crates</td><td>3 (core, postgres, sqlite)</td><td>`dbrest/Cargo.toml`</td></tr><tr><td>zradar workspace crates</td><td>15</td><td>`zradar/Cargo.toml`</td></tr><tr><td>zradar plugin backends</td><td>5 (postgres, clickhouse, s3, redis, local)</td><td>`zradar/Cargo.toml`</td></tr><tr><td>Default max recursion depth</td><td>25</td><td>`authz-core/src/resolver.rs:38`</td></tr><tr><td>Default max concurrent dispatches</td><td>50</td><td>`authz-core/src/core_resolver.rs:85`</td></tr><tr><td>CEL library version</td><td>cel 0.12.0</td><td>`authz-core/Cargo.toml`</td></tr><tr><td>dbrest web framework</td><td>axum 0.7</td><td>`dbrest/Cargo.toml`</td></tr><tr><td>zradar gRPC framework</td><td>tonic 0.9</td><td>`zradar/Cargo.toml`</td></tr></table>
+<h2>Aha: The Trait Pattern Unifies Everything</h2>
+<p>All four projects share the same architectural principle: <strong>define traits for the abstract interface, implement them concretely per backend, depend on traits not implementations</strong>. authz-core defines <code>TupleReader</code>/<code>TupleWriter</code> — pgauthz implements them via SPI. dbrest defines <code>DatabaseBackend</code>/<code>SqlDialect</code> — postgres and sqlite crates implement them. zradar defines repository and storage traits — five plugin crates implement them. This pattern lets the core logic stay database-agnostic while each backend optimizes for its specific strengths.</p>
+<h2>What to Read Next</h2>
+<p>Start with <a href="01-architecture.md">01-architecture.md</a> for the full dependency graph and layer diagram, then dive into authz-core with <a href="02-authz-core-model.md">02-authz-core-model.md</a>.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

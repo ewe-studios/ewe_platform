@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dbrest — High-Performance REST API for PostgreSQL and SQLite -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <a href="03-authz-core-resolver.html" class="nav-breadcrumb">authz-core — CoreResolver, Check Resolution, Set Operations, and Caching</a><a href="04-authz-core-conditions.html" class="nav-breadcrumb">authz-core — CEL Conditions, Context, and Attribute-Based Access Control</a><a href="05-pgauthz.html" class="nav-breadcrumb">pgauthz — PostgreSQL Extension for Zanzibar-Style Authorization</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="05-pgauthz.html" class="nav-btn" title="Previous: pgauthz — PostgreSQL Extension for Zanzibar-Style Authorization">← prev</a>
+      <a href="07-zradar.html" class="nav-btn nav-btn-next" title="Next: zradar — Telemetry Ingestion and Storage Platform">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>dbrest — REST API for Databases</h1>
+<p>dbrest auto-generates a REST API from a database's schema. Connect it to a PostgreSQL or SQLite database, and it introspects the tables, columns, types, and relationships to produce CRUD endpoints — no manual route definitions needed.</p>
+<h2>Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    A[HTTP Request] --&gt; B[axum Router]
+    B --&gt; C[ApiRequest parser]
+    C --&gt; D[action_plan]
+    D --&gt; E[query generator]
+    E --&gt; F[DatabaseBackend::execute]
+    F --&gt; G[(PostgreSQL / SQLite)]
+    G --&gt; F
+    F --&gt; H[JSON Response]
+
+    subgraph &quot;dbrest-core&quot;
+        C
+        D
+        E
+    end
+
+    subgraph &quot;Backend&quot;
+        F
+    end
+
+</div>
+<h2>Crate Structure</h2>
+<pre><code class="language-">dbrest/
+├── src/main.rs           # Binary: CLI args → config → detect backend → start
+├── src/lib.rs            # Re-exports all sub-crates
+├── crates/
+│   ├── dbrest-core/      # Database-agnostic: routing, query generation, auth
+│   ├── dbrest-postgres/  # PostgreSQL: PgBackend, PgDialect, SqlxIntrospector
+│   └── dbrest-sqlite/    # SQLite: SqliteBackend, SqliteDialect, SqliteIntrospector
+</code></pre>
+<p>Source: <code>dbrest/src/main.rs:1-78</code>.</p>
+<h2>Server Startup</h2>
+<p>Source: <code>dbrest/src/main.rs:40-78</code>. The binary entry point:</p>
+<ol><li>Parse CLI args (<code>--config</code>, <code>--db-uri</code>, <code>--port</code>)</li><li>Load config (file + env overrides + CLI overrides)</li><li>Initialize tracing (fmt + optional OTLP)</li><li>Initialize metrics (optional OTLP)</li><li>Detect backend from URI (<code>sqlite:</code> prefix or <code>.sqlite</code>/<code>.db</code> suffix)</li><li>Create backend pool</li><li>Start axum server</li></ol>
+<h3>CLI Arguments</h3>
+<pre><code class="language-">dbrest [OPTIONS]
+
+Options:
+  -c, --config &lt;CONFIG&gt;    Path to config file [env: DBREST_CONFIG]
+      --db-uri &lt;DB_URI&gt;    Database connection URI [env: DBREST_DB_URI]
+  -p, --port &lt;PORT&gt;        Server bind port [env: DBREST_SERVER_PORT]
+</code></pre>
+<h3>Backend Detection</h3>
+<p>Source: <code>dbrest/src/main.rs:186-188</code>:</p>
+<pre><code class="language-rust">fn is_sqlite_uri(uri: &amp;str) -&gt; bool {
+    uri.starts_with(&quot;sqlite:&quot;) || uri.ends_with(&quot;.sqlite&quot;) || uri.ends_with(&quot;.db&quot;)
+}
+</code></pre>
+<h2>The Pluggable Backend Pattern</h2>
+<h3>DatabaseBackend Trait</h3>
+<p>Source: <code>dbrest-core/src/backend/mod.rs</code>. The core abstraction:</p>
+<table><tr><th>Method</th><th>Purpose</th></tr><tr><td>`connect(uri, pool_size, ...)`</td><td>Create a connection pool</td></tr><tr><td>`version()`</td><td>Return database version string</td></tr><tr><td>`min_version()`</td><td>Return minimum supported version</td></tr><tr><td>`execute(query, params)`</td><td>Execute a SQL query</td></tr><tr><td>`introspect()`</td><td>Discover schema (tables, columns, types)</td></tr></table>
+<h3>SqlDialect Trait</h3>
+<p>Source: <code>dbrest-core/src/backend/mod.rs</code>. Handles SQL syntax differences:</p>
+<table><tr><th>Method</th><th>Purpose</th></tr><tr><td>`quote_identifier(name)`</td><td>Quote table/column names (PG: `"name"`, SQLite: `"name"`)</td></tr><tr><td>`pagination_sql(...)`</td><td>Generate LIMIT/OFFSET syntax</td></tr><tr><td>`type_mapping(...)`</td><td>Map database types to JSON types</td></tr></table>
+<h3>Concrete Backends</h3>
+<table><tr><th>Backend</th><th>Source</th><th>Connection</th></tr><tr><td>`PgBackend`</td><td>`dbrest-postgres/src/executor.rs`</td><td>`sqlx::PgPool`</td></tr><tr><td>`SqliteBackend`</td><td>`dbrest-sqlite/src/executor.rs`</td><td>`sqlx::SqlitePool`</td></tr></table>
+<p>Each backend implements:</p>
+<ul><li><code>DatabaseBackend</code> — connection management, execution</li><li><code>SqlDialect</code> — SQL syntax generation</li><li><code>Introspector</code> — schema discovery</li></ul>
+<h2>Request Processing Pipeline</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant Router as axum Router
+    participant Req as ApiRequest
+    participant Plan as action_plan
+    participant Query as query generator
+    participant Backend as DatabaseBackend
+    participant DB as Database
+
+    Client-&gt;&gt;Router: GET /documents?select=*&amp;id=eq.1
+    Router-&gt;&gt;Req: Parse request
+    Req-&gt;&gt;Req: Extract: method, path, query params, headers, body
+    Req-&gt;&gt;Plan: Build action plan
+    Plan-&gt;&gt;Query: Generate SQL
+    Query-&gt;&gt;Backend: Execute SQL
+    Backend-&gt;&gt;DB: Run query
+    DB-&gt;&gt;Backend: Result rows
+    Backend-&gt;&gt;Query: Raw rows
+    Query-&gt;&gt;Plan: Formatted response
+    Plan-&gt;&gt;Router: JSON body + status
+    Router-&gt;&gt;Client: HTTP response
+
+</div>
+<h3>ApiRequest Parsing</h3>
+<p>Source: <code>dbrest-core/src/api_request/</code>. Parses HTTP requests into a structured query specification:</p>
+<table><tr><th>Component</th><th>Source File</th><th>Purpose</th></tr><tr><td>`mod.rs`</td><td>`api_request/mod.rs`</td><td>Main ApiRequest struct</td></tr><tr><td>`query_params.rs`</td><td>`api_request/query_params.rs`</td><td>`?select=`, `?id=eq.1`, `?order=`</td></tr><tr><td>`range.rs`</td><td>`api_request/range.rs`</td><td>Range headers, pagination</td></tr><tr><td>`payload.rs`</td><td>`api_request/payload.rs`</td><td>Request body parsing</td></tr><tr><td>`preferences.rs`</td><td>`api_request/preferences.rs`</td><td>Content negotiation, preferences</td></tr><tr><td>`types.rs`</td><td>`api_request/types.rs`</td><td>Filter operators, sort direction</td></tr></table>
+<h4>Filter Syntax</h4>
+<pre><code class="language-">?id=eq.1          → WHERE id = 1
+?name=ilike.alex  → WHERE name ILIKE &#x27;%alex%&#x27;
+?age=gt.18        → WHERE age &gt; 18
+?status=in.(active,pending) → WHERE status IN (&#x27;active&#x27;, &#x27;pending&#x27;)
+</code></pre>
+<h4>Select Syntax</h4>
+<pre><code class="language-">?select=*           → SELECT *
+?select=id,name     → SELECT id, name
+?select=*,count(*)  → SELECT *, COUNT(*) OVER ()
+</code></pre>
+<h3>Action Planning</h3>
+<p>Source: <code>dbrest-core/src/plan/</code>. The <code>action_plan</code> function converts an <code>ApiRequest</code> into a sequence of database actions:</p>
+<table><tr><th>Action</th><th>When</th></tr><tr><td>SELECT</td><td>GET request</td></tr><tr><td>INSERT</td><td>POST request</td></tr><tr><td>UPDATE</td><td>PATCH request</td></tr><tr><td>DELETE</td><td>DELETE request</td></tr></table>
+<p>The planner considers:</p>
+<ul><li>HTTP method</li><li>Query parameters (filters, select, order, range)</li><li>Request body (for mutations)</li><li>Schema cache (to resolve column types)</li></ul>
+<h3>Query Generation</h3>
+<p>Source: <code>dbrest-core/src/query/</code>. Generates SQL from the action plan, using the <code>SqlDialect</code> for database-specific syntax.</p>
+<h2>Schema Introspection</h2>
+<p>Source: <code>dbrest-core/src/schema_cache.rs</code>. On startup, dbrest queries the database's information schema to discover:</p>
+<ul><li>Tables and views</li><li>Columns (name, type, nullable, default)</li><li>Primary keys</li><li>Foreign keys (for relationship endpoints)</li></ul>
+<p>This is cached in <code>SchemaCache</code> and <code>SchemaCacheHolder</code> for fast lookup during request processing.</p>
+<h3>PgBackend Introspector</h3>
+<p>Source: <code>dbrest-postgres/src/introspector.rs</code>. Queries PostgreSQL's <code>information_schema</code> and <code>pg_catalog</code>:</p>
+<pre><code class="language-sql">SELECT table_name, column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = &#x27;public&#x27;
+</code></pre>
+<h3>SqliteBackend Introspector</h3>
+<p>Source: <code>dbrest-sqlite/src/introspector.rs</code>. Uses SQLite's <code>PRAGMA table_info()</code>:</p>
+<pre><code class="language-sql">PRAGMA table_info(table_name)
+</code></pre>
+<h2>Authentication</h2>
+<p>Source: <code>dbrest-core/src/auth/</code>. JWT-based authentication with caching.</p>
+<table><tr><th>Component</th><th>Source</th><th>Purpose</th></tr><tr><td>`jwt.rs`</td><td>`auth/jwt.rs`</td><td>JWT token parsing and validation</td></tr><tr><td>`middleware.rs`</td><td>`auth/middleware.rs`</td><td>axum middleware for auth</td></tr><tr><td>`cache.rs`</td><td>`auth/cache.rs`</td><td>JWT validation cache (`JwtCache`)</td></tr><tr><td>`types.rs`</td><td>`auth/types.rs`</td><td>`AuthState`, `AuthResult`</td></tr><tr><td>`error.rs`</td><td>`auth/error.rs`</td><td>Auth-specific errors</td></tr></table>
+<p>JWT configuration includes:</p>
+<ul><li>Secret/key for signature verification</li><li>Algorithm (HS256, RS256, etc.)</li><li>Expiration validation</li></ul>
+<p>Source: <code>dbrest-core/src/config/jwt.rs</code>.</p>
+<h2>Configuration</h2>
+<p>Source: <code>dbrest-core/src/config/</code>. Config can come from:</p>
+<ol><li>TOML config file (<code>--config</code> flag)</li><li>Environment variables (<code>DBREST_*</code>)</li><li>CLI arguments (override everything)</li></ol>
+<p>Key settings:</p>
+<ul><li><code>db_uri</code> — database connection string</li><li><code>server_port</code> — HTTP bind port</li><li><code>db_pool_size</code> — connection pool size</li><li><code>db_pool_acquisition_timeout</code> — pool wait timeout</li><li><code>db_pool_max_lifetime</code> — max connection lifetime</li><li><code>db_pool_max_idletime</code> — max idle time</li><li><code>db_busy_timeout_ms</code> — SQLite busy timeout</li><li><code>tracing_enabled</code> — enable OTLP tracing</li><li><code>metrics_enabled</code> — enable OTLP metrics</li><li><code>metrics_otlp_endpoint</code> — OTLP collector endpoint</li><li><code>metrics_service_name</code> — service name for OTLP</li><li><code>metrics_export_interval_secs</code> — metrics push interval</li></ul>
+<h2>OpenTelemetry Integration</h2>
+<p>Source: <code>dbrest/src/main.rs:84-183</code>. Two separate OTLP exporters:</p>
+<h3>Tracing (Spans)</h3>
+<pre><code class="language-rust">let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+    .with_batch_exporter(exporter)
+    .with_sampler(Sampler::TraceIdRatioBased(config.tracing_sampling_ratio))
+    .with_resource(opentelemetry_sdk::Resource::builder().with_service_name(service_name).build())
+    .build();
+</code></pre>
+<p>Uses W3C TraceContext propagator for traceparent header extraction. Sampling is ratio-based.</p>
+<h3>Metrics</h3>
+<pre><code class="language-rust">let reader = opentelemetry_sdk::metrics::PeriodicReader::builder(exporter)
+    .with_interval(Duration::from_secs(config.metrics_export_interval_secs))
+    .build();
+</code></pre>
+<p>Push-based metrics on a configurable interval.</p>
+<h3>Pool Metrics Reporter</h3>
+<p>Source: <code>dbrest-core/src/app/metrics.rs</code>. Reports connection pool statistics (active, idle, total connections) when metrics are enabled.</p>
+<h2>OpenAPI Generation</h2>
+<p>Source: <code>dbrest-core/src/openapi/</code>. Auto-generates OpenAPI 3.0 spec from the schema cache. Uses <code>utoipa</code> with <code>axum_extras</code> feature for automatic endpoint documentation.</p>
+<p>Available at <code>/swagger-ui</code> when <code>utoipa-swagger-ui</code> is enabled.</p>
+<h2>Routing</h2>
+<p>Source: <code>dbrest-core/src/routing.rs</code>. URL-based routing with namespace support:</p>
+<table><tr><th>Pattern</th><th>Endpoint</th></tr><tr><td>`/{table}`</td><td>CRUD on table</td></tr><tr><td>`/{table}/{id}`</td><td>Single row operations</td></tr><tr><td>`/{table}?select=...`</td><td>Filtered queries</td></tr><tr><td>`/rpc/{function}`</td><td>Stored procedure calls</td></tr></table>
+<p>Namespaces (<code>NamespaceId</code>) allow multiple database schemas to be exposed under different URL prefixes.</p>
+<h2>Error Handling</h2>
+<p>Source: <code>dbrest-core/src/error/</code>. The <code>Error</code> enum covers:</p>
+<table><tr><th>Error</th><th>HTTP Status</th></tr><tr><td>`UnsupportedPgVersion`</td><td>500</td></tr><tr><td>`ConfigError`</td><td>500</td></tr><tr><td>`AuthError`</td><td>401</td></tr><tr><td>`QueryError`</td><td>400</td></tr><tr><td>`NotFoundError`</td><td>404</td></tr><tr><td>`ValidationError`</td><td>400</td></tr></table>
+<p>Error responses include structured JSON with <code>code</code>, <code>message</code>, and <code>details</code> fields.</p>
+<h2>Streaming</h2>
+<p>Source: <code>dbrest-core/src/app/streaming.rs</code>. Supports streaming responses for large result sets using axum's <code>SSE</code> (Server-Sent Events) or chunked transfer encoding.</p>
+<h2>Connection Pool Configuration</h2>
+<p>Both PostgreSQL and SQLite backends share the same pool parameters:</p>
+<table><tr><th>Parameter</th><th>Default</th><th>Purpose</th></tr><tr><td>`db_pool_size`</td><td>Configurable</td><td>Max connections in pool</td></tr><tr><td>`db_pool_acquisition_timeout`</td><td>Configurable</td><td>Max wait for connection</td></tr><tr><td>`db_pool_max_lifetime`</td><td>Configurable</td><td>Max connection age</td></tr><tr><td>`db_pool_max_idletime`</td><td>Configurable</td><td>Max idle time before recycling</td></tr><tr><td>`db_busy_timeout_ms`</td><td>Configurable</td><td>SQLite busy wait timeout</td></tr></table>
+<p>Source: <code>dbrest/src/main.rs:193-200</code> (PostgreSQL) and <code>dbrest/src/main.rs:228-235</code> (SQLite).</p>
+<h2>Performance Profile</h2>
+<p>Source: <code>dbrest/Cargo.toml</code> — release profile:</p>
+<pre><code class="language-toml">[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+</code></pre>
+<p>Full LTO with single codegen unit for maximum optimization. Binary stripping for smaller deployment size.</p>
+<h2>Benchmarks</h2>
+<p>Source: <code>dbrest/Cargo.toml</code> — 4 benchmark targets:</p>
+<table><tr><th>Benchmark</th><th>Purpose</th></tr><tr><td>`micro_benchmarks`</td><td>Individual component performance</td></tr><tr><td>`integration_benchmarks`</td><td>End-to-end request latency</td></tr><tr><td>`load_tester`</td><td>Concurrent request throughput</td></tr><tr><td>`bench_metrics`</td><td>Metrics overhead measurement</td></tr></table>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="07-zradar.md">07-zradar.md</a> for the telemetry platform, or <a href="08-data-flow.md">08-data-flow.md</a> for end-to-end flow diagrams across all projects.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pgauthz — PostgreSQL Extension for Zanzibar-Style Authorization -- rust-authz</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/rust-authz/docs</span>
+    <div class="nav-actions">
+      <a href="02-authz-core-model.html" class="nav-breadcrumb">authz-core — Model DSL, Parser, AST, Validator, and Type System</a><a href="03-authz-core-resolver.html" class="nav-breadcrumb">authz-core — CoreResolver, Check Resolution, Set Operations, and Caching</a><a href="04-authz-core-conditions.html" class="nav-breadcrumb">authz-core — CEL Conditions, Context, and Attribute-Based Access Control</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="04-authz-core-conditions.html" class="nav-btn" title="Previous: authz-core — CEL Conditions, Context, and Attribute-Based Access Control">← prev</a>
+      <a href="06-dbrest.html" class="nav-btn nav-btn-next" title="Next: dbrest — High-Performance REST API for PostgreSQL and SQLite">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>pgauthz — PostgreSQL Extension</h1>
+<p>pgauthz embeds authz-core into PostgreSQL as a native extension, exposing authorization functions directly in SQL. It uses pgrx (Postgres extension framework in Rust) and the SPI (Server Programming Interface) to read/write tuples and policies from PostgreSQL tables.</p>
+<h2>Extension Lifecycle</h2>
+<div class="mermaid">
+flowchart TD
+    A[CREATE EXTENSION pgauthz] --&gt; B[_PG_init]
+    B --&gt; C[register_gucs]
+    B --&gt; D[init_tracing]
+    B --&gt; E[init_otel]
+    B --&gt; F[bootstrap SQL schema]
+    F --&gt; G[authz schema: tuple, changelog, revision, policy tables]
+
+</div>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:33-41</code>.</p>
+<h2>PostgreSQL Schema</h2>
+<p>The extension bootstraps its schema via <code>sql/init.sql</code>. The key tables are:</p>
+<table><tr><th>Table</th><th>Purpose</th></tr><tr><td>`authz.tuple`</td><td>Relationship tuples: `(object_type, object_id, relation, subject_type, subject_id, condition)`</td></tr><tr><td>`authz.changelog`</td><td>Change log for Watch API: adds `operation` and `ulid` columns</td></tr><tr><td>`authz.revision`</td><td>Revision tracking: `(revision_id, created_at)`</td></tr><tr><td>`authz.authorization_policy`</td><td>Model definitions: `(id, definition, created_at)`</td></tr></table>
+<h2>SQL Functions</h2>
+<h3>Policy Management</h3>
+<h4><code>pgauthz_define_policy(definition TEXT) RETURNS TEXT</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:45-58</code>. Parses the model DSL, validates it (parser + validator + CEL compilation), and stores it in <code>authz.authorization_policy</code> with a ULID.</p>
+<pre><code class="language-sql">SELECT pgauthz_define_policy($$
+    type user {}
+    type document {
+        relations define viewer: [user]
+    }
+$$);
+</code></pre>
+<p><strong>Aha:</strong> pgauthz validates the policy at write time using three layers: parsing (<code>model_parser::parse_dsl</code>), semantic validation (<code>model_validator::validate_model</code>), and CEL compilation (<code>authz_core::cel::compile</code>). This means a bad model is rejected immediately, not when the first check fails. Source: <code>authz-datastore-pgx/src/lib.rs:260-298</code>.</p>
+<h4><code>pgauthz_read_latest_policy() RETURNS TABLE(id TEXT, definition TEXT)</code></h4>
+<p>Returns the most recently written policy.</p>
+<h4><code>pgauthz_read_policy(policy_id TEXT) RETURNS TABLE(id TEXT, definition TEXT)</code></h4>
+<p>Returns a specific policy by ID.</p>
+<h4><code>pgauthz_list_policies(page_size INT, continuation_token TEXT) RETURNS TABLE(id TEXT, definition TEXT)</code></h4>
+<p>Paginated policy listing. Default page size: 100.</p>
+<h4><code>pgauthz_read_latest_policy_computed() RETURNS TABLE(...)</code></h4>
+<p>Returns the parsed model structure with relations, permissions, and conditions expanded. Source: <code>pgauthz/crates/pgauthz/src/lib.rs:221-304</code>.</p>
+<p>Output columns:</p>
+<ul><li><code>policy_id</code>, <code>type_name</code>, <code>relation_name</code>, <code>relation_type</code> ("relation"/"permission"/"condition")</li><li><code>expression_json</code> — the AST as JSON</li><li><code>condition_name</code>, <code>condition_params_json</code>, <code>condition_expression</code></li></ul>
+<p><strong>Aha:</strong> This function parses the raw DSL string into the full AST and emits one row per relation/permission/condition. It's designed for introspection — a client can reconstruct the entire authorization model structure without parsing the DSL themselves.</p>
+<h3>Relationship Management</h3>
+<h4><code>pgauthz_add_relation(object_type, object_id, relation, subject_type, subject_id, condition) RETURNS TEXT</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:110-127</code>. Simplified wrapper around <code>pgauthz_write_relationships</code>. Returns the revision ULID.</p>
+<h4><code>pgauthz_write_relationships(writes PgRelationship[], deletes PgRelationship[]) RETURNS TEXT</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:85-106</code>. Batch write/delete with changelog tracking.</p>
+<pre><code class="language-sql">SELECT pgauthz_write_relationships(
+    ARRAY[
+        ROW(&#x27;document&#x27;, &#x27;doc1&#x27;, &#x27;viewer&#x27;, &#x27;user&#x27;, &#x27;alice&#x27;, NULL)::pgauthz.PgRelationship,
+        ROW(&#x27;document&#x27;, &#x27;doc1&#x27;, &#x27;editor&#x27;, &#x27;user&#x27;, &#x27;bob&#x27;, NULL)::pgauthz.PgRelationship
+    ],
+    ARRAY[]::pgauthz.PgRelationship[]
+);
+</code></pre>
+<h4><code>pgauthz_read_relationships(object_type, object_id, relation, subject_type, subject_id) RETURNS TABLE(...)</code></h4>
+<p>Filtered tuple read. All parameters are optional — omit to wildcard.</p>
+<h3>Check Functions</h3>
+<h4><code>pgauthz_check(object_type, object_id, relation, subject_type, subject_id) RETURNS BOOLEAN</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/check_functions.rs:147-162</code>. The main check function.</p>
+<pre><code class="language-sql">SELECT pgauthz_check(&#x27;document&#x27;, &#x27;doc1&#x27;, &#x27;viewer&#x27;, &#x27;user&#x27;, &#x27;alice&#x27;);
+-- Returns: true or false
+</code></pre>
+<h4><code>pgauthz_check_with_context(object_type, object_id, relation, subject_type, subject_id, context_json TEXT) RETURNS BOOLEAN</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/check_functions.rs:165-186</code>. Same as <code>pgauthz_check</code> but with CEL condition context as JSON.</p>
+<pre><code class="language-sql">SELECT pgauthz_check_with_context(
+    &#x27;document&#x27;, &#x27;doc1&#x27;, &#x27;viewer&#x27;, &#x27;user&#x27;, &#x27;alice&#x27;,
+    &#x27;{&quot;request_ip&quot;: &quot;10.1.2.3&quot;, &quot;allowed_cidrs&quot;: [&quot;10.0.0.0/8&quot;]}&#x27;
+);
+</code></pre>
+<h4><code>pgauthz_expand(object_type, object_id, relation) RETURNS TEXT</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/check_functions.rs:190-224</code>. Returns the relation's expression as JSON for debugging. Not a full tree expansion — just the AST node.</p>
+<h3>Watch API</h3>
+<h4><code>pgauthz_read_changes(object_type TEXT, after_ulid TEXT, page_size INT) RETURNS TABLE(...)</code></h4>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:308-354</code>. Returns changelog entries for a given object type, paginated by ULID cursor.</p>
+<p>Output: <code>(object_type, object_id, relation, subject_type, subject_id, operation, ulid)</code>.</p>
+<h2>Check Function Internals</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/check_functions.rs:17-143</code>. The <code>do_check</code> function:</p>
+<div class="mermaid">
+flowchart TD
+    A[pgauthz_check call] --&gt; B[validate_check_args]
+    B --&gt; C[PostgresDatastore::new]
+    C --&gt; D[load_typesystem_cached]
+    D --&gt; E[read_latest_revision]
+    E --&gt; F[quantize_revision]
+    F --&gt; G[create CoreResolver + StaticPolicyProvider]
+    G --&gt; H[with_result_cache + with_tuple_cache]
+    H --&gt; I[LocalDispatcher.dispatch_check]
+    I --&gt; J[record metrics]
+    J --&gt; K[return bool]
+
+</div>
+<p>Key steps:</p>
+<ol><li><strong>Argument validation</strong> — rejects empty/null parameters</li><li><strong>TypeSystem loading</strong> — cached from the latest policy via <code>cache::load_typesystem_cached</code></li><li><strong>Revision quantization</strong> — raw ULID is quantized to a time bucket for cache keys</li><li><strong>Resolver construction</strong> — <code>CoreResolver</code> with <code>StaticPolicyProvider</code> (single-tenant: one global policy), injected caches, and GUC-configured check strategy</li><li><strong>Dispatch</strong> — <code>LocalDispatcher</code> calls the resolver</li><li><strong>Metrics</strong> — records check duration, result, depth, dispatch count, and datastore queries</li></ol>
+<h2>GUC Configuration Variables</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/guc.rs</code>. PostgreSQL GUC (Grand Unified Configuration) variables:</p>
+<table><tr><th>GUC</th><th>Purpose</th><th>Default</th></tr><tr><td>Check strategy</td><td>Batch vs Parallel resolution</td><td>Batch</td></tr><tr><td>Revision quantization seconds</td><td>Time bucket for revision cache keys</td><td>Configurable</td></tr></table>
+<p>GUCs are registered in <code>_PG_init</code> and read via <code>guc::get_check_strategy()</code>, <code>guc::get_revision_quantization_secs()</code>.</p>
+<h2>Caching</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/cache.rs</code>. pgauthz caches two things:</p>
+<ol><li><strong>TypeSystem cache</strong> — the parsed and validated authorization model. Loaded once, shared across all checks. Invalidated when a new policy is written.</li></ol>
+<ol><li><strong>Result and tuple caches</strong> — the same <code>AuthzCache</code> trait from authz-core, with a concrete implementation (likely moka or similar) injected at resolver construction time.</li></ol>
+<h3>Revision Quantization</h3>
+<p>Source: <code>pgauthz/crates/pgauthz/src/cache.rs</code>. The <code>quantize_revision</code> function converts a raw ULID/timestamp into a time-bucketed value:</p>
+<pre><code class="language-rust">fn quantize_revision(raw_revision: &amp;str, quantum_secs: u64) -&gt; String
+</code></pre>
+<p>This ensures that cache keys are stable within a time window (e.g., 60 seconds), reducing cache churn for near-simultaneous checks.</p>
+<h2>Metrics</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/metrics.rs</code>. pgauthz tracks:</p>
+<table><tr><th>Metric</th><th>Recorded When</th></tr><tr><td>Check duration</td><td>Every check completion</td></tr><tr><td>Check result (allowed/denied)</td><td>Every check completion</td></tr><tr><td>Tuple write count</td><td>Every `write_tuples` call</td></tr><tr><td>Tuple read count</td><td>Every `read_tuples` call</td></tr><tr><td>Resolution depth</td><td>After each check</td></tr><tr><td>Dispatch count</td><td>After each check</td></tr><tr><td>Datastore queries</td><td>After each check</td></tr></table>
+<h2>Tracing and OpenTelemetry</h2>
+<h3>Tracing Bridge</h3>
+<p>Source: <code>pgauthz/crates/pgauthz/src/tracing_bridge.rs</code>. Bridges Rust <code>tracing</code> spans to PostgreSQL's <code>ereport()</code> logging system. Since pgrx extensions run inside the PostgreSQL backend process, they can't use standard stdout/stderr — logging must go through PostgreSQL's error reporting system.</p>
+<h3>OpenTelemetry</h3>
+<p>Source: <code>pgauthz/crates/pgauthz/src/telemetry.rs</code>. Initializes OpenTelemetry tracing if enabled. Traces from pgauthz can be correlated with traces from other services via W3C TraceContext headers.</p>
+<h2>The PostgresDatastore</h2>
+<p>Source: <code>authz-datastore-pgx/src/lib.rs</code>. Implements all authz-core traits using PostgreSQL SPI:</p>
+<table><tr><th>Trait</th><th>Implementation</th></tr><tr><td>`TupleReader`</td><td>`SELECT ... FROM authz.tuple WHERE ...` via SPI</td></tr><tr><td>`TupleWriter`</td><td>`INSERT/DELETE FROM authz.tuple` + changelog entries + revision insert</td></tr><tr><td>`PolicyReader`</td><td>`SELECT ... FROM authz.authorization_policy WHERE ...`</td></tr><tr><td>`PolicyWriter`</td><td>`INSERT INTO authz.authorization_policy ... ON CONFLICT DO UPDATE`</td></tr><tr><td>`ChangelogReader`</td><td>`SELECT ... FROM authz.changelog WHERE object_type = ... ORDER BY ulid`</td></tr><tr><td>`RevisionReader`</td><td>`SELECT revision_id FROM authz.revision ORDER BY created_at DESC LIMIT 1`</td></tr></table>
+<h3>Feature Flag: pgx vs Stub</h3>
+<p>Source: <code>authz-datastore-pgx/src/lib.rs:25-137</code>. When built without the <code>pgx</code> feature, all trait implementations return stub errors. This allows the crate to compile in CI environments without pgrx installed.</p>
+<h3>Tuple Validation on Write</h3>
+<p>Source: <code>authz-datastore-pgx/src/lib.rs:557-608</code>. When writing tuples, the datastore validates them against the current authorization model:</p>
+<ol><li>Parse the latest policy</li><li>Find the object type in the AST</li><li>Find the relation in the type's relations</li><li>Extract allowed types from the relation expression</li><li>Reject if the subject type isn't in the allowed list</li></ol>
+<p>This catches errors like writing <code>photo:1#viewer@user:alice</code> when the model only defines <code>document</code> type, not <code>photo</code>.</p>
+<h2>Matrix Testing Framework</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/matrix_runner.rs</code> and <code>matrix_tests.rs</code>. pgauthz includes a YAML-based test matrix runner:</p>
+<pre><code class="language-yaml">name: &quot;basic_check&quot;
+model: |
+  type user {}
+  type document {
+    relations define viewer: [user]
+  }
+tests:
+  - name: &quot;allow_viewer&quot;
+    setup:
+      tuples:
+        - object: &quot;document:doc1&quot;
+          relation: &quot;viewer&quot;
+          subject: &quot;user:alice&quot;
+    assertions:
+      - type: &quot;Check&quot;
+        object: &quot;document:doc1&quot;
+        relation: &quot;viewer&quot;
+        subject: &quot;user:alice&quot;
+        allowed: true
+</code></pre>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:758-788</code>. Tests can be inline YAML or loaded from files in <code>tests/matrix/</code>. The test matrix covers:</p>
+<ul><li>Basic checks</li><li>Direct assignments</li><li>Tuple operations (write/delete)</li><li>Model operations</li><li>Grammar tests</li><li>Set operations (union, intersection, exclusion)</li><li>Wildcard semantics</li><li>Nested groups and exclusions</li><li>Identifier edge cases</li><li>Expand semantics</li><li>List objects/subjects semantics</li><li>Conditions and context</li><li>Expiration semantics</li></ul>
+<h2>PgRelationship Type</h2>
+<p>Source: <code>pgauthz/crates/pgauthz/src/lib.rs:60-81</code>. A PostgreSQL-compatible struct that maps to authz-core's <code>Tuple</code>:</p>
+<pre><code class="language-rust">#[derive(PostgresType, Serialize, Deserialize, Debug, Clone)]
+pub struct PgRelationship {
+    pub object_type: String,
+    pub object_id: String,
+    pub relation: String,
+    pub subject_type: String,
+    pub subject_id: String,
+    pub condition: Option&lt;String&gt;,
+}
+</code></pre>
+<p>This type is registered with PostgreSQL via <code>#[derive(PostgresType)]</code> and can be used in SQL as <code>pgauthz.PgRelationship</code>.</p>
+<h2>What to Read Next</h2>
+<p>Continue with <a href="06-dbrest.md">06-dbrest.md</a> for the REST API layer, or <a href="08-data-flow.md">08-data-flow.md</a> for end-to-end flow diagrams.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
