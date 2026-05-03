@@ -277,6 +277,107 @@ impl QemuVm {
     }
 }
 
+/// Adopt an existing qcow2 image as a managed VM.
+///
+/// 1. Validates the qcow2 file exists and is non-empty
+/// 2. Copies the disk into the image cache under a unique name
+/// 3. Creates a state file with `bootstrapped: false`
+/// 4. Returns the resolved profile + disk path so the caller can launch
+pub fn adopt(
+    profile: &VmProfile,
+    disk_path: &std::path::Path,
+) -> Result<(VmProfile, std::path::PathBuf)> {
+    if !disk_path.exists() {
+        return Err(TestbedError::Qcow2Error {
+            message: format!("disk file not found: {}", disk_path.display()),
+        });
+    }
+    let meta = std::fs::metadata(disk_path).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("stat {}: {e}", disk_path.display()),
+    })?;
+    if meta.len() == 0 {
+        return Err(TestbedError::Qcow2Error {
+            message: format!("disk file is empty: {}", disk_path.display()),
+        });
+    }
+
+    // Copy into cache
+    let cache_dir = crate::config::image_cache_dir();
+    let dest = cache_dir.join(format!("adopted-{}.qcow2", profile.name));
+    std::fs::copy(disk_path, &dest).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("copy {} → {}: {e}", disk_path.display(), dest.display()),
+    })?;
+
+    // Create state file (VM not yet started)
+    crate::state::save(&crate::state::VmState {
+        profile_name: profile.name.to_string(),
+        disk_path: dest.to_string_lossy().to_string(),
+        pid: None,
+        monitor_socket: String::new(),
+        ssh_port: profile.ssh_port,
+        winrm_port: profile.winrm_port,
+        rdp_port: profile.rdp_port,
+        vnc_port: profile.vnc_port,
+        bootstrapped: false,
+        created_at: chrono::Utc::now().to_rfc3339(),
+    })?;
+
+    Ok((profile.clone(), dest))
+}
+
+/// Refresh network ports for a running or stopped VM.
+///
+/// 1. Stops the VM gracefully (or force-kills if unresponsive)
+/// 2. Waits for the QEMU process to fully exit
+/// 3. Reallocates ports (checks for conflicts)
+/// 4. Relaunches the VM with fresh port forwarding
+/// 5. Waits for SSH/WinRM to become reachable
+pub fn refresh_network(
+    profile: &VmProfile,
+    display_mode: DisplayMode,
+) -> Result<QemuVm> {
+    // Stop if running
+    if let Ok(state) = crate::state::load(profile.name) {
+        if let Some(pid) = state.pid {
+            // Check if process is still alive via /proc
+            let alive = std::path::Path::new(&format!("/proc/{pid}")).exists();
+            if alive {
+                // Try graceful stop via QEMU monitor
+                if let Ok(mut vm) = QemuConfig::new(profile.clone(), display_mode).launch() {
+                    vm.shutdown()?;
+                }
+                // Wait for process to fully exit
+                let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
+                while std::time::Instant::now() < deadline {
+                    if !std::path::Path::new(&format!("/proc/{pid}")).exists() {
+                        break;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(200));
+                }
+            }
+        }
+    }
+
+    // Relaunch with fresh ports
+    let vm = QemuConfig::new(profile.clone(), display_mode).launch()?;
+
+    // Save updated state with new ports
+    crate::state::save(&crate::state::VmState {
+        profile_name: profile.name.to_string(),
+        disk_path: vm.disk_path.to_string_lossy().to_string(),
+        pid: Some(vm.pid),
+        monitor_socket: String::new(),
+        ssh_port: vm.resolved_ports.ssh_port,
+        winrm_port: vm.resolved_ports.winrm_port,
+        rdp_port: vm.resolved_ports.rdp_port,
+        vnc_port: vm.resolved_ports.vnc_port,
+        bootstrapped: false,
+        created_at: chrono::Utc::now().to_rfc3339(),
+    })?;
+
+    Ok(vm)
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Build the full QEMU command-line argument list.

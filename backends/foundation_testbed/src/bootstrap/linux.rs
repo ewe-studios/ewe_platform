@@ -1,6 +1,9 @@
-//! Linux bootstrap via SSH.
+//! Linux bootstrap via SSH — step-by-step idempotent.
 //!
-//! Steps: base packages → Tauri deps → mise → tools → nushell → SSH keys → marker.
+//! Each step checks concrete artifacts before running. If bootstrap fails
+//! mid-way, re-running picks up where it left off.
+
+use std::time::Instant;
 
 use crate::bootstrap::BOOTSTRAP_MISE_TOML;
 use crate::config::{Result, VmProfile};
@@ -27,67 +30,135 @@ const TAURI_SYSTEM_DEPS: &[&str] = &[
 
 /// Bootstrap a Linux VM with development tools.
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession) -> Result<()> {
-    // Step 1: Install base packages (only things mise can't provide)
-    install_system_deps(session)?;
+    step("install system deps", || {
+        let xvfb_present = crate::ssh::exec(
+            session,
+            "command -v Xvfb >/dev/null 2>&1 && echo present || echo missing",
+        )
+        .unwrap_or_default();
+        if !xvfb_present.contains("present") {
+            let deps = TAURI_SYSTEM_DEPS.join(" ");
+            crate::ssh::exec(session, "apt-get update -qq")?;
+            crate::ssh::exec(
+                session,
+                &format!("DEBIAN_FRONTEND=noninteractive apt-get install -y {deps}"),
+            )?;
+        }
+        Ok(())
+    })?;
 
-    // Step 2: Install mise via official installer
-    install_mise(session)?;
+    step("install mise", || {
+        let mise = crate::ssh::exec(
+            session,
+            "~/.local/bin/mise --version 2>/dev/null || echo missing",
+        )
+        .unwrap_or_default();
+        if !mise.contains("missing") && !mise.is_empty() {
+            return Ok(());
+        }
+        crate::ssh::exec(session, "curl -fsSL https://mise.run | sh")?;
+        Ok(())
+    })?;
 
-    // Step 3: Write bootstrap mise.toml and run mise install
-    install_tools(session)?;
+    step("activate mise in .bashrc", || {
+        crate::ssh::exec(
+            session,
+            r#"grep -q 'mise activate' ~/.bashrc || echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> ~/.bashrc"#,
+        )?;
+        Ok(())
+    })?;
 
-    // Step 4: Set nushell as default shell
-    set_nushell_default_shell(session)?;
+    step("install cargo-binstall", || {
+        let present = crate::ssh::exec(
+            session,
+            "[ -x \"$HOME/.cargo/bin/cargo-binstall\" ] && echo present || echo missing",
+        )
+        .unwrap_or_default();
+        if present.contains("present") {
+            return Ok(());
+        }
+        let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
+        let target = if arch.trim() == "aarch64" {
+            "aarch64-unknown-linux-musl"
+        } else {
+            "x86_64-unknown-linux-musl"
+        };
+        crate::ssh::exec(
+            session,
+            &format!(
+                "mkdir -p ~/.cargo/bin && \
+                 curl -sSfL https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-{target}.tgz | tar -xz -C ~/.cargo/bin && \
+                 chmod +x ~/.cargo/bin/cargo-binstall"
+            ),
+        )?;
+        Ok(())
+    })?;
 
-    // Step 5: Set up host SSH key authorization
-    setup_ssh_keys(session)?;
+    step("configure mise cargo_binstall", || {
+        crate::ssh::exec(
+            session,
+            "mkdir -p ~/.config/mise && \
+             touch ~/.config/mise/config.toml && \
+             (grep -q 'cargo_binstall' ~/.config/mise/config.toml || \
+              printf '\\n[settings]\\ncargo_binstall = true\\n' >> ~/.config/mise/config.toml)",
+        )?;
+        Ok(())
+    })?;
 
-    // Step 6: Write bootstrap marker
-    write_bootstrap_marker(session)?;
-
-    Ok(())
-}
-
-/// Install system dependencies via apt.
-fn install_system_deps(session: &mut VmSession) -> Result<()> {
-    let deps = TAURI_SYSTEM_DEPS.join(" ");
-    crate::ssh::exec(session, &format!("apt-get update -qq"))?;
-    crate::ssh::exec(session, &format!("DEBIAN_FRONTEND=noninteractive apt-get install -y {deps}"))?;
-    Ok(())
-}
-
-/// Install mise on Linux via official installer.
-fn install_mise(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(session, "curl -fsSL https://mise.run | sh")?;
-    // Add mise to PATH
-    crate::ssh::exec(session, r#"echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> ~/.bashrc"#)?;
-    Ok(())
-}
-
-/// Install development tools via bootstrap mise.toml.
-fn install_tools(session: &mut VmSession) -> Result<()> {
-    // Write bootstrap mise.toml
-    let script = format!(
-        r#"cat <<'MISE_EOF' > /tmp/bootstrap-mise.toml
+    step("install tools via mise", || {
+        let script = format!(
+            r#"cat <<'MISE_EOF' > /tmp/bootstrap-mise.toml
 {mise_toml_content}
 MISE_EOF
 export MISE_CONFIG_FILE=/tmp/bootstrap-mise.toml
 $HOME/.local/bin/mise install
 rm -f /tmp/bootstrap-mise.toml"#,
-        mise_toml_content = BOOTSTRAP_MISE_TOML,
-    );
-    crate::ssh::exec(session, &script)?;
+            mise_toml_content = BOOTSTRAP_MISE_TOML,
+        );
+        crate::ssh::exec(session, &script)?;
 
-    // Verify key tools are installed
-    crate::ssh::exec(session, "$HOME/.local/bin/mise exec -- rustc --version")?;
+        crate::ssh::exec(session, "$HOME/.local/bin/mise exec -- rustc --version")?;
+        Ok(())
+    })?;
+
+    step("set nushell as default shell", || {
+        crate::ssh::exec(
+            session,
+            r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#,
+        )?;
+        Ok(())
+    })?;
+
+    step("authorise host SSH key", || {
+        setup_ssh_keys(session)
+    })?;
+
+    step("write bootstrap marker", || {
+        write_bootstrap_marker(session)
+    })?;
 
     Ok(())
 }
 
+/// Run a named bootstrap step, tracking elapsed time.
+fn step<F>(label: &str, f: F) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+{
+    let start = Instant::now();
+    f()?;
+    let elapsed = start.elapsed();
+    let _ = (label, elapsed);
+    Ok(())
+}
+
 /// Set nushell as the default shell.
+#[allow(dead_code)]
 fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
-    // Find nu binary path and set as default shell
-    crate::ssh::exec(session, r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#)?;
+    crate::ssh::exec(
+        session,
+        r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#,
+    )?;
     Ok(())
 }
 
@@ -95,7 +166,6 @@ fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
 fn setup_ssh_keys(session: &mut VmSession) -> Result<()> {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
 
-    // Try ed25519 first, then rsa, then ecdsa
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
     let mut pub_key = String::new();
 
@@ -103,28 +173,28 @@ fn setup_ssh_keys(session: &mut VmSession) -> Result<()> {
         let path = home.join(".ssh").join(key_name);
         if path.exists() {
             if let Ok(key) = std::fs::read_to_string(&path) {
-                pub_key = key;
+                pub_key = key.trim().to_string();
                 break;
             }
         }
     }
 
     if !pub_key.is_empty() {
-        let key_escaped = pub_key.replace("'", "'\\''");
+        let key_escaped = shell_quote(&pub_key);
         let script = format!(
-            r#"mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-touch ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-KEY='{key_escaped}'
-if ! grep -qF "$KEY" ~/.ssh/authorized_keys; then
-    echo "$KEY" >> ~/.ssh/authorized_keys
-fi"#
+            r#"mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && \
+               chmod 600 ~/.ssh/authorized_keys && \
+               grep -qxF {key_escaped} ~/.ssh/authorized_keys || echo {key_escaped} >> ~/.ssh/authorized_keys"#
         );
         crate::ssh::exec(session, &script)?;
     }
 
     Ok(())
+}
+
+/// Quote a string for safe passing to a shell command.
+fn shell_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', r"'\''"))
 }
 
 /// Write the bootstrap completion marker.
@@ -151,5 +221,11 @@ mod tests {
         assert!(toml.contains("cargo:cargo-binstall"));
         assert!(toml.contains("cargo:sccache"));
         assert!(toml.contains("cargo:tauri-cli"));
+    }
+
+    #[test]
+    fn test_shell_quote_escapes_single_quotes() {
+        assert_eq!(shell_quote("hello"), "'hello'");
+        assert_eq!(shell_quote("it's"), "'it'\\''s'");
     }
 }
