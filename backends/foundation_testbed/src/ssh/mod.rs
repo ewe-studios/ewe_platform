@@ -3,10 +3,21 @@
 //! Connects via the forwarded port (e.g. 2222 → guest :22).
 //! Authentication falls back through: SSH agent → key files → password.
 //! Commands are executed via `nu -c "..."` after bootstrap.
+//!
+//! # SIGHUP / pty safety
+//!
+//! Non-interactive `exec` uses libssh2 channels (no pty allocated) — safe for
+//! backgrounded processes (`setsid -f`, `nohup &`) because closing the channel
+//! does **not** send SIGHUP.
+//!
+//! Interactive `shell` shells out to the `ssh` CLI. It allocates a pty (`-tt`)
+//! **only** for Linux guests. Windows guests (`cmd.exe`/PowerShell) break with
+//! forced pty allocation, so `-tt` is omitted there.
 
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
+use std::process::Command;
 
 use ssh2::Session;
 

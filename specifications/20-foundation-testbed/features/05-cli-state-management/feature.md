@@ -1,7 +1,7 @@
 ---
 feature: "CLI & State Management"
 description: "Persistent VM state, error types via foundation_errstacks, health checks, and all CLI subcommand implementations"
-status: "completed"
+status: "pending"
 priority: "high"
 depends_on: ["runner-utilities"]
 estimated_effort: "medium"
@@ -151,7 +151,7 @@ Each `ewe_platform testbed <command>` delegates to a `foundation_testbed` public
 | `stop <os>` | `testbed::stop(profile)` | Graceful shutdown |
 | `build <os> --project <path>` | `testbed::build(profile, project_dir)` | Cross-compile |
 | `exec <os> "<cmd>"` | `testbed::exec(profile, cmd)` | Run command in VM |
-| `shell <os>` | `testbed::shell(profile)` | Interactive SSH |
+| `shell <os>` | `testbed::shell(profile)` | Interactive SSH session |
 | `run <os> [--bin <path>]` | `testbed::run(profile, bin)` | Launch binary in VM |
 | `screenshot <os> --out <file>` | `testbed::screenshot(profile, out_path)` | Capture display |
 | `logs <os> [--follow] [--errors] [--tail N]` | `testbed::logs(profile, opts)` | Tail logs |
@@ -166,6 +166,8 @@ Each `ewe_platform testbed <command>` delegates to a `foundation_testbed` public
 | `snapshot load <os> <name>` | `testbed::snapshot_load(profile, name)` | Restore VM state |
 | `snapshot delete <os> <name>` | `testbed::snapshot_delete(profile, name)` | Delete snapshot |
 | `snapshot list <os>` | `testbed::snapshot_list(profile)` | List snapshots |
+| `adopt <os> --disk <path>` | `testbed::adopt(profile, disk_path)` | Register existing qcow2 as managed VM |
+| `refresh-network <os>` | `testbed::refresh_network(profile)` | Stop → reallocate ports → relaunch → wait for boot |
 
 ### 5.5 Doctor (Health Checks)
 
@@ -275,3 +277,48 @@ Error: Build failed for target 'x86_64-pc-windows-msvc' (exit 101)
 ```
 
 Each error variant implements `Display` with actionable suggestions.
+
+### Interactive Shell (`testbed shell`)
+
+The `shell` command opens an interactive SSH session. This is the **only** command that requests a pseudo-terminal (`-tt`):
+
+- **Linux**: `ssh -tt -p <port> <user>@127.0.0.1` — allocates pty for line-buffered terminal I/O
+- **Windows**: `ssh -p <port> <user>@127.0.0.1` — **no `-tt`** because `cmd.exe`/PowerShell break with forced pty allocation
+
+For all non-interactive commands (`exec`, `build`, `run`, etc.), `ssh` is invoked **without** `-tt`. This prevents two failures observed in `utm-dev-cli`:
+
+1. **SIGHUP on detached processes**: When an SSH channel with `-tt` closes, the SSH server sends SIGHUP to the pty's process group — killing any `setsid -f` or `nohup &` backgrounded processes.
+2. **Windows cmd.exe corruption**: `-tt` forces terminal mode on Windows, which breaks non-interactive command execution and causes output garbling.
+
+The `ssh2` crate's `channel_exec` (used by non-interactive `exec`) does **not** allocate a pty by default, so it's already safe. The `shell` command shells out to the `ssh` CLI where `-tt` matters.
+
+### VM Adopt (`testbed adopt`)
+
+Lets users register an existing qcow2 image as a managed VM:
+
+```
+ewe_platform testbed adopt <profile> --disk /path/to/image.qcow2
+```
+
+1. Validates that the qcow2 file exists and is non-empty
+2. Copies (or symlinks) the disk into `$HOME/.testbed/images/` under a unique name
+3. Creates a state file in `$PWD/.testbed/state/` with `pid: None`, `bootstrapped: false`
+4. Verifies the VM can boot by starting it and checking SSH reachability
+5. On success, the VM appears in `testbed ls` and is manageable via all other subcommands
+
+### Refresh Network (`testbed refresh-network`)
+
+Recovers from stale port forwards and unreachable services:
+
+```
+ewe_platform testbed refresh-network <profile>
+```
+
+1. Stops the VM gracefully (or force-kills if unresponsive)
+2. Waits for the QEMU process to fully exit
+3. Reallocates ports (checks for conflicts, may assign new ones)
+4. Relaunches the VM with fresh port forwarding configuration
+5. Waits for SSH/WinRM to become reachable (same boot-wait logic as `start`)
+6. Prints the resolved ports so the user knows what changed
+
+**Why this exists:** On QEMU, port forwards are baked into `-netdev user` at launch. On UTM, port-forward AppleScript changes only apply on cold boot. In both cases, if the user changes their network config, or if a port gets stolen by another process between VM restarts, `refresh-network` is the recovery path. Error messages for "WinRM not reachable" or "boot timeout" should suggest this command.
