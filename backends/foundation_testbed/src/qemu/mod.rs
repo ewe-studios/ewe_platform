@@ -94,12 +94,23 @@ impl QemuConfig {
 
         // Build command
         let mut cmd = Command::new(&qemu_bin);
+        let (display_args, has_native_window) = if self.display_mode == DisplayMode::Headful {
+            let backend = display::detect_backend();
+            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            let args = backend.qemu_args(vnc_offset);
+            let has_native = matches!(backend, display::DisplayBackend::Spice | display::DisplayBackend::Gtk);
+            (args, has_native)
+        } else {
+            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            (display::DisplayBackend::Vnc.qemu_args(vnc_offset), false)
+        };
         cmd.args(build_qemu_args(
             &self.profile,
             &disk_path,
             &resolved,
             &monitor_path,
-            self.display_mode,
+            display_args,
+            has_native_window,
         ));
         cmd.args(&self.extra_args);
 
@@ -137,9 +148,14 @@ impl QemuConfig {
 
         let pid = process.id();
 
-        // Auto-launch VNC viewer for headful mode
-        if self.display_mode == DisplayMode::Headful {
-            display::launch_viewer(DisplayMode::Headful, resolved.vnc_port);
+        // Auto-launch external viewer for headful VNC mode
+        // (Spice/Gtk have native windows, no separate viewer needed)
+        if self.display_mode == DisplayMode::Headful && !has_native_window {
+            if let Some(name) = display::launch_viewer(display::DisplayBackend::Vnc, resolved.vnc_port) {
+                eprintln!("  Viewer: {name} on 127.0.0.1:{}", resolved.vnc_port);
+            } else {
+                eprintln!("  No VNC viewer found. Connect manually to 127.0.0.1:{}", resolved.vnc_port);
+            }
         }
 
         Ok(QemuVm {
@@ -269,7 +285,8 @@ fn build_qemu_args(
     disk_path: &std::path::Path,
     ports: &ResolvedPorts,
     monitor_path: &std::path::Path,
-    _display: DisplayMode,
+    display_args: Vec<String>,
+    _has_native_window: bool,
 ) -> Vec<String> {
     let mut args = Vec::new();
 
@@ -325,6 +342,11 @@ fn build_qemu_args(
     args.push("-vga".to_string());
     args.push("std".to_string());
 
+    // USB tablet (fixes mouse tracking in VNC viewers)
+    args.push("-usb".to_string());
+    args.push("-device".to_string());
+    args.push("usb-tablet".to_string());
+
     // Monitor
     args.push("-monitor".to_string());
     args.push(format!(
@@ -332,9 +354,8 @@ fn build_qemu_args(
         monitor_path.display()
     ));
 
-    // Display (both modes use VNC; headful auto-launches viewer)
-    args.push("-display".to_string());
-    args.push(format!("vnc=:{}", ports.vnc_port - 5900));
+    // Display (auto-detected: spice-app, gtk, or vnc)
+    args.extend(display_args);
 
     // No reboot on panic (for headless CI)
     args.push("-no-reboot".to_string());
@@ -389,14 +410,16 @@ mod tests {
         };
         let monitor = std::path::PathBuf::from("/tmp/test.monitor");
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
+        let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, DisplayMode::Headless);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false);
 
         assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
         assert!(args.iter().any(|a| a.contains("12288"))); // RAM
         assert!(args.iter().any(|a| a.contains("virtio-net-pci,netdev=net")));
         assert!(args.iter().any(|a| a.contains("vnc=:0")));
         assert!(args.iter().any(|a| a.contains("hostfwd=tcp:127.0.0.1:2222-:22")));
+        assert!(args.iter().any(|a| a.contains("usb-tablet"))); // mouse tracking fix
     }
 
     #[test]
@@ -410,11 +433,12 @@ mod tests {
         };
         let monitor = std::path::PathBuf::from("/tmp/test.monitor");
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
+        let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, DisplayMode::Headful);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false);
 
-        assert!(args.iter().any(|a| a.contains("spice-app")));
-        assert!(!args.iter().any(|a| a.contains("vnc")));
+        assert!(args.iter().any(|a| a.contains("vnc=:2")));
+        assert!(args.iter().any(|a| a.contains("usb-tablet")));
     }
 
     #[test]
