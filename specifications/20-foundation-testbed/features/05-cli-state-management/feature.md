@@ -30,13 +30,14 @@ The state management layer and CLI command implementations. Persists VM state (P
 
 ### 5.1 VM State Management
 
-Persistent state in `~/.cache/foundation_testbed/state/`:
+Persistent state in `$PWD/.testbed/state/`:
 
 ```json
-// ~/.cache/foundation_testbed/state/windows-build.json
+// .testbed/state/windows-build.json
 {
     "profile_name": "windows-build",
-    "disk_path": "/home/user/.cache/foundation_testbed/images/windows-11-x86_64.qcow2",
+    "arch": "x86_64",
+    "disk_path": "$HOME/.testbed/images/windows-11-x86_64.qcow2",
     "pid": 12345,
     "monitor_socket": "/tmp/foundation-testbed-windows-build.monitor",
     "ssh_port": 2222,
@@ -83,9 +84,16 @@ All public APIs return `Result<T, TestbedError>` (via `foundation_errstacks::Res
 Centralized profile definitions in `config.rs`:
 
 ```rust
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Arch {
+    X86_64,
+    Aarch64,
+}
+
 pub struct VmProfile {
     pub name: &'static str,
-    pub os: GuestOs,           // Windows | Linux
+    pub os: GuestOs,           // Windows | Linux | MacOS
+    pub arch: Arch,            // Target architecture
     pub image_name: &'static str,
     pub ssh_port: u16,
     pub rdp_port: Option<u16>,
@@ -103,28 +111,30 @@ pub struct VmProfile {
 
 Default profiles:
 
-| Name | OS | SSH | RDP | WinRM | VNC | RAM | Cores | Disk | Bootstrap |
-|---|---|---|---|---|---|---|---|---|---|
-| `windows-build` | Windows | 2222 | 3389 | 5985 | 5900 | 12288 | 4 | 80 GB | Full |
-| `windows-test` | Windows | 2322 | 3389 | 5985 | 5901 | 4096 | 2 | 40 GB | SshOnly |
-| `linux-build` | Linux | 2422 | — | — | 5902 | 4096 | 4 | 40 GB | Full |
-| `linux-test` | Linux | 2522 | — | — | 5903 | 2048 | 2 | 20 GB | SshOnly |
+| Name | OS | Arch | SSH | RDP | WinRM | VNC | RAM | Cores | Disk | Bootstrap |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `windows-build` | Windows | x86_64 | 2222 | 3389 | 5985 | 5900 | 12288 | 4 | 80 GB | Full |
+| `windows-build-arm` | Windows | aarch64 | 2225 | 3390 | 55985 | 5904 | 12288 | 4 | 80 GB | Full |
+| `windows-test` | Windows | x86_64 | 2322 | 3389 | 5985 | 5901 | 4096 | 2 | 40 GB | SshOnly |
+| `linux-build` | Linux | x86_64 | 2422 | — | — | 5902 | 4096 | 4 | 40 GB | Full |
+| `linux-build-arm` | Linux | aarch64 | 2425 | — | — | 5905 | 4096 | 4 | 40 GB | Full |
+| `linux-test` | Linux | x86_64 | 2522 | — | — | 5903 | 2048 | 2 | 20 GB | SshOnly |
+| `linux-dev` | Linux | x86_64 | 2622 | — | — | 5906 | 6144 | 4 | 20 GB | Full |
+| `macos-build` | MacOS | x86_64 | 2223 | — | — | 5903 | 8192 | 4 | 80 GB | SshOnly |
 
-Users can override defaults via a config file (TOML) at `~/.config/foundation_testbed/config.toml`:
+Users can override defaults via `testbed.toml` in `$PWD/.testbed/`:
 
 ```toml
-[[profiles]]
-name = "custom-windows"
-os = "windows"
-image_url = "file:///path/to/my-windows.qcow2"
-ssh_port = 2722
+[vm]
+profile = "custom-windows"
 memory_mib = 16384
 cpu_cores = 8
-disk_gb = 120
 
-[bootstrap]
-# Custom mise.toml to use during bootstrap (overrides the crate's default)
-mise_toml_path = "/path/to/my-bootstrap.toml"
+[images]
+sources = [
+    { type = "direct", url = "https://pub-xxx.r2.dev/images/my-windows.qcow2" },
+    { type = "vagrant", registry = "libvirt", box = "generic/windows11" },
+]
 ```
 
 ### 5.4 CLI Subcommand Implementations
@@ -214,7 +224,7 @@ cargo test -p foundation_testbed errors::
 
 ### State File Format
 
-JSON files stored in `~/.cache/foundation_testbed/state/<profile-name>.json`. The state file serves as the "database" for VM management:
+JSON files stored in `$PWD/.testbed/state/<profile-name>.json`. The state file serves as the "database" for VM management:
 
 - **On VM start**: create/update state with PID, ports, disk path
 - **On VM stop**: update state to remove PID, mark as stopped
@@ -230,17 +240,22 @@ fn is_process_alive(pid: u32) -> bool {
 
 If the QEMU process died (crash, OOM kill, manual `kill`), the state file still exists but the PID is dead. We mark the VM as "stopped" and remove the PID. The user can `start` again and a new QEMU process will launch.
 
-### Profile Override Resolution
+### Profile & Image Source Resolution
 
 User config merges over defaults:
 
 ```
-default_profiles (hardcoded)
-    + user_profiles (from ~/.config/foundation_testbed/config.toml)
+default_profiles (hardcoded in code)
+    + testbed.toml [vm] section (project-scoped overrides)
     = resolved_profiles
+
+image_sources (from testbed.toml [images] section):
+    iterate in order → first source with image wins → download if not cached
 ```
 
-If a user defines a profile with the same name as a default, the user's values override the defaults field-by-field (not replace entirely).
+Image sources support:
+- **`direct`** — raw URL to a qcow2/bundle file, cached at `$HOME/.testbed/images/`
+- **`vagrant`** — Vagrant Cloud API lookup, version resolution, download with resume
 
 ### Error Display
 

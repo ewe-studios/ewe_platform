@@ -3,7 +3,7 @@ feature: "Provider Architecture — QEMU + UTM backends"
 description: "Split foundation_testbed into a provider-based architecture: QEMU on Linux, UTM on macOS. Shared code stays common, provider-specific code is gated behind feature flags and OS detection. Extract CLI into a reusable module, add standalone binary support, and create a nested mise.toml."
 status: "pending"
 priority: "critical"
-depends_on: ["01-qemu-backend", "02-vm-communication", "05-cli-state-management", "06-bin-integration"]
+depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "05-cli-state-management", "06-bin-integration"]
 estimated_effort: "x-large"
 created: 2026-05-03
 last_updated: 2026-05-03
@@ -100,7 +100,7 @@ backends/foundation_testbed/
 │   │   ├── bootstrap/            # OS bootstrap logic
 │   │   ├── build/                # Build pipeline
 │   │   ├── runner/               # Binary runner, screenshots, logs
-│   │   ├── state/                # JSON state persistence
+│   │   ├── state/                # JSON state persistence (project-scoped)
 │   │   ├── doctor/               # Health checks (provider-agnostic part)
 │   │   └── import/               # Image import (Vagrant Cloud, quickemu)
 │   ├── providers/                # Provider implementations
@@ -115,10 +115,11 @@ backends/foundation_testbed/
 │   │   │   └── download.rs       # HTTP downloads
 │   │   └── utm/                  # [feature: utm] macOS/UTM backend
 │   │       ├── mod.rs            # UtmProvider impl
-│   │       ├── applescript.rs    # UTM AppleScript commands
-│   │       ├── bundle.rs         # .utm bundle management
-│   │       ├── spice.rs          # SPICE client for headful display
-│   │       └── network.rs        # UTM network mode (shared/vlan)
+│   │       ├── utmctl.rs         # utmctl CLI wrapper (lifecycle)
+│   │       ├── applescript.rs    # Network config, resource config, import
+│   │       ├── import.rs         # Vagrant UTM registry, bundle prep
+│   │       ├── state.rs          # Per-project state (.testbed/state/)
+│   │       └── bundle.rs         # .utm config.plist creation/parsing
 │   └── cli/                      # [feature: cli] Standalone CLI
 │       ├── mod.rs                # build_command() -> clap::Command
 │       └── handlers.rs           # Command dispatch (existing cli.rs logic)
@@ -184,6 +185,187 @@ pub struct VmHandle {
 }
 ```
 
+## Directory & State Layout
+
+This is the **ewe_platform convention** — clear separation between project-scoped
+and global data:
+
+```
+$PWD/.testbed/              # Project-scoped (committed or gitignored)
+├── testbed.toml            # Local VM config, mount points, overrides
+├── state/                  # JSON state files (vm-{name}.json)
+├── artifacts/              # Mirror of VM's mount point — builds produce files
+│   │                       # here, owned by host, accessible after VM stops
+└── mounts/                 # Host directories to mount into VM
+    └── (project root)      # Default mount: the directory containing testbed.toml
+
+$HOME/.testbed/             # Global (user-scoped, never committed)
+├── images/                 # Downloaded/built base images (qcow2, .utm bundles)
+│   ├── windows-11-x86_64.qcow2
+│   ├── ubuntu-24.04-x86_64.qcow2
+│   └── utm/
+│       └── windows-11_arm64.utm/   # Extracted UTM bundles
+├── snapshots/              # Provider snapshots (QEMU savevm, UTM backups)
+└── cache/                  # Temporary downloads, partial files
+```
+
+### Design Principles
+
+1. **Persistent VM, ephemeral project data** — The VM keeps its OS, installed
+   tools, and system state across restarts. Project code and build artifacts
+   live on a **host-mounted directory** (`$PWD/.testbed/mounts/` → VM `/mnt/project`).
+   This means:
+   - Build outputs are owned by the host (correct UID/GID, no root-owned files)
+   - Artifacts survive VM shutdown
+   - No `scp` roundtrip needed after builds
+   - `$PWD/.testbed/artifacts/` mirrors `/mnt/project/target/` inside the VM
+
+2. **`testbed.toml` for project config** — A TOML file in `$PWD/.testbed/` that
+   defines local overrides:
+   ```toml
+   [vm]
+   profile = "linux-build"
+   memory_mib = 8192
+   cpu_cores = 4
+
+   [mounts]
+   project = "."                    # Mount this directory into VM
+   guest_path = "/mnt/project"      # VM-side mount point
+
+   [artifacts]
+   sync = true                      # Sync build outputs to .testbed/artifacts/
+
+   [images]
+   # Ordered list of image sources to check. First match wins.
+   sources = [
+       { type = "r2", url = "https://pub-xxx.r2.dev/testbed-images" },
+       { type = "vagrant", registry = "utm" },   # UTM registry on Vagrant Cloud
+       { type = "vagrant", registry = "libvirt" }, # Fallback libvirt boxes
+   ]
+   # Defaults to: [{ type = "vagrant", registry = "libvirt" }] for QEMU provider
+   #              [{ type = "vagrant", registry = "utm" }] for UTM provider
+   ```
+
+3. **Images are global** — Downloaded base images live in `$HOME/.testbed/images/`
+   so they're shared across projects. A project references an image by name,
+   not by path.
+
+4. **State is project-scoped** — Each project tracks its own VM state
+   (PID, UUID, resolved ports, bootstrap status) in `$PWD/.testbed/state/`.
+   This means `testbed stop` in one project doesn't affect another project's VM
+   even if they share the same profile name.
+
+5. **All synchronous** — No `tokio`, no `async`/`.await`, no `reqwest::blocking`
+   panics. Use `std::process::Command` for downloads (`curl`), SSH (`ssh2` crate),
+   and all I/O.
+
+### Image Source Resolution
+
+Images are resolved from an ordered list of sources defined in `testbed.toml`.
+The first source that has the image wins:
+
+```rust
+pub enum ImageSource {
+    /// Direct HTTP download (e.g., Cloudflare R2, GitHub Releases)
+    Direct { url: String },
+    /// Vagrant Cloud registry (libvirt or utm)
+    Vagrant { registry: String, box_name: String },
+}
+
+pub struct ImageConfig {
+    /// Ordered sources — first match wins
+    pub sources: Vec<ImageSource>,
+}
+```
+
+**Resolution flow:**
+
+```
+for source in config.image_sources:
+    match source {
+        Direct { url } → check if url points to a cached image, else download
+        Vagrant { registry, box_name } → query Vagrant Cloud API for box,
+                                         parse version, get download URL,
+                                         download if not cached
+    }
+```
+
+**Default source lists by provider:**
+
+| Provider | Default Sources |
+|----------|----------------|
+| QEMU (Linux) | 1. `vagrant/libvirt` (libvirt provider boxes) |
+| UTM (macOS) | 1. `vagrant/utm` (UTM registry boxes) |
+
+**Example custom config:**
+
+```toml
+[images]
+sources = [
+    { type = "direct", url = "https://pub-xxx.r2.dev/images/ubuntu-24.04-x86_64.qcow2" },
+    { type = "vagrant", registry = "libvirt", box = "generic/ubuntu2404" },
+]
+```
+
+This lets organizations host their own pre-built images on R2/S3/GitHub Releases
+while falling back to Vagrant Cloud if the custom source doesn't have a
+particular image.
+
+## VmProfile Struct (Shared)
+
+The `VmProfile` struct is shared across providers:
+
+```rust
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Arch {
+    X86_64,   // x86_64 / amd64
+    Aarch64,  // ARM64
+}
+
+pub struct VmProfile {
+    pub name:        &'static str,
+    pub os:          GuestOs,
+    pub arch:        Arch,               // Target architecture of the VM
+    pub image_name:  &'static str,       // qcow2 filename (QEMU) or Vagrant box tag (UTM)
+    pub ssh_port:    u16,
+    pub rdp_port:    Option<u16>,
+    pub winrm_port:  Option<u16>,
+    pub user:        &'static str,
+    pub pass:        &'static str,
+    pub bootstrap:   BootstrapMode,      // Full or SshOnly
+    pub memory_mib:  u32,
+    pub cpu_cores:   u32,
+    pub prebaked_url: Option<&'static str>, // Direct URL (skips registry lookup)
+}
+
+impl VmProfile {
+    /// Returns the Rust target triple for this profile.
+    pub fn build_target(&self) -> &'static str {
+        match (self.os, self.arch) {
+            (GuestOs::Windows, Arch::X86_64)   => "x86_64-pc-windows-msvc",
+            (GuestOs::Windows, Arch::Aarch64)  => "aarch64-pc-windows-msvc",
+            (GuestOs::Linux,   Arch::X86_64)   => "x86_64-unknown-linux-gnu",
+            (GuestOs::Linux,   Arch::Aarch64)  => "aarch64-unknown-linux-gnu",
+            (GuestOs::MacOS,   Arch::X86_64)   => "x86_64-apple-darwin",
+            (GuestOs::MacOS,   Arch::Aarch64)  => "aarch64-apple-darwin",
+        }
+    }
+}
+```
+
+Profiles:
+
+| Profile | OS | Arch | image_name | RAM | CPU | Bootstrap | Build Target |
+|---------|-----|------|------------|-----|-----|-----------|-------------|
+| windows-build | Windows | x86_64 | windows-11-x86_64 | 12 GB | 4 | Full | x86_64-pc-windows-msvc |
+| windows-build-arm | Windows | aarch64 | windows-11-aarch64 | 12 GB | 4 | Full | aarch64-pc-windows-msvc |
+| windows-test | Windows | x86_64 | windows-11-x86_64 | 4 GB | 2 | SshOnly | x86_64-pc-windows-msvc |
+| linux-build | Linux | x86_64 | ubuntu-24.04-x86_64 | 4 GB | 4 | Full | x86_64-unknown-linux-gnu |
+| linux-build-arm | Linux | aarch64 | ubuntu-24.04-aarch64 | 4 GB | 4 | Full | aarch64-unknown-linux-gnu |
+| linux-test | Linux | x86_64 | ubuntu-24.04-x86_64 | 2 GB | 2 | SshOnly | x86_64-unknown-linux-gnu |
+| linux-dev | Linux | x86_64 | debian-12-x86_64 | 6 GB | 4 | Full | x86_64-unknown-linux-gnu |
+| macos-build | MacOS | x86_64 | macos-sonoma-x86_64 | 8 GB | 4 | SshOnly | x86_64-apple-darwin |
+
 ## QEMU Provider (Linux) — Existing Code, Moved
 
 The current `foundation_testbed` code **becomes the QEMU provider**. Most files
@@ -203,15 +385,26 @@ stay the same, just reorganized under `providers/qemu/`:
 | `src/ssh/mod.rs` | `src/common/ssh/mod.rs` | No changes |
 | `src/winrm/mod.rs` | `src/common/winrm/mod.rs` | No changes |
 | `src/bootstrap/mod.rs` | `src/common/bootstrap/mod.rs` | Add macOS bootstrap |
-| `src/build/mod.rs` | `src/common/build/mod.rs` | No changes |
-| `src/state/mod.rs` | `src/common/state/mod.rs` | No changes |
+| `src/build/mod.rs` | `src/common/build/mod.rs` | Add mount-aware build paths |
+| `src/state/mod.rs` | `src/common/state/mod.rs` | Change paths: `$PWD/.testbed/state/` |
 
-### What Changes in QEMU Provider
+### QEMU Provider: 9p Mount Setup
 
-1. **`QemuConfig` → `QemuProvider`** — the builder pattern becomes a provider struct
-2. **`QemuVm` → `VmHandle`** — unified VM handle across providers
-3. **OVMF path detection** — distro-aware lookup (Arch, Debian, Ubuntu, Fedora)
-4. **State persistence** — store `provider_id: "qemu"` alongside PID
+For the host directory mount, QEMU uses **virtio-9p** (Plan 9 filesystem protocol):
+
+```bash
+# QEMU args for host directory mount:
+-virtfs local,path=/path/to/host/dir,mount_tag=project,security_model=mapped,id=fs0
+```
+
+Inside the VM:
+```bash
+mount -t 9p -o trans=virtio,version=9p2000.L project /mnt/project
+```
+
+**Note:** 9p has performance limitations for large builds. An alternative is
+`virtio-fs` (better performance, requires more setup). Start with 9p; if build
+times are unacceptable, evaluate virtio-fs.
 
 ## UTM Provider (macOS) — New Code
 
@@ -221,87 +414,192 @@ UTM (https://github.com/utmapp/UTM) is a macOS GUI frontend for QEMU that uses
 Apple's Hypervisor.framework. It manages VMs as `.utm` bundles (directories
 containing config.plist, disk images, and metadata).
 
-UTM provides an **AppleScript API** for automation:
+UTM provides two interfaces for automation:
+
+**1. `utmctl` CLI** — at `/Applications/UTM.app/Contents/MacOS/utmctl`
+
+```bash
+# List all VMs (tabular: UUID  STATUS  NAME)
+utmctl list
+
+# Start/stop a VM by name
+utmctl start "windows-build"
+utmctl stop "windows-build"
+```
+
+VM lifecycle (list, start, stop) uses `utmctl`. Minimum tested version is
+`4.6.5` — detect via `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /Applications/UTM.app/Contents/Info.plist`
+and warn (non-fatal) if older.
+
+**2. AppleScript via `osascript`** — for network config, resource config, and bundle import
 
 ```applescript
--- Start a VM
+-- Find emulated NIC index (needed before setting port forwards)
 tell application "UTM"
-    run VM named "windows-build"
+  set vm to virtual machine id "{uuid}"
+  set cfg to configuration of vm
+  set nis to network interfaces of cfg
+  repeat with ni in nis
+    if mode of ni is emulated then
+      return index of ni
+    end if
+  end repeat
+  return -1
 end tell
 
--- Stop a VM
+-- Set port forwards on a specific NIC
 tell application "UTM"
-    stop VM named "windows-build"
+  set vm to virtual machine id "{uuid}"
+  set config to configuration of vm
+  set networkInterfaces to network interfaces of config
+  repeat with anInterface in networkInterfaces
+    if index of anInterface is {nic_index} then
+      set portForwards to {}
+      set newPortForward to {protocol:"TcPp", guest address:"", guest port:"22", host address:"127.0.0.1", host port:"2222"}
+      copy newPortForward to the end of portForwards
+      set port forwards of anInterface to portForwards
+    end if
+  end repeat
+  update configuration of vm with config
 end tell
 
--- Install an ISO (first-time setup)
-tell application "UTM"
-    install ISO at POSIX file "/path/to/installer.iso" into VM named "my-vm"
-end tell
+-- Import a .utm bundle
+tell application "UTM" to import new virtual machine from POSIX file "/path/to/bundle.utm"
 
--- List running VMs
+-- Set VM resources
 tell application "UTM"
-    get name of every VM whose running is true
+  set vm to virtual machine id "{uuid}"
+  set cfg to configuration of vm
+  set memory of cfg to 8192
+  set cpu cores of cfg to 4
+  update configuration of vm with cfg
 end tell
 ```
 
-We use the `osascript` CLI tool to run these from Rust:
-
-```rust
-fn run_applescript(script: &str) -> Result<String> {
-    let output = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .output()?;
-    String::from_utf8_lossy(&output.stdout).trim().to_string()
-}
-```
+**Division of labor:**
+| Operation | Interface |
+|-----------|-----------|
+| List VMs | `utmctl list` |
+| Start VM | `utmctl start <name>` |
+| Stop VM | `utmctl stop <name>` |
+| Version check | `PlistBuddy` on Info.plist |
+| Port forwards | AppleScript (find NIC, set rules) |
+| Resource config | AppleScript (memory, cpu cores) |
+| Bundle import | AppleScript (`import new virtual machine from POSIX file`) |
+| ISO install | AppleScript (`install ISO at POSIX file`) |
 
 ### UTM Provider Implementation
 
 ```rust
+pub const UTMCTL: &str = "/Applications/UTM.app/Contents/MacOS/utmctl";
+pub const MIN_UTM_VERSION: &str = "4.6.5";
+
 pub struct UtmProvider;
 
 impl Provider for UtmProvider {
     fn name(&self) -> &'static str { "utm" }
 
     fn launch(&self, profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
-        // 1. Check UTM is installed (app bundle exists)
-        // 2. Ensure .utm bundle exists for this profile
-        // 3. If first run: create .utm bundle with correct config
-        // 4. Run AppleScript: start VM
-        // 5. Wait for network ports to be available
-        // 6. Return VmHandle with resolved ports
+        // 1. ensure_utm() — check utmctl works, install via brew if missing,
+        //    wait for UTM.app to be ready (30s deadline)
+        // 2. ensure_imported(profile) — download + import .utm bundle if not present
+        // 3. utmctl start <name> — with 3 retries on failure
+        // 4. wait_for_boot(profile, timeout) — SSH for Linux, WinRM for Windows
+        // 5. configure_network(uuid, profile) — AppleScript: find NIC, set port forwards
+        // 6. configure_resources(uuid, profile.memory, profile.cpu) — AppleScript
+        // 7. Return VmHandle with UUID + resolved ports
     }
 
     fn stop(&self, vm_handle: &VmHandle) -> Result<()> {
-        // AppleScript: stop VM
+        // utmctl stop <name> (only if running)
     }
 
     fn is_running(&self, vm_handle: &VmHandle) -> bool {
-        // AppleScript: check VM running state
+        // utmctl list → find by name → status == "started"
     }
 
     fn resolved_ports(&self, vm_handle: &VmHandle) -> Result<ResolvedPorts> {
-        // UTM uses shared network mode with automatic port forwarding
-        // Read from .utm config.plist
+        // Read from VmProfile — ports are static in shared network mode
     }
 
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
-        // For macOS hosts, we guide user through UTM's ISO installer
-        // or download pre-built .utm bundles
+        // Vagrant Cloud UTM registry API → download .tar.gz → extract .utm →
+        // rewrite config.plist Name → import via AppleScript → verify bundle on disk
     }
 
     fn host_health(&self) -> HostHealth {
-        // Check: UTM installed, Hypervisor.framework available,
+        // Check: UTM installed (>= 4.6.5), Hypervisor.framework available,
         // sufficient RAM/disk, Rosetta 2 (for x86_64 VMs on Apple Silicon)
     }
 }
 ```
 
+### UTM: Host Directory Mount
+
+UTM supports **directory sharing** through its shared directories feature.
+The host directory is accessible inside the VM via the `virtiofs` mount or
+through UTM's shared directory mechanism. For UTM, the mount point is
+configured via AppleScript or the `.utm` bundle's `config.plist`:
+
+```xml
+<key>SharedDirectories</key>
+<array>
+    <dict>
+        <key>HostPath</key>
+        <string>/Users/alex/projects/my-app</string>
+        <key>GuestPath</key>
+        <string>/mnt/project</string>
+        <key>ReadOnly</key>
+        <false/>
+    </dict>
+</array>
+```
+
+### UTM Image Import Flow
+
+Unlike QEMU (which downloads qcow2 images), UTM uses a multi-step import
+process:
+
+1. **Check if already imported** — `utmctl list` → find VM by `profile.name`
+2. **Download source** — two paths:
+   - **Vagrant Cloud UTM registry**: `GET api.cloud.hashicorp.com/vagrant/2022-09-30/registry/utm/box/{box_name}/versions` → parse version → `GET .../provider/utm/architecture/arm64/download` → get direct URL → stream download with progress bar + resume support
+   - **Pre-baked direct URL**: `profile.prebaked_url` is a concrete artifact URL (e.g., Cloudflare R2) — skip Vagrant Cloud lookup entirely, download directly to `$HOME/.testbed/images/utm/{name}_prebaked_arm64.box`
+3. **Extract** — `.box` files are `.tar.gz` containing a `.utm` bundle directory. Use `flate2` + `tar` crates with progress tracking.
+4. **Prepare bundle** — copy to `$HOME/.testbed/images/utm/imports/{profile.name}.utm`, then **rewrite `config.plist`** `<key>Name</key>` value to `profile.name`. This is critical: if two profiles share the same box (e.g., `linux-test` + `linux-build` both on `ubuntu-24.04`), UTM will collide them in `~/Library/Containers/com.utmapp.UTM/Data/Documents/` without the rename.
+5. **Import** — AppleScript: `tell application "UTM" to import new virtual machine from POSIX file "{path}"`. Wait up to 30s for the new VM UUID to appear in `utmctl list`.
+6. **Verify** — check that `~/Library/Containers/com.utmapp.UTM/Data/Documents/{name}.utm` exists on disk. If not, delete the orphan via `utmctl delete {uuid}` and error.
+
+### UTM State Management
+
+Per-project state stored in `$PWD/.testbed/state/vm-{name}.json`:
+
+```json
+{
+  "uuid": "A1B2C3D4-...",
+  "display_name": "windows-build"
+}
+```
+
+This allows cross-referencing between the profile name (what the user types)
+and the UTM UUID (what `utmctl` and AppleScript need). State is loaded/saved
+via `serde_json`.
+
+### UTM Bootstrap (Windows)
+
+The Windows bootstrap is extensive and idempotent — each step checks before
+installing. Key patterns to port:
+
+1. **OpenSSH Server** — `Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0`, edit `sshd_config` (comment out `Match Group administrators`, `AuthorizedKeysFile __PROGRAMDATA__`), install authorized key in **both** `~/.ssh/authorized_keys` and `C:\ProgramData\ssh\administrators_authorized_keys` with proper ACLs.
+2. **LocalAccountTokenFilterPolicy** — registry set to `1` for WinRM to work with local admin accounts.
+3. **VS Build Tools** — check `Hostarm64\x64\link.exe` exists (the ARM64-host x64-target cross-linker). If not, download `vs_buildtools.exe`, install `VCTools` workload + `--includeRecommended`. On ARM64 hosts, Microsoft does NOT ship `Hostarm64\arm64` native toolchain — this is why we check for the cross-linker.
+4. **WebView2 Runtime** — Microsoft Evergreen Bootstrapper (not winget, which fails on fresh Vagrant boxes).
+5. **mise** — try `winget install jdx.mise` first, fall back to `Invoke-WebRequest https://mise.run`.
+6. **cargo-binstall** — direct `.exe` download from GitHub Releases (not `cargo install`, which would compile from source ~5 min, defeating the purpose).
+7. **rustup default-host** — on ARM64 hosts, force `x86_64-pc-windows-msvc` BEFORE mise installs Rust, because VS Build Tools only has `Hostarm64\x64` cross-linker.
+
 ### UTM .utm Bundle Configuration
 
-Each profile maps to a `.utm` bundle in `~/Library/Group Containers/WDNLXAD4W8.com.utmapp.UTM/Virtual Machines/`:
+Each profile maps to a `.utm` bundle in `~/Library/Containers/com.utmapp.UTM/Data/Documents/`:
 
 ```
 windows-build.utm/
@@ -366,27 +664,6 @@ UTM supports Windows 11 ARM64 on Apple Silicon Macs:
 - SPICE guest tools for display acceleration
 - SSH available after installing OpenSSH Server via Win32-OpenSSH
 
-Profile for Windows ARM64 on macOS:
-
-```rust
-VmProfile {
-    name: "windows-build",
-    os: GuestOs::Windows,
-    image_name: "windows-11-arm64.utm",  // .utm bundle, not qcow2
-    ssh_port: 2222,
-    rdp_port: Some(3389),
-    winrm_port: Some(5985),
-    vnc_port: 0,          // UTM uses SPICE, not VNC
-    user: "vagrant",
-    pass: "vagrant",
-    bootstrap: BootstrapMode::Full,
-    memory_mib: 8192,
-    cpu_cores: 4,
-    disk_gb: 80,
-    prebaked_url: None,
-}
-```
-
 ## CLI Module Extraction
 
 ### Current State
@@ -408,55 +685,123 @@ pub fn build_command() -> clap::Command {
     clap::Command::new("testbed")
         .about("VM orchestration — build, test, and run cross-platform binaries")
         .subcommand_required(true)
-        .subcommand(clap::Command::new("start")...)
-        .subcommand(clap::Command::new("stop")...)
+        .subcommand(clap::Command::new("init")
+            .about("Initialize project — creates .testbed/testbed.toml"))
+        .subcommand(clap::Command::new("start")
+            .about("Start a VM and hold the process — Ctrl-C stops it gracefully")
+            .arg(Arg::new("name").required(true)))
+        .subcommand(clap::Command::new("stop")
+            .about("Stop a running VM")
+            .arg(Arg::new("name").required(true)))
         // ... all subcommands ...
 }
+```
 
-/// Dispatch a matched subcommand to its handler.
-#[cfg(feature = "cli")]
-pub fn dispatch(args: &clap::ArgMatches) -> Result<(), Box<dyn Error + Send + Sync>> {
-    match args.subcommand() {
-        Some(("start", m)) => handlers::cmd_start(m),
-        // ... all dispatch arms ...
-        _ => Err("unknown testbed subcommand".into()),
+### `testbed init`
+
+Creates `$PWD/.testbed/testbed.toml` with a minimal default:
+
+```toml
+[[vms]]
+name = "linux-build"
+profile = "linux-build"
+```
+
+**Behavior:**
+- If `.testbed/testbed.toml` already exists → error: "already initialized"
+- Creates `.testbed/` directory if it doesn't exist
+- Creates `.testbed/state/` directory
+- Prints: "Initialized testbed in .testbed/testbed.toml — edit to add more VMs"
+
+### `testbed start <name>` — Foreground Hold
+
+This is the key UX difference from feature 05's original `start`:
+
+1. **Reads `.testbed/testbed.toml`** — finds the VM definition by `name`
+2. **Ensures the image exists** — downloads if needed
+3. **Ensures prerequisites** — host bootstrap (mise, nushell, pitchfork)
+4. **Launches the VM** — via the appropriate provider (QEMU or UTM)
+5. **Bootstraps if needed** — installs tools, configures SSH/WinRM
+6. **Prints connection info** — ports, SSH command, mount status
+7. **HOLDS THE FOREGROUND PROCESS** — blocks on `pitchfork wait` or signal listener
+   - User can `Ctrl-C` at any time
+   - On signal: graceful VM shutdown, resource cleanup, state saved
+8. **Cleans up on exit** — stops VM, saves state, unmounts
+
+```rust
+fn cmd_start(matches: &ArgMatches) -> Result<()> {
+    let name = matches.get_one::<String>("name").unwrap();
+    let config = TestbedConfig::load()?;  // reads .testbed/testbed.toml
+    let vm = config.find_vm(name)?;
+
+    ensure_host_prerequisites()?;
+
+    let provider = default_provider()?;
+    let handle = provider.launch(&vm.profile, vm.display_mode)?;
+
+    if vm.bootstrap && !is_bootstrapped(&handle)? {
+        bootstrap_vm(&handle)?;
     }
+
+    println!("VM '{}' ready", name);
+    print_connection_info(&handle)?;
+
+    // HOLD THE PROCESS — block until Ctrl-C / SIGTERM / SIGINT
+    println!("Press Ctrl-C to stop the VM");
+    wait_for_signal()?;
+
+    // GRACEFUL SHUTDOWN
+    println!("Stopping VM '{}'...", name);
+    provider.stop(&handle)?;
+    save_state(name, &handle)?;
+    Ok(())
 }
 ```
 
-### Usage from bin/platform (ewe_platform)
+**Why foreground-hold instead of daemon:**
+- User has a single, obvious way to stop the VM (Ctrl-C)
+- No background process leaks (if the terminal dies, the VM dies)
+- Simple mental model: `start` holds, `stop` kills from another terminal
+- Works the same in CI (script starts, does work, Ctrl-C / signal stops)
 
-```rust
-// bin/platform/Cargo.toml
-foundation_testbed = { workspace = true, features = ["cli"] }
+### `testbed start --background <name>` (optional)
 
-// bin/platform/src/testbed/mod.rs (10 lines, not 157)
-pub fn register(command: clap::Command) -> clap::Command {
-    command.subcommand(foundation_testbed::cli::build_command())
-}
+For users who want the VM to run detached:
 
-pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
-    foundation_testbed::cli::dispatch(args).map_err(|e| e.into())
-}
+```bash
+testbed start --background linux-build
+# → VM starts, process detaches, returns immediately
+# → Use `testbed stop linux-build` to kill it later
+# → Use `testbed ls` to see running VMs
 ```
 
-### Standalone Binary (foundation_testbed)
+Implementation: spawns the foreground hold in a detached subprocess (via `nohup` or `std::process::Command` with detached stdio).
 
-```rust
-// backends/foundation_testbed/src/bin/testbed.rs
-#[cfg(feature = "cli")]
-fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let cmd = foundation_testbed::cli::build_command();
-    let args = cmd.get_matches();
-    foundation_testbed::cli::dispatch(&args)
-}
+### Full CLI Command Tree
+
 ```
-
-This allows:
-- `cargo run -p foundation_testbed -- start windows-build` (standalone)
-- `ewe_platform testbed start windows-build` (via bin/platform)
-
-Both use the **exact same** command definitions and handlers.
+testbed
+├── init                            # Create .testbed/testbed.toml
+├── start <name> [--background]     # Launch VM, hold foreground (default)
+├── stop <name>                     # Gracefully stop a VM
+├── build <name> [--target <triple>] # Run build inside VM (requires mount)
+├── exec <name> "<cmd>"             # Run command inside VM via nushell
+├── shell <name>                    # Interactive SSH session
+├── run <name> [--bin <path>]       # Launch binary inside VM
+├── screenshot <name> --out <file>  # Capture display
+├── logs <name> [--follow]          # Tail build/run logs
+├── doctor [--vm <name>]            # Host + optional VM health check
+├── push <name> --from <src> --to <dst>  # File to VM
+├── pull <name> --from <src> --to <dst>  # File from VM
+├── ls                              # List VMs (defined + running)
+├── mount [status | verify]         # Show mount status for all VMs
+├── image [list | clean]            # Show/clean cached images
+└── snapshot
+    ├── save <name> <label>
+    ├── load <name> <label>
+    ├── delete <name> <label>
+    └── list <name>
+```
 
 ## mise.toml for foundation_testbed
 
@@ -548,39 +893,98 @@ per-VM to state directory.
 
 ### HTTP Downloads
 **Problem:** `reqwest::blocking` panics inside tokio runtime.
-**Solution:** Use `curl` subprocess for all HTTP downloads.
-**UTM equivalent:** UTM downloads ISOs via its own UI; we trigger via
-AppleScript which handles the download natively.
+**Solution:** Use `curl` subprocess for all HTTP downloads (QEMU provider).
+**UTM:** Uses `reqwest::blocking` directly (utm-dev-cli is not in a tokio runtime).
+For foundation_testbed, use `curl` subprocess consistently across both providers
+to avoid tokio conflicts. **Everything is synchronous — no async runtime.**
 
 ### Vagrant Box Extraction
 **Problem:** Vagrant boxes are gzip-compressed tar, not plain tar.
 The `tar` crate has iterator compatibility issues with Rust versioning.
-**Solution:** Use `tar` CLI with `tar -tf` for listing, `tar -xf -O` for
+**Solution (QEMU):** Use `tar` CLI with `tar -tf` for listing, `tar -xf -O` for
 extraction. Detect gzip via magic bytes (0x1f 0x8b).
-**UTM equivalent:** UTM uses `.utm` bundles (directories) or `.ipsw` for
-macOS installers — no tar extraction needed.
+**UTM:** Uses `flate2` + `tar` crate directly (works fine outside tokio).
+For foundation_testbed, use CLI `tar` for both providers for consistency.
 
 ### Arch Package Version Conflicts
 **Problem:** `qemu-base 10.2.2-2` vs `qemu-ui-* 10.2.2-4` — pacman refuses
 to install due to `qemu-common` version pin mismatch.
 **Solution:** Use `yay -Syu --needed` for full system upgrade.
-**UTM equivalent:** UTM is a single `.app` bundle — no dependency conflicts.
+**UTM equivalent:** UTM is a single `.app` bundle via `brew install --cask utm` — no dependency conflicts.
+
+### UTM Bundle Name Collision
+**Problem:** Multiple profiles using the same Vagrant box (e.g., `linux-test`
+and `linux-build` both on `ubuntu-24.04`) import as the same VM name in UTM,
+causing the second import to become a half-broken orphan.
+**Solution:** Before import, copy the extracted `.utm` bundle to a temp location
+and rewrite `<key>Name</key>` in `config.plist` to `profile.name`. After import,
+verify the bundle exists on disk; if not, delete the orphan UUID and error.
+
+### UTM Version Compatibility
+**Problem:** UTM releases can break AppleScript APIs or change behavior.
+**Solution:** Check `CFBundleShortVersionString` via `PlistBuddy` against a
+`MIN_UTM_VERSION` constant (currently `4.6.5`). Warn (non-fatal) if older.
+Bump the constant when a UTM release ships a fix or feature utm-dev relies on.
+
+### Windows ARM64 Toolchain Gap
+**Problem:** VS Build Tools on ARM64 Windows ships only `Hostarm64\x64` and
+`Hostarm64\x86` cross-tools — no `Hostarm64\arm64` native toolchain exists.
+**Solution:** Force rustup's `default-host` to `x86_64-pc-windows-msvc` before
+any project's `mise install` runs. Check for `Hostarm64\x64\link.exe` as the
+idempotent marker (not the `--add VC.Tools.ARM64` component flag, which
+installs but doesn't produce the binary on ARM64).
+
+### WinRM + Local Admin Accounts
+**Problem:** WinRM authentication fails for local admin accounts on Windows
+due to UAC token filtering.
+**Solution:** Set `LocalAccountTokenFilterPolicy = 1` in registry during
+bootstrap. Also install SSH authorized keys in both user and admin paths.
+
+### winget on Fresh Vagrant Boxes
+**Problem:** `winget install` consistently fails on fresh Vagrant Windows boxes
+because winget's Store source isn't primed.
+**Solution:** Use direct downloaders (WebView2 Evergreen Bootstrapper,
+cargo-binstall .exe from GitHub Releases) instead of winget for critical tools.
+Try winget as a fallback for mise only.
 
 ### Port Conflict Resolution
 **Problem:** Default ports (2222, 5985, 3389) may be in use.
-**Solution:** Dynamic port allocation — scan upward from default.
-**UTM equivalent:** UTM's shared network mode handles port conflicts internally.
+**Solution (QEMU):** Dynamic port allocation — scan upward from default.
+**UTM:** Port forwards are statically configured in the `.utm` bundle's
+`config.plist` via AppleScript. Profile ports are fixed — no dynamic
+allocation needed because UTM's shared network mode isolates per-VM.
 
 ### fs2 Disk Check on Non-Existent Directories
 **Problem:** `fs2::available_space` panics on paths that don't exist.
 **Solution:** Walk up ancestors to find first existing parent.
-**UTM equivalent:** macOS `statfs` syscall (via same fs2 crate) — same fix
-applies, UTM Library path checked first.
+**UTM:** Same fix applies — check `$HOME/.testbed/images/` exists first.
 
 ### NVRAM Per-VM Isolation
 **Problem:** Multiple Windows VMs share NVRAM state, causing boot conflicts.
-**Solution:** Copy OVMF_VARS to `state_dir().join("<profile>.nvram")`.
-**UTM equivalent:** UTM stores `nvram.bin` per `.utm` bundle — automatic.
+**Solution (QEMU):** Copy OVMF_VARS to `$HOME/.testbed/snapshots/<profile>.nvram`.
+**UTM:** UTM stores `nvram.bin` per `.utm` bundle — automatic isolation.
+
+### Boot Wait Timeout
+**Problem:** Windows VMs take significantly longer to boot than Linux VMs
+(2-5 min vs 30-60s).
+**Solution:** Separate timeout constants — `wait_for_winrm` uses 300s for
+Windows, `wait_for_ssh` uses 120s for Linux. Poll every 5s with progress
+logging every 30s.
+
+### Emulated NIC Discovery (UTM)
+**Problem:** UTM VMs can have multiple network interfaces; port forwards
+must be set on the emulated NIC, not the virtio or bridged ones.
+**Solution:** AppleScript iterates `network interfaces of configuration` and
+finds the one where `mode is emulated`, returns its `index`. Then a second
+AppleScript sets port forwards on that specific NIC index.
+
+### Host Directory Mount
+**Problem:** Without a mounted directory, build artifacts live inside the VM
+disk image. They're inaccessible after the VM stops, and files pulled via `scp`
+have incorrect ownership (VM user vs host user).
+**Solution:** Mount the host's project directory into the VM via 9p (QEMU) or
+shared directories (UTM). Builds write directly to the host filesystem.
+`$PWD/.testbed/artifacts/` mirrors the VM's build output directory.
 
 ## Implementation Phases
 
@@ -589,7 +993,7 @@ applies, UTM Library path checked first.
 1. Create `src/providers/mod.rs` — Provider trait, VmHandle, ProviderId, factory
 2. Move existing `src/qemu/*` → `src/providers/qemu/*`
 3. Move shared modules → `src/common/*` (ssh, winrm, bootstrap, build, runner,
-   state, doctor, import)
+   state, doctor, import) — update state paths to `$PWD/.testbed/state/`
 4. Update `Cargo.toml` with feature flags (qemu, utm, cli)
 5. Create `backends/foundation_testbed/mise.toml`
 
@@ -601,19 +1005,21 @@ applies, UTM Library path checked first.
 8. Simplify `bin/platform/src/testbed/mod.rs` to 10-line delegation
 9. Create `src/bin/testbed.rs` — standalone binary
 
-### Phase 3: UTM Provider (Tasks 10-14)
+### Phase 3: UTM Provider (Tasks 10-16)
 
-10. Create `src/providers/utm/applescript.rs` — osascript wrapper, VM start/stop/list
-11. Create `src/providers/utm/bundle.rs` — .utm config.plist creation/parsing
-12. Create `src/providers/utm/network.rs` — shared mode port forwarding config
-13. Create `src/providers/utm/mod.rs` — UtmProvider impl
-14. Add macOS profiles to config.rs (Windows ARM64 via UTM, native macOS guest)
+10. Create `src/providers/utm/utmctl.rs` — utmctl wrapper: list_vms(), start_vm(), stop_vm(), version check via PlistBuddy
+11. Create `src/providers/utm/applescript.rs` — osascript wrapper: configure_network() (NIC discovery + port forwards), configure_resources(), import_bundle()
+12. Create `src/providers/utm/import.rs` — Vagrant Cloud UTM registry API client, download with progress + resume, tar.gz extraction, bundle preparation with plist Name rewrite, import + verify
+13. Create `src/providers/utm/state.rs` — per-project state in `$PWD/.testbed/state/vm-{name}.json` (uuid + display_name)
+14. Create `src/providers/utm/bundle.rs` — .utm config.plist creation/parsing for new VMs
+15. Create `src/providers/utm/mod.rs` — UtmProvider impl, ensure_utm(), wait_for_boot() dispatch (SSH/WinRM)
+16. Add macOS profiles to config.rs (Windows ARM64 via UTM, native macOS guest)
 
-### Phase 4: Integration (Tasks 15-17)
+### Phase 4: Integration (Tasks 17-19)
 
-15. Update root `mise.toml` to reference foundation_testbed/mise.toml
-16. Add `#[cfg(target_os)]` provider selection in lib.rs
-17. Update README.md with cross-platform documentation
+17. Update root `mise.toml` to reference foundation_testbed/mise.toml
+18. Add `#[cfg(target_os)]` provider selection in lib.rs
+19. Update README.md with cross-platform documentation
 
 ## Success Criteria
 
@@ -627,6 +1033,9 @@ applies, UTM Library path checked first.
 - [ ] Zero code duplication between QEMU and UTM providers for shared logic
 - [ ] Clap dependency only compiled when `cli` feature is enabled
 - [ ] All existing tests pass with `--features qemu`
+- [ ] Host directory mount works: builds inside VM produce files in `$PWD/.testbed/artifacts/`
+- [ ] VM state stored in `$PWD/.testbed/state/`, images in `$HOME/.testbed/images/`
+- [ ] No async dependencies — all I/O is synchronous
 
 ## Verification Commands
 
