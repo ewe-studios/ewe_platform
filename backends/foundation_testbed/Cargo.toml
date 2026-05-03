@@ -57,3 +57,7 @@ sha2 = "0.10"
 
 # Hostname detection (export manifest creator)
 whoami = "2"
+
+[dev-dependencies]
+serial_test = "3"
+tempfile = "3"
