@@ -394,3 +394,29 @@ pub fn cmd_mount(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     }
     Ok(())
 }
+
+pub fn cmd_export(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    let name = args.get_one::<String>("profile").unwrap();
+    let out = args.get_one::<String>("out").map(|s| std::path::PathBuf::from(s));
+    let store = args.get_one::<String>("store").map(|s| s.clone());
+    let version = args.get_one::<String>("version").map(|s| s.clone())
+        .unwrap_or_else(|| "latest".to_string());
+    let notes = args.get_one::<String>("notes").map(|s| s.clone())
+        .unwrap_or_default();
+    let include_bootstrap = args.get_flag("include-bootstrap");
+    let clean = args.get_flag("clean");
+    let shrink = args.get_flag("shrink");
+
+    let opts = foundation_testbed::export::ExportOptions {
+        out,
+        store,
+        version,
+        notes,
+        include_bootstrap,
+        clean,
+        shrink,
+    };
+
+    foundation_testbed::export::export_vm(name, &opts)?;
+    Ok(())
+}

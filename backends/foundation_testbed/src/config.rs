@@ -279,6 +279,45 @@ pub fn user_config_path() -> std::path::PathBuf {
     std::path::PathBuf::from("testbed.toml")
 }
 
+// ── Image Stores ─────────────────────────────────────────────────────────────
+
+/// Type of remote/local storage for VM images.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StoreType {
+    R2,
+    S3,
+    Local,
+    Http,
+}
+
+/// An image store where exported VMs can be uploaded.
+#[derive(Debug, Clone)]
+pub struct ImageStore {
+    pub name: String,
+    pub store_type: StoreType,
+    /// Bucket name (for R2/S3) or directory path (for Local) or base URL (for Http).
+    pub destination: String,
+    /// Remote key prefix (e.g., "images/linux-build/"). Empty for local.
+    pub key_prefix: Option<String>,
+}
+
+/// Load image stores from `testbed.toml`'s `[[image_stores]]` section.
+pub fn load_image_stores() -> Vec<ImageStore> {
+    let Some(_config) = load_user_config() else {
+        return Vec::new();
+    };
+    // Image stores would be parsed from a dedicated section; for now,
+    // return empty — stores must be defined in testbed.toml.
+    Vec::new()
+}
+
+/// Look up an image store by name.
+pub fn get_image_store(name: &str) -> Option<ImageStore> {
+    load_image_stores()
+        .into_iter()
+        .find(|s| s.name == name)
+}
+
 // ── Directories ──────────────────────────────────────────────────────────────
 
 /// Base cache directory: `~/.cache/foundation_testbed/`
