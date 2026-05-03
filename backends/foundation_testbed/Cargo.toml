@@ -51,3 +51,9 @@ toml = "0.8"
 
 # Disk space checking (doctor command)
 fs2 = "0.4"
+
+# Checksums (export manifest SHA256)
+sha2 = "0.10"
+
+# Hostname detection (export manifest creator)
+whoami = "2"

@@ -36,6 +36,7 @@ pub mod bootstrap;
 pub mod build;
 pub mod config;
 pub mod doctor;
+pub mod export;
 pub mod host_bootstrap;
 pub mod import;
 pub mod init;

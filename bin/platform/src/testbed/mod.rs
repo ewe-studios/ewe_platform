@@ -159,6 +159,19 @@ pub fn register(command: clap::Command) -> clap::Command {
                         .about("List VM snapshots")
                         .arg(clap::Arg::new("profile").required(true)),
                 ),
+        )
+        .subcommand(
+            clap::Command::new("export")
+                .about("Export a VM as a pre-built qcow2 image with manifest")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true))
+                .arg(clap::Arg::new("out").long("out").action(clap::ArgAction::Set))
+                .arg(clap::Arg::new("store").long("store").action(clap::ArgAction::Set))
+                .arg(clap::Arg::new("version").long("version").action(clap::ArgAction::Set))
+                .arg(clap::Arg::new("notes").long("notes").action(clap::ArgAction::Set))
+                .arg(clap::Arg::new("include-bootstrap").long("include-bootstrap").action(clap::ArgAction::SetTrue))
+                .arg(clap::Arg::new("clean").long("clean").action(clap::ArgAction::SetTrue))
+                .arg(clap::Arg::new("shrink").long("shrink").action(clap::ArgAction::SetTrue)),
         );
 
     command.subcommand(testbed_cmd)
@@ -185,6 +198,7 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         Some(("adopt", m)) => cli::cmd_adopt(m),
         Some(("refresh-network", m)) => cli::cmd_refresh_network(m),
         Some(("mount", m)) => cli::cmd_mount(m),
+        Some(("export", m)) => cli::cmd_export(m),
         _ => {
             eprintln!("unknown testbed subcommand");
             Ok(())
