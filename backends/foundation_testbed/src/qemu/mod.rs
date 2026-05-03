@@ -7,6 +7,7 @@
 pub mod disk;
 pub mod display;
 pub mod download;
+pub mod mount;
 pub mod net;
 pub mod snapshot;
 
@@ -52,6 +53,7 @@ pub struct QemuConfig {
     profile: VmProfile,
     display_mode: DisplayMode,
     extra_args: Vec<String>,
+    project_mount: Option<std::path::PathBuf>,
 }
 
 impl QemuConfig {
@@ -60,12 +62,19 @@ impl QemuConfig {
             profile,
             display_mode,
             extra_args: Vec::new(),
+            project_mount: None,
         }
     }
 
     /// Add extra QEMU arguments (for advanced use cases).
     pub fn with_extra_arg(mut self, arg: String) -> Self {
         self.extra_args.push(arg);
+        self
+    }
+
+    /// Set the host project directory to mount into the guest via 9p.
+    pub fn with_project_mount(mut self, host_path: std::path::PathBuf) -> Self {
+        self.project_mount = Some(host_path);
         self
     }
 
@@ -111,6 +120,7 @@ impl QemuConfig {
             &monitor_path,
             display_args,
             has_native_window,
+            self.project_mount.as_deref(),
         ));
         cmd.args(&self.extra_args);
 
@@ -388,6 +398,7 @@ fn build_qemu_args(
     monitor_path: &std::path::Path,
     display_args: Vec<String>,
     _has_native_window: bool,
+    project_mount: Option<&std::path::Path>,
 ) -> Vec<String> {
     let mut args = Vec::new();
 
@@ -424,6 +435,11 @@ fn build_qemu_args(
         "file={},format=qcow2,if=virtio",
         disk_path.display()
     ));
+
+    // Project mount via 9p (if configured)
+    if let Some(host_path) = project_mount {
+        args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, false));
+    }
 
     // Network (user-mode with port forwarding)
     let mut netdev = "user,id=net".to_string();
@@ -513,7 +529,7 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None);
 
         assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
         assert!(args.iter().any(|a| a.contains("12288"))); // RAM
@@ -536,10 +552,31 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None);
 
         assert!(args.iter().any(|a| a.contains("vnc=:2")));
         assert!(args.iter().any(|a| a.contains("usb-tablet")));
+    }
+
+    #[test]
+    fn test_build_qemu_args_with_mount() {
+        let profile = get_profile("linux-build").unwrap();
+        let ports = ResolvedPorts {
+            ssh_port: 2422,
+            winrm_port: None,
+            rdp_port: None,
+            vnc_port: 5902,
+        };
+        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
+        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
+        let display_args = display::DisplayBackend::Vnc.qemu_args(2);
+        let project_mount = std::path::PathBuf::from("/home/user/project");
+
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount));
+
+        assert!(args.iter().any(|a| a.contains("-virtfs")));
+        assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
+        assert!(args.iter().any(|a| a.contains("mount_tag=project")));
     }
 
     #[test]

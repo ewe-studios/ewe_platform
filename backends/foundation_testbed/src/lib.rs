@@ -29,11 +29,14 @@
 //! - **state** — Persistent VM state management
 //! - **doctor** — Host and VM health checks
 //! - **init** — Project scaffolding (testbed init, scripts, .gitignore)
+//! - **host_bootstrap** — Host prerequisites (mise, nushell, pitchfork)
 
+pub mod artifacts;
 pub mod bootstrap;
 pub mod build;
 pub mod config;
 pub mod doctor;
+pub mod host_bootstrap;
 pub mod import;
 pub mod init;
 pub mod qemu;
