@@ -43,6 +43,7 @@ Inspired by `utm-dev-cli` (macOS/UTM-only), this replaces the AppleScript/utmctl
 
 | # | Feature | Description | Effort |
 |---|---|---|---|
+| 00 | [Host Bootstrap](features/00-host-bootstrap/feature.md) | Install mise + nushell + pitchfork on host, unified shell/process foundation | Small |
 | 01 | [QEMU Backend](features/01-qemu-backend/feature.md) | QEMU process lifecycle, disk management, networking, display auto-detection (SPICE > GTK > VNC), UEFI/OVMF boot, snapshots | Large |
 | 02 | [VM Communication](features/02-vm-communication/feature.md) | SSH layer, WinRM SOAP client, image import from Vagrant Cloud and direct URLs | Medium |
 | 03 | [Bootstrap & Build Pipeline](features/03-bootstrap-build-pipeline/feature.md) | OS bootstrapping (idempotent), code sync, tool install, cargo build, artifact retrieval | Large |
@@ -51,6 +52,7 @@ Inspired by `utm-dev-cli` (macOS/UTM-only), this replaces the AppleScript/utmctl
 | 06 | [Bin Integration](features/06-bin-integration/feature.md) | Wire into bin/platform testbed subcommands, UI testing automation, README documentation | Medium |
 | 07 | [macOS VM Support](features/07-macos-vm/feature.md) | OpenCore bootloader, macOS profile, image creation via quickemu or BaseSystem, SSH into macOS guest | Large |
 | 08 | [Provider Architecture](features/08-provider-architecture/feature.md) | QEMU (Linux) + UTM (macOS) backends via Provider trait, CLI extraction, nested mise.toml, feature flags | X-Large |
+| 09 | [Project Mount & Artifacts](features/09-project-mount/feature.md) | Host directory mounting (9p/virtiofs), artifact mirroring, testbed.toml project config | Medium |
 
 ## Known Issues / Limitations
 

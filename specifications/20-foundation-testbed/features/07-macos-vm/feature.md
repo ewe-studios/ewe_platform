@@ -129,6 +129,7 @@ qemu-system-x86_64 \
 VmProfile {
     name: "macos-build",
     os: GuestOs::MacOS,
+    arch: Arch::X86_64,
     image_name: "macos-sonoma-x86_64.qcow2",
     ssh_port: 2223,        // different from Windows (2222)
     rdp_port: None,
@@ -139,10 +140,52 @@ VmProfile {
     bootstrap: BootstrapMode::SshOnly,
     memory_mib: 8192,
     cpu_cores: 4,
-    disk_gb: 80,
     prebaked_url: None,    // no Vagrant Cloud source
 }
 ```
+
+For an ARM64 macOS VM (on Apple Silicon host):
+
+```rust
+VmProfile {
+    name: "macos-build-arm",
+    os: GuestOs::MacOS,
+    arch: Arch::Aarch64,
+    image_name: "macos-sonoma-aarch64.qcow2",
+    ssh_port: 2224,
+    rdp_port: None,
+    winrm_port: None,
+    vnc_port: 5904,
+    user: "vagrant",
+    pass: "vagrant",
+    bootstrap: BootstrapMode::SshOnly,
+    memory_mib: 8192,
+    cpu_cores: 4,
+    prebaked_url: None,
+}
+```
+
+Image storage: `$HOME/.testbed/images/macos-sonoma-x86_64.qcow2` (+ OpenCore EFI).
+State: `$PWD/.testbed/state/vm-macos-build.json`.
+
+### Host Directory Mount
+
+macOS guests need the project directory mounted to enable builds that produce
+host-owned artifacts. For QEMU macOS guests, this uses **virtio-9p**:
+
+```bash
+-virtfs local,path=/path/to/host/project,mount_tag=project,security_model=mapped,id=fs0
+```
+
+Inside the macOS guest, mount with:
+```bash
+mount -t 9p -o trans=virtio,version=9p2000.L project /mnt/project
+```
+
+**Caveat:** 9p support in macOS requires the `virtiofs` kext or a third-party
+9p client. If 9p isn't available in the guest, fall back to `scp`-based artifact
+extraction after builds (slower but functional). Feature 09 (Project Mount &
+Artifact Layer) handles this abstraction.
 
 ### GuestOs Enum Extension
 

@@ -221,6 +221,8 @@ For the README and default config, we need pre-built qcow2 images:
 
 The `prebaked_url` field in profiles points to the download URL. Users can override with their own images via the config file.
 
+Images are stored globally at `$HOME/.testbed/images/` so they're shared across projects. State lives at `$PWD/.testbed/state/` so each project tracks its own VM.
+
 **Why pre-built matters:** With a raw ISO, the first boot requires a 20-40 minute unattended Windows installation. The tool can't SSH in until that completes. With a pre-built image, the OS is already installed — the first boot takes ~2 minutes to reach the desktop, then SSH is immediately available, then the tool bootstrap (VS Build Tools, etc.) runs.
 
 The bootstrap flow with pre-built image:

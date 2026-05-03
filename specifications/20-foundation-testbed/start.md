@@ -16,14 +16,16 @@
 
 Features have dependencies. Implement in this order:
 
-1. `01-qemu-backend` — no dependencies (start here)
+0. `00-host-bootstrap` — no dependencies (start here)
+1. `01-qemu-backend` — depends on 00 (host tools must be installed)
 2. `02-vm-communication` — depends on 01
 3. `03-bootstrap-build-pipeline` — depends on 02
 4. `04-runner-utilities` — depends on 03
 5. `05-cli-state-management` — depends on 04
 6. `06-bin-integration` — depends on 05
 7. `07-macos-vm` — depends on 01 and 02
-8. `08-provider-architecture` — depends on 01, 02, 05, 06 (refactor: provider trait, CLI extraction)
+8. `08-provider-architecture` — depends on 00, 01, 02, 05, 06 (refactor: provider trait, CLI extraction)
+9. `09-project-mount` — depends on 08 (needs provider mount support)
 
 ## Reminders
 
