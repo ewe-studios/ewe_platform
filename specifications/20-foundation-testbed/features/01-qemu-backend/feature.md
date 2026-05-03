@@ -54,10 +54,24 @@ The lowest-level feature: manages the QEMU process lifecycle, virtual disk image
 
 ### 4.4 Display Modes
 
-- **Headless**: `-display vnc=:0` → VNC server on localhost:5900, accessible via any VNC client
-- **Headful**: `-display spice-app` → SPICE client opens as a native window
-- VirtIO GPU via `-vga virtio` for both modes
+- **Headless**: `-display vnc=:N` → VNC server on localhost:<port>, accessible via any VNC client
+- **Headful**: auto-detect best available backend — SPICE (`-display spice-app`, native window) > GTK (`-display gtk`, native window) > VNC (external viewer)
+- Display backend detection runs `qemu-system-x86_64 -display help` and parses available backends
+- Viewer auto-detection for VNC: tries gvncviewer, vinagre, tigervncviewer, vncviewer
+- **USB tablet device** (`-usb -device usb-tablet`) — fixes mouse coordinate mismatch in VNC viewers
+- VGA device: `-vga std` (universally available; `-vga virtio` not in `qemu-base`)
 - Display mode is set at launch time; cannot be changed while VM is running
+
+### 4.4b UEFI/OVMF Boot (Windows)
+
+- Windows 11 requires UEFI firmware — SeaBIOS fails with "could not read the boot disk"
+- OVMF pflash drives added for `GuestOs::Windows` profiles:
+  - `OVMF_CODE.fd` as readonly read-only firmware
+  - Per-VM `OVMF_VARS.fd` copy in state directory for NVRAM isolation
+- OVMF firmware paths vary by distro:
+  - Arch Linux: `/usr/share/edk2/x64/OVMF_CODE.4m.fd`
+  - Debian/Ubuntu: `/usr/share/OVMF/OVMF_CODE.fd`
+- Linux profiles boot with SeaBIOS (default, no OVMF needed)
 
 ### 4.5 VM Snapshots
 

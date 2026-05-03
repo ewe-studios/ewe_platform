@@ -22,6 +22,7 @@ Features have dependencies. Implement in this order:
 4. `04-runner-utilities` — depends on 03
 5. `05-cli-state-management` — depends on 04
 6. `06-bin-integration` — depends on 05
+7. `07-macos-vm` — depends on 01 and 02
 
 ## Reminders
 

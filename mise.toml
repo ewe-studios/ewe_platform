@@ -1310,6 +1310,79 @@ echo "✓ All testbed dependencies installed"
 echo "  OVMF firmware: /usr/share/OVMF/"
 """
 
+[tasks."sys:arch:quickemu"]
+description = "Install quickemu (for macOS VM image creation) on Arch Linux"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing quickemu on Arch Linux..."
+echo "quickemu automates macOS download, OpenCore setup, and QEMU config generation"
+
+PKGS=(quickemu jq python3)
+
+if command -v yay &>/dev/null; then
+    echo "Using yay (AUR helper)..."
+    yay -Syu --needed --noconfirm "${PKGS[@]}"
+elif command -v pacman &>/dev/null; then
+    echo "Using pacman (requires sudo)..."
+    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+else
+    echo "ERROR: Neither yay nor pacman found."
+    exit 1
+fi
+
+echo ""
+echo "✓ quickemu installed"
+echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
+echo "  Configs are stored in: ./macos-sonoma/"
+"""
+
+[tasks."sys:debian:quickemu"]
+description = "Install quickemu on Debian/Ubuntu (for macOS VM image creation)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing quickemu on Debian/Ubuntu..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends quickemu jq python3
+
+echo ""
+echo "✓ quickemu installed"
+echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
+echo "  Configs are stored in: ./macos-sonoma/"
+"""
+
+[tasks."macos:create-image"]
+description = "Create a macOS VM image using quickget (downloads from Apple CDN)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+VERSION="${1:-sonoma}"
+echo "Creating macOS ${VERSION} VM image..."
+echo ""
+
+if ! command -v quickget &>/dev/null; then
+    echo "ERROR: quickget not installed."
+    echo "Run: mise run sys:install-testbed  (then install quickemu)"
+    exit 1
+fi
+
+# quickget downloads the installer and creates the VM config
+# Output directory: macos-<version>/
+quickget macos "$VERSION"
+
+echo ""
+echo "✓ macOS ${VERSION} image created in ./macos-${VERSION}/"
+echo "  Disk image: macos-${VERSION}/macOS.qcow2"
+echo "  EFI disk:   macos-${VERSION}/OpenCore/OpenCore.qcow2"
+echo ""
+echo "Next: cargo run -p ewe_platform -- testbed import macos-build"
+"""
+
 [tasks.help]
 description = "Show help message with all available tasks"
 run = """
@@ -1329,6 +1402,9 @@ echo "  sys:install-testbed  Auto-detect distro and install testbed deps"
 echo "  sys:arch:testbed     Arch Linux — QEMU + SPICE + OVMF (yay/pacman)"
 echo "  sys:debian:testbed   Debian — QEMU + SPICE + OVMF (apt)"
 echo "  sys:ubuntu:testbed   Ubuntu — QEMU + SPICE + OVMF (apt)"
+echo "  sys:arch:quickemu    Arch Linux — install quickemu for macOS images"
+echo "  sys:debian:quickemu  Debian/Ubuntu — install quickemu for macOS images"
+echo "  macos:create-image   Create macOS VM image (usage: macos:create-image <version>)"
 echo ""
 echo "Cloudflare (R2, D1):"
 echo "  cf:login           Authenticate with Cloudflare"
