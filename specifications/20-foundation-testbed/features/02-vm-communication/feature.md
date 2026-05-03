@@ -39,6 +39,11 @@ Provides the communication channels between the host and guest VMs. This layer i
 - `upload(profile, local, remote) -> ()` — file upload via `scp` CLI subprocess (more reliable than libssh2's `scp_send` against Windows OpenSSH — `libssh2::scp_send` was found unreliable with Windows OpenSSH server, causing silent corruption or truncation)
 - `download(profile, remote, local) -> ()` — file download via `scp` CLI subprocess
 - `check(profile) -> Result<()>` — health probe: connect + echo test
+- `exec_ps_windows(session, script) -> (String, i32)` — run PowerShell over non-interactive SSH on Windows guests
+  - Encodes script as UTF-16LE + Base64, runs `powershell -EncodedCommand`
+  - Strips CLIXML envelope: everything from `#< CLIXML` onward is a ~6 KB `<Objs>` XML blob that PowerShell emits on stderr for info/progress streams
+  - Returns clean stdout (human-readable) + exit code
+  - Centralizes the encode+decode+CLIXML-strip pattern in one place (was copy-pasted across multiple modules in utm-dev-cli)
 
 ### 2.2 WinRM SOAP Client
 
