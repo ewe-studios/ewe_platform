@@ -20,7 +20,7 @@
 ## Tasks to Implement
 
 See "Implementation Phases" section in `feature.md`. Implement in order:
-- Phase 1: Config parsing — `TestbedConfig` from `.testbed/testbed.toml`, `cmd_init()` handler
+- Phase 1: Config parsing — `TestbedConfig` from `testbed.toml`, `cmd_init()` handler
 - Phase 2: QEMU 9p mount — mount args builder, guest auto-mount via fstab, build integration
 - Phase 3: UTM shared directories — AppleScript config, guest mount verification
 - Phase 4: Artifacts — scanning, mirroring, symlink management, CLI mount commands

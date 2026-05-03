@@ -219,7 +219,7 @@ For the README and default config, we need pre-built qcow2 images:
 1. **Short term**: Create via native IPSW extraction (feature 07) or build once and host on CDN
 2. **Long term**: Publish to a registry (GitHub Releases, Cloudflare R2)
 
-The `prebaked_url` field in profiles points to the download URL. Users can override with their own images via the config file.
+Image sources are resolved via `[[image_stores]]` in `testbed.toml`. Users can add HTTP/R2/S3 stores to point to their own hosted images.
 
 Images are stored globally at `$HOME/.testbed/images/` so they're shared across projects. State lives at `$PWD/.testbed/state/` so each project tracks its own VM.
 

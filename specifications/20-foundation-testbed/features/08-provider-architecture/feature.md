@@ -191,13 +191,14 @@ This is the **ewe_platform convention** — clear separation between project-sco
 and global data:
 
 ```
-$PWD/.testbed/              # Project-scoped (committed or gitignored)
-├── testbed.toml            # Local VM config, mount points, overrides
-├── state/                  # JSON state files (vm-{name}.json)
-├── artifacts/              # Mirror of VM's mount point — builds produce files
-│   │                       # here, owned by host, accessible after VM stops
-└── mounts/                 # Host directories to mount into VM
-    └── (project root)      # Default mount: the directory containing testbed.toml
+$PWD/                        # Project root — testbed.toml lives here (committed)
+├── testbed.toml             # VM config, image stores, mount points
+├── .testbed/                # Local state (gitignored)
+│   ├── state/               # JSON state files (vm-{name}.json)
+│   └── artifacts/           # Symlink/mirror to VM's build output dir
+├── src/                     # Your actual project code
+├── Cargo.toml
+└── ...
 
 $HOME/.testbed/             # Global (user-scoped, never committed)
 ├── images/                 # Downloaded/built base images (qcow2, .utm bundles)
@@ -212,13 +213,13 @@ $HOME/.testbed/             # Global (user-scoped, never committed)
 ### Design Principles
 
 1. **Persistent VM, ephemeral project data** — The VM keeps its OS, installed
-   tools, and system state across restarts. Project code and build artifacts
-   live on a **host-mounted directory** (`$PWD/.testbed/mounts/` → VM `/mnt/project`).
+   tools, and system state across restarts. The project root directory (where
+   `testbed.toml` lives) is mounted into the VM (`$PWD` → VM `/mnt/project`).
    This means:
    - Build outputs are owned by the host (correct UID/GID, no root-owned files)
    - Artifacts survive VM shutdown
    - No `scp` roundtrip needed after builds
-   - `$PWD/.testbed/artifacts/` mirrors `/mnt/project/target/` inside the VM
+   - `$PWD/.testbed/artifacts/` is a symlink to `/mnt/project/target/` inside the VM
 
 2. **`testbed.toml` for project config** — A TOML file in `$PWD/.testbed/` that
    defines local overrides:
@@ -229,7 +230,7 @@ $HOME/.testbed/             # Global (user-scoped, never committed)
    cpu_cores = 4
 
    [mounts]
-   project = "."                    # Mount this directory into VM
+   project = "."                    # Mount project root (where testbed.toml is)
    guest_path = "/mnt/project"      # VM-side mount point
 
    [artifacts]
@@ -408,12 +409,12 @@ pub struct VmProfile {
     pub ssh_port:    u16,
     pub rdp_port:    Option<u16>,
     pub winrm_port:  Option<u16>,
+    pub vnc_port:    u16,
     pub user:        &'static str,
     pub pass:        &'static str,
     pub bootstrap:   BootstrapMode,      // Full or SshOnly
     pub memory_mib:  u32,
     pub cpu_cores:   u32,
-    pub prebaked_url: Option<&'static str>, // Direct URL (skips registry lookup)
 }
 
 impl VmProfile {
@@ -635,17 +636,30 @@ configured via AppleScript or the `.utm` bundle's `config.plist`:
 
 ### UTM Image Import Flow
 
-Unlike QEMU (which downloads qcow2 images), UTM uses a multi-step import
-process:
+UTM uses the same `[[image_stores]]` resolution as QEMU. The download
+source is determined by iterating stores in order:
 
 1. **Check if already imported** — `utmctl list` → find VM by `profile.name`
-2. **Download source** — two paths:
-   - **Vagrant Cloud UTM registry**: `GET api.cloud.hashicorp.com/vagrant/2022-09-30/registry/utm/box/{box_name}/versions` → parse version → `GET .../provider/utm/architecture/arm64/download` → get direct URL → stream download with progress bar + resume support
-   - **Pre-baked direct URL**: `profile.prebaked_url` is a concrete artifact URL (e.g., Cloudflare R2) — skip Vagrant Cloud lookup entirely, download directly to `$HOME/.testbed/images/utm/{name}_prebaked_arm64.box`
-3. **Extract** — `.box` files are `.tar.gz` containing a `.utm` bundle directory. Use `flate2` + `tar` crates with progress tracking.
-4. **Prepare bundle** — copy to `$HOME/.testbed/images/utm/imports/{profile.name}.utm`, then **rewrite `config.plist`** `<key>Name</key>` value to `profile.name`. This is critical: if two profiles share the same box (e.g., `linux-test` + `linux-build` both on `ubuntu-24.04`), UTM will collide them in `~/Library/Containers/com.utmapp.UTM/Data/Documents/` without the rename.
-5. **Import** — AppleScript: `tell application "UTM" to import new virtual machine from POSIX file "{path}"`. Wait up to 30s for the new VM UUID to appear in `utmctl list`.
-6. **Verify** — check that `~/Library/Containers/com.utmapp.UTM/Data/Documents/{name}.utm` exists on disk. If not, delete the orphan via `utmctl delete {uuid}` and error.
+2. **Resolve image from stores** — iterate `[[image_stores]]` in order:
+   - **Vagrant store** (`type = "vagrant"`): query
+     `api.cloud.hashicorp.com/vagrant/2022-09-30/registry/utm/box/{box_name}/versions`
+     → parse version → get direct download URL → stream with progress + resume
+   - **HTTP store** (`type = "http"`): HEAD request to check, GET to download
+     (e.g., Cloudflare R2 public URL, GitHub Releases)
+   - **R2/S3 stores**: `rclone`/`aws` CLI to check and download
+   - **Local store**: check if file exists on disk
+3. **Extract** — `.box` files are `.tar.gz` containing a `.utm` bundle directory.
+   Use `flate2` + `tar` crates with progress tracking.
+4. **Prepare bundle** — copy to `$HOME/.testbed/images/utm/imports/{profile.name}.utm`,
+   then **rewrite `config.plist`** `<key>Name</key>` value to `profile.name`. This is
+   critical: if two profiles share the same box (e.g., `linux-test` + `linux-build`
+   both on `ubuntu-24.04`), UTM will collide them in
+   `~/Library/Containers/com.utmapp.UTM/Data/Documents/` without the rename.
+5. **Import** — AppleScript: `tell application "UTM" to import new virtual machine
+   from POSIX file "{path}"`. Wait up to 30s for the new VM UUID to appear in
+   `utmctl list`.
+6. **Verify** — check that `~/Library/Containers/com.utmapp.UTM/Data/Documents/{name}.utm`
+   exists on disk. If not, delete the orphan via `utmctl delete {uuid}` and error.
 
 ### UTM State Management
 
@@ -764,7 +778,7 @@ pub fn build_command() -> clap::Command {
         .about("VM orchestration — build, test, and run cross-platform binaries")
         .subcommand_required(true)
         .subcommand(clap::Command::new("init")
-            .about("Initialize project — creates .testbed/testbed.toml"))
+            .about("Initialize project — creates testbed.toml"))
         .subcommand(clap::Command::new("start")
             .about("Start a VM and hold the process — Ctrl-C stops it gracefully")
             .arg(Arg::new("name").required(true)))
@@ -777,7 +791,7 @@ pub fn build_command() -> clap::Command {
 
 ### `testbed init`
 
-Creates `$PWD/.testbed/testbed.toml` with a minimal default:
+Creates `$PWD/testbed.toml` with a minimal default:
 
 ```toml
 [[vms]]
@@ -792,16 +806,16 @@ registry = "libvirt"
 ```
 
 **Behavior:**
-- If `.testbed/testbed.toml` already exists → error: "already initialized"
+- If `testbed.toml` already exists → error: "already initialized"
 - Creates `.testbed/` directory if it doesn't exist
 - Creates `.testbed/state/` directory
-- Prints: "Initialized testbed in .testbed/testbed.toml — edit to add more VMs or image stores"
+- Prints: "Initialized testbed in testbed.toml — edit to add more VMs or image stores"
 
 ### `testbed start <name>` — Foreground Hold
 
 This is the key UX difference from feature 05's original `start`:
 
-1. **Reads `.testbed/testbed.toml`** — finds the VM definition by `name`
+1. **Reads `testbed.toml`** — finds the VM definition by `name`
 2. **Ensures the image exists** — downloads if needed
 3. **Ensures prerequisites** — host bootstrap (mise, nushell, pitchfork)
 4. **Launches the VM** — via the appropriate provider (QEMU or UTM)
@@ -815,7 +829,7 @@ This is the key UX difference from feature 05's original `start`:
 ```rust
 fn cmd_start(matches: &ArgMatches) -> Result<()> {
     let name = matches.get_one::<String>("name").unwrap();
-    let config = TestbedConfig::load()?;  // reads .testbed/testbed.toml
+    let config = TestbedConfig::load()?;  // reads testbed.toml
     let vm = config.find_vm(name)?;
 
     ensure_host_prerequisites()?;
@@ -865,7 +879,7 @@ Implementation: spawns the foreground hold in a detached subprocess (via `nohup`
 
 ```
 testbed
-├── init                            # Create .testbed/testbed.toml
+├── init                            # Create testbed.toml
 ├── start <name> [--background]     # Launch VM, hold foreground (default)
 ├── stop <name>                     # Gracefully stop a VM
 ├── build <name> [--target <triple>] # Run build inside VM (requires mount)
