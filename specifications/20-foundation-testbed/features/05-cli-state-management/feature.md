@@ -1,7 +1,7 @@
 ---
 feature: "CLI & State Management"
 description: "Persistent VM state, error types via foundation_errstacks, health checks, and all CLI subcommand implementations"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["runner-utilities"]
 estimated_effort: "medium"
@@ -130,11 +130,15 @@ profile = "custom-windows"
 memory_mib = 16384
 cpu_cores = 8
 
-[images]
-sources = [
-    { type = "direct", url = "https://pub-xxx.r2.dev/images/my-windows.qcow2" },
-    { type = "vagrant", registry = "libvirt", box = "generic/windows11" },
-]
+[[image_stores]]
+name = "my_r2"
+type = "r2"
+bucket = "my-images"
+
+[[image_stores]]
+name = "vagrant_cloud"
+type = "vagrant"
+registry = "libvirt"
 ```
 
 ### 5.4 CLI Subcommand Implementations
@@ -249,8 +253,8 @@ default_profiles (hardcoded in code)
     + testbed.toml [vm] section (project-scoped overrides)
     = resolved_profiles
 
-image_sources (from testbed.toml [images] section):
-    iterate in order → first source with image wins → download if not cached
+image_stores (from testbed.toml [[image_stores]] array):
+    iterate in order → first store with image wins → download if not cached
 ```
 
 Image sources support:

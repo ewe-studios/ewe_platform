@@ -1,7 +1,7 @@
 ---
 feature: "Bin Integration"
 description: "Wire foundation_testbed into bin/platform testbed subcommands, add UI testing automation, write README documentation"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["cli-state-management"]
 estimated_effort: "medium"
@@ -216,7 +216,7 @@ The `image` crate (`image = "0.25" in Cargo.toml) handles PNG loading and pixel 
 
 For the README and default config, we need pre-built qcow2 images:
 
-1. **Short term**: Use quickemu's pre-built images or build one with Packer and host it
+1. **Short term**: Create via native IPSW extraction (feature 07) or build once and host on CDN
 2. **Long term**: Publish to a registry (GitHub Releases, Cloudflare R2)
 
 The `prebaked_url` field in profiles points to the download URL. Users can override with their own images via the config file.

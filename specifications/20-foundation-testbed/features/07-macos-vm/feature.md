@@ -61,26 +61,71 @@ macOS on QEMU needs:
 There are **no official macOS Vagrant boxes** on Vagrant Cloud (Apple's EULA
 restricts macOS virtualization to Apple hardware). We have three options:
 
-#### Option 1: quickemu (recommended for creation)
+#### Option 1: Native macOS image creation (recommended)
 
-[quickemu](https://github.com/quickemu-project/quickemu) automates macOS
-installation on QEMU:
+We implement macOS image creation natively in Rust — no quickget/quickemu
+dependency. The implementation:
 
-- Downloads the macOS installer from Apple's CDN
-- Creates a bootable disk image with OpenCore
-- Generates the correct QEMU launch script
-- Supports macOS 10.15 (Catalina) through 15.x (Sequoia)
+1. **Download Apple IPSW** — fetch the macOS restore image (IPSW) from Apple's
+   CDN. Apple publishes a catalog URL (`https://api.ipsw.me/v4/device/...`) that
+   lists all available macOS versions and their download URLs. We use
+   `foundation_core::wire::simple_http` for all downloads.
 
-**Integration strategy:** Run `quickget macos sonoma` to download and create
-the image, then our testbed launches QEMU directly with the disk + OpenCore EFI
-files that quickemu creates. We don't use quickemu's launch wrapper — we parse
-its config and use our own `build_qemu_args`.
+2. **Extract BaseSystem** — the IPSW is a zip archive. We extract the
+   `BaseSystem.dmg` (or `kernelcache`, `ramdisk.dmg`) using the `zip` crate.
+
+3. **Create qcow2 disk** — use `qemu-img create -f qcow2 macos.qcow2 80G` to
+   create an empty disk, then convert the BaseSystem to a bootable format.
+
+4. **OpenCore EFI** — we bundle a pre-built OpenCore EFI image
+   (`OpenCore.qcow2`) with the crate. This is a small FAT32 disk image
+   containing the OpenCore bootloader, `config.plist`, and required drivers
+   (OpenRuntime.efi, HfsPlus.efi). The EFI image is built once (via
+   `OcBinaryData` + EDK II toolchain) and checked into
+   `$HOME/.testbed/opencore/` as a static resource.
+
+**Why not quickemu:** quickget/quickemu are bash scripts (~4000 + ~2900 lines).
+Vendoring them as raw scripts would couple us to bash semantics, subprocess
+chaining, and external tools like `jq`/`xxd`/`GenSMBIOS`. The logic they
+perform is straightforward and replicates cleanly in Rust:
+- `curl` → `foundation_core::wire::simple_http`
+- `unzip`/`tar` → `zip`/`tar`/`flate2` crates
+- `qemu-img convert` → `std::process::Command`
+- JSON parsing (`jq`) → `serde_json`
+- Config generation → typed Rust structs → XML/TOML serialization
+
+The only functionality we need from quickget for macOS is: IPSW catalog lookup,
+IPSW download, BaseSystem extraction, qcow2 creation. This translates to ~200
+lines of Rust.
+
+**Implementation: replicate quickget logic in Rust.** Quickget's macOS image
+creation flow (from the bash source) is:
+
+```bash
+# What quickget does (replicated in Rust):
+# 1. Query https://api.ipsw.me/v4/device/<identifier> → JSON catalog
+# 2. Parse JSON → find latest macOS version → get IPSW download URL
+# 3. wget/curl IPSW → save to disk (with progress, resume support)
+# 4. unzip IPSW → extract BaseSystem.dmg, kernelcache, ramdisk.dmg
+# 5. qemu-img convert -f dmg -O qcow2 BaseSystem.dmg macos-base.qcow2
+# 6. qemu-img resize macos.qcow2 80G
+# 7. Generate OpenCore config.plist with SMBIOS, boot args, device props
+# 8. Create OpenCore.qcow2 (FAT32 image with EFI files)
+```
+
+In Rust, this maps to:
+- `foundation_core::wire::simple_http` for IPSW catalog query + download
+- `serde_json` for parsing Apple's API response (same pattern quickget's `jq` uses)
+- `zip` crate for IPSW extraction (replaces `unzip`)
+- `std::process::Command` for `qemu-img convert` and `qemu-img resize`
+- `fatfs` crate or `std::process::Command` for OpenCore EFI image creation
+- Typed Rust structs + `quick-xml` for config.plist generation
 
 #### Option 2: Build once, host ourselves
 
-Create a macOS qcow2 once on any machine (Mac or Linux with quickemu), then
-host the qcow2 + OpenCore EFI files on our own CDN/S3. The `import` command
-downloads and caches them like Windows/Linux images.
+Create a macOS qcow2 once via `testbed export` (Feature 10) on any machine,
+then host the qcow2 + OpenCore EFI files on our own CDN/S3/R2.
+The `import` command downloads and caches them like Windows/Linux images.
 
 #### Option 3: User-provided images
 
@@ -227,8 +272,7 @@ if profile.os == GuestOs::MacOS {
     args.push("-device".to_string());
     args.push("ich9-ahci,id=sata".to_string());
 
-    // OpenCore EFI disk (first SATA device)
-    // ... build from quickemu-generated files ...
+    // OpenCore EFI disk — from bundled OpenCore.qcow2
 
     // macOS disk (second SATA device)
     // ...
@@ -251,11 +295,12 @@ if profile.os == GuestOs::MacOS {
 
 ### Phase 2: Image Acquisition (Tasks 4-6)
 
-4. Create `src/import/macos.rs` — quickemu integration:
-   - Detect if `quickget` / `quickemu` is installed
-   - Run `quickget macos <version>` to download installer
-   - Parse quickemu config to extract QEMU args, disk paths, EFI paths
-5. Add `mise run sys:arch:quickemu` task for installing quickemu on Arch
+4. Create `src/import/macos.rs` — native macOS image creation:
+   - Query Apple IPSW catalog via `api.ipsw.me` JSON API (simple_http)
+   - Download IPSW zip, extract BaseSystem.dmg
+   - Convert DMG to qcow2 via `qemu-img convert`
+   - Bundle pre-built OpenCore EFI image (`OpenCore.qcow2`)
+   - Verify bootable by checking EFI partition structure
 6. Update `import::ensure_image()` to handle `macos-build` profile
 
 ### Phase 3: Bootstrap & SSH (Tasks 7-9)
@@ -279,7 +324,7 @@ if profile.os == GuestOs::MacOS {
 ## Success Criteria
 
 - [ ] `ewe_platform testbed start macos-build --headless` boots macOS with SSH accessible
-- [ ] `ewe_platform testbed import macos-build` downloads/creates macOS image via quickemu
+- [ ] `ewe_platform testbed import macos-build` downloads/creates macOS image via native IPSW extraction
 - [ ] `ewe_platform testbed build macos-build --target aarch64-apple-darwin` produces Mach-O binary
 - [ ] `ewe_platform testbed doctor --profile macos-build` checks macOS VM health
 - [ ] macOS VM runs alongside Windows/Linux VMs without port conflicts
@@ -289,10 +334,9 @@ if profile.os == GuestOs::MacOS {
 | Source | Available? | Format | Size | License Notes |
 |--------|-----------|--------|------|---------------|
 | Vagrant Cloud | No | — | — | Apple EULA restriction |
-| quickemu (`quickget`) | Yes | qcow2 + EFI | ~30 GB | Downloads from Apple CDN |
-| quickemu prebuilt | No | — | — | No official prebuilt distribution |
-| Self-hosted (our CDN) | TBD | qcow2 + EFI | ~30 GB | Create once, distribute internally |
-| User-provided | Yes | qcow2 + EFI dir | varies | User creates via quickemu/UTM |
+| Native (IPSW from Apple CDN) | Yes | IPSW → qcow2 + EFI | ~13 GB IPSW | Downloads from Apple, requires `qemu-img` for conversion |
+| Self-hosted (our CDN) | TBD | qcow2 + EFI dir | ~30 GB | Create once, distribute internally |
+| User-provided | Yes | qcow2 + EFI dir | varies | User creates via UTM/other tools |
 
 ## Dependencies
 
@@ -300,11 +344,23 @@ if profile.os == GuestOs::MacOS {
 
 | Package | Purpose | Arch | Debian/Ubuntu |
 |---------|---------|------|---------------|
-| `quickemu` | macOS image creation | AUR (`yay -S quickemu`) | PPA / manual .deb |
+| `qemu-img` | DMG→qcow2 conversion, disk creation | `qemu-utils` | `qemu-utils` |
 | `OVMF` | EFI firmware (OpenCore runs on top) | `edk2-ovmf` | `ovmf` |
 | `qemu-base` | QEMU hypervisor | `qemu-base` | `qemu-system-x86` |
-| `python3` | quickemu runtime | `python` | `python3` |
-| `jq` | JSON parsing (quickemu config) | `jq` | `jq` |
+| `unzip` | IPSW extraction | `unzip` | `unzip` |
+
+### OpenCore EFI Bundle
+
+The OpenCore EFI image is a pre-built FAT32 disk image containing:
+- `EFI/BOOT/BOOTx64.efi` — OpenCore bootloader
+- `EFI/OC/OpenCore.efi` — main OpenCore driver
+- `EFI/OC/Drivers/OpenRuntime.efi`, `HfsPlus.efi` — required drivers
+- `EFI/OC/config.plist` — SMBIOS, boot args, device properties
+
+The bundle is built once (EDK II + OcBinaryData toolchain on a Mac),
+then checked into the project at `resources/opencore/` and copied to
+`$HOME/.testbed/opencore/` on first use. We **do not** depend on
+external tools to generate it at runtime.
 
 ### Inside Guest
 
@@ -318,10 +374,7 @@ if profile.os == GuestOs::MacOS {
 ## Verification Commands
 
 ```bash
-# Install quickemu (Arch)
-mise run sys:arch:quickemu
-
-# Create macOS image
+# Create macOS image (downloads IPSW from Apple, extracts BaseSystem)
 cargo run -p ewe_platform -- testbed import macos-build
 
 # Start macOS VM

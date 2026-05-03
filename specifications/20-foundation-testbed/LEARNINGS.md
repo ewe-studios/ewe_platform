@@ -26,7 +26,7 @@ _Last updated: 2026-05-03_
 ### macOS Boot
 - **Windows 11 requires UEFI/OVMF** — SeaBIOS fails with "could not read the boot disk". OVMF pflash drives (`OVMF_CODE.fd` read-only + per-VM `OVMF_VARS.fd` copy) are required.
 - **OVMF firmware paths vary by distro** — Arch: `/usr/share/edk2/x64/OVMF_CODE.4m.fd`, Debian/Ubuntu: `/usr/share/OVMF/OVMF_CODE.fd`. Code must detect the correct path.
-- **macOS will require OpenCore** — unlike Windows (UEFI) and Linux (SeaBIOS), macOS needs an OpenCore bootloader to bridge QEMU's virtual hardware. No official macOS Vagrant boxes exist (Apple EULA restriction). quickemu is the recommended image creation tool.
+- **macOS will require OpenCore** — unlike Windows (UEFI) and Linux (SeaBIOS), macOS needs an OpenCore bootloader to bridge QEMU's virtual hardware. No official macOS Vagrant boxes exist (Apple EULA restriction). We replicate quickget's IPSW download + qcow2 creation logic in Rust (using `std::process::Command` for `qemu-img`, `simple_http` for downloads, `zip` for IPSW extraction) rather than depending on quickemu as an external tool.
 
 ### HTTP Downloads
 - **`reqwest::blocking` panics inside tokio runtime** — fatal error: "can only call blocking::block_on from outside tokio". Replaced ALL reqwest usage with `curl` subprocess in download.rs and import/mod.rs. This avoids the tokio/reqwest conflict entirely and gives us progress bar integration.
@@ -34,7 +34,7 @@ _Last updated: 2026-05-03_
 ### Vagrant Box Extraction
 - **Vagrant boxes are gzip-compressed tar** — not plain tar. Detection via gzip magic bytes (0x1f 0x8b). Extraction via `tar -xzf` CLI, not the `tar` crate (which has iterator/filter incompatibilities with Result entries).
 - **Vagrant Cloud API uses `download_url`** — not `url`. The response structure has nested `providers[].architectures[].providers[].download_url` for libvirt boxes.
-- **No macOS boxes on Vagrant Cloud** — Apple's EULA restricts macOS virtualization to Apple hardware. macOS images must be created via quickemu or provided by the user.
+- **No macOS boxes on Vagrant Cloud** — Apple's EULA restricts macOS virtualization to Apple hardware. macOS images are created via native IPSW download + BaseSystem extraction (replicating quickget logic in Rust).
 
 ### Arch Linux Package Conflicts
 - **`qemu-base 10.2.2-2` vs `qemu-ui-* 10.2.2-4`** — pacman refuses to install UI packages when base has a different `qemu-common` version pin. Resolution: `pacman -Syu` (full system upgrade) updates both together. `yay -Syu` avoids root for AUR packages.
@@ -60,7 +60,8 @@ _Last updated: 2026-05-03_
 
 ## What's Next
 
-- **macOS VM support** — OpenCore bootloader, quickemu integration, SATA boot disk
+- **macOS VM support** — OpenCore bootloader, native IPSW-based image creation, SATA boot disk
+- **VM export & distribution** — export VMs as pre-built qcow2 + manifest, upload to R2/S3/GitHub Releases
 - **Prebuilt image hosting** — self-hosted CDN for macOS and custom images
 - **Snapshot CLI** — save/load/delete/restore VM snapshots via monitor commands
 - **Build pipeline** — cross-compile for Windows/macOS from Linux host via VM

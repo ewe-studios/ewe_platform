@@ -102,7 +102,7 @@ backends/foundation_testbed/
 │   │   ├── runner/               # Binary runner, screenshots, logs
 │   │   ├── state/                # JSON state persistence (project-scoped)
 │   │   ├── doctor/               # Health checks (provider-agnostic part)
-│   │   └── import/               # Image import (Vagrant Cloud, quickemu)
+│   │   └── import/               # Image import (Vagrant Cloud, IPSW/macOS)
 │   ├── providers/                # Provider implementations
 │   │   ├── mod.rs                # Provider trait + factory
 │   │   ├── qemu/                 # [feature: qemu] Linux/QEMU backend
@@ -235,15 +235,15 @@ $HOME/.testbed/             # Global (user-scoped, never committed)
    [artifacts]
    sync = true                      # Sync build outputs to .testbed/artifacts/
 
-   [images]
-   # Ordered list of image sources to check. First match wins.
-   sources = [
-       { type = "r2", url = "https://pub-xxx.r2.dev/testbed-images" },
-       { type = "vagrant", registry = "utm" },   # UTM registry on Vagrant Cloud
-       { type = "vagrant", registry = "libvirt" }, # Fallback libvirt boxes
-   ]
-   # Defaults to: [{ type = "vagrant", registry = "libvirt" }] for QEMU provider
-   #              [{ type = "vagrant", registry = "utm" }] for UTM provider
+   [[image_stores]]                 # Ordered image backends
+   name = "alex_r2"
+   type = "r2"
+   bucket = "testbed-images"
+
+   [[image_stores]]
+   name = "local_cache"
+   type = "local"
+   directory = "/mnt/fast-storage/images"
    ```
 
 3. **Images are global** — Downloaded base images live in `$HOME/.testbed/images/`
@@ -255,61 +255,139 @@ $HOME/.testbed/             # Global (user-scoped, never committed)
    This means `testbed stop` in one project doesn't affect another project's VM
    even if they share the same profile name.
 
-5. **All synchronous** — No `tokio`, no `async`/`.await`, no `reqwest::blocking`
-   panics. Use `std::process::Command` for downloads (`curl`), SSH (`ssh2` crate),
-   and all I/O.
+5. **All synchronous** — No `tokio`, no `async`/`.await`. All HTTP goes through
+   `foundation_core::wire::simple_http` — a fully synchronous, valtron-based
+   HTTP client with connection pooling, redirect handling, resume support,
+   and body streaming. No subprocess curl, no reqwest panics.
 
-### Image Source Resolution
+### Image Store Resolution
 
-Images are resolved from an ordered list of sources defined in `testbed.toml`.
-The first source that has the image wins:
+Images are resolved from an ordered list of **image stores** defined in `testbed.toml`.
+The first store that has the requested image wins. Each store is a named backend
+with type-specific configuration:
 
-```rust
-pub enum ImageSource {
-    /// Direct HTTP download (e.g., Cloudflare R2, GitHub Releases)
-    Direct { url: String },
-    /// Vagrant Cloud registry (libvirt or utm)
-    Vagrant { registry: String, box_name: String },
-}
+```toml
+[[image_stores]]
+name = "alex_r2"
+type = "r2"
+bucket = "testbed-images"
 
-pub struct ImageConfig {
-    /// Ordered sources — first match wins
-    pub sources: Vec<ImageSource>,
-}
+[[image_stores]]
+name = "team_s3"
+type = "s3"
+bucket = "ci-artifacts"
+region = "us-east-1"
+
+[[image_stores]]
+name = "fast_disk"
+type = "local"
+directory = "/home/disk/testbed-images"
+
+[[image_stores]]
+name = "github"
+type = "http"
+base_url = "https://github.com/myorg/testbed-images/releases/download"
 ```
+
+**Store types:**
+
+| Type | Download method | Upload method (`testbed export`) |
+|------|----------------|-----------------------------------|
+| `local` | `std::fs::copy` | `std::fs::copy` |
+| `r2` | `rclone` CLI (assumes user has `rclone` configured) | `rclone copy` |
+| `s3` | `aws` CLI (assumes user has `aws` configured) | `aws s3 cp` |
+| `http` | `foundation_core::wire::simple_http` with optional auth headers | `simple_http` PUT with credentials |
+| `vagrant` | Vagrant Cloud API + `simple_http` download | Read-only (not an export target) |
+
+**HTTP store credentials (optional):**
+```toml
+[[image_stores]]
+name = "private_cdn"
+type = "http"
+base_url = "https://cdn.example.com/images"
+api_key = "Bearer $ENV:CDN_API_KEY"    # $ENV: reads from env
+cloudflare_account = "abc123"           # for R2 public URLs
+```
+
+**R2/S3 stores assume the user has CLI tools configured:**
+- R2: `rclone` with a remote configured (e.g., `rclone:my-r2-remote`)
+- S3: `aws` CLI with credentials in `~/.aws/credentials`
+
+The store config references the bucket/account; credentials come from the CLI's
+own config. If a user needs custom endpoints (e.g., MinIO), they add an
+`endpoint` field.
 
 **Resolution flow:**
 
 ```
-for source in config.image_sources:
-    match source {
-        Direct { url } → check if url points to a cached image, else download
-        Vagrant { registry, box_name } → query Vagrant Cloud API for box,
-                                         parse version, get download URL,
-                                         download if not cached
+// Vagrant Cloud is ALWAYS appended as the final fallback
+resolved_stores = config.image_stores + default_vagrant_fallback(provider)
+
+for store in resolved_stores:
+    match store.type {
+        Local { directory } → check if {directory}/{profile.image_name}.qcow2 exists
+        R2 { bucket } → rclone ls to check, rclone copy to download
+        S3 { bucket, region } → aws s3 ls to check, aws s3 cp to download
+        Http { base_url } → HEAD request to check, GET to download
+        Vagrant { registry } → Vagrant Cloud API lookup → download URL → download
     }
+    if found: return path to downloaded/cached image
 ```
 
-**Default source lists by provider:**
+**Vagrant Cloud is always included as the final fallback**, even if the user
+defines no `[[image_stores]]`. When `testbed init` generates `testbed.toml`, it
+includes Vagrant Cloud as the default entry. Users can:
+- Keep it (default behavior)
+- Move it down in the list (custom stores checked first)
+- Remove it entirely (opt out of Vagrant Cloud)
 
-| Provider | Default Sources |
-|----------|----------------|
-| QEMU (Linux) | 1. `vagrant/libvirt` (libvirt provider boxes) |
-| UTM (macOS) | 1. `vagrant/utm` (UTM registry boxes) |
+**Default Vagrant Cloud fallback:**
+- QEMU provider: `type = "vagrant", registry = "libvirt"`
+- UTM provider: `type = "vagrant", registry = "utm"`
 
-**Example custom config:**
+**Example: `testbed init` generated config**
 
 ```toml
-[images]
-sources = [
-    { type = "direct", url = "https://pub-xxx.r2.dev/images/ubuntu-24.04-x86_64.qcow2" },
-    { type = "vagrant", registry = "libvirt", box = "generic/ubuntu2404" },
-]
+[[vms]]
+name = "linux-build"
+profile = "linux-build"
+
+# Vagrant Cloud is the default — replace or add custom stores above it
+[[image_stores]]
+name = "vagrant_cloud"
+type = "vagrant"
+registry = "libvirt"
 ```
 
-This lets organizations host their own pre-built images on R2/S3/GitHub Releases
-while falling back to Vagrant Cloud if the custom source doesn't have a
-particular image.
+**Example: user adds custom stores, keeps Vagrant as last resort**
+
+```toml
+[[image_stores]]
+name = "alex_r2"
+type = "r2"
+bucket = "my-testbed-images"
+account_id = "abc123def456"
+
+[[image_stores]]
+name = "local_cache"
+type = "local"
+directory = "/mnt/fast-storage/testbed-images"
+
+# Vagrant Cloud still here as final fallback
+[[image_stores]]
+name = "vagrant_cloud"
+type = "vagrant"
+registry = "libvirt"
+```
+
+When the user runs `testbed start linux-build`, it checks:
+1. `$HOME/.testbed/images/` (already cached) → skip download
+2. `alex_r2` → `rclone copy my-r2-remote:my-testbed-images/linux-build-x86_64.qcow2 ...`
+3. `local_cache` → copy from `/mnt/fast-storage/testbed-images/linux-build-x86_64.qcow2`
+4. `vagrant_cloud` → Vagrant Cloud API lookup → download
+
+First match wins. Downloaded images are cached in `$HOME/.testbed/images/` so
+subsequent starts don't re-download.
 
 ## VmProfile Struct (Shared)
 
@@ -705,13 +783,19 @@ Creates `$PWD/.testbed/testbed.toml` with a minimal default:
 [[vms]]
 name = "linux-build"
 profile = "linux-build"
+
+# Vagrant Cloud — default image source. Move down or remove to use other stores first.
+[[image_stores]]
+name = "vagrant_cloud"
+type = "vagrant"
+registry = "libvirt"
 ```
 
 **Behavior:**
 - If `.testbed/testbed.toml` already exists → error: "already initialized"
 - Creates `.testbed/` directory if it doesn't exist
 - Creates `.testbed/state/` directory
-- Prints: "Initialized testbed in .testbed/testbed.toml — edit to add more VMs"
+- Prints: "Initialized testbed in .testbed/testbed.toml — edit to add more VMs or image stores"
 
 ### `testbed start <name>` — Foreground Hold
 
@@ -892,19 +976,39 @@ per-VM to state directory.
 **UTM equivalent:** UTM has UEFI built-in — no configuration needed.
 
 ### HTTP Downloads
-**Problem:** `reqwest::blocking` panics inside tokio runtime.
-**Solution:** Use `curl` subprocess for all HTTP downloads (QEMU provider).
-**UTM:** Uses `reqwest::blocking` directly (utm-dev-cli is not in a tokio runtime).
-For foundation_testbed, use `curl` subprocess consistently across both providers
-to avoid tokio conflicts. **Everything is synchronous — no async runtime.**
+**Problem:** `reqwest::blocking` panics inside tokio runtime (bin/platform uses `tokio::main`).
+**Problem:** Spawning `curl` subprocess is fragile — no progress callbacks, no connection pooling, no resume on interrupt.
+**Solution:** Use `foundation_core::wire::simple_http` for all HTTP. `SimpleHttpClient` is fully synchronous, supports:
+- `client.get(url)` → `SimpleHttpClient` with builder pattern
+- `body_reader::collect_string(stream)` for text responses
+- Configurable `max_body_size`, `max_retries`, `read_timeout`
+- Connection pooling and redirect following
+- `HttpRequestPending` states for progress tracking (Connecting, AwaitingResponse)
+- Range header support for resume-after-interrupt downloads
+
+Usage pattern for downloading images:
+```rust
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, body_reader};
+
+let mut client = SimpleHttpClient::from_system()
+    .max_body_size(None)
+    .batch_size(64 * 1024)
+    .read_timeout(Duration::from_secs(30))
+    .max_retries(5);
+
+let request = client.get(url)?
+    .header("Range", format!("bytes={}-", resume_from))
+    .build()?;
+// ... execute via valtron, stream body to file
+```
 
 ### Vagrant Box Extraction
 **Problem:** Vagrant boxes are gzip-compressed tar, not plain tar.
 The `tar` crate has iterator compatibility issues with Rust versioning.
-**Solution (QEMU):** Use `tar` CLI with `tar -tf` for listing, `tar -xf -O` for
-extraction. Detect gzip via magic bytes (0x1f 0x8b).
-**UTM:** Uses `flate2` + `tar` crate directly (works fine outside tokio).
-For foundation_testbed, use CLI `tar` for both providers for consistency.
+**Solution:** Use `simple_http` to stream the download body directly into
+`flate2::read::GzDecoder` → `tar::Archive`. No intermediate file needed —
+stream decompress and extract in one pass. For listing contents, download to
+a temp file first and use CLI `tar -tf`.
 
 ### Arch Package Version Conflicts
 **Problem:** `qemu-base 10.2.2-2` vs `qemu-ui-* 10.2.2-4` — pacman refuses

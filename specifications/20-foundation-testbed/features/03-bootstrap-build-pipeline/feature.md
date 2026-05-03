@@ -1,7 +1,7 @@
 ---
 feature: "Bootstrap & Build Pipeline"
 description: "Idempotent OS bootstrapping, code sync, tool installation, cargo tauri build, and artifact retrieval inside VMs"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["vm-communication"]
 estimated_effort: "large"
