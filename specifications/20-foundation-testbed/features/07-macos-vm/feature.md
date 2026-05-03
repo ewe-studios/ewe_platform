@@ -176,16 +176,15 @@ VmProfile {
     os: GuestOs::MacOS,
     arch: Arch::X86_64,
     image_name: "macos-sonoma-x86_64.qcow2",
-    ssh_port: 2223,        // different from Windows (2222)
+    ssh_port: 2223,
     rdp_port: None,
     winrm_port: None,
-    vnc_port: 5903,        // different port
+    vnc_port: 5903,
     user: "vagrant",
     pass: "vagrant",
     bootstrap: BootstrapMode::SshOnly,
     memory_mib: 8192,
     cpu_cores: 4,
-    prebaked_url: None,    // no Vagrant Cloud source
 }
 ```
 
@@ -206,7 +205,6 @@ VmProfile {
     bootstrap: BootstrapMode::SshOnly,
     memory_mib: 8192,
     cpu_cores: 4,
-    prebaked_url: None,
 }
 ```
 

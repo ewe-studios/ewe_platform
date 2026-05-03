@@ -105,7 +105,6 @@ pub struct VmProfile {
     pub memory_mib: u32,
     pub cpu_cores: u32,
     pub disk_gb: u32,
-    pub prebaked_url: Option<&'static str>,
 }
 ```
 

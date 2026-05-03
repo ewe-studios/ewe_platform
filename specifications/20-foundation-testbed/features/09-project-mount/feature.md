@@ -66,7 +66,7 @@ $HOME/.testbed/
 The project-level configuration file, created by `testbed init`:
 
 ```toml
-# .testbed/testbed.toml
+# testbed.toml
 
 # Global settings
 [defaults]
@@ -314,13 +314,13 @@ as a safety net.
 
 ### Phase 1: Config Parsing (Tasks 1-2)
 
-1. Create `src/common/config.rs` — `TestbedConfig` struct that parses `.testbed/testbed.toml`:
+1. Create `src/common/config.rs` — `TestbedConfig` struct that parses `testbed.toml`:
    - `[[vms]]` array → `Vec<VmDefinition>` (name, profile, arch, overrides)
    - `[[image_stores]]` array → `Vec<ImageStore>` (ordered image backends)
    - `[mounts]` → `MountConfig` (host path, guest path, readonly)
    - `[artifacts]` → `ArtifactConfig` (sync flag, watch dirs)
    - `VmDefinition::resolve_profile()` → merges profile defaults + overrides
-2. Create `src/cli/handlers.rs:cmd_init()` — generates minimal `.testbed/testbed.toml`
+2. Create `src/cli/handlers.rs:cmd_init()` — generates minimal `testbed.toml`
 
 1. Create `src/providers/qemu/mount.rs` — build 9p mount args, add to QEMU launch
 2. Update bootstrap to auto-mount on guest boot (fstab entry, mount verification)
@@ -333,7 +333,7 @@ as a safety net.
 
 ### Phase 3: Project Config & Artifacts (Tasks 6-8)
 
-6. Create `.testbed/testbed.toml` parsing — `VmConfig` struct with mount/artifacts settings
+6. Create `testbed.toml` parsing — `VmConfig` struct with mount/artifacts settings
 7. Create `src/common/artifacts.rs` — artifact scanning, mirroring, symlink management
 8. Update CLI: `testbed mount status`, `testbed mount verify` commands
 
