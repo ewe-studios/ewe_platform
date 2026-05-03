@@ -1,7 +1,7 @@
 ---
 feature: "VM Communication"
 description: "SSH client layer, WinRM SOAP client, and image download/import — platform-agnostic communication with guest VMs"
-status: "completed"
+status: "pending"
 priority: "high"
 depends_on: ["qemu-backend"]
 estimated_effort: "medium"
@@ -36,8 +36,8 @@ Provides the communication channels between the host and guest VMs. This layer i
 - `exec(session, cmd) -> String` — blocking command execution, returns stdout. Commands are executed via `nu -c "..."` after bootstrap (nushell as the execution shell). Before bootstrap, falls back to `bash -c` (Linux) or `cmd /c` (Windows).
 - `exec_with_exit(session, cmd) -> (String, i32)` — returns stdout + exit code. Same shell resolution as `exec`.
 - `exec_streaming(profile, cmd) -> i32` — spawns `ssh` CLI subprocess for live output (long-running commands like `cargo build` would block `read_to_string` for 10+ minutes). Commands are wrapped in `nu -c "..."`.
-- `upload(profile, local, remote) -> ()` — SCP file upload via `scp` CLI (more reliable than libssh2's scp_send against Windows OpenSSH)
-- `download(profile, remote, local) -> ()` — SCP file download
+- `upload(profile, local, remote) -> ()` — file upload via `scp` CLI subprocess (more reliable than libssh2's `scp_send` against Windows OpenSSH — `libssh2::scp_send` was found unreliable with Windows OpenSSH server, causing silent corruption or truncation)
+- `download(profile, remote, local) -> ()` — file download via `scp` CLI subprocess
 - `check(profile) -> Result<()>` — health probe: connect + echo test
 
 ### 2.2 WinRM SOAP Client
@@ -62,6 +62,10 @@ Provides the communication channels between the host and guest VMs. This layer i
 - Download pre-built qcow2 images from configured URLs
 - Support Vagrant Cloud API as a source: `GET https://api.cloud.hashicorp.com/vagrant/2022-09-30/registry/{provider}/box/{box_name}/versions`
 - Support direct URL download with HTTP Range resume
+  - Downloads go to `dest.partial` first, atomically rename to `dest` on completion
+  - On resume, `.partial` file is detected and HTTP `Range: bytes=<size>-` is used
+  - Server not supporting 206 Partial Content detected and triggers fresh download
+  - On success: `std::fs::rename(partial, dest)` — atomic, no corruption risk
 - Cache images in `~/.cache/foundation_testbed/images/`
 - Progress bar with `indicatif` during download
 - Validate download size (reject files < 100 MB as likely failed downloads)
