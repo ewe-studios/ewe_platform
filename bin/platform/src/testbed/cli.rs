@@ -5,7 +5,6 @@ use foundation_testbed::doctor;
 use foundation_testbed::import;
 use foundation_testbed::qemu::{self, QemuConfig};
 use foundation_testbed::qemu::disk;
-use foundation_testbed::qemu::snapshot;
 use foundation_testbed::state;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -23,7 +22,7 @@ pub fn cmd_start(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     println!("Starting VM '{}' ({} mode)...", profile.name, if headful { "headful" } else { "headless" });
 
     // Ensure image is available (downloads if needed)
-    let disk_path = import::ensure_image(&profile)?;
+    let _disk_path = import::ensure_image(&profile)?;
 
     let vm = QemuConfig::new(profile.clone(), display).launch()?;
 
@@ -42,7 +41,8 @@ pub fn cmd_start(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     );
     state::save(&vm_state)?;
 
-    let info = qemu::display::connection_info(display, vm.resolved_ports.vnc_port);
+    let backend = qemu::display::detect_backend();
+    let info = qemu::display::connection_info(display, backend, vm.resolved_ports.vnc_port);
     println!("VM '{}' started (PID {})", profile.name, vm.pid);
     println!("  SSH: 127.0.0.1:{}", vm.resolved_ports.ssh_port);
     if let Some(p) = vm.resolved_ports.winrm_port {
@@ -65,11 +65,11 @@ pub fn cmd_stop(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
 
     // Check if VM is running
-    let mut vm_state = state::load(name)?;
-    let pid = vm_state.pid.ok_or_else(|| format!("VM '{}' is not running (no PID in state)", name))?;
+    let vm_state = state::load(name)?;
+    let _pid = vm_state.pid.ok_or_else(|| format!("VM '{}' is not running (no PID in state)", name))?;
 
     // Attach to the running QEMU process and shut it down
-    let profile = resolve_profile(name)?;
+    let _profile = resolve_profile(name)?;
     let monitor_path = std::path::PathBuf::from(&vm_state.monitor_socket);
 
     // For now, send system_powerdown via direct monitor socket connection
@@ -122,10 +122,10 @@ pub fn cmd_build(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     println!("Building project '{}' in VM '{}'...", project, profile.name);
     println!("  (Requires VM to be running and bootstrapped)");
 
+    let mut session = foundation_testbed::ssh::connect(&profile)?;
     let artifact_dir = foundation_testbed::build::build_in_vm(
         &profile,
-        // Would need an active SSH session here
-        todo!(),
+        &mut session,
         Path::new(project),
     )?;
 
@@ -148,19 +148,10 @@ pub fn cmd_shell(args: &clap::ArgMatches) -> Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = resolve_profile(name)?;
 
-    // Use ssh CLI for interactive shell
-    let status = std::process::Command::new("ssh")
-        .args([
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-p", &profile.ssh_port.to_string(),
-            &format!("{}@127.0.0.1", profile.user),
-        ])
-        .status()?;
-
-    if !status.success() {
-        return Err(format!("SSH exited with status: {}", status).into());
-    }
+    // Use the library's shell() which handles -tt correctly:
+    // - Linux: -tt for proper pty
+    // - Windows: no -tt (breaks cmd.exe)
+    foundation_testbed::ssh::shell(&profile)?;
     Ok(())
 }
 
@@ -290,7 +281,7 @@ pub fn cmd_snapshot(args: &clap::ArgMatches) -> Result<(), BoxedError> {
             let name = m.get_one::<String>("profile").unwrap();
             let snap_name = m.get_one::<String>("name").unwrap();
             let profile = resolve_profile(name)?;
-            let mut session = foundation_testbed::ssh::connect(&profile)?;
+            let _session = foundation_testbed::ssh::connect(&profile)?;
             // For now, just report — actual snapshot needs QemuVm handle
             println!("Snapshot '{}' would be saved for VM '{}'", snap_name, name);
         }
@@ -307,9 +298,97 @@ pub fn cmd_snapshot(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         Some(("list", m)) => {
             let name = m.get_one::<String>("profile").unwrap();
             let profile = resolve_profile(name)?;
-            let mut session = foundation_testbed::ssh::connect(&profile)?;
+            let _session = foundation_testbed::ssh::connect(&profile)?;
             // Would need QemuVm handle
             println!("No snapshots found for VM '{}'", name);
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+pub fn cmd_init(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    let vms: Vec<String> = args
+        .get_many::<String>("vms")
+        .map(|vals| vals.cloned().collect())
+        .unwrap_or_else(|| vec!["linux-build".to_string()]);
+
+    foundation_testbed::init::init(Path::new("."), &vms)?;
+    println!("Scaffolded .testbed/ directory with:");
+    println!("  testbed.toml — VM definitions");
+    println!("  .gitignore — ignores state/logs/artifacts");
+    for vm in &vms {
+        println!("  scripts/{vm}/startup/ and shutdown/ — custom scripts");
+    }
+    Ok(())
+}
+
+pub fn cmd_adopt(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    let name = args.get_one::<String>("profile").unwrap();
+    let disk = args.get_one::<String>("disk").unwrap();
+    let profile = resolve_profile(name)?;
+
+    let (adopted_profile, disk_path) = qemu::adopt(&profile, Path::new(disk))?;
+    println!("Adopted disk {} as VM '{}'", disk_path.display(), adopted_profile.name);
+    println!("Start with: ewe_platform testbed start {}", adopted_profile.name);
+    Ok(())
+}
+
+pub fn cmd_refresh_network(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    let name = args.get_one::<String>("profile").unwrap();
+    let profile = resolve_profile(name)?;
+
+    let vm = qemu::refresh_network(&profile, DisplayMode::Headless)?;
+    println!("VM '{}' restarted with fresh ports:", profile.name);
+    println!("  SSH: 127.0.0.1:{}", vm.resolved_ports.ssh_port);
+    if let Some(p) = vm.resolved_ports.winrm_port {
+        println!("  WinRM: 127.0.0.1:{p}");
+    }
+    println!("  VNC: 127.0.0.1:{}", vm.resolved_ports.vnc_port);
+    Ok(())
+}
+
+pub fn cmd_mount(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+    match args.subcommand() {
+        Some(("status", m)) => {
+            let name = m.get_one::<String>("profile").unwrap();
+            let profile = resolve_profile(name)?;
+
+            // Show mount configuration from profile/state
+            let disk_path = profile.image_cache_path();
+            let vm_state = state::load(name).ok();
+
+            println!("Mount configuration for VM '{}':", profile.name);
+            println!("  OS: {:?}", profile.os);
+            println!("  Disk: {}", disk_path.display());
+            if let Some(ref s) = vm_state {
+                println!("  PID: {:?}", s.pid);
+                println!("  Running: {}", s.pid.is_some());
+            } else {
+                println!("  Running: no");
+            }
+
+            // Show what the mount would look like
+            println!("  Host path (project): . (current directory)");
+            println!("  Guest tag: {}", foundation_testbed::qemu::mount::DEFAULT_TAG);
+            println!("  Guest path: {}", foundation_testbed::qemu::mount::DEFAULT_GUEST_PATH);
+            println!("  Protocol: 9p/virtio");
+        }
+        Some(("verify", m)) => {
+            let name = m.get_one::<String>("profile").unwrap();
+            let profile = resolve_profile(name)?;
+
+            let mut session = foundation_testbed::ssh::connect(&profile)?;
+            let verify_cmd = foundation_testbed::qemu::mount::verify_mount_command(
+                foundation_testbed::qemu::mount::DEFAULT_GUEST_PATH,
+            );
+            let output = foundation_testbed::ssh::exec(&mut session, &verify_cmd)?;
+            if output.contains("OK") {
+                println!("Project mount is active in VM '{}'", profile.name);
+            } else {
+                println!("Project mount is NOT active in VM '{}'", profile.name);
+                println!("  Ensure the VM was started with project mount enabled.");
+            }
         }
         _ => {}
     }

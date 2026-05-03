@@ -40,6 +40,39 @@ pub fn register(command: clap::Command) -> clap::Command {
                 .arg(clap::Arg::new("profile").required(true)),
         )
         .subcommand(
+            clap::Command::new("init")
+                .about("Scaffold project directory with testbed.toml, scripts, and .gitignore")
+                .arg(clap::Arg::new("vms").long("vm").action(clap::ArgAction::Append).required(true)),
+        )
+        .subcommand(
+            clap::Command::new("adopt")
+                .about("Register an existing qcow2 image as a managed VM")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true))
+                .arg(clap::Arg::new("disk").long("disk").required(true)),
+        )
+        .subcommand(
+            clap::Command::new("refresh-network")
+                .about("Reallocate ports and relaunch a VM with fresh port forwarding")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true)),
+        )
+        .subcommand(
+            clap::Command::new("mount")
+                .about("Project mount diagnostics and verification")
+                .subcommand_required(true)
+                .subcommand(
+                    clap::Command::new("status")
+                        .about("Show current mount configuration for a VM")
+                        .arg(clap::Arg::new("profile").required(true)),
+                )
+                .subcommand(
+                    clap::Command::new("verify")
+                        .about("Verify the project mount is active inside a VM")
+                        .arg(clap::Arg::new("profile").required(true)),
+                ),
+        )
+        .subcommand(
             clap::Command::new("run")
                 .about("Launch a compiled binary inside a VM")
                 .arg(clap::Arg::new("profile").required(true))
@@ -148,6 +181,10 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         Some(("resize-disk", m)) => cli::cmd_resize_disk(m),
         Some(("ls", _)) => cli::cmd_ls(),
         Some(("snapshot", sub)) => cli::cmd_snapshot(sub),
+        Some(("init", m)) => cli::cmd_init(m),
+        Some(("adopt", m)) => cli::cmd_adopt(m),
+        Some(("refresh-network", m)) => cli::cmd_refresh_network(m),
+        Some(("mount", m)) => cli::cmd_mount(m),
         _ => {
             eprintln!("unknown testbed subcommand");
             Ok(())

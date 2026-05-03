@@ -46,6 +46,45 @@ impl HostHealth {
 pub fn check_host() -> HostHealth {
     let mut checks = Vec::new();
 
+    // Host prerequisites: mise, nushell, pitchfork
+    let prereqs = crate::host_bootstrap::check_host_prerequisites();
+    checks.push(Check {
+        name: "mise",
+        ok: prereqs.mise.is_available(),
+        message: match &prereqs.mise {
+            crate::host_bootstrap::ToolStatus::AlreadyPresent { version }
+            | crate::host_bootstrap::ToolStatus::Installed { version } => {
+                format!("mise {version}")
+            }
+            crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
+        },
+        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install"),
+    });
+    checks.push(Check {
+        name: "nushell",
+        ok: prereqs.nushell.is_available(),
+        message: match &prereqs.nushell {
+            crate::host_bootstrap::ToolStatus::AlreadyPresent { version }
+            | crate::host_bootstrap::ToolStatus::Installed { version } => {
+                format!("nushell {version}")
+            }
+            crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
+        },
+        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install"),
+    });
+    checks.push(Check {
+        name: "pitchfork",
+        ok: prereqs.pitchfork.is_available(),
+        message: match &prereqs.pitchfork {
+            crate::host_bootstrap::ToolStatus::AlreadyPresent { version }
+            | crate::host_bootstrap::ToolStatus::Installed { version } => {
+                format!("pitchfork {version}")
+            }
+            crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
+        },
+        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install (optional)"),
+    });
+
     // KVM
     let kvm_ok = kvm_available();
     checks.push(Check {
