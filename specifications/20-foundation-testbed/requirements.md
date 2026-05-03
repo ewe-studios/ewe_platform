@@ -1,24 +1,24 @@
 ---
-description: "Cross-platform VM testbed using QEMU/KVM for building and testing Windows/Linux binaries from a Linux host"
-status: "draft"
+description: "Cross-platform VM testbed using QEMU/KVM for building and testing Windows/Linux/macOS binaries from a Linux host"
+status: "in-progress"
 priority: "high"
 created: 2026-05-02
 author: "Main Agent"
 metadata:
-  version: "1.0"
-  last_updated: 2026-05-02
+  version: "2.0"
+  last_updated: 2026-05-03
   estimated_effort: "large"
-  tags: [qemu, vm, cross-compilation, windows, testing, linux]
+  tags: [qemu, vm, cross-compilation, windows, macos, linux, testing]
   stack_files: [rust.md]
   skills: [rust-clean-code]
-  tools: [QEMU, KVM, SSH, WinRM]
+  tools: [QEMU, KVM, SSH, WinRM, quickemu]
 has_features: true
 has_fundamentals: false
 tasks:
-  completed: 0
-  uncompleted: 42
-  total: 42
-  completion_percentage: 0%
+  completed: 18
+  uncompleted: 28
+  total: 46
+  completion_percentage: 39%
 ---
 
 # Overview
@@ -37,23 +37,28 @@ Inspired by `utm-dev-cli` (macOS/UTM-only), this replaces the AppleScript/utmctl
 4. **Multi-VM support** — users can create and run multiple VMs simultaneously
 5. **Zero-root operation** — QEMU user-mode networking, no TAP devices, no libvirt daemon
 6. **mise + nushell inside VMs** — mise handles all tool installation; nushell provides a consistent cross-platform shell experience, eliminating bash/PowerShell dialect splits in bootstrap and build scripts
+7. **macOS VM support** — run macOS guests on Linux via QEMU with OpenCore bootloader, enabling cross-compilation for Apple targets (aarch64-apple-darwin, x86_64-apple-darwin) from a Linux host
 
 ## Feature Index
 
 | # | Feature | Description | Effort |
 |---|---|---|---|
-| 01 | [QEMU Backend](features/01-qemu-backend/feature.md) | QEMU process lifecycle, disk management, networking, display modes, snapshots | Large |
-| 02 | [VM Communication](features/02-vm-communication/feature.md) | SSH layer, WinRM SOAP client, image download/import | Medium |
+| 01 | [QEMU Backend](features/01-qemu-backend/feature.md) | QEMU process lifecycle, disk management, networking, display auto-detection (SPICE > GTK > VNC), UEFI/OVMF boot, snapshots | Large |
+| 02 | [VM Communication](features/02-vm-communication/feature.md) | SSH layer, WinRM SOAP client, image import from Vagrant Cloud and direct URLs | Medium |
 | 03 | [Bootstrap & Build Pipeline](features/03-bootstrap-build-pipeline/feature.md) | OS bootstrapping (idempotent), code sync, tool install, cargo build, artifact retrieval | Large |
 | 04 | [Runner & Utilities](features/04-runner-utilities/feature.md) | Binary launcher, screenshot capture, log tailing, error extraction, file transfer | Medium |
-| 05 | [CLI & State Management](features/05-cli-state-management/feature.md) | Persistent VM state, error types via foundation_errstacks, health checks, CLI subcommands | Medium |
+| 05 | [CLI & State Management](features/05-cli-state-management/feature.md) | Persistent VM state, error types via foundation_errstacks, health checks, CLI subcommands, doctor command | Medium |
 | 06 | [Bin Integration](features/06-bin-integration/feature.md) | Wire into bin/platform testbed subcommands, UI testing automation, README documentation | Medium |
+| 07 | [macOS VM Support](features/07-macos-vm/feature.md) | OpenCore bootloader, macOS profile, image creation via quickemu or BaseSystem, SSH into macOS guest | Large |
 
 ## Known Issues / Limitations
 
-- Windows ARM64 native builds not supported (Microsoft doesn't ship Hostarm64\arm64 toolchain)
-- Requires KVM kernel module on host (falls back to TCG software emulation, 10-20x slower)
-- Pre-built Windows qcow2 images need to be sourced or built once and hosted
+- **Windows ARM64** native builds not supported (Microsoft doesn't ship Hostarm64\arm64 toolchain)
+- **macOS on Linux**: requires OpenCore bootloader; Apple's EULA restricts macOS virtualization to Apple hardware — use at your own discretion
+- **Requires KVM kernel module** on host (falls back to TCG software emulation, 10-20x slower)
+- **Display packages**: `spice-app`, `gtk`, `virtio-vga` may not be in `qemu-base` on Arch — requires `qemu-ui-spice-*`, `qemu-ui-gtk` packages
+- **VNC mouse tracking**: fixed via `-usb -device usb-tablet` (absolute coordinates)
+- **Pacman version conflicts**: Arch Linux QEMU base and UI packages can have version mismatches — use `yay -Syu` for full system upgrade
 
 ## High-Level Architecture
 
