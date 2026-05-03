@@ -1129,16 +1129,118 @@ run = 'echo "✓ All quality checks passed"'
 # Tasks - Help
 # =============================================================================
 
-[tasks."sys:arch:qemu"]
-description = "Install QEMU with SPICE/UI support on Arch Linux (yay or sudo pacman)"
+[tasks."sys:install-testbed"]
+description = "Install testbed dependencies (auto-detects Debian / Ubuntu / Arch Linux)"
 run = """
 #!/usr/bin/env bash
 set -e
 
-# Packages needed for full QEMU UI (SPICE + VNC + virtio-vga + GTK)
-PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf)
+# Detect distro from /etc/os-release
+if [ -f /etc/os-release ]; then
+    ID=$(. /etc/os-release && echo "$ID" | tr -d '"')
+    ID_LIKE=$(. /etc/os-release && echo "${ID_LIKE:-}" | tr -d '"')
+else
+    ID=""
+    ID_LIKE=""
+fi
 
-echo "Installing QEMU with SPICE/UI support on Arch Linux..."
+echo "=== Testbed Dependencies Installer ==="
+echo "Detected distro: ${ID:-unknown} (ID_LIKE: ${ID_LIKE:-none})"
+echo ""
+
+install_debian() {
+    echo "Using apt (Debian/Ubuntu)..."
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \\
+        qemu-system-x86 \\
+        qemu-system-gui \\
+        qemu-utils \\
+        ovmf \\
+        gvncviewer \\
+        openssh-client \\
+        curl \\
+        spice-client-gtk \\
+        virt-viewer
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/OVMF/"
+}
+
+install_ubuntu() {
+    echo "Using apt (Ubuntu)..."
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \\
+        qemu-system-x86 \\
+        qemu-system-gui \\
+        qemu-utils \\
+        ovmf \\
+        gvncviewer \\
+        openssh-client \\
+        curl \\
+        spice-client-gtk \\
+        virt-viewer
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/OVMF/"
+}
+
+install_arch() {
+    PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
+
+    echo "Packages: ${PKGS[*]}"
+    echo ""
+
+    if command -v yay &>/dev/null; then
+        echo "Using yay (AUR helper)..."
+        yay -Syu --needed --noconfirm "${PKGS[@]}"
+    elif command -v pacman &>/dev/null; then
+        echo "Using pacman (requires sudo)..."
+        sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+    else
+        echo "ERROR: Neither yay nor pacman found."
+        exit 1
+    fi
+
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/edk2/x64/"
+}
+
+case "$ID" in
+    debian|debian-like)
+        install_debian
+        ;;
+    ubuntu)
+        install_ubuntu
+        ;;
+    arch)
+        install_arch
+        ;;
+    *)
+        # Fallback: try ID_LIKE for derivatives
+        case "$ID_LIKE" in
+            *debian*) install_debian ;;
+            *ubuntu*) install_ubuntu ;;
+            *arch*)   install_arch ;;
+            *)
+                echo "ERROR: Unsupported distro '$ID'."
+                echo "Install QEMU + OVMF + a VNC/SPICE viewer manually, then retry."
+                exit 1
+                ;;
+        esac
+        ;;
+esac
+"""
+
+[tasks."sys:arch:testbed"]
+description = "Install testbed dependencies on Arch Linux (yay or sudo pacman)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
+
+echo "Installing testbed dependencies on Arch Linux..."
 echo "Packages: ${PKGS[*]}"
 echo ""
 
@@ -1149,35 +1251,63 @@ elif command -v pacman &>/dev/null; then
     echo "Using pacman (requires sudo)..."
     sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
 else
-    echo "ERROR: Neither yay nor pacman found. Install QEMU manually or use your distro's package manager."
-    exit 1
-fi
-
-echo ""
-echo "✓ QEMU with SPICE/UI support installed"
-"""
-
-[tasks."sys:arch:testbed"]
-description = "Install all testbed dependencies on Arch Linux (QEMU, OVMF, viewer, SSH tools)"
-depends = ["sys:arch:qemu"]
-run = """
-#!/usr/bin/env bash
-set -e
-
-PKGS=(gvncviewer openssh curl)
-echo "Installing additional testbed tools..."
-
-if command -v yay &>/dev/null; then
-    yay -Syu --needed --noconfirm "${PKGS[@]}"
-elif command -v pacman &>/dev/null; then
-    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
-else
     echo "ERROR: Neither yay nor pacman found."
     exit 1
 fi
 
 echo ""
 echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/edk2/x64/"
+"""
+
+[tasks."sys:debian:testbed"]
+description = "Install testbed dependencies on Debian (apt)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing testbed dependencies on Debian..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \\
+    qemu-system-x86 \\
+    qemu-system-gui \\
+    qemu-utils \\
+    ovmf \\
+    gvncviewer \\
+    openssh-client \\
+    curl \\
+    spice-client-gtk \\
+    virt-viewer
+
+echo ""
+echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/OVMF/"
+"""
+
+[tasks."sys:ubuntu:testbed"]
+description = "Install testbed dependencies on Ubuntu (apt)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing testbed dependencies on Ubuntu..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \\
+    qemu-system-x86 \\
+    qemu-system-gui \\
+    qemu-utils \\
+    ovmf \\
+    gvncviewer \\
+    openssh-client \\
+    curl \\
+    spice-client-gtk \\
+    virt-viewer
+
+echo ""
+echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/OVMF/"
 """
 
 [tasks.help]
@@ -1194,9 +1324,11 @@ echo "  setup:wasm         Install WASM targets"
 echo "  setup:cloudflare   Install Cloudflare tools (wrangler, miniflare)"
 echo "  setup:check        Verify installed tools"
 echo ""
-echo "System (Arch Linux):"
-echo "  sys:arch:qemu      Install QEMU with SPICE/UI + OVMF (yay or sudo pacman)"
-echo "  sys:arch:testbed   Install all testbed dependencies (QEMU + SSH + viewer)"
+echo "System (Linux testbed dependencies):"
+echo "  sys:install-testbed  Auto-detect distro and install testbed deps"
+echo "  sys:arch:testbed     Arch Linux — QEMU + SPICE + OVMF (yay/pacman)"
+echo "  sys:debian:testbed   Debian — QEMU + SPICE + OVMF (apt)"
+echo "  sys:ubuntu:testbed   Ubuntu — QEMU + SPICE + OVMF (apt)"
 echo ""
 echo "Cloudflare (R2, D1):"
 echo "  cf:login           Authenticate with Cloudflare"
