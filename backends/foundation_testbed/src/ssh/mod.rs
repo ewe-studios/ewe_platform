@@ -14,8 +14,7 @@
 //! **only** for Linux guests. Windows guests (`cmd.exe`/PowerShell) break with
 //! forced pty allocation, so `-tt` is omitted there.
 
-use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
 use std::path::Path;
 use std::process::Command;
 
@@ -33,6 +32,8 @@ pub struct VmSession {
     pub port: u16,
     /// The guest OS type (affects shell selection).
     pub os: GuestOs,
+    /// The guest username used for authentication.
+    pub user: String,
 }
 
 /// Connect to a VM's SSH server using auth fallback chain.
@@ -40,6 +41,17 @@ pub struct VmSession {
 /// Authentication priority: SSH agent → key files → password.
 pub fn connect(profile: &VmProfile) -> Result<VmSession> {
     let port = profile.ssh_port;
+    connect_raw(port, profile.user, profile.os)
+}
+
+/// Connect to a VM's SSH server given just a port and user.
+///
+/// Used by the script runner which doesn't have a full VmProfile.
+pub fn connect_from_port(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
+    connect_raw(port, user, os)
+}
+
+fn connect_raw(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
     let tcp = std::net::TcpStream::connect(("127.0.0.1", port))
         .map_err(|e| TestbedError::SshFailed {
             port,
@@ -58,7 +70,7 @@ pub fn connect(profile: &VmProfile) -> Result<VmSession> {
     })?;
 
     // Auth fallback chain: agent → keys → password
-    authenticate(&mut session, profile).map_err(|e| TestbedError::SshFailed {
+    authenticate_raw(&mut session, user).map_err(|e| TestbedError::SshFailed {
         port,
         source: e,
     })?;
@@ -66,14 +78,15 @@ pub fn connect(profile: &VmProfile) -> Result<VmSession> {
     Ok(VmSession {
         session,
         port,
-        os: profile.os,
+        os,
+        user: user.to_string(),
     })
 }
 
-/// Run authentication methods in order.
-fn authenticate(session: &mut Session, profile: &VmProfile) -> anyhow::Result<()> {
+/// Authenticate without a profile — just user + port.
+fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
     // 1. SSH agent
-    if session.userauth_agent(profile.user).is_ok() {
+    if session.userauth_agent(user).is_ok() {
         return Ok(());
     }
 
@@ -85,7 +98,7 @@ fn authenticate(session: &mut Session, profile: &VmProfile) -> anyhow::Result<()
             let key_path = ssh_dir.join(key_name);
             if key_path.exists() {
                 if session
-                    .userauth_pubkey_file(profile.user, None, &key_path, None)
+                    .userauth_pubkey_file(user, None, &key_path, None)
                     .is_ok()
                 {
                     return Ok(());
@@ -94,10 +107,8 @@ fn authenticate(session: &mut Session, profile: &VmProfile) -> anyhow::Result<()
         }
     }
 
-    // 3. Password
-    session
-        .userauth_password(profile.user, profile.pass)
-        .map_err(|e| anyhow::anyhow!("all auth methods failed: {e}"))
+    // 3. Password (not available without profile — skip)
+    anyhow::bail!("all auth methods failed for user '{user}'")
 }
 
 /// Execute a command on the guest and return stdout.
@@ -147,115 +158,96 @@ pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32
     Ok((output, exit_code))
 }
 
-/// Upload a file to the guest via SCP.
-pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
-    let mut file = File::open(local).map_err(|e| TestbedError::SshFailed {
-        port: session.port,
-        source: anyhow::anyhow!("opening {local:?}: {e}"),
-    })?;
+/// Run PowerShell over SSH on Windows guests, stripping CLIXML envelope.
+///
+/// PowerShell over non-interactive SSH folds info/progress streams onto stderr
+/// as a CLIXML envelope — a ~6 KB `<Objs>` XML blob prefixed by `#< CLIXML`.
+/// This function encodes the script as UTF-16LE + Base64, runs it via
+/// `powershell -NoProfile -EncodedCommand`, and strips the CLIXML noise so
+/// callers get clean stdout + exit code.
+pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String, i32)> {
+    // Encode script as UTF-16LE + Base64 for -EncodedCommand
+    let utf16le: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|c| c.to_le_bytes())
+        .collect();
+    let encoded =
+        base64::engine::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
-    let metadata = file
-        .metadata()
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!("stat {local:?}: {e}"),
-        })?;
+    let cmd = format!("powershell -NoProfile -EncodedCommand {encoded}");
+    let (mut stdout, exit_code) = exec_with_exit(session, &cmd)?;
 
-    let mut channel = session
-        .session
-        .scp_send(
-            std::path::Path::new(remote),
-            0o644,
-            metadata.len(),
-            None,
-        )
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!("scp_send to {remote}: {e}"),
-        })?;
-
-    // Limit writes to channel's window size (libssh2 requirement)
-    let mut buf = [0u8; 65536];
-    loop {
-        let n = file.read(&mut buf).map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!("reading {local:?}: {e}"),
-        })?;
-        if n == 0 {
-            break;
-        }
-        channel.write_all(&buf[..n]).map_err(|e| {
-            TestbedError::SshFailed {
-                port: session.port,
-                source: anyhow::anyhow!("scp write: {e}"),
-            }
-        })?;
+    // Strip CLIXML envelope: everything from "#< CLIXML" onward is noise.
+    // This appears on stdout when PowerShell emits info/progress streams
+    // over a non-interactive transport.
+    if let Some(idx) = stdout.find("#< CLIXML") {
+        stdout.truncate(idx);
     }
 
-    channel
-        .send_eof()
+    Ok((stdout, exit_code))
+}
+
+/// Upload a file to the guest via `scp` CLI.
+///
+/// More reliable than libssh2's `scp_send` against Windows OpenSSH —
+/// `scp_send` was found to cause silent corruption or truncation with
+/// Windows OpenSSH server.
+pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
+    let status = Command::new("scp")
+        .args([
+            "-P", &session.port.to_string(),
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "UserKnownHostsFile=/dev/null",
+            "-o", "LogLevel=quiet",
+            local.to_str().ok_or_else(|| TestbedError::SshFailed {
+                port: session.port,
+                source: anyhow::anyhow!("local path {local:?} is not valid UTF-8"),
+            })?,
+            &format!("{}@127.0.0.1:{remote}", session.user),
+        ])
+        .status()
         .map_err(|e| TestbedError::SshFailed {
             port: session.port,
-            source: anyhow::anyhow!("scp send_eof: {e}"),
+            source: anyhow::anyhow!("spawning scp: {e}"),
         })?;
 
-    channel
-        .wait_eof()
-        .map_err(|e| TestbedError::SshFailed {
+    if !status.success() {
+        return Err(TestbedError::SshFailed {
             port: session.port,
-            source: anyhow::anyhow!("scp wait_eof: {e}"),
-        })?;
-
-    channel
-        .close()
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!("scp close: {e}"),
-        })?;
-
-    channel
-        .wait_close()
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!("scp wait_close: {e}"),
-        })?;
+            source: anyhow::anyhow!("scp upload failed (exit {:?})", status.code()),
+        });
+    }
 
     Ok(())
 }
 
-/// Download a file from the guest via SCP.
+/// Download a file from the guest via `scp` CLI.
+///
+/// More reliable than libssh2's `scp_recv` against Windows OpenSSH.
 pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<()> {
-    let (mut channel, _stat) = session
-        .session
-        .scp_recv(std::path::Path::new(remote))
+    let status = Command::new("scp")
+        .args([
+            "-P", &session.port.to_string(),
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "UserKnownHostsFile=/dev/null",
+            "-o", "LogLevel=quiet",
+            &format!("{}@127.0.0.1:{remote}", session.user),
+            local.to_str().ok_or_else(|| TestbedError::SshFailed {
+                port: session.port,
+                source: anyhow::anyhow!("local path {local:?} is not valid UTF-8"),
+            })?,
+        ])
+        .status()
         .map_err(|e| TestbedError::SshFailed {
             port: session.port,
-            source: anyhow::anyhow!("scp_recv {remote}: {e}"),
+            source: anyhow::anyhow!("spawning scp: {e}"),
         })?;
 
-    let mut file = File::create(local).map_err(|e| TestbedError::SshFailed {
-        port: session.port,
-        source: anyhow::anyhow!("creating {local:?}: {e}"),
-    })?;
-
-    // Read with window-size awareness
-    let mut buf = [0u8; 65536];
-    loop {
-        let n = channel.read(&mut buf).map_err(|e| {
-            TestbedError::SshFailed {
-                port: session.port,
-                source: anyhow::anyhow!("scp read: {e}"),
-            }
-        })?;
-        if n == 0 {
-            break;
-        }
-        file.write_all(&buf[..n]).map_err(|e| {
-            TestbedError::SshFailed {
-                port: session.port,
-                source: anyhow::anyhow!("writing {local:?}: {e}"),
-            }
-        })?;
+    if !status.success() {
+        return Err(TestbedError::SshFailed {
+            port: session.port,
+            source: anyhow::anyhow!("scp download failed (exit {:?})", status.code()),
+        });
     }
 
     Ok(())
@@ -271,6 +263,57 @@ pub fn check(profile: &VmProfile) -> Result<()> {
             source: anyhow::anyhow!("echo test returned unexpected output: {output:?}"),
         });
     }
+    Ok(())
+}
+
+/// Open an interactive SSH session to the guest.
+///
+/// # pty allocation
+///
+/// - **Linux guests**: `-tt` is used to force pty allocation so the user gets
+///   a proper line-buffered terminal.
+/// - **Windows guests**: `-tt` is **omitted** because `cmd.exe`/PowerShell
+///   break with forced pty allocation.
+///
+/// # SIGHUP safety
+///
+/// Unlike non-interactive `exec` (which uses libssh2 channels with no pty),
+/// this allocates a pty for Linux guests. When the SSH connection closes,
+/// the pty's process group receives SIGHUP — this is expected behaviour for
+/// interactive sessions. Do NOT use this for launching background daemons.
+pub fn shell(profile: &VmProfile) -> Result<()> {
+    let mut args = vec![
+        "-p".to_string(),
+        profile.ssh_port.to_string(),
+        "-o".to_string(),
+        "StrictHostKeyChecking=no".to_string(),
+        "-o".to_string(),
+        "UserKnownHostsFile=/dev/null".to_string(),
+        "-o".to_string(),
+        "LogLevel=quiet".to_string(),
+        format!("{}@127.0.0.1", profile.user),
+    ];
+
+    // Only allocate pty for Linux guests
+    if profile.os == GuestOs::Linux {
+        args.insert(0, "-tt".to_string());
+    }
+
+    let status = Command::new("ssh")
+        .args(&args)
+        .status()
+        .map_err(|e| TestbedError::SshFailed {
+            port: profile.ssh_port,
+            source: anyhow::anyhow!("spawning ssh: {e}"),
+        })?;
+
+    if !status.success() {
+        return Err(TestbedError::SshFailed {
+            port: profile.ssh_port,
+            source: anyhow::anyhow!("ssh exited with status {status:?}"),
+        });
+    }
+
     Ok(())
 }
 
