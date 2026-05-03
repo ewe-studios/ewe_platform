@@ -95,12 +95,16 @@ arch = "x86_64"
 memory_mib = 8192
 cpu_cores = 4
 
-# Image sources — ordered list, first match wins
-[images]
-sources = [
-    { type = "direct", url = "https://pub-xxx.r2.dev/images" },
-    { type = "vagrant", registry = "libvirt" },
-]
+# Image stores — ordered list, first match wins
+[[image_stores]]
+name = "my_r2"
+type = "r2"
+bucket = "my-images"
+
+[[image_stores]]
+name = "vagrant_cloud"
+type = "vagrant"
+registry = "libvirt"
 
 # Mount configuration
 [mounts]
@@ -312,7 +316,7 @@ as a safety net.
 
 1. Create `src/common/config.rs` — `TestbedConfig` struct that parses `.testbed/testbed.toml`:
    - `[[vms]]` array → `Vec<VmDefinition>` (name, profile, arch, overrides)
-   - `[images]` → `ImageConfig` (ordered sources)
+   - `[[image_stores]]` array → `Vec<ImageStore>` (ordered image backends)
    - `[mounts]` → `MountConfig` (host path, guest path, readonly)
    - `[artifacts]` → `ArtifactConfig` (sync flag, watch dirs)
    - `VmDefinition::resolve_profile()` → merges profile defaults + overrides

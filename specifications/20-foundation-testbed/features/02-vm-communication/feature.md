@@ -1,7 +1,7 @@
 ---
 feature: "VM Communication"
 description: "SSH client layer, WinRM SOAP client, and image download/import — platform-agnostic communication with guest VMs"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["qemu-backend"]
 estimated_effort: "medium"
@@ -24,7 +24,7 @@ Provides the communication channels between the host and guest VMs. This layer i
 ## Dependencies
 
 - Depends on **01-qemu-backend** (needs VM running with port forwarding configured)
-- External: `ssh2` crate (vendored OpenSSL), `reqwest` (blocking client)
+- External: `ssh2` crate (vendored OpenSSL), `foundation_core::wire::simple_http` for HTTP (WinRM, image import)
 
 ## Requirements
 

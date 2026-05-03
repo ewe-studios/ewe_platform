@@ -1,7 +1,7 @@
 ---
 feature: "Runner & Utilities"
 description: "Binary launcher inside VMs, screenshot capture, log tailing, error extraction, and file transfer utilities"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["bootstrap-build-pipeline"]
 estimated_effort: "medium"

@@ -11,7 +11,7 @@ metadata:
   tags: [qemu, vm, cross-compilation, windows, macos, linux, testing]
   stack_files: [rust.md]
   skills: [rust-clean-code]
-  tools: [QEMU, KVM, SSH, WinRM, quickemu]
+  tools: [QEMU, KVM, SSH, WinRM]
 has_features: true
 has_fundamentals: false
 tasks:
@@ -50,9 +50,10 @@ Inspired by `utm-dev-cli` (macOS/UTM-only), this replaces the AppleScript/utmctl
 | 04 | [Runner & Utilities](features/04-runner-utilities/feature.md) | Binary launcher, screenshot capture, log tailing, error extraction, file transfer | Medium |
 | 05 | [CLI & State Management](features/05-cli-state-management/feature.md) | Persistent VM state, error types via foundation_errstacks, health checks, CLI subcommands, doctor command | Medium |
 | 06 | [Bin Integration](features/06-bin-integration/feature.md) | Wire into bin/platform testbed subcommands, UI testing automation, README documentation | Medium |
-| 07 | [macOS VM Support](features/07-macos-vm/feature.md) | OpenCore bootloader, macOS profile, image creation via quickemu or BaseSystem, SSH into macOS guest | Large |
+| 07 | [macOS VM Support](features/07-macos-vm/feature.md) | OpenCore bootloader, macOS profile, native IPSW-based image creation, SSH into macOS guest | Large |
 | 08 | [Provider Architecture](features/08-provider-architecture/feature.md) | QEMU (Linux) + UTM (macOS) backends via Provider trait, CLI extraction, nested mise.toml, feature flags | X-Large |
 | 09 | [Project Mount & Artifacts](features/09-project-mount/feature.md) | Host directory mounting (9p/virtiofs), artifact mirroring, testbed.toml project config | Medium |
+| 10 | [VM Export & Distribution](features/10-vm-export/feature.md) | Export VMs as pre-built qcow2 + manifest, upload to R2/S3/GitHub Releases, import manifests | Medium |
 
 ## Known Issues / Limitations
 

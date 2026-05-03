@@ -26,6 +26,7 @@ Features have dependencies. Implement in this order:
 7. `07-macos-vm` — depends on 01 and 02
 8. `08-provider-architecture` — depends on 00, 01, 02, 05, 06 (refactor: provider trait, CLI extraction)
 9. `09-project-mount` — depends on 08 (needs provider mount support)
+10. `10-vm-export` — depends on 05, 08 (needs state + provider disk access)
 
 ## Reminders
 

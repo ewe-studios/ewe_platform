@@ -1,7 +1,7 @@
 ---
 feature: "QEMU Backend"
 description: "QEMU process lifecycle management, disk image operations, network configuration, display modes, and VM snapshots"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
@@ -166,9 +166,10 @@ We use **pre-built qcow2 images** to avoid the OS installation step. The image d
 Each profile references its image. If not present, it downloads from a configured URL.
 
 Sources for pre-built images:
-- quickemu project: https://github.com/quickemu-project/quickemu (has pre-built images)
+- Vagrant boxes (libvirt provider): https://app.vagrantup.com/boxes/search (provides qcow2)
+- macOS: native IPSW download + BaseSystem extraction (feature 07)
+- VM export: export bootstrapped VMs to R2/S3/GitHub Releases (feature 10)
 - Build once with Packer + publish to our own hosting
-- Vagrant boxes (not UTM-specific): https://app.vagrantup.com/boxes/search (some provide qcow2)
 
 The bootstrap flow is simpler with pre-built images because the OS already has:
 - A user account (vagrant/vagrant)
