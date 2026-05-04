@@ -1,18 +1,18 @@
 ---
 feature: "Provider Architecture — QEMU + UTM backends"
 description: "Split foundation_testbed into a provider-based architecture: QEMU on Linux, UTM on macOS. Shared code stays common, provider-specific code is gated behind feature flags and OS detection. Extract CLI into a reusable module, add standalone binary support, and create a nested mise.toml."
-status: "pending"
+status: "in-progress"
 priority: "critical"
 depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "05-cli-state-management", "06-bin-integration"]
 estimated_effort: "x-large"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-04
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  completed: 5
+  uncompleted: 14
+  total: 19
+  completion_percentage: 26%
 ---
 
 # Provider Architecture — QEMU + UTM Backends

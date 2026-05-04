@@ -51,6 +51,7 @@ impl ExportManifest {
         let os_str = match profile.os {
             GuestOs::Windows => "windows".to_string(),
             GuestOs::Linux => "linux".to_string(),
+            GuestOs::MacOS => "macos".to_string(),
         };
 
         let created_at = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);

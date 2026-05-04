@@ -39,6 +39,7 @@ pub fn run_in_vm(
 
     match profile.os {
         GuestOs::Linux => run_linux(session, &binary)?,
+        GuestOs::MacOS => run_linux(session, &binary)?,
         GuestOs::Windows => run_windows(session, &binary)?,
     }
 
@@ -46,6 +47,7 @@ pub fn run_in_vm(
         pid: None, // Would need process tracking to get this
         log_path: match profile.os {
             GuestOs::Linux => "/home/vagrant/.testbed-run/run.log".to_string(),
+            GuestOs::MacOS => "/Users/vagrant/.testbed-run/run.log".to_string(),
             GuestOs::Windows => "C:\\Users\\vagrant\\.testbed-run\\run.log".to_string(),
         },
     })
@@ -114,7 +116,7 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
     let target = crate::build::target_triple(profile.os);
     let ext = match profile.os {
         GuestOs::Windows => ".exe",
-        GuestOs::Linux => "",
+        GuestOs::Linux | GuestOs::MacOS => "",
     };
 
     // Candidate directories to probe
@@ -126,8 +128,8 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
     for dir in &candidates {
         // Check if directory exists
         let check_cmd = format!("test -d {dir} && echo EXISTS || echo MISSING");
-        if let Ok(output) = crate::ssh::exec(session, &check_cmd) {
-            if output.trim() == "EXISTS" {
+        if let Ok(output) = crate::ssh::exec(session, &check_cmd)
+            && output.trim() == "EXISTS" {
                 // Find the most recent executable file
                 let find_cmd = format!(
                     "find {dir} -maxdepth 1 -type f -name '*{ext}' -printf '%T@ %p\\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-"
@@ -139,7 +141,6 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
                     }
                 }
             }
-        }
     }
 
     Err(TestbedError::ArtifactNotFound {

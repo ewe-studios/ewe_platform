@@ -130,11 +130,33 @@ rm -f /tmp/bootstrap-mise.toml"#,
     })?;
 
     step("authorise host SSH key", || {
-        setup_ssh_keys(session)
+        // Set up host SSH public key in authorized_keys
+        let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
+        let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
+        let mut pub_key = String::new();
+        for key_name in key_names {
+            let path = home.join(".ssh").join(key_name);
+            if path.exists()
+                && let Ok(key) = std::fs::read_to_string(&path) {
+                    pub_key = key.trim().to_string();
+                    break;
+                }
+        }
+        if !pub_key.is_empty() {
+            let key_escaped = pub_key.replace('\'', r"'\''");
+            let script = format!(
+                r#"mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && \
+                   chmod 600 ~/.ssh/authorized_keys && \
+                   grep -qxF '{key_escaped}' ~/.ssh/authorized_keys || echo '{key_escaped}' >> ~/.ssh/authorized_keys"#
+            );
+            crate::ssh::exec(session, &script)?;
+        }
+        Ok(())
     })?;
 
     step("write bootstrap marker", || {
-        write_bootstrap_marker(session)
+        crate::ssh::exec(session, "touch ~/.testbed-bootstrapped")?;
+        Ok(())
     })?;
 
     Ok(())
@@ -149,57 +171,6 @@ where
     f()?;
     let elapsed = start.elapsed();
     let _ = (label, elapsed);
-    Ok(())
-}
-
-/// Set nushell as the default shell.
-#[allow(dead_code)]
-fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(
-        session,
-        r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#,
-    )?;
-    Ok(())
-}
-
-/// Set up host SSH public key in authorized_keys.
-fn setup_ssh_keys(session: &mut VmSession) -> Result<()> {
-    let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
-
-    let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
-    let mut pub_key = String::new();
-
-    for key_name in key_names {
-        let path = home.join(".ssh").join(key_name);
-        if path.exists() {
-            if let Ok(key) = std::fs::read_to_string(&path) {
-                pub_key = key.trim().to_string();
-                break;
-            }
-        }
-    }
-
-    if !pub_key.is_empty() {
-        let key_escaped = shell_quote(&pub_key);
-        let script = format!(
-            r#"mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && \
-               chmod 600 ~/.ssh/authorized_keys && \
-               grep -qxF {key_escaped} ~/.ssh/authorized_keys || echo {key_escaped} >> ~/.ssh/authorized_keys"#
-        );
-        crate::ssh::exec(session, &script)?;
-    }
-
-    Ok(())
-}
-
-/// Quote a string for safe passing to a shell command.
-fn shell_quote(s: &str) -> String {
-    format!("'{}'", s.replace('\'', r"'\''"))
-}
-
-/// Write the bootstrap completion marker.
-fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(session, "touch ~/.testbed-bootstrapped")?;
     Ok(())
 }
 
@@ -221,11 +192,5 @@ mod tests {
         assert!(toml.contains("cargo:cargo-binstall"));
         assert!(toml.contains("cargo:sccache"));
         assert!(toml.contains("cargo:tauri-cli"));
-    }
-
-    #[test]
-    fn test_shell_quote_escapes_single_quotes() {
-        assert_eq!(shell_quote("hello"), "'hello'");
-        assert_eq!(shell_quote("it's"), "'it'\\''s'");
     }
 }

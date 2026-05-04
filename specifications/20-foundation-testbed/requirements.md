@@ -6,7 +6,7 @@ created: 2026-05-02
 author: "Main Agent"
 metadata:
   version: "2.0"
-  last_updated: 2026-05-03
+  last_updated: 2026-05-04
   estimated_effort: "large"
   tags: [qemu, vm, cross-compilation, windows, macos, linux, testing]
   stack_files: [rust.md]
@@ -15,10 +15,10 @@ metadata:
 has_features: true
 has_fundamentals: false
 tasks:
-  completed: 18
-  uncompleted: 28
-  total: 46
-  completion_percentage: 39%
+  completed: 85
+  uncompleted: 10
+  total: 95
+  completion_percentage: 89%
 ---
 
 # Overview
@@ -54,6 +54,7 @@ Inspired by `utm-dev-cli` (macOS/UTM-only), this replaces the AppleScript/utmctl
 | 08 | [Provider Architecture](features/08-provider-architecture/feature.md) | QEMU (Linux) + UTM (macOS) backends via Provider trait, CLI extraction, nested mise.toml, feature flags | X-Large |
 | 09 | [Project Mount & Artifacts](features/09-project-mount/feature.md) | Host directory mounting (9p/virtiofs), artifact mirroring, testbed.toml project config | Medium |
 | 10 | [VM Export & Distribution](features/10-vm-export/feature.md) | Export VMs as pre-built qcow2 + manifest, upload to R2/S3/GitHub Releases, import manifests | Medium |
+| 11 | [Windows VM Autologin & Virtio Drivers](features/11-windows-vm-setup/feature.md) | Automated Windows post-boot: autologin via Winlogon registry, virtio-win ISO download + 9p driver installation | Medium |
 
 ## Known Issues / Limitations
 

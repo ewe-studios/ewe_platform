@@ -16,7 +16,7 @@ pub fn capture(profile: &VmProfile, session: &mut VmSession, output: &Path) -> R
     let vm_path = "/tmp/testbed-screenshot.png";
 
     match profile.os {
-        GuestOs::Linux => capture_linux(session, vm_path)?,
+        GuestOs::Linux | GuestOs::MacOS => capture_linux(session, vm_path)?,
         GuestOs::Windows => capture_windows(session, vm_path)?,
     }
 

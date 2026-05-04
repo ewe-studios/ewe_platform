@@ -37,7 +37,7 @@ pub struct ExportOptions {
 
 /// Export a VM to a local file or upload to a store.
 pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
-    let profile = get_profile(name).map(|p| p.clone()).map_err(|e| e.into())?;
+    let profile = get_profile(name).cloned()?;
 
     // Step 1: Determine output path
     let export_dir = opts
@@ -185,7 +185,7 @@ fn stop_vm(profile: &VmProfile, vm_state: &Option<state::VmState>) -> Result<()>
     }
 
     // Clean up state
-    let _ = state::delete(&profile.name);
+    let _ = state::delete(profile.name);
 
     Ok(())
 }
@@ -204,47 +204,41 @@ fn detect_installed_tools(
     let mut tools = std::collections::HashMap::new();
 
     match os {
-        crate::config::GuestOs::Linux => {
+        crate::config::GuestOs::Linux | crate::config::GuestOs::MacOS => {
             // rustc
-            if let Ok(out) = ssh::exec(session, "rustc --version 2>/dev/null || echo MISSING") {
-                if let Some(ver) = out.trim().strip_prefix("rustc ") {
+            if let Ok(out) = ssh::exec(session, "rustc --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().strip_prefix("rustc ") {
                     tools.insert("rust".to_string(), ver.trim().to_string());
                 }
-            }
             // node
-            if let Ok(out) = ssh::exec(session, "node --version 2>/dev/null || echo MISSING") {
-                if let Some(ver) = out.trim().strip_prefix('v') {
+            if let Ok(out) = ssh::exec(session, "node --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().strip_prefix('v') {
                     tools.insert("node".to_string(), ver.to_string());
                 }
-            }
             // nu
-            if let Ok(out) = ssh::exec(session, "nu --version 2>/dev/null || echo MISSING") {
-                if let Some(ver) = out.trim().split_whitespace().last() {
+            if let Ok(out) = ssh::exec(session, "nu --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.split_whitespace().last() {
                     tools.insert("nu".to_string(), ver.to_string());
                 }
-            }
             // mise
-            if let Ok(out) = ssh::exec(session, "mise --version 2>/dev/null || echo MISSING") {
-                if let Some(ver) = out.trim().lines().next() {
+            if let Ok(out) = ssh::exec(session, "mise --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().lines().next() {
                     tools.insert("mise".to_string(), ver.trim().to_string());
                 }
-            }
         }
         crate::config::GuestOs::Windows => {
             if let Ok((out, _)) = ssh::exec_ps_windows(session,
                 "try { (rustc --version).Split(' ')[1] } catch { 'MISSING' }",
-            ) {
-                if out.trim() != "MISSING" {
+            )
+                && out.trim() != "MISSING" {
                     tools.insert("rust".to_string(), out.trim().to_string());
                 }
-            }
             if let Ok((out, _)) = ssh::exec_ps_windows(session,
                 "try { (node --version).TrimStart('v') } catch { 'MISSING' }",
-            ) {
-                if out.trim() != "MISSING" {
+            )
+                && out.trim() != "MISSING" {
                     tools.insert("node".to_string(), out.trim().to_string());
                 }
-            }
         }
     }
 

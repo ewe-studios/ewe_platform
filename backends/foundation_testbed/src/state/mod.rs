@@ -10,17 +10,22 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::config::{Result, TestbedError};
+use crate::providers::ProviderId;
 
 /// Persistent state for a running (or previously running) VM.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VmState {
     /// Profile name (e.g. "windows-build").
     pub profile_name: String,
-    /// Path to the qcow2 disk image.
+    /// Path to the disk image (qcow2 for QEMU, .utm bundle path for UTM).
     pub disk_path: String,
-    /// PID of the QEMU process (None if stopped).
+    /// PID of the VM process (Some for QEMU, None for UTM).
     pub pid: Option<u32>,
-    /// Path to the monitor socket.
+    /// Provider that launched this VM.
+    pub provider_id: ProviderId,
+    /// Provider-specific VM identifier (PID for QEMU, UUID for UTM).
+    pub provider_internal_id: String,
+    /// Path to the monitor socket (QEMU only; empty for UTM).
     pub monitor_socket: String,
     /// Resolved SSH port.
     pub ssh_port: u16,
@@ -71,13 +76,12 @@ pub fn load(name: &str) -> Result<VmState> {
     })?;
 
     // Stale PID detection
-    if let Some(pid) = state.pid {
-        if !is_process_alive(pid) {
+    if let Some(pid) = state.pid
+        && !is_process_alive(pid) {
             state.pid = None; // Process is gone
             // Save cleaned state
             save(&state)?;
         }
-    }
 
     Ok(state)
 }
@@ -115,13 +119,11 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
             message: format!("reading state entry: {e}"),
         })?;
         let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) == Some("json") {
-            if let Ok(json) = std::fs::read_to_string(&path) {
-                if let Ok(state) = serde_json::from_str::<VmState>(&json) {
+        if path.extension().and_then(|e| e.to_str()) == Some("json")
+            && let Ok(json) = std::fs::read_to_string(&path)
+                && let Ok(state) = serde_json::from_str::<VmState>(&json) {
                     vms.push((state.profile_name.clone(), state));
                 }
-            }
-        }
     }
 
     Ok(vms)
@@ -129,15 +131,45 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
 
 /// Check if a VM is currently running (has a live PID).
 pub fn is_running(name: &str) -> bool {
-    if let Ok(state) = load(name) {
-        if let Some(pid) = state.pid {
+    if let Ok(state) = load(name)
+        && let Some(pid) = state.pid {
             return is_process_alive(pid);
         }
-    }
     false
 }
 
-/// Build a VmState from QEMU runtime info.
+/// Build a VmState from runtime info.
+pub fn from_runtime(
+    profile_name: &str,
+    disk_path: &std::path::Path,
+    provider_id: ProviderId,
+    provider_internal_id: &str,
+    ssh_port: u16,
+    winrm_port: Option<u16>,
+    rdp_port: Option<u16>,
+    vnc_port: u16,
+    bootstrapped: bool,
+) -> VmState {
+    VmState {
+        profile_name: profile_name.to_string(),
+        disk_path: disk_path.to_string_lossy().to_string(),
+        pid: None, // Provider sets if applicable
+        provider_id,
+        provider_internal_id: provider_internal_id.to_string(),
+        monitor_socket: String::new(),
+        ssh_port,
+        winrm_port,
+        rdp_port,
+        vnc_port,
+        bootstrapped,
+        created_at: format!("{}T{}",
+            chrono::Utc::now().date_naive(),
+            chrono::Utc::now().time()
+        ),
+    }
+}
+
+/// Build a VmState from QEMU runtime info (legacy, prefer from_runtime).
 pub fn from_qemu(
     profile_name: &str,
     disk_path: &std::path::Path,
@@ -153,6 +185,8 @@ pub fn from_qemu(
         profile_name: profile_name.to_string(),
         disk_path: disk_path.to_string_lossy().to_string(),
         pid: Some(pid),
+        provider_id: crate::providers::ProviderId::Qemu,
+        provider_internal_id: pid.to_string(),
         monitor_socket: monitor_path.to_string_lossy().to_string(),
         ssh_port,
         winrm_port,

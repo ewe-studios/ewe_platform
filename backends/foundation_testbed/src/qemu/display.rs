@@ -97,9 +97,7 @@ pub fn launch_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<String> {
         // Spice/Gtk open their own windows natively
         return None;
     }
-    let Some((cmd, args)) = find_viewer(backend, vnc_port) else {
-        return None;
-    };
+    let (cmd, args) = find_viewer(backend, vnc_port)?;
     let _ = std::process::Command::new(cmd).args(&args).spawn();
     Some(cmd.to_string())
 }

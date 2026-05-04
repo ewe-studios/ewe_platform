@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 pub enum GuestOs {
     Windows,
     Linux,
+    MacOS,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,6 +137,22 @@ const PROFILES: &[VmProfile] = &[
         disk_gb: 20,
         prebaked_url: None,
     },
+    VmProfile {
+        name: "macos-build",
+        os: GuestOs::MacOS,
+        image_name: "macos-sonoma-x86_64.qcow2",
+        ssh_port: 2622,
+        rdp_port: None,
+        winrm_port: None,
+        vnc_port: 5904,
+        user: "vagrant",
+        pass: "vagrant",
+        bootstrap: BootstrapMode::SshOnly,
+        memory_mib: 8192,
+        cpu_cores: 4,
+        disk_gb: 80,
+        prebaked_url: None,
+    },
 ];
 
 /// Look up a profile by name.
@@ -212,11 +229,10 @@ pub fn get_profile_with_config(name: &str) -> Result<VmProfile> {
     let mut profile = base.clone();
 
     // Apply user config override if present
-    if let Some(config) = load_user_config() {
-        if let Some(entry) = config.profiles.iter().find(|e| e.name == name) {
+    if let Some(config) = load_user_config()
+        && let Some(entry) = config.profiles.iter().find(|e| e.name == name) {
             apply_user_override(&mut profile, &entry.profile);
         }
-    }
 
     Ok(profile)
 }
@@ -229,6 +245,7 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
         profile.os = match os.as_str() {
             "windows" => GuestOs::Windows,
             "linux" => GuestOs::Linux,
+            "macos" => GuestOs::MacOS,
             _ => profile.os,
         };
     }
@@ -278,6 +295,14 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
 pub fn user_config_path() -> std::path::PathBuf {
     std::path::PathBuf::from("testbed.toml")
 }
+
+// ── Virtio ISO for Windows guests ────────────────────────────────────────────
+
+/// Local store path for the virtio-win driver ISO (checked first).
+pub const VIRTIO_ISO_STORE_PATH: &str = "/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso";
+
+/// Fedora Project download URL for virtio-win drivers (fallback).
+pub const VIRTIO_ISO_DOWNLOAD_URL: &str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.262-1/virtio-win-0.1.262.iso";
 
 // ── Image Stores ─────────────────────────────────────────────────────────────
 

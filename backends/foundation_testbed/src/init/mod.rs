@@ -69,6 +69,17 @@ fn generate_testbed_toml(vm_names: &[String]) -> String {
         ));
     }
 
+    // Include macOS VM if not already listed
+    let has_macos = vm_names.iter().any(|n| n.contains("macos"));
+    if !has_macos {
+        out.push_str(
+            "# macOS VM — uses pre-baked image from store or native IPSW fallback\n\
+             [[vms]]\n\
+             name = \"macos-build\"\n\
+             profile = \"macos-build\"\n\n",
+        );
+    }
+
     out.push_str(
         "# Mount configuration\n\
          [mounts]\n\
@@ -80,7 +91,26 @@ fn generate_testbed_toml(vm_names: &[String]) -> String {
     out.push_str(
         "# Artifact mirroring\n\
          [artifacts]\n\
-         sync = true                           # Mirror build outputs\n",
+         sync = true                           # Mirror build outputs\n\n",
+    );
+
+    out.push_str(
+        "# Image stores — ordered sources for VM disk images.\n\
+         # First store with a matching image wins.\n\n\
+         # macOS pre-baked tarball (BaseSystem.qcow2 + opencore.qcow2 + macOS-data.qcow2)\n\
+         [[image_stores]]\n\
+         name = \"macos-build\"\n\
+         type = \"http\"\n\
+         destination = \"https://pub-abc123.r2.dev/testbed-images\"\n\
+         key_prefix = \"macos-build/\"\n\n",
+    );
+
+    out.push_str(
+        "# Vagrant Cloud — default fallback for Windows/Linux images\n\
+         [[image_stores]]\n\
+         name = \"vagrant_cloud\"\n\
+         type = \"vagrant\"\n\
+         registry = \"libvirt\"\n",
     );
 
     out

@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 
 use foundation_testbed::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
 use foundation_testbed::qemu::{QemuConfig, QemuVm};
+use foundation_testbed::qemu::mount;
 use foundation_testbed::ssh;
 use foundation_testbed::state;
 
@@ -20,8 +21,10 @@ use foundation_testbed::state;
 /// ```
 pub struct TestVm {
     profile_name: String,
+    profile: VmProfile,
     qemu: Option<QemuVm>,
-    display: DisplayMode,
+    ssh_port: u16,
+    mount_project: bool,
 }
 
 impl TestVm {
@@ -44,6 +47,7 @@ impl TestVm {
         }
 
         let qemu = config.launch()?;
+        let ssh_port = qemu.resolved_ports.ssh_port;
 
         // Save state
         let monitor_path = foundation_testbed::config::monitor_dir()
@@ -63,40 +67,49 @@ impl TestVm {
 
         Ok(Self {
             profile_name: profile_name.to_string(),
+            profile,
             qemu: Some(qemu),
-            display: DisplayMode::Headless,
+            ssh_port,
+            mount_project,
         })
     }
 
     /// Wait for SSH (Linux) or WinRM (Windows) to become reachable.
-    pub fn wait_for_ready(&self, timeout: Duration) -> Result<()> {
-        let profile = get_profile(&self.profile_name).map(|p| p.clone())?;
+    /// Mounts the project directory inside the guest if requested.
+    pub fn wait_for_ready(&mut self, timeout: Duration) -> Result<()> {
         let start = Instant::now();
 
-        println!("[{}] Waiting for {} connectivity (timeout: {:?})...",
-            profile_name_label(&profile),
-            if profile.os == GuestOs::Linux { "SSH" } else { "WinRM" },
+        println!("[{}] Waiting for {} connectivity on port {} (timeout: {:?})...",
+            &self.profile_name,
+            if self.profile.os == GuestOs::Linux || self.profile.os == GuestOs::MacOS { "SSH" } else { "WinRM" },
+            self.ssh_port,
             timeout);
 
         loop {
             if start.elapsed() > timeout {
                 return Err(foundation_testbed::config::TestbedError::SshFailed {
-                    port: profile.ssh_port,
+                    port: self.ssh_port,
                     source: anyhow::anyhow!("timed out waiting for VM connectivity after {:?}", timeout),
                 });
             }
 
-            match profile.os {
-                GuestOs::Linux => {
-                    if ssh::check(&profile).is_ok() {
-                        println!("[{}] SSH ready", profile_name_label(&profile));
+            match self.profile.os {
+                GuestOs::Linux | GuestOs::MacOS => {
+                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
+                        println!("[{}] SSH ready", &self.profile_name);
+                        if self.mount_project {
+                            self.mount_project_in_guest()?;
+                        }
                         return Ok(());
                     }
                 }
                 GuestOs::Windows => {
                     // For Windows, try SSH (OpenSSH should be available after bootstrap)
-                    if ssh::check(&profile).is_ok() {
-                        println!("[{}] SSH ready (Windows)", profile_name_label(&profile));
+                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
+                        println!("[{}] SSH ready (Windows)", &self.profile_name);
+                        if self.mount_project {
+                            self.mount_project_in_guest()?;
+                        }
                         return Ok(());
                     }
                 }
@@ -106,17 +119,29 @@ impl TestVm {
         }
     }
 
+    /// Mount the project directory inside the guest via 9p/virtio.
+    /// Linux only — Windows guests need virtio-win drivers for 9p support.
+    fn mount_project_in_guest(&mut self) -> Result<()> {
+        if self.profile.os == GuestOs::Windows {
+            println!("[{}] Skipping 9p mount (Windows requires virtio drivers)", &self.profile_name);
+            return Ok(());
+        }
+        println!("[{}] Mounting project directory in guest...", &self.profile_name);
+        let mount_cmd = mount::guest_mount_command(mount::DEFAULT_TAG, mount::DEFAULT_GUEST_PATH);
+        let output = self.ssh_exec(&mount_cmd)?;
+        println!("[{}] Mount result: {}", &self.profile_name, output.trim());
+        Ok(())
+    }
+
     /// Execute a command via SSH on the VM.
     pub fn ssh_exec(&self, cmd: &str) -> Result<String> {
-        let profile = get_profile(&self.profile_name).map(|p| p.clone())?;
-        let mut session = ssh::connect(&profile)?;
+        let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
         ssh::exec(&mut session, cmd)
     }
 
     /// Execute a PowerShell script via SSH on the VM (CLIXML-stripped).
     pub fn ps_exec(&self, script: &str) -> Result<(String, i32)> {
-        let profile = get_profile(&self.profile_name).map(|p| p.clone())?;
-        let mut session = ssh::connect(&profile)?;
+        let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
         ssh::exec_ps_windows(&mut session, script)
     }
 
@@ -131,8 +156,8 @@ impl TestVm {
     }
 
     /// Get the resolved SSH port.
-    pub fn ssh_port(&self) -> Option<u16> {
-        self.qemu.as_ref().map(|q| q.resolved_ports.ssh_port)
+    pub fn ssh_port(&self) -> u16 {
+        self.ssh_port
     }
 }
 
@@ -253,8 +278,4 @@ pub fn assert_pe_binary(path_on_host: &Path) -> Result<bool> {
     std::io::Read::read_exact(&mut file, &mut magic)
         .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
     Ok(&magic == b"MZ")
-}
-
-fn profile_name_label(profile: &VmProfile) -> &str {
-    profile.name
 }

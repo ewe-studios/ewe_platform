@@ -3,7 +3,7 @@ feature: "Tauri E2E Tests"
 description: "End-to-end integration tests that launch a VM, mount the project, build a Tauri example app, run it headless, and validate success across Windows and Linux guests"
 status: "pending"
 priority: "high"
-depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "03-bootstrap-build-pipeline", "04-runner-utilities", "05-cli-state-management", "06-bin-integration", "08-provider-architecture", "09-project-mount"]
+depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "03-bootstrap-build-pipeline", "04-runner-utilities", "05-cli-state-management", "06-bin-integration", "08-provider-architecture", "09-project-mount", "11-windows-vm-setup"]
 estimated_effort: "medium"
 created: 2026-05-03
 last_updated: 2026-05-03
@@ -469,5 +469,5 @@ Total sequential run time: approximately 70 minutes. With `serial_test` groups a
 | Platform | Communication | Build Target | Headless Display | Status |
 |----------|--------------|--------------|------------------|--------|
 | Linux (QEMU) | SSH (port 2222) | `x86_64-unknown-linux-gnu` | Xvfb `:99` | **Implemented** |
-| Windows (QEMU) | WinRM (port 5985) | `x86_64-pc-windows-msvc` | `-WindowStyle Hidden` | **Implemented** |
+| Windows (QEMU) | SSH (port 2222) | `x86_64-pc-windows-msvc` | `-WindowStyle Hidden` | **Implemented** (autologin + virtio drivers via feature 11) |
 | macOS (UTM) | SSH (port 2222) | `x86_64-apple-darwin` | TBD | **Deferred** (feature 07) |

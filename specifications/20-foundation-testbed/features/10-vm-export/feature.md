@@ -1,18 +1,18 @@
 ---
 feature: "VM Export & Distribution"
 description: "Export running or stopped VMs as pre-built qcow2 images with metadata, upload to R2/S3/GitHub Releases, generate import manifests for distribution"
-status: "pending"
+status: "implemented"
 priority: "high"
 depends_on: ["05-cli-state-management", "08-provider-architecture"]
 estimated_effort: "medium"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-04
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 8
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 8
+  completion_percentage: 100%
 ---
 
 # VM Export & Distribution Feature
