@@ -49,23 +49,14 @@ impl WinRM {
         Ok(Self::new("127.0.0.1", winrm_port, profile.user, profile.pass))
     }
 
-    /// Check if WinRM is reachable (cheap probe).
+    /// Check if WinRM is reachable and can create a shell (real probe).
     ///
-    /// Sends an HTTP request to the WinRM endpoint. Any HTTP response
-    /// means WinRM is listening.
+    /// Creates and immediately deletes a WinRM shell to verify the full
+    /// SOAP pipeline works, not just that the TCP port is open.
     pub fn ping(&self) -> bool {
-        let addr = format!("{}:{}", self.host, self.port);
-        match TcpStream::connect(&addr) {
-            Ok(mut stream) => {
-                let request = format!(
-                    "GET /wsman HTTP/1.1\r\nHost: {}\r\nAuthorization: Basic {}\r\nContent-Length: 0\r\n\r\n",
-                    self.host,
-                    self.auth_header_value()
-                );
-                stream.write_all(request.as_bytes()).is_ok()
-            }
-            Err(_) => false,
-        }
+        self.shell_create().and_then(|shell_id| {
+            self.shell_delete(&shell_id, None)
+        }).is_ok()
     }
 
     /// Run a PowerShell script via WinRM shell.
@@ -91,9 +82,13 @@ impl WinRM {
 
     /// Create a WinRM shell.
     fn shell_create(&self) -> Result<String> {
-        let body = r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:p="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><w:ResourceURI s="true">http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:MaxEnvelopeSize>153600</w:MaxEnvelopeSize><w:OperationTimeout>PT60S</w:OperationTimeout><w:OptionSet><w:Option Name="WINRS_NOPROFILE">FALSE</w:Option><w:Option Name="WINRS_CODEPAGE">437</w:Option></w:OptionSet></env:Header><env:Body><p:Shell><p:InputStreams>stdin</p:InputStreams><p:OutputStreams>stdout stderr</p:OutputStreams></p:Shell></env:Body></env:Envelope>"#;
+        let msg_id = uuid_simple();
+        let body = format!(
+            r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:p="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.xmlsoap.org/ws/2004/09/transfer/Create</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI s="true">http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:MaxEnvelopeSize>153600</w:MaxEnvelopeSize><w:OperationTimeout>PT60S</w:OperationTimeout><w:OptionSet><w:Option Name="WINRS_NOPROFILE">FALSE</w:Option><w:Option Name="WINRS_CODEPAGE">437</w:Option></w:OptionSet></env:Header><env:Body><p:Shell><p:InputStreams>stdin</p:InputStreams><p:OutputStreams>stdout stderr</p:OutputStreams></p:Shell></env:Body></env:Envelope>"#,
+            msg_id, self.host, self.port
+        );
 
-        let response = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Create", body)?;
+        let response = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Create", &body)?;
         // Extract ShellId from response
         parse_shell_id(&response).ok_or_else(|| TestbedError::WinrmNotReachable {
             port: self.port,
@@ -102,9 +97,10 @@ impl WinRM {
 
     /// Execute a command in an existing shell.
     fn shell_exec(&self, shell_id: &str, command: &str) -> Result<String> {
+        let msg_id = uuid_simple();
         let body = format!(
-            r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:CommandLine><rsp:Command>{}</rsp:Command></rsp:CommandLine></env:Body></env:Envelope>"#,
-            shell_id, command
+            r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:CommandLine><rsp:Command>{}</rsp:Command></rsp:CommandLine></env:Body></env:Envelope>"#,
+            msg_id, self.host, self.port, shell_id, command
         );
 
         let response = self.send_soap("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command", &body)?;
@@ -122,9 +118,10 @@ impl WinRM {
         // Poll for output
         for _ in 0..120 {
             // 60s total at 500ms intervals
+            let msg_id = uuid_simple();
             let body = format!(
-                r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:Receive><rsp:DesiredStream CommandId="{}">stdout stderr</rsp:DesiredStream></rsp:Receive></env:Body></env:Envelope>"#,
-                shell_id, command_id
+                r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:Receive><rsp:DesiredStream CommandId="{}">stdout stderr</rsp:DesiredStream></rsp:Receive></env:Body></env:Envelope>"#,
+                msg_id, self.host, self.port, shell_id, command_id
             );
 
             let response = self.send_soap("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive", &body)?;
@@ -151,13 +148,14 @@ impl WinRM {
 
     /// Delete a WinRM shell.
     fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) -> Result<()> {
+        let msg_id = uuid_simple();
         let command_selector = command_id
             .map(|id| format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>"))
             .unwrap_or_default();
 
         let body = format!(
-            r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"><env:Header><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body>{}</env:Body></env:Envelope>"#,
-            shell_id, command_selector
+            r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"><env:Header><a:Action>http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body>{}</env:Body></env:Envelope>"#,
+            msg_id, self.host, self.port, shell_id, command_selector
         );
 
         let _ = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete", &body);
@@ -228,10 +226,10 @@ fn parse_shell_id(response: &str) -> Option<String> {
 
 /// Extract CommandId from a SOAP response.
 fn parse_command_id(response: &str) -> Option<String> {
-    // Look for CommandId="..." in the response
-    let start = response.find("CommandId=\"")?;
-    let rest = &response[start + "CommandId=\"".len()..];
-    let end = rest.find("\"")?;
+    // Look for <rsp:CommandId>VALUE</rsp:CommandId>
+    let start = response.find("<rsp:CommandId>")?;
+    let rest = &response[start + "<rsp:CommandId>".len()..];
+    let end = rest.find("</rsp:CommandId>")?;
     Some(rest[..end].to_string())
 }
 
@@ -329,7 +327,7 @@ mod tests {
 
     #[test]
     fn test_parse_command_id() {
-        let response = r#"<rsp:CommandResponse CommandId="cmd-789">"#;
+        let response = r#"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>"#;
         assert_eq!(parse_command_id(response).as_deref(), Some("cmd-789"));
     }
 

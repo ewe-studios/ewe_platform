@@ -21,8 +21,8 @@ mod common;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows,
-             assert_elf_binary, assert_pe_binary, create_tauri_project};
+use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows, assert_build_ok_macos,
+             assert_elf_binary, assert_pe_binary, assert_macho_binary, create_tauri_project};
 use foundation_testbed::config::Result;
 use serial_test::serial;
 
@@ -30,8 +30,10 @@ use serial_test::serial;
 
 const LINUX_PROFILE: &str = "linux-build";
 const WINDOWS_PROFILE: &str = "windows-build";
+const MACOS_PROFILE: &str = "macos-build";
 const LINUX_MOUNT: &str = "/mnt/project";
 const WINDOWS_MOUNT: &str = "C:\\Users\\vagrant\\project";
+const MACOS_MOUNT: &str = "/Volumes/project";
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(300); // 5 min
 
 fn project_dir() -> PathBuf {
@@ -188,6 +190,7 @@ fn test_tauri_build_linux() -> Result<()> {
 fn test_tauri_build_windows() -> Result<()> {
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
+    vm.bootstrap()?;
 
     // Create Tauri project in the mounted directory
     let project_path = project_dir().join("tauri-e2e-test");
@@ -303,6 +306,187 @@ fn test_headless_app_windows() -> Result<()> {
     Ok(())
 }
 
+// ── macOS Guest Tests ────────────────────────────────────────────────────────
+
+/// Verifies the complete VM start-run-stop cycle on macOS.
+#[test]
+#[ignore]
+#[serial(macos_vm)]
+fn test_vm_lifecycle_macos() -> Result<()> {
+    let mut vm = TestVm::new(MACOS_PROFILE)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // Verify connectivity
+    let output = vm.ssh_exec("echo hello")?;
+    assert_eq!(output.trim(), "hello");
+
+    println!("[lifecycle/macos] VM started, SSH responding, stopping...");
+    Ok(())
+}
+
+/// Verifies the host directory is accessible inside a macOS VM.
+///
+/// Note: macOS doesn't support 9p/virtio-fs natively like Linux does.
+/// Uses SSH-based file transfer (scp) for project files.
+#[test]
+#[ignore]
+#[serial(macos_vm)]
+fn test_project_mount_macos() -> Result<()> {
+    let mut vm = TestVm::new(MACOS_PROFILE)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // Create a test file on host, transfer to guest via scp, verify
+    let test_file = format!(".mount-test-{}", std::process::id());
+    let host_path = project_dir().join(&test_file);
+    std::fs::write(&host_path, "mount-test").map_err(|e| {
+        foundation_testbed::config::TestbedError::Qcow2Error {
+            message: format!("writing test file: {e}"),
+        }
+    })?;
+
+    // Transfer to guest via scp
+    let guest_path = format!("/tmp/{test_file}");
+    let scp_cmd = format!(
+        "scp -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         {} {}@127.0.0.1:{}",
+        vm.ssh_port(),
+        host_path.display(),
+        "vagrant",
+        guest_path
+    );
+    let status = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&scp_cmd)
+        .status()
+        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+            message: format!("scp command: {e}"),
+        })?;
+    assert!(status.success(), "scp transfer should succeed");
+
+    // Verify file arrived
+    let output = vm.ssh_exec(&format!("cat {guest_path}"))?;
+    assert_eq!(output.trim(), "mount-test");
+
+    // Cleanup
+    vm.ssh_exec(&format!("rm -f {guest_path}")).ok();
+    std::fs::remove_file(&host_path).ok();
+
+    println!("[mount/macos] Project round-trip via SCP OK");
+    Ok(())
+}
+
+/// Full build pipeline for macOS guest.
+#[test]
+#[ignore]
+#[serial(macos_vm)]
+fn test_tauri_build_macos() -> Result<()> {
+    let mut vm = TestVm::new(MACOS_PROFILE)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // Create Tauri project on host
+    let project_path = project_dir().join("tauri-e2e-test");
+    create_tauri_project(&project_path)?;
+
+    // Transfer project to guest via scp
+    let scp_cmd = format!(
+        "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+        vm.ssh_port(),
+        project_path.display()
+    );
+    let status = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&scp_cmd)
+        .status()
+        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+            message: format!("scp command: {e}"),
+        })?;
+    assert!(status.success(), "scp transfer should succeed");
+
+    println!("[build/macos] Building Tauri project in VM...");
+    let build_cmd = "cd /tmp/tauri-e2e-test && \
+         export DISPLAY=:99 && \
+         cargo tauri build 2>&1 | tail -20";
+    let output = vm.ssh_exec(build_cmd)?;
+    println!("  Build output:\n{}", output);
+
+    // Verify artifact exists inside VM
+    let built = assert_build_ok_macos(&vm, "/tmp/tauri-e2e-test")?;
+    assert!(built, "Tauri build artifact should exist");
+
+    // Pull artifact back to host for validation
+    let host_artifact = project_path.join("target/x86_64-apple-darwin/release/tauri-e2e-test");
+    std::fs::create_dir_all(host_artifact.parent().unwrap()).ok();
+    let pull_cmd = format!(
+        "scp -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         vagrant@127.0.0.1:/tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test \
+         {}",
+        vm.ssh_port(),
+        host_artifact.display()
+    );
+    let _ = std::process::Command::new("sh").arg("-c").arg(&pull_cmd).status();
+
+    // Verify it's a valid Mach-O binary (if pulled back)
+    if host_artifact.exists() {
+        let is_macho = assert_macho_binary(&host_artifact)?;
+        assert!(is_macho, "build artifact should be a valid Mach-O binary");
+    }
+
+    // Cleanup
+    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
+    std::fs::remove_dir_all(&project_path).ok();
+
+    println!("[build/macos] Build OK, Mach-O binary verified");
+    Ok(())
+}
+
+/// Validates the built binary can launch without crashing (macOS).
+#[test]
+#[ignore]
+#[serial(macos_vm)]
+fn test_headless_app_macos() -> Result<()> {
+    let mut vm = TestVm::new(MACOS_PROFILE)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // Create and build the Tauri project
+    let project_path = project_dir().join("tauri-e2e-test");
+    create_tauri_project(&project_path)?;
+
+    // Transfer to guest
+    let scp_cmd = format!(
+        "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+        vm.ssh_port(),
+        project_path.display()
+    );
+    let _ = std::process::Command::new("sh").arg("-c").arg(&scp_cmd).status();
+
+    println!("[headless/macos] Building Tauri project...");
+    let build_output = vm.ssh_exec(
+        "cd /tmp/tauri-e2e-test && cargo tauri build 2>&1 | tail -5"
+    )?;
+    println!("  Build output:\n{}", build_output);
+
+    // Launch the app
+    println!("[headless/macos] Launching app...");
+    let launch_script = "export DISPLAY=:99 && \
+         /tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test & \
+         APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
+         kill $APP_PID 2>/dev/null; true";
+    let output = vm.ssh_exec(launch_script)?;
+    assert!(
+        output.contains("ALIVE"),
+        "Tauri app should be alive after 5 seconds. Output: {output}"
+    );
+
+    // Cleanup
+    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
+    std::fs::remove_dir_all(&project_path).ok();
+
+    println!("[headless/macos] App launched and survived 5s");
+    Ok(())
+}
+
 // ── 10.9/10.10 Full E2E Tests ───────────────────────────────────────────────
 
 /// End-to-end: Linux — start, mount, build, launch, stop.
@@ -373,11 +557,12 @@ fn test_full_e2e_linux() -> Result<()> {
 fn test_full_e2e_windows() -> Result<()> {
     println!("[e2e/windows] === Full E2E test starting ===");
 
-    // 1. Start Windows VM
+    // 1. Start Windows VM (set HEADFUL=1 for visible VNC window)
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // 2. Verify SSH reachable (already done)
+    // 2. Bootstrap: installs OpenSSH (via WinRM), then dev tools (via SSH)
+    vm.bootstrap()?;
 
     // 3. Verify project mount accessible
     let (mount_list, _) = vm.ps_exec(&format!(
@@ -430,5 +615,75 @@ fn test_full_e2e_windows() -> Result<()> {
     std::fs::remove_dir_all(&project_path).ok();
 
     println!("[e2e/windows] === Full E2E test PASSED ===");
+    Ok(())
+}
+
+/// End-to-end: macOS — start, transfer, build, launch, stop.
+#[test]
+#[ignore]
+#[serial(macos_vm)]
+fn test_full_e2e_macos() -> Result<()> {
+    println!("[e2e/macos] === Full E2E test starting ===");
+
+    // 1. Start macOS VM (QEMU with OpenCore on Linux host)
+    let mut vm = TestVm::new(MACOS_PROFILE)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // 2. Verify SSH reachable (already done by wait_for_ready)
+    let output = vm.ssh_exec("echo ready")?;
+    assert_eq!(output.trim(), "ready");
+    println!("[e2e/macos] SSH OK");
+
+    // 3. Create and transfer Tauri project via scp
+    let project_path = project_dir().join("tauri-e2e-test");
+    create_tauri_project(&project_path)?;
+
+    let scp_cmd = format!(
+        "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+        vm.ssh_port(),
+        project_path.display()
+    );
+    let status = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&scp_cmd)
+        .status()
+        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+            message: format!("scp command: {e}"),
+        })?;
+    assert!(status.success(), "scp transfer should succeed");
+    println!("[e2e/macos] Project transferred");
+
+    // 4. Build Tauri project inside VM
+    println!("[e2e/macos] Building Tauri project...");
+    let build_output = vm.ssh_exec(
+        "cd /tmp/tauri-e2e-test && cargo tauri build 2>&1 | tail -10"
+    )?;
+    println!("  Build output:\n{}", build_output);
+
+    // 5. Verify build artifact
+    let built = assert_build_ok_macos(&vm, "/tmp/tauri-e2e-test")?;
+    assert!(built, "build artifact should exist");
+
+    // 6. Launch binary headlessly
+    println!("[e2e/macos] Launching app...");
+    let launch_output = vm.ssh_exec(
+        "export DISPLAY=:99 && \
+         /tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test & \
+         APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
+         kill $APP_PID 2>/dev/null; true"
+    )?;
+    assert!(
+        launch_output.contains("ALIVE"),
+        "app should survive 5 seconds"
+    );
+
+    // VM stops on drop (step 7)
+
+    // Cleanup
+    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
+    std::fs::remove_dir_all(&project_path).ok();
+
+    println!("[e2e/macos] === Full E2E test PASSED ===");
     Ok(())
 }

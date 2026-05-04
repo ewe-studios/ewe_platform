@@ -181,7 +181,8 @@ pub fn command() -> Command {
                 .arg(clap::Arg::new("notes").long("notes").help("Release notes"))
                 .arg(clap::Arg::new("include-bootstrap").long("include-bootstrap").action(clap::ArgAction::SetTrue))
                 .arg(clap::Arg::new("clean").long("clean").action(clap::ArgAction::SetTrue))
-                .arg(clap::Arg::new("shrink").long("shrink").action(clap::ArgAction::SetTrue)),
+                .arg(clap::Arg::new("shrink").long("shrink").action(clap::ArgAction::SetTrue))
+                .arg(clap::Arg::new("compress").long("compress").default_value("none").help("Post-factum compression: none (default), gzip, xz")),
         )
 }
 

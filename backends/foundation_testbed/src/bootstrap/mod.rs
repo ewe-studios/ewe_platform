@@ -6,6 +6,9 @@
 //!
 //! After bootstrap, nushell is the default execution shell.
 
+use std::thread;
+use std::time::Duration;
+
 use crate::config::{GuestOs, Result, VmProfile};
 
 use crate::ssh::VmSession;
@@ -61,8 +64,12 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
 
 /// Bootstrap a VM with development tools.
 ///
-/// This is the main entry point. It delegates to OS-specific bootstrap
-/// modules and verifies the result.
+/// For Windows, this handles the two-phase flow automatically:
+/// 1. WinRM phase — installs OpenSSH, configures keys/autologin
+/// 2. Waits for SSH to become available
+/// 3. SSH phase — installs mise, build tools, runtimes
+///
+/// For Linux/macOS, runs SSH-only bootstrap directly.
 pub fn bootstrap(profile: &VmProfile, session: &mut VmSession) -> Result<()> {
     if is_bootstrapped(profile) {
         return Ok(()); // Skip — already bootstrapped
@@ -71,7 +78,33 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession) -> Result<()> {
     match profile.os {
         GuestOs::Windows => {
             let winrm = WinRM::from_profile(profile)?;
-            windows::bootstrap_windows(profile, &winrm, session)?;
+
+            // Phase 1: WinRM-only (installs OpenSSH)
+            if !is_bootstrapped(profile) {
+                windows::bootstrap_windows_winrm_phase(profile, &winrm)?;
+            }
+
+            // Wait for SSH to come up (sshd was just installed/started)
+            thread::sleep(Duration::from_secs(10));
+            let deadline = std::time::Instant::now() + Duration::from_secs(120);
+            loop {
+                if std::time::Instant::now() > deadline {
+                    return Err(crate::config::TestbedError::BootstrapFailed {
+                        step: "wait for SSH".to_string(),
+                        message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
+                    });
+                }
+                if crate::ssh::connect(profile).is_ok() {
+                    break;
+                }
+                thread::sleep(Duration::from_secs(5));
+            }
+
+            // Reconnect session for SSH phase
+            *session = crate::ssh::connect(profile)?;
+
+            // Phase 2: SSH-required (installs dev tools)
+            windows::bootstrap_windows_ssh_phase(profile, &winrm, session)?;
         }
         GuestOs::Linux => {
             linux::bootstrap_linux(profile, session)?;
