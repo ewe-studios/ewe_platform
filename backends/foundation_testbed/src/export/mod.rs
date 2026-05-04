@@ -171,13 +171,15 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     }
 
     // Print import instructions
+    let env_key = format!("TESTBED_IMAGE_{}", name.to_uppercase().replace('-', "_"));
     println!("\nExport complete: {}", output_name.display());
     if let Some(ref store_name) = opts.store {
         println!("  Also uploaded to store: {store_name}");
         println!("  Import: add [[image_stores]] entry for '{store_name}' in testbed.toml, then:");
         println!("    ewe_platform testbed import {name}");
     } else {
-        println!("  Import: ewe_platform testbed adopt {name} --disk {}", output_name.display());
+        println!("  Import (env override): export {env_key}={}", output_name.display());
+        println!("  Import (adopt): ewe_platform testbed adopt {name} --disk {}", output_name.display());
     }
 
     Ok(output_name)

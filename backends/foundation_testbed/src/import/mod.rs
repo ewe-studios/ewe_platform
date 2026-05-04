@@ -18,17 +18,16 @@ const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 /// Known compressed image extensions we can auto-decompress.
 const COMPRESSED_EXTENSIONS: &[&str] = &["qcow2.gz", "qcow2.xz"];
 
-/// Ensure the image for a profile is available in the cache.
+/// Resolve the image path for a profile.
 ///
-/// If the image already exists, returns the cached path. Otherwise
-/// downloads it from the profile's `prebaked_url`, image stores, or
-/// falls back to native creation (IPSW for macOS, Vagrant for others).
-/// Handles both direct qcow2 downloads and vagrant box extraction.
-/// For macOS profiles, tries image store tarballs first, then falls
-/// back to native IPSW → BaseSystem → qcow2 creation.
+/// Priority:
+/// 1. `TESTBED_IMAGE_{PROFILE}` env var (e.g. `TESTBED_IMAGE_WINDOWS_BUILD=/path/to/image.qcow2`)
+/// 2. Cached image in `~/.cache/foundation_testbed/images/`
+/// 3. Image stores (testbed.toml `[[image_stores]]`) — download if available
+/// 4. Download from profile `prebaked_url` or Vagrant Cloud
 ///
-/// Also supports compressed qcow2 archives (.qcow2.gz, .qcow2.xz) —
-/// these are automatically decompressed on first use.
+/// The environment variable must point to a valid file (qcow2 or compressed
+/// qcow2). It is used as-is — no download, no extraction, no copy.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     // macOS uses a different layout (directory with BaseSystem.qcow2 + opencore.qcow2 + data disk)
     // Try image stores / prebaked tarball first, then fall back to native IPSW creation.
@@ -36,21 +35,53 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         return ensure_macos_from_store_or_fallback(profile);
     }
 
+    // 1. Check environment variable override
+    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    if let Ok(image_path) = std::env::var(&env_key) {
+        let path = PathBuf::from(&image_path);
+        if !path.exists() {
+            return Err(TestbedError::DownloadFailed {
+                status: 0,
+                url: format!("TESTBED_IMAGE_{} points to non-existent file: {}", env_key, image_path),
+            });
+        }
+        let meta = std::fs::metadata(&path).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("stat {}: {e}", path.display()),
+        })?;
+        if meta.len() < MIN_IMAGE_SIZE {
+            return Err(TestbedError::Qcow2Error {
+                message: format!("image at {} too small ({} bytes) — likely corrupted", path.display(), meta.len()),
+            });
+        }
+        // If it's a compressed archive, decompress to cache first
+        if is_compressed_qcow2(&path) {
+            println!("  Decompressing {} from override path...", path.extension().unwrap_or_default().to_str().unwrap_or("unknown"));
+            let dest = profile.image_cache_path();
+            crate::export::decompress(&path, &dest)?;
+            return Ok(dest);
+        }
+        println!("  Using image from override ({}): {}", env_key, path.display());
+        return Ok(path);
+    }
+
     let dest = profile.image_cache_path();
 
-    // Already cached (check for compressed variants too)
+    // 2. Already cached (check for compressed variants too)
     if let Some(cached) = find_cached_image(&dest) {
         return crate::export::ensure_decompressed(&cached);
     }
 
-    // Determine source URL
+    // 3. Check image stores for a pre-baked image
+    if let Some(store_path) = try_download_from_store(profile, &dest)? {
+        return Ok(store_path);
+    }
+
+    // 4. Download from profile prebaked_url or Vagrant Cloud
     let url = resolve_image_url(profile)?;
 
-    // Download to a temp location first (in case it's a vagrant box)
     let temp_dest = dest.with_extension("downloading");
     download::download(&url, &temp_dest)?;
 
-    // Check if it's a compressed qcow2 archive
     if is_compressed_qcow2(&temp_dest) {
         println!("  Decompressing {} archive...", temp_dest.extension().unwrap_or_default().to_str().unwrap_or("unknown"));
         crate::export::decompress(&temp_dest, &dest)?;
@@ -64,10 +95,69 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         })?;
     }
 
-    // Validate size
     validate_image(&dest)?;
 
     Ok(dest)
+}
+
+/// Try to download a profile image from configured image stores.
+///
+/// Checks each store for `{profile_name}.qcow2` (and compressed variants).
+/// Returns `Some(path)` if downloaded successfully, `None` if no store
+/// has the image, or errors if download fails.
+fn try_download_from_store(profile: &VmProfile, dest: &Path) -> Result<Option<PathBuf>> {
+    let stores = crate::config::load_image_stores();
+    if stores.is_empty() {
+        return Ok(None);
+    }
+
+    let filename = format!("{}.qcow2", profile.name);
+
+    for store in &stores {
+        let Some(url) = store_download_url_direct(store, &filename) else { continue };
+        let url_path = Path::new(&url);
+
+        // For local stores, just check if the file exists
+        if url_path.exists() {
+            println!("  Found image in local store '{}': {}", store.name, url);
+            std::fs::copy(url_path, dest).map_err(|e| TestbedError::Qcow2Error {
+                message: format!("copying from local store: {e}"),
+            })?;
+            return Ok(Some(dest.to_path_buf()));
+        }
+
+        // For HTTP stores, try to download
+        if url.starts_with("http://") || url.starts_with("https://") {
+            println!("  Trying store '{}' → {}...", store.name, url);
+            let temp_dest = dest.with_extension("downloading");
+            if download::download(&url, &temp_dest).is_ok() {
+                std::fs::rename(&temp_dest, dest).ok();
+                if validate_image(dest).is_ok() {
+                    return Ok(Some(dest.to_path_buf()));
+                }
+            }
+            let _ = std::fs::remove_file(&temp_dest);
+        }
+    }
+
+    Ok(None)
+}
+
+/// Build a direct download URL for a store + filename.
+/// Only works for Http and Local store types.
+fn store_download_url_direct(store: &crate::config::ImageStore, filename: &str) -> Option<String> {
+    match store.store_type {
+        crate::config::StoreType::Http => {
+            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
+        }
+        crate::config::StoreType::Local => {
+            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
+        }
+        crate::config::StoreType::R2 | crate::config::StoreType::S3 => {
+            // Cloud stores require rclone/aws CLI — not supported for simple download
+            None
+        }
+    }
 }
 
 /// Find a cached image, checking for compressed variants.
@@ -111,6 +201,12 @@ pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
 
 /// Check if a profile's image is already cached.
 pub fn is_cached(profile: &VmProfile) -> bool {
+    // Check env var override first
+    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    if let Ok(path) = std::env::var(&env_key) {
+        return PathBuf::from(&path).exists();
+    }
+
     if profile.name.starts_with("macos") {
         let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
         macos_dir.join("BaseSystem.qcow2").exists()
@@ -127,6 +223,12 @@ pub fn is_cached(profile: &VmProfile) -> bool {
 
 /// Remove a cached image for a profile.
 pub fn evict(profile: &VmProfile) -> Result<()> {
+    // Don't evict env-var override images — the file is user-managed
+    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    if std::env::var(&env_key).is_ok() {
+        return Ok(());
+    }
+
     if profile.name.starts_with("macos") {
         let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
         if macos_dir.exists() {
@@ -163,6 +265,15 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
 
 /// Get the size of a cached image.
 pub fn cached_size(profile: &VmProfile) -> Result<u64> {
+    // Check env var override first
+    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    if let Ok(path) = std::env::var(&env_key) {
+        let meta = std::fs::metadata(&path).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("stat {path}: {e}"),
+        })?;
+        return Ok(meta.len());
+    }
+
     let dest = profile.image_cache_path();
     let metadata = std::fs::metadata(&dest).map_err(|e| TestbedError::Qcow2Error {
         message: format!("stat {dest:?}: {e}"),
