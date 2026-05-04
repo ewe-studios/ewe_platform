@@ -321,8 +321,23 @@ fn install_mise(session: &mut VmSession) -> Result<()> {
     let script = r#"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 iwr -useb https://mise.run | iex
-$env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
-[Environment]::SetEnvironmentVariable('PATH', "$env:USERPROFILE\.local\bin;$env:PATH", 'User')
+
+$miseDir = "$env:USERPROFILE\.local\bin"
+
+# Set User-level PATH
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+if ($userPath -notmatch [regex]::Escape($miseDir)) {
+    [Environment]::SetEnvironmentVariable('PATH', "$miseDir;$userPath", 'User')
+}
+
+# Also set Machine-level PATH so OpenSSH sessions always see it
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+if ($machinePath -notmatch [regex]::Escape($miseDir)) {
+    [Environment]::SetEnvironmentVariable('PATH', "$miseDir;$machinePath", 'Machine')
+}
+
+# Update current session PATH
+$env:PATH = "$miseDir;$env:PATH"
 "#;
     crate::ssh::exec(session, script)?;
     Ok(())
@@ -346,11 +361,17 @@ $zip = "$env:TEMP\cargo-binstall.zip"
 Invoke-WebRequest -Uri 'https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-pc-windows-msvc.zip' -OutFile $zip -UseBasicParsing
 Expand-Archive -Force $zip $dest
 Remove-Item $zip -Force -ErrorAction SilentlyContinue
-# Ensure ~/.cargo/bin is on PATH for future sessions
-$path = [Environment]::GetEnvironmentVariable('PATH','User')
-if ($path -notmatch [regex]::Escape($dest)) {
-    [Environment]::SetEnvironmentVariable('PATH', $dest + ';' + $path, 'User')
+
+# Set both User and Machine PATH for OpenSSH session visibility
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+if ($userPath -notmatch [regex]::Escape($dest)) {
+    [Environment]::SetEnvironmentVariable('PATH', $dest + ';' + $userPath, 'User')
 }
+if ($machinePath -notmatch [regex]::Escape($dest)) {
+    [Environment]::SetEnvironmentVariable('PATH', $dest + ';' + $machinePath, 'Machine')
+}
+$env:PATH = $dest + ';' + $env:PATH
 "#;
     crate::ssh::exec(session, script)?;
     Ok(())
@@ -541,10 +562,20 @@ fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
     let script = r#"
 $nu_path = (Get-Command nu -ErrorAction SilentlyContinue).Source
 if ($nu_path) {
+    # AutoRun makes nu start for every cmd session (including SSH)
     $reg_path = 'HKCU:\Software\Microsoft\Command Processor'
     if (-not (Test-Path $reg_path)) { New-Item -Path $reg_path -Force }
-    # AutoRun makes nu start for every cmd session (including SSH)
     Set-ItemProperty -Path $reg_path -Name 'AutoRun' -Value "nu" -Force
+
+    # Also set PSProfile to auto-start nu for PowerShell sessions
+    $psProfile = "$env:USERPROFILE\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+    $psDir = Split-Path $psProfile
+    if (-not (Test-Path $psDir)) { New-Item -ItemType Directory -Path $psDir -Force }
+    # Only write if it doesn't already have the mise PATH injection
+    $content = Get-Content $psProfile -ErrorAction SilentlyContinue
+    if ($content -notmatch 'mise.*PATH') {
+        Add-Content $psProfile "`n`$env:PATH = `"$env:USERPROFILE\.local\bin;$env:PATH`"" -Encoding UTF8
+    }
 }
 "#;
     crate::ssh::exec(session, script)?;
