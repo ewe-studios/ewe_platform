@@ -247,63 +247,6 @@ pub fn ensure_image(profile_name: &str) -> Result<PathBuf> {
     foundation_testbed::import::ensure_image(&profile)
 }
 
-/// Create a minimal Tauri project at the given directory.
-/// No network access required — all files are written inline.
-pub fn create_tauri_project(dir: &Path) -> Result<()> {
-    use foundation_testbed::config::TestbedError;
-    let io_err = |msg: &str| -> TestbedError { TestbedError::Qcow2Error { message: msg.to_string() } };
-
-    std::fs::create_dir_all(dir.join("src")).map_err(|e| io_err(&format!("creating src: {e}")))?;
-    std::fs::create_dir_all(dir.join("dist")).map_err(|e| io_err(&format!("creating dist: {e}")))?;
-
-    std::fs::write(dir.join("Cargo.toml"), r#"[package]
-name = "tauri-e2e-test"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-tauri = "2"
-
-[build-dependencies]
-tauri-build = "2"
-"#).map_err(|e| io_err(&format!("writing Cargo.toml: {e}")))?;
-
-    std::fs::write(dir.join("build.rs"), "fn main() { tauri_build::build() }")
-        .map_err(|e| io_err(&format!("writing build.rs: {e}")))?;
-
-    std::fs::write(dir.join("src/main.rs"), r#"#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-fn main() {
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("failed to run tauri app");
-}
-"#).map_err(|e| io_err(&format!("writing main.rs: {e}")))?;
-
-    std::fs::write(dir.join("tauri.conf.json"), r#"{
-  "productName": "tauri-e2e-test",
-  "version": "0.1.0",
-  "identifier": "com.testbed.e2e",
-  "build": {
-    "frontendDist": "../dist"
-  },
-  "app": {
-    "withGlobalTauri": false
-  },
-  "bundle": {}
-}
-"#).map_err(|e| io_err(&format!("writing tauri.conf.json: {e}")))?;
-
-    std::fs::write(dir.join("dist/index.html"), r#"<!DOCTYPE html>
-<html>
-<head><title>E2E Test</title></head>
-<body><h1>Tauri E2E Test App</h1></body>
-</html>
-"#).map_err(|e| io_err(&format!("writing index.html: {e}")))?;
-
-    Ok(())
-}
-
 /// Assert that a build completed successfully (exit code 0, artifact exists).
 pub fn assert_build_ok_linux(vm: &TestVm, project_path: &str) -> Result<bool> {
     let output = vm.ssh_exec(&format!(

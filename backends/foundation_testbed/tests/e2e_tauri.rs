@@ -1,13 +1,16 @@
 //! Tauri E2E integration tests.
 //!
 //! These tests exercise the full VM lifecycle:
-//! 1. Launch a VM (Linux or Windows guest)
+//! 1. Launch a VM (Linux, Windows, or macOS guest)
 //! 2. Verify SSH/WinRM connectivity
-//! 3. Create a minimal Tauri project on the mounted filesystem
-//! 4. Build the Tauri app inside the VM
-//! 5. Launch the resulting binary headlessly
-//! 6. Verify the app runs without crashing
-//! 7. Stop the VM cleanly
+//! 3. Build the example Tauri app (`examples/testbed/tauri-app/`) inside the VM
+//! 4. Launch the resulting binary headlessly
+//! 5. Verify the app runs without crashing
+//! 6. Stop the VM cleanly
+//!
+//! The example Tauri project lives in `examples/testbed/tauri-app/` and is
+//! excluded from the workspace so it can be built independently inside VMs.
+//! It ships with `mise.toml`, `build.sh`, and `build.ps1` for in-guest builds.
 //!
 //! All tests are marked `#[ignore]` because they require:
 //! - A running KVM hypervisor
@@ -22,7 +25,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows, assert_build_ok_macos,
-             assert_elf_binary, assert_pe_binary, assert_macho_binary, create_tauri_project};
+             assert_elf_binary, assert_pe_binary, assert_macho_binary};
 use foundation_testbed::config::Result;
 use serial_test::serial;
 
@@ -36,9 +39,20 @@ const WINDOWS_MOUNT: &str = "C:\\Users\\vagrant\\project";
 const MACOS_MOUNT: &str = "/Volumes/project";
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(300); // 5 min
 
+/// Path to the example Tauri app relative to the workspace root.
+const TAURI_APP: &str = "examples/testbed/tauri-app";
+
 fn project_dir() -> PathBuf {
     std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
 }
+
+/// Return the absolute path to the example Tauri app on the host.
+fn tauri_app_host_path() -> PathBuf {
+    project_dir().join(TAURI_APP)
+}
+
+/// Path to the example Tauri app inside the guest, relative to the mount point.
+const TAURI_APP_GUEST: &str = "tauri-app";
 
 // ── 10.3 VM Lifecycle Tests ──────────────────────────────────────────────────
 
@@ -50,12 +64,10 @@ fn test_vm_lifecycle_linux() -> Result<()> {
     let mut vm = TestVm::new(LINUX_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Verify connectivity
     let output = vm.ssh_exec("echo hello")?;
     assert_eq!(output.trim(), "hello");
 
     println!("[lifecycle/linux] VM started, SSH responding, stopping...");
-    // VM stops on drop
     Ok(())
 }
 
@@ -67,7 +79,6 @@ fn test_vm_lifecycle_windows() -> Result<()> {
     let mut vm = TestVm::new(WINDOWS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Verify connectivity
     let output = vm.ssh_exec("echo hello")?;
     assert_eq!(output.trim(), "hello");
 
@@ -85,60 +96,39 @@ fn test_project_mount_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Verify mount is accessible
     let output = vm.ssh_exec(&format!("ls {LINUX_MOUNT}"))?;
     assert!(
         !output.trim().is_empty(),
         "mount directory should contain files"
     );
 
-    // Round-trip: create a file in the mount, verify on host
-    let test_file = format!("{LINUX_MOUNT}/.mount-test-{pid}", pid = std::process::id());
-    vm.ssh_exec(&format!("touch {test_file}"))?;
-    let exists = vm.ssh_exec(&format!("test -f {test_file} && echo YES || echo NO"))?;
-    assert_eq!(exists.trim(), "YES");
+    // Verify the example Tauri app is visible through the mount
+    let output = vm.ssh_exec(&format!("test -d {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo FOUND || echo MISSING"))?;
+    assert_eq!(output.trim(), "FOUND", "example Tauri app should be visible in mount");
 
-    // Verify on host side
-    let host_path = project_dir().join(format!(".mount-test-{}", std::process::id()));
-    assert!(host_path.exists(), "file created in mount should be visible on host");
-    std::fs::remove_file(host_path).ok(); // cleanup
-
-    // Clean up guest side too
-    vm.ssh_exec(&format!("rm -f {test_file}")).ok();
-
-    println!("[mount/linux] Project mount verified, round-trip OK");
+    println!("[mount/linux] Project mount verified, example app visible");
     Ok(())
 }
 
 /// Verifies the host directory is accessible inside a Windows VM.
-///
-/// Note: virtio-win drivers (viofs.inf) are now auto-installed during bootstrap
-/// (feature 11). Full 9p mount via Plan 9 redirector still needs Windows-side
-/// setup — this test verifies the project directory exists (created by Vagrant
-/// bootstrap) as a placeholder until full 9p is wired up.
 #[test]
 #[ignore]
 #[serial(windows_vm)]
 fn test_project_mount_windows() -> Result<()> {
-    // TODO: Enable once virtio-win 9p drivers are installed in the Windows image.
-    // Windows doesn't support 9p/virtio-fs out of the box like Linux does.
-    // Alternative: use SMB share or WinSCP-based file transfer.
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Verify the default mount path exists (directory is created by vagrant bootstrap)
-    // TODO: Once Plan 9 redirector service is configured on Windows, replace this
-    // with a true 9p mount round-trip test (like the Linux variant).
+    // Verify the mount directory and example Tauri app are visible
     let (output, exit) = vm.ps_exec(&format!(
-        "if (Test-Path '{WINDOWS_MOUNT}') {{ 'EXISTS' }} else {{ 'MISSING' }}"
+        "if (Test-Path '{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}"
     ))?;
     assert_eq!(exit, 0, "path check should succeed");
     assert!(
-        output.contains("EXISTS"),
-        "mount directory should exist (note: 9p mount not yet supported on Windows)"
+        output.contains("FOUND"),
+        "example Tauri app should be visible through project mount"
     );
 
-    println!("[mount/windows] VM started (9p mount not yet supported on Windows)");
+    println!("[mount/windows] Project mount verified, example app visible");
     Ok(())
 }
 
@@ -152,32 +142,23 @@ fn test_tauri_build_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create Tauri project in the mounted directory
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[build/linux] Building Tauri project in VM...");
+    println!("[build/linux] Building Tauri app in VM...");
     let build_cmd = format!(
-        "cd {LINUX_MOUNT}/tauri-e2e-test && \
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
          export DISPLAY=:99 && \
          cargo tauri build 2>&1 | tail -20"
     );
     let output = vm.ssh_exec(&build_cmd)?;
     println!("  Build output:\n{}", output);
 
-    // Verify artifact exists
-    let artifact_on_host = project_path
+    let artifact_on_host = tauri_app_host_path()
         .join("target/x86_64-unknown-linux-gnu/release/tauri-e2e-test");
 
-    let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/tauri-e2e-test"))?;
+    let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "Tauri build artifact should exist");
 
-    // Verify it's a valid ELF binary
     let is_elf = assert_elf_binary(&artifact_on_host)?;
     assert!(is_elf, "build artifact should be a valid ELF binary");
-
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
 
     println!("[build/linux] Build OK, ELF binary verified");
     Ok(())
@@ -192,30 +173,21 @@ fn test_tauri_build_windows() -> Result<()> {
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
     vm.bootstrap()?;
 
-    // Create Tauri project in the mounted directory
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[build/windows] Building Tauri project in VM...");
+    println!("[build/windows] Building Tauri app in VM...");
     let build_cmd = format!(
-        "cd {WINDOWS_MOUNT}\\tauri-e2e-test && cargo tauri build 2>&1"
+        "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1"
     );
     let (output, _) = vm.ps_exec(&build_cmd)?;
     println!("  Build output:\n{}", output);
 
-    // Verify artifact exists
-    let artifact_on_host = project_path
+    let artifact_on_host = tauri_app_host_path()
         .join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
 
-    let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\tauri-e2e-test"))?;
+    let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"))?;
     assert!(built, "Tauri build artifact should exist");
 
-    // Verify it's a valid PE binary (MZ header)
     let is_pe = assert_pe_binary(&artifact_on_host)?;
     assert!(is_pe, "build artifact should be a valid PE (.exe) binary");
-
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
 
     println!("[build/windows] Build OK, PE binary verified");
     Ok(())
@@ -231,21 +203,16 @@ fn test_headless_app_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create and build the Tauri project
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[headless/linux] Building Tauri project...");
+    println!("[headless/linux] Building Tauri app...");
     let build_output = vm.ssh_exec(&format!(
-        "cd {LINUX_MOUNT}/tauri-e2e-test && cargo tauri build 2>&1 | tail -5"
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && cargo tauri build 2>&1 | tail -5"
     ))?;
     println!("  Build output:\n{}", build_output);
 
-    // Launch the app on Xvfb display :99
     println!("[headless/linux] Launching app on Xvfb :99...");
     let launch_script = format!(
         "export DISPLAY=:99 && \
-         {LINUX_MOUNT}/tauri-e2e-test/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
+         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true"
     );
@@ -254,9 +221,6 @@ fn test_headless_app_linux() -> Result<()> {
         output.contains("ALIVE"),
         "Tauri app should be alive after 5 seconds. Output: {output}"
     );
-
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
 
     println!("[headless/linux] App launched and survived 5s");
     Ok(())
@@ -270,20 +234,15 @@ fn test_headless_app_windows() -> Result<()> {
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create and build the Tauri project
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[headless/windows] Building Tauri project...");
+    println!("[headless/windows] Building Tauri app...");
     let build_cmd = format!(
-        "cd {WINDOWS_MOUNT}\\tauri-e2e-test && cargo tauri build 2>&1 | Select-Object -Last 5"
+        "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1 | Select-Object -Last 5"
     );
     let (build_output, _) = vm.ps_exec(&build_cmd)?;
     println!("  Build output:\n{}", build_output);
 
-    // Launch the app hidden
     let binary_path = format!(
-        "{WINDOWS_MOUNT}\\tauri-e2e-test\\target\\x86_64-pc-windows-msvc\\release\\tauri-e2e-test.exe"
+        "{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\target\\x86_64-pc-windows-msvc\\release\\tauri-e2e-test.exe"
     );
     println!("[headless/windows] Launching app hidden...");
     let launch_script = format!(
@@ -299,9 +258,6 @@ fn test_headless_app_windows() -> Result<()> {
         "Tauri app should be alive after 5 seconds. Output: {output}"
     );
 
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
-
     println!("[headless/windows] App launched and survived 5s");
     Ok(())
 }
@@ -316,7 +272,6 @@ fn test_vm_lifecycle_macos() -> Result<()> {
     let mut vm = TestVm::new(MACOS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Verify connectivity
     let output = vm.ssh_exec("echo hello")?;
     assert_eq!(output.trim(), "hello");
 
@@ -325,9 +280,6 @@ fn test_vm_lifecycle_macos() -> Result<()> {
 }
 
 /// Verifies the host directory is accessible inside a macOS VM.
-///
-/// Note: macOS doesn't support 9p/virtio-fs natively like Linux does.
-/// Uses SSH-based file transfer (scp) for project files.
 #[test]
 #[ignore]
 #[serial(macos_vm)]
@@ -335,24 +287,13 @@ fn test_project_mount_macos() -> Result<()> {
     let mut vm = TestVm::new(MACOS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create a test file on host, transfer to guest via scp, verify
-    let test_file = format!(".mount-test-{}", std::process::id());
-    let host_path = project_dir().join(&test_file);
-    std::fs::write(&host_path, "mount-test").map_err(|e| {
-        foundation_testbed::config::TestbedError::Qcow2Error {
-            message: format!("writing test file: {e}"),
-        }
-    })?;
-
-    // Transfer to guest via scp
-    let guest_path = format!("/tmp/{test_file}");
+    // Transfer the example Tauri app to guest via scp
+    let project_path = tauri_app_host_path();
     let scp_cmd = format!(
-        "scp -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-         {} {}@127.0.0.1:{}",
+        "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         {} vagrant@127.0.0.1:/tmp/tauri-app",
         vm.ssh_port(),
-        host_path.display(),
-        "vagrant",
-        guest_path
+        project_path.display()
     );
     let status = std::process::Command::new("sh")
         .arg("-c")
@@ -363,13 +304,12 @@ fn test_project_mount_macos() -> Result<()> {
         })?;
     assert!(status.success(), "scp transfer should succeed");
 
-    // Verify file arrived
-    let output = vm.ssh_exec(&format!("cat {guest_path}"))?;
-    assert_eq!(output.trim(), "mount-test");
+    // Verify files arrived
+    let output = vm.ssh_exec("test -f /tmp/tauri-app/Cargo.toml && echo FOUND || echo MISSING")?;
+    assert_eq!(output.trim(), "FOUND");
 
     // Cleanup
-    vm.ssh_exec(&format!("rm -f {guest_path}")).ok();
-    std::fs::remove_file(&host_path).ok();
+    vm.ssh_exec("rm -rf /tmp/tauri-app").ok();
 
     println!("[mount/macos] Project round-trip via SCP OK");
     Ok(())
@@ -383,14 +323,11 @@ fn test_tauri_build_macos() -> Result<()> {
     let mut vm = TestVm::new(MACOS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create Tauri project on host
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    // Transfer project to guest via scp
+    // Transfer example Tauri app to guest via scp
+    let project_path = tauri_app_host_path();
     let scp_cmd = format!(
         "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+         {} vagrant@127.0.0.1:/tmp/tauri-app",
         vm.ssh_port(),
         project_path.display()
     );
@@ -403,15 +340,14 @@ fn test_tauri_build_macos() -> Result<()> {
         })?;
     assert!(status.success(), "scp transfer should succeed");
 
-    println!("[build/macos] Building Tauri project in VM...");
-    let build_cmd = "cd /tmp/tauri-e2e-test && \
+    println!("[build/macos] Building Tauri app in VM...");
+    let build_cmd = "cd /tmp/tauri-app && \
          export DISPLAY=:99 && \
          cargo tauri build 2>&1 | tail -20";
     let output = vm.ssh_exec(build_cmd)?;
     println!("  Build output:\n{}", output);
 
-    // Verify artifact exists inside VM
-    let built = assert_build_ok_macos(&vm, "/tmp/tauri-e2e-test")?;
+    let built = assert_build_ok_macos(&vm, "/tmp/tauri-app")?;
     assert!(built, "Tauri build artifact should exist");
 
     // Pull artifact back to host for validation
@@ -419,22 +355,20 @@ fn test_tauri_build_macos() -> Result<()> {
     std::fs::create_dir_all(host_artifact.parent().unwrap()).ok();
     let pull_cmd = format!(
         "scp -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-         vagrant@127.0.0.1:/tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test \
+         vagrant@127.0.0.1:/tmp/tauri-app/target/x86_64-apple-darwin/release/tauri-e2e-test \
          {}",
         vm.ssh_port(),
         host_artifact.display()
     );
     let _ = std::process::Command::new("sh").arg("-c").arg(&pull_cmd).status();
 
-    // Verify it's a valid Mach-O binary (if pulled back)
     if host_artifact.exists() {
         let is_macho = assert_macho_binary(&host_artifact)?;
         assert!(is_macho, "build artifact should be a valid Mach-O binary");
     }
 
     // Cleanup
-    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
-    std::fs::remove_dir_all(&project_path).ok();
+    vm.ssh_exec("rm -rf /tmp/tauri-app").ok();
 
     println!("[build/macos] Build OK, Mach-O binary verified");
     Ok(())
@@ -448,29 +382,25 @@ fn test_headless_app_macos() -> Result<()> {
     let mut vm = TestVm::new(MACOS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // Create and build the Tauri project
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    // Transfer to guest
+    // Transfer example Tauri app to guest
+    let project_path = tauri_app_host_path();
     let scp_cmd = format!(
         "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+         {} vagrant@127.0.0.1:/tmp/tauri-app",
         vm.ssh_port(),
         project_path.display()
     );
     let _ = std::process::Command::new("sh").arg("-c").arg(&scp_cmd).status();
 
-    println!("[headless/macos] Building Tauri project...");
+    println!("[headless/macos] Building Tauri app...");
     let build_output = vm.ssh_exec(
-        "cd /tmp/tauri-e2e-test && cargo tauri build 2>&1 | tail -5"
+        "cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -5"
     )?;
     println!("  Build output:\n{}", build_output);
 
-    // Launch the app
     println!("[headless/macos] Launching app...");
     let launch_script = "export DISPLAY=:99 && \
-         /tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test & \
+         /tmp/tauri-app/target/x86_64-apple-darwin/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true";
     let output = vm.ssh_exec(launch_script)?;
@@ -480,8 +410,7 @@ fn test_headless_app_macos() -> Result<()> {
     );
 
     // Cleanup
-    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
-    std::fs::remove_dir_all(&project_path).ok();
+    vm.ssh_exec("rm -rf /tmp/tauri-app").ok();
 
     println!("[headless/macos] App launched and survived 5s");
     Ok(())
@@ -496,13 +425,9 @@ fn test_headless_app_macos() -> Result<()> {
 fn test_full_e2e_linux() -> Result<()> {
     println!("[e2e/linux] === Full E2E test starting ===");
 
-    // 1. Start Linux VM
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // 2. Verify SSH reachable (already done by wait_for_ready)
-
-    // 3. Verify /mnt/project mount accessible
     let mount_list = vm.ssh_exec(&format!("ls {LINUX_MOUNT} | head -5"))?;
     assert!(
         !mount_list.trim().is_empty(),
@@ -510,29 +435,23 @@ fn test_full_e2e_linux() -> Result<()> {
     );
     println!("[e2e/linux] Mount OK: {}", mount_list.trim());
 
-    // 4. Create and build Tauri project
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[e2e/linux] Building Tauri project...");
+    println!("[e2e/linux] Building Tauri app...");
     let build_output = vm.ssh_exec(&format!(
-        "cd {LINUX_MOUNT}/tauri-e2e-test && cargo tauri build 2>&1 | tail -10"
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && cargo tauri build 2>&1 | tail -10"
     ))?;
     println!("  Build output:\n{}", build_output);
 
-    // 5. Verify build artifact
-    let artifact_on_host = project_path
+    let artifact_on_host = tauri_app_host_path()
         .join("target/x86_64-unknown-linux-gnu/release/tauri-e2e-test");
-    let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/tauri-e2e-test"))?;
+    let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "build artifact should exist");
     let is_elf = assert_elf_binary(&artifact_on_host)?;
     assert!(is_elf, "artifact should be ELF binary");
 
-    // 6. Launch binary headlessly
     println!("[e2e/linux] Launching app on Xvfb :99...");
     let launch_output = vm.ssh_exec(&format!(
         "export DISPLAY=:99 && \
-         {LINUX_MOUNT}/tauri-e2e-test/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
+         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true"
     ))?;
@@ -540,11 +459,6 @@ fn test_full_e2e_linux() -> Result<()> {
         launch_output.contains("ALIVE"),
         "app should survive 5 seconds"
     );
-
-    // VM stops on drop (step 7)
-
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
 
     println!("[e2e/linux] === Full E2E test PASSED ===");
     Ok(())
@@ -557,14 +471,11 @@ fn test_full_e2e_linux() -> Result<()> {
 fn test_full_e2e_windows() -> Result<()> {
     println!("[e2e/windows] === Full E2E test starting ===");
 
-    // 1. Start Windows VM (set HEADFUL=1 for visible VNC window)
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // 2. Bootstrap: installs OpenSSH (via WinRM), then dev tools (via SSH)
     vm.bootstrap()?;
 
-    // 3. Verify project mount accessible
     let (mount_list, _) = vm.ps_exec(&format!(
         "Get-ChildItem -Path '{WINDOWS_MOUNT}' -Name | Select-Object -First 5"
     ))?;
@@ -574,27 +485,21 @@ fn test_full_e2e_windows() -> Result<()> {
     );
     println!("[e2e/windows] Mount OK: {}", mount_list.trim());
 
-    // 4. Create and build Tauri project
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
-    println!("[e2e/windows] Building Tauri project...");
+    println!("[e2e/windows] Building Tauri app...");
     let (build_output, _) = vm.ps_exec(&format!(
-        "cd {WINDOWS_MOUNT}\\tauri-e2e-test; cargo tauri build 2>&1 | Select-Object -Last 10"
+        "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST}; cargo tauri build 2>&1 | Select-Object -Last 10"
     ))?;
     println!("  Build output:\n{}", build_output);
 
-    // 5. Verify build artifact
-    let artifact_on_host = project_path
+    let artifact_on_host = tauri_app_host_path()
         .join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
-    let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\tauri-e2e-test"))?;
+    let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"))?;
     assert!(built, "build artifact should exist");
     let is_pe = assert_pe_binary(&artifact_on_host)?;
     assert!(is_pe, "artifact should be PE (.exe) binary");
 
-    // 6. Launch binary headlessly
     let binary_path = format!(
-        "{WINDOWS_MOUNT}\\tauri-e2e-test\\target\\x86_64-pc-windows-msvc\\release\\tauri-e2e-test.exe"
+        "{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\target\\x86_64-pc-windows-msvc\\release\\tauri-e2e-test.exe"
     );
     println!("[e2e/windows] Launching app hidden...");
     let (launch_output, _) = vm.ps_exec(&format!(
@@ -609,11 +514,6 @@ fn test_full_e2e_windows() -> Result<()> {
         "app should survive 5 seconds"
     );
 
-    // VM stops on drop (step 7)
-
-    // Cleanup
-    std::fs::remove_dir_all(&project_path).ok();
-
     println!("[e2e/windows] === Full E2E test PASSED ===");
     Ok(())
 }
@@ -625,22 +525,18 @@ fn test_full_e2e_windows() -> Result<()> {
 fn test_full_e2e_macos() -> Result<()> {
     println!("[e2e/macos] === Full E2E test starting ===");
 
-    // 1. Start macOS VM (QEMU with OpenCore on Linux host)
     let mut vm = TestVm::new(MACOS_PROFILE)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
-    // 2. Verify SSH reachable (already done by wait_for_ready)
     let output = vm.ssh_exec("echo ready")?;
     assert_eq!(output.trim(), "ready");
     println!("[e2e/macos] SSH OK");
 
-    // 3. Create and transfer Tauri project via scp
-    let project_path = project_dir().join("tauri-e2e-test");
-    create_tauri_project(&project_path)?;
-
+    // Transfer example Tauri app
+    let project_path = tauri_app_host_path();
     let scp_cmd = format!(
         "scp -r -P {} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-         {} vagrant@127.0.0.1:/tmp/tauri-e2e-test",
+         {} vagrant@127.0.0.1:/tmp/tauri-app",
         vm.ssh_port(),
         project_path.display()
     );
@@ -652,24 +548,21 @@ fn test_full_e2e_macos() -> Result<()> {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");
-    println!("[e2e/macos] Project transferred");
+    println!("[e2e/macos] App transferred");
 
-    // 4. Build Tauri project inside VM
-    println!("[e2e/macos] Building Tauri project...");
+    println!("[e2e/macos] Building Tauri app...");
     let build_output = vm.ssh_exec(
-        "cd /tmp/tauri-e2e-test && cargo tauri build 2>&1 | tail -10"
+        "cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -10"
     )?;
     println!("  Build output:\n{}", build_output);
 
-    // 5. Verify build artifact
-    let built = assert_build_ok_macos(&vm, "/tmp/tauri-e2e-test")?;
+    let built = assert_build_ok_macos(&vm, "/tmp/tauri-app")?;
     assert!(built, "build artifact should exist");
 
-    // 6. Launch binary headlessly
     println!("[e2e/macos] Launching app...");
     let launch_output = vm.ssh_exec(
         "export DISPLAY=:99 && \
-         /tmp/tauri-e2e-test/target/x86_64-apple-darwin/release/tauri-e2e-test & \
+         /tmp/tauri-app/target/x86_64-apple-darwin/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true"
     )?;
@@ -678,11 +571,7 @@ fn test_full_e2e_macos() -> Result<()> {
         "app should survive 5 seconds"
     );
 
-    // VM stops on drop (step 7)
-
-    // Cleanup
-    vm.ssh_exec("rm -rf /tmp/tauri-e2e-test").ok();
-    std::fs::remove_dir_all(&project_path).ok();
+    vm.ssh_exec("rm -rf /tmp/tauri-app").ok();
 
     println!("[e2e/macos] === Full E2E test PASSED ===");
     Ok(())
