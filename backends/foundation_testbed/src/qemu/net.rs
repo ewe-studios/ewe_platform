@@ -12,17 +12,8 @@ use super::ResolvedPorts;
 pub fn allocate_ports(profile: &VmProfile) -> Result<ResolvedPorts> {
     let ssh_port = allocate_port(profile.ssh_port)?;
 
-    let winrm_port = if profile.winrm_port.is_some() {
-        Some(allocate_port(profile.winrm_port.unwrap())?)
-    } else {
-        None
-    };
-
-    let rdp_port = if profile.rdp_port.is_some() {
-        Some(allocate_port(profile.rdp_port.unwrap())?)
-    } else {
-        None
-    };
+    let winrm_port = profile.winrm_port.map(allocate_port).transpose()?;
+    let rdp_port = profile.rdp_port.map(allocate_port).transpose()?;
 
     // VNC port is 5900 + offset. The profile's vnc_port IS the actual port number.
     let vnc_port = allocate_port(profile.vnc_port)?;

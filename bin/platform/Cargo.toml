@@ -71,7 +71,7 @@ toml = { version = "0.8" }
 regex = { version = "1.10" }
 
 # -- testbed
-foundation_testbed = { workspace = true }
+foundation_testbed = { workspace = true, features = ["cli"] }
 
 [features]
 debug_trace = ["ewe_trace/debug_trace"]

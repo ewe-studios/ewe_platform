@@ -13,11 +13,13 @@ use crate::winrm::WinRM;
 
 pub mod boot_wait;
 pub mod linux;
+pub mod macos;
 pub mod windows;
 
 /// Marker files that indicate a VM has been bootstrapped.
 const WINDOWS_MARKER: &str = "C:\\Users\\vagrant\\.testbed-bootstrapped";
 const LINUX_MARKER: &str = "/home/vagrant/.testbed-bootstrapped";
+const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 
 /// Check if a profile's VM has already been bootstrapped.
 pub fn is_bootstrapped(profile: &VmProfile) -> bool {
@@ -44,6 +46,16 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
             }
             false
         }
+        GuestOs::MacOS => {
+            // Check via SSH if the marker file exists
+            if let Ok(mut session) = crate::ssh::connect(profile) {
+                let result = crate::ssh::exec(&mut session, &format!("[ -f {MACOS_MARKER} ] && echo YES || echo NO"));
+                if let Ok(output) = result {
+                    return output.trim() == "YES";
+                }
+            }
+            false
+        }
     }
 }
 
@@ -64,6 +76,9 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession) -> Result<()> {
         GuestOs::Linux => {
             linux::bootstrap_linux(profile, session)?;
         }
+        GuestOs::MacOS => {
+            bootstrap_macos(profile, session)?;
+        }
     }
 
     // Verify bootstrap succeeded
@@ -75,6 +90,11 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Bootstrap a macOS VM with development tools via SSH.
+fn bootstrap_macos(profile: &crate::config::VmProfile, session: &mut VmSession) -> Result<()> {
+    macos::bootstrap_macos(profile, session)
 }
 
 /// The bootstrap mise.toml content (Tier 1).

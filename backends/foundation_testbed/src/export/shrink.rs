@@ -15,7 +15,7 @@ use crate::ssh::VmSession;
 /// then the VM should be stopped before calling `compress_qcow2`.
 pub fn shrink_disk(session: &mut VmSession, os: GuestOs) -> Result<()> {
     match os {
-        GuestOs::Linux => linux_shrink(session)?,
+        GuestOs::Linux | GuestOs::MacOS => linux_shrink(session)?,
         GuestOs::Windows => windows_shrink(session)?,
     }
     Ok(())

@@ -37,8 +37,8 @@ pub const DEFAULT_TAG: &str = "project";
 /// Generate the mount command to run inside the guest.
 pub fn guest_mount_command(tag: &str, guest_path: &str) -> String {
     format!(
-        "mkdir -p {guest_path} && \
-         mount -t 9p -o trans=virtio,version=9p2000.L {tag} {guest_path}"
+        "sudo mkdir -p {guest_path} && \
+         sudo mount -t 9p -o trans=virtio,version=9p2000.L {tag} {guest_path}"
     )
 }
 
@@ -76,8 +76,8 @@ mod tests {
     #[test]
     fn test_guest_mount_command() {
         let cmd = guest_mount_command("project", "/mnt/project");
-        assert!(cmd.contains("mkdir -p /mnt/project"));
-        assert!(cmd.contains("mount -t 9p"));
+        assert!(cmd.contains("sudo mkdir -p /mnt/project"));
+        assert!(cmd.contains("sudo mount -t 9p"));
     }
 
     #[test]

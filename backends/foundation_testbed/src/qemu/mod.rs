@@ -24,8 +24,8 @@ use crate::config::{ensure_dirs, monitor_dir, DisplayMode, GuestOs, Result, Test
 /// Owns the child process and the monitor socket. When dropped, the VM
 /// continues running — call [`QemuVm::shutdown`] for graceful cleanup.
 pub struct QemuVm {
-    /// The QEMU child process.
-    process: Child,
+    /// The QEMU child process (None if adopted from existing state).
+    process: Option<Child>,
     /// Monitor socket for QEMU commands (savevm, loadvm, system_powerdown).
     monitor: UnixStream,
     /// The profile this VM was launched with.
@@ -54,6 +54,7 @@ pub struct QemuConfig {
     display_mode: DisplayMode,
     extra_args: Vec<String>,
     project_mount: Option<std::path::PathBuf>,
+    cdrom_path: Option<std::path::PathBuf>,
 }
 
 impl QemuConfig {
@@ -63,6 +64,7 @@ impl QemuConfig {
             display_mode,
             extra_args: Vec::new(),
             project_mount: None,
+            cdrom_path: None,
         }
     }
 
@@ -75,6 +77,14 @@ impl QemuConfig {
     /// Set the host project directory to mount into the guest via 9p.
     pub fn with_project_mount(mut self, host_path: std::path::PathBuf) -> Self {
         self.project_mount = Some(host_path);
+        self
+    }
+
+    /// Attach an ISO as a CD-ROM drive in the guest.
+    ///
+    /// Used for Windows guests to attach the virtio-win driver ISO.
+    pub fn with_cdrom(mut self, path: std::path::PathBuf) -> Self {
+        self.cdrom_path = Some(path);
         self
     }
 
@@ -101,9 +111,30 @@ impl QemuConfig {
         // Build disk path
         let disk_path = self.profile.image_cache_path();
 
+        // For Windows guests, attach virtio-win ISO if available (for driver installation)
+        let config = if self.profile.os == GuestOs::Windows {
+            if let Ok(iso_path) = crate::import::ensure_virtio_iso() {
+                self.with_cdrom(iso_path)
+            } else {
+                self
+            }
+        } else {
+            self
+        };
+
+        // For macOS guests, ensure the full image set exists (BaseSystem + OpenCore + data disk)
+        let (macos_boot_disk, macos_efi_disk) = if config.profile.os == GuestOs::MacOS {
+            let boot = crate::import::macos::ensure_macos_image(config.profile.name)?;
+            let base_dir = boot.parent().unwrap().to_path_buf();
+            let efi = base_dir.join(crate::import::macos::OPENCORE_EFI_FILENAME);
+            (Some(boot), Some(efi))
+        } else {
+            (None, None)
+        };
+
         // Build command
         let mut cmd = Command::new(&qemu_bin);
-        let (display_args, has_native_window) = if self.display_mode == DisplayMode::Headful {
+        let (display_args, has_native_window) = if config.display_mode == DisplayMode::Headful {
             let backend = display::detect_backend();
             let vnc_offset = (resolved.vnc_port - 5900) as u32;
             let args = backend.qemu_args(vnc_offset);
@@ -113,16 +144,19 @@ impl QemuConfig {
             let vnc_offset = (resolved.vnc_port - 5900) as u32;
             (display::DisplayBackend::Vnc.qemu_args(vnc_offset), false)
         };
+        let actual_disk = macos_boot_disk.as_ref().unwrap_or(&disk_path);
         cmd.args(build_qemu_args(
-            &self.profile,
-            &disk_path,
+            &config.profile,
+            actual_disk,
             &resolved,
             &monitor_path,
             display_args,
             has_native_window,
-            self.project_mount.as_deref(),
+            config.project_mount.as_deref(),
+            config.cdrom_path.as_deref(),
+            macos_efi_disk.as_deref(),
         ));
-        cmd.args(&self.extra_args);
+        cmd.args(&config.extra_args);
 
         // Detach stdio so the child doesn't inherit the terminal's stdin
         cmd.stdin(Stdio::null());
@@ -159,8 +193,7 @@ impl QemuConfig {
         let pid = process.id();
 
         // Auto-launch external viewer for headful VNC mode
-        // (Spice/Gtk have native windows, no separate viewer needed)
-        if self.display_mode == DisplayMode::Headful && !has_native_window {
+        if config.display_mode == DisplayMode::Headful && !has_native_window {
             if let Some(name) = display::launch_viewer(display::DisplayBackend::Vnc, resolved.vnc_port) {
                 eprintln!("  Viewer: {name} on 127.0.0.1:{}", resolved.vnc_port);
             } else {
@@ -169,9 +202,9 @@ impl QemuConfig {
         }
 
         Ok(QemuVm {
-            process,
+            process: Some(process),
             monitor,
-            profile: self.profile,
+            profile: config.profile,
             disk_path,
             pid,
             resolved_ports: resolved,
@@ -180,9 +213,40 @@ impl QemuConfig {
 }
 
 impl QemuVm {
+    /// Attach to an already-running QEMU process via its monitor socket.
+    ///
+    /// Used by CLI commands (snapshot, stop) that need to communicate with
+    /// a VM that was started in a previous process.
+    pub fn adopt_running(
+        profile: VmProfile,
+        disk_path: std::path::PathBuf,
+        pid: u32,
+        monitor_path: &std::path::Path,
+        resolved_ports: ResolvedPorts,
+    ) -> Result<Self> {
+        let monitor = UnixStream::connect(monitor_path).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("connecting to monitor socket {monitor_path:?}: {e}"),
+        })?;
+        monitor.set_nonblocking(true).ok();
+
+        Ok(QemuVm {
+            process: None, // We don't own this process
+            monitor,
+            profile,
+            disk_path,
+            pid,
+            resolved_ports,
+        })
+    }
+
     /// Check if the QEMU process is still running.
     pub fn is_running(&mut self) -> bool {
-        matches!(self.process.try_wait(), Ok(None))
+        if let Some(ref mut child) = self.process {
+            matches!(child.try_wait(), Ok(None))
+        } else {
+            // Adopted VM — check via /proc
+            std::path::Path::new(&format!("/proc/{}", self.pid)).exists()
+        }
     }
 
     /// Get the PID of the QEMU process.
@@ -211,11 +275,24 @@ impl QemuVm {
             }
         }
 
-        // Hard kill
-        self.process.kill().map_err(|e| TestbedError::Qcow2Error {
-            message: format!("failed to kill QEMU process: {e}"),
-        })?;
-        self.process.wait().ok();
+        // Hard kill (only if we own the process)
+        if let Some(ref mut child) = self.process {
+            let _ = child.kill();
+        } else {
+            // Adopted VM — send SIGTERM via libc
+            unsafe { libc::kill(self.pid as i32, libc::SIGTERM) };
+            // Wait briefly
+            for _ in 0..30 {
+                thread::sleep(Duration::from_millis(500));
+                if !std::path::Path::new(&format!("/proc/{}", self.pid)).exists() {
+                    return Ok(());
+                }
+            }
+            unsafe { libc::kill(self.pid as i32, libc::SIGKILL) };
+        }
+        if let Some(ref mut child) = self.process {
+            child.wait().ok();
+        }
 
         // Clean up monitor socket
         let monitor_path = monitor_dir().join(format!("{}.monitor", self.profile.name));
@@ -279,8 +356,12 @@ impl QemuVm {
     }
 
     /// Wait for the process to exit, returning the exit code.
-    pub fn wait(mut self) -> Result<Option<i32>> {
-        let status = self.process.wait().map_err(|e| TestbedError::Qcow2Error {
+    /// Only works for VMs we launched (not adopted ones).
+    pub fn wait(self) -> Result<Option<i32>> {
+        let Some(mut child) = self.process else {
+            return Ok(None); // Adopted VM — no child to wait on
+        };
+        let status = child.wait().map_err(|e| TestbedError::Qcow2Error {
             message: format!("waiting for QEMU process: {e}"),
         })?;
         Ok(status.code())
@@ -323,6 +404,8 @@ pub fn adopt(
         profile_name: profile.name.to_string(),
         disk_path: dest.to_string_lossy().to_string(),
         pid: None,
+        provider_id: crate::providers::ProviderId::Qemu,
+        provider_internal_id: String::new(),
         monitor_socket: String::new(),
         ssh_port: profile.ssh_port,
         winrm_port: profile.winrm_port,
@@ -347,8 +430,8 @@ pub fn refresh_network(
     display_mode: DisplayMode,
 ) -> Result<QemuVm> {
     // Stop if running
-    if let Ok(state) = crate::state::load(profile.name) {
-        if let Some(pid) = state.pid {
+    if let Ok(state) = crate::state::load(profile.name)
+        && let Some(pid) = state.pid {
             // Check if process is still alive via /proc
             let alive = std::path::Path::new(&format!("/proc/{pid}")).exists();
             if alive {
@@ -366,7 +449,6 @@ pub fn refresh_network(
                 }
             }
         }
-    }
 
     // Relaunch with fresh ports
     let vm = QemuConfig::new(profile.clone(), display_mode).launch()?;
@@ -376,6 +458,8 @@ pub fn refresh_network(
         profile_name: profile.name.to_string(),
         disk_path: vm.disk_path.to_string_lossy().to_string(),
         pid: Some(vm.pid),
+        provider_id: crate::providers::ProviderId::Qemu,
+        provider_internal_id: vm.pid.to_string(),
         monitor_socket: String::new(),
         ssh_port: vm.resolved_ports.ssh_port,
         winrm_port: vm.resolved_ports.winrm_port,
@@ -399,6 +483,8 @@ fn build_qemu_args(
     display_args: Vec<String>,
     _has_native_window: bool,
     project_mount: Option<&std::path::Path>,
+    cdrom_path: Option<&std::path::Path>,
+    macos_efi_disk: Option<&std::path::Path>,
 ) -> Vec<String> {
     let mut args = Vec::new();
 
@@ -414,8 +500,15 @@ fn build_qemu_args(
     args.push(profile.cpu_cores.to_string());
 
     // CPU model
-    args.push("-cpu".to_string());
-    args.push("host".to_string());
+    if profile.os == GuestOs::MacOS {
+        args.push("-cpu".to_string());
+        args.push("Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on".to_string());
+        args.push("-machine".to_string());
+        args.push("q35".to_string());
+    } else {
+        args.push("-cpu".to_string());
+        args.push("host".to_string());
+    }
 
     // UEFI/OVMF firmware for Windows (required for boot)
     if profile.os == GuestOs::Windows {
@@ -429,12 +522,79 @@ fn build_qemu_args(
         args.push(format!("file={},if=pflash,format=raw", vars_path.display()));
     }
 
+    // macOS-specific devices (SMC, USB, SATA, audio)
+    if profile.os == GuestOs::MacOS {
+        // Apple SMC (System Management Controller)
+        args.push("-device".to_string());
+        args.push("isa-applesmc,osk=\"ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc\"".to_string());
+
+        // USB controller + keyboard + tablet (XHCI, not legacy USB)
+        args.push("-device".to_string());
+        args.push("qemu-xhci".to_string());
+        args.push("-device".to_string());
+        args.push("usb-kbd".to_string());
+        args.push("-device".to_string());
+        args.push("usb-tablet".to_string());
+
+        // SATA controller (macOS boots from AHCI, not virtio)
+        args.push("-device".to_string());
+        args.push("ich9-ahci,id=sata".to_string());
+
+        // Audio
+        args.push("-device".to_string());
+        args.push("ich9-intel-hda".to_string());
+        args.push("-device".to_string());
+        args.push("hda-output".to_string());
+    }
+
     // Disk
-    args.push("-drive".to_string());
-    args.push(format!(
-        "file={},format=qcow2,if=virtio",
-        disk_path.display()
-    ));
+    if profile.os == GuestOs::MacOS {
+        // OpenCore EFI disk (first SATA device, acts as bootloader)
+        if let Some(efi_disk) = macos_efi_disk {
+            args.push("-drive".to_string());
+            args.push(format!(
+                "file={},format=qcow2,if=none,id=OpenCore",
+                efi_disk.display()
+            ));
+            args.push("-device".to_string());
+            args.push("ide-hd,bus=sata.1,drive=OpenCore".to_string());
+        }
+
+        // BaseSystem / boot disk (second SATA device)
+        args.push("-drive".to_string());
+        args.push(format!(
+            "file={},format=qcow2,if=none,id=macOS",
+            disk_path.display()
+        ));
+        args.push("-device".to_string());
+        args.push("ide-hd,bus=sata.2,drive=macOS".to_string());
+
+        // Data disk (third SATA device — user space, resizable)
+        if let Some(data_dir) = disk_path.parent() {
+            let data_disk = data_dir.join("macOS-data.qcow2");
+            if data_disk.exists() {
+                args.push("-drive".to_string());
+                args.push(format!(
+                    "file={},format=qcow2,if=none,id=MacData",
+                    data_disk.display()
+                ));
+                args.push("-device".to_string());
+                args.push("ide-hd,bus=sata.3,drive=MacData".to_string());
+            }
+        }
+    } else {
+        args.push("-drive".to_string());
+        args.push(format!(
+            "file={},format=qcow2,if=virtio",
+            disk_path.display()
+        ));
+    }
+
+    // CD-ROM (optional — used for virtio-win ISO on Windows guests)
+    if let Some(cdrom) = cdrom_path {
+        args.push("-drive".to_string());
+        args.push(format!("file={},media=cdrom", cdrom.display()));
+    }
 
     // Project mount via 9p (if configured)
     if let Some(host_path) = project_mount {
@@ -455,14 +615,18 @@ fn build_qemu_args(
     args.push("-device".to_string());
     args.push("virtio-net-pci,netdev=net".to_string());
 
-    // GPU
-    args.push("-vga".to_string());
-    args.push("std".to_string());
+    // GPU (macOS uses whatever's attached to the SATA bus; std VGA conflicts)
+    if profile.os != GuestOs::MacOS {
+        args.push("-vga".to_string());
+        args.push("std".to_string());
+    }
 
-    // USB tablet (fixes mouse tracking in VNC viewers)
-    args.push("-usb".to_string());
-    args.push("-device".to_string());
-    args.push("usb-tablet".to_string());
+    // USB tablet (fixes mouse tracking in VNC viewers) — not for macOS (uses qemu-xhci above)
+    if profile.os != GuestOs::MacOS {
+        args.push("-usb".to_string());
+        args.push("-device".to_string());
+        args.push("usb-tablet".to_string());
+    }
 
     // Monitor
     args.push("-monitor".to_string());
@@ -485,7 +649,7 @@ fn kvm_available() -> bool {
     let path = std::path::Path::new("/dev/kvm");
     path.exists()
         && std::fs::metadata(path)
-            .map(|m| m.permissions().readonly() == false) // best-effort check
+            .map(|m| !m.permissions().readonly()) // best-effort check
             .unwrap_or(false)
 }
 
@@ -529,7 +693,7 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, None, None);
 
         assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
         assert!(args.iter().any(|a| a.contains("12288"))); // RAM
@@ -552,7 +716,7 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, None, None);
 
         assert!(args.iter().any(|a| a.contains("vnc=:2")));
         assert!(args.iter().any(|a| a.contains("usb-tablet")));
@@ -572,11 +736,31 @@ mod tests {
         let display_args = display::DisplayBackend::Vnc.qemu_args(2);
         let project_mount = std::path::PathBuf::from("/home/user/project");
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount));
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), None, None);
 
         assert!(args.iter().any(|a| a.contains("-virtfs")));
         assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
         assert!(args.iter().any(|a| a.contains("mount_tag=project")));
+    }
+
+    #[test]
+    fn test_build_qemu_args_with_cdrom() {
+        let profile = get_profile("windows-build").unwrap();
+        let ports = ResolvedPorts {
+            ssh_port: 2222,
+            winrm_port: Some(5985),
+            rdp_port: Some(3389),
+            vnc_port: 5900,
+        };
+        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
+        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
+        let display_args = display::DisplayBackend::Vnc.qemu_args(0);
+        let cdrom = std::path::PathBuf::from("/tmp/virtio-win.iso");
+
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, Some(&cdrom), None);
+
+        assert!(args.iter().any(|a| a.contains("media=cdrom")));
+        assert!(args.iter().any(|a| a.contains("/tmp/virtio-win.iso")));
     }
 
     #[test]

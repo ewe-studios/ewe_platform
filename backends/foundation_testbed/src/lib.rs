@@ -31,6 +31,8 @@
 //! - **init** — Project scaffolding (testbed init, scripts, .gitignore)
 //! - **host_bootstrap** — Host prerequisites (mise, nushell, pitchfork)
 
+#![allow(clippy::too_many_arguments)]
+
 pub mod artifacts;
 pub mod bootstrap;
 pub mod build;
@@ -40,8 +42,12 @@ pub mod export;
 pub mod host_bootstrap;
 pub mod import;
 pub mod init;
+pub mod providers;
 pub mod qemu;
 pub mod runner;
 pub mod ssh;
 pub mod state;
 pub mod winrm;
+
+#[cfg(feature = "cli")]
+pub mod cli;

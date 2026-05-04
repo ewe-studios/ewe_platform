@@ -52,7 +52,7 @@ fn push_dir(session: &mut VmSession, dir: &Path, _remote: &str) -> Result<()> {
 
     // Upload and extract on VM
     crate::ssh::upload(session, &tar_path, "/tmp/push.tar.gz")?;
-    crate::ssh::exec(session, &format!("cd ~ && tar xzf /tmp/push.tar.gz"))?;
+    crate::ssh::exec(session, "cd ~ && tar xzf /tmp/push.tar.gz")?;
 
     // Clean up
     let _ = std::fs::remove_file(&tar_path);

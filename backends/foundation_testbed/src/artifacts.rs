@@ -29,6 +29,7 @@ pub fn mirror_artifacts(
     let platform_dir = match os {
         GuestOs::Windows => artifacts_dir.join("windows"),
         GuestOs::Linux => artifacts_dir.join("linux"),
+        GuestOs::MacOS => artifacts_dir.join("macos"),
     };
 
     let _ = std::fs::remove_dir_all(&platform_dir); // remove old symlink
@@ -84,7 +85,7 @@ fn scan_artifacts(dir: &Path, os: GuestOs) -> Result<Vec<PathBuf>> {
                     artifacts.push(path);
                 }
             }
-            GuestOs::Linux => {
+            GuestOs::Linux | GuestOs::MacOS => {
                 let has_no_ext = path.extension().is_none();
                 let is_so = name_str.ends_with(".so");
                 if has_no_ext || is_so {

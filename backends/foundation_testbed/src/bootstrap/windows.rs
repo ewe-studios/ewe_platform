@@ -29,6 +29,11 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         set_local_account_token_filter(winrm)
     })?;
 
+    // Step 3b: Configure autologin (Winlogon registry keys)
+    step("configure autologin", || {
+        set_autologin(winrm)
+    })?;
+
     // Give SSH time to reconfigure after changes
     thread::sleep(std::time::Duration::from_secs(5));
 
@@ -50,6 +55,11 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     // Step 7: VS Build Tools with C++ workload
     step("install VS Build Tools", || {
         install_vs_build_tools(session, winrm)
+    })?;
+
+    // Step 7b: Install virtio drivers from CD-ROM (virtio-win ISO)
+    step("install virtio drivers", || {
+        install_virtio_drivers(session, winrm)
     })?;
 
     // Step 8: WebView2 Runtime
@@ -145,12 +155,11 @@ fn setup_ssh_keys(_profile: &VmProfile, session: &mut VmSession, _winrm: &WinRM)
 
     for key_name in key_names {
         let path = home.join(".ssh").join(key_name);
-        if path.exists() {
-            if let Ok(key) = std::fs::read_to_string(&path) {
+        if path.exists()
+            && let Ok(key) = std::fs::read_to_string(&path) {
                 pub_key = key.trim().to_string();
                 break;
             }
-        }
     }
 
     if pub_key.is_empty() {
@@ -190,6 +199,31 @@ fn set_local_account_token_filter(winrm: &WinRM) -> Result<()> {
 $reg_path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
 if (-not (Test-Path $reg_path)) { New-Item -Path $reg_path -Force }
 Set-ItemProperty -Path $reg_path -Name 'LocalAccountTokenFilterPolicy' -Value 1 -Type DWord -Force
+"#;
+    elevated::run_elevated(winrm, script, 30)?;
+    Ok(())
+}
+
+/// Configure Windows autologin via Winlogon registry keys.
+///
+/// Sets AutoAdminLogon=1, DefaultUsername, and DefaultPassword so the VM
+/// logs in automatically after boot, enabling SSH access without manual
+/// VNC login.
+fn set_autologin(winrm: &WinRM) -> Result<()> {
+    // Check if already configured
+    let check = winrm.run_ps(
+        "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' -Name AutoAdminLogon -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoAdminLogon",
+    )?;
+    if check.stdout.trim() == "1" {
+        return Ok(());
+    }
+
+    let script = r#"
+$regPath = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+Set-ItemProperty -Path $regPath -Name AutoAdminLogon -Value '1' -Force
+Set-ItemProperty -Path $regPath -Name DefaultUsername -Value 'vagrant' -Force
+Set-ItemProperty -Path $regPath -Name DefaultPassword -Value 'vagrant' -Force
+Remove-ItemProperty -Path $regPath -Name AutoLogonCount -ErrorAction SilentlyContinue
 "#;
     elevated::run_elevated(winrm, script, 30)?;
     Ok(())
@@ -318,6 +352,62 @@ Add-MpPreference -ExclusionPath "C:\Users\vagrant\.rustup" -ErrorAction Silently
 Add-MpPreference -ExclusionPath "C:\Users\vagrant\.local" -ErrorAction SilentlyContinue
 "#;
     crate::ssh::exec_ps_windows(session, script)?;
+    Ok(())
+}
+
+/// Install virtio-win drivers from the CD-ROM ISO.
+///
+/// The ISO must be attached as a CD-ROM drive to QEMU before launching.
+/// Drivers are installed via `pnputil` which stages them in the driver
+/// store and makes them available for the virtual hardware.
+///
+/// Idempotent: skips if virtio drivers are already installed.
+fn install_virtio_drivers(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    // Check if virtio drivers are already installed
+    let check = winrm.run_ps(
+        r#"$devices = Get-PnpDevice -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' -or $_.FriendlyName -like '*Red Hat*' }; if ($null -ne $devices -and $devices.Count -gt 0) { 'installed' } else { 'missing' }"#
+    )?;
+    if check.stdout.trim() == "installed" {
+        return Ok(());
+    }
+
+    // Find CD-ROM with virtio label and install all drivers
+    let script = r#"
+$cd = (Get-Volume | Where-Object { $_.FileSystemLabel -like 'virtio*' }).DriveLetter
+if (-not $cd) {
+    # Fallback: try to find any CD-ROM with virtio files
+    $cds = Get-CimInstance Win32_CDROMDrive | ForEach-Object { $_.Drive }
+    foreach ($d in $cds) {
+        if (Test-Path "${d}:\w11\amd64") {
+            $cd = $d
+            break
+        }
+    }
+}
+if (-not $cd) { throw "virtio-win CD-ROM not found — attach virtio-win.iso as CD-ROM" }
+
+# Install all drivers from w11/amd64
+$driverDir = "${cd}:\w11\amd64"
+if (-not (Test-Path $driverDir)) {
+    # Try recursive search for w11/amd64
+    $found = Get-ChildItem -Path "${cd}:\" -Recurse -Directory -Filter "amd64" | Where-Object { $_.Parent.Name -eq 'w11' } | Select-Object -First 1
+    if ($found) { $driverDir = $found.FullName }
+    else { throw "w11\amd64 not found on virtio-win CD-ROM" }
+}
+
+$installed = 0
+$failed = 0
+Get-ChildItem -Path $driverDir -Filter "*.inf" -Recurse | ForEach-Object {
+    $result = pnputil -a $_.FullName 2>&1
+    if ($LASTEXITCODE -eq 0 -or ($result -join ' ') -match 'successfully') {
+        $installed++
+    } else {
+        $failed++
+    }
+}
+Write-Output "virtio drivers: $installed installed, $failed failed"
+"#;
+    elevated::run_elevated(winrm, script, 300)?;
     Ok(())
 }
 

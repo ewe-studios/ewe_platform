@@ -93,10 +93,7 @@ fn ensure_mise() -> Result<ToolStatus> {
 /// Check nushell on PATH and version. Install via mise if missing.
 fn ensure_nushell(mise_status: &ToolStatus) -> Result<ToolStatus> {
     // Check if nu is on PATH
-    match check_tool_present("nu") {
-        Ok(version) => return Ok(ToolStatus::AlreadyPresent { version }),
-        Err(_) => {}
-    }
+    if let Ok(version) = check_tool_present("nu") { return Ok(ToolStatus::AlreadyPresent { version }) }
 
     if !mise_status.is_available() {
         return Ok(ToolStatus::Missing {
@@ -114,10 +111,7 @@ fn ensure_nushell(mise_status: &ToolStatus) -> Result<ToolStatus> {
 
 /// Check pitchfork on PATH. Install via mise if missing.
 fn ensure_pitchfork(mise_status: &ToolStatus) -> Result<ToolStatus> {
-    match check_tool_present("pitchfork") {
-        Ok(version) => return Ok(ToolStatus::AlreadyPresent { version }),
-        Err(_) => {}
-    }
+    if let Ok(version) = check_tool_present("pitchfork") { return Ok(ToolStatus::AlreadyPresent { version }) }
 
     if !mise_status.is_available() {
         return Ok(ToolStatus::Missing {

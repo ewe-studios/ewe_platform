@@ -50,14 +50,13 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         let sentinel_result = winrm.run_ps(
             r#"if (Test-Path 'C:\bootstrap-step-done.txt') { 'DONE' } else { 'PENDING' }"#,
         );
-        if let Ok(result) = sentinel_result {
-            if result.stdout.trim() == "DONE" {
+        if let Ok(result) = sentinel_result
+            && result.stdout.trim() == "DONE" {
                 // Clean up
                 cleanup_task(winrm, task_name).ok();
                 cleanup_script(winrm).ok();
                 return Ok(true);
             }
-        }
 
         // Fallback: check task state
         let task_state = winrm.run_ps(&format!(
@@ -70,13 +69,12 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 let exit_result = winrm.run_ps(
                     r#"$log = Get-WinEvent -LogName 'Microsoft-Windows-TaskScheduler/Operational' -MaxEvents 100 | Where-Object {{ $_.Id -eq 201 }} | Select-Object -First 1; if ($log) {{ 'COMPLETE' }} else {{ 'UNKNOWN' }}"#,
                 );
-                if let Ok(exit) = exit_result {
-                    if exit.stdout.trim() == "COMPLETE" {
+                if let Ok(exit) = exit_result
+                    && exit.stdout.trim() == "COMPLETE" {
                         cleanup_task(winrm, task_name).ok();
                         cleanup_script(winrm).ok();
                         return Ok(true);
                     }
-                }
             }
         }
     }

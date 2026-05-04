@@ -2,7 +2,7 @@
 //!
 //! Connects via the forwarded port (e.g. 2222 → guest :22).
 //! Authentication falls back through: SSH agent → key files → password.
-//! Commands are executed via `nu -c "..."` after bootstrap.
+//! Commands are executed via `bash -c` (Linux) or `cmd /c` (Windows).
 //!
 //! # SIGHUP / pty safety
 //!
@@ -96,15 +96,26 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
         let ssh_dir = home.join(".ssh");
         for key_name in &key_names {
             let key_path = ssh_dir.join(key_name);
-            if key_path.exists() {
-                if session
+            if key_path.exists()
+                && session
                     .userauth_pubkey_file(user, None, &key_path, None)
                     .is_ok()
                 {
                     return Ok(());
                 }
-            }
         }
+    }
+
+    // 2b. Vagrant insecure key (for Vagrant-sourced VM images)
+    if let Some(config_dir) = dirs::config_dir() {
+        let vagrant_key = config_dir.join("foundation_testbed/vagrant_insecure_key");
+        if vagrant_key.exists()
+            && session
+                .userauth_pubkey_file(user, None, &vagrant_key, None)
+                .is_ok()
+            {
+                return Ok(());
+            }
     }
 
     // 3. Password (not available without profile — skip)
@@ -113,8 +124,7 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
 
 /// Execute a command on the guest and return stdout.
 ///
-/// Commands are wrapped in `nu -c "..."` for nushell consistency.
-/// Before bootstrap, falls back to `bash -c` (Linux) or `cmd /c` (Windows).
+/// Commands are wrapped in `bash -c` (Linux) or `cmd /c` (Windows).
 pub fn exec(session: &mut VmSession, cmd: &str) -> Result<String> {
     let (output, _code) = exec_with_exit(session, cmd)?;
     Ok(output)
@@ -122,9 +132,9 @@ pub fn exec(session: &mut VmSession, cmd: &str) -> Result<String> {
 
 /// Execute a command and return (stdout, exit_code).
 ///
-/// Uses nushell (`nu -c`) for cross-platform consistency.
+/// Uses `bash -c` (Linux) or `cmd /c` (Windows) for guest command execution.
 pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32)> {
-    let wrapped = wrap_command(cmd);
+    let wrapped = wrap_command(cmd, session.os);
     let mut channel = session
         .session
         .channel_session()
@@ -321,11 +331,13 @@ pub fn shell(profile: &VmProfile) -> Result<()> {
 
 /// Wrap a command in the appropriate shell invocation.
 ///
-/// After bootstrap: `nu -c "..."` (nushell).
-/// Before bootstrap: `bash -c` (Linux) or `cmd /c` (Windows).
-fn wrap_command(cmd: &str) -> String {
-    // Try nushell first (post-bootstrap)
-    format!("nu -c {cmd:?}")
+/// Linux: `bash -c "..."`
+/// Windows: `cmd /c "..."`
+fn wrap_command(cmd: &str, os: GuestOs) -> String {
+    match os {
+        GuestOs::Linux | GuestOs::MacOS => wrap_command_bash(cmd),
+        GuestOs::Windows => wrap_command_cmd(cmd),
+    }
 }
 
 /// For Windows guests that haven't been bootstrapped yet, use cmd.
@@ -343,10 +355,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_wrap_command_nushell() {
-        let wrapped = wrap_command("echo hello");
-        assert!(wrapped.starts_with("nu -c"));
-        assert!(wrapped.contains("echo hello"));
+    fn test_wrap_command_linux() {
+        let wrapped = wrap_command("echo hello", GuestOs::Linux);
+        assert!(wrapped.starts_with("bash -c"));
+    }
+
+    #[test]
+    fn test_wrap_command_windows() {
+        let wrapped = wrap_command("echo hello", GuestOs::Windows);
+        assert!(wrapped.starts_with("cmd /c"));
     }
 
     #[test]

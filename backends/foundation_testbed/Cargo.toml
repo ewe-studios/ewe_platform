@@ -5,12 +5,27 @@ edition = "2024"
 description = "Cross-platform VM testbed using QEMU/KVM for building and testing binaries"
 license = "MIT"
 
+[features]
+default = ["qemu"]
+
+# Linux: QEMU/KVM backend
+qemu = []
+
+# macOS: UTM/Hypervisor backend
+utm = []
+
+# CLI: standalone clap binary + bin/platform integration
+cli = ["dep:clap"]
+
+# All providers (for testing on a machine with both)
+all-providers = ["qemu", "utm"]
+
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks" }
-foundation_core = { path = "../foundation_core" }
+foundation_core = { path = "../foundation_core", features = ["multi"] }
 
 # CLI
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive"], optional = true }
 
 # Networking / VM communication
 ssh2 = { version = "0.9", features = ["vendored-openssl"] }
@@ -61,3 +76,8 @@ whoami = "2"
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"
+
+[[bin]]
+name = "testbed"
+path = "src/bin/testbed.rs"
+required-features = ["cli"]

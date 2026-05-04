@@ -22,6 +22,8 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), BoxedError> {
+    let _guard = foundation_core::valtron::initialize_pool(100, None);
+
     let mut commander = clap::Command::new("platform")
         .about("The Ewe platform toolset")
         .arg_required_else_help(true)

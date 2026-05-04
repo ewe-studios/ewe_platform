@@ -49,6 +49,8 @@ fn log_path(profile: &VmProfile, kind: LogKind) -> String {
     match (profile.os, kind) {
         (GuestOs::Linux, LogKind::Build) => "/home/vagrant/.testbed-build/build.log".to_string(),
         (GuestOs::Linux, LogKind::Run) => "/home/vagrant/.testbed-run/run.log".to_string(),
+        (GuestOs::MacOS, LogKind::Build) => "/Users/vagrant/.testbed-build/build.log".to_string(),
+        (GuestOs::MacOS, LogKind::Run) => "/Users/vagrant/.testbed-run/run.log".to_string(),
         (GuestOs::Windows, LogKind::Build) => "C:\\Users\\vagrant\\.testbed-build\\build.log".to_string(),
         (GuestOs::Windows, LogKind::Run) => "C:\\Users\\vagrant\\.testbed-run\\run.log".to_string(),
     }
@@ -77,7 +79,7 @@ fn dump_log(session: &mut VmSession, path: &str) -> Result<String> {
 /// This blocks until the user interrupts.
 fn follow_log(profile: &VmProfile, session: &mut VmSession, path: &str) -> Result<String> {
     let cmd = match profile.os {
-        GuestOs::Linux => format!("tail -F {path}"),
+        GuestOs::Linux | GuestOs::MacOS => format!("tail -F {path}"),
         GuestOs::Windows => format!("Get-Content -Path '{path}' -Wait"),
     };
     crate::ssh::exec(session, &cmd)

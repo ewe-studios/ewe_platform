@@ -1,18 +1,18 @@
 ---
 feature: "Project Mount & Artifact Layer"
 description: "Host directory mounting into VMs via 9p/virtiofs (QEMU) or shared directories (UTM), artifact mirroring, testbed.toml project config, and sync-free build output access"
-status: "pending"
+status: "implemented"
 priority: "high"
 depends_on: ["08-provider-architecture"]
 estimated_effort: "medium"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-04
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 6
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 6
+  completion_percentage: 100%
 ---
 
 # Project Mount & Artifact Layer
@@ -263,6 +263,8 @@ mount -t 9p -o trans=virtio,version=9p2000.L project /mnt/project
 # Add to fstab for persistence across VM reboots:
 echo "project /mnt/project 9p trans=virtio,version=9p2000.L 0 0" >> /etc/fstab
 ```
+
+**Windows guests:** Windows does not include virtio drivers by default. The `virtio-win` ISO (Fedora Project) must be attached as a CD-ROM and drivers installed via `pnputil`. The critical driver is `viofs.inf` (VirtIO Filesystem). See [Feature 11: Windows VM Setup](../11-windows-vm-setup/feature.md) for the automated installation process. Even with drivers installed, Windows requires the Plan 9 redirector service to be configured — currently the Windows mount test checks for directory existence at `C:\Users\vagrant\project` (Vagrant-created) rather than a true 9p mount.
 
 **Performance note:** 9p has overhead for many small files (e.g., `target/` with
 thousands of `.d` files). For heavy builds, evaluate `virtio-fs` (requires

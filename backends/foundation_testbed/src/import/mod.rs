@@ -4,11 +4,13 @@
 //! images. Supports direct URLs and Vagrant Cloud as sources.
 //! Automatically extracts qcow2 from vagrant box archives (tar or gzip).
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::config::{Result, TestbedError, VmProfile};
 
 use crate::qemu::download;
+
+pub mod macos;
 
 /// Minimum image size to consider a download valid (100 MB).
 const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
@@ -16,9 +18,18 @@ const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 /// Ensure the image for a profile is available in the cache.
 ///
 /// If the image already exists, returns the cached path. Otherwise
-/// downloads it from the profile's `prebaked_url` or a default URL.
+/// downloads it from the profile's `prebaked_url`, image stores, or
+/// falls back to native creation (IPSW for macOS, Vagrant for others).
 /// Handles both direct qcow2 downloads and vagrant box extraction.
+/// For macOS profiles, tries image store tarballs first, then falls
+/// back to native IPSW → BaseSystem → qcow2 creation.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
+    // macOS uses a different layout (directory with BaseSystem.qcow2 + opencore.qcow2 + data disk)
+    // Try image stores / prebaked tarball first, then fall back to native IPSW creation.
+    if profile.name.starts_with("macos") {
+        return ensure_macos_from_store_or_fallback(profile);
+    }
+
     let dest = profile.image_cache_path();
 
     // Already cached
@@ -58,19 +69,36 @@ pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
 
 /// Check if a profile's image is already cached.
 pub fn is_cached(profile: &VmProfile) -> bool {
-    let dest = profile.image_cache_path();
-    download::is_cached(&dest)
+    if profile.name.starts_with("macos") {
+        let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
+        macos_dir.join("BaseSystem.qcow2").exists()
+            && macos_dir.join(macos::OPENCORE_EFI_FILENAME).exists()
+            && macos_dir.join("macOS-data.qcow2").exists()
+    } else {
+        let dest = profile.image_cache_path();
+        download::is_cached(&dest)
+    }
 }
 
 /// Remove a cached image for a profile.
 pub fn evict(profile: &VmProfile) -> Result<()> {
-    let dest = profile.image_cache_path();
-    if dest.exists() {
-        std::fs::remove_file(&dest).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("removing {dest:?}: {e}"),
-        })?;
+    if profile.name.starts_with("macos") {
+        let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
+        if macos_dir.exists() {
+            std::fs::remove_dir_all(&macos_dir).map_err(|e| TestbedError::Qcow2Error {
+                message: format!("removing {macos_dir:?}: {e}"),
+            })?;
+        }
+        Ok(())
+    } else {
+        let dest = profile.image_cache_path();
+        if dest.exists() {
+            std::fs::remove_file(&dest).map_err(|e| TestbedError::Qcow2Error {
+                message: format!("removing {dest:?}: {e}"),
+            })?;
+        }
+        Ok(())
     }
-    Ok(())
 }
 
 /// Get the size of a cached image.
@@ -89,11 +117,10 @@ fn is_vagrant_box(path: &Path) -> bool {
     // Check for gzip magic: 0x1f 0x8b
     if let Ok(mut f) = std::fs::File::open(path) {
         let mut buf = [0u8; 2];
-        if std::io::Read::read_exact(&mut f, &mut buf).is_ok() {
-            if buf[0] == 0x1f && buf[1] == 0x8b {
+        if std::io::Read::read_exact(&mut f, &mut buf).is_ok()
+            && buf[0] == 0x1f && buf[1] == 0x8b {
                 return true;
             }
-        }
     }
     // Fallback: try tar -tf and see if it works
     std::process::Command::new("tar")
@@ -182,6 +209,122 @@ fn resolve_image_url(profile: &VmProfile) -> Result<String> {
     })
 }
 
+/// Ensure a macOS image from image stores, falling back to native IPSW creation.
+///
+/// Checks for a pre-baked tarball (`.tar.gz` containing BaseSystem.qcow2,
+/// opencore.qcow2, macOS-data.qcow2) from image stores first. If no tarball
+/// is found, falls back to `macos::ensure_macos_image()` for native IPSW creation.
+fn ensure_macos_from_store_or_fallback(profile: &VmProfile) -> Result<PathBuf> {
+    let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
+    std::fs::create_dir_all(&macos_dir).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("creating macos image dir: {e}"),
+    })?;
+
+    let basesystem_qcow2 = macos_dir.join("BaseSystem.qcow2");
+    let opencore_qcow2 = macos_dir.join(macos::OPENCORE_EFI_FILENAME);
+    let data_disk_qcow2 = macos_dir.join("macOS-data.qcow2");
+
+    // Already cached and valid
+    if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
+        && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
+            && meta.len() > 100_000_000 {
+                return Ok(basesystem_qcow2);
+            }
+
+    // Try to download a pre-baked tarball from image stores
+    if let Some(tarball_url) = resolve_macos_tarball_url(profile) {
+        eprintln!("  Downloading pre-baked macOS image from store...");
+        let temp_tar = macos_dir.join(format!("{}.tar.gz", profile.name));
+        if download::download(&tarball_url, &temp_tar).is_ok()
+            && extract_macos_tarball(&temp_tar, &macos_dir).is_ok() {
+                let _ = std::fs::remove_file(&temp_tar);
+                // Validate extracted structure
+                if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
+                    && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
+                        && meta.len() > 100_000_000 {
+                            eprintln!("  Pre-baked macOS image extracted successfully.");
+                            return Ok(basesystem_qcow2);
+                        }
+                eprintln!("  Pre-baked tarball invalid — falling back to native IPSW creation.");
+            }
+        let _ = std::fs::remove_file(&temp_tar);
+    }
+
+    // Fallback: native IPSW → BaseSystem → qcow2 creation
+    eprintln!("  No pre-baked image found — creating macOS image from Apple IPSW...");
+    macos::ensure_macos_image(profile.name)
+}
+
+/// Resolve a macOS tarball URL from image stores or prebaked_url.
+///
+/// Priority: image stores (testbed.toml) → profile prebaked_url → None (triggers IPSW fallback).
+fn resolve_macos_tarball_url(profile: &VmProfile) -> Option<String> {
+    // 1. Check configured image stores first (testbed.toml)
+    let stores = crate::config::load_image_stores();
+    for store in &stores {
+        // Skip vagrant-cloud-type stores for macOS — they won't have macOS images
+        if let Some(url) = store_download_url(store, &format!("{}.tar.gz", profile.name)) {
+            return Some(url);
+        }
+    }
+
+    // 2. Check profile prebaked_url (hardcoded fallback)
+    if let Some(url) = profile.prebaked_url {
+        return Some(url.to_string());
+    }
+
+    None
+}
+
+/// Build a download URL for a store + filename, or None if the store
+/// requires a CLI tool we can't resolve to a direct URL.
+fn store_download_url(store: &crate::config::ImageStore, filename: &str) -> Option<String> {
+    match store.store_type {
+        crate::config::StoreType::Http => {
+            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
+        }
+        crate::config::StoreType::Local => {
+            // Local store: check if the file already exists on disk
+            let local_path = format!("{}/{}", store.destination.trim_end_matches('/'), filename);
+            if std::path::Path::new(&local_path).exists() {
+                Some(local_path)
+            } else {
+                None
+            }
+        }
+        crate::config::StoreType::R2 | crate::config::StoreType::S3 => {
+            // Cloud stores require CLI tools — skip for simple_http resolution
+            None
+        }
+    }
+}
+
+/// Extract a macOS tarball into the image directory.
+///
+/// Expected tarball contents:
+/// - BaseSystem.qcow2
+/// - opencore.qcow2
+/// - macOS-data.qcow2
+fn extract_macos_tarball(tar_path: &Path, dest_dir: &Path) -> Result<()> {
+    let output = std::process::Command::new("tar")
+        .args(["-xzf", tar_path.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
+        .output()
+        .map_err(|e| TestbedError::Qcow2Error {
+            message: format!("extracting macOS tarball: {e}"),
+        })?;
+
+    if !output.status.success() {
+        return Err(TestbedError::Qcow2Error {
+            message: format!(
+                "failed to extract macOS tarball: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
+        });
+    }
+
+    Ok(())
+}
+
 /// Query Vagrant Cloud for a libvirt download URL.
 ///
 /// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
@@ -244,6 +387,61 @@ fn validate_image(path: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+// ── Virtio ISO for Windows guests ────────────────────────────────────────────
+
+/// Minimum size for the virtio-win ISO (500 MB — the actual ISO is ~692 MB).
+const MIN_VIRTIO_ISO_SIZE: u64 = 500 * 1_048_576;
+
+/// Ensure the virtio-win driver ISO is available.
+///
+/// Checks multiple locations in order:
+/// 1. EweStore local store (primary): `/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso`
+/// 2. Local cache: `~/.cache/foundation_testbed/images/virtio-win.iso`
+/// 3. Download from Fedora Project URL (fallback)
+///
+/// Returns the path to the ISO file. The ISO is attached as a CD-ROM
+/// drive to Windows VMs during QEMU launch, allowing driver installation
+/// via `pnputil` during bootstrap.
+pub fn ensure_virtio_iso() -> Result<PathBuf> {
+    let cache_path = crate::config::image_cache_dir().join("virtio-win.iso");
+
+    // 1. Check EweStore local store
+    let store_path = Path::new(crate::config::VIRTIO_ISO_STORE_PATH);
+    if let Ok(meta) = std::fs::metadata(store_path)
+        && meta.len() >= MIN_VIRTIO_ISO_SIZE {
+            return Ok(store_path.to_path_buf());
+        }
+
+    // 2. Check local cache
+    if cache_path.exists()
+        && let Ok(meta) = std::fs::metadata(&cache_path)
+            && meta.len() >= MIN_VIRTIO_ISO_SIZE {
+                return Ok(cache_path);
+            }
+
+    // 3. Download from Fedora Project
+    eprintln!("  Downloading virtio-win driver ISO...");
+    std::fs::create_dir_all(cache_path.parent().unwrap()).ok();
+    let temp_path = cache_path.with_extension("downloading");
+    download::download(crate::config::VIRTIO_ISO_DOWNLOAD_URL, &temp_path)?;
+    std::fs::rename(&temp_path, &cache_path).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("moving virtio ISO to cache: {e}"),
+    })?;
+
+    // Validate
+    let meta = std::fs::metadata(&cache_path).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("stat virtio ISO: {e}"),
+    })?;
+    if meta.len() < MIN_VIRTIO_ISO_SIZE {
+        return Err(TestbedError::Qcow2Error {
+            message: format!("virtio ISO too small ({} bytes) — download may have failed", meta.len()),
+        });
+    }
+
+    eprintln!("  virtio-win ISO cached at: {}", cache_path.display());
+    Ok(cache_path)
 }
 
 #[cfg(test)]

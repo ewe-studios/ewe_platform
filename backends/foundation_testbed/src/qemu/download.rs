@@ -49,12 +49,11 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
         partial.to_str().unwrap(),
     ]);
 
-    if let Some(offset) = start_byte {
-        if offset > 0 {
+    if let Some(offset) = start_byte
+        && offset > 0 {
             // Resume: use Range header
             cmd.args(["-C", "-"]);
         }
-    }
 
     cmd.args(["-s", "--show-error", url]);
     cmd.stdout(Stdio::piped());

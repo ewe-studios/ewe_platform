@@ -65,3 +65,20 @@ _Last updated: 2026-05-03_
 - **Prebuilt image hosting** — self-hosted CDN for macOS and custom images
 - **Snapshot CLI** — save/load/delete/restore VM snapshots via monitor commands
 - **Build pipeline** — cross-compile for Windows/macOS from Linux host via VM
+
+## Windows VM Investigation Findings
+
+### SSH Timeout Root Cause
+Windows VMs from Vagrant Cloud boot to the login screen, which blocks automated SSH access. The QEMU process runs and port 2222 forwards correctly, but OpenSSH Server requires a user session to be established before it accepts key-based authentication. Diagnosed via `gvncviewer :50` — revealed the login screen was the blocker. Serial console confirmed Windows had fully booted ("Windows Boot Manager" loaded, services started).
+
+### Autologin Solution
+Windows Winlogon registry keys (`AutoAdminLogon=1`, `DefaultUsername`, `DefaultPassword`) provide reliable autologin. Set via PowerShell over WinRM during bootstrap (before SSH becomes the primary channel). Placed after `LocalAccountTokenFilterPolicy` step since both are registry modifications.
+
+### Virtio 9p Driver Requirement
+Windows guests don't include virtio drivers by default. The `virtio-win-0.1.262.iso` from Fedora Project (~692MB) contains all necessary drivers. Installed via `pnputil -a` during bootstrap. Critical driver: `viofs.inf` (VirtIO Filesystem) — enables 9p/virtio-fs host directory mounts. ISO attached to QEMU as CD-ROM drive, drivers found by scanning CD-ROM label `virtio*`.
+
+### 9p Mount on Windows Limitation
+Even with `viofs` driver installed, Windows doesn't have a native `mount` command. The Plan 9 redirector service must be configured separately. Current Windows mount test checks for directory existence at `C:\Users\vagrant\project` (Vagrant-created) rather than a true 9p mount. Full 9p mount support on Windows requires additional work with the Plan 9 redirector service.
+
+### Image Export
+Configured Windows qcow2 (17GB) exported to `/home/darkvoid/EweStore/Testbed/` for reuse. EweStore serves as the centralized artifact store for VM images and ISOs.
