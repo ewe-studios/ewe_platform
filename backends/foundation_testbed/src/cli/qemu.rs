@@ -180,6 +180,13 @@ pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let include_bootstrap = args.get_flag("include-bootstrap");
     let clean = args.get_flag("clean");
     let shrink = args.get_flag("shrink");
+    let compression = match args.get_one::<String>("compress").map(|s| s.as_str()) {
+        Some("xz") | Some("lzma") => crate::export::Compression::Xz,
+        Some("gzip") | Some("gz") => crate::export::Compression::Gzip,
+        Some("none") => crate::export::Compression::None,
+        Some(other) => return Err(format!("Unknown compression type: {other}. Use xz, gzip, or none.").into()),
+        None => crate::export::Compression::Xz, // default: best compression
+    };
 
     let opts = crate::export::ExportOptions {
         out,
@@ -189,6 +196,7 @@ pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         include_bootstrap,
         clean,
         shrink,
+        compression,
     };
 
     crate::export::export_vm(name, &opts)?;

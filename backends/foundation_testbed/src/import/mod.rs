@@ -15,6 +15,9 @@ pub mod macos;
 /// Minimum image size to consider a download valid (100 MB).
 const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 
+/// Known compressed image extensions we can auto-decompress.
+const COMPRESSED_EXTENSIONS: &[&str] = &["qcow2.gz", "qcow2.xz"];
+
 /// Ensure the image for a profile is available in the cache.
 ///
 /// If the image already exists, returns the cached path. Otherwise
@@ -23,6 +26,9 @@ const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 /// Handles both direct qcow2 downloads and vagrant box extraction.
 /// For macOS profiles, tries image store tarballs first, then falls
 /// back to native IPSW → BaseSystem → qcow2 creation.
+///
+/// Also supports compressed qcow2 archives (.qcow2.gz, .qcow2.xz) —
+/// these are automatically decompressed on first use.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     // macOS uses a different layout (directory with BaseSystem.qcow2 + opencore.qcow2 + data disk)
     // Try image stores / prebaked tarball first, then fall back to native IPSW creation.
@@ -32,9 +38,9 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
 
     let dest = profile.image_cache_path();
 
-    // Already cached
-    if download::is_cached(&dest) {
-        return Ok(dest);
+    // Already cached (check for compressed variants too)
+    if let Some(cached) = find_cached_image(&dest) {
+        return crate::export::ensure_decompressed(&cached);
     }
 
     // Determine source URL
@@ -44,8 +50,12 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     let temp_dest = dest.with_extension("downloading");
     download::download(&url, &temp_dest)?;
 
-    // Check if it's a vagrant box and extract qcow2
-    if is_vagrant_box(&temp_dest) {
+    // Check if it's a compressed qcow2 archive
+    if is_compressed_qcow2(&temp_dest) {
+        println!("  Decompressing {} archive...", temp_dest.extension().unwrap_or_default().to_str().unwrap_or("unknown"));
+        crate::export::decompress(&temp_dest, &dest)?;
+        let _ = std::fs::remove_file(&temp_dest);
+    } else if is_vagrant_box(&temp_dest) {
         extract_qcow2_from_box(&temp_dest, &dest)?;
         let _ = std::fs::remove_file(&temp_dest);
     } else {
@@ -58,6 +68,38 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     validate_image(&dest)?;
 
     Ok(dest)
+}
+
+/// Find a cached image, checking for compressed variants.
+///
+/// Returns the first valid file found: dest, dest.gz, dest.xz.
+fn find_cached_image(dest: &std::path::Path) -> Option<std::path::PathBuf> {
+    // Check uncompressed first
+    if download::is_cached(dest) {
+        return Some(dest.to_path_buf());
+    }
+
+    // Check compressed variants
+    for ext in COMPRESSED_EXTENSIONS {
+        let compressed = dest.with_extension(ext);
+        if compressed.exists() {
+            let meta = std::fs::metadata(&compressed).ok()?;
+            if meta.len() > MIN_IMAGE_SIZE {
+                return Some(compressed);
+            }
+        }
+    }
+
+    None
+}
+
+/// Check if a file looks like a compressed qcow2 archive (by extension + magic).
+fn is_compressed_qcow2(path: &std::path::Path) -> bool {
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+    match ext {
+        "gz" | "xz" => true,
+        _ => false,
+    }
 }
 
 /// Download an image from a specific URL.
@@ -77,6 +119,9 @@ pub fn is_cached(profile: &VmProfile) -> bool {
     } else {
         let dest = profile.image_cache_path();
         download::is_cached(&dest)
+            || COMPRESSED_EXTENSIONS.iter().any(|ext| {
+                dest.with_extension(ext).exists()
+            })
     }
 }
 
@@ -92,10 +137,25 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
         Ok(())
     } else {
         let dest = profile.image_cache_path();
+        // Remove all variants (uncompressed + compressed)
+        let mut removed = false;
         if dest.exists() {
             std::fs::remove_file(&dest).map_err(|e| TestbedError::Qcow2Error {
                 message: format!("removing {dest:?}: {e}"),
             })?;
+            removed = true;
+        }
+        for ext in COMPRESSED_EXTENSIONS {
+            let compressed = dest.with_extension(ext);
+            if compressed.exists() {
+                std::fs::remove_file(&compressed).map_err(|e| TestbedError::Qcow2Error {
+                    message: format!("removing {compressed:?}: {e}"),
+                })?;
+                removed = true;
+            }
+        }
+        if !removed {
+            // Nothing to remove — not an error
         }
         Ok(())
     }

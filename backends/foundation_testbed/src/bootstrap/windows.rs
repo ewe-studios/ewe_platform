@@ -13,23 +13,26 @@ use crate::winrm::WinRM;
 use crate::winrm::elevated;
 
 /// Bootstrap a Windows VM with development tools.
+///
+/// Phase 1 (WinRM): install OpenSSH, setup keys, autologin.
+/// Phase 2 (SSH): install mise, build tools, runtimes.
 pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession) -> Result<()> {
-    // Step 1: OpenSSH Server
+    // Phase 1: WinRM-only steps (no SSH required)
     step("install OpenSSH Server", || {
         install_openssh_server(winrm)
     })?;
 
-    // Step 2: SSH key authorization (both user + admin paths)
+    // Phase 2: SSH key authorization (now via WinRM)
     step("authorise host SSH key", || {
-        setup_ssh_keys(profile, session, winrm)
+        setup_ssh_keys(winrm)
     })?;
 
-    // Step 3: LocalAccountTokenFilterPolicy
+    // Phase 3: LocalAccountTokenFilterPolicy
     step("set LocalAccountTokenFilterPolicy", || {
         set_local_account_token_filter(winrm)
     })?;
 
-    // Step 3b: Configure autologin (Winlogon registry keys)
+    // Phase 4: Configure autologin (Winlogon registry keys)
     step("configure autologin", || {
         set_autologin(winrm)
     })?;
@@ -37,7 +40,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     // Give SSH time to reconfigure after changes
     thread::sleep(std::time::Duration::from_secs(5));
 
-    // Step 4: mise
+    // Phase 5+: SSH-required steps
     step("install mise", || {
         install_mise(session)
     })?;
@@ -97,15 +100,93 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     Ok(())
 }
 
+/// Phase 1: WinRM-only bootstrap (installs and configures OpenSSH).
+///
+/// Runs before SSH is available. After this completes, callers should
+/// wait for SSH to become reachable, then call `bootstrap_windows_ssh_phase`.
+pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM) -> Result<()> {
+    step("install OpenSSH Server", || {
+        install_openssh_server(winrm)
+    })?;
+
+    step("authorise host SSH key", || {
+        setup_ssh_keys(winrm)
+    })?;
+
+    step("set LocalAccountTokenFilterPolicy", || {
+        set_local_account_token_filter(winrm)
+    })?;
+
+    step("configure autologin", || {
+        set_autologin(winrm)
+    })?;
+
+    let _ = profile;
+    Ok(())
+}
+
+/// Phase 2: SSH-required bootstrap (installs dev tools).
+///
+/// Call after `bootstrap_windows_winrm_phase` and waiting for SSH.
+pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession) -> Result<()> {
+    step("install mise", || {
+        install_mise(session)
+    })?;
+
+    step("install cargo-binstall", || {
+        install_cargo_binstall(session)
+    })?;
+
+    step("configure mise cargo_binstall", || {
+        configure_mise_cargo_binstall(session)
+    })?;
+
+    step("install VS Build Tools", || {
+        install_vs_build_tools(session, winrm)
+    })?;
+
+    step("install virtio drivers", || {
+        install_virtio_drivers(session, winrm)
+    })?;
+
+    step("install WebView2 Runtime", || {
+        install_webview2(session)
+    })?;
+
+    step("set Windows Defender exclusions", || {
+        set_defender_exclusions(session)
+    })?;
+
+    step("configure rustup for x86_64 (ARM64 workaround)", || {
+        configure_rustup_arm64(session)
+    })?;
+
+    step("install tools via mise", || {
+        install_tools(session)
+    })?;
+
+    step("set nushell as default shell", || {
+        set_nushell_default_shell(session)
+    })?;
+
+    step("write bootstrap marker", || {
+        write_bootstrap_marker(session)
+    })?;
+
+    let _ = profile;
+    Ok(())
+}
+
 /// Run a named bootstrap step, tracking elapsed time.
 fn step<F>(label: &str, f: F) -> Result<()>
 where
     F: FnOnce() -> Result<()>,
 {
+    println!("[bootstrap] → {label}...");
     let start = Instant::now();
     f()?;
     let elapsed = start.elapsed();
-    let _ = (label, elapsed);
+    println!("[bootstrap] ✓ {label} ({elapsed:?})");
     Ok(())
 }
 
@@ -147,8 +228,8 @@ Restart-Service sshd -ErrorAction SilentlyContinue
     Ok(())
 }
 
-/// Set up SSH key authorization on Windows (both user + admin paths).
-fn setup_ssh_keys(_profile: &VmProfile, session: &mut VmSession, _winrm: &WinRM) -> Result<()> {
+/// Set up SSH key authorization on Windows (both user + admin paths) via WinRM.
+fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
     let mut pub_key = String::new();
@@ -189,7 +270,7 @@ icacls $adm /inheritance:r /grant 'Administrators:F' /grant 'SYSTEM:F' | Out-Nul
 Restart-Service sshd -ErrorAction SilentlyContinue
 "#
     );
-    crate::ssh::exec(session, &script)?;
+    elevated::run_elevated(winrm, &script, 30)?;
     Ok(())
 }
 

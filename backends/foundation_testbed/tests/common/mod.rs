@@ -3,7 +3,9 @@
 //! Provides `TestVm` — an RAII guard that starts a VM on construction
 //! and stops it on drop, ensuring cleanup even on test panic.
 
+use std::env;
 use std::path::{Path, PathBuf};
+use std::thread;
 use std::time::{Duration, Instant};
 
 use foundation_testbed::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
@@ -11,6 +13,16 @@ use foundation_testbed::qemu::{QemuConfig, QemuVm};
 use foundation_testbed::qemu::mount;
 use foundation_testbed::ssh;
 use foundation_testbed::state;
+
+/// Resolve the display mode from the `HEADFUL` environment variable.
+/// Set `HEADFUL=1` (or any non-empty value) to run VMs with a visible VNC window.
+fn resolve_display_mode() -> DisplayMode {
+    if env::var("HEADFUL").is_ok_and(|v| !v.is_empty()) {
+        DisplayMode::Headful
+    } else {
+        DisplayMode::Headless
+    }
+}
 
 /// RAII guard: starts a VM on creation, stops it on drop.
 ///
@@ -33,15 +45,21 @@ impl TestVm {
         Self::new_with_mount(profile_name, true)
     }
 
-    /// Start a VM, optionally with a project mount.
+    /// Start a VM with a project mount. Display mode is controlled by the
+    /// `HEADFUL` environment variable (set `HEADFUL=1` for a visible VNC window).
     pub fn new_with_mount(profile_name: &str, mount_project: bool) -> Result<Self> {
+        Self::new_with_mode(profile_name, resolve_display_mode(), mount_project)
+    }
+
+    /// Start a VM with explicit display mode.
+    pub fn new_with_mode(profile_name: &str, display: DisplayMode, mount_project: bool) -> Result<Self> {
         let profile = get_profile(profile_name).map(|p| p.clone())?;
-        println!("[{}] Starting VM '{}'...", std::any::type_name::<Self>(), profile_name);
+        println!("[{}] Starting VM '{}' ({:?})...", std::any::type_name::<Self>(), profile_name, display);
 
         // Ensure image is available
         let _disk = foundation_testbed::import::ensure_image(&profile)?;
 
-        let mut config = QemuConfig::new(profile.clone(), DisplayMode::Headless);
+        let mut config = QemuConfig::new(profile.clone(), display);
         if mount_project {
             config = config.with_project_mount(std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
         }
@@ -74,27 +92,22 @@ impl TestVm {
         })
     }
 
-    /// Wait for SSH (Linux) or WinRM (Windows) to become reachable.
+    /// Wait for SSH (Linux/macOS) or WinRM (Windows) to become reachable.
     /// Mounts the project directory inside the guest if requested.
     pub fn wait_for_ready(&mut self, timeout: Duration) -> Result<()> {
         let start = Instant::now();
 
-        println!("[{}] Waiting for {} connectivity on port {} (timeout: {:?})...",
-            &self.profile_name,
-            if self.profile.os == GuestOs::Linux || self.profile.os == GuestOs::MacOS { "SSH" } else { "WinRM" },
-            self.ssh_port,
-            timeout);
-
-        loop {
-            if start.elapsed() > timeout {
-                return Err(foundation_testbed::config::TestbedError::SshFailed {
-                    port: self.ssh_port,
-                    source: anyhow::anyhow!("timed out waiting for VM connectivity after {:?}", timeout),
-                });
-            }
-
-            match self.profile.os {
-                GuestOs::Linux | GuestOs::MacOS => {
+        match self.profile.os {
+            GuestOs::Linux | GuestOs::MacOS => {
+                println!("[{}] Waiting for SSH connectivity on port {} (timeout: {:?})...",
+                    &self.profile_name, self.ssh_port, timeout);
+                loop {
+                    if start.elapsed() > timeout {
+                        return Err(foundation_testbed::config::TestbedError::SshFailed {
+                            port: self.ssh_port,
+                            source: anyhow::anyhow!("timed out waiting for VM connectivity after {:?}", timeout),
+                        });
+                    }
                     if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
                         println!("[{}] SSH ready", &self.profile_name);
                         if self.mount_project {
@@ -102,28 +115,83 @@ impl TestVm {
                         }
                         return Ok(());
                     }
-                }
-                GuestOs::Windows => {
-                    // For Windows, try SSH (OpenSSH should be available after bootstrap)
-                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
-                        println!("[{}] SSH ready (Windows)", &self.profile_name);
-                        if self.mount_project {
-                            self.mount_project_in_guest()?;
-                        }
-                        return Ok(());
-                    }
+                    std::thread::sleep(Duration::from_secs(5));
                 }
             }
-
-            std::thread::sleep(Duration::from_secs(5));
+            GuestOs::Windows => {
+                println!("[{}] Waiting for WinRM connectivity (timeout: {:?})...",
+                    &self.profile_name, timeout);
+                loop {
+                    if start.elapsed() > timeout {
+                        return Err(foundation_testbed::config::TestbedError::SshFailed {
+                            port: self.ssh_port,
+                            source: anyhow::anyhow!("timed out waiting for WinRM after {:?}", timeout),
+                        });
+                    }
+                    if let Ok(winrm) = foundation_testbed::winrm::WinRM::from_profile(&self.profile) {
+                        if winrm.ping() {
+                            println!("[{}] WinRM ready", &self.profile_name);
+                            return Ok(());
+                        }
+                    }
+                    std::thread::sleep(Duration::from_secs(5));
+                }
+            }
         }
     }
 
+    /// Run the bootstrap flow (installs OpenSSH + dev tools).
+    ///
+    /// For Windows: two-phase — WinRM installs OpenSSH, then SSH installs tools.
+    /// For Linux/macOS: SSH-only bootstrap.
+    pub fn bootstrap(&mut self) -> Result<()> {
+        if foundation_testbed::bootstrap::is_bootstrapped(&self.profile) {
+            println!("[{}] Already bootstrapped, skipping", &self.profile_name);
+            return Ok(());
+        }
+
+        match self.profile.os {
+            GuestOs::Linux | GuestOs::MacOS => {
+                let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+                foundation_testbed::bootstrap::bootstrap(&self.profile, &mut session)?;
+            }
+            GuestOs::Windows => {
+                let winrm = foundation_testbed::winrm::WinRM::from_profile(&self.profile)?;
+
+                // Phase 1: WinRM-only (installs OpenSSH, configures SSH)
+                foundation_testbed::bootstrap::windows::bootstrap_windows_winrm_phase(&self.profile, &winrm)?;
+
+                // Wait for SSH to come up
+                thread::sleep(Duration::from_secs(10));
+                let deadline = Instant::now() + Duration::from_secs(120);
+                loop {
+                    if Instant::now() > deadline {
+                        return Err(foundation_testbed::config::TestbedError::BootstrapFailed {
+                            step: "wait for SSH".to_string(),
+                            message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
+                        });
+                    }
+                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
+                        break;
+                    }
+                    thread::sleep(Duration::from_secs(5));
+                }
+
+                // Phase 2: SSH-required (installs dev tools)
+                let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+                foundation_testbed::bootstrap::windows::bootstrap_windows_ssh_phase(&self.profile, &winrm, &mut session)?;
+            }
+        }
+
+        println!("[{}] Bootstrap complete", &self.profile_name);
+        Ok(())
+    }
+
     /// Mount the project directory inside the guest via 9p/virtio.
-    /// Linux only — Windows guests need virtio-win drivers for 9p support.
+    /// Linux only — Windows and macOS guests need virtio drivers or SCP transfer.
     fn mount_project_in_guest(&mut self) -> Result<()> {
-        if self.profile.os == GuestOs::Windows {
-            println!("[{}] Skipping 9p mount (Windows requires virtio drivers)", &self.profile_name);
+        if self.profile.os != GuestOs::Linux {
+            println!("[{}] Skipping 9p mount ({:?} requires virtio drivers or SCP)", &self.profile_name, self.profile.os);
             return Ok(());
         }
         println!("[{}] Mounting project directory in guest...", &self.profile_name);
@@ -278,4 +346,28 @@ pub fn assert_pe_binary(path_on_host: &Path) -> Result<bool> {
     std::io::Read::read_exact(&mut file, &mut magic)
         .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
     Ok(&magic == b"MZ")
+}
+
+/// Assert that a macOS build completed successfully (x86_64-apple-darwin).
+pub fn assert_build_ok_macos(vm: &TestVm, project_path: &str) -> Result<bool> {
+    let output = vm.ssh_exec(&format!(
+        "test -f {project_path}/target/x86_64-apple-darwin/release/tauri-e2e-test && echo OK || echo MISSING"
+    ))?;
+    Ok(output.trim() == "OK")
+}
+
+/// Validate that a file is a Mach-O binary (macOS executable).
+pub fn assert_macho_binary(path_on_host: &Path) -> Result<bool> {
+    use foundation_testbed::config::TestbedError;
+    if !path_on_host.exists() {
+        return Ok(false);
+    }
+    let mut magic = [0u8; 4];
+    let mut file = std::fs::File::open(path_on_host)
+        .map_err(|e| TestbedError::Qcow2Error { message: format!("opening file: {e}") })?;
+    std::io::Read::read_exact(&mut file, &mut magic)
+        .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
+    // Mach-O magic: 0xfeedface (32-bit) or 0xfeedfacf (64-bit), plus CFEDEEDF for reverse
+    Ok(magic == [0xcf, 0xfa, 0xed, 0xfe] || magic == [0xce, 0xfa, 0xed, 0xfe]
+       || magic == [0xfe, 0xed, 0xfa, 0xcf] || magic == [0xfe, 0xed, 0xfa, 0xce])
 }

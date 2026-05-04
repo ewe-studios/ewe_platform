@@ -1,11 +1,14 @@
 //! VM Export — export running/stopped VMs as qcow2 + manifest images.
 //!
 //! Supports local export, shrink/optimization, and upload to R2/S3/Local/HTTP stores.
+//! Post-factum compression (gzip/xz) is available for maximum file size reduction.
 
+mod compress;
 mod manifest;
 mod shrink;
 mod store_upload;
 
+pub use compress::{Compression, compress_qcow2_with, decompress, ensure_decompressed, is_compressed};
 pub use manifest::ExportManifest;
 pub use shrink::{compress_qcow2, shrink_disk, size_comparison};
 pub use store_upload::upload_to_store;
@@ -31,6 +34,8 @@ pub struct ExportOptions {
     pub clean: bool,
     /// Zero-fill and compress qcow2 (slower, smaller file).
     pub shrink: bool,
+    /// Post-factum compression algorithm (gzip/xz) applied after qemu-img -c.
+    pub compression: Compression,
     /// Human-readable notes for the export.
     pub notes: String,
 }
@@ -82,29 +87,57 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         stop_vm(&profile, &vm_state)?;
     }
 
-    // Step 5: Copy disk image to export location
+    // Step 5: Copy disk image to a staging location for processing
     let disk_path = profile.image_cache_path();
-    println!("  Copying disk image -> {}", output_name.display());
-    std::fs::copy(&disk_path, &output_name).map_err(|e| TestbedError::Qcow2Error {
+    let staging = output_name.parent()
+        .map(|p| p.join(format!(".export-staging-{}-{}.qcow2", profile.name, std::process::id())))
+        .unwrap_or_else(|| output_name.with_extension("staging"));
+    println!("  Copying disk image...");
+    std::fs::copy(&disk_path, &staging).map_err(|e| TestbedError::Qcow2Error {
         message: format!("copying disk image: {e}"),
     })?;
 
-    // Step 6: If shrink requested, compress the copy
-    if opts.shrink {
-        let compressed_path = output_name.with_extension("qcow2.compressed");
-        println!("  Compressing qcow2...");
-        compress_qcow2(&output_name, &compressed_path)?;
+    // Track which file is the current working copy during processing
+    let mut current_file = staging.clone();
 
-        let (orig, comp, ratio) = size_comparison(&output_name, &compressed_path)?;
-        println!("  Size: {:.2} GB -> {:.2} GB ({:.1}%)",
+    // Step 6: If shrink requested, compress via qemu-img
+    if opts.shrink {
+        let qemu_compressed = current_file.with_extension("qcow2.shrink");
+        println!("  Compressing qcow2 (qemu-img)...");
+        compress_qcow2(&current_file, &qemu_compressed)?;
+        let _ = std::fs::remove_file(&current_file);
+        current_file = qemu_compressed;
+
+        let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        println!("  qemu-img size: {:.2} GB -> {:.2} GB ({:.1}%)",
             orig as f64 / 1_073_741_824.0,
             comp as f64 / 1_073_741_824.0,
             ratio);
-
-        std::fs::rename(&compressed_path, &output_name).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("replacing with compressed: {e}"),
-        })?;
     }
+
+    // Apply post-factum compression if requested
+    if opts.compression != Compression::None {
+        let final_compressed = current_file.with_extension(format!("qcow2{}", opts.compression.extension()));
+        println!("  Applying {} compression...", opts.compression.extension().trim_start_matches('.'));
+        compress_qcow2_with(&current_file, &final_compressed, opts.compression)?;
+        if current_file != staging {
+            let _ = std::fs::remove_file(&current_file);
+        } else {
+            let _ = std::fs::remove_file(&staging);
+        }
+        current_file = final_compressed;
+
+        let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        println!("  Final size: {:.2} GB -> {:.2} GB ({:.1}%)",
+            orig as f64 / 1_073_741_824.0,
+            comp as f64 / 1_073_741_824.0,
+            ratio);
+    }
+
+    // Rename final result to output path
+    std::fs::rename(&current_file, &output_name).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("moving export to {output_name:?}: {e}"),
+    })?;
 
     // Step 7: Detect installed tools if VM was running
     let installed_tools = if was_running {
