@@ -21,6 +21,7 @@ exclude = [
   "crates/html-macro",
   "templates/*",
   "examples/todo",
+  "examples/testbed/*",
   "crates/temple/output_directory",
   # "crates/ewe_deployables",
   "backends/docs",
