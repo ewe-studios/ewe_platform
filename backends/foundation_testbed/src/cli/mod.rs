@@ -9,6 +9,7 @@
 
 use clap::{ArgMatches, Command};
 
+mod bootstrap;
 mod provider;
 mod qemu;
 mod ssh_cmds;
@@ -28,6 +29,12 @@ pub fn command() -> Command {
                 .arg_required_else_help(true)
                 .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
                 .arg(clap::Arg::new("headful").long("headful").action(clap::ArgAction::SetTrue)),
+        )
+        .subcommand(
+            Command::new("bootstrap")
+                .about("Install development tools on a running VM")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name")),
         )
         .subcommand(
             Command::new("stop")
@@ -195,6 +202,7 @@ pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + S
         Some(("import", m)) => provider::cmd_import(m),
         Some(("doctor", m)) => provider::cmd_doctor(m),
         Some(("ls", _)) => provider::cmd_ls(),
+        Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m),
         // SSH-based commands
         Some(("exec", m)) => ssh_cmds::cmd_exec(m),
         Some(("shell", m)) => ssh_cmds::cmd_shell(m),

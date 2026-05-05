@@ -5,8 +5,10 @@
 //!
 //! Shell lifecycle: Create → Execute → Receive (loop) → Delete.
 
+use tracing::{debug, trace};
 use std::io::{Read, Write};
-use std::net::TcpStream;
+use std::net::{TcpStream, SocketAddr};
+use std::time::Duration;
 
 use crate::config::{Result, TestbedError, VmProfile};
 
@@ -69,10 +71,13 @@ impl WinRM {
 
         let ps_command = format!("powershell -EncodedCommand {encoded}");
 
+        debug!("run_ps: creating shell for command");
         // WinRM shell lifecycle
         let shell_id = self.shell_create()?;
         let command_id = self.shell_exec(&shell_id, &ps_command)?;
-        let result = self.shell_receive(&shell_id, &command_id)?;
+        debug!("run_ps: receiving output (unlimited wait)");
+        let result = self.shell_receive(&shell_id, &command_id, 0)?;
+        debug!("run_ps: command complete, exit_code={}", result.exit_code);
         self.shell_delete(&shell_id, Some(&command_id)).ok();
 
         Ok(result)
@@ -110,14 +115,31 @@ impl WinRM {
     }
 
     /// Receive output from a running command.
-    fn shell_receive(&self, shell_id: &str, command_id: &str) -> Result<CmdResult> {
+    ///
+    /// `max_wait_secs` caps total polling time. Use `0` for unlimited (legacy).
+    fn shell_receive(&self, shell_id: &str, command_id: &str, max_wait_secs: u64) -> Result<CmdResult> {
         let mut stdout = String::new();
         let mut stderr = String::new();
         let mut exit_code = 0;
+        let deadline = if max_wait_secs > 0 {
+            Some(std::time::Instant::now() + std::time::Duration::from_secs(max_wait_secs))
+        } else {
+            None
+        };
 
-        // Poll for output
-        for _ in 0..120 {
-            // 60s total at 500ms intervals
+        // Poll for output — supports long-running commands (up to 1800s)
+        let mut iteration = 0;
+        for _ in 0..3600 {
+            // 1800s total at 500ms intervals
+            if let Some(dl) = deadline
+                && std::time::Instant::now() > dl
+            {
+                debug!("shell_receive: TIMEOUT after {} iterations, stdout={:?} stderr={:?}", iteration, stdout, stderr);
+                return Err(TestbedError::WinrmTimeout {
+                    message: format!("shell_receive timed out after {max_wait_secs}s"),
+                });
+            }
+
             let msg_id = uuid_simple();
             let body = format!(
                 r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:Receive><rsp:DesiredStream CommandId="{}">stdout stderr</rsp:DesiredStream></rsp:Receive></env:Body></env:Envelope>"#,
@@ -128,14 +150,17 @@ impl WinRM {
 
             // Parse output streams and command state
             let (new_stdout, new_stderr, done, code) = parse_receive_response(&response);
+            trace!("shell_receive iter {}: done={} stdout={} bytes stderr={} bytes", iteration, done, new_stdout.len(), new_stderr.len());
             stdout.push_str(&new_stdout);
             stderr.push_str(&new_stderr);
 
             if done {
                 exit_code = code;
+                trace!("shell_receive: command completed after {} iterations", iteration);
                 break;
             }
 
+            iteration += 1;
             std::thread::sleep(std::time::Duration::from_millis(500));
         }
 
@@ -144,6 +169,26 @@ impl WinRM {
             stderr,
             exit_code,
         })
+    }
+
+    /// Run a quick WinRM command (sentinel/heartbeat checks).
+    ///
+    /// Uses a 15-second receive timeout to avoid blocking when WinRM is transiently
+    /// unavailable during long elevated operations like OpenSSH install.
+    pub fn run_ps_quiet(&self, script: &str) -> Result<CmdResult> {
+        let utf16le: Vec<u8> = script.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+        let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
+        let ps_command = format!("powershell -EncodedCommand {encoded}");
+
+        trace!("run_ps_quiet: creating shell");
+        let shell_id = self.shell_create()?;
+        trace!("run_ps_quiet: shell created, exec command");
+        let command_id = self.shell_exec(&shell_id, &ps_command)?;
+        trace!("run_ps_quiet: command exec done, receiving with 15s timeout");
+        let result = self.shell_receive(&shell_id, &command_id, 15);
+        trace!("run_ps_quiet: receive result: {:?}", result.as_ref().map(|r| &r.stdout));
+        self.shell_delete(&shell_id, Some(&command_id)).ok();
+        result
     }
 
     /// Delete a WinRM shell.
@@ -164,10 +209,16 @@ impl WinRM {
 
     /// Send a SOAP request and return the response body.
     fn send_soap(&self, action: &str, body: &str) -> Result<String> {
-        let addr = format!("{}:{}", self.host, self.port);
-        let mut stream = TcpStream::connect(&addr).map_err(|_e| {
+        let addr: SocketAddr = format!("{}:{}", self.host, self.port).parse().map_err(|_| {
             TestbedError::WinrmNotReachable { port: self.port }
         })?;
+        trace!("send_soap: connecting to {} action={}", addr, action);
+        let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(10)).map_err(|_| {
+            TestbedError::WinrmNotReachable { port: self.port }
+        })?;
+        let mut stream = stream;
+        stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+        stream.set_write_timeout(Some(Duration::from_secs(10))).ok();
 
         let auth = self.auth_header_value();
 
@@ -256,8 +307,8 @@ fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
     }
 
     // Check if command is done
-    if response.contains("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd/CommandState/Done")
-        || response.contains("CommandState=\"http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/CommandState/Done\"")
+    if response.contains("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done")
+        || response.contains("http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/CommandState/Done")
     {
         done = true;
         // Try to extract exit code

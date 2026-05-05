@@ -48,7 +48,7 @@ pub struct ResolvedPorts {
 }
 
 /// Configuration for launching a QEMU VM.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QemuConfig {
     profile: VmProfile,
     display_mode: DisplayMode,
@@ -108,19 +108,16 @@ impl QemuConfig {
         let monitor_path = monitor_dir().join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
 
-        // Build disk path
-        let disk_path = self.profile.image_cache_path();
+        // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
+        let disk_path = crate::import::ensure_image(&self.profile)?;
 
         // For Windows guests, attach virtio-win ISO if available (for driver installation)
-        let config = if self.profile.os == GuestOs::Windows {
+        let mut config = self;
+        if config.profile.os == GuestOs::Windows {
             if let Ok(iso_path) = crate::import::ensure_virtio_iso() {
-                self.with_cdrom(iso_path)
-            } else {
-                self
+                config = config.with_cdrom(iso_path);
             }
-        } else {
-            self
-        };
+        }
 
         // For macOS guests, ensure the full image set exists (BaseSystem + OpenCore + data disk)
         let (macos_boot_disk, macos_efi_disk) = if config.profile.os == GuestOs::MacOS {
@@ -158,10 +155,25 @@ impl QemuConfig {
         ));
         cmd.args(&config.extra_args);
 
+        // Capture QEMU stderr to the VM work directory: .testbed/[vm-name]/qemu.log
+        let work_dir = crate::config::work_dir(&config.profile.name);
+        let _ = std::fs::create_dir_all(&work_dir);
+        let qemu_log = work_dir.join("qemu.log");
+        let qemu_log_file = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&qemu_log)
+            .ok();
+
         // Detach stdio so the child doesn't inherit the terminal's stdin
         cmd.stdin(Stdio::null());
         cmd.stdout(Stdio::null());
-        cmd.stderr(Stdio::null());
+        if let Some(log) = &qemu_log_file {
+            cmd.stderr(log.try_clone().unwrap());
+        } else {
+            cmd.stderr(Stdio::piped());
+        }
 
         let mut process = cmd.spawn().map_err(|e| match e.kind() {
             std::io::ErrorKind::NotFound => TestbedError::QemuNotFound {
@@ -596,7 +608,9 @@ fn build_qemu_args(
         args.push(format!("file={},media=cdrom", cdrom.display()));
     }
 
-    // Project mount via 9p (if configured)
+    // Project mount via 9p (if configured).
+    // Windows guests need the viofs driver (installed during bootstrap) to
+    // recognize this device. The virtfs arg is passed for all OS types.
     if let Some(host_path) = project_mount {
         args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, false));
     }

@@ -4,36 +4,37 @@
 //! mid-way, re-running picks up where it left off.
 
 use std::thread;
-use std::time::Instant;
+use tracing::warn;
 
-use crate::bootstrap::BOOTSTRAP_MISE_TOML;
+use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
+use crate::bootstrap::BootstrapLogger;
 use crate::config::{Result, VmProfile};
 use crate::ssh::VmSession;
 use crate::winrm::WinRM;
-use crate::winrm::elevated;
+use crate::winrm::elevated::{self, ProgressCallback};
 
 /// Bootstrap a Windows VM with development tools.
 ///
 /// Phase 1 (WinRM): install OpenSSH, setup keys, autologin.
 /// Phase 2 (SSH): install mise, build tools, runtimes.
-pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession) -> Result<()> {
+pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
     // Phase 1: WinRM-only steps (no SSH required)
-    step("install OpenSSH Server", || {
-        install_openssh_server(winrm)
+    logger::step(logger, "install OpenSSH Server", || {
+        install_openssh_server(winrm, progress)
     })?;
 
     // Phase 2: SSH key authorization (now via WinRM)
-    step("authorise host SSH key", || {
+    logger::step(logger, "authorise host SSH key", || {
         setup_ssh_keys(winrm)
     })?;
 
     // Phase 3: LocalAccountTokenFilterPolicy
-    step("set LocalAccountTokenFilterPolicy", || {
+    logger::step(logger, "set LocalAccountTokenFilterPolicy", || {
         set_local_account_token_filter(winrm)
     })?;
 
     // Phase 4: Configure autologin (Winlogon registry keys)
-    step("configure autologin", || {
+    logger::step(logger, "configure autologin", || {
         set_autologin(winrm)
     })?;
 
@@ -41,62 +42,62 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     thread::sleep(std::time::Duration::from_secs(5));
 
     // Phase 5+: SSH-required steps
-    step("install mise", || {
+    logger::step(logger, "install mise", || {
         install_mise(session)
     })?;
 
     // Step 5: cargo-binstall (before tools, so mise can use it)
-    step("install cargo-binstall", || {
+    logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session)
     })?;
 
     // Step 6: configure mise cargo_binstall setting
-    step("configure mise cargo_binstall", || {
+    logger::step(logger, "configure mise cargo_binstall", || {
         configure_mise_cargo_binstall(session)
     })?;
 
     // Step 7: VS Build Tools with C++ workload
-    step("install VS Build Tools", || {
-        install_vs_build_tools(session, winrm)
+    logger::step(logger, "install VS Build Tools", || {
+        install_vs_build_tools(session, winrm, progress)
     })?;
 
     // Step 7b: Install virtio drivers from CD-ROM (virtio-win ISO)
-    step("install virtio drivers", || {
+    logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
     // Step 7c: Set up viofs project mount service
-    step("set up project mount", || {
+    logger::step(logger, "set up project mount", || {
         setup_project_mount(session, winrm)
     })?;
 
     // Step 8: WebView2 Runtime
-    step("install WebView2 Runtime", || {
+    logger::step(logger, "install WebView2 Runtime", || {
         install_webview2(session)
     })?;
 
     // Step 9: Windows Defender exclusions for dev directories
-    step("set Windows Defender exclusions", || {
+    logger::step(logger, "set Windows Defender exclusions", || {
         set_defender_exclusions(session)
     })?;
 
     // Step 10: rustup ARM64 default-host workaround (only on ARM64 hosts)
-    step("configure rustup for x86_64 (ARM64 workaround)", || {
+    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
         configure_rustup_arm64(session)
     })?;
 
     // Step 11: install tools via bootstrap mise.toml
-    step("install tools via mise", || {
+    logger::step(logger, "install tools via mise", || {
         install_tools(session)
     })?;
 
     // Step 12: set nushell as default shell
-    step("set nushell as default shell", || {
+    logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
     })?;
 
     // Step 13: write bootstrap marker
-    step("write bootstrap marker", || {
+    logger::step(logger, "write bootstrap marker", || {
         write_bootstrap_marker(session)
     })?;
 
@@ -109,20 +110,20 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 ///
 /// Runs before SSH is available. After this completes, callers should
 /// wait for SSH to become reachable, then call `bootstrap_windows_ssh_phase`.
-pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM) -> Result<()> {
-    step("install OpenSSH Server", || {
-        install_openssh_server(winrm)
+pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+    logger::step(logger, "install OpenSSH Server", || {
+        install_openssh_server(winrm, progress)
     })?;
 
-    step("authorise host SSH key", || {
+    logger::step(logger, "authorise host SSH key", || {
         setup_ssh_keys(winrm)
     })?;
 
-    step("set LocalAccountTokenFilterPolicy", || {
+    logger::step(logger, "set LocalAccountTokenFilterPolicy", || {
         set_local_account_token_filter(winrm)
     })?;
 
-    step("configure autologin", || {
+    logger::step(logger, "configure autologin", || {
         set_autologin(winrm)
     })?;
 
@@ -133,52 +134,52 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM) -> Resu
 /// Phase 2: SSH-required bootstrap (installs dev tools).
 ///
 /// Call after `bootstrap_windows_winrm_phase` and waiting for SSH.
-pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession) -> Result<()> {
-    step("install mise", || {
+pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+    logger::step(logger, "install mise", || {
         install_mise(session)
     })?;
 
-    step("install cargo-binstall", || {
+    logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session)
     })?;
 
-    step("configure mise cargo_binstall", || {
+    logger::step(logger, "configure mise cargo_binstall", || {
         configure_mise_cargo_binstall(session)
     })?;
 
-    step("install VS Build Tools", || {
-        install_vs_build_tools(session, winrm)
+    logger::step(logger, "install VS Build Tools", || {
+        install_vs_build_tools(session, winrm, progress)
     })?;
 
-    step("install virtio drivers", || {
+    logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
-    step("set up project mount", || {
+    logger::step(logger, "set up project mount", || {
         setup_project_mount(session, winrm)
     })?;
 
-    step("install WebView2 Runtime", || {
+    logger::step(logger, "install WebView2 Runtime", || {
         install_webview2(session)
     })?;
 
-    step("set Windows Defender exclusions", || {
+    logger::step(logger, "set Windows Defender exclusions", || {
         set_defender_exclusions(session)
     })?;
 
-    step("configure rustup for x86_64 (ARM64 workaround)", || {
+    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
         configure_rustup_arm64(session)
     })?;
 
-    step("install tools via mise", || {
+    logger::step(logger, "install tools via mise", || {
         install_tools(session)
     })?;
 
-    step("set nushell as default shell", || {
+    logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
     })?;
 
-    step("write bootstrap marker", || {
+    logger::step(logger, "write bootstrap marker", || {
         write_bootstrap_marker(session)
     })?;
 
@@ -186,54 +187,170 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
     Ok(())
 }
 
-/// Run a named bootstrap step, tracking elapsed time.
-fn step<F>(label: &str, f: F) -> Result<()>
-where
-    F: FnOnce() -> Result<()>,
-{
-    println!("[bootstrap] → {label}...");
-    let start = Instant::now();
-    f()?;
-    let elapsed = start.elapsed();
-    println!("[bootstrap] ✓ {label} ({elapsed:?})");
-    Ok(())
-}
-
-/// Install OpenSSH Server via Windows Capability.
-fn install_openssh_server(winrm: &WinRM) -> Result<()> {
-    // Check if sshd is already running
-    let state = winrm.run_ps(
+/// Install/configure OpenSSH Server — resilient two-path approach.
+///
+/// 1. Checks `C:\Program Files\OpenSSH-Win64\sshd.exe` first (pre-installed on Vagrant images).
+/// 2. If found: skips Windows Capability entirely, configures service directly.
+/// 3. If not found: installs via `Add-WindowsCapability`, waits for readiness.
+/// 4. Always: adds sshd directory to Machine PATH, registers service if missing
+///    via `sc.exe`, configures sshd_config, starts and verifies sshd.
+fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Result<()> {
+    // Quick exit if sshd is already running
+    let state = winrm.run_ps_quiet(
         "Get-Service sshd -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
-    )?;
-    if state.stdout.trim().eq_ignore_ascii_case("Running") {
+    );
+    if let Ok(s) = state
+        && s.stdout.trim().eq_ignore_ascii_case("Running")
+    {
         return Ok(());
     }
 
     let script = r#"
-$cap = Get-WindowsCapability -Online | Where-Object { $_.Name -like 'OpenSSH.Server*' }
-if ($cap.State -ne 'Installed') {
-    Add-WindowsCapability -Online -Name $cap.Name
+$ErrorActionPreference = 'Continue'
+$Error.Clear()
+$progressLog = 'C:\bootstrap-step-progress.log'
+
+function Log-Progress {
+    param([string]$msg)
+    $ts = Get-Date -Format 'o'
+    Add-Content -Path $progressLog -Value "[$ts] $msg" -Encoding UTF8
+    Write-Output $msg
 }
 
-# Configure sshd for password + pubkey auth
+Log-Progress "Phase 1: locating sshd.exe"
+
+# ── Phase 1: Locate or install sshd.exe ──────────────────────────
+$sshdExe = $null
+$sshdDir = $null
+
+Log-Progress "[openssh] Phase 1: locating sshd.exe"
+Log-Progress "[openssh]   checking C:\Program Files\OpenSSH-Win64\sshd.exe"
+$progFiles = Test-Path 'C:\Program Files\OpenSSH-Win64\sshd.exe'
+Log-Progress "[openssh]     result: $progFiles"
+if ($progFiles) {
+    $sshdExe = 'C:\Program Files\OpenSSH-Win64\sshd.exe'
+    $sshdDir = 'C:\Program Files\OpenSSH-Win64'
+    $files = (Get-ChildItem 'C:\Program Files\OpenSSH-Win64' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name) -join ', '
+    Log-Progress "[openssh]   FOUND pre-installed at $sshdExe"
+    Log-Progress "[openssh]   directory contents: $files"
+}
+else {
+    Log-Progress "[openssh]   checking C:\Windows\System32\OpenSSH\sshd.exe"
+    $sysDir = Test-Path 'C:\Windows\System32\OpenSSH\sshd.exe'
+    Log-Progress "[openssh]     result: $sysDir"
+    if ($sysDir) {
+        $sshdExe = 'C:\Windows\System32\OpenSSH\sshd.exe'
+        $sshdDir = 'C:\Windows\System32\OpenSSH'
+        $files = (Get-ChildItem 'C:\Windows\System32\OpenSSH' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name) -join ', '
+        Log-Progress "[openssh]   FOUND Windows Capability at $sshdExe"
+        Log-Progress "[openssh]   directory contents: $files"
+    }
+    else {
+        Log-Progress "[openssh]   NOT FOUND in either location — installing via Windows Capability"
+        $cap = Get-WindowsCapability -Online | Where-Object { $_.Name -like 'OpenSSH.Server*' }
+        if (-not $cap) { throw "OpenSSH.Server capability not available" }
+        Log-Progress "[openssh]   capability state: $($cap.State), installing..."
+        Add-WindowsCapability -Online -Name $cap.Name
+        Log-Progress "[openssh]   capability install complete, polling for sshd.exe..."
+
+        # Poll for sshd.exe to appear (capability install can be async)
+        $found = $false
+        for ($i = 0; $i -lt 60; $i++) {
+            Start-Sleep -Seconds 5
+            if (($i + 1) % 6 -eq 0) {
+                Log-Progress "[openssh]   still waiting... ($(($i + 1) * 5)s elapsed)"
+            }
+            if (Test-Path 'C:\Program Files\OpenSSH-Win64\sshd.exe') {
+                $sshdExe = 'C:\Program Files\OpenSSH-Win64\sshd.exe'
+                $sshdDir = 'C:\Program Files\OpenSSH-Win64'
+                $found = $true
+                Log-Progress "[openssh]   FOUND at Program Files after $(( $i + 1) * 5)s"
+                break
+            }
+            if (Test-Path 'C:\Windows\System32\OpenSSH\sshd.exe') {
+                $sshdExe = 'C:\Windows\System32\OpenSSH\sshd.exe'
+                $sshdDir = 'C:\Windows\System32\OpenSSH'
+                $found = $true
+                Log-Progress "[openssh]   FOUND at System32 after $(( $i + 1) * 5)s"
+                break
+            }
+        }
+        if (-not $found) {
+            # List what DID appear
+            Log-Progress "[openssh]   listing C:\Program Files\OpenSSH-Win64:"
+            Get-ChildItem 'C:\Program Files\OpenSSH-Win64' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "[openssh]     $($_.Name)" }
+            Log-Progress "[openssh]   listing C:\Windows\System32\OpenSSH:"
+            Get-ChildItem 'C:\Windows\System32\OpenSSH' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "[openssh]     $($_.Name)" }
+            throw "sshd.exe did not appear after Windows Capability install (5 min timeout)"
+        }
+    }
+}
+
+# ── Phase 2: Add sshd directory to Machine PATH ──────────────────
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+if ($machinePath -notmatch [regex]::Escape($sshdDir)) {
+    [Environment]::SetEnvironmentVariable('PATH', "$sshdDir;$machinePath", 'Machine')
+    Log-Progress "[openssh] added $sshdDir to Machine PATH"
+}
+
+# ── Phase 3: Ensure sshd service exists ──────────────────────────
+$svc = Get-Service sshd -ErrorAction SilentlyContinue
+if (-not $svc) {
+    # Service not registered — create it manually
+    Log-Progress "[openssh] sshd service not found, registering via sc.exe"
+    sc.exe create sshd binPath= "`"$sshdExe`"" start= auto DisplayName= "OpenSSH SSH Server" 2>&1 | Out-Null
+    Start-Sleep -Seconds 2
+    $svc = Get-Service sshd -ErrorAction SilentlyContinue
+    if (-not $svc) {
+        # Fallback: try New-Service
+        Log-Progress "[openssh] sc.exe failed, trying New-Service"
+        New-Service -Name sshd -BinaryPathName $sshdExe -DisplayName "OpenSSH SSH Server" -StartupType Automatic 2>&1 | Out-Null
+        Start-Sleep -Seconds 2
+        $svc = Get-Service sshd -ErrorAction SilentlyContinue
+    }
+    if (-not $svc) {
+        throw "Could not register sshd service via sc.exe or New-Service"
+    }
+    Log-Progress "[openssh] sshd service registered"
+}
+
+# ── Phase 4: Configure sshd_config ──────────────────────────────
 $sshd_config = 'C:\ProgramData\ssh\sshd_config'
-$c = Get-Content $sshd_config
-$o = @()
-foreach ($l in $c) {
-    if ($l -match '^#?PasswordAuthentication')              { $o += 'PasswordAuthentication yes' }
-    elseif ($l -match '^#?PubkeyAuthentication')            { $o += 'PubkeyAuthentication yes' }
-    elseif ($l -match '^Match Group administrators')        { $o += '#Match Group administrators' }
-    elseif ($l -match 'AuthorizedKeysFile __PROGRAMDATA__') { $o += '#AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys' }
-    else                                                     { $o += $l }
+if (Test-Path $sshd_config) {
+    $c = Get-Content $sshd_config
+    $o = @()
+    foreach ($l in $c) {
+        if ($l -match '^#?PasswordAuthentication')              { $o += 'PasswordAuthentication yes' }
+        elseif ($l -match '^#?PubkeyAuthentication')            { $o += 'PubkeyAuthentication yes' }
+        elseif ($l -match '^Match Group administrators')        { $o += '#Match Group administrators' }
+        elseif ($l -match 'AuthorizedKeysFile __PROGRAMDATA__') { $o += '#AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys' }
+        else                                                     { $o += $l }
+    }
+    $o | Set-Content $sshd_config -Force -Encoding UTF8
+    Log-Progress "[openssh] sshd_config configured"
 }
-$o | Set-Content $sshd_config -Force -Encoding UTF8
 
-Start-Service sshd -ErrorAction SilentlyContinue
+# ── Phase 5: Start sshd and verify ───────────────────────────────
 Set-Service -Name sshd -StartupType Automatic
-Restart-Service sshd -ErrorAction SilentlyContinue
+Start-Service sshd -ErrorAction SilentlyContinue
+
+# Verify it's running (poll briefly — service can take a moment)
+for ($i = 0; $i -lt 12; $i++) {
+    $st = (Get-Service sshd -ErrorAction SilentlyContinue).Status
+    if ($st -eq 'Running') {
+        Log-Progress "[openssh] sshd is Running"
+        break
+    }
+    Start-Sleep -Seconds 2
+}
+
+$final = (Get-Service sshd -ErrorAction SilentlyContinue).Status
+if ($final -ne 'Running') {
+    throw "sshd service is not running (state: $final). Check C:\ProgramData\ssh\logs\sshd.log"
+}
 "#;
 
-    elevated::run_elevated(winrm, script, 360)?;
+    elevated::run_elevated(winrm, script, 1800, progress)?;
     Ok(())
 }
 
@@ -292,7 +409,7 @@ Start-Service sshd -ErrorAction SilentlyContinue
     // Direct WinRM call — already runs as admin, no scheduled task needed
     let result = winrm.run_ps(&script);
     if let Err(e) = result {
-        eprintln!("[bootstrap] Warning: SSH key setup via WinRM had issues: {e:?}");
+        warn!("[bootstrap] SSH key setup via WinRM had issues: {e:?}");
     }
     Ok(())
 }
@@ -304,7 +421,7 @@ $reg_path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
 if (-not (Test-Path $reg_path)) { New-Item -Path $reg_path -Force }
 Set-ItemProperty -Path $reg_path -Name 'LocalAccountTokenFilterPolicy' -Value 1 -Type DWord -Force
 "#;
-    elevated::run_elevated(winrm, script, 30)?;
+    elevated::run_elevated(winrm, script, 30, None)?;
     Ok(())
 }
 
@@ -315,21 +432,21 @@ Set-ItemProperty -Path $reg_path -Name 'LocalAccountTokenFilterPolicy' -Value 1 
 /// VNC login.
 fn set_autologin(winrm: &WinRM) -> Result<()> {
     // Check if already configured
-    let check = winrm.run_ps(
+    let check = winrm.run_ps_quiet(
         "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' -Name AutoAdminLogon -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoAdminLogon",
     )?;
     if check.stdout.trim() == "1" {
         return Ok(());
     }
 
+    // Use reg.exe — AutoAdminLogon must be REG_DWORD for Windows to honor it
     let script = r#"
-$regPath = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
-Set-ItemProperty -Path $regPath -Name AutoAdminLogon -Value '1' -Force
-Set-ItemProperty -Path $regPath -Name DefaultUsername -Value 'vagrant' -Force
-Set-ItemProperty -Path $regPath -Name DefaultPassword -Value 'vagrant' -Force
-Remove-ItemProperty -Path $regPath -Name AutoLogonCount -ErrorAction SilentlyContinue
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUsername /t REG_SZ /d vagrant /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d vagrant /f
+reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoLogonCount /f 2>nul || true
 "#;
-    elevated::run_elevated(winrm, script, 30)?;
+    elevated::run_elevated(winrm, script, 30, None)?;
     Ok(())
 }
 
@@ -417,9 +534,9 @@ if (-not (Test-Path $cfg)) {
 }
 
 /// Install VS Build Tools with C++ workload, checking for actual binary.
-fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>) -> Result<()> {
     // Check for the actual binary we need: Hostarm64\x64\link.exe
-    let vc_check = winrm.run_ps(
+    let vc_check = winrm.run_ps_quiet(
         r#"if (Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue) { 'present' } else { 'missing' }"#
     )?;
     if vc_check.stdout.trim() == "present" {
@@ -445,6 +562,7 @@ Start-Process -FilePath 'C:\vs_buildtools.exe' -ArgumentList @(
 ) -Wait -NoNewWindow -PassThru | Out-Null
 "#,
         1800,
+        progress,
     )?;
     Ok(())
 }
@@ -490,7 +608,7 @@ Add-MpPreference -ExclusionPath "C:\Users\vagrant\.local" -ErrorAction SilentlyC
 /// 4. Triggers an immediate mount
 fn setup_project_mount(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
     // Check if already set up — verify virtiofs.exe + mount is functional
-    let check = winrm.run_ps(
+    let check = winrm.run_ps_quiet(
         r#"
         $exeOk = Test-Path 'C:\Program Files\virtiofs\virtiofs.exe'
         $mountOk = Test-Path 'C:\Users\vagrant\project\Cargo.toml'
@@ -576,13 +694,13 @@ for ($i = 0; $i -lt 15; $i++) {
 
 if (-not $mounted) {
     $files = Get-ChildItem $mountPoint -ErrorAction SilentlyContinue
-    Write-Output "Mount check failed. Contents of $mountPoint : $($files | Select-Object -ExpandProperty Name -ErrorAction SilentlyContinue)"
+    Log-Progress "Mount check failed. Contents of $mountPoint : $($files | Select-Object -ExpandProperty Name -ErrorAction SilentlyContinue)"
     throw "virtiofs mount did not become accessible after 30s"
 }
 
-Write-Output "Project mount verified at $mountPoint"
+Log-Progress "Project mount verified at $mountPoint"
 "#;
-    elevated::run_elevated(winrm, script, 120)?;
+    elevated::run_elevated(winrm, script, 120, None)?;
     Ok(())
 }
 
@@ -595,7 +713,7 @@ Write-Output "Project mount verified at $mountPoint"
 /// Idempotent: skips if virtio drivers are already installed.
 fn install_virtio_drivers(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
     // Check if virtio drivers are already installed
-    let check = winrm.run_ps(
+    let check = winrm.run_ps_quiet(
         r#"$devices = Get-PnpDevice -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' -or $_.FriendlyName -like '*Red Hat*' }; if ($null -ne $devices -and $devices.Count -gt 0) { 'installed' } else { 'missing' }"#
     )?;
     if check.stdout.trim() == "installed" {
@@ -636,9 +754,9 @@ Get-ChildItem -Path $driverDir -Filter "*.inf" -Recurse | ForEach-Object {
         $failed++
     }
 }
-Write-Output "virtio drivers: $installed installed, $failed failed"
+Log-Progress "virtio drivers: $installed installed, $failed failed"
 "#;
-    elevated::run_elevated(winrm, script, 300)?;
+    elevated::run_elevated(winrm, script, 300, None)?;
     Ok(())
 }
 
