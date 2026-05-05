@@ -65,6 +65,11 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         install_virtio_drivers(session, winrm)
     })?;
 
+    // Step 7c: Set up viofs project mount service
+    step("set up project mount", || {
+        setup_project_mount(session, winrm)
+    })?;
+
     // Step 8: WebView2 Runtime
     step("install WebView2 Runtime", || {
         install_webview2(session)
@@ -149,6 +154,10 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         install_virtio_drivers(session, winrm)
     })?;
 
+    step("set up project mount", || {
+        setup_project_mount(session, winrm)
+    })?;
+
     step("install WebView2 Runtime", || {
         install_webview2(session)
     })?;
@@ -229,6 +238,7 @@ Restart-Service sshd -ErrorAction SilentlyContinue
 }
 
 /// Set up SSH key authorization on Windows (both user + admin paths) via WinRM.
+/// Uses direct WinRM calls (already elevated) instead of scheduled tasks.
 fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
@@ -247,30 +257,43 @@ fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
         return Ok(());
     }
 
-    let key_escaped = pub_key.replace("'", "''");
+    // Escape for PowerShell double-quoted string
+    let key_b64 = base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        pub_key.as_bytes(),
+    );
+
     let script = format!(
         r#"
-$key = '{key_escaped}'
+$bytes = [System.Convert]::FromBase64String('{key_b64}')
+$key = [System.Text.Encoding]::UTF8.GetString($bytes)
 
-# User-level path
+# User-level authorized_keys
 $dir = "$env:USERPROFILE\.ssh"
 if (-not (Test-Path $dir)) {{ New-Item -ItemType Directory -Path $dir -Force | Out-Null }}
 $f = "$dir\authorized_keys"
-if (-not (Test-Path $f) -or ((Get-Content $f -ErrorAction SilentlyContinue) -notcontains $key)) {{
-    Add-Content $f $key -Encoding ASCII
+if (-not (Test-Path $f) -or ((Get-Content $f -Raw -ErrorAction SilentlyContinue) -notcontains $key)) {{
+    Add-Content $f $key -Encoding UTF8
 }}
 
-# Admin-level path (for Match Group administrators users)
+# Admin-level authorized_keys
 $adm = 'C:\ProgramData\ssh\administrators_authorized_keys'
-if (-not (Test-Path $adm) -or ((Get-Content $adm -ErrorAction SilentlyContinue) -notcontains $key)) {{
-    Add-Content $adm $key -Encoding ASCII
+if (-not (Test-Path $adm) -or ((Get-Content $adm -Raw -ErrorAction SilentlyContinue) -notcontains $key)) {{
+    Add-Content $adm $key -Encoding UTF8
 }}
 icacls $adm /inheritance:r /grant 'Administrators:F' /grant 'SYSTEM:F' | Out-Null
 
+# Restart sshd to pick up changes
 Restart-Service sshd -ErrorAction SilentlyContinue
+Start-Service sshd -ErrorAction SilentlyContinue
 "#
     );
-    elevated::run_elevated(winrm, &script, 30)?;
+
+    // Direct WinRM call — already runs as admin, no scheduled task needed
+    let result = winrm.run_ps(&script);
+    if let Err(e) = result {
+        eprintln!("[bootstrap] Warning: SSH key setup via WinRM had issues: {e:?}");
+    }
     Ok(())
 }
 
@@ -454,6 +477,112 @@ Add-MpPreference -ExclusionPath "C:\Users\vagrant\.rustup" -ErrorAction Silently
 Add-MpPreference -ExclusionPath "C:\Users\vagrant\.local" -ErrorAction SilentlyContinue
 "#;
     crate::ssh::exec_ps_windows(session, script)?;
+    Ok(())
+}
+
+/// Set up the viofs-based project mount for Windows guests.
+///
+/// The virtio-win ISO provides the viofs driver (installed separately) and
+/// `virtiofs.exe` mount utility. This function:
+/// 1. Copies virtiofs.exe from the ISO to the VM
+/// 2. Creates the mount point directory
+/// 3. Sets up a startup scheduled task to auto-mount on boot
+/// 4. Triggers an immediate mount
+fn setup_project_mount(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    // Check if already set up — verify virtiofs.exe + mount is functional
+    let check = winrm.run_ps(
+        r#"
+        $exeOk = Test-Path 'C:\Program Files\virtiofs\virtiofs.exe'
+        $mountOk = Test-Path 'C:\Users\vagrant\project\Cargo.toml'
+        if ($exeOk -and $mountOk) { 'configured' } else { 'missing' }
+        "#
+    )?;
+    if check.stdout.trim() == "configured" {
+        return Ok(());
+    }
+
+    // Find the CD-ROM with virtio-win
+    let script = r#"
+# Kill any stale virtiofs processes
+Get-Process -Name 'virtiofs' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+# Find CD-ROM with virtio-win
+$cd = (Get-Volume | Where-Object { $_.FileSystemLabel -like 'virtio*' }).DriveLetter
+if (-not $cd) {
+    $cds = Get-CimInstance Win32_CDROMDrive | ForEach-Object { $_.Drive }
+    foreach ($d in $cds) {
+        if (Test-Path "${d}:\w11\amd64") {
+            $cd = $d
+            break
+        }
+    }
+}
+if (-not $cd) { throw "virtio-win CD-ROM not found" }
+
+# Create virtiofs install directory
+$installDir = 'C:\Program Files\virtiofs'
+if (-not (Test-Path $installDir)) {
+    New-Item -ItemType Directory -Path $installDir -Force | Out-Null
+}
+
+# Copy virtiofs tools from ISO (viofs directory on the ISO)
+$viofsDir = "${cd}:\viofs"
+if (Test-Path $viofsDir) {
+    Copy-Item -Path "$viofsDir\*" -Destination $installDir -Recurse -Force
+}
+
+# Also copy from the architecture-specific directory
+$toolsDir = "${cd}:\vioserial\w11\amd64"
+if (Test-Path $toolsDir) {
+    Copy-Item -Path "$toolsDir\*" -Destination $installDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Create the mount point
+$mountPoint = 'C:\Users\vagrant\project'
+if (-not (Test-Path $mountPoint)) {
+    New-Item -ItemType Directory -Path $mountPoint -Force | Out-Null
+}
+
+# Create the mount script for boot-time use
+$mountScript = @"
+# Mount virtiofs project drive
+Start-Process -FilePath 'virtiofs.exe' -ArgumentList '-t project', '-m C:\Users\vagrant\project' -WindowStyle Hidden
+"@
+Set-Content -Path "$installDir\mount-project.ps1" -Value $mountScript -Encoding UTF8
+
+# Create a scheduled task to mount on every boot
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$installDir\mount-project.ps1`""
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
+Register-ScheduledTask -TaskName 'MountVirtiofsProject' -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
+
+# Mount now: start virtiofs.exe directly as the current user (elevated admin)
+$virtiofsExe = "$installDir\virtiofs.exe"
+if (-not (Test-Path $virtiofsExe)) {
+    throw "virtiofs.exe not found at $virtiofsExe"
+}
+
+Start-Process -FilePath $virtiofsExe -ArgumentList '-t project', '-m C:\Users\vagrant\project' -WindowStyle Hidden
+
+# Wait for mount to become accessible
+$mounted = $false
+for ($i = 0; $i -lt 15; $i++) {
+    Start-Sleep -Seconds 2
+    if (Test-Path "$mountPoint\Cargo.toml") {
+        $mounted = $true
+        break
+    }
+}
+
+if (-not $mounted) {
+    $files = Get-ChildItem $mountPoint -ErrorAction SilentlyContinue
+    Write-Output "Mount check failed. Contents of $mountPoint : $($files | Select-Object -ExpandProperty Name -ErrorAction SilentlyContinue)"
+    throw "virtiofs mount did not become accessible after 30s"
+}
+
+Write-Output "Project mount verified at $mountPoint"
+"#;
+    elevated::run_elevated(winrm, script, 120)?;
     Ok(())
 }
 
