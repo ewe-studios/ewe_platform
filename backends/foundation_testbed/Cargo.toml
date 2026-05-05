@@ -44,6 +44,7 @@ xz2 = "0.1"
 # Auth / utils
 base64 = "0.22"
 dirs = "6"
+tracing = "0.1"
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

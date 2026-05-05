@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use foundation_testbed::bootstrap::BootstrapLogger;
 use foundation_testbed::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
 use foundation_testbed::qemu::{QemuConfig, QemuVm};
 use foundation_testbed::qemu::mount;
@@ -144,22 +145,36 @@ impl TestVm {
     ///
     /// For Windows: two-phase — WinRM installs OpenSSH, then SSH installs tools.
     /// For Linux/macOS: SSH-only bootstrap.
+    ///
+    /// Logs are written to `$PWD/.testbed/<profile-name>/bootstrap.log`.
     pub fn bootstrap(&mut self) -> Result<()> {
         if foundation_testbed::bootstrap::is_bootstrapped(&self.profile) {
             println!("[{}] Already bootstrapped, skipping", &self.profile_name);
             return Ok(());
         }
 
+        // Create logger for test output
+        let logger = BootstrapLogger::new(&self.profile_name)
+            .map_err(|e| foundation_testbed::config::TestbedError::BootstrapFailed {
+                step: "create logger".to_string(),
+                message: e.to_string(),
+            })?;
+
         match self.profile.os {
             GuestOs::Linux | GuestOs::MacOS => {
                 let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
-                foundation_testbed::bootstrap::bootstrap(&self.profile, &mut session)?;
+                foundation_testbed::bootstrap::bootstrap(&self.profile, &mut session, &logger, None)?;
             }
             GuestOs::Windows => {
-                let winrm = foundation_testbed::winrm::WinRM::from_profile(&self.profile)?;
+                let winrm_port = self.profile.winrm_port.unwrap_or(5985);
+                let winrm = foundation_testbed::winrm::WinRM::new(
+                    "127.0.0.1", winrm_port, self.profile.user, self.profile.pass,
+                );
 
                 // Phase 1: WinRM-only (installs OpenSSH, configures SSH)
-                foundation_testbed::bootstrap::windows::bootstrap_windows_winrm_phase(&self.profile, &winrm)?;
+                foundation_testbed::bootstrap::windows::bootstrap_windows_winrm_phase(
+                    &self.profile, &winrm, &logger, None,
+                )?;
 
                 // Wait for SSH to come up
                 thread::sleep(Duration::from_secs(10));
@@ -179,11 +194,13 @@ impl TestVm {
 
                 // Phase 2: SSH-required (installs dev tools)
                 let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
-                foundation_testbed::bootstrap::windows::bootstrap_windows_ssh_phase(&self.profile, &winrm, &mut session)?;
+                foundation_testbed::bootstrap::windows::bootstrap_windows_ssh_phase(
+                    &self.profile, &winrm, &mut session, &logger, None,
+                )?;
             }
         }
 
-        println!("[{}] Bootstrap complete", &self.profile_name);
+        logger.message(&format!("✓ {} bootstrap complete", &self.profile_name));
         Ok(())
     }
 

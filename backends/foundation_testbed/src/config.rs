@@ -367,12 +367,21 @@ pub fn monitor_dir() -> std::path::PathBuf {
     std::path::PathBuf::from("/tmp").join("foundation_testbed")
 }
 
+/// VM work directory: `$PWD/.testbed/[vm-name]/` — per-VM logs and artifacts.
+pub fn work_dir(profile_name: &str) -> std::path::PathBuf {
+    std::env::current_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("."))
+        .join(".testbed")
+        .join(profile_name)
+}
+
 /// Ensure all foundation_testbed cache directories exist.
 pub fn ensure_dirs() -> std::io::Result<()> {
     std::fs::create_dir_all(cache_dir())?;
     std::fs::create_dir_all(image_cache_dir())?;
     std::fs::create_dir_all(state_dir())?;
     std::fs::create_dir_all(monitor_dir())?;
+    std::fs::create_dir_all(std::env::current_dir().unwrap_or_default().join(".testbed"))?;
     Ok(())
 }
 
@@ -399,6 +408,9 @@ pub enum TestbedError {
 
     #[display("WinRM not reachable on port {port}")]
     WinrmNotReachable { port: u16 },
+
+    #[display("WinRM operation timed out: {message}")]
+    WinrmTimeout { message: String },
 
     #[display("Build failed for target '{target}' (exit {code})")]
     BuildFailed { target: String, code: i32 },
