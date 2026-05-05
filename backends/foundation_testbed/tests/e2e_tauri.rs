@@ -173,18 +173,29 @@ fn test_tauri_build_windows() -> Result<()> {
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
     vm.bootstrap()?;
 
+    // Verify project mount before building
+    let (mount_check, _) = vm.ps_exec(&format!(
+        "if (Test-Path '{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}"
+    ))?;
+    assert!(
+        mount_check.contains("FOUND"),
+        "project mount should be accessible before build (got: {})",
+        mount_check.trim()
+    );
+
     println!("[build/windows] Building Tauri app in VM...");
     let build_cmd = format!(
         "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1"
     );
-    let (output, _) = vm.ps_exec(&build_cmd)?;
-    println!("  Build output:\n{}", output);
+    let (output, exit_code) = vm.ps_exec(&build_cmd)?;
+    println!("  Build output:\n{output}");
+    println!("  Exit code: {exit_code}");
 
     let artifact_on_host = tauri_app_host_path()
         .join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
 
     let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"))?;
-    assert!(built, "Tauri build artifact should exist");
+    assert!(built, "Tauri build artifact should exist (exit code: {exit_code})");
 
     let is_pe = assert_pe_binary(&artifact_on_host)?;
     assert!(is_pe, "build artifact should be a valid PE (.exe) binary");
