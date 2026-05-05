@@ -6,7 +6,7 @@
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::config::Result;
+use crate::config::{Result, TestbedError};
 
 use super::WinRM;
 
@@ -17,16 +17,17 @@ use super::WinRM;
 /// triggers it, and polls for completion via sentinel file.
 ///
 /// Returns `true` if the task completed within the timeout.
-pub fn run_elevated(winrm: &WinRM, ps_code: &str, timeout_secs: u64) -> Result<bool> {
-    // Step 1: Write script to disk on the guest, appending sentinel creation
+pub fn run_elevated(winrm: &WinRM, ps_code: &str, timeout_secs: u64) -> Result<()> {
+    // Step 1: Write script to disk on the guest via base64 (avoids all escaping issues)
     let script_with_sentinel = format!(
         "{ps_code}\nSet-Content -Path 'C:\\bootstrap-step-done.txt' -Value 'done' -Encoding ASCII"
     );
-    let escaped = script_with_sentinel.replace("'", "''");
+    let script_b64 = base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        script_with_sentinel.as_bytes(),
+    );
     let write_script = format!(
-        r#"Set-Content -Path 'C:\bootstrap-step.ps1' -Value @'
-{escaped}
-'@ -Encoding UTF8"#
+        "[System.IO.File]::WriteAllBytes('C:\\bootstrap-step.ps1', [System.Convert]::FromBase64String('{script_b64}'))"
     );
     winrm.run_ps(&write_script)?;
 
@@ -57,13 +58,16 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         {
             cleanup_task(winrm, task_name).ok();
             cleanup_script(winrm).ok();
-            return Ok(true);
+            return Ok(());
         }
     }
 
     // Timeout: try to clean up
     cleanup_task(winrm, task_name).ok();
-    Ok(false)
+    Err(TestbedError::BootstrapFailed {
+        step: "elevated script".to_string(),
+        message: format!("script did not complete within {timeout_secs}s timeout"),
+    })
 }
 
 /// Delete the scheduled task.
@@ -84,11 +88,17 @@ fn cleanup_script(winrm: &WinRM) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
-    fn test_escaped_quotes() {
-        let ps = "Write-Output 'hello'";
-        let escaped = ps.replace("'", "''");
-        assert_eq!(escaped, "Write-Output ''hello''");
+    fn test_base64_roundtrip() {
+        let original = "Write-Output 'hello world'";
+        let encoded = base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            original.as_bytes(),
+        );
+        let decoded = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            &encoded,
+        ).unwrap();
+        assert_eq!(String::from_utf8(decoded).unwrap(), original);
     }
 }
