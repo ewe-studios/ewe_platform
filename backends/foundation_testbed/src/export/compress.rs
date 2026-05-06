@@ -253,6 +253,7 @@ fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
 
 /// Apply system-level compression as a fallback (if Rust-native fails).
 /// Uses `xz` or `gzip` from the system PATH.
+#[allow(dead_code)]
 pub fn compress_system(src: &Path, dest: &Path, algo: Compression) -> Result<()> {
     let (cmd, args) = match algo {
         Compression::Xz => ("xz", vec!["-9", "-c", src.to_str().unwrap()]),

@@ -54,6 +54,8 @@ pub struct QemuConfig {
     display_mode: DisplayMode,
     extra_args: Vec<String>,
     project_mount: Option<std::path::PathBuf>,
+    project_mount_guest_path: Option<String>,
+    project_mount_readonly: bool,
     cdrom_path: Option<std::path::PathBuf>,
 }
 
@@ -64,6 +66,8 @@ impl QemuConfig {
             display_mode,
             extra_args: Vec::new(),
             project_mount: None,
+            project_mount_guest_path: None,
+            project_mount_readonly: false,
             cdrom_path: None,
         }
     }
@@ -74,10 +78,24 @@ impl QemuConfig {
         self
     }
 
-    /// Set the host project directory to mount into the guest via 9p.
-    pub fn with_project_mount(mut self, host_path: std::path::PathBuf) -> Self {
+    /// Set the host directory to mount into the guest via 9p.
+    /// `guest_path` is where it will be mounted inside the VM.
+    /// `readonly` controls whether the guest has write access.
+    pub fn with_project_mount(
+        mut self,
+        host_path: std::path::PathBuf,
+        guest_path: &str,
+        readonly: bool,
+    ) -> Self {
         self.project_mount = Some(host_path);
+        self.project_mount_guest_path = Some(guest_path.to_string());
+        self.project_mount_readonly = readonly;
         self
+    }
+
+    /// Get the configured guest mount path for this VM.
+    pub fn project_mount_guest_path(&self) -> Option<&str> {
+        self.project_mount_guest_path.as_deref()
     }
 
     /// Attach an ISO as a CD-ROM drive in the guest.
@@ -150,6 +168,7 @@ impl QemuConfig {
             display_args,
             has_native_window,
             config.project_mount.as_deref(),
+            config.project_mount_readonly,
             config.cdrom_path.as_deref(),
             macos_efi_disk.as_deref(),
         ));
@@ -495,6 +514,7 @@ fn build_qemu_args(
     display_args: Vec<String>,
     _has_native_window: bool,
     project_mount: Option<&std::path::Path>,
+    project_mount_readonly: bool,
     cdrom_path: Option<&std::path::Path>,
     macos_efi_disk: Option<&std::path::Path>,
 ) -> Vec<String> {
@@ -612,7 +632,7 @@ fn build_qemu_args(
     // Windows guests need the viofs driver (installed during bootstrap) to
     // recognize this device. The virtfs arg is passed for all OS types.
     if let Some(host_path) = project_mount {
-        args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, false));
+        args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, project_mount_readonly));
     }
 
     // Network (user-mode with port forwarding)
@@ -707,7 +727,7 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, None, None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
         assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
         assert!(args.iter().any(|a| a.contains("12288"))); // RAM
@@ -730,7 +750,7 @@ mod tests {
         let disk = std::path::PathBuf::from("/tmp/test.qcow2");
         let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, None, None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
         assert!(args.iter().any(|a| a.contains("vnc=:2")));
         assert!(args.iter().any(|a| a.contains("usb-tablet")));
@@ -750,7 +770,7 @@ mod tests {
         let display_args = display::DisplayBackend::Vnc.qemu_args(2);
         let project_mount = std::path::PathBuf::from("/home/user/project");
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), None, None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), false, None, None);
 
         assert!(args.iter().any(|a| a.contains("-virtfs")));
         assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
@@ -771,7 +791,7 @@ mod tests {
         let display_args = display::DisplayBackend::Vnc.qemu_args(0);
         let cdrom = std::path::PathBuf::from("/tmp/virtio-win.iso");
 
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, Some(&cdrom), None);
+        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, Some(&cdrom), None);
 
         assert!(args.iter().any(|a| a.contains("media=cdrom")));
         assert!(args.iter().any(|a| a.contains("/tmp/virtio-win.iso")));

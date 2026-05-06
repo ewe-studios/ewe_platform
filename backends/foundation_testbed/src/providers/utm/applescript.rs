@@ -187,6 +187,32 @@ pub fn verify_imported_bundle(display_name: &str) -> bool {
         .unwrap_or(false)
 }
 
+/// Configure a shared directory for a UTM VM.
+///
+/// UTM shares host directories with guests via its built-in shared
+/// directory feature. The directory is exposed inside the guest using
+/// the 9p/virtio protocol with the given mount tag.
+///
+/// Arguments:
+/// - `uuid`: UTM VM UUID
+/// - `host_path`: Absolute path on the host
+/// - `mount_tag`: Tag name used to identify the mount inside the guest
+/// - `readonly`: If true, guest has read-only access
+pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, readonly: bool) -> Result<()> {
+    let read_only_str = if readonly { "true" } else { "false" };
+    let script = format!(
+        r#"
+        tell application "UTM"
+            set vm to first virtual machine where id is "{uuid}"
+            set sharedDirectory to {{sharedTag:"{mount_tag}", hostPath:"{host_path}", readOnly:{read_only_str}}}
+            set shared directories of vm to {{sharedDirectory}}
+        end tell
+        "#
+    );
+    run_applescript(&script)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

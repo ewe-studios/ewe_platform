@@ -121,7 +121,7 @@ pub fn cmd_init(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let vms: Vec<String> = args
         .get_many::<String>("vms")
         .map(|vals| vals.cloned().collect())
-        .unwrap_or_else(|| vec!["linux-build".to_string()]);
+        .unwrap_or_else(|| vec!["windows-build".to_string(), "linux-build".to_string(), "macos-build".to_string()]);
 
     crate::init::init(std::path::Path::new("."), &vms)?;
     println!("Scaffolded .testbed/ directory with:");

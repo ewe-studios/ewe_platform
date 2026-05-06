@@ -62,7 +62,12 @@ impl TestVm {
 
         let mut config = QemuConfig::new(profile.clone(), display);
         if mount_project {
-            config = config.with_project_mount(std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+            let guest_path = match profile.os {
+                GuestOs::Windows => "C:/Users/vagrant/project",
+                GuestOs::Linux => "/mnt/project",
+                GuestOs::MacOS => "/Users/vagrant/project",
+            };
+            config = config.with_project_mount(std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), guest_path, false);
         }
 
         let qemu = config.launch()?;

@@ -18,11 +18,33 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
 pub fn cmd_exec(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let cmd = args.get_one::<String>("cmd").unwrap();
+    let method = args.get_one::<String>("method").map(|s| s.as_str()).unwrap_or("ssh");
     let profile = resolve_profile(name)?;
 
-    let mut session = ssh::connect(&profile)?;
-    let output = ssh::exec(&mut session, cmd)?;
-    print!("{}", output);
+    match method {
+        "winrm" => {
+            let port = profile.winrm_port.ok_or_else(|| {
+                format!("No WinRM port configured for '{}'", profile.name)
+            })?;
+            let winrm = crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass);
+            let result = winrm.run_ps(cmd)?;
+            if !result.stdout.is_empty() {
+                print!("{}", result.stdout);
+            }
+            if !result.stderr.is_empty() {
+                eprintln!("{}", result.stderr);
+            }
+            if result.exit_code != 0 {
+                return Err(format!("Command exited with code {}", result.exit_code).into());
+            }
+        }
+        "ssh" => {
+            let mut session = ssh::connect(&profile)?;
+            let output = ssh::exec(&mut session, cmd)?;
+            print!("{}", output);
+        }
+        _ => unreachable!(),
+    }
     Ok(())
 }
 

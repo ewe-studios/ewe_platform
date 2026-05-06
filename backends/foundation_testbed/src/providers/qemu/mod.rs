@@ -32,7 +32,15 @@ impl Provider for QemuProvider {
     }
 
     fn launch(&self, profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
-        let config = crate::qemu::QemuConfig::new(profile.clone(), mode);
+        let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode);
+
+        // Apply per-VM mount configuration from testbed.toml
+        if let Some((host_path, guest_path, readonly)) =
+            crate::config::get_mount_for_profile(profile.name, ".")
+        {
+            config = config.with_project_mount(PathBuf::from(&host_path), &guest_path, readonly);
+        }
+
         let qemu_vm = config.launch()?;
 
         let handle = VmHandle {

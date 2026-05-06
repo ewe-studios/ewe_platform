@@ -3,12 +3,14 @@
 //! Each step checks concrete artifacts before running. If bootstrap fails
 //! mid-way, re-running picks up where it left off.
 
+use std::path::PathBuf;
 use std::thread;
-use tracing::warn;
+use std::process::Command;
+use tracing::{debug, warn};
 
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::bootstrap::BootstrapLogger;
-use crate::config::{Result, VmProfile};
+use crate::config::{cache_dir, Result, TestbedError, VmProfile};
 use crate::ssh::VmSession;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::{self, ProgressCallback};
@@ -195,12 +197,12 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
 /// 4. Always: adds sshd directory to Machine PATH, registers service if missing
 ///    via `sc.exe`, configures sshd_config, starts and verifies sshd.
 fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Result<()> {
-    // Quick exit if sshd is already running
+    // Quick exit if sshd is already running (use contains() to handle CLIXML wrapper)
     let state = winrm.run_ps_quiet(
         "Get-Service sshd -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
     );
     if let Ok(s) = state
-        && s.stdout.trim().eq_ignore_ascii_case("Running")
+        && s.stdout.contains("Running")
     {
         return Ok(());
     }
@@ -219,91 +221,84 @@ function Log-Progress {
 
 Log-Progress "Phase 1: locating sshd.exe"
 
-# ── Phase 1: Locate or install sshd.exe ──────────────────────────
 $sshdExe = $null
 $sshdDir = $null
 
-Log-Progress "[openssh] Phase 1: locating sshd.exe"
-Log-Progress "[openssh]   checking C:\Program Files\OpenSSH-Win64\sshd.exe"
+Log-Progress "SSH Phase 1: locating sshd.exe"
+Log-Progress "SSH   checking C:\Program Files\OpenSSH-Win64\sshd.exe"
 $progFiles = Test-Path 'C:\Program Files\OpenSSH-Win64\sshd.exe'
-Log-Progress "[openssh]     result: $progFiles"
+Log-Progress "SSH     result: $progFiles"
 if ($progFiles) {
     $sshdExe = 'C:\Program Files\OpenSSH-Win64\sshd.exe'
     $sshdDir = 'C:\Program Files\OpenSSH-Win64'
     $files = (Get-ChildItem 'C:\Program Files\OpenSSH-Win64' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name) -join ', '
-    Log-Progress "[openssh]   FOUND pre-installed at $sshdExe"
-    Log-Progress "[openssh]   directory contents: $files"
+    Log-Progress "SSH   FOUND pre-installed at $sshdExe"
+    Log-Progress "SSH   directory contents: $files"
 }
 else {
-    Log-Progress "[openssh]   checking C:\Windows\System32\OpenSSH\sshd.exe"
+    Log-Progress "SSH   checking C:\Windows\System32\OpenSSH\sshd.exe"
     $sysDir = Test-Path 'C:\Windows\System32\OpenSSH\sshd.exe'
-    Log-Progress "[openssh]     result: $sysDir"
+    Log-Progress "SSH     result: $sysDir"
     if ($sysDir) {
         $sshdExe = 'C:\Windows\System32\OpenSSH\sshd.exe'
         $sshdDir = 'C:\Windows\System32\OpenSSH'
         $files = (Get-ChildItem 'C:\Windows\System32\OpenSSH' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name) -join ', '
-        Log-Progress "[openssh]   FOUND Windows Capability at $sshdExe"
-        Log-Progress "[openssh]   directory contents: $files"
+        Log-Progress "SSH   FOUND Windows Capability at $sshdExe"
+        Log-Progress "SSH   directory contents: $files"
     }
     else {
-        Log-Progress "[openssh]   NOT FOUND in either location — installing via Windows Capability"
+        Log-Progress "SSH   NOT FOUND - installing via Windows Capability"
         $cap = Get-WindowsCapability -Online | Where-Object { $_.Name -like 'OpenSSH.Server*' }
         if (-not $cap) { throw "OpenSSH.Server capability not available" }
-        Log-Progress "[openssh]   capability state: $($cap.State), installing..."
+        Log-Progress "SSH   capability state: $($cap.State), installing..."
         Add-WindowsCapability -Online -Name $cap.Name
-        Log-Progress "[openssh]   capability install complete, polling for sshd.exe..."
+        Log-Progress "SSH   capability install complete, polling for sshd.exe..."
 
-        # Poll for sshd.exe to appear (capability install can be async)
         $found = $false
         for ($i = 0; $i -lt 60; $i++) {
             Start-Sleep -Seconds 5
             if (($i + 1) % 6 -eq 0) {
-                Log-Progress "[openssh]   still waiting... ($(($i + 1) * 5)s elapsed)"
+                Log-Progress "SSH   still waiting... ($(($i + 1) * 5) seconds elapsed)"
             }
             if (Test-Path 'C:\Program Files\OpenSSH-Win64\sshd.exe') {
                 $sshdExe = 'C:\Program Files\OpenSSH-Win64\sshd.exe'
                 $sshdDir = 'C:\Program Files\OpenSSH-Win64'
                 $found = $true
-                Log-Progress "[openssh]   FOUND at Program Files after $(( $i + 1) * 5)s"
+                Log-Progress "SSH   FOUND at Program Files after $(( $i + 1) * 5) seconds"
                 break
             }
             if (Test-Path 'C:\Windows\System32\OpenSSH\sshd.exe') {
                 $sshdExe = 'C:\Windows\System32\OpenSSH\sshd.exe'
                 $sshdDir = 'C:\Windows\System32\OpenSSH'
                 $found = $true
-                Log-Progress "[openssh]   FOUND at System32 after $(( $i + 1) * 5)s"
+                Log-Progress "SSH   FOUND at System32 after $(( $i + 1) * 5) seconds"
                 break
             }
         }
         if (-not $found) {
-            # List what DID appear
-            Log-Progress "[openssh]   listing C:\Program Files\OpenSSH-Win64:"
-            Get-ChildItem 'C:\Program Files\OpenSSH-Win64' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "[openssh]     $($_.Name)" }
-            Log-Progress "[openssh]   listing C:\Windows\System32\OpenSSH:"
-            Get-ChildItem 'C:\Windows\System32\OpenSSH' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "[openssh]     $($_.Name)" }
+            Log-Progress "SSH   listing C:\Program Files\OpenSSH-Win64:"
+            Get-ChildItem 'C:\Program Files\OpenSSH-Win64' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "SSH     $($_.Name)" }
+            Log-Progress "SSH   listing C:\Windows\System32\OpenSSH:"
+            Get-ChildItem 'C:\Windows\System32\OpenSSH' -ErrorAction SilentlyContinue | ForEach-Object { Log-Progress "SSH     $($_.Name)" }
             throw "sshd.exe did not appear after Windows Capability install (5 min timeout)"
         }
     }
 }
 
-# ── Phase 2: Add sshd directory to Machine PATH ──────────────────
 $machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
 if ($machinePath -notmatch [regex]::Escape($sshdDir)) {
     [Environment]::SetEnvironmentVariable('PATH', "$sshdDir;$machinePath", 'Machine')
-    Log-Progress "[openssh] added $sshdDir to Machine PATH"
+    Log-Progress "SSH added $sshdDir to Machine PATH"
 }
 
-# ── Phase 3: Ensure sshd service exists ──────────────────────────
 $svc = Get-Service sshd -ErrorAction SilentlyContinue
 if (-not $svc) {
-    # Service not registered — create it manually
-    Log-Progress "[openssh] sshd service not found, registering via sc.exe"
+    Log-Progress "SSH sshd service not found, registering via sc.exe"
     sc.exe create sshd binPath= "`"$sshdExe`"" start= auto DisplayName= "OpenSSH SSH Server" 2>&1 | Out-Null
     Start-Sleep -Seconds 2
     $svc = Get-Service sshd -ErrorAction SilentlyContinue
     if (-not $svc) {
-        # Fallback: try New-Service
-        Log-Progress "[openssh] sc.exe failed, trying New-Service"
+        Log-Progress "SSH sc.exe failed, trying New-Service"
         New-Service -Name sshd -BinaryPathName $sshdExe -DisplayName "OpenSSH SSH Server" -StartupType Automatic 2>&1 | Out-Null
         Start-Sleep -Seconds 2
         $svc = Get-Service sshd -ErrorAction SilentlyContinue
@@ -311,10 +306,9 @@ if (-not $svc) {
     if (-not $svc) {
         throw "Could not register sshd service via sc.exe or New-Service"
     }
-    Log-Progress "[openssh] sshd service registered"
+    Log-Progress "SSH sshd service registered"
 }
 
-# ── Phase 4: Configure sshd_config ──────────────────────────────
 $sshd_config = 'C:\ProgramData\ssh\sshd_config'
 if (Test-Path $sshd_config) {
     $c = Get-Content $sshd_config
@@ -327,18 +321,16 @@ if (Test-Path $sshd_config) {
         else                                                     { $o += $l }
     }
     $o | Set-Content $sshd_config -Force -Encoding UTF8
-    Log-Progress "[openssh] sshd_config configured"
+    Log-Progress "SSH sshd_config configured"
 }
 
-# ── Phase 5: Start sshd and verify ───────────────────────────────
 Set-Service -Name sshd -StartupType Automatic
 Start-Service sshd -ErrorAction SilentlyContinue
 
-# Verify it's running (poll briefly — service can take a moment)
 for ($i = 0; $i -lt 12; $i++) {
     $st = (Get-Service sshd -ErrorAction SilentlyContinue).Status
     if ($st -eq 'Running') {
-        Log-Progress "[openssh] sshd is Running"
+        Log-Progress "SSH sshd is Running"
         break
     }
     Start-Sleep -Seconds 2
@@ -435,7 +427,7 @@ fn set_autologin(winrm: &WinRM) -> Result<()> {
     let check = winrm.run_ps_quiet(
         "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' -Name AutoAdminLogon -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoAdminLogon",
     )?;
-    if check.stdout.trim() == "1" {
+    if check.stdout.contains("1") {
         return Ok(());
     }
 
@@ -444,9 +436,9 @@ fn set_autologin(winrm: &WinRM) -> Result<()> {
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUsername /t REG_SZ /d vagrant /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d vagrant /f
-reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoLogonCount /f 2>nul || true
+Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name AutoLogonCount -ErrorAction SilentlyContinue
 "#;
-    elevated::run_elevated(winrm, script, 30, None)?;
+    elevated::run_elevated(winrm, script, 60, None)?;
     Ok(())
 }
 
@@ -533,37 +525,216 @@ if (-not (Test-Path $cfg)) {
     Ok(())
 }
 
-/// Install VS Build Tools with C++ workload, checking for actual binary.
+/// Install/configure VS Build Tools with C++ workload, checking for actual binaries.
+///
+/// Precheck: verifies `link.exe` exists in any of the standard compiler paths
+/// (`Hostx64\x64` for x86_64, `Hostarm64\x64` for ARM64) AND that the Windows
+/// SDK is present. If all checks pass, skips the 30+ minute installer entirely.
 fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>) -> Result<()> {
-    // Check for the actual binary we need: Hostarm64\x64\link.exe
+    // Check for the actual binaries we need — multiple host paths
     let vc_check = winrm.run_ps_quiet(
-        r#"if (Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue) { 'present' } else { 'missing' }"#
+        r#"
+        $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\link.exe' -ErrorAction SilentlyContinue
+        if (-not $link) { $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue }
+        $sdk = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\Lib\*\um\x64\kernel32.lib' -ErrorAction SilentlyContinue
+        if ($link -and $sdk) { 'present' } else { 'missing' }
+        "#
     )?;
-    if vc_check.stdout.trim() == "present" {
+    if vc_check.stdout.contains("present") {
+        debug!("VS Build Tools already installed — link.exe and SDK verified");
         return Ok(());
     }
 
-    // Download bootstrapper
-    crate::ssh::exec(
-        session,
-        r#"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'C:\vs_buildtools.exe' -UseBasicParsing"#,
+    debug!("VS Build Tools precheck failed, proceeding with installer");
+
+    // Download installer to local cache, then scp to VM
+    let installer_path = ensure_downloaded(
+        "https://aka.ms/vs/17/release/vs_buildtools.exe",
+        "vs_buildtools.exe",
     )?;
 
-    // Install elevated with C++ workload + ARM64 cross-tools
-    elevated::run_elevated(
+    debug!("scp'ing VS Build Tools installer to VM...");
+    crate::ssh::upload(session, &installer_path, "C:/vs_buildtools.exe")?;
+
+    // Verify on VM
+    let size_check = winrm.run_ps_quiet(
+        r#"if (Test-Path 'C:\vs_buildtools.exe') { (Get-Item 'C:\vs_buildtools.exe').Length } else { 'MISSING' }"#
+    )?;
+    let size_str = size_check.stdout.trim().to_string();
+    if size_str.is_empty() || size_str.contains("MISSING") {
+        return Err(TestbedError::BootstrapFailed {
+            step: "verify VS Build Tools installer on VM".to_string(),
+            message: format!("installer not found after scp (output='{size_str}')"),
+        });
+    }
+    if let Ok(size) = size_str.parse::<u64>() {
+        debug!("VS Build Tools installer on VM: {size} bytes");
+        if size < 1_000_000 {
+            return Err(TestbedError::BootstrapFailed {
+                step: "verify VS Build Tools installer on VM".to_string(),
+                message: format!("installer file suspiciously small: {size} bytes"),
+            });
+        }
+    }
+
+    // Write the install script locally, then scp it.
+    // Uses a response file (@rsp) to pass arguments to the VS Installer,
+    // avoiding command-line argument mangling by the SFX self-extractor
+    // (which was causing exit code 0x57 / ERROR_INVALID_PARAMETER).
+    let sentinel_id = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis().to_string();
+    let sentinel_path = format!("C:\\vsbt-done-{sentinel_id}.txt");
+    let error_log = "C:\\vsbt-error.log";
+
+    let install_script = format!(
+        r#"
+$ErrorActionPreference = 'Continue'
+if (-not (Test-Path 'C:\vs_buildtools.exe')) {{
+    Set-Content '{error_log}' -Value 'vs_buildtools.exe not found' -Encoding UTF8
+    exit 1
+}}
+
+# Write response file — VS Installer reads args from here instead of
+# command line, avoiding SFX self-extractor argument mangling (exit 0x57).
+$rsp = "$env:TEMP\vsbt-response.rsp"
+Set-Content $rsp -Value @"
+--add
+Microsoft.VisualStudio.Workload.VCTools
+--add
+Microsoft.VisualStudio.Component.VC.Tools.ARM64
+--add
+Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+--add
+Microsoft.VisualStudio.Component.Windows11SDK.22621
+--includeRecommended
+--quiet
+--norestart
+--wait
+--log
+C:\vs_buildtools-install.log
+"@ -Encoding ASCII
+
+Write-Output 'Starting VS Build Tools installer (response file mode)...'
+Write-Output "Response file: $rsp"
+$r = Start-Process -FilePath 'C:\vs_buildtools.exe' -ArgumentList "@$rsp" -Wait -NoNewWindow -PassThru
+Write-Output "Installer exited with code $($r.ExitCode)"
+if ($r.ExitCode -ne 0 -and $r.ExitCode -ne 3010) {{
+    if (Test-Path 'C:\vs_buildtools-install.log') {{
+        Get-Content 'C:\vs_buildtools-install.log' -Tail 30 | Out-File '{error_log}' -Encoding UTF8 -Force
+    }}
+    exit $r.ExitCode
+}}
+Set-Content '{sentinel_path}' -Value 'done' -Encoding ASCII
+Remove-Item 'C:\vs_buildtools.exe' -Force -ErrorAction SilentlyContinue
+Remove-Item $rsp -Force -ErrorAction SilentlyContinue
+"#
+    );
+    let local_script = cache_dir().join("downloads/vsbt-install.ps1");
+    std::fs::create_dir_all(local_script.parent().unwrap()).ok();
+    std::fs::write(&local_script, install_script).map_err(|e| TestbedError::BootstrapFailed {
+        step: "write VS Build Tools install script".to_string(),
+        message: e.to_string(),
+    })?;
+    crate::ssh::upload(session, &local_script, "C:/vsbt-install.ps1")?;
+
+    // Verify script on VM
+    let verify = winrm.run_ps_quiet(
+        r#"if (Test-Path 'C:\vsbt-install.ps1') { 'OK' } else { 'MISSING' }"#
+    )?;
+    if !verify.stdout.contains("OK") {
+        return Err(TestbedError::BootstrapFailed {
+            step: "verify VS Build Tools install script on VM".to_string(),
+            message: format!("script missing after scp: {}", verify.stdout.trim()),
+        });
+    }
+
+    // Start the installer via SSH (non-blocking: Start-Process returns immediately)
+    // We use a separate script that just kicks off the installer.
+    let kick_script = format!(
+        r#"
+Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','C:\vsbt-install.ps1' -WindowStyle Hidden
+"#
+    );
+    let local_kick = cache_dir().join("downloads/vsbt-kick.ps1");
+    std::fs::write(&local_kick, kick_script).ok();
+    crate::ssh::upload(session, &local_kick, "C:/vsbt-kick.ps1").ok();
+
+    debug!("VS Build Tools installer kicking off...");
+    let kick_result = crate::ssh::exec(session, "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\vsbt-kick.ps1")?;
+    debug!("Kick result: {kick_result}");
+
+    // Poll for sentinel via WinRM
+    debug!("VS Build Tools installer running in background, polling for completion...");
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1800);
+    let mut last_report = std::time::Instant::now();
+    while std::time::Instant::now() < deadline {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+
+        let sentinel = winrm.run_ps_quiet(
+            &format!("if (Test-Path '{sentinel_path}') {{ 'DONE' }} else {{ 'RUNNING' }}"),
+        );
+        if let Ok(ref s) = sentinel
+            && s.stdout.contains("DONE")
+        {
+            debug!("VS Build Tools installer completed");
+            break;
+        }
+
+        // Report progress every 30 seconds
+        if std::time::Instant::now().duration_since(last_report) > std::time::Duration::from_secs(30) {
+            if let Some(cb) = progress {
+                cb("VS Build Tools installing (downloading components, this may take 30+ minutes)...");
+            } else {
+                debug!("[vs_build_tools] still installing...");
+            }
+            last_report = std::time::Instant::now();
+        }
+    }
+
+    // Check for errors
+    let err_check = winrm.run_ps_quiet(
+        &format!("if (Test-Path '{error_log}') {{ Get-Content '{error_log}' -Raw }} else {{ '' }}"),
+    );
+    if let Ok(ref e) = err_check
+        && !e.stdout.trim().is_empty()
+    {
+        return Err(TestbedError::BootstrapFailed {
+            step: "VS Build Tools install".to_string(),
+            message: format!("installer failed: {}", e.stdout.trim().chars().take(500).collect::<String>()),
+        });
+    }
+
+    // Cleanup temp files
+    winrm.run_ps_quiet(&format!("Remove-Item '{sentinel_path}' -Force -ErrorAction SilentlyContinue")).ok();
+    winrm.run_ps_quiet(&format!("Remove-Item '{error_log}' -Force -ErrorAction SilentlyContinue")).ok();
+    winrm.run_ps_quiet("Remove-Item 'C:/vsbt-install.ps1','C:/vsbt-kick.ps1' -Force -ErrorAction SilentlyContinue").ok();
+
+    // Post-installation verification — check both x86_64 and ARM64 host paths
+    let verify = elevated::run_elevated(
         winrm,
         r#"
-Start-Process -FilePath 'C:\vs_buildtools.exe' -ArgumentList @(
-    '--add', 'Microsoft.VisualStudio.Workload.VCTools',
-    '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
-    '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-    '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.22621',
-    '--includeRecommended', '--quiet', '--norestart', '--wait'
-) -Wait -NoNewWindow -PassThru | Out-Null
+$link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\link.exe' -ErrorAction SilentlyContinue
+if (-not $link) { $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue }
+if (-not $link) {
+    $dir = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\' -ErrorAction SilentlyContinue | ForEach-Object { $_.Name }
+    Write-Output "link.exe not found. Installed MSVC versions: $($dir -join ', ')"
+    if (Test-Path 'C:\vs_buildtools-install.log') {
+        Write-Output "Last 20 lines of install log:"
+        Get-Content 'C:\vs_buildtools-install.log' -Tail 20 | ForEach-Object { Write-Output "  $_" }
+    }
+    throw "VS Build Tools installed but link.exe binary not found — C++ workload may have failed"
+}
+Write-Output "link.exe verified at $($link.FullName)"
 "#,
-        1800,
-        progress,
-    )?;
+        60,
+        None,
+    );
+
+    if let Err(e) = verify {
+        return Err(e);
+    }
     Ok(())
 }
 
@@ -615,7 +786,7 @@ fn setup_project_mount(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
         if ($exeOk -and $mountOk) { 'configured' } else { 'missing' }
         "#
     )?;
-    if check.stdout.trim() == "configured" {
+    if check.stdout.contains("configured") {
         return Ok(());
     }
 
@@ -694,11 +865,11 @@ for ($i = 0; $i -lt 15; $i++) {
 
 if (-not $mounted) {
     $files = Get-ChildItem $mountPoint -ErrorAction SilentlyContinue
-    Log-Progress "Mount check failed. Contents of $mountPoint : $($files | Select-Object -ExpandProperty Name -ErrorAction SilentlyContinue)"
+    Write-Output "Mount check failed. Contents of $mountPoint : $($files | Select-Object -ExpandProperty Name -ErrorAction SilentlyContinue)"
     throw "virtiofs mount did not become accessible after 30s"
 }
 
-Log-Progress "Project mount verified at $mountPoint"
+Write-Output "Project mount verified at $mountPoint"
 "#;
     elevated::run_elevated(winrm, script, 120, None)?;
     Ok(())
@@ -716,7 +887,7 @@ fn install_virtio_drivers(_session: &mut VmSession, winrm: &WinRM) -> Result<()>
     let check = winrm.run_ps_quiet(
         r#"$devices = Get-PnpDevice -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' -or $_.FriendlyName -like '*Red Hat*' }; if ($null -ne $devices -and $devices.Count -gt 0) { 'installed' } else { 'missing' }"#
     )?;
-    if check.stdout.trim() == "installed" {
+    if check.stdout.contains("installed") {
         return Ok(());
     }
 
@@ -754,7 +925,7 @@ Get-ChildItem -Path $driverDir -Filter "*.inf" -Recurse | ForEach-Object {
         $failed++
     }
 }
-Log-Progress "virtio drivers: $installed installed, $failed failed"
+Write-Output "virtio drivers: $installed installed, $failed failed"
 "#;
     elevated::run_elevated(winrm, script, 300, None)?;
     Ok(())
@@ -836,6 +1007,58 @@ fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
         r#"New-Item -Path "$env:USERPROFILE\.testbed-bootstrapped" -ItemType File -Force"#,
     )?;
     Ok(())
+}
+
+/// Download a file to the local cache if it doesn't already exist.
+///
+/// Returns the local path to the cached file. Uses `curl` for downloading
+/// with resume support so large installers survive network interruptions.
+fn ensure_downloaded(url: &str, filename: &str) -> Result<PathBuf> {
+    let cache_dir = cache_dir().join("downloads");
+    std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
+        step: format!("create download cache dir {cache_dir:?}"),
+        message: e.to_string(),
+    })?;
+    let dest = cache_dir.join(filename);
+
+    if dest.exists() {
+        debug!("using cached download: {} ({} bytes)", filename, dest.metadata().unwrap().len());
+        return Ok(dest);
+    }
+
+    debug!("downloading {filename} from {url}...");
+    let status = Command::new("curl")
+        .args([
+            "-fSL",
+            "--retry", "3",
+            "--retry-delay", "5",
+            "-C", "-",
+            "-o", dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
+                step: format!("download {filename}"),
+                message: "cache path is not valid UTF-8".to_string(),
+            })?,
+            url,
+        ])
+        .status()
+        .map_err(|e| TestbedError::BootstrapFailed {
+            step: format!("download {filename}"),
+            message: format!("failed to spawn curl: {e}"),
+        })?;
+
+    if !status.success() {
+        // Clean up partial download
+        let _ = std::fs::remove_file(&dest);
+        return Err(TestbedError::BootstrapFailed {
+            step: format!("download {filename}"),
+            message: format!("curl exited with status {status:?}"),
+        });
+    }
+
+    if dest.exists() {
+        debug!("downloaded {filename} ({} bytes)", dest.metadata().unwrap().len());
+    }
+
+    Ok(dest)
 }
 
 #[cfg(test)]
