@@ -13,6 +13,7 @@ mod bootstrap;
 mod provider;
 mod qemu;
 mod ssh_cmds;
+mod winrm_test;
 
 /// Build the complete `testbed` command tree.
 ///
@@ -58,11 +59,20 @@ pub fn command() -> Command {
                 .about("List all known VMs"),
         )
         .subcommand(
+            Command::new("winrm-test")
+                .about("Test WinRM script write and elevated execution (debug tool)")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
+                .arg(clap::Arg::new("script").long("script").help("Path to a local .ps1 file to write and execute"))
+                .arg(clap::Arg::new("timeout").long("timeout").default_value("60").help("Timeout in seconds")),
+        )
+        .subcommand(
             Command::new("exec")
                 .about("Run a command inside a VM")
                 .arg_required_else_help(true)
                 .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
-                .arg(clap::Arg::new("cmd").required(true).help("Command to run")),
+                .arg(clap::Arg::new("cmd").required(true).help("Command to run"))
+                .arg(clap::Arg::new("method").long("method").value_parser(["ssh", "winrm"]).default_value("ssh").help("Connection method (ssh or winrm)")),
         )
         .subcommand(
             Command::new("shell")
@@ -111,7 +121,7 @@ pub fn command() -> Command {
         .subcommand(
             Command::new("init")
                 .about("Scaffold project with testbed.toml, scripts, and .gitignore")
-                .arg(clap::Arg::new("vms").long("vm").short('m').action(clap::ArgAction::Append).required(true).help("VM profile name")),
+                .arg(clap::Arg::new("vms").long("vm").short('m').action(clap::ArgAction::Append).help("VM profile name (default: windows-build, linux-build, macos-build)")),
         )
         // QEMU-specific commands
         .subcommand(
@@ -202,6 +212,7 @@ pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + S
         Some(("import", m)) => provider::cmd_import(m),
         Some(("doctor", m)) => provider::cmd_doctor(m),
         Some(("ls", _)) => provider::cmd_ls(),
+        Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m),
         Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m),
         // SSH-based commands
         Some(("exec", m)) => ssh_cmds::cmd_exec(m),

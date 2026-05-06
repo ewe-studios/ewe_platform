@@ -72,6 +72,20 @@ impl Provider for UtmProvider {
             });
         }
 
+        // Apply per-VM mount configuration from testbed.toml
+        if let Some((host_path, _guest_path, readonly)) =
+            crate::config::get_mount_for_profile(profile.name, ".")
+        {
+            if let Err(e) = applescript::configure_shared_directory(
+                &vm_entry.uuid,
+                &host_path,
+                "project",
+                readonly,
+            ) {
+                eprintln!("  Warning: could not configure shared directory (non-fatal): {e}");
+            }
+        }
+
         // Configure resources via AppleScript (CPU, memory)
         if profile.cpu_cores > 0 || profile.memory_mib > 0 {
             let cpus = if profile.cpu_cores > 0 { profile.cpu_cores } else { 4 };

@@ -194,13 +194,44 @@ pub struct UserVmProfile {
     pub cpu_cores: Option<u32>,
     pub disk_gb: Option<u32>,
     pub prebaked_url: Option<String>,
+    /// Per-VM mount configuration.
+    #[serde(default)]
+    pub mount: Option<UserMountConfig>,
+}
+
+/// Per-VM mount configuration from testbed.toml.
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserMountConfig {
+    /// Host path to mount (default: ".")
+    #[serde(default)]
+    pub host_path: Option<String>,
+    /// Guest mount point (e.g. "C:/Users/vagrant/project" on Windows, "/mnt/project" on Linux)
+    #[serde(default)]
+    pub guest_path: Option<String>,
+    #[serde(default)]
+    pub readonly: Option<bool>,
+}
+
+/// Deserialized `[[image_stores]]` entry from testbed.toml.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ImageStoreEntry {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub store_type: String,
+    pub destination: String,
+    #[serde(default)]
+    pub key_prefix: Option<String>,
+    #[serde(default)]
+    pub registry: Option<String>,
 }
 
 /// Top-level user config file format.
 #[derive(Debug, Clone, Deserialize)]
 pub struct UserConfig {
-    #[serde(default)]
+    #[serde(default, rename = "vms", alias = "profiles")]
     pub profiles: Vec<UserProfileEntry>,
+    #[serde(default)]
+    pub image_stores: Vec<ImageStoreEntry>,
 }
 
 /// A named profile entry in the user config.
@@ -291,6 +322,34 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
     }
 }
 
+/// Get the mount configuration for a VM profile, applying user overrides.
+///
+/// Returns `Some(host_path, guest_path, readonly)` if mount is configured,
+/// or `None` if no mount should be set up.
+pub fn get_mount_for_profile(
+    profile_name: &str,
+    default_host_path: &str,
+) -> Option<(String, String, bool)> {
+    let os = get_profile(profile_name).ok()?.os;
+    let default_guest = match os {
+        GuestOs::Windows => "C:/Users/vagrant/project",
+        GuestOs::Linux => "/mnt/project",
+        GuestOs::MacOS => "/Users/vagrant/project",
+    };
+
+    if let Some(config) = load_user_config()
+        && let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name)
+        && let Some(mount) = &entry.profile.mount {
+            let host_path = mount.host_path.as_deref().unwrap_or(default_host_path).to_string();
+            let guest_path = mount.guest_path.as_deref().unwrap_or(default_guest).to_string();
+            let readonly = mount.readonly.unwrap_or(false);
+            return Some((host_path, guest_path, readonly));
+        }
+
+    // Fallback: use defaults
+    Some((default_host_path.to_string(), default_guest.to_string(), false))
+}
+
 /// Path to the user config file: `./testbed.toml`.
 pub fn user_config_path() -> std::path::PathBuf {
     std::path::PathBuf::from("testbed.toml")
@@ -328,12 +387,29 @@ pub struct ImageStore {
 
 /// Load image stores from `testbed.toml`'s `[[image_stores]]` section.
 pub fn load_image_stores() -> Vec<ImageStore> {
-    let Some(_config) = load_user_config() else {
+    let Some(config) = load_user_config() else {
         return Vec::new();
     };
-    // Image stores would be parsed from a dedicated section; for now,
-    // return empty — stores must be defined in testbed.toml.
-    Vec::new()
+    config
+        .image_stores
+        .into_iter()
+        .filter_map(|e| {
+            let store_type = match e.store_type.as_str() {
+                "r2" => StoreType::R2,
+                "s3" => StoreType::S3,
+                "local" => StoreType::Local,
+                "http" | "https" => StoreType::Http,
+                "vagrant" => StoreType::Http, // treat as http for now
+                _ => return None,
+            };
+            Some(ImageStore {
+                name: e.name,
+                store_type,
+                destination: e.destination,
+                key_prefix: e.key_prefix,
+            })
+        })
+        .collect()
 }
 
 /// Look up an image store by name.
@@ -375,13 +451,31 @@ pub fn work_dir(profile_name: &str) -> std::path::PathBuf {
         .join(profile_name)
 }
 
+/// Per-VM logs directory: `$PWD/.testbed/[vm-name]/logs/`.
+pub fn vm_logs_dir(profile_name: &str) -> std::path::PathBuf {
+    work_dir(profile_name).join("logs")
+}
+
+/// Per-VM artifacts directory: `$PWD/.testbed/[vm-name]/artifacts/`.
+pub fn vm_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
+    work_dir(profile_name).join("artifacts")
+}
+
+/// Per-VM state directory: `$PWD/.testbed/[vm-name]/state/`.
+pub fn vm_state_dir(profile_name: &str) -> std::path::PathBuf {
+    work_dir(profile_name).join("state")
+}
+
 /// Ensure all foundation_testbed cache directories exist.
 pub fn ensure_dirs() -> std::io::Result<()> {
     std::fs::create_dir_all(cache_dir())?;
     std::fs::create_dir_all(image_cache_dir())?;
     std::fs::create_dir_all(state_dir())?;
     std::fs::create_dir_all(monitor_dir())?;
-    std::fs::create_dir_all(std::env::current_dir().unwrap_or_default().join(".testbed"))?;
+    let testbed = std::env::current_dir().unwrap_or_default().join(".testbed");
+    std::fs::create_dir_all(&testbed)?;
+    std::fs::create_dir_all(testbed.join("artifacts"))?;
+    std::fs::create_dir_all(testbed.join("scripts"))?;
     Ok(())
 }
 
@@ -447,3 +541,43 @@ pub enum TestbedError {
 }
 
 pub type Result<T> = std::result::Result<T, TestbedError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_mount_from_inline_toml() {
+        // Simulate a testbed.toml with inline mount config
+        let toml_content = r#"
+            [[vms]]
+            name = "linux-build"
+            profile = "linux-build"
+            mount = { host_path = ".", guest_path = "/mnt/project", readonly = true }
+        "#;
+        let config: UserConfig = toml::from_str(toml_content).expect("failed to parse");
+        assert_eq!(config.profiles.len(), 1);
+        let entry = &config.profiles[0];
+        assert_eq!(entry.name, "linux-build");
+        let mount = entry.profile.mount.as_ref().expect("mount should exist");
+        assert_eq!(mount.host_path.as_deref(), Some("."));
+        assert_eq!(mount.guest_path.as_deref(), Some("/mnt/project"));
+        assert_eq!(mount.readonly, Some(true));
+    }
+
+    #[test]
+    fn test_parse_mount_with_missing_fields() {
+        let toml_content = r#"
+            [[vms]]
+            name = "windows-build"
+            profile = "windows-build"
+            mount = { host_path = "." }
+        "#;
+        let config: UserConfig = toml::from_str(toml_content).expect("failed to parse");
+        let entry = &config.profiles[0];
+        let mount = entry.profile.mount.as_ref().expect("mount should exist");
+        assert_eq!(mount.host_path.as_deref(), Some("."));
+        assert!(mount.guest_path.is_none());
+        assert!(mount.readonly.is_none());
+    }
+}

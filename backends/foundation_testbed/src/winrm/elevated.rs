@@ -52,9 +52,9 @@ pub fn run_elevated(
 
     debug!("run_elevated: starting (timeout={}s)", timeout_secs);
 
-    // Clean up leftovers from previous runs
+    // Clean up leftovers from previous runs (files AND stale scheduled tasks)
     winrm.run_ps(
-        "Remove-Item -Path 'C:\\bootstrap-sentinel-*.done','C:\\bootstrap-step.ps1','C:\\bootstrap-step-error.log','C:\\bootstrap-step-transcript.log','C:\\bootstrap-step-progress.log','C:\\bootstrap-heartbeat.txt' -Force -ErrorAction SilentlyContinue",
+        "Remove-Item -Path 'C:\\bootstrap-sentinel-*.done','C:\\bootstrap-step.ps1','C:\\bootstrap-step-error.log','C:\\bootstrap-step-transcript.log','C:\\bootstrap-step-progress.log','C:\\bootstrap-heartbeat.txt','C:\\bootstrap-chunk-*.bin' -Force -ErrorAction SilentlyContinue; Get-ScheduledTask -TaskName 'FoundationTestbedBootstrap_*' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false -ErrorAction SilentlyContinue",
     )?;
 
     // Build script: run user code, heartbeat every 3s, full transcript, capture errors, write sentinel
@@ -87,16 +87,87 @@ Stop-Transcript | Out-Null
 Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
     );
 
-    // Write script to disk via base64
-    let script_b64 = base64::Engine::encode(
-        &base64::engine::general_purpose::STANDARD,
-        script_with_sentinel.as_bytes(),
-    );
-    let write_cmd = format!(
-        "[System.IO.File]::WriteAllBytes('{script_path}', [System.Convert]::FromBase64String('{script_b64}'))"
-    );
-    trace!("run_elevated: writing script to VM");
-    winrm.run_ps(&write_cmd)?;
+    // Write script to disk in chunks to stay under WinRM's command-line size limits.
+    // WinRM runs commands via cmd.exe /c powershell -EncodedCommand ...
+    // cmd.exe has an 8191 character command-line limit.
+    // Each chunk's command is: powershell -EncodedCommand <base64(UTF16LE(cmd))>
+    // For a 2000-byte chunk: cmd ≈ 2100 chars → UTF16LE = 4200 → b64 = 5600 → total ≈ 5625 < 8191.
+    const CHUNK_SIZE: usize = 1500;
+    debug!("run_elevated: writing script ({} bytes) to VM", script_with_sentinel.len());
+
+    let script_bytes = script_with_sentinel.as_bytes();
+    let chunks: Vec<_> = script_bytes.chunks(CHUNK_SIZE).collect();
+    let chunk_files: Vec<_> = chunks.iter().enumerate().map(|(i, _)| {
+        format!("C:\\bootstrap-chunk-{i:03}.bin")
+    }).collect();
+
+    for (i, chunk) in chunks.iter().enumerate() {
+        let chunk_b64 = base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            chunk,
+        );
+        let bin_file = &chunk_files[i];
+        // Write bytes directly — FromBase64String returns byte[], WriteAllBytes writes as-is
+        let write_cmd = format!(
+            "[System.IO.File]::WriteAllBytes('{bin_file}', [System.Convert]::FromBase64String('{chunk_b64}'))"
+        );
+        debug!("run_elevated: chunk {i}: {} raw -> {} b64 bytes", chunk.len(), chunk_b64.len());
+        let write_result = winrm.run_ps(&write_cmd)?;
+        if write_result.exit_code != 0 {
+            return Err(TestbedError::BootstrapFailed {
+                step: format!("write script chunk {i} to VM"),
+                message: format!("exit code {}: {}", write_result.exit_code, write_result.stderr.trim()),
+            });
+        }
+    }
+
+    // Concatenate chunks into final script file
+    if chunk_files.len() == 1 {
+        // Single chunk — copy to final path
+        let copy_cmd = format!(
+            "Copy-Item -Path '{}' -Destination '{}' -Force",
+            chunk_files[0], script_path
+        );
+        winrm.run_ps(&copy_cmd)?;
+        // Clean up the chunk
+        winrm.run_ps(&format!("Remove-Item '{}' -Force -ErrorAction SilentlyContinue", chunk_files[0])).ok();
+    } else {
+        // Multiple chunks — concatenate using a glob-based approach
+        // to avoid inflating the command with per-chunk paths.
+        let concat_cmd = format!(
+            "$chunks = Get-ChildItem 'C:\\bootstrap-chunk-*.bin' | Sort-Object Name; \
+             $total = ($chunks | Measure-Object -Sum Length).Sum; \
+             $out = New-Object byte[] $total; \
+             $offset = 0; \
+             foreach ($c in $chunks) {{ \
+                 $bytes = [System.IO.File]::ReadAllBytes($c.FullName); \
+                 [System.Array]::Copy($bytes, 0, $out, $offset, $bytes.Length); \
+                 $offset += $bytes.Length \
+             }}; \
+             [System.IO.File]::WriteAllBytes('{script_path}', $out)"
+        );
+        let result = winrm.run_ps(&concat_cmd)?;
+        if result.exit_code != 0 {
+            return Err(TestbedError::BootstrapFailed {
+                step: "concatenate script chunks on VM".to_string(),
+                message: format!("exit code {}: {}", result.exit_code, result.stderr.trim()),
+            });
+        }
+        // Clean up chunk files
+        for cf in &chunk_files {
+            winrm.run_ps(&format!("Remove-Item '{cf}' -Force -ErrorAction SilentlyContinue")).ok();
+        }
+    }
+
+    // Verify the file was actually written
+    let verify = winrm.run_ps(&format!("if (Test-Path '{script_path}') {{ 'OK' }} else {{ 'MISSING' }}"))?;
+    if !verify.stdout.contains("OK") {
+        return Err(TestbedError::BootstrapFailed {
+            step: "verify script on VM".to_string(),
+            message: format!("script file {script_path} not found after write"),
+        });
+    }
+    debug!("run_elevated: script verified on VM");
 
     // Create scheduled task running as SYSTEM
     let task_name = format!("FoundationTestbedBootstrap_{sentinel_id}");
@@ -108,10 +179,19 @@ $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
 Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
     );
-    winrm.run_ps(&create_task)?;
+    winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
+        step: "create scheduled task".to_string(),
+        message: e.to_string(),
+    })?;
 
     // Start the task immediately (ignores the scheduled time)
-    winrm.run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'"))?;
+    let start_result = winrm.run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'"));
+    if let Err(e) = start_result {
+        return Err(TestbedError::BootstrapFailed {
+            step: "start scheduled task".to_string(),
+            message: e.to_string(),
+        });
+    }
 
     // Poll for unique sentinel file, checking heartbeat for liveness
     let deadline = Instant::now() + Duration::from_secs(timeout_secs);
@@ -182,22 +262,52 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
             }
         }
 
-        // Check sentinel — use quiet (15s timeout) to avoid blocking on transient WinRM outages
+        // Check sentinel — use contains() to handle CLIXML wrapper output
         let sentinel = winrm.run_ps_quiet(
             &format!("if (Test-Path '{sentinel_path}') {{ 'DONE' }} else {{ 'PENDING' }}"),
         );
         if let Ok(result) = sentinel
-            && result.stdout.trim() == "DONE"
+            && result.stdout.contains("DONE")
         {
             debug!("run_elevated: script completed after {:?}", Instant::now() - (deadline - Duration::from_secs(timeout_secs)));
-            // Log any errors from the script
-            let error_check = winrm.run_ps_quiet(
-                &format!("if (Test-Path '{error_log}') {{ Get-Content '{error_log}' -Raw }} else {{ '' }}"),
+            // Check for errors — fail if error log exists and has content
+            // Use file size check to avoid CLIXML wrapper issues
+            let err_check = winrm.run_ps_quiet(
+                &format!("if (Test-Path '{error_log}') {{ (Get-Item '{error_log}').Length }} else {{ 0 }}"),
             );
-            if let Ok(ref e) = error_check
-                && !e.stdout.trim().is_empty()
+            if let Ok(ref e) = err_check
+                && let Ok(size) = e.stdout.trim().parse::<u64>()
+                && size > 0
             {
-                warn!("run_elevated: script completed with errors:\n{}", e.stdout);
+                // Read content via base64 to avoid CLIXML issues
+                let content_b64 = winrm.run_ps_quiet(
+                    &format!("[System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes('{error_log}'))"),
+                );
+                let error_content = if let Ok(ref cb) = content_b64 {
+                    // Extract base64 from possible CLIXML wrapper
+                    let b64 = cb.stdout.lines()
+                        .filter(|l| !l.contains("<") && !l.contains(">") && l.trim().len() > 10)
+                        .next()
+                        .unwrap_or("");
+                    if let Ok(bytes) = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64.trim()) {
+                        String::from_utf8_lossy(&bytes).trim().chars().take(1000).collect::<String>()
+                    } else {
+                        String::new()
+                    }
+                } else {
+                    String::new()
+                };
+                warn!("run_elevated: script completed with errors:\n{}", error_content);
+                // Clean up
+                winrm.run_ps_quiet(&format!("Remove-Item -Path '{sentinel_path}' -Force -ErrorAction SilentlyContinue")).ok();
+                winrm.run_ps_quiet(&format!("Remove-Item -Path '{heartbeat_path}' -Force -ErrorAction SilentlyContinue")).ok();
+                winrm.run_ps_quiet(&format!("Remove-Item -Path '{transcript_path}' -Force -ErrorAction SilentlyContinue")).ok();
+                winrm.run_ps_quiet(&format!("Remove-Item -Path '{progress_log}' -Force -ErrorAction SilentlyContinue")).ok();
+                winrm.run_ps_quiet(&format!("Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false")).ok();
+                return Err(TestbedError::BootstrapFailed {
+                    step: "elevated script".to_string(),
+                    message: format!("script completed with errors: {error_content}"),
+                });
             }
 
             // Clean up
@@ -209,12 +319,12 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
             return Ok(());
         }
 
-        // Check heartbeat — report via progress callback every 15 seconds
+        // Check heartbeat — use contains() to handle CLIXML wrapper output
         let hb = winrm.run_ps_quiet(
-            &format!("if (Test-Path '{heartbeat_path}') {{ Get-Content '{heartbeat_path}' }} else {{ '' }}"),
+            &format!("if (Test-Path '{heartbeat_path}') {{ 'HB_OK' }} else {{ 'HB_NO' }}"),
         );
         if let Ok(ref h) = hb
-            && !h.stdout.trim().is_empty()
+            && h.stdout.contains("HB_OK")
         {
             last_heartbeat = Instant::now();
         }

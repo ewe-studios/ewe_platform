@@ -3,40 +3,52 @@
 //! Creates `$PWD/.testbed/` with:
 //! - `testbed.toml` — minimal VM definition
 //! - `.gitignore` — ignores ephemeral state, keeps config + scripts
+//! - `<vm>/logs/`, `<vm>/artifacts/`, `<vm>/state/` — per-VM directories
 //! - `scripts/<vm>/startup/` and `shutdown/` — built-in defaults
-//! - `state/`, `logs/`, `artifacts/` — empty directories
 
 use std::fs;
 use std::path::Path;
 
 use crate::config::{GuestOs, Result, TestbedError};
 
-/// Run `testbed init`: scaffold `$PWD/.testbed/` with defaults.
+/// Run `testbed init`: scaffold `$PWD/.testbed/` + `testbed.toml` in project root.
 pub fn init(project_root: &Path, vm_names: &[String]) -> Result<()> {
     let testbed_dir = project_root.join(".testbed");
-    if testbed_dir.exists() {
+    let toml_path = project_root.join("testbed.toml");
+
+    if toml_path.exists() {
         return Err(TestbedError::Qcow2Error {
             message: format!(
-                "{} already exists — delete it or run init in a different directory",
-                testbed_dir.display()
+                "{} already exists — delete it or edit existing config",
+                toml_path.display()
             ),
         });
     }
 
-    // Create directory structure
+    // Create .testbed directory structure with per-VM subdirectories
     fs::create_dir_all(&testbed_dir).map_err(|e| TestbedError::Qcow2Error {
         message: format!("creating {}: {e}", testbed_dir.display()),
     })?;
 
-    for dir in &["state", "logs", "artifacts"] {
-        fs::create_dir_all(testbed_dir.join(dir)).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("creating {dir}/: {e}"),
-        })?;
+    // Create per-VM directories for logs, artifacts, and scripts
+    for vm_name in vm_names {
+        let vm_dir = testbed_dir.join(vm_name);
+        for subdir in &["logs", "artifacts", "state"] {
+            fs::create_dir_all(vm_dir.join(subdir)).map_err(|e| TestbedError::Qcow2Error {
+                message: format!("creating {vm_name}/{subdir}/: {e}"),
+            })?;
+        }
+        generate_scripts(&testbed_dir, vm_name)?;
     }
 
-    // Generate testbed.toml
+    // Also create top-level shared directories
+    fs::create_dir_all(testbed_dir.join("artifacts")).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("creating artifacts/: {e}"),
+    })?;
+
+    // Generate testbed.toml in project root ($PWD)
     let toml_content = generate_testbed_toml(vm_names);
-    fs::write(testbed_dir.join("testbed.toml"), &toml_content).map_err(|e| TestbedError::Qcow2Error {
+    fs::write(&toml_path, &toml_content).map_err(|e| TestbedError::Qcow2Error {
         message: format!("writing testbed.toml: {e}"),
     })?;
 
@@ -54,6 +66,18 @@ pub fn init(project_root: &Path, vm_names: &[String]) -> Result<()> {
     Ok(())
 }
 
+/// Determine the guest mount path for a VM based on its name.
+fn guest_mount_path(vm_name: &str) -> &'static str {
+    let lower = vm_name.to_lowercase();
+    if lower.contains("windows") {
+        "C:/Users/vagrant/project"
+    } else if lower.contains("macos") {
+        "/Users/vagrant/project"
+    } else {
+        "/mnt/project"
+    }
+}
+
 /// Generate minimal testbed.toml content.
 fn generate_testbed_toml(vm_names: &[String]) -> String {
     let mut out = String::from(
@@ -62,10 +86,12 @@ fn generate_testbed_toml(vm_names: &[String]) -> String {
     );
 
     for name in vm_names {
+        let guest_path = guest_mount_path(name);
         out.push_str(&format!(
             "[[vms]]\n\
              name = \"{name}\"\n\
-             profile = \"{name}\"\n\n",
+             profile = \"{name}\"\n\
+             mount = {{ host_path = \".\", guest_path = \"{guest_path}\", readonly = false }}\n\n",
         ));
     }
 
@@ -76,17 +102,10 @@ fn generate_testbed_toml(vm_names: &[String]) -> String {
             "# macOS VM — uses pre-baked image from store or native IPSW fallback\n\
              [[vms]]\n\
              name = \"macos-build\"\n\
-             profile = \"macos-build\"\n\n",
+             profile = \"macos-build\"\n\
+             mount = {{ host_path = \".\", guest_path = \"/Users/vagrant/project\", readonly = false }}\n\n",
         );
     }
-
-    out.push_str(
-        "# Mount configuration\n\
-         [mounts]\n\
-         project = \".\"                       # Host directory to mount\n\
-         guest_path = \"/mnt/project\"          # Where to mount inside VMs\n\
-         readonly = false\n\n",
-    );
 
     out.push_str(
         "# Artifact mirroring\n\
@@ -110,8 +129,23 @@ fn generate_testbed_toml(vm_names: &[String]) -> String {
          [[image_stores]]\n\
          name = \"vagrant_cloud\"\n\
          type = \"vagrant\"\n\
-         registry = \"libvirt\"\n",
+         registry = \"libvirt\"\n\n",
     );
+
+    let local_store = dirs::home_dir()
+        .map(|h| h.join(".testbed"))
+        .unwrap_or_default()
+        .to_string_lossy()
+        .into_owned();
+    out.push_str(&format!(
+        "# Local image store — user home directory\n\
+         [[image_stores]]\n\
+         name = \"local\"\n\
+         type = \"local\"\n\
+         destination = \"{local_store}\"\n\
+         key_prefix = \"\"\n\n",
+    ));
+
 
     out
 }
@@ -122,10 +156,11 @@ fn generate_gitignore() -> String {
         "# $PWD/.testbed/.gitignore — auto-generated by testbed init\n\
          # Commit testbed.toml and scripts/; ignore ephemeral data.\n\n\
          # VM state — host-specific PIDs, ports, disk paths\n\
-         /state/\n\n\
+         /*/state/\n\n\
          # Build/run logs — can be large, regenerated on next build\n\
-         /logs/\n\n\
+         /*/logs/\n\n\
          # Build artifacts — live in host's target/ directory, symlinked here\n\
+         /*/artifacts/\n\
          /artifacts/\n\n\
          # Mount points — symlink to project root\n\
          /mounts/\n\n\
@@ -270,7 +305,8 @@ mod tests {
     fn test_generate_testbed_toml_has_required_sections() {
         let toml = generate_testbed_toml(&["linux-build".to_string()]);
         assert!(toml.contains("[[vms]]"));
-        assert!(toml.contains("[mounts]"));
+        assert!(toml.contains("mount"));
+        assert!(toml.contains("guest_path"));
         assert!(toml.contains("[artifacts]"));
     }
 
