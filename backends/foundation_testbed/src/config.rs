@@ -4,6 +4,8 @@
 //! `~/.config/foundation_testbed/config.toml`.
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use tracing::debug;
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
@@ -197,6 +199,10 @@ pub struct UserVmProfile {
     /// Per-VM mount configuration.
     #[serde(default)]
     pub mount: Option<UserMountConfig>,
+    /// Per-VM artifact overrides: name → host path.
+    /// e.g. `artefacts = { "vsb_layout.windows.zip" = "/path/to/zip" }`
+    #[serde(default)]
+    pub artefacts: HashMap<String, String>,
 }
 
 /// Per-VM mount configuration from testbed.toml.
@@ -459,6 +465,118 @@ pub fn vm_logs_dir(profile_name: &str) -> std::path::PathBuf {
 /// Per-VM artifacts directory: `$PWD/.testbed/[vm-name]/artifacts/`.
 pub fn vm_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("artifacts")
+}
+
+/// Home-based artifacts directory: `$HOME/.testbed/[vm-name]/artifacts/`.
+pub fn home_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
+    dirs::home_dir()
+        .map(|h| h.join(".testbed").join(profile_name).join("artifacts"))
+        .unwrap_or_else(|| std::path::PathBuf::from("/tmp/.testbed").join(profile_name).join("artifacts"))
+}
+
+/// Resolve an artifact by checking in order:
+/// 1. Explicit path in `testbed.toml` `[[vms]]` artefacts map
+/// 2. Project-local artifact dir `$PWD/.testbed/[vm]/artifacts/`
+/// 3. Home artifact dir `$HOME/.testbed/[vm]/artifacts/`
+///
+/// Returns the first matching path, or `None` if not found.
+pub fn resolve_artifact(profile_name: &str, filename: &str) -> Option<std::path::PathBuf> {
+    // 1. Check config-defined override
+    if let Some(config) = load_user_config() {
+        if let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name) {
+            if let Some(path) = entry.profile.artefacts.get(filename) {
+                let p = std::path::PathBuf::from(path);
+                if p.exists() {
+                    debug!("Using config-defined artifact: {} → {}", filename, p.display());
+                    return Some(p);
+                }
+                debug!("Config-defined artifact {} at {} does not exist", filename, p.display());
+            }
+        }
+    }
+
+    // 2. Project-local artifact dir
+    let local_dir = vm_artifacts_dir(profile_name);
+    let local_path = local_dir.join(filename);
+    if local_path.exists() {
+        debug!("Using project-local artifact: {}", local_path.display());
+        return Some(local_path);
+    }
+
+    // 3. Home artifact dir
+    let home_dir = home_artifacts_dir(profile_name);
+    let home_path = home_dir.join(filename);
+    if home_path.exists() {
+        debug!("Using home artifact: {}", home_path.display());
+        return Some(home_path);
+    }
+
+    None
+}
+
+/// Resolve a script by checking `$PWD/.testbed/[vm]/scripts/` first, then falling
+/// back to the embedded content from the source tree.
+///
+/// Returns the path to a file with the script content and whether it is a
+/// generated temp file. The caller can drop the path without worrying about
+/// cleanup — temp files are written to the state directory and overwritten
+/// on next run.
+pub fn resolve_script_or_embed(
+    profile_name: &str,
+    filename: &str,
+    embedded_content: &str,
+) -> Result<std::path::PathBuf> {
+    // Check project-local scripts directory first
+    let local_path = vm_scripts_dir(profile_name).join(filename);
+    if local_path.exists() {
+        debug!("Using local script: {}", local_path.display());
+        return Ok(local_path);
+    }
+
+    // Fall back to embedded content — write to state dir
+    let temp_dir = crate::config::state_dir();
+    std::fs::create_dir_all(&temp_dir).ok();
+    let temp_path = temp_dir.join(filename);
+    std::fs::write(&temp_path, embedded_content).map_err(|e| TestbedError::BootstrapFailed {
+        step: format!("write embedded script {filename}"),
+        message: e.to_string(),
+    })?;
+    debug!("Using embedded script (no local {} found)", local_path.display());
+    Ok(temp_path)
+}
+
+/// Copy embedded scripts from the source tree into `$PWD/.testbed/[vm]/scripts/`.
+///
+/// Called during `ensure_dirs()` or bootstrap init so users can edit scripts
+/// in the project-local directory without touching the source tree.
+pub fn copy_embedded_scripts(profile_name: &str) -> Result<()> {
+    let dest = vm_scripts_dir(profile_name);
+    std::fs::create_dir_all(&dest).map_err(|e| TestbedError::BootstrapFailed {
+        step: format!("create scripts dir {dest:?}"),
+        message: e.to_string(),
+    })?;
+
+    // Scripts from the source tree
+    let scripts: [(&str, &[u8]); 2] = [
+        ("vs_install_from_zip.ps1", include_bytes!("bootstrap/scripts/vs_install_from_zip.ps1").as_slice()),
+        ("vs_install_online.ps1", include_bytes!("bootstrap/scripts/vs_install_online.ps1").as_slice()),
+    ];
+
+    for (name, content) in &scripts {
+        let dest_path = dest.join(name);
+        if !dest_path.exists() {
+            std::fs::write(&dest_path, content).map_err(|e| TestbedError::BootstrapFailed {
+                step: format!("copy script {name}"),
+                message: e.to_string(),
+            })?;
+        }
+    }
+    Ok(())
+}
+
+/// Per-VM scripts directory: `$PWD/.testbed/[vm-name]/scripts/`.
+pub fn vm_scripts_dir(profile_name: &str) -> std::path::PathBuf {
+    work_dir(profile_name).join("scripts")
 }
 
 /// Per-VM state directory: `$PWD/.testbed/[vm-name]/state/`.

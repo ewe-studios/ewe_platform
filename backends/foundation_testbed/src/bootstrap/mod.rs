@@ -107,7 +107,7 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
             *session = crate::ssh::connect(profile)?;
 
             // Phase 2: SSH-required (installs dev tools)
-            windows::bootstrap_windows_ssh_phase(profile, &winrm, session, logger, progress)?;
+            windows::bootstrap_windows_ssh_phase(profile, &winrm, session, logger, progress, false)?;
         }
         GuestOs::Linux => {
             linux::bootstrap_linux(profile, session, logger)?;

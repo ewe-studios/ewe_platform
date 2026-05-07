@@ -19,6 +19,7 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
 
 pub fn cmd_bootstrap(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
+    let force_vsbuild = args.get_flag("force-vsbuild");
     let profile = resolve_profile(name)?;
 
     // Create logger — writes to $PWD/.testbed/<vm-name>/bootstrap.log
@@ -41,7 +42,7 @@ pub fn cmd_bootstrap(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => bootstrap_ssh(&profile, name, &logger),
-        GuestOs::Windows => bootstrap_windows(&profile, name, &logger, progress_cb),
+        GuestOs::Windows => bootstrap_windows(&profile, name, &logger, progress_cb, force_vsbuild),
     }
 }
 
@@ -54,7 +55,7 @@ fn bootstrap_ssh(profile: &crate::config::VmProfile, name: &str, logger: &Bootst
     Ok(())
 }
 
-fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<(), BoxedError> {
+fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<(), BoxedError> {
     // Wait for WinRM
     let port = profile.winrm_port.ok_or_else(|| {
         format!("No WinRM port configured for '{}'", profile.name)
@@ -98,7 +99,7 @@ fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &Bo
 
     // Phase 2: SSH (installs dev tools)
     let mut session = ssh::connect(profile)?;
-    bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress)?;
+    bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress, force_vsbuild)?;
 
     // Verify
     if !bootstrap::is_bootstrapped(profile) {

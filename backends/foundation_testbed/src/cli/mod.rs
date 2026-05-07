@@ -35,7 +35,9 @@ pub fn command() -> Command {
             Command::new("bootstrap")
                 .about("Install development tools on a running VM")
                 .arg_required_else_help(true)
-                .arg(clap::Arg::new("profile").required(true).help("VM profile name")),
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
+                .arg(clap::Arg::new("force-vsbuild").long("force-vsbuild-install").action(clap::ArgAction::SetTrue)
+                    .help("Skip VS Build Tools precheck and force reinstallation (Windows only)")),
         )
         .subcommand(
             Command::new("stop")

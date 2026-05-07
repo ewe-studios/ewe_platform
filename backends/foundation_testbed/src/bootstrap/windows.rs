@@ -4,22 +4,50 @@
 //! mid-way, re-running picks up where it left off.
 
 use std::path::PathBuf;
-use std::thread;
 use std::process::Command;
+use std::thread;
 use tracing::{debug, warn};
 
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::bootstrap::BootstrapLogger;
-use crate::config::{cache_dir, Result, TestbedError, VmProfile};
+use crate::config::{Result, TestbedError, VmProfile};
 use crate::ssh::VmSession;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::{self, ProgressCallback};
+
+/// Result from running PowerShell — mirrors WinRM's `CmdResult`.
+struct PsResult {
+    stdout: String,
+    #[allow(dead_code)]
+    stderr: String,
+    #[allow(dead_code)]
+    exit_code: i32,
+}
+
+/// Run PowerShell over SSH, falling back to WinRM if SSH fails.
+///
+/// Tries `ssh::exec_ps_windows` first (proper UTF-16LE + Base64 encoding
+/// with CLIXML stripping). If SSH fails for any reason, falls back to
+/// `winrm.run_ps_quiet`. This allows the bootstrap SSH phase to be
+/// resilient — WinRM is available as a safety net.
+fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResult> {
+    if let Ok((stdout, exit_code)) = crate::ssh::exec_ps_windows(session, script) {
+        return Ok(PsResult { stdout, stderr: String::new(), exit_code });
+    }
+    debug!("SSH exec failed, falling back to WinRM for PowerShell");
+    let cmd = winrm.run_ps_quiet(script)?;
+    Ok(PsResult {
+        stdout: cmd.stdout,
+        stderr: cmd.stderr,
+        exit_code: cmd.exit_code,
+    })
+}
 
 /// Bootstrap a Windows VM with development tools.
 ///
 /// Phase 1 (WinRM): install OpenSSH, setup keys, autologin.
 /// Phase 2 (SSH): install mise, build tools, runtimes.
-pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
     // Phase 1: WinRM-only steps (no SSH required)
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
@@ -60,7 +88,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 
     // Step 7: VS Build Tools with C++ workload
     logger::step(logger, "install VS Build Tools", || {
-        install_vs_build_tools(session, winrm, progress)
+        install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
     // Step 7b: Install virtio drivers from CD-ROM (virtio-win ISO)
@@ -136,7 +164,7 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger:
 /// Phase 2: SSH-required bootstrap (installs dev tools).
 ///
 /// Call after `bootstrap_windows_winrm_phase` and waiting for SSH.
-pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
     logger::step(logger, "install mise", || {
         install_mise(session)
     })?;
@@ -150,7 +178,7 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
     })?;
 
     logger::step(logger, "install VS Build Tools", || {
-        install_vs_build_tools(session, winrm, progress)
+        install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
     logger::step(logger, "install virtio drivers", || {
@@ -442,40 +470,45 @@ Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Wi
     Ok(())
 }
 
-/// Install mise on Windows via PowerShell installer.
+/// Install mise on Windows — downloads binary on host, SCPs to VM.
 fn install_mise(session: &mut VmSession) -> Result<()> {
-    // Check if mise is already available
     let check = crate::ssh::exec(session, "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name")?;
     if !check.trim().is_empty() {
         return Ok(());
     }
 
+    let mise_zip = cache_or_download(
+        "mise-windows-x64.zip",
+        "https://github.com/jdx/mise/releases/latest/download/mise-v2026.5.1-windows-x64.zip",
+    )?;
+
+    debug!("scp'ing mise to VM...");
+    crate::ssh::upload(session, &mise_zip, "C:/mise.zip")?;
+
+    // Extract mise to bin dir, configure PATH
     let script = r#"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-iwr -useb https://mise.run | iex
-
 $miseDir = "$env:USERPROFILE\.local\bin"
+if (-not (Test-Path $miseDir)) { New-Item -ItemType Directory -Path $miseDir -Force | Out-Null }
+Expand-Archive -Force 'C:\mise.zip' $miseDir
+Remove-Item 'C:\mise.zip' -Force -ErrorAction SilentlyContinue
 
-# Set User-level PATH
 $userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
 if ($userPath -notmatch [regex]::Escape($miseDir)) {
     [Environment]::SetEnvironmentVariable('PATH', "$miseDir;$userPath", 'User')
 }
 
-# Also set Machine-level PATH so OpenSSH sessions always see it
 $machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
 if ($machinePath -notmatch [regex]::Escape($miseDir)) {
     [Environment]::SetEnvironmentVariable('PATH', "$miseDir;$machinePath", 'Machine')
 }
 
-# Update current session PATH
 $env:PATH = "$miseDir;$env:PATH"
 "#;
     crate::ssh::exec(session, script)?;
     Ok(())
 }
 
-/// Install cargo-binstall directly (binary download, not cargo install).
+/// Install cargo-binstall — downloads binary on host, SCPs to VM.
 fn install_cargo_binstall(session: &mut VmSession) -> Result<()> {
     let present = crate::ssh::exec(
         session,
@@ -485,16 +518,20 @@ fn install_cargo_binstall(session: &mut VmSession) -> Result<()> {
         return Ok(());
     }
 
+    let binstall_zip = cache_or_download(
+        "cargo-binstall.zip",
+        "https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-pc-windows-msvc.zip",
+    )?;
+
+    debug!("scp'ing cargo-binstall to VM...");
+    crate::ssh::upload(session, &binstall_zip, "C:/cargo-binstall.zip")?;
+
     let script = r#"
 $dest = "$env:USERPROFILE\.cargo\bin"
 if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest | Out-Null }
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$zip = "$env:TEMP\cargo-binstall.zip"
-Invoke-WebRequest -Uri 'https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-pc-windows-msvc.zip' -OutFile $zip -UseBasicParsing
-Expand-Archive -Force $zip $dest
-Remove-Item $zip -Force -ErrorAction SilentlyContinue
+Expand-Archive -Force 'C:\cargo-binstall.zip' $dest
+Remove-Item 'C:\cargo-binstall.zip' -Force -ErrorAction SilentlyContinue
 
-# Set both User and Machine PATH for OpenSSH session visibility
 $userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
 $machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
 if ($userPath -notmatch [regex]::Escape($dest)) {
@@ -507,6 +544,60 @@ $env:PATH = $dest + ';' + $env:PATH
 "#;
     crate::ssh::exec(session, script)?;
     Ok(())
+}
+
+/// Download a file to `$HOME/.testbed/` if not already cached, return the local path.
+///
+/// This is the host-first caching layer: artifacts are downloaded once on the host
+/// and reused across all VM bootstrap runs via SCP, avoiding redundant downloads.
+///
+/// Cache root: `$HOME/.testbed/windows/` — Windows-specific artifacts go here.
+fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
+    let cache_dir = dirs::home_dir()
+        .map(|h| h.join(".testbed/windows"))
+        .unwrap_or_else(|| PathBuf::from("/tmp/.testbed/windows"));
+    std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
+        step: format!("create cache dir {cache_dir:?}"),
+        message: e.to_string(),
+    })?;
+
+    let dest = cache_dir.join(filename);
+    if dest.exists() {
+        debug!("using cached: {} ({} bytes)", filename, dest.metadata().unwrap().len());
+        return Ok(dest);
+    }
+
+    debug!("downloading {filename} from {url} to {cache_dir:?}...");
+    let status = Command::new("curl")
+        .args([
+            "-fSL",
+            "--retry", "3",
+            "--retry-delay", "5",
+            "-C", "-",
+            "-o", dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
+                step: format!("download {filename}"),
+                message: "cache path is not valid UTF-8".to_string(),
+            })?,
+            url,
+        ])
+        .status()
+        .map_err(|e| TestbedError::BootstrapFailed {
+            step: format!("download {filename}"),
+            message: format!("failed to spawn curl: {e}"),
+        })?;
+
+    if !status.success() {
+        let _ = std::fs::remove_file(&dest);
+        return Err(TestbedError::BootstrapFailed {
+            step: format!("download {filename}"),
+            message: format!("curl exited with status {status:?}"),
+        });
+    }
+
+    if let Ok(meta) = dest.metadata() {
+        debug!("downloaded {filename} ({} bytes)", meta.len());
+    }
+    Ok(dest)
 }
 
 /// Persist mise's cargo_binstall = true setting.
@@ -527,193 +618,173 @@ if (-not (Test-Path $cfg)) {
 
 /// Install/configure VS Build Tools with C++ workload, checking for actual binaries.
 ///
-/// Precheck: verifies `link.exe` exists in any of the standard compiler paths
-/// (`Hostx64\x64` for x86_64, `Hostarm64\x64` for ARM64) AND that the Windows
-/// SDK is present. If all checks pass, skips the 30+ minute installer entirely.
-fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>) -> Result<()> {
-    // Check for the actual binaries we need — multiple host paths
-    let vc_check = winrm.run_ps_quiet(
-        r#"
-        $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\link.exe' -ErrorAction SilentlyContinue
-        if (-not $link) { $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue }
-        $sdk = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\Lib\*\um\x64\kernel32.lib' -ErrorAction SilentlyContinue
-        if ($link -and $sdk) { 'present' } else { 'missing' }
-        "#
-    )?;
-    if vc_check.stdout.contains("present") {
-        debug!("VS Build Tools already installed — link.exe and SDK verified");
-        return Ok(());
+/// Strategy (in order):
+/// 1. Check for pre-downloaded layout zip (`vsb_layout.windows.zip`) in artifact dirs.
+///    If found: SCP to VM, SCP the install script, run via SSH with `--noweb`.
+/// 2. Fall back to online installation: download bootstrapper, SCP install script, run via SSH.
+///
+/// Scripts are resolved from `$PWD/.testbed/[vm]/scripts/` first, then fall back to
+/// embedded copies from the source tree.
+///
+/// When `force` is true, skips the precheck and runs the installer regardless
+/// of whether the tools are already present.
+fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>, force: bool) -> Result<()> {
+    // Check for the actual binaries we need (unless forced)
+    if !force {
+        let vc_check = ssh_ps(session, winrm,
+            r#"
+            $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\link.exe' -ErrorAction SilentlyContinue
+            if (-not $link) { $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue }
+            $sdk = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\Lib\*\um\x64\kernel32.lib' -ErrorAction SilentlyContinue
+            if ($link -and $sdk) { 'present' } else { 'missing' }
+            "#
+        )?;
+        if vc_check.stdout.contains("present") {
+            debug!("VS Build Tools already installed — link.exe and SDK verified");
+            return Ok(());
+        }
+    } else {
+        debug!("--force-vsbuild-install: skipping precheck, running installer");
     }
 
     debug!("VS Build Tools precheck failed, proceeding with installer");
 
-    // Download installer to local cache, then scp to VM
-    let installer_path = ensure_downloaded(
-        "https://aka.ms/vs/17/release/vs_buildtools.exe",
-        "vs_buildtools.exe",
-    )?;
+    // Ensure scripts are available in project dir
+    crate::config::copy_embedded_scripts("windows-build").ok();
 
-    debug!("scp'ing VS Build Tools installer to VM...");
-    crate::ssh::upload(session, &installer_path, "C:/vs_buildtools.exe")?;
-
-    // Verify on VM
-    let size_check = winrm.run_ps_quiet(
-        r#"if (Test-Path 'C:\vs_buildtools.exe') { (Get-Item 'C:\vs_buildtools.exe').Length } else { 'MISSING' }"#
-    )?;
-    let size_str = size_check.stdout.trim().to_string();
-    if size_str.is_empty() || size_str.contains("MISSING") {
-        return Err(TestbedError::BootstrapFailed {
-            step: "verify VS Build Tools installer on VM".to_string(),
-            message: format!("installer not found after scp (output='{size_str}')"),
-        });
+    // Try pre-downloaded layout zip first
+    if let Some(zip_path) = crate::config::resolve_artifact("windows-build", "vsb_layout.windows.zip") {
+        debug!("Found pre-downloaded layout zip: {}", zip_path.display());
+        install_from_layout_zip(session, winrm, progress, &zip_path)?;
+    } else {
+        debug!("No pre-downloaded layout found, using online installation");
+        install_online(session, winrm, progress)?;
     }
-    if let Ok(size) = size_str.parse::<u64>() {
-        debug!("VS Build Tools installer on VM: {size} bytes");
-        if size < 1_000_000 {
+
+    Ok(())
+}
+
+/// Install VS Build Tools from a pre-downloaded offline layout zip.
+///
+/// SCPs the zip + install script to the VM, runs the script via SSH,
+/// waits for the install to complete via polling.
+fn install_from_layout_zip(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    progress: ProgressCallback<'_>,
+    zip_path: &std::path::Path,
+) -> Result<()> {
+    let install_dir = r#"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"#;
+
+    // Resolve the install script (local dir → embedded fallback)
+    let script_path = crate::config::resolve_script_or_embed(
+        "windows-build",
+        "vs_install_from_zip.ps1",
+        include_str!("scripts/vs_install_from_zip.ps1"),
+    )?;
+
+    // SCP zip + script to VM
+    debug!("scp'ing layout zip to VM...");
+    crate::ssh::upload(session, zip_path, "C:/vsb_layout.zip")?;
+    debug!("scp'ing install script to VM...");
+    crate::ssh::upload(session, &script_path, "C:/vs_install_from_zip.ps1")?;
+
+    // Run via SSH, fallback to WinRM
+    debug!("Running VS Build Tools install from layout zip...");
+    let run_cmd = format!(
+        "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\vs_install_from_zip.ps1 \
+         -ZipPath C:\\vsb_layout.zip -LayoutDir C:\\vsb_layout -InstallDir '{install_dir}'"
+    );
+    run_on_vm(session, winrm, &run_cmd)?;
+
+    // Poll for installation completion
+    debug!("Waiting for VS Build Tools installation to complete...");
+    poll_install_complete(session, winrm, progress)?;
+
+    // Cleanup script on VM
+    let _ = run_on_vm(session, winrm, "Remove-Item 'C:\\vs_install_from_zip.ps1' -Force -ErrorAction SilentlyContinue");
+    Ok(())
+}
+
+/// Install VS Build Tools via online bootstrapper.
+///
+/// Downloads the bootstrapper on the host, SCPs it + install script to the VM,
+/// runs the script via SSH, waits for installation to complete.
+fn install_online(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
+    let install_dir = r#"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"#;
+
+    // Download bootstrapper on host
+    let bootstrapper = cache_or_download(
+        "vs_buildtools.exe",
+        "https://aka.ms/vs/17/release/vs_buildtools.exe",
+    )?;
+    debug!("scp'ing VS Build Tools bootstrapper to VM...");
+    crate::ssh::upload(session, &bootstrapper, "C:/vs_buildtools.exe")?;
+
+    // Resolve the install script
+    let script_path = crate::config::resolve_script_or_embed(
+        "windows-build",
+        "vs_install_online.ps1",
+        include_str!("scripts/vs_install_online.ps1"),
+    )?;
+
+    debug!("scp'ing install script to VM...");
+    crate::ssh::upload(session, &script_path, "C:/vs_install_online.ps1")?;
+
+    // Run via SSH, fallback to WinRM
+    debug!("Running VS Build Tools online installation...");
+    let run_cmd = format!(
+        "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\vs_install_online.ps1 \
+         -Bootstrapper C:\\vs_buildtools.exe -InstallDir '{install_dir}'"
+    );
+    run_on_vm(session, winrm, &run_cmd)?;
+
+    // Poll for installation completion
+    debug!("Waiting for VS Build Tools installation to complete...");
+    poll_install_complete(session, winrm, progress)?;
+
+    // Cleanup
+    let _ = run_on_vm(session, winrm, "Remove-Item 'C:\\vs_install_online.ps1' -Force -ErrorAction SilentlyContinue");
+    Ok(())
+}
+
+/// Poll until VS Build Tools binaries are present or timeout.
+fn poll_install_complete(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_secs(7200);
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(30));
+        if start.elapsed() > timeout {
             return Err(TestbedError::BootstrapFailed {
-                step: "verify VS Build Tools installer on VM".to_string(),
-                message: format!("installer file suspiciously small: {size} bytes"),
+                step: "VS Build Tools installation".to_string(),
+                message: "timed out after 2 hours".to_string(),
             });
         }
-    }
-
-    // Write the install script locally, then scp it.
-    // Uses a response file (@rsp) to pass arguments to the VS Installer,
-    // avoiding command-line argument mangling by the SFX self-extractor
-    // (which was causing exit code 0x57 / ERROR_INVALID_PARAMETER).
-    let sentinel_id = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis().to_string();
-    let sentinel_path = format!("C:\\vsbt-done-{sentinel_id}.txt");
-    let error_log = "C:\\vsbt-error.log";
-
-    let install_script = format!(
-        r#"
-$ErrorActionPreference = 'Continue'
-if (-not (Test-Path 'C:\vs_buildtools.exe')) {{
-    Set-Content '{error_log}' -Value 'vs_buildtools.exe not found' -Encoding UTF8
-    exit 1
-}}
-
-# Write response file — VS Installer reads args from here instead of
-# command line, avoiding SFX self-extractor argument mangling (exit 0x57).
-$rsp = "$env:TEMP\vsbt-response.rsp"
-Set-Content $rsp -Value @"
---add
-Microsoft.VisualStudio.Workload.VCTools
---add
-Microsoft.VisualStudio.Component.VC.Tools.ARM64
---add
-Microsoft.VisualStudio.Component.VC.Tools.x86.x64
---add
-Microsoft.VisualStudio.Component.Windows11SDK.22621
---includeRecommended
---quiet
---norestart
---wait
---log
-C:\vs_buildtools-install.log
-"@ -Encoding ASCII
-
-Write-Output 'Starting VS Build Tools installer (response file mode)...'
-Write-Output "Response file: $rsp"
-$r = Start-Process -FilePath 'C:\vs_buildtools.exe' -ArgumentList "@$rsp" -Wait -NoNewWindow -PassThru
-Write-Output "Installer exited with code $($r.ExitCode)"
-if ($r.ExitCode -ne 0 -and $r.ExitCode -ne 3010) {{
-    if (Test-Path 'C:\vs_buildtools-install.log') {{
-        Get-Content 'C:\vs_buildtools-install.log' -Tail 30 | Out-File '{error_log}' -Encoding UTF8 -Force
-    }}
-    exit $r.ExitCode
-}}
-Set-Content '{sentinel_path}' -Value 'done' -Encoding ASCII
-Remove-Item 'C:\vs_buildtools.exe' -Force -ErrorAction SilentlyContinue
-Remove-Item $rsp -Force -ErrorAction SilentlyContinue
-"#
-    );
-    let local_script = cache_dir().join("downloads/vsbt-install.ps1");
-    std::fs::create_dir_all(local_script.parent().unwrap()).ok();
-    std::fs::write(&local_script, install_script).map_err(|e| TestbedError::BootstrapFailed {
-        step: "write VS Build Tools install script".to_string(),
-        message: e.to_string(),
-    })?;
-    crate::ssh::upload(session, &local_script, "C:/vsbt-install.ps1")?;
-
-    // Verify script on VM
-    let verify = winrm.run_ps_quiet(
-        r#"if (Test-Path 'C:\vsbt-install.ps1') { 'OK' } else { 'MISSING' }"#
-    )?;
-    if !verify.stdout.contains("OK") {
-        return Err(TestbedError::BootstrapFailed {
-            step: "verify VS Build Tools install script on VM".to_string(),
-            message: format!("script missing after scp: {}", verify.stdout.trim()),
-        });
-    }
-
-    // Start the installer via SSH (non-blocking: Start-Process returns immediately)
-    // We use a separate script that just kicks off the installer.
-    let kick_script = format!(
-        r#"
-Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','C:\vsbt-install.ps1' -WindowStyle Hidden
-"#
-    );
-    let local_kick = cache_dir().join("downloads/vsbt-kick.ps1");
-    std::fs::write(&local_kick, kick_script).ok();
-    crate::ssh::upload(session, &local_kick, "C:/vsbt-kick.ps1").ok();
-
-    debug!("VS Build Tools installer kicking off...");
-    let kick_result = crate::ssh::exec(session, "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\vsbt-kick.ps1")?;
-    debug!("Kick result: {kick_result}");
-
-    // Poll for sentinel via WinRM
-    debug!("VS Build Tools installer running in background, polling for completion...");
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1800);
-    let mut last_report = std::time::Instant::now();
-    while std::time::Instant::now() < deadline {
-        std::thread::sleep(std::time::Duration::from_secs(10));
-
-        let sentinel = winrm.run_ps_quiet(
-            &format!("if (Test-Path '{sentinel_path}') {{ 'DONE' }} else {{ 'RUNNING' }}"),
+        let check = run_on_vm(session, winrm,
+            "powershell -NoProfile -Command \"if (Test-Path 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC') { 'INSTALLED' } else { 'INSTALLING' }\"",
         );
-        if let Ok(ref s) = sentinel
-            && s.stdout.contains("DONE")
-        {
-            debug!("VS Build Tools installer completed");
+        if let Ok(output) = check
+            && output.contains("INSTALLED") {
+            debug!("VS Build Tools installation completed");
             break;
         }
-
-        // Report progress every 30 seconds
-        if std::time::Instant::now().duration_since(last_report) > std::time::Duration::from_secs(30) {
-            if let Some(cb) = progress {
-                cb("VS Build Tools installing (downloading components, this may take 30+ minutes)...");
-            } else {
-                debug!("[vs_build_tools] still installing...");
-            }
-            last_report = std::time::Instant::now();
+        if let Some(cb) = progress {
+            cb("VS Build Tools installation in progress...");
+        } else {
+            debug!("[vs_build_tools] install in progress...");
         }
     }
 
-    // Check for errors
-    let err_check = winrm.run_ps_quiet(
-        &format!("if (Test-Path '{error_log}') {{ Get-Content '{error_log}' -Raw }} else {{ '' }}"),
-    );
-    if let Ok(ref e) = err_check
-        && !e.stdout.trim().is_empty()
-    {
-        return Err(TestbedError::BootstrapFailed {
-            step: "VS Build Tools install".to_string(),
-            message: format!("installer failed: {}", e.stdout.trim().chars().take(500).collect::<String>()),
-        });
-    }
-
-    // Cleanup temp files
-    winrm.run_ps_quiet(&format!("Remove-Item '{sentinel_path}' -Force -ErrorAction SilentlyContinue")).ok();
-    winrm.run_ps_quiet(&format!("Remove-Item '{error_log}' -Force -ErrorAction SilentlyContinue")).ok();
-    winrm.run_ps_quiet("Remove-Item 'C:/vsbt-install.ps1','C:/vsbt-kick.ps1' -Force -ErrorAction SilentlyContinue").ok();
-
-    // Post-installation verification — check both x86_64 and ARM64 host paths
-    let verify = elevated::run_elevated(
-        winrm,
+    // Post-installation verification
+    let verify_out = ssh_ps(session, winrm,
         r#"
 $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\link.exe' -ErrorAction SilentlyContinue
 if (-not $link) { $link = Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostarm64\x64\link.exe' -ErrorAction SilentlyContinue }
@@ -724,21 +795,28 @@ if (-not $link) {
         Write-Output "Last 20 lines of install log:"
         Get-Content 'C:\vs_buildtools-install.log' -Tail 20 | ForEach-Object { Write-Output "  $_" }
     }
-    throw "VS Build Tools installed but link.exe binary not found — C++ workload may have failed"
+    throw "VS Build Tools installed but link.exe binary not found - C++ workload may have failed"
 }
 Write-Output "link.exe verified at $($link.FullName)"
 "#,
-        60,
-        None,
-    );
-
-    if let Err(e) = verify {
-        return Err(e);
-    }
+    )?;
+    debug!("VS Build Tools post-check: {}", verify_out.stdout);
     Ok(())
 }
 
-/// Install WebView2 Runtime (required by Tauri).
+/// Run a command on the VM, trying SSH first then falling back to WinRM.
+fn run_on_vm(session: &mut VmSession, winrm: &WinRM, cmd: &str) -> Result<String> {
+    match crate::ssh::exec(session, cmd) {
+        Ok(output) => Ok(output),
+        Err(e) => {
+            debug!("SSH exec failed, falling back to WinRM: {e:?}");
+            let result = winrm.run_ps(cmd)?;
+            Ok(result.stdout)
+        }
+    }
+}
+
+/// Install WebView2 Runtime (required by Tauri) — downloads on host, SCPs to VM.
 fn install_webview2(session: &mut VmSession) -> Result<()> {
     let present = crate::ssh::exec(
         session,
@@ -748,12 +826,15 @@ fn install_webview2(session: &mut VmSession) -> Result<()> {
         return Ok(());
     }
 
-    let script = r#"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile 'C:\webview2_setup.exe' -UseBasicParsing
-Start-Process 'C:\webview2_setup.exe' -ArgumentList '/silent','/install' -Wait -NoNewWindow
-"#;
-    crate::ssh::exec(session, script)?;
+    let installer = cache_or_download(
+        "webview2_setup.exe",
+        "https://go.microsoft.com/fwlink/p/?LinkId=2124703",
+    )?;
+
+    debug!("scp'ing WebView2 installer to VM...");
+    crate::ssh::upload(session, &installer, "C:/webview2_setup.exe")?;
+
+    let _ = crate::ssh::exec(session, "Start-Process 'C:\\webview2_setup.exe' -ArgumentList '/silent','/install' -Wait -NoNewWindow")?;
     Ok(())
 }
 
@@ -771,17 +852,14 @@ Add-MpPreference -ExclusionPath "C:\Users\vagrant\.local" -ErrorAction SilentlyC
 
 /// Set up the viofs-based project mount for Windows guests.
 ///
-/// The virtio-win ISO provides the viofs driver (installed separately) and
-/// `virtiofs.exe` mount utility. This function:
-/// 1. Copies virtiofs.exe from the ISO to the VM
-/// 2. Creates the mount point directory
-/// 3. Sets up a startup scheduled task to auto-mount on boot
-/// 4. Triggers an immediate mount
-fn setup_project_mount(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+/// Copies `virtiofs.exe` and viofs drivers from the virtio-win CD-ROM
+/// (attached as a CD-ROM to the VM), then configures the mount point
+/// and startup task.
+fn setup_project_mount(session: &mut VmSession, winrm: &WinRM) -> Result<()> {
     // Check if already set up — verify virtiofs.exe + mount is functional
-    let check = winrm.run_ps_quiet(
+    let check = ssh_ps(session, winrm,
         r#"
-        $exeOk = Test-Path 'C:\Program Files\virtiofs\virtiofs.exe'
+        $exeOk = Test-Path 'C:\Program Files\virtiofs\w11\amd64\virtiofs.exe'
         $mountOk = Test-Path 'C:\Users\vagrant\project\Cargo.toml'
         if ($exeOk -and $mountOk) { 'configured' } else { 'missing' }
         "#
@@ -790,11 +868,8 @@ fn setup_project_mount(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
         return Ok(());
     }
 
-    // Find the CD-ROM with virtio-win
+    // Find the CD-ROM with virtio-win and copy tools from the viofs directory
     let script = r#"
-# Kill any stale virtiofs processes
-Get-Process -Name 'virtiofs' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-
 # Find CD-ROM with virtio-win
 $cd = (Get-Volume | Where-Object { $_.FileSystemLabel -like 'virtio*' }).DriveLetter
 if (-not $cd) {
@@ -808,22 +883,16 @@ if (-not $cd) {
 }
 if (-not $cd) { throw "virtio-win CD-ROM not found" }
 
-# Create virtiofs install directory
+# Create install directory
 $installDir = 'C:\Program Files\virtiofs'
 if (-not (Test-Path $installDir)) {
     New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 }
 
-# Copy virtiofs tools from ISO (viofs directory on the ISO)
+# Copy entire viofs directory from ISO (contains drivers for all OS versions)
 $viofsDir = "${cd}:\viofs"
 if (Test-Path $viofsDir) {
     Copy-Item -Path "$viofsDir\*" -Destination $installDir -Recurse -Force
-}
-
-# Also copy from the architecture-specific directory
-$toolsDir = "${cd}:\vioserial\w11\amd64"
-if (Test-Path $toolsDir) {
-    Copy-Item -Path "$toolsDir\*" -Destination $installDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # Create the mount point
@@ -832,10 +901,27 @@ if (-not (Test-Path $mountPoint)) {
     New-Item -ItemType Directory -Path $mountPoint -Force | Out-Null
 }
 
+# Determine the correct virtiofs.exe based on OS version
+$osVersion = [System.Environment]::OSVersion.Version.Major
+if ($osVersion -ge 10) {
+    # Windows 10/11 — check build to distinguish
+    $build = [System.Environment]::OSVersion.Version.Build
+    if ($build -ge 22000) {
+        $virtiofsExe = "$installDir\w11\amd64\virtiofs.exe"
+    } else {
+        $virtiofsExe = "$installDir\w10\amd64\virtiofs.exe"
+    }
+} else {
+    $virtiofsExe = "$installDir\w10\amd64\virtiofs.exe"
+}
+
+if (-not (Test-Path $virtiofsExe)) {
+    throw "virtiofs.exe not found at $virtiofsExe"
+}
+
 # Create the mount script for boot-time use
 $mountScript = @"
-# Mount virtiofs project drive
-Start-Process -FilePath 'virtiofs.exe' -ArgumentList '-t project', '-m C:\Users\vagrant\project' -WindowStyle Hidden
+Start-Process -FilePath '$virtiofsExe' -ArgumentList '-t project', '-m C:\Users\vagrant\project' -WindowStyle Hidden
 "@
 Set-Content -Path "$installDir\mount-project.ps1" -Value $mountScript -Encoding UTF8
 
@@ -845,12 +931,7 @@ $trigger = New-ScheduledTaskTrigger -AtStartup
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
 Register-ScheduledTask -TaskName 'MountVirtiofsProject' -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
 
-# Mount now: start virtiofs.exe directly as the current user (elevated admin)
-$virtiofsExe = "$installDir\virtiofs.exe"
-if (-not (Test-Path $virtiofsExe)) {
-    throw "virtiofs.exe not found at $virtiofsExe"
-}
-
+# Mount now
 Start-Process -FilePath $virtiofsExe -ArgumentList '-t project', '-m C:\Users\vagrant\project' -WindowStyle Hidden
 
 # Wait for mount to become accessible
@@ -869,11 +950,12 @@ if (-not $mounted) {
     throw "virtiofs mount did not become accessible after 30s"
 }
 
-Write-Output "Project mount verified at $mountPoint"
+Write-Output "Project mount verified at $mountPoint using $virtiofsExe"
 "#;
     elevated::run_elevated(winrm, script, 120, None)?;
     Ok(())
 }
+
 
 /// Install virtio-win drivers from the CD-ROM ISO.
 ///
@@ -882,10 +964,11 @@ Write-Output "Project mount verified at $mountPoint"
 /// store and makes them available for the virtual hardware.
 ///
 /// Idempotent: skips if virtio drivers are already installed.
-fn install_virtio_drivers(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
-    // Check if virtio drivers are already installed
-    let check = winrm.run_ps_quiet(
-        r#"$devices = Get-PnpDevice -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' -or $_.FriendlyName -like '*Red Hat*' }; if ($null -ne $devices -and $devices.Count -gt 0) { 'installed' } else { 'missing' }"#
+fn install_virtio_drivers(session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    // Check specifically for the viofs driver — other VirtIO devices (net, scsi)
+    // are always present from QEMU and don't mean viofs is installed.
+    let check = ssh_ps(session, winrm,
+        r#"if (Test-Path 'C:\Windows\System32\drivers\viofs.sys') { 'installed' } else { 'missing' }"#
     )?;
     if check.stdout.contains("installed") {
         return Ok(());
@@ -1007,58 +1090,6 @@ fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
         r#"New-Item -Path "$env:USERPROFILE\.testbed-bootstrapped" -ItemType File -Force"#,
     )?;
     Ok(())
-}
-
-/// Download a file to the local cache if it doesn't already exist.
-///
-/// Returns the local path to the cached file. Uses `curl` for downloading
-/// with resume support so large installers survive network interruptions.
-fn ensure_downloaded(url: &str, filename: &str) -> Result<PathBuf> {
-    let cache_dir = cache_dir().join("downloads");
-    std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
-        step: format!("create download cache dir {cache_dir:?}"),
-        message: e.to_string(),
-    })?;
-    let dest = cache_dir.join(filename);
-
-    if dest.exists() {
-        debug!("using cached download: {} ({} bytes)", filename, dest.metadata().unwrap().len());
-        return Ok(dest);
-    }
-
-    debug!("downloading {filename} from {url}...");
-    let status = Command::new("curl")
-        .args([
-            "-fSL",
-            "--retry", "3",
-            "--retry-delay", "5",
-            "-C", "-",
-            "-o", dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
-                step: format!("download {filename}"),
-                message: "cache path is not valid UTF-8".to_string(),
-            })?,
-            url,
-        ])
-        .status()
-        .map_err(|e| TestbedError::BootstrapFailed {
-            step: format!("download {filename}"),
-            message: format!("failed to spawn curl: {e}"),
-        })?;
-
-    if !status.success() {
-        // Clean up partial download
-        let _ = std::fs::remove_file(&dest);
-        return Err(TestbedError::BootstrapFailed {
-            step: format!("download {filename}"),
-            message: format!("curl exited with status {status:?}"),
-        });
-    }
-
-    if dest.exists() {
-        debug!("downloaded {filename} ({} bytes)", dest.metadata().unwrap().len());
-    }
-
-    Ok(dest)
 }
 
 #[cfg(test)]
