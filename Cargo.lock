@@ -2605,6 +2605,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_http"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_testing",
+ "lazy-regex",
+ "lazy_static",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha1",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "foundation_jsonschema"
 version = "0.0.1"
 dependencies = [

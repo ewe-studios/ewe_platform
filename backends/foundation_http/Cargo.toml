@@ -1,0 +1,39 @@
+[package]
+name = "foundation_http"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Connection-owned, worker-pooled HTTP serving framework built on foundation_core"
+keywords = ["http", "server", "foundation", "sync"]
+
+[dependencies]
+foundation_core = { workspace = true }
+foundation_errstacks = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+regex = { version = "1.12" }
+bytes = { version = "1.5" }
+sha1 = "0.10"
+base64 = "0.22"
+tracing = "0.1"
+uuid = { version = "1.6", features = ["v4"] }
+
+[dev-dependencies]
+foundation_testing = { workspace=true }
+
+[features]
+default = []
+middleware-cors = []
+middleware-logging = []
+middleware-auth = []
+middleware-compression = ["foundation_core/compression"]
+tls = ["foundation_core/ssl-rustls"]
+openssl-tls = ["foundation_core/ssl-openssl"]
+
+[lints]
+workspace = true
