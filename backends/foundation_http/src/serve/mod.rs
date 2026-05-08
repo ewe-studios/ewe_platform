@@ -13,7 +13,6 @@ use foundation_core::wire::simple_http::{
     SimpleHeader, SendSafeBody,
 };
 use foundation_errstacks::ErrorTrace;
-use serde::Serialize;
 
 use crate::context::ContextBag;
 
