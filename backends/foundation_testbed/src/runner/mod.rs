@@ -6,6 +6,7 @@ use std::path::Path;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};
 use crate::ssh::VmSession;
+use crate::winrm::WinRM;
 
 pub mod logs;
 pub mod screenshot;
@@ -29,6 +30,7 @@ pub struct RunResult {
 pub fn run_in_vm(
     profile: &VmProfile,
     session: &mut VmSession,
+    winrm: Option<&WinRM>,
     bin_path: Option<&str>,
 ) -> Result<RunResult> {
     // Auto-detect binary if not specified
@@ -40,7 +42,7 @@ pub fn run_in_vm(
     match profile.os {
         GuestOs::Linux => run_linux(session, &binary)?,
         GuestOs::MacOS => run_linux(session, &binary)?,
-        GuestOs::Windows => run_windows(session, &binary)?,
+        GuestOs::Windows => run_windows(session, winrm, &binary)?,
     }
 
     Ok(RunResult {
@@ -89,19 +91,28 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
     Ok(())
 }
 
-/// Launch a binary on Windows via Start-Process.
-fn run_windows(session: &mut VmSession, binary: &str) -> Result<()> {
+/// Launch a binary on Windows via interactive desktop session.
+///
+/// Uses a Scheduled Task with `/RU vagrant /IT` so GUI apps (Tauri, etc.)
+/// actually appear on screen. Falls back to headless Start-Process if
+/// WinRM is not available.
+fn run_windows(session: &mut VmSession, winrm: Option<&WinRM>, binary: &str) -> Result<()> {
+    // Try interactive launch first (GUI apps work)
+    if let Some(winrm) = winrm {
+        crate::bootstrap::windows::run_interactive_windows(winrm, binary, &[])?;
+        return Ok(());
+    }
+
+    // Fallback: headless (no GUI, but won't crash)
     let escaped = binary.replace("'", "''");
     let script = format!(
         r#"
 $run_dir = "$env:USERPROFILE\.testbed-run"
 if (-not (Test-Path $run_dir)) {{ mkdir $run_dir -Force }}
 
-# Kill prior instances
 $prior = Get-Process -ErrorAction SilentlyContinue | Where-Object {{ $_.Path -eq '{escaped}' }}
 if ($prior) {{ $prior | Stop-Process -Force }}
 
-# Launch with output redirection
 Start-Process -FilePath '{escaped}' -RedirectStandardOutput "$run_dir\run.log" -RedirectStandardError "$run_dir\run-error.log"
 "#
     );

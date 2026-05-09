@@ -39,6 +39,7 @@ A connection-owned, worker-pooled HTTP serving framework built on `foundation_co
 | 3 | Protocol Upgrades | `03-protocol-upgrades` | `WebSocketUpgrader`, `SseStream` wrappers over existing `foundation_core` implementations | 02-server-core |
 | 4 | Middleware Polish | `04-middleware-polish` | `RequestMiddleware` trait, built-in middleware (CORS, auth, logging, compression), integration tests, TLS, workspace migration | 02-server-core |
 | 5 | Batteries Included | `05-batteries` | Static file serving, panic recovery, rate limiting, health checks, error middleware, request ID tracing | 02-server-core |
+| 6 | Valtron Keep-Alive | `06-valtron-keepalive` | Replace `BackgroundJobRegistry::submit` with `valtron::send(ConnectionHandler)` — non-blocking keep-alive via `TaskStatus::Delayed` with exponential backoff | 02-server-core |
 
 ## High-Level Architecture
 

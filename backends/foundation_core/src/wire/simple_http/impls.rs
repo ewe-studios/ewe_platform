@@ -418,6 +418,9 @@ pub trait RenderHttp {
             writer.write_all(&bytes)?;
             total_bytes += bytes.len();
         }
+
+        writer.flush()?;
+
         Ok(total_bytes)
     }
 
@@ -446,6 +449,8 @@ pub trait RenderHttp {
             writer.write_all(&bytes)?;
             total_bytes += bytes.len();
         }
+
+        writer.flush()?;
         Ok(total_bytes)
     }
 
@@ -5089,9 +5094,17 @@ impl BodyExtractor for SimpleHttpBody {
                 #[allow(clippy::cast_possible_truncation)]
                 let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
 
-                tracing::trace!("Acquiring borrowed stream");
+                tracing::trace!(
+                    "FullBody: borrow stream: {:?}, headers={:?}",
+                    &optional_max_body_size,
+                    headers
+                );
                 match stream.do_once_mut(|borrowed_stream| {
-                    tracing::trace!("Acquired borrowed stream");
+                    tracing::trace!(
+                        "FullBody: acquired borrow stream with EOFReader: {:?}, headers={:?}",
+                        &optional_max_body_size,
+                        headers
+                    );
 
                     EofReader::read_to_end(
                         borrowed_stream,
@@ -5115,22 +5128,39 @@ impl BodyExtractor for SimpleHttpBody {
                 tracing::trace!("LimitedBody: reading as limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
 
                 if content_length == 0 {
+                    tracing::trace!("LimitedBody: content length is 0");
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
                 }
 
                 // Check against max_body_size if set
                 if let Some(max_size) = self.0 {
                     if content_length > max_size {
+                        tracing::trace!(
+                            "LimitedBody: content length ({:?}) > max({:})",
+                            content_length,
+                            max_size
+                        );
                         return Err(Box::new(std::io::Error::new(
                             std::io::ErrorKind::InvalidInput,
                             format!(
                                 "content length {content_length:} exceeds max body size {max_size:}"
                             ),
                         )));
+                    } else {
+                        tracing::trace!(
+                            "LimitedBody: content length ({:?}) < max({:})",
+                            content_length,
+                            max_size
+                        );
                     }
                 }
 
                 if content_length <= self.1 {
+                    tracing::trace!(
+                        "LimitedBody: full body reader reading content (max={})",
+                        &self.1
+                    );
+
                     // Small body: read entirely into memory with retry resilience
                     match stream.do_once_mut(|borrowed_stream| {
                         tracing::trace!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
@@ -5141,6 +5171,8 @@ impl BodyExtractor for SimpleHttpBody {
                         } else {
                             self.2 as u64
                         };
+
+                        tracing::trace!("FullBodyReader: reading body under: batch_size={:?}", &batch_size);
 
                         #[allow(clippy::cast_possible_truncation)]
                         FullBodyReader::new(batch_size as usize)
@@ -5165,6 +5197,7 @@ impl BodyExtractor for SimpleHttpBody {
                         .max_consecutive_retries(self.3);
                     let stream_reader: Box<BatchStreamReader<SharedByteBufferStream<T>>> =
                         Box::new(BatchStreamReader::new(batch));
+
                     Ok(SendSafeBody::Stream(Some(stream_reader)))
                 }
             }

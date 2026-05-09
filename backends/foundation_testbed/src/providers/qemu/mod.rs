@@ -35,8 +35,9 @@ impl Provider for QemuProvider {
         let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode);
 
         // Apply per-VM mount configuration from testbed.toml
-        if let Some((host_path, guest_path, readonly)) =
-            crate::config::get_mount_for_profile(profile.name, ".")
+        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        if let Some((host_path, guest_path, readonly, _methods)) =
+            crate::config::get_mount_for_profile(profile.name, &cwd.to_string_lossy())
         {
             config = config.with_project_mount(PathBuf::from(&host_path), &guest_path, readonly);
         }

@@ -1415,9 +1415,11 @@ impl ThreadRegistry {
         };
 
         // Register thread in registry first
+        let worker_tag = format!("worker-{seed}");
+
         let thread_ref = ThreadRef::new(
             seed,
-            format!("worker-{seed}"),
+            worker_tag.clone(),
             self.shared_tasks.clone(),
             None,
             self.registry.clone(),
@@ -1459,7 +1461,7 @@ impl ThreadRegistry {
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
-            tracing::warn!("Worker thread {} STARTED", seed_clone);
+            tracing::info!("Worker thread({}) {} STARTED", &worker_tag, seed_clone);
 
             // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
@@ -1471,6 +1473,7 @@ impl ThreadRegistry {
 
                 let thread_executor = LocalThreadExecutor::from_seed(
                     seed_clone,
+                    worker_tag.clone(),
                     task_clone,
                     IdleMan::new(
                         thread_max_idle_count,
@@ -1497,13 +1500,23 @@ impl ThreadRegistry {
                 sender
                     .send(ThreadActivity::Stopped(sender_id.clone()))
                     .expect("should send event");
+                tracing::trace!(
+                    "Worker thread({}) {} stopped blocking and shoiuld now stop (ok)",
+                    &worker_tag,
+                    seed_clone
+                );
             }) {
                 Ok(()) => {
-                    tracing::warn!("Worker thread {} STOPPED (ok)", seed_clone);
+                    tracing::warn!("Worker thread({}) {} STOPPED (ok)", &worker_tag, seed_clone);
                     Ok(())
                 }
                 Err(err) => {
-                    tracing::warn!("Worker thread {} STOPPED (panic: {:?})", seed_clone, err);
+                    tracing::warn!(
+                        "Worker thread({}) {} STOPPED (panic: {:?})",
+                        &worker_tag,
+                        seed_clone,
+                        err
+                    );
                     sender
                         .send(ThreadActivity::Panicked(sender_id.clone(), err))
                         .expect("should send event");

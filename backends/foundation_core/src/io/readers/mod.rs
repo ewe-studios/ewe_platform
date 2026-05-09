@@ -226,7 +226,7 @@ impl FullBodyReader {
         for batch_result in batch_reader {
             match batch_result {
                 Ok(Data::Bytes(bytes)) => {
-                    tracing::debug!("Received Data::Bytes(len={})", bytes.len());
+                    tracing::trace!("Received Data::Bytes(len={})", bytes.len());
                     result.extend(bytes);
                     if result.len() == total_size {
                         break;
@@ -235,7 +235,7 @@ impl FullBodyReader {
                 Ok(Data::Retry) => {
                     // This shouldn't happen with eof_on_zero_read=true unless
                     // we get WouldBlock/TimedOut - just continue retrying
-                    tracing::debug!("Received Data::Retry - will retry read");
+                    tracing::trace!("Received Data::Retry - will retry read");
                 }
                 Err(e) => {
                     tracing::error!("Read error occured: {:?}", &e);

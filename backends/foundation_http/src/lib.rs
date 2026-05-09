@@ -43,7 +43,7 @@ pub use serve::{ConnectionResult, Serve, ServeFactory, ServeError};
 pub use serve::respond;
 pub use context::ContextBag;
 pub use app::HttpApp;
-pub use server::{HttpServer, ServerConfig};
+pub use server::{HttpServer, ServerConfig, KeepAliveConfig};
 pub use client_ip::ClientIp;
 pub use router::{ArcServe, Router};
 pub use middleware::{MiddlewareResult, RequestMiddleware};

@@ -8,7 +8,6 @@ use crate::context::ContextBag;
 use crate::middleware::RequestMiddleware;
 use crate::router::Router;
 use crate::serve::ServeFactory;
-use foundation_core::valtron::BackgroundJobRegistry;
 
 use crate::server::{HttpServer, ServerConfig};
 
@@ -68,19 +67,18 @@ impl HttpApp {
 
     /// Create an `HttpServer` from this app with default config.
     #[must_use]
-    pub fn server(self, bg: Arc<BackgroundJobRegistry>, addr: &str) -> HttpServer {
-        HttpServer::new(self, bg, addr)
+    pub fn server(self, addr: &str) -> HttpServer {
+        HttpServer::new(self, addr)
     }
 
     /// Create an `HttpServer` from this app with custom config.
     #[must_use]
     pub fn server_with_config(
         self,
-        bg: Arc<BackgroundJobRegistry>,
         addr: &str,
         config: ServerConfig,
     ) -> HttpServer {
-        HttpServer::with_config(self, bg, addr, config)
+        HttpServer::with_config(self, addr, config)
     }
 }
 

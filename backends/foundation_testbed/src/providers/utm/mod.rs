@@ -73,7 +73,7 @@ impl Provider for UtmProvider {
         }
 
         // Apply per-VM mount configuration from testbed.toml
-        if let Some((host_path, _guest_path, readonly)) =
+        if let Some((host_path, _guest_path, readonly, _methods)) =
             crate::config::get_mount_for_profile(profile.name, ".")
         {
             if let Err(e) = applescript::configure_shared_directory(
