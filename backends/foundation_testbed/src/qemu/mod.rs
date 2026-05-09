@@ -18,6 +18,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::config::{ensure_dirs, monitor_dir, DisplayMode, GuestOs, Result, TestbedError, VmProfile};
+use tracing::debug;
 
 /// A running QEMU VM instance.
 ///
@@ -160,6 +161,22 @@ impl QemuConfig {
             (display::DisplayBackend::Vnc.qemu_args(vnc_offset), false)
         };
         let actual_disk = macos_boot_disk.as_ref().unwrap_or(&disk_path);
+
+        // Spawn virtiofsd daemon for Windows guests with project mount
+        if config.profile.os == GuestOs::Windows {
+            if let Some(host_path) = &config.project_mount {
+                let socket_path = monitor_path.with_file_name(format!("{}.virtiofsd.sock", config.profile.name));
+                let _ = std::fs::remove_file(&socket_path);
+                let (_, daemon_config) = mount::virtiofs_args(
+                    host_path,
+                    mount::DEFAULT_TAG,
+                    &socket_path,
+                    config.project_mount_readonly,
+                );
+                spawn_virtiofsd(&daemon_config)?;
+            }
+        }
+
         cmd.args(build_qemu_args(
             &config.profile,
             actual_disk,
@@ -628,11 +645,29 @@ fn build_qemu_args(
         args.push(format!("file={},media=cdrom", cdrom.display()));
     }
 
-    // Project mount via 9p (if configured).
-    // Windows guests need the viofs driver (installed during bootstrap) to
-    // recognize this device. The virtfs arg is passed for all OS types.
+    // Project mount: virtiofs for Windows, 9p for Linux/macOS.
     if let Some(host_path) = project_mount {
-        args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, project_mount_readonly));
+        if profile.os == GuestOs::Windows {
+            // vhost-user-fs-pci requires shared memory backend for the vhost-user
+            // protocol to work. Without this, virtiofsd dies with
+            // "vhost_set_vring_kick failed: Input/output error".
+            args.push("-object".to_string());
+            args.push(format!("memory-backend-memfd,id=mem,size={}M,share=on", profile.memory_mib));
+            args.push("-machine".to_string());
+            args.push("memory-backend=mem".to_string());
+
+            let socket_path = monitor_path.with_file_name(format!("{}.virtiofsd.sock", profile.name));
+            let (vfs_args, _daemon) = mount::virtiofs_args(
+                host_path,
+                mount::DEFAULT_TAG,
+                &socket_path,
+                project_mount_readonly,
+            );
+            args.extend(vfs_args);
+        } else {
+            // Linux/macOS use 9p/virtfs
+            args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, project_mount_readonly));
+        }
     }
 
     // Network (user-mode with port forwarding)
@@ -707,6 +742,59 @@ fn find_qemu_system() -> Result<std::path::PathBuf> {
     Err(TestbedError::QemuNotFound {
         install_cmd: "mise install qemu".to_string(),
     })
+}
+
+/// Spawn virtiofsd daemon and wait for it to be ready.
+///
+/// virtiofsd 1.13.x creates the socket, QEMU immediately connects, and
+/// the filesystem socket may vanish. We check for the PID file (`.sock.pid`)
+/// as a reliable readiness indicator since virtiofsd creates it early.
+fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
+    // Clean stale socket and PID file
+    let _ = std::fs::remove_file(&config.socket_path);
+    let pid_path = config.socket_path.with_extension("sock.pid");
+    let _ = std::fs::remove_file(&pid_path);
+
+    let mut child = config.command()
+        // Use null stdio — piped stdio blocks when the buffer fills and
+        // the parent forgets the Child without reading the pipes.
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn().map_err(|e| TestbedError::Qcow2Error {
+            message: format!("failed to spawn virtiofsd: {e}"),
+        })?;
+
+    // Wait for readiness signal (up to 10s)
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while Instant::now() < deadline {
+        // Check for child process exit first
+        if let Some(status) = child.try_wait().map_err(|e| TestbedError::Qcow2Error {
+            message: format!("virtiofsd child error: {e}"),
+        })? {
+            drop(child);
+            return Err(TestbedError::Qcow2Error {
+                message: format!("virtiofsd exited early with status: {status}"),
+            });
+        }
+
+        // Socket or PID file indicates readiness
+        if config.socket_path.exists() || pid_path.exists() {
+            debug!("virtiofsd started, socket at {}", config.socket_path.display());
+            std::mem::forget(child);
+            return Ok(());
+        }
+        thread::sleep(Duration::from_millis(200));
+    }
+
+    drop(child);
+    Err(TestbedError::Qcow2Error {
+        message: format!("virtiofsd did not start at {}", config.socket_path.display()),
+    })
+}
+
+/// Kill the virtiofsd daemon by removing its socket (it exits when the client disconnects).
+pub fn stop_virtiofsd(socket_path: &std::path::Path) {
+    let _ = std::fs::remove_file(socket_path);
 }
 
 #[cfg(test)]

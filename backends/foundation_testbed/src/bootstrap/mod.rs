@@ -31,12 +31,22 @@ const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 pub fn is_bootstrapped(profile: &VmProfile) -> bool {
     match profile.os {
         GuestOs::Windows => {
+            // Try WinRM first, fall back to SSH (WinRM may be down after nushell setup)
             if let Ok(winrm) = WinRM::from_profile(profile) {
                 let result = winrm.run_ps_quiet(&format!(
                     "if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"
                 ));
                 if let Ok(cmd) = result {
                     return cmd.stdout.trim() == "YES";
+                }
+            }
+            // Fall back to SSH
+            if let Ok(mut session) = crate::ssh::connect(profile) {
+                let result = crate::ssh::exec_ps_windows(&mut session,
+                    &format!("if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}")
+                );
+                if let Ok((output, _)) = result {
+                    return output.trim() == "YES";
                 }
             }
             false

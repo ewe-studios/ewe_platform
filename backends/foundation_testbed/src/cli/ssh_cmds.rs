@@ -62,7 +62,16 @@ pub fn cmd_run(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let profile = resolve_profile(name)?;
 
     let mut session = ssh::connect(&profile)?;
-    let result = runner::run_in_vm(&profile, &mut session, bin)?;
+
+    // For Windows, also connect to WinRM for interactive launch
+    let winrm = if profile.os == crate::config::GuestOs::Windows {
+        let port = profile.winrm_port.unwrap_or(5985);
+        Some(crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass))
+    } else {
+        None
+    };
+
+    let result = runner::run_in_vm(&profile, &mut session, winrm.as_ref(), bin)?;
     println!("Launched binary, log at: {}", result.log_path);
     Ok(())
 }
@@ -73,7 +82,16 @@ pub fn cmd_screenshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> 
     let profile = resolve_profile(name)?;
 
     let mut session = ssh::connect(&profile)?;
-    runner::screenshot::capture(&profile, &mut session, Path::new(out))?;
+
+    // For Windows, also connect to WinRM for interactive screenshot
+    let winrm = if profile.os == crate::config::GuestOs::Windows {
+        let port = profile.winrm_port.unwrap_or(5985);
+        Some(crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass))
+    } else {
+        None
+    };
+
+    runner::screenshot::capture(&profile, &mut session, winrm.as_ref(), Path::new(out))?;
     println!("Screenshot saved to {}", out);
     Ok(())
 }

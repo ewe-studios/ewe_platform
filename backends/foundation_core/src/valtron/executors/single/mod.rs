@@ -47,6 +47,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
                 Arc::new(ConcurrentQueue::unbounded());
             LocalThreadExecutor::from_seed(
                 seed_for_rng,
+                "single-thread-pool".to_string(),
                 tasks,
                 IdleMan::new(
                     MAX_ROUNDS_IDLE_COUNT,

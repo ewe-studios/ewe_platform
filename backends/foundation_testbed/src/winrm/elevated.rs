@@ -18,6 +18,70 @@ use super::WinRM;
 /// Receives a progress message string.
 pub type ProgressCallback<'a> = Option<&'a dyn Fn(&str)>;
 
+/// Run a PowerShell script in the interactive desktop session of a user.
+///
+/// Unlike `run_elevated` (which runs as SYSTEM in session 0, invisible),
+/// this creates a scheduled task with `/RU <user> /IT` so the script
+/// runs in the logged-on desktop — GUI windows actually appear.
+///
+/// Used for launching Tauri apps, taking screenshots, etc.
+///
+/// Does NOT wait for completion or use a sentinel — it just fires the task
+/// and returns. The task runs in the user's session.
+pub fn run_interactive(
+    winrm: &WinRM,
+    ps_code: &str,
+    user: &str,
+) -> Result<()> {
+    let task_name = format!("FoundationTestbed_Interactive_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis(),
+    );
+    let script_path = format!("C:\\testbed-interactive-{task_name}.ps1");
+
+    // Write script via base64 encoding (avoids CLIXML/escaping issues)
+    let script_b64 = base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        ps_code.as_bytes(),
+    );
+    let write_cmd = format!(
+        "[System.IO.File]::WriteAllBytes('{script_path}', [System.Convert]::FromBase64String('{script_b64}'))"
+    );
+    winrm.run_ps(&write_cmd).map_err(|e| TestbedError::BootstrapFailed {
+        step: "write interactive script".to_string(),
+        message: e.to_string(),
+    })?;
+
+    // Create scheduled task: run as user, interactive (IT flag)
+    let create_task = format!(
+        r#"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+$principal = New-ScheduledTaskPrincipal -UserId '{user}' -LogonType Interactive
+Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
+    );
+    winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
+        step: "create interactive task".to_string(),
+        message: e.to_string(),
+    })?;
+
+    // Start it immediately
+    winrm.run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'")).map_err(|e| {
+        TestbedError::BootstrapFailed {
+            step: "start interactive task".to_string(),
+            message: e.to_string(),
+        }
+    })?;
+
+    // Brief pause for task to spin up, then clean up registration
+    thread::sleep(Duration::from_secs(2));
+    winrm.run_ps(&format!("Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false -ErrorAction SilentlyContinue")).ok();
+
+    Ok(())
+}
+
 /// Run a PowerShell script as SYSTEM via a scheduled task.
 ///
 /// Writes the script to disk via base64 encoding (avoids all escaping issues),

@@ -5,6 +5,15 @@ use crate::bootstrap::BootstrapLogger;
 use crate::config::{Result, VmProfile};
 use crate::ssh::VmSession;
 
+const INSTALL_SYSTEM_DEPS_SH: &str = include_str!("../../scripts/linux/install_system_deps.sh");
+const INSTALL_MISE_SH: &str = include_str!("../../scripts/linux/install_mise.sh");
+const ACTIVATE_MISE_BASHRC_SH: &str = include_str!("../../scripts/linux/activate_mise_bashrc.sh");
+const INSTALL_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/linux/install_cargo_binstall.sh");
+const CONFIGURE_MISE_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/linux/configure_mise_cargo_binstall.sh");
+const INSTALL_TOOLS_MISE_SH: &str = include_str!("../../scripts/linux/install_tools_mise.sh");
+const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/linux/set_nushell_default_shell.sh");
+const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/linux/setup_ssh_keys.sh");
+
 /// Tauri system dependencies on Debian/Ubuntu that mise cannot install.
 const TAURI_SYSTEM_DEPS: &[&str] = &[
     "build-essential", "curl", "git", "pkg-config",
@@ -22,8 +31,8 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         .unwrap_or_default();
         if !xvfb_present.contains("present") {
             let deps = TAURI_SYSTEM_DEPS.join(" ");
-            crate::ssh::exec(session, "apt-get update -qq")?;
-            crate::ssh::exec(session, &format!("DEBIAN_FRONTEND=noninteractive apt-get install -y {deps}"))?;
+            let script = INSTALL_SYSTEM_DEPS_SH.replace("{{DEPS}}", &deps);
+            crate::ssh::exec(session, &script)?;
         }
         Ok(())
     })?;
@@ -34,15 +43,12 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         if !mise.contains("missing") && !mise.is_empty() {
             return Ok(());
         }
-        crate::ssh::exec(session, "curl -fsSL https://mise.run | sh")?;
+        crate::ssh::exec(session, INSTALL_MISE_SH)?;
         Ok(())
     })?;
 
     logger::step(logger, "activate mise in .bashrc", || {
-        crate::ssh::exec(
-            session,
-            r#"grep -q 'mise activate' ~/.bashrc || echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> ~/.bashrc"#,
-        )?;
+        crate::ssh::exec(session, ACTIVATE_MISE_BASHRC_SH)?;
         Ok(())
     })?;
 
@@ -57,48 +63,25 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         }
         let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
         let target = if arch.trim() == "aarch64" { "aarch64-unknown-linux-musl" } else { "x86_64-unknown-linux-musl" };
-        crate::ssh::exec(
-            session,
-            &format!(
-                "mkdir -p ~/.cargo/bin && \
-                 curl -sSfL https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-{target}.tgz | tar -xz -C ~/.cargo/bin && \
-                 chmod +x ~/.cargo/bin/cargo-binstall"
-            ),
-        )?;
+        let script = INSTALL_CARGO_BINSTALL_SH.replace("{{TARGET}}", &target);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
     logger::step(logger, "configure mise cargo_binstall", || {
-        crate::ssh::exec(
-            session,
-            "mkdir -p ~/.config/mise && \
-             touch ~/.config/mise/config.toml && \
-             (grep -q 'cargo_binstall' ~/.config/mise/config.toml || \
-              printf '\\n[settings]\\ncargo_binstall = true\\n' >> ~/.config/mise/config.toml)",
-        )?;
+        crate::ssh::exec(session, CONFIGURE_MISE_CARGO_BINSTALL_SH)?;
         Ok(())
     })?;
 
     logger::step(logger, "install tools via mise", || {
-        let script = format!(
-            r#"cat <<'MISE_EOF' > /tmp/bootstrap-mise.toml
-{mise_toml_content}
-MISE_EOF
-export MISE_CONFIG_FILE=/tmp/bootstrap-mise.toml
-$HOME/.local/bin/mise install
-rm -f /tmp/bootstrap-mise.toml"#,
-            mise_toml_content = BOOTSTRAP_MISE_TOML,
-        );
+        let script = INSTALL_TOOLS_MISE_SH.replace("{{MISE_TOML}}", BOOTSTRAP_MISE_TOML);
         crate::ssh::exec(session, &script)?;
         crate::ssh::exec(session, "$HOME/.local/bin/mise exec -- rustc --version")?;
         Ok(())
     })?;
 
     logger::step(logger, "set nushell as default shell", || {
-        crate::ssh::exec(
-            session,
-            r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#,
-        )?;
+        crate::ssh::exec(session, SET_NUSHELL_DEFAULT_SHELL_SH)?;
         Ok(())
     })?;
 
@@ -108,19 +91,13 @@ rm -f /tmp/bootstrap-mise.toml"#,
         let mut pub_key = String::new();
         for key_name in key_names {
             let path = home.join(".ssh").join(key_name);
-            if path.exists()
-                && let Ok(key) = std::fs::read_to_string(&path) {
-                    pub_key = key.trim().to_string();
-                    break;
-                }
+            if path.exists() && let Ok(key) = std::fs::read_to_string(&path) {
+                pub_key = key.trim().to_string();
+                break;
+            }
         }
         if !pub_key.is_empty() {
-            let key_escaped = pub_key.replace('\'', r"'\''");
-            let script = format!(
-                r#"mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && \
-                   chmod 600 ~/.ssh/authorized_keys && \
-                   grep -qxF '{key_escaped}' ~/.ssh/authorized_keys || echo '{key_escaped}' >> ~/.ssh/authorized_keys"#
-            );
+            let script = SETUP_SSH_KEYS_SH.replace("{{KEY}}", &pub_key);
             crate::ssh::exec(session, &script)?;
         }
         Ok(())

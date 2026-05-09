@@ -5,6 +5,7 @@
 name = "windows-build"
 profile = "windows-build"
 mount = { host_path = ".", guest_path = "C:/Users/vagrant/project", readonly = false }
+artefacts = { "vsb_layout.windows.zip" = ".testbed/windows-build/artifacts/vsb_layout.windows.zip" }
 
 [[vms]]
 name = "linux-build"

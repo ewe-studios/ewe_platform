@@ -200,7 +200,7 @@ impl TestVm {
                 // Phase 2: SSH-required (installs dev tools)
                 let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
                 foundation_testbed::bootstrap::windows::bootstrap_windows_ssh_phase(
-                    &self.profile, &winrm, &mut session, &logger, None,
+                    &self.profile, &winrm, &mut session, &logger, None, false,
                 )?;
             }
         }

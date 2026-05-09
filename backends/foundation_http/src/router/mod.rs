@@ -64,10 +64,15 @@ impl Router {
 
     /// Dispatch a request to the matched handler.
     ///
+    /// Query strings are stripped from the path before matching so that
+    /// `/search?q=rust` routes to `/search`.
+    ///
     /// Returns `Some(ArcServe)` if a route matches, `None` otherwise.
     #[must_use]
     pub fn dispatch(&self, method: &SimpleMethod, path: &str) -> Option<ArcServe> {
-        self.root.match_route(method, path).ok()
+        // Strip query string for route matching.
+        let path_without_query = path.split('?').next().unwrap_or(path);
+        self.root.match_route(method, path_without_query).ok()
     }
 }
 

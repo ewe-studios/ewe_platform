@@ -131,6 +131,7 @@ fn render_response(
     let response = SimpleOutgoingResponse::builder()
         .with_status(status_from_code(status))
         .add_header(SimpleHeader::CONTENT_TYPE, content_type)
+        .add_header(SimpleHeader::CONNECTION, "close")
         .with_body(body)
         .build()
         .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;

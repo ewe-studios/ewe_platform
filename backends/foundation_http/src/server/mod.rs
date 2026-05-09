@@ -1,6 +1,8 @@
-//! `HttpServer` — TCP accept loop with `BackgroundJobRegistry` thread pool.
+//! `HttpServer` — TCP accept loop with valtron-driven keep-alive.
 //!
-//! Supports both plain TCP and TLS (via `ssl-rustls` or `ssl-openssl` feature flags).
+//! Supports both plain TCP and TLS (via `ssl` or any `ssl-*` feature flag).
+//! All connections are submitted to the valtron executor via `valtron::send()`
+//! — no `BackgroundJobRegistry::submit()` for connection handling.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -8,20 +10,95 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::BackgroundJobRegistry;
-use foundation_core::wire::simple_http::{
-    Http11, RenderHttp, SimpleOutgoingResponse, HTTPStreams,
-};
+use foundation_core::wire::simple_http::HTTPStreams;
 
-#[cfg(any(feature = "tls", feature = "openssl-tls"))]
+#[cfg(any(
+    feature = "ssl",
+    feature = "ssl-rustls",
+    feature = "ssl-rustls-ring",
+    feature = "ssl-rustls-awsrc",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls",
+))]
 use foundation_core::netcap::ssl::SSLAcceptor;
-#[cfg(any(feature = "tls", feature = "openssl-tls"))]
+#[cfg(any(
+    feature = "ssl",
+    feature = "ssl-rustls",
+    feature = "ssl-rustls-ring",
+    feature = "ssl-rustls-awsrc",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls",
+))]
 use foundation_core::netcap::Connection;
 
 use crate::app::HttpApp;
-use crate::middleware::MiddlewareResult;
-use crate::reader::read_next_request;
-use crate::serve::{ConnectionResult, respond};
+use crate::serve::respond;
+
+// ---------------------------------------------------------------------------
+// KeepAliveConfig
+
+/// Configuration for keep-alive timing on idle connections.
+///
+/// WHY: All connections use the valtron keep-alive handler. This struct
+/// controls how long idle connections are kept alive and how aggressively
+/// the executor polls them.
+#[derive(Clone)]
+pub struct KeepAliveConfig {
+    /// Minimum delay between polls when idle (default: 10ms).
+    pub min_delay: Duration,
+    /// Maximum delay between polls when idle (default: 120s).
+    /// Exponential backoff: min_delay * 2^n, clamped to this value.
+    pub max_delay: Duration,
+    /// Idle timeout after which the connection is closed (default: 120s).
+    pub idle_timeout: Duration,
+    /// Number of consecutive polls with no data before switching from
+    /// `Pending` to `Delayed` (default: 200).
+    pub escalation_threshold: u32,
+    /// Maximum number of complete delay cycles without data before closing
+    /// the connection (default: 200). A "cycle" = `escalation_threshold` polls.
+    pub max_delay_cycles: u32,
+}
+
+impl KeepAliveConfig {
+    /// Create a config with default values.
+    #[must_use]
+    pub fn defaults() -> Self {
+        Self {
+            min_delay: Duration::from_secs(1),
+            max_delay: Duration::from_secs(120),
+            idle_timeout: Duration::from_secs(120),
+            escalation_threshold: 50,
+            max_delay_cycles: 100,
+        }
+    }
+
+    /// Set the minimum delay.
+    #[must_use]
+    pub fn with_min_delay(mut self, dur: Duration) -> Self {
+        self.min_delay = dur;
+        self
+    }
+
+    /// Set the maximum delay.
+    #[must_use]
+    pub fn with_max_delay(mut self, dur: Duration) -> Self {
+        self.max_delay = dur;
+        self
+    }
+
+    /// Set the idle timeout.
+    #[must_use]
+    pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
+        self.idle_timeout = dur;
+        self
+    }
+}
+
+impl Default for KeepAliveConfig {
+    fn default() -> Self {
+        Self::defaults()
+    }
+}
 
 /// Configuration for the HTTP server's accept loop timing.
 ///
@@ -33,13 +110,19 @@ pub struct ServerConfig {
     pub would_block_sleep: Duration,
     /// Sleep duration after an accept error (default: 100ms).
     pub accept_error_sleep: Duration,
-    /// Keep-alive timeout for idle connections. If not set, connections
-    /// block indefinitely waiting for the next request.
-    pub keep_alive_timeout: Option<Duration>,
+    /// Keep-alive configuration. Always present with defaults.
+    pub keep_alive: KeepAliveConfig,
     /// Maximum body size in bytes (default: 10 MB).
     pub max_body_bytes: usize,
     /// TLS acceptor for encrypted connections.
-    #[cfg(any(feature = "tls", feature = "openssl-tls"))]
+    #[cfg(any(
+        feature = "ssl",
+        feature = "ssl-rustls",
+        feature = "ssl-rustls-ring",
+        feature = "ssl-rustls-awsrc",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls",
+    ))]
     pub tls_acceptor: Option<Arc<SSLAcceptor>>,
 }
 
@@ -50,9 +133,16 @@ impl ServerConfig {
         Self {
             would_block_sleep: Duration::from_millis(10),
             accept_error_sleep: Duration::from_millis(100),
-            keep_alive_timeout: None,
+            keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
-            #[cfg(any(feature = "tls", feature = "openssl-tls"))]
+            #[cfg(any(
+                feature = "ssl",
+                feature = "ssl-rustls",
+                feature = "ssl-rustls-ring",
+                feature = "ssl-rustls-awsrc",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls",
+            ))]
             tls_acceptor: None,
         }
     }
@@ -71,10 +161,25 @@ impl ServerConfig {
         self
     }
 
-    /// Set the keep-alive timeout for idle connections.
+    /// Set the keep-alive config, replacing the entire config.
     #[must_use]
-    pub fn with_keep_alive_timeout(mut self, timeout: Duration) -> Self {
-        self.keep_alive_timeout = Some(timeout);
+    pub fn with_keep_alive(mut self, config: KeepAliveConfig) -> Self {
+        self.keep_alive = config;
+        self
+    }
+
+    /// Convenience: set both min and max delay to the same value.
+    #[must_use]
+    pub fn with_poll_interval(mut self, dur: Duration) -> Self {
+        self.keep_alive.min_delay = dur;
+        self.keep_alive.max_delay = dur;
+        self
+    }
+
+    /// Convenience: set the idle timeout.
+    #[must_use]
+    pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
+        self.keep_alive.idle_timeout = dur;
         self
     }
 
@@ -86,7 +191,14 @@ impl ServerConfig {
     }
 
     /// Set the TLS acceptor for encrypted connections.
-    #[cfg(any(feature = "tls", feature = "openssl-tls"))]
+    #[cfg(any(
+        feature = "ssl",
+        feature = "ssl-rustls",
+        feature = "ssl-rustls-ring",
+        feature = "ssl-rustls-awsrc",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls",
+    ))]
     #[must_use]
     pub fn with_tls(mut self, acceptor: Arc<SSLAcceptor>) -> Self {
         self.tls_acceptor = Some(acceptor);
@@ -100,10 +212,13 @@ impl Default for ServerConfig {
     }
 }
 
+mod connection;
+
+use connection::ConnectionHandler;
+
 /// Running HTTP server.
 pub struct HttpServer {
     app: Arc<HttpApp>,
-    bg: Arc<BackgroundJobRegistry>,
     bind_addr: String,
     config: ServerConfig,
 }
@@ -111,16 +226,15 @@ pub struct HttpServer {
 impl HttpServer {
     /// Create a new HttpServer with default config.
     #[must_use]
-    pub fn new(app: HttpApp, bg: Arc<BackgroundJobRegistry>, addr: &str) -> Self {
-        Self::with_config(app, bg, addr, ServerConfig::default())
+    pub fn new(app: HttpApp, addr: &str) -> Self {
+        Self::with_config(app, addr, ServerConfig::default())
     }
 
     /// Create a new HttpServer with custom config.
     #[must_use]
-    pub fn with_config(app: HttpApp, bg: Arc<BackgroundJobRegistry>, addr: &str, config: ServerConfig) -> Self {
+    pub fn with_config(app: HttpApp, addr: &str, config: ServerConfig) -> Self {
         Self {
             app: Arc::new(app),
-            bg,
             bind_addr: addr.to_string(),
             config,
         }
@@ -137,19 +251,40 @@ impl HttpServer {
         };
 
         tracing::info!("Listening on {}", self.bind_addr);
-        listener.set_nonblocking(true).expect("Failed to set non-blocking");
+        listener
+            .set_nonblocking(true)
+            .expect("Failed to set non-blocking");
 
         self.serve_loop(listener, shutdown, |tcp| {
-            // No TLS handshake — use plain connection directly.
+            RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
+        });
+    }
+
+    /// Start serving from a pre-bound `TcpListener`. Useful for tests
+    /// that need to confirm the port is bound before sending requests.
+    pub fn serve_with_listener(self, listener: std::net::TcpListener, shutdown: Arc<OnSignal>) {
+        tracing::info!("Listening on {}", self.bind_addr);
+        listener
+            .set_nonblocking(true)
+            .expect("Failed to set non-blocking");
+
+        self.serve_loop(listener, shutdown, |tcp| {
             RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
     /// Start serving HTTPS. Blocks until the shutdown signal is triggered.
     ///
-    /// Requires a TLS feature flag (`tls` or `openssl-tls`) and a `tls_acceptor`
+    /// Requires an `ssl` or `ssl-*` feature flag and a `tls_acceptor`
     /// configured in `ServerConfig`.
-    #[cfg(any(feature = "tls", feature = "openssl-tls"))]
+    #[cfg(any(
+        feature = "ssl",
+        feature = "ssl-rustls",
+        feature = "ssl-rustls-ring",
+        feature = "ssl-rustls-awsrc",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls",
+    ))]
     pub fn serve_tls(self, shutdown: Arc<OnSignal>) {
         let acceptor = match &self.config.tls_acceptor {
             Some(a) => a.clone(),
@@ -168,14 +303,17 @@ impl HttpServer {
         };
 
         tracing::info!("Listening on {} (TLS)", self.bind_addr);
-        listener.set_nonblocking(true).expect("Failed to set non-blocking");
+        listener
+            .set_nonblocking(true)
+            .expect("Failed to set non-blocking");
 
         self.serve_loop(listener, shutdown, move |tcp| {
             let conn = Connection::from(tcp);
             let tls_stream = acceptor
                 .accept(conn)
                 .map_err(|e| format!("TLS handshake failed: {e}"))?;
-            RawStream::from_server_tls(tls_stream).map_err(|e| format!("Failed to create RawStream: {e}"))
+            RawStream::from_server_tls(tls_stream)
+                .map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
@@ -189,6 +327,7 @@ impl HttpServer {
         let wrap_stream = Arc::new(wrap_stream);
         let would_block_sleep = self.config.would_block_sleep;
         let accept_error_sleep = self.config.accept_error_sleep;
+        let keep_alive_config = self.config.keep_alive.clone();
 
         loop {
             if shutdown.probe() {
@@ -198,34 +337,49 @@ impl HttpServer {
 
             match listener.accept() {
                 Ok((tcp, addr)) => {
-                    // Set keep-alive read timeout if configured.
-                    if let Some(ka) = self.config.keep_alive_timeout {
-                        let _ = tcp.set_read_timeout(Some(ka));
-                    }
+                    tracing::trace!("Accepted connection from {addr}");
 
+                    let client_ip = addr.ip().to_string();
                     let wrap_clone = wrap_stream.clone();
-                    let app_clone = self.app.clone();
-                    let bg_clone = self.bg.clone();
-                    let shutdown_clone = shutdown.clone();
 
-                    bg_clone.submit(move || {
-                        // Perform TLS handshake (if any) on the worker thread.
-                        let raw_stream = match wrap_clone(tcp) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                tracing::error!("Connection setup failed: {e}");
-                                return;
-                            }
-                        };
+                    // Perform connection setup (TLS handshake if any) in the
+                    // accept loop before submitting to valtron.
+                    let raw_stream = match wrap_clone(tcp) {
+                        Ok(s) => s,
+                        Err(e) => {
+                            tracing::error!(%client_ip, "Connection setup failed: {e}");
+                            continue;
+                        }
+                    };
 
-                        let client_ip = addr.ip().to_string();
-                        let shared_stream = SharedByteBufferStream::rwrite(raw_stream);
-                        let streams = HTTPStreams::new(shared_stream.clone());
+                    let shared_stream = SharedByteBufferStream::rwrite(raw_stream);
+                    let streams = HTTPStreams::new(shared_stream.clone());
 
-                        handle_connection(&app_clone, streams, shared_stream, &client_ip, &shutdown_clone);
-                    }).unwrap_or_else(|e| {
-                        tracing::error!("Failed to submit connection to worker pool: {e}");
-                    });
+                    let handler = ConnectionHandler::new(
+                        self.app.clone(),
+                        streams,
+                        shared_stream.clone(),
+                        client_ip.clone(),
+                        keep_alive_config.clone(),
+                    );
+
+                    match foundation_core::valtron::send(handler) {
+                        Ok(()) => {
+                            tracing::trace!(%client_ip, "Submitted connection to valtron executor");
+                        }
+                        Err(e) => {
+                            tracing::error!(
+                                %client_ip,
+                                err = ?e,
+                                "Failed to submit connection to valtron"
+                            );
+                            let _ = respond::text(
+                                &mut shared_stream.clone(),
+                                503,
+                                "Service Unavailable",
+                            );
+                        }
+                    }
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     std::thread::sleep(would_block_sleep);
@@ -238,72 +392,5 @@ impl HttpServer {
         }
 
         tracing::info!("Server stopped");
-    }
-}
-
-/// Handle a single TCP connection.
-fn handle_connection(
-    app: &HttpApp,
-    streams: HTTPStreams<RawStream>,
-    conn: SharedByteBufferStream<RawStream>,
-    client_ip: &str,
-    shutdown: &OnSignal,
-) {
-    let bag = app.context().clone();
-
-    loop {
-        if shutdown.probe() {
-            break;
-        }
-
-        let mut req = match read_next_request(&streams, client_ip) {
-            Some(Ok(r)) => r,
-            Some(Err(_)) => {
-                let _ = respond::text(&mut conn.clone(), 400, "Bad Request");
-                break;
-            }
-            None => break,
-        };
-
-        // Execute middleware chain
-        let mut middleware_response: Option<SimpleOutgoingResponse> = None;
-        for mw in app.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
-                MiddlewareResult::Continue => {}
-                MiddlewareResult::Response(resp) => {
-                    middleware_response = Some(resp);
-                    break;
-                }
-            }
-        }
-
-        if let Some(resp) = middleware_response {
-            let _ = Http11::response(resp).http_render_to_writer(&mut conn.clone());
-            continue;
-        }
-
-        // Route dispatch
-        let method = &req.method;
-        let path = &req.request_url.url;
-
-        match app.router().dispatch(method, path) {
-            Some(handler) => {
-                let result = handler.serve(bag.clone(), req, conn.clone());
-
-                match result {
-                    ConnectionResult::Keep => {}
-                    ConnectionResult::Take => break,
-                    ConnectionResult::Close(err) => {
-                        if let Some(e) = &err {
-                            tracing::error!("Connection closed with error: {e}");
-                        }
-                        break;
-                    }
-                }
-            }
-            None => {
-                let _ = respond::not_found(&mut conn.clone());
-            }
-        }
     }
 }

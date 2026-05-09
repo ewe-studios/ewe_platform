@@ -1,10 +1,8 @@
-//! QEMU 9p/virtio filesystem mount configuration.
-//!
-//! Mounts host directories into guest VMs via virtio-9p protocol.
+//! QEMU filesystem mount configuration — 9p/virtfs and virtiofs.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-/// Build QEMU `-virtfs` arguments for mounting a host directory.
+/// Build QEMU `-virtfs` arguments for 9p mount.
 ///
 /// Uses the Plan 9 filesystem protocol over virtio (`virtio-9p`).
 /// The `guest_tag` is the name used inside the VM to identify the mount.
@@ -26,6 +24,70 @@ pub fn mount_args(host_path: &Path, guest_tag: &str, readonly: bool) -> Vec<Stri
             guest_tag,
         ),
     ]
+}
+
+/// Build QEMU args for virtiofs mount (vhost-user-fs-pci + virtiofsd daemon).
+///
+/// Returns:
+/// - QEMU args: `-chardev socket,...` + `-device vhost-user-fs-pci,...`
+/// - virtiofsd command to spawn before QEMU
+pub fn virtiofs_args(
+    host_path: &Path,
+    guest_tag: &str,
+    socket_path: &Path,
+    readonly: bool,
+) -> (Vec<String>, VirtiofsdConfig) {
+    let mut qemu_args = Vec::new();
+
+    // Chardev: Unix socket connecting to virtiofsd
+    qemu_args.push("-chardev".to_string());
+    qemu_args.push(format!(
+        "socket,id={}_char,path={}",
+        guest_tag,
+        socket_path.display(),
+    ));
+
+    // vhost-user-fs PCI device with the mount tag
+    qemu_args.push("-device".to_string());
+    let mut dev = format!("vhost-user-fs-pci,chardev={}_char,tag={}", guest_tag, guest_tag);
+    if readonly {
+        dev.push_str(",readonly=on");
+    }
+    qemu_args.push(dev);
+
+    let daemon = VirtiofsdConfig {
+        socket_path: socket_path.to_path_buf(),
+        shared_dir: host_path.to_path_buf(),
+    };
+
+    (qemu_args, daemon)
+}
+
+/// Configuration for spawning the virtiofsd daemon.
+#[derive(Debug, Clone)]
+pub struct VirtiofsdConfig {
+    pub socket_path: PathBuf,
+    pub shared_dir: PathBuf,
+}
+
+impl VirtiofsdConfig {
+    /// Build the command to spawn virtiofsd.
+    ///
+    /// Uses `--sandbox=none --seccomp=none` since we run as unprivileged user.
+    /// `--inode-file-handles=never` avoids CAP_DAC_READ_SEARCH requirement.
+    pub fn command(&self) -> std::process::Command {
+        let mut cmd = std::process::Command::new("/usr/lib/virtiofsd");
+        cmd.args([
+            "--socket-path",
+            &self.socket_path.to_string_lossy(),
+            "--shared-dir",
+            &self.shared_dir.to_string_lossy(),
+            "--sandbox=none",
+            "--seccomp=none",
+            "--inode-file-handles=never",
+        ]);
+        cmd
+    }
 }
 
 /// Default guest mount path for project directories.

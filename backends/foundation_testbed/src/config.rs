@@ -26,6 +26,7 @@ pub enum DisplayMode {
 pub enum BootstrapMode {
     Full,
     SshOnly,
+    None,
 }
 
 // ── Profile ──────────────────────────────────────────────────────────────────
@@ -105,6 +106,22 @@ const PROFILES: &[VmProfile] = &[
         memory_mib: 4096,
         cpu_cores: 2,
         disk_gb: 40,
+        prebaked_url: None,
+    },
+    VmProfile {
+        name: "windows-11-bootstrapped",
+        os: GuestOs::Windows,
+        image_name: "windows-11-x86_64-bootstrapped.qcow2",
+        ssh_port: 2422,
+        rdp_port: Some(3389),
+        winrm_port: Some(5985),
+        vnc_port: 5902,
+        user: "vagrant",
+        pass: "vagrant",
+        bootstrap: BootstrapMode::None,
+        memory_mib: 12_288,
+        cpu_cores: 4,
+        disk_gb: 80,
         prebaked_url: None,
     },
     VmProfile {
@@ -216,6 +233,26 @@ pub struct UserMountConfig {
     pub guest_path: Option<String>,
     #[serde(default)]
     pub readonly: Option<bool>,
+    /// Mount methods to try, in order. Default: ["smb", "virtiofs"] for Windows, ["9p"] for Linux.
+    #[serde(default)]
+    pub methods: Option<Vec<String>>,
+}
+
+/// Mount method enum for Windows guests.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MountMethod {
+    SMB,
+    Virtiofs,
+}
+
+impl MountMethod {
+    pub fn parse(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "smb" => Some(MountMethod::SMB),
+            "virtiofs" | "virtio-fs" => Some(MountMethod::Virtiofs),
+            _ => None,
+        }
+    }
 }
 
 /// Deserialized `[[image_stores]]` entry from testbed.toml.
@@ -311,6 +348,7 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
         profile.bootstrap = match bootstrap.as_str() {
             "full" => BootstrapMode::Full,
             "ssh_only" => BootstrapMode::SshOnly,
+            "none" => BootstrapMode::None,
             _ => profile.bootstrap,
         };
     }
@@ -330,17 +368,22 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
 
 /// Get the mount configuration for a VM profile, applying user overrides.
 ///
-/// Returns `Some(host_path, guest_path, readonly)` if mount is configured,
+/// Returns `Some((host_path, guest_path, readonly, methods))` if mount is configured,
 /// or `None` if no mount should be set up.
+/// `methods` is a list of mount methods to try in order (e.g. `["smb", "virtiofs"]`).
 pub fn get_mount_for_profile(
     profile_name: &str,
     default_host_path: &str,
-) -> Option<(String, String, bool)> {
+) -> Option<(String, String, bool, Vec<String>)> {
     let os = get_profile(profile_name).ok()?.os;
     let default_guest = match os {
         GuestOs::Windows => "C:/Users/vagrant/project",
         GuestOs::Linux => "/mnt/project",
         GuestOs::MacOS => "/Users/vagrant/project",
+    };
+    let default_methods = match os {
+        GuestOs::Windows => vec!["smb".to_string(), "virtiofs".to_string()],
+        GuestOs::Linux | GuestOs::MacOS => vec!["9p".to_string()],
     };
 
     if let Some(config) = load_user_config()
@@ -349,11 +392,12 @@ pub fn get_mount_for_profile(
             let host_path = mount.host_path.as_deref().unwrap_or(default_host_path).to_string();
             let guest_path = mount.guest_path.as_deref().unwrap_or(default_guest).to_string();
             let readonly = mount.readonly.unwrap_or(false);
-            return Some((host_path, guest_path, readonly));
+            let methods = mount.methods.clone().unwrap_or(default_methods);
+            return Some((host_path, guest_path, readonly, methods));
         }
 
     // Fallback: use defaults
-    Some((default_host_path.to_string(), default_guest.to_string(), false))
+    Some((default_host_path.to_string(), default_guest.to_string(), false, default_methods))
 }
 
 /// Path to the user config file: `./testbed.toml`.
@@ -697,5 +741,19 @@ mod tests {
         assert_eq!(mount.host_path.as_deref(), Some("."));
         assert!(mount.guest_path.is_none());
         assert!(mount.readonly.is_none());
+    }
+
+    #[test]
+    fn test_parse_mount_with_methods() {
+        let toml_content = r#"
+            [[vms]]
+            name = "windows-build"
+            profile = "windows-build"
+            mount = { host_path = ".", methods = ["virtiofs", "smb"] }
+        "#;
+        let config: UserConfig = toml::from_str(toml_content).expect("failed to parse");
+        let entry = &config.profiles[0];
+        let mount = entry.profile.mount.as_ref().expect("mount should exist");
+        assert_eq!(mount.methods, Some(vec!["virtiofs".to_string(), "smb".to_string()]));
     }
 }

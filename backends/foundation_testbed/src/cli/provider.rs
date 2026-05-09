@@ -22,6 +22,24 @@ pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let provider = default_provider()?;
     let handle = provider.launch(&profile, display)?;
 
+    // Save VM state to disk so bootstrap/stop commands can find it
+    let pid = handle.pid().map(|p| p as u32);
+    let vm_state = state::VmState {
+        profile_name: profile.name.to_string(),
+        disk_path: profile.image_cache_path().to_string_lossy().to_string(),
+        pid,
+        provider_id: handle.provider_id,
+        provider_internal_id: handle.internal_id.clone(),
+        monitor_socket: String::new(),
+        ssh_port: handle.resolved_ports.ssh_port,
+        winrm_port: handle.resolved_ports.winrm_port,
+        rdp_port: handle.resolved_ports.rdp_port,
+        vnc_port: handle.resolved_ports.vnc_port,
+        bootstrapped: false,
+        created_at: chrono::Utc::now().to_rfc3339(),
+    };
+    state::save(&vm_state)?;
+
     eprintln!("VM '{}' started", profile.name);
     eprintln!("  SSH: 127.0.0.1:{}", handle.resolved_ports.ssh_port);
     if let Some(p) = handle.resolved_ports.winrm_port {
@@ -32,7 +50,7 @@ pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     }
     eprintln!("  VNC: 127.0.0.1:{}", handle.resolved_ports.vnc_port);
 
-    // Release handle (provider has already saved state)
+    // Release handle
     drop(handle);
 
     println!("VM running in background. Use 'testbed stop {name}' to shut down.");

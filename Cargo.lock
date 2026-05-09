@@ -2613,13 +2613,13 @@ dependencies = [
  "foundation_core",
  "foundation_errstacks",
  "foundation_testing",
- "lazy-regex",
- "lazy_static",
  "regex",
  "serde",
  "serde_json",
+ "serial_test 3.4.0",
  "sha1",
  "tracing",
+ "tracing-test",
  "uuid",
 ]
 

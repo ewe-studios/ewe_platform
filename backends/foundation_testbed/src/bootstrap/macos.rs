@@ -5,6 +5,14 @@ use crate::bootstrap::BootstrapLogger;
 use crate::config::{Result, VmProfile};
 use crate::ssh::VmSession;
 
+const ACTIVATE_MISE_ZPROFILE_SH: &str = include_str!("../../scripts/macos/activate_mise_zprofile.sh");
+const INSTALL_MISE_SH: &str = include_str!("../../scripts/macos/install_mise.sh");
+const INSTALL_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/macos/install_cargo_binstall.sh");
+const CONFIGURE_MISE_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/macos/configure_mise_cargo_binstall.sh");
+const INSTALL_TOOLS_MISE_SH: &str = include_str!("../../scripts/macos/install_tools_mise.sh");
+const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/macos/set_nushell_default_shell.sh");
+const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/macos/setup_ssh_keys.sh");
+
 pub fn bootstrap_macos(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     logger::step(logger, "enable remote login", || enable_remote_login(session))?;
     logger::step(logger, "authorise host SSH key", || setup_ssh_keys(session))?;
@@ -34,21 +42,15 @@ fn setup_ssh_keys(session: &mut VmSession) -> Result<()> {
     let mut pub_key = String::new();
     for key_name in key_names {
         let path = home.join(".ssh").join(key_name);
-        if path.exists()
-            && let Ok(key) = std::fs::read_to_string(&path) {
-                pub_key = key.trim().to_string();
-                break;
-            }
+        if path.exists() && let Ok(key) = std::fs::read_to_string(&path) {
+            pub_key = key.trim().to_string();
+            break;
+        }
     }
     if pub_key.is_empty() {
         return Ok(());
     }
-    let key_escaped = shell_quote(&pub_key);
-    let script = format!(
-        r#"mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && \
-           chmod 600 ~/.ssh/authorized_keys && \
-           grep -qxF {key_escaped} ~/.ssh/authorized_keys || echo {key_escaped} >> ~/.ssh/authorized_keys"#
-    );
+    let script = SETUP_SSH_KEYS_SH.replace("{{KEY}}", &pub_key);
     crate::ssh::exec(session, &script)?;
     Ok(())
 }
@@ -81,19 +83,12 @@ fn install_mise(session: &mut VmSession) -> Result<()> {
     if !mise.contains("missing") && !mise.is_empty() {
         return Ok(());
     }
-    crate::ssh::exec(session, "curl -fsSL https://mise.run | sh")?;
+    crate::ssh::exec(session, INSTALL_MISE_SH)?;
     Ok(())
 }
 
 fn activate_mise_in_zprofile(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(
-        session,
-        r#"grep -q 'mise activate' ~/.zprofile || echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> ~/.zprofile"#,
-    )?;
-    crate::ssh::exec(
-        session,
-        r#"grep -q 'mise activate' ~/.bashrc 2>/dev/null || echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> ~/.bashrc 2>/dev/null || true"#,
-    )?;
+    crate::ssh::exec(session, ACTIVATE_MISE_ZPROFILE_SH)?;
     Ok(())
 }
 
@@ -107,58 +102,31 @@ fn install_cargo_binstall(session: &mut VmSession) -> Result<()> {
     }
     let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
     let target = if arch.trim() == "arm64" { "aarch64-apple-darwin" } else { "x86_64-apple-darwin" };
-    crate::ssh::exec(
-        session,
-        &format!(
-            "mkdir -p ~/.cargo/bin && \
-             curl -sSfL https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-{target}.tar.gz | tar -xz -C ~/.cargo/bin && \
-             chmod +x ~/.cargo/bin/cargo-binstall"
-        ),
-    )?;
+    let script = INSTALL_CARGO_BINSTALL_SH.replace("{{TARGET}}", &target);
+    crate::ssh::exec(session, &script)?;
     Ok(())
 }
 
 fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(
-        session,
-        "mkdir -p ~/.config/mise && \
-         touch ~/.config/mise/config.toml && \
-         (grep -q 'cargo_binstall' ~/.config/mise/config.toml || \
-          printf '\\n[settings]\\ncargo_binstall = true\\n' >> ~/.config/mise/config.toml)",
-    )?;
+    crate::ssh::exec(session, CONFIGURE_MISE_CARGO_BINSTALL_SH)?;
     Ok(())
 }
 
 fn install_tools(session: &mut VmSession) -> Result<()> {
-    let script = format!(
-        r#"cat <<'MISE_EOF' > /tmp/bootstrap-mise.toml
-{mise_toml_content}
-MISE_EOF
-export MISE_CONFIG_FILE=/tmp/bootstrap-mise.toml
-$HOME/.local/bin/mise install
-rm -f /tmp/bootstrap-mise.toml"#,
-        mise_toml_content = BOOTSTRAP_MISE_TOML,
-    );
+    let script = INSTALL_TOOLS_MISE_SH.replace("{{MISE_TOML}}", BOOTSTRAP_MISE_TOML);
     crate::ssh::exec(session, &script)?;
     crate::ssh::exec(session, "$HOME/.local/bin/mise exec -- rustc --version")?;
     Ok(())
 }
 
 fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(
-        session,
-        r#"NU_PATH=$(find ~/.local/share/mise/installs/nu -name nu -type f 2>/dev/null | head -1); if [ -n "$NU_PATH" ]; then chsh -s "$NU_PATH" 2>/dev/null || true; fi"#,
-    )?;
+    crate::ssh::exec(session, SET_NUSHELL_DEFAULT_SHELL_SH)?;
     Ok(())
 }
 
 fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
     crate::ssh::exec(session, "touch ~/.testbed-bootstrapped")?;
     Ok(())
-}
-
-fn shell_quote(s: &str) -> String {
-    format!("'{}'", s.replace('\'', r"'\''"))
 }
 
 #[cfg(test)]
@@ -173,11 +141,5 @@ mod tests {
         assert!(toml.contains("cargo:cargo-binstall"));
         assert!(toml.contains("cargo:sccache"));
         assert!(toml.contains("cargo:tauri-cli"));
-    }
-
-    #[test]
-    fn test_shell_quote_escapes_single_quotes() {
-        assert_eq!(shell_quote("hello"), "'hello'");
-        assert_eq!(shell_quote("it's"), "'it'\\''s'");
     }
 }

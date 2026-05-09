@@ -86,6 +86,8 @@ impl Waiter for Sleepable {
 /// handle panic from tasks even at the trade of some runtime cost from Mutex which
 /// allow you use [`std::panic::catch_unwind`].
 pub struct ExecutorState {
+    pub state_owner: String,
+
     /// what priority should waking task be placed.
     pub wakeup_priority: PriorityOrder,
 
@@ -153,12 +155,14 @@ static DEQUEUE_CAPACITY: usize = 10;
 
 impl ExecutorState {
     pub fn new(
+        state_owner: String,
         global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
     ) -> Self {
         Self {
+            state_owner,
             wakeup_priority,
             global_tasks,
             sleepers: Sleepers::new(),
@@ -217,6 +221,7 @@ pub enum ProgressIndicator {
 impl Clone for ExecutorState {
     fn clone(&self) -> Self {
         Self {
+            state_owner: self.state_owner.clone(),
             rng: self.rng.clone(),
             idler: self.idler.clone(),
             sleepers: self.sleepers.clone(),
@@ -502,8 +507,9 @@ impl ExecutorState {
     }
 
     #[inline]
-    #[tracing::instrument(skip(self, engine))]
+    #[tracing::instrument(skip(self, engine), fields(owner = %self.state_owner))]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
+        tracing::trace!("Running work retreival from global queue");
         match self.request_global_task() {
             ProgressIndicator::CanProgress(_) => {}
             ProgressIndicator::NoWork => {
@@ -515,8 +521,10 @@ impl ExecutorState {
             }
         }
 
+        tracing::trace!("Waking up sleepers");
         self.wakeup_ready_sleepers();
 
+        tracing::trace!("Calling do work with engine");
         match self.do_work(engine) {
             ProgressIndicator::CanProgress(state) => {
                 tracing::debug!("Received CanProgress indicator from task: state={state:?}");
@@ -591,7 +599,7 @@ impl ExecutorState {
         }
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), fields(owner = %self.state_owner))]
     pub fn check_processing_queue(&self) -> Option<ProgressIndicator> {
         let total_sleepers = self.sleepers.count();
         let has_sleeping_tasks = self.has_sleeping_tasks();
@@ -628,17 +636,22 @@ impl ExecutorState {
     ///    as at this point work should be in queue before `do_work` is called.
     ///
     #[inline]
-    #[tracing::instrument(skip(self, engine))]
+    #[tracing::instrument(skip(self, engine), fields(owner = %self.state_owner))]
     pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         // if after wake up, no task still enters
         // the processing queue then no work is available
         if let Some(inner) = self.check_processing_queue() {
             match inner {
-                ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
+                ProgressIndicator::NoWork => {
+                    tracing::trace!("No work found, in do_work, returning no work");
+                    return ProgressIndicator::NoWork;
+                }
                 ProgressIndicator::CanProgress(inner) => {
-                    return ProgressIndicator::CanProgress(inner)
+                    tracing::trace!("Can progress from checking queue");
+                    return ProgressIndicator::CanProgress(inner);
                 }
                 ProgressIndicator::SpinWait(_) => {
+                    tracing::trace!("Spin wait requested");
                     unreachable!("check_processing_queue should never reach here")
                 }
             }
@@ -998,7 +1011,7 @@ impl ExecutorState {
                     // pack this entry and it's dependents into our packed registry.
                     self.pack_task_and_dependents(top_entry);
 
-                    // I do not think I need to use the sleeper entry.
+                    // I do not think I need to use the sleeper returned entry id.
                     let _ = self
                         .sleepers
                         .insert(Sleepable::Timable(DurationWaker::from_now(
@@ -1743,6 +1756,7 @@ impl ReferencedExecutorState {
 /// they wish to lift their own sub-tasks.
 ///
 pub struct LocalThreadExecutor<T: ProcessController + Clone> {
+    state_owner: String,
     kill_signal: Option<Arc<OnSignal>>,
     state: ReferencedExecutorState,
     no_work_yield: time::Duration,
@@ -1754,6 +1768,7 @@ pub struct LocalThreadExecutor<T: ProcessController + Clone> {
 impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
     fn clone(&self) -> Self {
         LocalThreadExecutor {
+            state_owner: self.state_owner.clone(),
             state: self.state.clone(),
             yielder: self.yielder.clone(),
             no_work_yield: self.no_work_yield,
@@ -1768,6 +1783,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
 #[allow(clippy::too_many_arguments)]
 impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn new(
+        state_owner: String,
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         rng: ChaCha8Rng,
         idler: IdleMan,
@@ -1778,11 +1794,12 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self {
+            state_owner: state_owner.clone(),
             yielder,
             kill_signal,
             no_work_yield,
             state: ReferencedExecutorState::new(
-                rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)),
+                rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
                 activities,
             ),
         }
@@ -1792,6 +1809,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// seed for `ChaCha8Rng` generator.
     pub fn from_seed(
         seed: u64,
+        state_owner: String,
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -1801,6 +1819,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self::new(
+            state_owner,
             tasks,
             ChaCha8Rng::seed_from_u64(seed),
             idler,
@@ -1815,6 +1834,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// Allows supplying a custom Rng generator for creating the initial
     /// `ChaCha8Rng` seed.
     pub fn from_rng<R: rand::Rng>(
+        state_owner: String,
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         rng: &mut R,
         idler: IdleMan,
@@ -1826,6 +1846,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ) -> Self {
         Self::from_seed(
             rng.next_u64(),
+            state_owner,
             tasks,
             idler,
             priority,
@@ -1909,12 +1930,23 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// This keeps executing the `schedule_and_do_work` until the condition
     /// with the function is true.
     #[inline]
-    #[tracing::instrument(skip(self, checker))]
+    #[tracing::instrument(skip(self, checker), fields(owner = %self.state_owner))]
     pub fn run_until<S>(&self, checker: S)
     where
         S: Fn(ProgressIndicator) -> bool,
     {
+        /// panics: if [`kill_signal`] is not set or instantiated
+        /// require `kill_signal` to be provided.
+        let kill_signal = self.kill_signal
+            .clone()
+            .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
+
         loop {
+            if kill_signal.probe() {
+                tracing::debug!("Received signal to stop and die at loop level, stopping");
+                return;
+            }
+
             let local_executor = self.state.local_engine();
 
             let response = self.state.schedule_and_do_work(Box::new(local_executor));
@@ -2273,6 +2305,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2324,6 +2357,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2369,6 +2403,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2414,6 +2449,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2466,6 +2502,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2518,6 +2555,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2571,6 +2609,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2621,6 +2660,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2692,6 +2732,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -2848,6 +2889,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -3142,6 +3184,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -3243,6 +3286,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -3341,6 +3385,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -3413,6 +3458,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
@@ -3486,6 +3532,7 @@ mod test_local_thread_executor {
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
+            "1".into(),
             global.clone(),
             IdleMan::new(
                 3,
