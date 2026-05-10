@@ -5,31 +5,83 @@ $ErrorActionPreference = 'Continue'
 $taskName = 'FoundationTestbed_VirtiofsMount'
 $mountScript = 'C:\Users\vagrant\mount_virtiofs.ps1'
 
-# Find virtiofs.exe
+# Find virtiofs.exe — FAST PATH: check common locations first
 $found = $null
-foreach ($p in @(
+$commonPaths = @(
     'C:\Program Files\Virtio-Win\VioFS\virtiofs.exe',
     'C:\Program Files (x86)\Virtio-Win\VioFS\virtiofs.exe'
-)) {
-    if (Test-Path $p) { $found = $p; break }
-}
-if (-not $found) {
-    throw "virtiofs.exe not found - virtio-win drivers not installed"
+)
+
+foreach ($p in $commonPaths) {
+    if (Test-Path $p) {
+        $found = $p
+        break
+    }
 }
 
-# Write mount script to VM
+# FALLBACK: Search registry if not found
+if (-not $found) {
+    $reg = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Virtio-win-driver-installer' -ErrorAction SilentlyContinue
+    if ($reg -and $reg.InstallLocation) {
+        $regPath = Join-Path $reg.InstallLocation "VioFS\virtiofs.exe"
+        if (Test-Path $regPath) {
+            $found = $regPath
+        }
+    }
+}
+
+if (-not $found) {
+    $virtioEntry = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
+                   Where-Object { $_.DisplayName -like '*virtio*' } |
+                   Select-Object -First 1
+    if ($virtioEntry -and $virtioEntry.InstallLocation) {
+        $regPath = Join-Path $virtioEntry.InstallLocation "VioFS\virtiofs.exe"
+        if (Test-Path $regPath) {
+            $found = $regPath
+        }
+    }
+}
+
+if (-not $found) {
+    throw "virtiofs.exe not found - virtio-win drivers not installed. Checked common paths and registry."
+}
+
+# Write mount script to VM - embedded script also uses fast-path then registry fallback
 $mountScriptContent = @'
 $ErrorActionPreference = 'Continue'
 $mountPoint = 'C:\Users\vagrant\project'
 $maxRetries = 3
 
+# FAST PATH: Check common locations
 $found = $null
-foreach ($p in @(
+$commonPaths = @(
     'C:\Program Files\Virtio-Win\VioFS\virtiofs.exe',
     'C:\Program Files (x86)\Virtio-Win\VioFS\virtiofs.exe'
-)) {
+)
+
+foreach ($p in $commonPaths) {
     if (Test-Path $p) { $found = $p; break }
 }
+
+# FALLBACK: Search registry
+if (-not $found) {
+    $reg = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Virtio-win-driver-installer' -ErrorAction SilentlyContinue
+    if ($reg -and $reg.InstallLocation) {
+        $testPath = Join-Path $reg.InstallLocation "VioFS\virtiofs.exe"
+        if (Test-Path $testPath) { $found = $testPath }
+    }
+}
+
+if (-not $found) {
+    $virtioEntry = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
+                   Where-Object { $_.DisplayName -like '*virtio*' } |
+                   Select-Object -First 1
+    if ($virtioEntry -and $virtioEntry.InstallLocation) {
+        $testPath = Join-Path $virtioEntry.InstallLocation "VioFS\virtiofs.exe"
+        if (Test-Path $testPath) { $found = $testPath }
+    }
+}
+
 if (-not $found) {
     throw "virtiofs.exe not found"
 }
