@@ -577,6 +577,259 @@ cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --hos
 - The mount should be automatic via scheduled task registered during bootstrap
 - If mount fails, check: virtiofs.exe location, WinFsp service status, scheduled task registration
 
+---
+
+## Windows Mount Implementation Fixes & Discoveries
+
+### Summary of Issues Found and Fixed
+
+Through extensive debugging and testing, we discovered and fixed multiple issues with Windows virtiofs mounting. This section documents every issue found, the root cause, and the solution implemented.
+
+### Issue 1: SMB Compatibility with Modern Samba (RESOLVED)
+
+**Problem:** QEMU's built-in SMB server uses `/usr/bin/smbd` but doesn't create the `ncalrpc` subdirectory that modern Samba (4.x+) requires. When QEMU spawns smbd, it fails immediately.
+
+**Error Signature:**
+```
+QEMU creates: /tmp/qemu-smb.XXXXX/smb.conf
+smbd expects: /tmp/qemu-smb.XXXXX/ncalrpc/
+Result: smbd exits with error, no SMB server running
+```
+
+**Solution:** SMBD Wrapper Script
+
+Created `scripts/linux/install-smbd-wrapper.sh` which:
+1. Backs up original `/usr/bin/smbd` to `/usr/bin/smbd.bin`
+2. Installs a bash wrapper at `/usr/bin/smbd`
+3. The wrapper intercepts smbd calls, creates required directories (`ncalrpc`, `cores`), then execs the real smbd
+
+**Install:**
+```bash
+sudo bash backends/foundation_testbed/scripts/linux/install-smbd-wrapper.sh
+```
+
+**Uninstall:**
+```bash
+sudo bash backends/foundation_testbed/scripts/linux/install-smbd-wrapper.sh --uninstall
+```
+
+**Verification:**
+```bash
+# Check wrapper is installed
+cat /usr/bin/smbd | head -5
+# Should show: #!/bin/bash (wrapper script)
+
+# Check SMB is working in VM
+net use Z: \\10.0.2.4\qemu
+```
+
+### Issue 2: Scheduled Task User Account (CRITICAL FIX)
+
+**Problem:** The scheduled task for virtiofs auto-mount was configured with:
+```powershell
+/RU vagrant /RP vagrant /IT
+```
+
+This caused multiple failures:
+1. **ONSTART trigger incompatible with user accounts** - Requires SYSTEM or interactive logon
+2. **Password mismatch** - Task scheduler couldn't authenticate vagrant user
+3. **Result code 267011** - "The directory name is invalid" (credential/auth failure)
+4. **Task never ran** - LastRunTime showed 11/30/1999 (never executed)
+
+**Solution:** Use SYSTEM Account
+
+Changed task creation to:
+```powershell
+/RU SYSTEM
+```
+
+**Why SYSTEM works:**
+- No password required
+- Runs before user logon (works with ONSTART)
+- Has access to all filesystem resources
+- virtiofs process runs as service, visible to all users
+- Mount point accessible in user sessions
+
+**Code Change:**
+```powershell
+# BEFORE (broken):
+schtasks /Create /TN $taskName /TR ... /SC ONSTART /RU vagrant /RP vagrant /IT
+
+# AFTER (working):
+schtasks /Create /TN $taskName /TR ... /SC ONSTART /RU SYSTEM
+```
+
+**Verification in VM:**
+```powershell
+Get-ScheduledTask -TaskName "FoundationTestbed_VirtiofsMount"
+# State: Ready
+# LastRunTime: <recent timestamp>
+# LastTaskResult: 0 (success)
+
+Get-Process -Name "virtiofs"
+# Should show running process
+```
+
+### Issue 3: virtiofs.exe Discovery (ROBUSTNESS IMPROVEMENT)
+
+**Problem:** Scripts used hardcoded paths to find `virtiofs.exe`. If drivers installed to non-standard location or registry had different InstallLocation, scripts would fail.
+
+**Original Code:**
+```powershell
+$found = $null
+foreach ($p in @(
+    'C:\Program Files\Virtio-Win\VioFS\virtiofs.exe',
+    'C:\Program Files (x86)\Virtio-Win\VioFS\virtiofs.exe'
+)) {
+    if (Test-Path $p) { $found = $p; break }
+}
+if (-not $found) { throw "not found" }
+```
+
+**Solution:** Three-Tier Discovery
+
+Implemented fast-path + fallback pattern across all scripts:
+
+**Tier 1 - Fast Path (Common Locations):**
+```powershell
+$commonPaths = @(
+    'C:\Program Files\Virtio-Win\VioFS\virtiofs.exe',
+    'C:\Program Files (x86)\Virtio-Win\VioFS\virtiofs.exe'
+)
+foreach ($p in $commonPaths) {
+    if (Test-Path $p) { $found = $p; break }
+}
+```
+
+**Tier 2 - Registry (Virtio-win-installer):**
+```powershell
+$reg = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Virtio-win-driver-installer'
+if ($reg -and $reg.InstallLocation) {
+    $regPath = Join-Path $reg.InstallLocation "VioFS\virtiofs.exe"
+    if (Test-Path $regPath) { $found = $regPath }
+}
+```
+
+**Tier 3 - Search (Fallback):**
+```powershell
+$virtioEntry = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' |
+    Where-Object { $_.DisplayName -like '*virtio*' } |
+    Select-Object -First 1
+if ($virtioEntry -and $virtioEntry.InstallLocation) {
+    $testPath = Join-Path $virtioEntry.InstallLocation "VioFS\virtiofs.exe"
+    if (Test-Path $testPath) { $found = $testPath }
+}
+```
+
+**Affected Scripts:**
+- `scripts/windows/check_virtio.ps1`
+- `scripts/windows/mount_virtiofs.ps1`
+- `scripts/windows/register_virtiofs_startup.ps1` (main + embedded)
+- `src/cli/qemu.rs` (verify_mount function)
+
+### Issue 4: Mount Process Lifecycle
+
+**Problem Discovered:** When running virtiofs.exe via WinRM/SSH, the process terminates when the remote session ends. This is because:
+1. virtiofs.exe runs in the session's process tree
+2. Session teardown kills child processes
+3. Mount becomes inaccessible
+
+**Evidence:**
+```powershell
+# During SSH session:
+Get-Process virtiofs  # Shows PID=3096
+# After SSH disconnect:
+Get-Process virtiofs  # No process found
+```
+
+**Solution:** SYSTEM Task + Auto-Restart
+
+The scheduled task approach solves this because:
+1. SYSTEM task runs outside user session (service context)
+2. ONSTART trigger runs at boot, before any user logon
+3. Process survives user logon/logoff
+4. Mount persists across SSH connections
+
+**Task Configuration (Working):**
+```powershell
+schtasks /Create /TN FoundationTestbed_VirtiofsMount `
+    /TR "powershell -ExecutionPolicy Bypass -File C:\Users\vagrant\mount_virtiofs.ps1" `
+    /SC ONSTART /RU SYSTEM
+```
+
+### Issue 5: Mount Point State Management
+
+**Problem:** Stale mount directories can prevent new mounts.
+
+**Discovery:**
+- If `C:\Users\vagrant\project` exists from previous attempt
+- virtiofs.exe may fail with "directory already exists" or "device busy"
+- Error 183: "Cannot create a file when that file already exists"
+
+**Solution:** Pre-Cleanup in Mount Script
+
+```powershell
+if (Test-Path $mountPoint) {
+    Remove-Item -Path $mountPoint -Recurse -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+}
+```
+
+This ensures clean mount point before starting virtiofs.
+
+### Issue 6: CLI Dispatch Bug (ew_platform vs testbed binary)
+
+**Problem:** `ewe_platform testbed ls` showed no output, but `cargo run -p foundation_testbed --features cli -- ls` worked.
+
+**Root Cause:** Incorrect subcommand matching in `bin/platform/src/testbed/mod.rs`:
+```rust
+// WRONG - double-nesting:
+match args.subcommand() {
+    Some(("testbed", sub)) => foundation_testbed::cli::run(sub)?,  // Already stripped
+    _ => {}
+}
+```
+
+**Fix:** Pass args directly:
+```rust
+// CORRECT:
+foundation_testbed::cli::run(args)?;
+```
+
+**Impact:** All `ewe_platform testbed` commands were silently failing.
+
+### Verification Commands
+
+**Verify Mount in VM:**
+```powershell
+# Check virtiofs running
+Get-Process -Name "virtiofs"
+
+# Check mount point
+Get-ChildItem "C:\Users\vagrant\project"
+
+# Check scheduled task
+Get-ScheduledTask -TaskName "FoundationTestbed_VirtiofsMount" | 
+    Select-Object TaskName, State, @{N="LastRunTime";E={(schtasks /query /tn $_.TaskName /fo csv /v | ConvertFrom-Csv).LastRunTime}}
+```
+
+**Verify from Host:**
+```bash
+# Test mount via CLI
+./target/debug/ewe_platform testbed exec windows-build --method winrm "dir C:\Users\vagrant\project"
+
+# Network test command
+./target/debug/ewe_platform testbed network windows-build --type virtiofs --host-dir . --daemonize
+```
+
+**Expected Results:**
+- virtiofs process: Running (PID visible)
+- Mount point: 70+ files/directories visible
+- Scheduled task: State=Ready, LastRunTime=recent
+- File access: Can read/write files through mount
+
+---
+
 ## Implementation Phases
 
 ### Phase 1: Config Parsing (Tasks 1-2)
