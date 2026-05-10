@@ -183,16 +183,26 @@ fn verify_mount(
         "virtiofs" => {
             diagnosis.push_str("  Checking virtiofs...\n");
 
-            // Check if virtiofs.exe is available
+            // Check if virtiofs.exe is available — FAST PATH first
             let check = crate::ssh::exec(session,
-                "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'VIRTIOFS_OK' } else { 'VIRTIOFS_MISSING' }");
+                "$p1='C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe'; $p2='C:\\Program Files (x86)\\Virtio-Win\\VioFS\\virtiofs.exe'; if (Test-Path $p1) { 'VIRTIOFS_OK' } elseif (Test-Path $p2) { 'VIRTIOFS_OK_X86' } else { 'VIRTIOFS_MISSING' }");
             match check {
                 Ok(output) if output.contains("VIRTIOFS_OK") => {
                     diagnosis.push_str("  ✓ virtiofs.exe found\n");
                 }
                 _ => {
-                    diagnosis.push_str("  ✗ virtiofs.exe not found\n");
-                    diagnosis.push_str(&format!("    Fix: Run 'testbed bootstrap {}'\n", profile.name));
+                    // FALLBACK: Check registry
+                    let reg_check = crate::ssh::exec(session,
+                        "$reg=Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Virtio-win-driver-installer' -ErrorAction SilentlyContinue; if ($reg -and $reg.InstallLocation -and (Test-Path (Join-Path $reg.InstallLocation 'VioFS\\virtiofs.exe'))) { 'VIRTIOFS_OK_REG' } else { 'VIRTIOFS_MISSING' }");
+                    match reg_check {
+                        Ok(output) if output.contains("VIRTIOFS_OK") => {
+                            diagnosis.push_str("  ✓ virtiofs.exe found via registry\n");
+                        }
+                        _ => {
+                            diagnosis.push_str("  ✗ virtiofs.exe not found\n");
+                            diagnosis.push_str(&format!("    Fix: Run 'testbed bootstrap {}'\n", profile.name));
+                        }
+                    }
                 }
             }
 
