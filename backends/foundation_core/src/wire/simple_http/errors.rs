@@ -393,6 +393,8 @@ impl core::fmt::Display for HttpClientError {
 
 #[derive(From, Debug)]
 pub enum HttpReaderError {
+    RequestBuildError(SimpleRequestError),
+
     #[from(ignore)]
     InvalidLine(String),
 

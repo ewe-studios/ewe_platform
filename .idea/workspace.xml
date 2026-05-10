@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml">
+      <package file="$PROJECT_DIR$/examples/web/counter">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/async-utils">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/channels">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/config">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/ewe_deployables">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/devserver">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/domain">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/domain-macro">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/html">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/bin/platform">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/benches">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/tests">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/routing">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/spawn">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/templates">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/template-macro">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/temple">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/trace">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/watch_utils">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/watchers">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/web">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_ai">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_auth">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_codegen">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_core">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_db">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_deployment">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_errstacks">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_http">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_jsonschema">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_logging">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_macros">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_nostd">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_openapi">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/runtimes">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_testbed">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_testing">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/backends/foundation_wasm">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/examples/template/hello">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/infrastructure/llama-bindings">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/infrastructure/llama-cpp">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/examples/intro">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/examples/template/multi_template">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/system_operations">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/examples/web/wello">
+        <feature name="default" enabled="true" />
+      </package>
+    </cargoProject>
+    <cargoProject FILE="$PROJECT_DIR$/artefacts/temples/output_directory/workspace_project/Cargo.toml">
+      <package file="$PROJECT_DIR$/artefacts/temples/output_directory/workspace_project/retro_project">
+        <feature name="default" enabled="true" />
+      </package>
+    </cargoProject>
+    <cargoProject FILE="$PROJECT_DIR$/backends/foundation_jsonschema/fuzz/Cargo.toml">
+      <package file="$PROJECT_DIR$/backends/foundation_jsonschema/fuzz">
+        <feature name="default" enabled="true" />
+      </package>
+    </cargoProject>
+    <cargoProject FILE="$PROJECT_DIR$/examples/todo/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-0c7cc28be9ad305a/out/templates/api-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-0c7cc28be9ad305a/out/templates/static-html-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-0c7cc28be9ad305a/out/templates/web-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-3a96e6f12d2ecb26/out/templates/api-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-3a96e6f12d2ecb26/out/templates/static-html-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-3a96e6f12d2ecb26/out/templates/web-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-f47cd2b1653b1778/out/templates/api-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-f47cd2b1653b1778/out/templates/static-html-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/target/debug/build/ewe_platform-f47cd2b1653b1778/out/templates/web-app/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/tools/dawn/third_party/protobuf/rust/release_crates/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="31f3c09f-c47f-45de-bf8d-e264887aa698" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/add_tracing_spans.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_core/src/wire/simple_http/errors.rs" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_core/src/wire/simple_http/errors.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_core/src/wire/simple_http/impls.rs" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_core/src/wire/simple_http/impls.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_http/src/reader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_http/src/reader/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_http/src/server/connection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_http/src/server/connection.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/configure_mise_cargo_binstall.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/configure_mise_cargo_binstall.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_cargo_binstall.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_cargo_binstall.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_mise.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_mise.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_tools_mise.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/install_tools_mise.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/set_nushell_default_shell.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/backends/foundation_testbed/scripts/windows/set_nushell_default_shell.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.logs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mise.toml" beforeDir="false" afterPath="$PROJECT_DIR$/mise.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/show_greeting.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/specifications/20-foundation-testbed/features/09-project-mount/feature.md" beforeDir="false" afterPath="$PROJECT_DIR$/specifications/20-foundation-testbed/features/09-project-mount/feature.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/specifications/20-foundation-testbed/features/11-windows-vm-setup/feature.md" beforeDir="false" afterPath="$PROJECT_DIR$/specifications/20-foundation-testbed/features/11-windows-vm-setup/feature.md" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:test" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="AwGzCrW9" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/tools/emsdk/upstream/emscripten/package.json" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 4,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3DXECqgzo0o9Rpy2ARm50RzFtUw" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Test test_wildcard_route.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "devcontainer.show.open.project.notification": "false",
+    "git-widget-placeholder": "deployment-v5",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/home/darkvoid/Boxxed/@dev/ewe_platform",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "org.rust.first.attach.projects": "true",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Cargo.Test test_wildcard_route">
+    <configuration name="Run counter" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package counter --bin counter" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run ewe_platform" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package ewe_platform --bin ewe_platform" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run hello" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package hello --bin hello" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run multi_template" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package multi_template --bin multi_template" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run testbed" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package foundation_testbed --bin testbed" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run wello" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package wello --bin wello" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test ewe_platform" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="buildProfileId" value="test" />
+      <option name="command" value="test --workspace" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_wildcard_route" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package foundation_http --test integration_tests -- test_wildcard_route --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test test_wildcard_route" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="31f3c09f-c47f-45de-bf8d-e264887aa698" name="Changes" comment="" />
+      <created>1778419891814</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1778419891814</updated>
+      <workItem from="1778419893240" duration="625000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs</url>
+          <line>360</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs</url>
+          <line>369</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs</url>
+          <line>359</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_http/tests/integration_tests.rs</url>
+          <line>368</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_http/src/server/connection.rs</url>
+          <line>282</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/backends/foundation_core/src/valtron/executors/local.rs</url>
+          <line>1949</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

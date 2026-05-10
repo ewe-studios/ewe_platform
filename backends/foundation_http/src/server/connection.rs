@@ -280,6 +280,15 @@ impl ConnectionHandler {
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         let bag = self.app.context().clone();
 
+        tracing::trace!(
+            request_proto = %req.proto,
+            request_uri = %req.request_uri,
+            request_url = %req.request_url,
+            request_method = %req.method,
+            request_headers = ?req.headers,
+            "Request received for processing"
+        );
+
         // Run middleware chain — middleware takes &mut req.
         let mut middleware_response: Option<SimpleOutgoingResponse> = None;
         for mw in self.app.middleware_chain() {
@@ -292,13 +301,46 @@ impl ConnectionHandler {
             }
         }
 
+        tracing::trace!(
+            request_proto = %req.proto,
+            request_uri = %req.request_uri,
+            request_url = %req.request_url,
+            request_method = %req.method,
+            request_headers = ?req.headers,
+            "Applied middleware chain"
+        );
+
         if let Some(mut resp) = middleware_response {
+            tracing::trace!(
+                request_proto = %req.proto,
+                request_uri = %req.request_uri,
+                request_url = %req.request_url,
+                request_method = %req.method,
+                request_headers = ?req.headers,
+                "Received middleware response"
+            );
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
             }
             let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
+            tracing::trace!(
+                request_proto = %req.proto,
+                request_uri = %req.request_uri,
+                request_url = %req.request_url,
+                request_method = %req.method,
+                request_headers = ?req.headers,
+                "Sent middleware response as request response"
+            );
             if should_close {
+                tracing::trace!(
+                    request_proto = %req.proto,
+                    request_uri = %req.request_uri,
+                    request_url = %req.request_url,
+                    request_method = %req.method,
+                    request_headers = ?req.headers,
+                    "Ending request processing"
+                );
                 return None;
             }
             self.state = Some(HandlerState::Idle);
@@ -309,8 +351,26 @@ impl ConnectionHandler {
         let method = &req.method;
         let path = &req.request_url.url;
 
+        tracing::trace!(
+            request_proto = %req.proto,
+            request_uri = %req.request_uri,
+            request_url = %req.request_url,
+            request_method = %req.method,
+            request_headers = ?req.headers,
+            "Passing request to router"
+        );
+
         match self.app.router().dispatch(method, path) {
             Some(handler) => {
+                tracing::trace!(
+                    request_proto = %req.proto,
+                    request_uri = %req.request_uri,
+                    request_url = %req.request_url,
+                    request_method = %req.method,
+                    request_headers = ?req.headers,
+                    "Router returns handler"
+                );
+
                 let result = handler.serve(bag, req, self.conn.clone());
 
                 match result {

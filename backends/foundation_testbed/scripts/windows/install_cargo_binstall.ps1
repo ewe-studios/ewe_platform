@@ -9,8 +9,17 @@ if (-not (Test-Path "$dest\cargo-binstall.exe")) {
     Expand-Archive -Force $zip $dest
     Remove-Item $zip -Force -ErrorAction SilentlyContinue
 }
-# Ensure ~/.cargo/bin is on PATH for future shell sessions.
+# Ensure ~/.cargo/bin is on PATH for future shell sessions (User scope).
 $path = [Environment]::GetEnvironmentVariable('PATH', 'User')
 if ($path -notmatch [regex]::Escape($dest)) {
     [Environment]::SetEnvironmentVariable('PATH', $path + ';' + $dest, 'User')
 }
+
+# Also add to Machine scope for SYSTEM-wide access.
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+if ($machinePath -notmatch [regex]::Escape($dest)) {
+    [Environment]::SetEnvironmentVariable('PATH', $machinePath + ';' + $dest, 'Machine')
+}
+
+# Update current session PATH
+$env:PATH = "$dest;$env:PATH"
