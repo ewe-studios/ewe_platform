@@ -127,14 +127,15 @@ Set-Content -Path $mountScript -Value $mountScriptContent -Encoding UTF8
 schtasks /Delete /TN $taskName /F 2>&1 | Out-Null
 
 # Create the scheduled task
-# /SC ONSTART = run at every boot
-# /RU SYSTEM = run as SYSTEM user (no password needed, works reliably)
-$result = schtasks /Create /TN $taskName /TR "powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$mountScript`"" /SC ONSTART /RU SYSTEM /F 2>&1
+# /SC ONLOGON = run when user logs in (runs in user's session, mount visible to user)
+# /RU vagrant = run as vagrant user
+# This ensures WinFsp mount is created in the user's session, not Session 0
+$result = schtasks /Create /TN $taskName /TR "powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$mountScript`"" /SC ONLOGON /RU vagrant /F 2>&1
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to create scheduled task: $result"
 }
 Write-Output "Scheduled task '$taskName' registered."
 
-# Run mount task immediately for the current boot
+# Run mount task immediately for the current session
 schtasks /Run /TN $taskName 2>&1 | Out-Null
 Write-Output "Mount task started."
