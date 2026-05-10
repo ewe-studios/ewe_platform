@@ -184,6 +184,47 @@ pub fn command() -> Command {
                 ),
         )
         .subcommand(
+            Command::new("network")
+                .about("Start a VM with specific network/share configuration for testing (QEMU only)")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name (e.g., windows-build)"))
+                .arg(
+                    clap::Arg::new("type")
+                        .long("type")
+                        .value_parser(["virtiofs", "smb", "9p", "none"])
+                        .default_value("virtiofs")
+                        .help("Mount type to use for project sharing"),
+                )
+                .arg(
+                    clap::Arg::new("host-dir")
+                        .long("host-dir")
+                        .help("Host directory to share (default: current directory)")
+                        .default_value("."),
+                )
+                .arg(
+                    clap::Arg::new("guest-dir")
+                        .long("guest-dir")
+                        .help("Guest mount point (default: /mnt/project for Linux, C:\\Users\\vagrant\\project for Windows)")
+                )
+                .arg(
+                    clap::Arg::new("headful")
+                        .long("headful")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Run with graphical display (VNC viewer auto-launches)"),
+                )
+                .arg(
+                    clap::Arg::new("daemonize")
+                        .long("daemonize")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Run QEMU in background after boot completes"),
+                )
+                .arg(
+                    clap::Arg::new("test-only")
+                        .long("test-only")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Exit after verifying mount (for automated testing)"),
+                ),
+        .subcommand(
             Command::new("adopt")
                 .about("Register an existing qcow2 image as a managed VM (QEMU only)")
                 .arg_required_else_help(true)
@@ -238,6 +279,7 @@ pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + S
         Some(("snapshot", sub)) => qemu::cmd_snapshot(sub),
         Some(("resize-disk", m)) => qemu::cmd_resize_disk(m),
         Some(("mount", m)) => qemu::cmd_mount(m),
+        Some(("network", m)) => qemu::cmd_network(m),
         Some(("adopt", m)) => qemu::cmd_adopt(m),
         Some(("refresh-network", m)) => qemu::cmd_refresh_network(m),
         Some(("export", m)) => qemu::cmd_export(m),
