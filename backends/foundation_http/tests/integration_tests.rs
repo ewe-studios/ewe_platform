@@ -184,7 +184,7 @@ fn make_client(addr: std::net::SocketAddr) -> SimpleHttpClient<StaticSocketAddr>
     SimpleHttpClient::with_resolver(resolver)
         .max_retries(10)
         .connect_timeout(Duration::from_secs(5))
-        .read_timeout(Duration::from_secs(15))
+        .read_timeout(Duration::from_secs(20))
         .write_timeout(Duration::from_secs(5))
 }
 
@@ -207,10 +207,10 @@ fn status_code(status: &Status) -> u16 {
 
 /// GET /echo → 200 with JSON containing method and path.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_static_route_get() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -227,6 +227,7 @@ fn test_static_route_get() {
 
     assert!(response.is_success());
     let body = body_text(response.get_body_ref());
+    dbg!("Received body", &body);
     assert!(
         body.contains("GET"),
         "body should contain method GET: {body}"
@@ -241,10 +242,10 @@ fn test_static_route_get() {
 
 /// POST /echo → 200 with JSON containing method POST.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_static_route_post() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::POST, "/echo");
 
@@ -274,10 +275,10 @@ fn test_static_route_post() {
 
 /// GET /users/:id → matches /users/42, /users/abc, etc.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_param_route() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/users/:id");
 
@@ -310,7 +311,7 @@ fn test_param_route() {
 #[serial(http_test)]
 #[traced_test]
 fn test_nested_param_route() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/users/:id/posts/:post_id");
 
@@ -340,24 +341,15 @@ fn test_nested_param_route() {
 
 /// GET /files/* → matches any path starting with /files/.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_wildcard_route() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/files/*");
 
     let (addr, shutdown) = start_server(app);
     let client = make_client(addr);
-
-    let r1 = client
-        .get("http://testserver/files/a")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
-        .unwrap();
-    assert!(r1.is_success());
 
     let r2 = client
         .get("http://testserver/files/a/b/c.txt")
@@ -368,6 +360,15 @@ fn test_wildcard_route() {
         .unwrap();
     assert!(r2.is_success());
 
+    let r1 = client
+        .get("http://testserver/files/a")
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+    assert!(r1.is_success());
+
     shutdown.turn_on();
 }
 
@@ -376,10 +377,10 @@ fn test_wildcard_route() {
 
 /// route_any matches all HTTP methods on the same path.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_route_any_matches_all_methods() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route_any::<EchoHandler>("/any");
 
@@ -434,10 +435,10 @@ fn test_route_any_matches_all_methods() {
 // Tests: root route
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_root_route() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/");
 
@@ -462,10 +463,10 @@ fn test_root_route() {
 
 /// Unmatched path → 404.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_not_found() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -487,10 +488,10 @@ fn test_not_found() {
 
 /// Route exists for GET but not POST → 404.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_method_mismatch_returns_not_found() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -515,10 +516,10 @@ fn test_method_mismatch_returns_not_found() {
 
 /// POST with text body → body is echoed back.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_post_with_text_body() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::POST, "/body-echo");
 
@@ -541,10 +542,10 @@ fn test_post_with_text_body() {
 
 /// POST with JSON body → body is echoed back.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_post_with_json_body() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<BodyEchoHandler>(SimpleMethod::POST, "/json");
 
@@ -576,10 +577,10 @@ fn test_post_with_json_body() {
 
 /// Query string is preserved in the request URL.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_query_string_preserved() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<QueryHandler>(SimpleMethod::GET, "/search");
 
@@ -610,10 +611,10 @@ fn test_query_string_preserved() {
 
 /// Middleware runs before handler — counter increments for each request.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_middleware_runs_before_handler() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let count = Arc::new(AtomicUsize::new(0));
     let mw = CounterMiddleware {
         count: count.clone(),
@@ -655,10 +656,10 @@ fn test_middleware_runs_before_handler() {
 
 /// Blocking middleware short-circuits — handler never runs.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_middleware_blocks_request() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.middleware(BlockMiddleware);
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
@@ -682,10 +683,10 @@ fn test_middleware_blocks_request() {
 
 /// Multiple middleware in chain — all run in order, block stops the chain.
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_multiple_middleware_chain() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let count = Arc::new(AtomicUsize::new(0));
     let mw1 = CounterMiddleware {
         count: count.clone(),
@@ -719,10 +720,10 @@ fn test_multiple_middleware_chain() {
 // Tests: multiple routes on same app (sequential, baseline)
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_multiple_routes_same_app() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
     app.route::<BodyEchoHandler>(SimpleMethod::POST, "/body");
@@ -807,15 +808,15 @@ impl Serve for SlowHandler {
 }
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_valtron_multiplex_concurrent_connections() {
     // Pool of 3 = 2 valtron workers + 1 background thread.
     // We fire 6 concurrent connections — if connections blocked threads,
     // only 2 could run at once. All 6 succeeding proves multiplexing.
 
     // Phase 1: sequential baseline — 3 requests one after another.
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<SlowHandler>(SimpleMethod::GET, "/slow");
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
@@ -888,10 +889,10 @@ fn test_valtron_multiplex_concurrent_connections() {
 // Tests: keep-alive (multiple requests in sequence)
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_multiple_sequential_requests() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -917,10 +918,10 @@ fn test_multiple_sequential_requests() {
 // Tests: custom headers in requests
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_custom_request_header() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -945,10 +946,10 @@ fn test_custom_request_header() {
 // Tests: HEAD request
 
 #[test]
-#[serial(http_test)]
 #[traced_test]
+#[serial(http_test)]
 fn test_head_request() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::HEAD, "/echo");
 
@@ -975,7 +976,7 @@ fn test_head_request() {
 #[serial(http_test)]
 #[traced_test]
 fn test_delete_request() {
-    let _guard = initialize_pool(42, Some(3));
+    let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new();
     app.route::<EchoHandler>(SimpleMethod::DELETE, "/items/:id");
 

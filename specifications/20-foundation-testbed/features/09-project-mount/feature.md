@@ -947,6 +947,37 @@ Get-ScheduledTask -TaskName "FoundationTestbed_VirtiofsMount" |
 - Scheduled task: State=Ready, LastRunTime=recent
 - File access: Can read/write files through mount
 
+The bootstrap automatically configures the following:
+1. Installs mise to `~\.local\bin\mise\bin`
+2. Adds mise binary to **both** User and Machine PATH
+3. Installs cargo-binstall to `~\.cargo\bin` and adds to both PATH scopes
+4. Installs Rust via mise, adding shims to PATH
+5. Installs cargo tools (sccache, tauri-cli) via mise cargo backend
+6. Ensures all tool directories are in PATH for current and future sessions
+
+**Why both User and Machine PATH:**
+- User PATH: Available to vagrant user in interactive sessions
+- Machine PATH: Available to SYSTEM and all users
+- Current session: Immediate availability without logout/login
+
+**Verification:**
+```powershell
+# Check PATH contains all required directories
+$env:PATH -split ';' | Select-String -Pattern 'mise|cargo'
+
+# Should show:
+# C:\Users\vagrant\.local\bin\mise\bin
+# C:\Users\vagrant\AppData\Local\mise\shims
+# C:\Users\vagrant\AppData\Local\mise\installs\cargo-crate\bin
+# C:\Users\vagrant\.cargo\bin
+
+# Verify tools are available
+mise --version
+cargo-binstall --version
+sccache --version
+tauri --version
+```
+
 ---
 
 ## Implementation Phases

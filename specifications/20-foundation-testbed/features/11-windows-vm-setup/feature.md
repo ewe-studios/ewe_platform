@@ -404,3 +404,138 @@ Windows Boot Manager
 ```
 
 The key line is `[   48.2] Session 1 created (interactive)` — this is when the user session is established. With autologin, this happens automatically. Without it, the VM waits at the login screen and Session 1 is never created until a user manually logs in.
+
+---
+
+## Development Tools PATH Configuration
+
+### Problem: Tools Not Available in New Sessions
+
+After installing mise and cargo tools, they were not available in new PowerShell or CMD sessions. The issue was:
+
+1. **Mise binary location**: mise.exe extracts to `~\.local\bin\mise\bin\`, not `~\.local\bin\`
+2. **PATH scope**: Only User PATH was being set, not Machine PATH
+3. **Current session**: PATH changes weren't reflected in the current PowerShell session
+4. **Cargo tools location**: mise installs cargo tools to `AppData\Local\mise\installs\cargo-crate\bin`
+
+### Solution: Comprehensive PATH Configuration
+
+All bootstrap scripts now set PATH for **both User and Machine scope**, plus update the current session:
+
+#### 1. mise Installation (`install_mise.ps1`)
+
+```powershell
+$miseDir = "$env:USERPROFILE\.local\bin"
+$miseBinDir = "$miseDir\mise\bin"    # Binary is in subdir
+
+# User PATH
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+[Environment]::SetEnvironmentVariable('PATH', "$miseBinDir;$userPath", 'User')
+
+# Machine PATH
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+[Environment]::SetEnvironmentVariable('PATH', "$miseBinDir;$machinePath", 'Machine')
+
+# Current session
+$env:PATH = "$miseBinDir;$env:PATH"
+```
+
+#### 2. cargo-binstall (`install_cargo_binstall.ps1`)
+
+```powershell
+$dest = "$env:USERPROFILE\.cargo\bin"
+
+# User PATH (existing behavior preserved)
+$path = [Environment]::GetEnvironmentVariable('PATH', 'User')
+[Environment]::SetEnvironmentVariable('PATH', $path + ';' + $dest, 'User')
+
+# Machine PATH (NEW)
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+[Environment]::SetEnvironmentVariable('PATH', $machinePath + ';' + $dest, 'Machine')
+
+# Current session (NEW)
+$env:PATH = "$dest;$env:PATH"
+```
+
+#### 3. Mise Cargo Configuration (`configure_mise_cargo_binstall.ps1`)
+
+```powershell
+$shimsDir = "$env:USERPROFILE\AppData\Local\mise\shims"
+$cargoBinDir = "$env:USERPROFILE\AppData\Local\mise\installs\cargo-crate\bin"
+
+# Add both to User PATH
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+[Environment]::SetEnvironmentVariable('PATH', "$shimsDir;$cargoBinDir;$userPath", 'User')
+
+# Add both to Machine PATH
+$machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
+[Environment]::SetEnvironmentVariable('PATH', "$shimsDir;$cargoBinDir;$machinePath", 'Machine')
+
+# Update current session
+$env:PATH = "$shimsDir;$cargoBinDir;$env:PATH"
+```
+
+#### 4. Tool Installation (`install_tools_mise.ps1`)
+
+Same PATH additions as configure_mise_cargo_binstall, ensuring cargo tools are available after installation.
+
+#### 5. Nushell Default Shell (`set_nushell_default_shell.ps1`)
+
+Updated PowerShell profile to include correct PATH:
+
+```powershell
+$miseBinDir = "$env:USERPROFILE\.local\bin\mise\bin"
+$shimsDir = "$env:USERPROFILE\AppData\Local\mise\shims"
+$cargoBinDir = "$env:USERPROFILE\AppData\Local\mise\installs\cargo-crate\bin"
+
+Add-Content $psProfile "`$env:PATH = `"$miseBinDir;$shimsDir;$cargoBinDir;`$env:PATH`"" -Encoding UTF8
+```
+
+### Bootstrap Steps Affected
+
+```
+Step 4:  install mise                    ← Sets mise bin PATH
+Step 5:  install cargo-binstall          ← Sets cargo bin PATH
+Step 6:  configure mise cargo_binstall   ← Sets shims/cargo PATH
+...
+Step 16: install tools via mise          ← Sets shims/cargo PATH
+Step 17: set nushell as default shell    ← Updates PS profile PATH
+```
+
+### Verification Commands
+
+```powershell
+# Check PATH contains all required directories
+$env:PATH -split ';' | Select-String -Pattern 'mise|cargo'
+
+# Should output:
+# C:\Users\vagrant\.local\bin\mise\bin
+# C:\Users\vagrant\AppData\Local\mise\shims
+# C:\Users\vagrant\AppData\Local\mise\installs\cargo-crate\bin
+# C:\Users\vagrant\.cargo\bin
+
+# Verify tools are available
+mise --version                          # Should show: 2026.x.x
+cargo-binstall --version               # Should show: 1.x.x
+rustc --version                         # Should show: rustc 1.x.x
+cargo --version                         # Should show: cargo 1.x.x
+
+# Test in new PowerShell session
+powershell -Command "mise --version"    # Should work immediately
+powershell -Command "cargo --version"   # Should work immediately
+powershell -Command "sccache --version" # Should work (if installed)
+```
+
+### Why Both User and Machine PATH
+
+| Scope | Purpose |
+|-------|---------|
+| **User PATH** | Available to vagrant user in interactive sessions |
+| **Machine PATH** | Available to SYSTEM, services, and all users |
+| **Current session** | Immediate availability without logout/login |
+
+Setting both ensures:
+- Tools work when SSH/WinRM connects as vagrant
+- Tools work in scheduled tasks running as SYSTEM
+- Tools work in new PowerShell/CMD sessions immediately
+- No "command not found" errors after bootstrap

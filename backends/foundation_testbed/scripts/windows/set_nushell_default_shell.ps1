@@ -9,9 +9,16 @@ if ($nu_path) {
     $psProfile = "$env:USERPROFILE\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
     $psDir = Split-Path $psProfile
     if (-not (Test-Path $psDir)) { New-Item -ItemType Directory -Path $psDir -Force }
+
+    # Add mise binary and shims to PATH in PowerShell profile
+    $miseBinDir = "$env:USERPROFILE\.local\bin\mise\bin"
+    $shimsDir = "$env:USERPROFILE\AppData\Local\mise\shims"
+    $cargoBinDir = "$env:USERPROFILE\AppData\Local\mise\installs\cargo-crate\bin"
+
     # Only write if it doesn't already have the mise PATH injection
     $content = Get-Content $psProfile -ErrorAction SilentlyContinue
     if ($content -notmatch 'mise.*PATH') {
-        Add-Content $psProfile "`n`$env:PATH = `"$env:USERPROFILE\.local\bin;$env:PATH`"" -Encoding UTF8
+        Add-Content $psProfile "`n# Add mise and tools to PATH" -Encoding UTF8
+        Add-Content $psProfile "`$env:PATH = \"$miseBinDir;$shimsDir;$cargoBinDir;`$env:PATH\"" -Encoding UTF8
     }
 }

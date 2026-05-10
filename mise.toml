@@ -46,6 +46,8 @@ pnpm = "latest"
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:bacon" = "latest"
+"aqua:nushell/nushell" = "latest"
+pitchfork = "latest"
 # wrangler is managed via project devDependencies (pnpm), not mise —
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.

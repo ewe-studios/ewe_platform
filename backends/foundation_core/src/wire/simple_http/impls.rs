@@ -1246,6 +1246,12 @@ impl PartialEq for SimpleUrl {
     }
 }
 
+impl core::fmt::Display for SimpleUrl {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.url)
+    }
+}
+
 static CAPTURE_QUERY: &str = r"\?.*";
 static CAPTURE_PATH: &str = r".*\?";
 static QUERY_REPLACER: &str = r"(?P<$p>[^//|/?]+)";
@@ -3245,6 +3251,11 @@ where
                     .reader
                     .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+
+                tracing::trace!(
+                    "Pulling the next request data from connection: {:?}",
+                    &line_read_result
+                );
 
                 if let Err(e) = line_read_result {
                     tracing::trace!("Http read error: {:?}", &e);
