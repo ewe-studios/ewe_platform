@@ -376,6 +376,64 @@ sudo bash scripts/linux/install-smbd-wrapper.sh --uninstall
 
 The wrapper intercepts smbd calls from QEMU, creates the required directories, then execs the real smbd.
 
+### `testbed network` — Start VM with mount testing
+
+Start a VM with specific network/share configuration for testing mounts:
+
+```bash
+# Start Windows VM with virtiofs (recommended for Windows)
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir .
+
+# Start Windows VM with SMB fallback
+cargo run -p ewe_platform -- testbed network windows-build --type smb --host-dir /path/to/project
+
+# Start Linux VM with 9p
+cargo run -p ewe_platform -- testbed network linux-build --type 9p --host-dir .
+
+# Start VM in background (daemonize) for testing
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir . --daemonize
+
+# Test mount and exit automatically
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir . --test-only
+
+# Run with display for interactive debugging
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --headful
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--type` | Mount type: `virtiofs` (Windows), `smb` (Windows), `9p` (Linux/macOS), `none` |
+| `--host-dir` | Host directory to share (default: current directory) |
+| `--guest-dir` | Override guest mount point |
+| `--headful` | Run with graphical display (auto-launches VNC) |
+| `--daemonize` | Run VM in background (useful for testing/debugging) |
+| `--test-only` | Start VM, verify mount, then stop (for automated testing) |
+
+**Workflow for testing mounts:**
+
+```bash
+# 1. Start VM with SMB in background
+$ cargo run -p ewe_platform -- testbed network windows-build --type smb --host-dir . --daemonize
+VM 'windows-build' started with SMB
+  PID: 12345
+  SSH: 127.0.0.1:2222
+  SMB: \\10.0.2.4\qemu (maps to current directory)
+
+# 2. Check if VM is running
+$ cargo run -p ewe_platform -- testbed ls
+windows-build  running  ssh:2222  winrm:5985  vnc:5900
+
+# 3. Test SMB mount from inside VM
+$ cargo run -p ewe_platform -- testbed exec windows-build --method winrm "net use Z: \\\\10.0.2.4\\qemu"
+
+# 4. Verify mount works
+$ cargo run -p ewe_platform -- testbed exec windows-build --method winrm "dir Z:\\"
+
+# 5. Stop VM when done
+$ cargo run -p ewe_platform -- testbed stop windows-build
+```
+
 ### Testing SMB
 
 After setup, test the SMB server:

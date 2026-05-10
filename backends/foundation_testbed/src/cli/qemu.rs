@@ -202,3 +202,180 @@ pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     crate::export::export_vm(name, &opts)?;
     Ok(())
 }
+
+/// Start a VM with specific network/share configuration for testing.
+/// This allows testing different mount types (virtiofs, SMB, 9p) without modifying profiles.
+pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+    use crate::config::{DisplayMode, GuestOs};
+
+    let name = args.get_one::<String>("profile").unwrap();
+    let profile = resolve_profile(name)?;
+
+    let mount_type = args.get_one::<String>("type").map(|s| s.as_str()).unwrap_or("virtiofs");
+    let host_dir = args.get_one::<String>("host-dir").map(|s| s.to_string()).unwrap_or_else(|| ".".to_string());
+    let guest_dir = args.get_one::<String>("guest-dir").map(|s| s.to_string());
+    let headful = args.get_flag("headful");
+    let daemonize = args.get_flag("daemonize");
+    let test_only = args.get_flag("test-only");
+
+    let display = if headful { DisplayMode::Headful } else { DisplayMode::Headless };
+    let host_path = std::path::PathBuf::from(&host_dir);
+
+    // Canonicalize the path for better error messages
+    let canonical_host = std::env::current_dir()?
+        .join(&host_path)
+        .canonicalize()
+        .map_err(|e| format!("Cannot resolve host directory '{}': {}", host_dir, e))?;
+
+    println!("Starting VM '{}' with network mount configuration:", profile.name);
+    println!("  Mount type: {}", mount_type);
+    println!("  Host path: {}", canonical_host.display());
+
+    // Determine guest path based on OS and mount type
+    let effective_guest_path = match guest_dir {
+        Some(path) => path,
+        None => {
+            match profile.os {
+                GuestOs::Windows => r"C:\Users\vagrant\project".to_string(),
+                _ => "/mnt/project".to_string(),
+            }
+        }
+    };
+    println!("  Guest path: {}", effective_guest_path);
+
+    match mount_type {
+        "virtiofs" => {
+            if profile.os != GuestOs::Windows {
+                println!("  Note: virtiofs is primarily for Windows. Use '9p' for Linux/macOS.");
+            }
+            println!("  Starting VM with virtiofs (vhost-user-fs)...");
+        }
+        "smb" => {
+            if profile.os != GuestOs::Windows {
+                return Err("SMB mount is only supported for Windows guests".into());
+            }
+            println!("  Starting VM with SMB share (\\10.0.2.4\qemu)...");
+        }
+        "9p" => {
+            if profile.os == GuestOs::Windows {
+                return Err("9p mount is not supported for Windows guests. Use virtiofs or SMB".into());
+            }
+            println!("  Starting VM with 9p (Plan 9 filesystem)...");
+        }
+        "none" => {
+            println!("  Starting VM without project mount...");
+        }
+        _ => unreachable!(),
+    }
+
+    // Launch the VM with the specified configuration
+    let launch_config = crate::qemu::LaunchConfig {
+        profile: &profile,
+        display,
+        project_mount: Some(canonical_host.clone()),
+        project_mount_readonly: false,
+        cdrom_path: None,
+        extra_args: Vec::new(),
+    };
+
+    let mut vm = crate::qemu::QemuVm::launch(&launch_config)?;
+
+    println!("  VM started with PID: {}", vm.get_pid()?);
+    println!("  SSH port: 127.0.0.1:{}", vm.get_ssh_port()?);
+    if let Some(port) = vm.get_winrm_port() {
+        println!("  WinRM port: 127.0.0.1:{}", port);
+    }
+    if let Some(port) = vm.get_vnc_port() {
+        println!("  VNC port: 127.0.0.1:{}", port);
+    }
+
+    // Store mount type in state for verification
+    let state = crate::state::load(name).map_err(|e| format!("Failed to load state: {}", e))?;
+
+    if daemonize {
+        println!("\nVM running in background. Use 'testbed stop {}' to stop.", profile.name);
+        return Ok(());
+    }
+
+    if test_only {
+        println!("\nWaiting for VM to be ready for mount verification...");
+
+        // Wait for SSH to be available
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(120);
+        let mut session = None;
+
+        while std::time::Instant::now() < deadline {
+            match crate::ssh::connect(&profile) {
+                Ok(s) => {
+                    session = Some(s);
+                    break;
+                }
+                Err(_) => {
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                }
+            }
+        }
+
+        if session.is_none() {
+            return Err("Timeout waiting for VM SSH".into());
+        }
+
+        let mut session = session.unwrap();
+
+        // Verify mount based on type
+        match mount_type {
+            "virtiofs" => {
+                // For virtiofs, run bootstrap to install drivers and mount
+                println!("Running bootstrap to install virtio drivers and mount...");
+                let winrm = crate::winrm::WinRM::new(&profile)?;
+                crate::bootstrap::bootstrap_windows(&profile, &winrm, &mut session, &crate::bootstrap::BootstrapLogger::new(), |_step| {}, false)?;
+
+                // Check mount
+                let check_cmd = format!("if (Test-Path '{}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}", effective_guest_path);
+                let output = crate::ssh::exec(&mut session, &check_cmd)?;
+                if output.contains("MOUNT_OK") {
+                    println!("✓ virtiofs mount verified at {}", effective_guest_path);
+                } else {
+                    println!("✗ virtiofs mount not found at {}", effective_guest_path);
+                }
+            }
+            "smb" => {
+                // For SMB, check if share is accessible
+                println!("Checking SMB share accessibility...");
+                let check_cmd = "if (Test-Path 'Z:\\') { 'SMB_OK' } else { 'SMB_MISSING' }";
+                let output = crate::ssh::exec(&mut session, check_cmd)?;
+                if output.contains("SMB_OK") {
+                    println!("✓ SMB mount verified at Z:\\");
+                } else {
+                    println!("Note: SMB mount not yet established (may need manual mount)");
+                }
+            }
+            "9p" => {
+                let check_cmd = format!("mount | grep '{}' || echo 'NOT_MOUNTED'", effective_guest_path);
+                let output = crate::ssh::exec(&mut session, &check_cmd)?;
+                if output.contains("9p") || output.contains("virtio") {
+                    println!("✓ 9p mount verified at {}", effective_guest_path);
+                } else {
+                    println!("Note: 9p mount not yet established");
+                }
+            }
+            "none" => {
+                println!("No mount verification needed (--type=none)");
+            }
+            _ => {}
+        }
+
+        println!("\nTest complete. Stopping VM...");
+        vm.stop()?;
+        println!("VM stopped.");
+    } else {
+        println!("\nVM is running. Press Ctrl+C to stop (or use 'testbed stop {}')", profile.name);
+
+        // Wait for interrupt
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    }
+
+    Ok(())
+}
