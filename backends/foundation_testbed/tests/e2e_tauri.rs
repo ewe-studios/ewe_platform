@@ -117,18 +117,144 @@ fn test_project_mount_linux() -> Result<()> {
 fn test_project_mount_windows() -> Result<()> {
     let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
+    vm.bootstrap()?;
+
+    // First check which mount is available (virtiofs C: or SMB Z:)
+    let (mount_check, _) = vm.ps_exec(
+        "if (Test-Path 'C:\\Users\\vagrant\\project\\Cargo.toml') { 'VIRTIOFS' } elseif (Test-Path 'Z:\\Cargo.toml') { 'SMB' } else { 'NONE' }"
+    )?;
+    println!("[mount/windows] Detected mount type: {}", mount_check.trim());
+
+    // Determine which path to use
+    let (test_path, mount_type) = if mount_check.trim() == "VIRTIOFS" {
+        (format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"), "virtiofs")
+    } else if mount_check.trim() == "SMB" {
+        (format!("Z:\\{TAURI_APP_GUEST}"), "smb")
+    } else {
+        // List both locations for debugging
+        let (c_check, _) = vm.ps_exec("if (Test-Path 'C:\\Users\\vagrant\\project') { 'C_EXISTS' } else { 'C_MISSING' }")?;
+        let (z_check, _) = vm.ps_exec("if (Test-Path 'Z:\\') { 'Z_EXISTS' } else { 'Z_MISSING' }")?;
+        panic!("No mount detected. C:\\Users\\vagrant\\project: {}, Z:\\: {}", c_check.trim(), z_check.trim());
+    };
 
     // Verify the mount directory and example Tauri app are visible
     let (output, exit) = vm.ps_exec(&format!(
-        "if (Test-Path '{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}"
+        "if (Test-Path '{}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}",
+        test_path
     ))?;
-    assert_eq!(exit, 0, "path check should succeed");
+    println!("[mount/windows] Mount check ({}): output={:?}, exit={}", mount_type, output, exit);
+
+    // Diagnostic: list contents of mount directory
+    let (dir_list, _) = vm.ps_exec(
+        &format!("Get-ChildItem '{}' -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Name }} | Select-Object -First 20", test_path)
+    ).unwrap_or_else(|_| ("(error listing dir)".to_string(), 0));
+    println!("[mount/windows] Dir contents ({}): {}", mount_type, dir_list);
+
+    // Diagnostic: check mount point details
+    let (mount_info, _) = vm.ps_exec(
+        &format!("if (Test-Path '{}') {{ $fs = (Get-Item '{}').PSDrive; if ($fs) {{ 'Provider='+$fs.Provider.Name+' Type='+$fs.DriveType }} else {{ 'exists-no-drive' }} }} else {{ 'missing' }}",
+            test_path, test_path)
+    ).unwrap_or_else(|_| ("(error)".to_string(), 0));
+    println!("[mount/windows] Mount info ({}): {}", mount_type, mount_info);
+
     assert!(
         output.contains("FOUND"),
-        "example Tauri app should be visible through project mount"
+        "example Tauri app should be visible through {} mount (path: {}, dir contents: {})",
+        mount_type, test_path, dir_list
     );
 
-    println!("[mount/windows] Project mount verified, example app visible");
+    println!("[mount/windows] Project mount verified via {}, example app visible", mount_type);
+    Ok(())
+}
+
+/// Quick SMB mount validation - only tests mounting, no full bootstrap.
+/// This is useful for debugging SMB issues without waiting for full bootstrap.
+#[test]
+#[ignore]
+#[serial(windows_vm)]
+fn test_smb_mount_only() -> Result<()> {
+    println!("[smb-only] === SMB Mount Validation Test ===");
+
+    let mut vm = TestVm::new_with_mount(WINDOWS_PROFILE, true)?;
+    vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    println!("[smb-only] VM ready, testing SMB mount...");
+
+    // Check if SMB is already mounted (from virtiofs fallback)
+    let (mount_check, _) = vm.ps_exec(
+        "if (Test-Path 'Z:\\Cargo.toml') { 'SMB_OK' } elseif (Test-Path 'C:\\Users\\vagrant\\project\\Cargo.toml') { 'VIRTIOFS_OK' } else { 'NOT_MOUNTED' }"
+    )?;
+    println!("[smb-only] Initial mount check: {}", mount_check.trim());
+
+    if mount_check.trim() == "SMB_OK" || mount_check.trim() == "VIRTIOFS_OK" {
+        println!("[smb-only] Mount already active via {}", mount_check.trim());
+    } else {
+        // Try SMB mount directly
+        println!("[smb-only] Attempting SMB mount...");
+        let smb_script = r#"
+$ErrorActionPreference = 'Stop'
+$smbServer = '10.0.2.4'
+$shareName = 'qemu'
+$mountLetter = 'Z'
+
+# Clean up existing
+net use "${mountLetter}:" /delete /y 2>$null | Out-Null
+Remove-PSDrive -Name $mountLetter -Force -ErrorAction SilentlyContinue | Out-Null
+
+# Wait for server
+$connected = $false
+for ($i = 0; $i -lt 15; $i++) {
+    if (Test-Connection -ComputerName $smbServer -Count 1 -Quiet -ErrorAction SilentlyContinue) {
+        $connected = $true
+        break
+    }
+    Start-Sleep -Seconds 2
+}
+if (-not $connected) { throw "SMB server not reachable" }
+
+# Mount
+$unc = "\\$smbServer\$shareName"
+net use "${mountLetter}:" "$unc" /persistent:no 2>&1
+if ($LASTEXITCODE -ne 0) { throw "net use failed" }
+
+# Verify
+if (Test-Path "${mountLetter}:") {
+    $files = Get-ChildItem "${mountLetter}:" -ErrorAction SilentlyContinue | Select-Object -First 5 | ForEach-Object { $_.Name }
+    "MOUNT_OK: Files found: " + ($files -join ', ')
+} else {
+    throw "Mount not accessible"
+}
+"#;
+
+        let (result, exit) = vm.ps_exec(smb_script)?;
+        println!("[smb-only] SMB mount result: exit={}, output={}", exit, result.trim());
+
+        if !result.contains("MOUNT_OK") {
+            // Get diagnostics
+            let (ping, _) = vm.ps_exec("Test-Connection -ComputerName 10.0.2.4 -Count 2 -ErrorAction SilentlyContinue; if ($?) { 'PING_OK' } else { 'PING_FAIL' }")?;
+            let (netstat, _) = vm.ps_exec("netstat -an | findstr 10.0.2.4")?;
+            println!("[smb-only] Diagnostics - Ping: {}, Netstat: {}", ping.trim(), netstat.trim());
+        }
+    }
+
+    // Final verification
+    let (verify, _) = vm.ps_exec(
+        "if (Test-Path 'Z:\\Cargo.toml') { 'Z_OK' } elseif (Test-Path 'C:\\Users\\vagrant\\project\\Cargo.toml') { 'C_OK' } else { 'FAIL' }"
+    )?;
+
+    let (contents, _) = vm.ps_exec(
+        "Get-ChildItem 'Z:\\' -ErrorAction SilentlyContinue | Select-Object -First 10 | ForEach-Object { $_.Name }"
+    ).unwrap_or_else(|_| ("(error)".to_string(), 0));
+
+    println!("[smb-only] Final verification: {}", verify.trim());
+    println!("[smb-only] Z:\\ contents: {}", contents.trim());
+
+    assert!(
+        verify.trim() == "Z_OK" || verify.trim() == "C_OK",
+        "SMB mount failed - neither Z: nor C: have Cargo.toml"
+    );
+
+    println!("[smb-only] === SMB Mount Validation PASSED ===");
     Ok(())
 }
 

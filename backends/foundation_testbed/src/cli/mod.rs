@@ -10,6 +10,7 @@
 use clap::{ArgMatches, Command};
 
 mod bootstrap;
+mod debloat;
 mod provider;
 mod qemu;
 mod ssh_cmds;
@@ -38,6 +39,12 @@ pub fn command() -> Command {
                 .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
                 .arg(clap::Arg::new("force-vsbuild").long("force-vsbuild-install").action(clap::ArgAction::SetTrue)
                     .help("Skip VS Build Tools precheck and force reinstallation (Windows only)")),
+        )
+        .subcommand(
+            Command::new("debloat")
+                .about("Remove pre-installed bloatware from a Windows VM")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name")),
         )
         .subcommand(
             Command::new("stop")
@@ -216,6 +223,7 @@ pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + S
         Some(("ls", _)) => provider::cmd_ls(),
         Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m),
         Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m),
+        Some(("debloat", m)) => debloat::cmd_debloat(m),
         // SSH-based commands
         Some(("exec", m)) => ssh_cmds::cmd_exec(m),
         Some(("shell", m)) => ssh_cmds::cmd_shell(m),

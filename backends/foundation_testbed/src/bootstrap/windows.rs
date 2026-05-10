@@ -18,7 +18,7 @@ use crate::winrm::elevated::{self, ProgressCallback};
 
 const CHECK_VIRTIO_PS1: &str = include_str!("../../scripts/windows/check_virtio.ps1");
 const INSTALL_VIRTIO_PS1: &str = include_str!("../../scripts/windows/install_virtio.ps1");
-const SETUP_VIRTIOFS_MOUNT_PS1: &str = include_str!("../../scripts/windows/setup_virtiofs_mount.ps1");
+const REGISTER_VIRTIOFS_STARTUP_PS1: &str = include_str!("../../scripts/windows/register_virtiofs_startup.ps1");
 const INSTALL_OPENSSH_PS1: &str = include_str!("../../scripts/windows/install_openssh.ps1");
 const CONFIGURE_SSHD_PS1: &str = include_str!("../../scripts/windows/configure_sshd.ps1");
 const SETUP_SSH_KEYS_PS1: &str = include_str!("../../scripts/windows/setup_ssh_keys.ps1");
@@ -46,6 +46,7 @@ const CONFIGURE_RUSTUP_ARM64_PS1: &str = include_str!("../../scripts/windows/con
 const INSTALL_TOOLS_MISE_PS1: &str = include_str!("../../scripts/windows/install_tools_mise.ps1");
 const SET_NUSHELL_DEFAULT_SHELL_PS1: &str = include_str!("../../scripts/windows/set_nushell_default_shell.ps1");
 const WRITE_BOOTSTRAP_MARKER_PS1: &str = include_str!("../../scripts/windows/write_bootstrap_marker.ps1");
+const INSTALL_WINFSP_PS1: &str = include_str!("../../scripts/windows/install_winfsp.ps1");
 const CHECK_PROJECT_MOUNT_PS1: &str = include_str!("../../scripts/windows/check_project_mount.ps1");
 const INTERACTIVE_LAUNCH_PS1: &str = include_str!("../../scripts/windows/interactive_launch.ps1");
 const SCREENSHOT_WINDOWS_PS1: &str = include_str!("../../scripts/windows/screenshot_windows.ps1");
@@ -131,20 +132,20 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
+    logger::step(logger, "install WinFsp", || {
+        install_winfsp(winrm)
+    })?;
+
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["smb", "virtiofs"])
+        setup_project_mount(session, winrm, &["virtiofs", "smb"])
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
         install_webview2(session, winrm)
-    })?;
-
-    logger::step(logger, "debloat Windows", || {
-        debloat_windows(winrm)
     })?;
 
     logger::step(logger, "set Windows Defender exclusions", || {
@@ -226,20 +227,20 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
+    logger::step(logger, "install WinFsp", || {
+        install_winfsp(winrm)
+    })?;
+
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["smb", "virtiofs"])
+        setup_project_mount(session, winrm, &["virtiofs", "smb"])
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
         install_webview2(session, winrm)
-    })?;
-
-    logger::step(logger, "debloat Windows", || {
-        debloat_windows(winrm)
     })?;
 
     logger::step(logger, "set Windows Defender exclusions", || {
@@ -469,12 +470,12 @@ fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: Prog
 }
 
 /// Install WebView2 Runtime (required by Tauri).
-fn install_webview2(session: &mut VmSession, winrm: &WinRM) -> Result<()> {
-    let present = crate::ssh::exec(session, CHECK_WEBVIEW2_PS1)?;
-    if present.contains("installed") {
+fn install_webview2(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    let check = winrm.run_ps(CHECK_WEBVIEW2_PS1)?;
+    if check.stdout.trim() == "installed" {
         return Ok(());
     }
-    elevated::run_elevated(winrm, INSTALL_WEBVIEW2_PS1, 300, None)?;
+    winrm.run_ps(INSTALL_WEBVIEW2_PS1)?;
     Ok(())
 }
 
@@ -485,7 +486,7 @@ fn set_defender_exclusions(session: &mut VmSession) -> Result<()> {
 }
 
 /// Remove pre-installed bloatware packages from Windows.
-fn debloat_windows(winrm: &WinRM) -> Result<()> {
+pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
     const DEBLOAT_PREFIXES: &[&str] = &[
         "Microsoft.BingWeather", "Microsoft.GetHelp", "Microsoft.Getstarted",
         "Microsoft.MicrosoftSolitaireCollection", "Microsoft.MicrosoftStickyNotes",
@@ -503,51 +504,118 @@ fn debloat_windows(winrm: &WinRM) -> Result<()> {
     let script = DEBLOAT_PS1
         .replace("__PREFIXES__", &prefixes_ps)
         .replace("__ACTION__", DEBLOAT_ACTION_PS1);
-    elevated::run_elevated(winrm, &script, 600, None)?;
+    elevated::run_elevated(winrm, &script, 1200, None)?; // 20 min for AppxPackage removal
     Ok(())
 }
 
 /// Set up the project mount for Windows guests.
 ///
-/// Tries each method in `methods` order (e.g. `&["smb", "virtiofs"]`).
-/// The first successful method wins.
-fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, methods: &[&str]) -> Result<()> {
-    // Check if already mounted
+/// Registers a persistent Windows Scheduled Task that auto-mounts virtiofs
+/// on every boot (runs as 'vagrant' in the interactive session so WinFsp
+/// can create a user-visible mount at `C:\Users\vagrant\project`).
+/// Then starts the task immediately and waits for the mount to appear.
+fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]) -> Result<()> {
+    // Check if already mounted with content verification
     let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
-    if check.stdout.contains("mounted") {
+    let stdout = check.stdout.trim();
+
+    // Parse the result - now returns "mounted|METHOD" or "missing" etc
+    if stdout.starts_with("mounted|") {
+        let method = stdout.split('|').nth(1).unwrap_or("unknown");
+        debug!("project mount already active via {}", method);
         return Ok(());
     }
 
-    for method in methods {
-        debug!("trying {}-based project mount", method);
-        match *method {
-            "smb" => {
-                elevated::run_interactive(winrm, SETUP_SMB_MOUNT_PS1, "vagrant")?;
-            }
-            "virtiofs" => {
-                elevated::run_interactive(winrm, SETUP_VIRTIOFS_MOUNT_PS1, "vagrant")?;
-            }
-            other => {
-                warn!("unknown mount method: {}", other);
-                continue;
-            }
-        }
-
-        let deadline = std::time::Instant::now() + Duration::from_secs(20);
+    if stdout.starts_with("starting|") {
+        debug!("virtiofs process starting, waiting for completion...");
+        let deadline = std::time::Instant::now() + Duration::from_secs(30);
         loop {
             if std::time::Instant::now() > deadline { break; }
             thread::sleep(Duration::from_secs(3));
             let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
-            if check.stdout.contains("mounted") {
-                debug!("project mount verified via {}", method);
+            if check.stdout.starts_with("mounted|") {
+                let method = check.stdout.split('|').nth(1).unwrap_or("unknown");
+                debug!("project mount now active via {}", method);
                 return Ok(());
             }
         }
+    }
 
-        debug!("{} mount failed, trying next method", method);
+    // Register startup task and run mount immediately
+    elevated::run_elevated(winrm, REGISTER_VIRTIOFS_STARTUP_PS1, 60, None)?;
+
+    // Wait for virtiofs mount to appear
+    let deadline = std::time::Instant::now() + Duration::from_secs(90);
+    loop {
+        if std::time::Instant::now() > deadline { break; }
+        thread::sleep(Duration::from_secs(5));
+        let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
+        let stdout = check.stdout.trim();
+        debug!("mount check output: {}", stdout);
+        if stdout.starts_with("mounted|virtiofs") {
+            debug!("project mount verified via virtiofs");
+            return Ok(());
+        }
+        if stdout.starts_with("mounted|") {
+            let method = check.stdout.split('|').nth(1).unwrap_or("unknown");
+            debug!("project mount active via {} (not virtiofs)", method);
+            return Ok(());
+        }
+        if stdout.starts_with("exists|") {
+            debug!("mount point exists but not accessible: {}", stdout);
+        }
+        if stdout.starts_with("starting|") {
+            debug!("virtiofs process is starting...");
+        }
+        if stdout == "missing" {
+            // Check if virtiofs.exe is installed
+            let virtio_check = ssh_ps(session, winrm, "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'EXISTS' } else { 'MISSING' }")?;
+            debug!("virtiofs.exe check: {}", virtio_check.stdout.trim());
+
+            // Check VirtIO-FS driver status
+            let driver_check = ssh_ps(session, winrm, "Get-PnpDevice -Class System -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' } | Select-Object -First 3 | ForEach-Object { $_.FriendlyName }")?;
+            debug!("VirtIO drivers found: {}", driver_check.stdout.trim());
+
+            // Check WinFsp service
+            let winfsp_check = ssh_ps(session, winrm, "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status")?;
+            debug!("WinFsp.Launcher status: {}", winfsp_check.stdout.trim());
+        }
+    }
+
+    // Fallback: try SMB mount directly
+    debug!("virtiofs startup mount failed, falling back to SMB");
+    elevated::run_interactive(winrm, SETUP_SMB_MOUNT_PS1, "vagrant")?;
+
+    let deadline = std::time::Instant::now() + Duration::from_secs(60);
+    loop {
+        if std::time::Instant::now() > deadline { break; }
+        thread::sleep(Duration::from_secs(5));
+        let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
+        if check.stdout.starts_with("mounted|") {
+            let method = check.stdout.split('|').nth(1).unwrap_or("unknown");
+            debug!("project mount verified via {}", method);
+            return Ok(());
+        }
     }
 
     warn!("all mount methods failed");
+    Ok(())
+}
+
+/// Install WinFsp — userspace filesystem framework required by virtiofs.exe.
+///
+/// virtiofs.exe on Windows uses WinFsp to mount the host filesystem. Without
+/// WinFsp, the VirtIO-FS service fails with "failed to load WinFsp DLL".
+fn install_winfsp(winrm: &WinRM) -> Result<()> {
+    // Check if already installed
+    let check = winrm.run_ps_quiet(
+        "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
+    );
+    if let Ok(s) = check && s.stdout.contains("Running") {
+        return Ok(());
+    }
+
+    elevated::run_elevated(winrm, INSTALL_WINFSP_PS1, 600, None)?;
     Ok(())
 }
 

@@ -212,7 +212,23 @@ sudo bash scripts/linux/smb-setup.sh
 **QEMU Integration Issue**:
 QEMU creates a temporary directory for smbd but doesn't create the `ncalrpc` subdirectory that modern Samba requires. When smbd starts, it fails because this directory is missing.
 
-**Workarounds**:
+**Solution: Use smbd wrapper** (recommended):
+```bash
+# Install the wrapper that fixes the ncalrpc issue
+sudo bash scripts/linux/install-smbd-wrapper.sh
+```
+
+The wrapper:
+1. Replaces `/usr/bin/smbd` with a bash script
+2. Backs up the original to `/usr/bin/smbd.bin`
+3. Intercepts smbd calls and creates required directories before exec'ing the real smbd
+
+**To uninstall**:
+```bash
+sudo bash scripts/linux/install-smbd-wrapper.sh --uninstall
+```
+
+**Alternative Workarounds**:
 1. **Use virtiofs instead** (recommended) - See virtiofs setup below
 2. **Manual SMB server** - Start smbd manually with a custom config
 3. **Fix QEMU** - Would require QEMU source code modification
