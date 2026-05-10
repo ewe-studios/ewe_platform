@@ -224,6 +224,7 @@ pub fn command() -> Command {
                         .action(clap::ArgAction::SetTrue)
                         .help("Exit after verifying mount (for automated testing)"),
                 ),
+        )
         .subcommand(
             Command::new("adopt")
                 .about("Register an existing qcow2 image as a managed VM (QEMU only)")

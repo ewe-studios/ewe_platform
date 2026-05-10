@@ -31,7 +31,7 @@ pub fn cmd_debloat(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let vm_state = state::load(&profile.name)
         .expect("is_running returned true but load failed");
 
-    let winrm_port = vm_state.winrm_port;
+    let winrm_port = vm_state.winrm_port.expect("WinRM port not set for Windows VM");
 
     eprintln!("  Connecting to VM via WinRM (port {winrm_port})...");
     let start = Instant::now();
