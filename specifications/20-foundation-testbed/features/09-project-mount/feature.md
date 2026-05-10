@@ -670,6 +670,94 @@ Get-Process -Name "virtiofs"
 # Should show running process
 ```
 
+---
+
+### Issue 2b: Session 0 Mount Visibility (CRITICAL FOLLOW-UP FIX)
+
+**Problem:** After fixing Issue 2 with SYSTEM account, the mount was "invisible" to user sessions:
+- virtiofs process: Running (PID=7476)
+- Session ID: **0** (service session)
+- Mount visible in PowerShell: Yes (as SYSTEM)
+- Mount visible in File Explorer: **NO**
+- User error: "A device attached to the system is not functioning"
+
+**Root Cause:**
+WinFsp creates filesystem mounts in the **session context** of the process:
+- **Session 0**: Service session (SYSTEM, services)
+- **Session 1+**: User interactive sessions
+
+When virtiofs runs as SYSTEM in Session 0, the mount is only visible to:
+- SYSTEM processes
+- Services
+- Not visible to user File Explorer or applications
+
+**Error Signature:**
+```powershell
+Get-ChildItem "C:\Users\vagrant\project"
+# Error: "A device attached to the system is not functioning"
+
+# Process details:
+Get-Process virtiofs | Select SessionId  # Shows 0
+```
+
+**Solution:** Use ONLOGON with User Account
+
+Changed task to run when user logs in:
+```powershell
+# BEFORE (broken - Session 0):
+schtasks /Create /TN $taskName /TR ... /SC ONSTART /RU SYSTEM
+
+# AFTER (working - Session 1):
+schtasks /Create /TN $taskName /TR ... /SC ONLOGON /RU vagrant
+```
+
+**Why ONLOGON works:**
+- Task triggers when user logs in (not at boot)
+- Process runs in user's Session (1, 2, etc.)
+- WinFsp mount visible to that user
+- Mount accessible in File Explorer and apps
+
+**Trade-offs:**
+- Mount not available before user logon (no issue for interactive use)
+- Requires user to log in (automatic in our setup)
+- Mount persists across user sessions (until logoff)
+
+**Verification:**
+```powershell
+# Check process session
+Get-Process virtiofs | Select-Object Id, SessionId
+# Id  SessionId
+# --  ---------
+# 2964        1    # Should be 1, not 0
+
+# Check mount access
+Get-ChildItem "C:\Users\vagrant\project"
+# Should list files (76+ items)
+
+# Check in File Explorer
+explorer.exe "C:\Users\vagrant\project"
+# Should show files and allow navigation
+```
+
+**Final Working Configuration:**
+```powershell
+$taskName = "FoundationTestbed_VirtiofsMount"
+$mountScript = "C:\Users\vagrant\mount_virtiofs.ps1"
+
+# Delete existing
+schtasks /Delete /TN $taskName /F 2>&1 | Out-Null
+
+# Create with ONLOGON (runs in user session)
+schtasks /Create /TN $taskName `
+    /TR "powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$mountScript`"" `
+    /SC ONLOGON /RU vagrant /F
+
+# Run immediately
+schtasks /Run /TN $taskName
+```
+
+---
+
 ### Issue 3: virtiofs.exe Discovery (ROBUSTNESS IMPROVEMENT)
 
 **Problem:** Scripts used hardcoded paths to find `virtiofs.exe`. If drivers installed to non-standard location or registry had different InstallLocation, scripts would fail.
