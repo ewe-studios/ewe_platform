@@ -758,6 +758,37 @@ schtasks /Run /TN $taskName
 
 ---
 
+### Q&A: Why does ONLOGON + vagrant user work when ONSTART + vagrant user failed?
+
+**Question:** I thought running as the vagrant user was the problem. Why does it work with ONLOGON?
+
+**Answer:** The issue wasn't the **user** - it was the **trigger timing**.
+
+| Configuration | Result | Why |
+|---------------|--------|-----|
+| `ONSTART /RU vagrant /RP vagrant` | **FAIL** | ONSTART runs at boot before user logs in. User session doesn't exist yet, requires password with `/RP`, fails with error 267011. |
+| `ONSTART /RU SYSTEM` | **PARTIAL** | Runs at boot in Session 0, but mount invisible to user sessions. User sees "device not functioning". |
+| `ONLOGON /RU vagrant` | **SUCCESS** | Runs AFTER user logs in. User session (Session 1) exists, no password needed, mount visible to user. |
+
+**Key Insight:**
+- `ONSTART` triggers **before** login - user account not available
+- `ONLOGON` triggers **after** login - user account active with Session 1
+- `/IT` (interactive) doesn't work with `ONSTART` - no desktop session yet
+
+**Why no `/RP` password needed with ONLOGON?**
+Windows Task Scheduler captures the user's credentials at logon time when they type their password. No explicit `/RP` required - it uses the cached logon token.
+
+**Session Context:**
+```powershell
+# ONSTART + SYSTEM: Session 0 (service) - mount invisible
+Get-Process virtiofs | Select SessionId  # Returns 0
+
+# ONLOGON + vagrant: Session 1 (user) - mount visible
+Get-Process virtiofs | Select SessionId  # Returns 1
+```
+
+---
+
 ### Issue 3: virtiofs.exe Discovery (ROBUSTNESS IMPROVEMENT)
 
 **Problem:** Scripts used hardcoded paths to find `virtiofs.exe`. If drivers installed to non-standard location or registry had different InstallLocation, scripts would fail.
