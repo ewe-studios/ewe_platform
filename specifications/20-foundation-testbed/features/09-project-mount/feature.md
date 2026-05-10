@@ -529,6 +529,54 @@ The sync-based build (`build_with_sync`) is the existing implementation from
 feature 03 — it copies code in and pulls artifacts out. It's slower but works
 as a safety net.
 
+## Network Mount Testing Command
+
+The `testbed network` command provides a dedicated way to test different mount configurations without affecting the main VM lifecycle:
+
+```bash
+# Test virtiofs mount (daemonize mode - auto stops after test)
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir . --daemonize
+
+# Test SMB mount (daemonize mode)
+cargo run -p ewe_platform -- testbed network windows-build --type smb --host-dir . --daemonize
+
+# Test with display for interactive debugging
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --headful
+
+# Keep VM running for manual testing (no daemonize)
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir .
+```
+
+**Command Options:**
+| Option | Description |
+|--------|-------------|
+| `--type` | Mount type: `virtiofs`, `smb`, `9p`, `none` |
+| `--host-dir` | Host directory to share (default: current directory) |
+| `--guest-dir` | Override guest mount point |
+| `--headful` | Run with graphical display (auto-launches VNC) |
+| `--daemonize` | Run diagnosis in background thread, stop VM when done |
+
+**How it works:**
+1. Starts VM with specified mount type configured in QEMU
+2. Spawns background thread to wait for SSH readiness (with 120s timeout)
+3. Main thread receives SSH ready signal via MPSC channel
+4. Runs mount verification with type-specific checks:
+   - **virtiofs**: Checks virtiofs.exe exists, WinFsp service running, mount point accessible
+   - **SMB**: Shows manual mount instructions (`net use Z: \\10.0.2.4\qemu`)
+   - **9p**: Verifies Linux mount at guest path
+5. If `--daemonize`: stops VM and prints diagnosis
+6. If no `--daemonize`: keeps VM running for interactive debugging
+
+**SMB Notes:**
+- SMB requires the smbd wrapper to be installed: `sudo bash scripts/linux/install-smbd-wrapper.sh`
+- The wrapper fixes QEMU/Samba compatibility by creating the `ncalrpc` directory that modern Samba requires
+- SMB mount is not automatic - user must run `net use` inside the VM
+
+**virtiofs Notes:**
+- Requires virtio-win drivers and WinFsp to be installed (run `testbed bootstrap` first)
+- The mount should be automatic via scheduled task registered during bootstrap
+- If mount fails, check: virtiofs.exe location, WinFsp service status, scheduled task registration
+
 ## Implementation Phases
 
 ### Phase 1: Config Parsing (Tasks 1-2)

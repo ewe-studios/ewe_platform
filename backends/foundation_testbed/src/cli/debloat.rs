@@ -7,7 +7,6 @@ use std::time::{Duration, Instant};
 
 use crate::bootstrap;
 use crate::config::{get_profile, GuestOs};
-use crate::ssh;
 use crate::state;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::ProgressCallback;
@@ -48,7 +47,7 @@ pub fn cmd_debloat(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     };
     eprintln!("  WinRM connected");
 
-    let progress: ProgressCallback<'_> = Some(&|msg: &str| {
+    let _progress: ProgressCallback<'_> = Some(&|msg: &str| {
         eprintln!("  {msg}");
     });
 

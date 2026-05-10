@@ -7,9 +7,7 @@ pub fn register(command: clap::Command) -> clap::Command {
 }
 
 pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
-    match args.subcommand() {
-        Some(("testbed", sub)) => foundation_testbed::cli::run(sub)?,
-        _ => {}
-    }
+    // Args are already the testbed subcommand matches, pass directly
+    foundation_testbed::cli::run(args)?;
     Ok(())
 }

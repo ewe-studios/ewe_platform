@@ -297,6 +297,48 @@ Get-Process virtiofs -ErrorAction SilentlyContinue
 
 ---
 
+## Testing Network Mounts
+
+### `testbed network` Command
+
+A dedicated command for testing different mount configurations:
+
+```bash
+# Test virtiofs mount (daemonize mode - auto stops after test)
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir . --daemonize
+
+# Test SMB mount (daemonize mode)
+cargo run -p ewe_platform -- testbed network windows-build --type smb --host-dir . --daemonize
+
+# Test with display for interactive debugging
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --headful
+
+# Keep VM running for manual testing (no daemonize)
+cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --host-dir .
+```
+
+**Command Options:**
+| Option | Description |
+|--------|-------------|
+| `--type` | Mount type: `virtiofs`, `smb`, `9p`, `none` |
+| `--host-dir` | Host directory to share (default: current directory) |
+| `--guest-dir` | Override guest mount point |
+| `--headful` | Run with graphical display |
+| `--daemonize` | Run diagnosis in background, stop VM when done |
+| `--test-only` | Deprecated, use `--daemonize` |
+
+**How it works:**
+1. Starts VM with specified mount type
+2. Waits for SSH in a background thread (with timeout)
+3. Runs mount verification:
+   - For virtiofs: checks virtiofs.exe, WinFsp, mount point
+   - For SMB: shows manual mount instructions
+   - For 9p: checks Linux mount
+4. If `--daemonize`: stops VM and exits
+5. If no `--daemonize`: keeps VM running for manual testing
+
+---
+
 ## Recommended Fix Priority
 
 1. **HIGH**: Fix Issue 2 (add `-t project` to mount_virtiofs.ps1) - This is likely the primary blocker
@@ -310,6 +352,9 @@ Get-Process virtiofs -ErrorAction SilentlyContinue
 
 ## Success Criteria for Resolution
 
+- [x] SMB wrapper script fixes ncalrpc issue with modern Samba
+- [x] `testbed network` command implemented for testing mount configurations
+- [x] Daemonize mode runs full diagnosis in background then stops VM
 - [ ] Windows VM boots and virtiofs mount is available at `C:\Users\vagrant\project`
 - [ ] Host files are visible inside VM through mount (e.g., `Cargo.toml` exists)
 - [ ] SMB fallback works when virtiofs fails
