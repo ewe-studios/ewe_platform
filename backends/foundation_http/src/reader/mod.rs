@@ -11,7 +11,7 @@
 //! exhausted, building the request along the way.
 
 use foundation_core::wire::simple_http::{
-    IncomingRequestParts, SimpleIncomingRequest, HTTPStreams, HttpReaderError,
+    HTTPStreams, HttpReaderError, IncomingRequestParts, SimpleIncomingRequest,
 };
 
 use crate::client_ip::ClientIp;
@@ -21,6 +21,7 @@ use crate::client_ip::ClientIp;
 /// Returns `None` when the connection is closed (no more data).
 /// Returns `Some(Err(_))` on parse errors.
 #[must_use]
+#[tracing::instrument(skip(streams))]
 pub fn read_next_request<T: std::io::Read + Send + 'static>(
     streams: &HTTPStreams<T>,
     client_ip: &str,
@@ -29,15 +30,22 @@ pub fn read_next_request<T: std::io::Read + Send + 'static>(
 
     let mut builder = SimpleIncomingRequest::builder();
 
+    tracing::trace!("Getting next request stream");
     for part_result in &mut request_stream {
         let part = match part_result {
-            Ok(p) => p,
-            Err(e) => return Some(Err(e)),
+            Ok(p) => {
+                tracing::trace!("Received OK(IncomingRequestParts): {:?}", &p);
+                p
+            }
+            Err(e) => {
+                tracing::trace!("Received Err(Error): {:?}", &e);
+                return Some(Err(e));
+            }
         };
 
+        tracing::trace!("Received new request part");
         match part {
-            IncomingRequestParts::SKIP
-            | IncomingRequestParts::NoBody => {
+            IncomingRequestParts::SKIP | IncomingRequestParts::NoBody => {
                 // Keep-alive artifact or no body — defaults are fine
             }
             IncomingRequestParts::Intro(method, url, proto) => {

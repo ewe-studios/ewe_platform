@@ -6,7 +6,7 @@ priority: "high"
 depends_on: ["01-qemu-backend", "02-vm-communication", "03-bootstrap-build-pipeline", "09-project-mount"]
 estimated_effort: "medium"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-09
 author: "Main Agent"
 tasks:
   completed: 6
@@ -108,6 +108,63 @@ The ISO is attached as a CD-ROM drive during VM launch:
 
 This is only done for Windows profiles. Linux guests don't need the virtio-win ISO.
 
+### WinFsp — Userspace Filesystem Framework
+
+virtiofs.exe on Windows is NOT a standalone filesystem driver. It is a bridge process that connects the kernel-mode `viofs.sys` driver to a userspace filesystem framework. That framework is **WinFsp** (Windows File System Proxy), the Windows equivalent of Linux FUSE.
+
+#### Why virtiofs.exe needs WinFsp
+
+Without WinFsp installed, `virtiofs.exe` exits immediately with:
+
+```
+The service VirtIO-FS failed to load WinFsp DLL (Status=c0000034)
+```
+
+`c0000034` is `STATUS_OBJECT_NAME_NOT_FOUND` — the WinFsp DLL does not exist on the system. The `VirtIO-FS` Windows service depends on it.
+
+#### Dependency chain for virtiofs project mount on Windows
+
+```
+QEMU → vhost-user-fs-pci device → viofs.sys (kernel driver, from virtio-win ISO)
+      → virtiofs.exe (userspace bridge, from virtio-win ISO)
+      → WinFsp.dll (userspace FS framework, from WinFsp MSI)
+      → Windows filesystem (C:\Users\vagrant\project)
+```
+
+Both virtio-win AND WinFsp must be installed. Neither works alone.
+
+#### WinFsp Installation
+
+| Property | Value |
+|----------|-------|
+| Package | `winfsp-2.0.23075.msi` |
+| Source | `https://github.com/winfsp/winfsp/releases/download/v2.0/winfsp-2.0.23075.msi` |
+| Install method | `msiexec /i winfsp.msi /qn /norestart` |
+| Verification | `Get-Service -Name 'WinFsp.Launcher'` status = Running |
+| Idempotency | Script checks for service existence before downloading |
+
+**Why MSI + silent install:** WinFsp provides an official MSI installer. The `/qn /norestart` flags make it fully silent with no reboot required — appropriate for bootstrap automation.
+
+#### What WinFsp provides
+
+- `WinFsp.Launcher` service (kernel driver `winfsp2.sys`)
+- `WinFsp.dll` and `WinFsp-x64.dll` (userspace API libraries)
+- Framework for building userspace filesystems (FUSE-compatible API)
+- Mount manager integration for Windows drive letters and mount points
+
+#### Comparison of mount approaches
+
+| | SMB | VirtioFS |
+|---|---|---|
+| **Protocol** | Network file share (SMB/CIFS) | Paravirtualized shared memory |
+| **Windows side** | Built-in (`net use`) | virtiofs.exe + WinFsp + virtio drivers |
+| **Host side** | SMB server process | virtiofsd daemon + Unix socket |
+| **Speed** | Network overhead | Direct memory sharing (faster) |
+| **Guest deps** | None | WinFsp + virtio-win ISO + viofs.sys |
+| **Setup** | Low complexity | Higher complexity, better performance |
+
+SMB is tried first (fallback-free, works on stock images). VirtioFS is tried second (faster, but requires the full dependency chain above).
+
 ### Bootstrap Integration
 
 The new steps are inserted into the existing Windows bootstrap flow (`bootstrap_windows()`):
@@ -119,14 +176,22 @@ Step 3:  set LocalAccountTokenFilterPolicy
 Step 3b: configure autologin          ← NEW (via WinRM, before SSH becomes primary)
 Step 4:  install mise
 ...
-Step 12: set nushell as default shell
-Step 12b: install virtio drivers       ← NEW (after VS Build Tools, needs CD-ROM attached)
-Step 13: write bootstrap marker
+Step 8:  install VS Build Tools
+Step 9:  install WinFsp               ← NEW (userspace FS framework, required by virtiofs.exe)
+Step 10: install virtio drivers       ← from ISO (viofs.sys, NetKVM, viostor)
+Step 11: set up project mount         ← tries SMB first, then virtiofs
+Step 12: install WebView2 Runtime
+Step 13: debloat Windows
+...
+Step 17: set nushell as default shell
+Step 18: write bootstrap marker
 ```
 
 **Why autologin at Step 3b:** It's placed right after `LocalAccountTokenFilterPolicy` (another registry modification) and before the SSH key setup. This ensures that if the VM reboots during bootstrap (some steps may trigger reboots), it will auto-login and continue.
 
-**Why virtio drivers at Step 12b:** The ISO is attached to QEMU from launch, so the CD-ROM is available early. However, we place it late in the bootstrap to avoid blocking earlier steps if the ISO download is slow. The drivers only need to be installed once — subsequent boots find them already present.
+**Why WinFsp at Step 9 (before virtio drivers):** WinFsp is the foundation that virtiofs.exe depends on. It must be installed before any attempt to run `virtiofs.exe` or start the `VirtIO-FS` service. Installing it first ensures the DLL is available when the virtio drivers' post-install hooks try to register services.
+
+**Why virtio drivers at Step 10 (right before project mount at Step 11):** The ISO is attached to QEMU from launch, so the CD-ROM is available early. We place it immediately before the project mount step so the drivers are fresh and the mount can verify them. The drivers only need to be installed once — subsequent boots find them already present.
 
 ## Detailed Investigation Report
 
@@ -192,14 +257,16 @@ Additionally, **even if SSH connected, many bootstrap commands require a user se
 
 ### 9p Mount Status on Windows
 
-Even with virtio drivers installed, the 9p mount (`/mnt/project` equivalent) has limitations on Windows:
+With both virtio-win drivers AND WinFsp installed, the virtiofs-based project mount works end-to-end:
 
-- The `viofs` driver installs successfully and registers the `Plan 9` filesystem
-- However, Windows doesn't have a native `mount` command equivalent to Linux
-- The mount must be established via PowerShell: `net use Z: \\vmshare\project` or through the installed Plan 9 redirector
-- The current test (`test_project_mount_windows`) checks for directory existence at `C:\Users\vagrant\project` (created by Vagrant bootstrap) rather than a true 9p mount
+- The `viofs` driver installs successfully and registers the Plan 9 filesystem
+- `virtiofs.exe` (from `C:\Program Files\Virtio-Win\VioFS\virtiofs.exe`) connects to the vhost-user-fs device
+- WinFsp provides the userspace filesystem framework that `virtiofs.exe` mounts through
+- The project mount at `C:\Users\vagrant\project` shows host files (Cargo.toml, README.md, src/, tests/, etc.)
 
-**Future work**: Implement proper Windows-side 9p mount via the Plan 9 redirector service, or use SMB shares as an alternative.
+**Bootstrap-time installation:** Both WinFsp and virtio drivers are installed during the bootstrap SSH phase. The virtiofs mount uses `run_elevated` (WinRM scheduled task as SYSTEM) rather than `run_interactive` because `virtiofs.exe` is a background daemon that doesn't require a GUI session. The mount script runs `virtiofs.exe -t project -m C:\Users\vagrant\project` which establishes the mount and persists as long as QEMU + virtiofsd is running.
+
+**Mount order:** The bootstrap tries `virtiofs` first (faster, paravirtualized), then `smb` (fallback, needs interactive session). The SMB mount still uses `run_interactive` because `net use` may require GUI interaction.
 
 ## Implementation Details
 
@@ -275,16 +342,21 @@ This ensures the step is idempotent — re-running bootstrap on an already-confi
 | `src/import/mod.rs` | Add `ensure_virtio_iso()` function |
 | `src/config.rs` | Add virtio ISO URL + EweStore path constants |
 | `src/bootstrap/windows.rs` | Add `configure_autologin()` step |
+| `src/bootstrap/windows.rs` | Add `install_winfsp()` step (before virtio drivers) |
 | `src/bootstrap/windows.rs` | Add `install_virtio_drivers()` step |
+| `scripts/windows/install_winfsp.ps1` | New — download + silent install WinFsp MSI |
 | `tests/common/mod.rs` | Revisit Windows mount skip once drivers are auto-installed |
 
 ## Success Criteria
 
 - [ ] Windows VM boots and SSH is reachable without manual VNC login
 - [ ] Autologin registry keys are set during bootstrap (idempotent)
+- [ ] WinFsp installs during bootstrap (idempotent, checks service first)
 - [ ] Virtio ISO is downloaded/cached on first use
 - [ ] All virtio drivers install successfully during bootstrap
 - [ ] Driver installation is idempotent (skipped if already present)
+- [ ] `virtiofs.exe` can mount host directory via WinFsp framework
+- [ ] Project mount verified at `C:\Users\vagrant\project` with host files
 - [ ] `test_vm_lifecycle_windows` passes without manual intervention
 - [ ] `test_project_mount_windows` passes with directory round-trip
 - [ ] `cargo test -p foundation_testbed` passes (no regressions)

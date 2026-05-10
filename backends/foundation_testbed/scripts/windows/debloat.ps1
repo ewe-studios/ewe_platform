@@ -16,6 +16,7 @@ Write-Output '--- Scanning installed Appx packages ---'
 
 $found = @()
 foreach ($prefix in $prefixes) {
+    Write-Output ('  scanning {0}...' -f $prefix)
     Get-AppxPackage -AllUsers -Name "$prefix*" -ErrorAction SilentlyContinue | ForEach-Object {
         if ($_.SignatureKind -eq 'System') { return }
         if ($_.InstallLocation -and $_.InstallLocation -like 'C:\Windows\SystemApps\*') { return }

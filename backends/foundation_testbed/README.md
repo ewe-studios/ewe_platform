@@ -325,3 +325,102 @@ sudo apt-get install gvncviewer
 sudo dnf install tigervnc
 ```
 Or connect manually: `vncviewer 127.0.0.1:5900` (port shown in `testbed list`).
+
+---
+
+## Windows Mount Setup
+
+Windows VMs support project directory mounting via two mechanisms:
+
+### Method 1: virtiofs (Primary, Recommended)
+
+Uses `virtiofsd` daemon on the host and WinFsp + virtiofs.exe on the guest.
+
+**Host requirements:**
+- `virtiofsd` (usually at `/usr/lib/virtiofsd`)
+
+**What happens on VM boot:**
+1. virtio-win drivers are auto-installed (if missing)
+2. WinFsp is auto-installed (if missing)
+3. A scheduled task registers to auto-mount on boot
+4. Mount appears at `C:\Users\vagrant\project`
+
+### Method 2: SMB (Fallback)
+
+Uses QEMU's built-in SMB server. The Windows guest mounts `\\10.0.2.4\qemu`.
+
+**One-time host setup:**
+```bash
+# Run once to configure Samba for QEMU
+cd backends/foundation_testbed
+mise run setup-smb
+```
+
+This creates:
+- `/etc/samba/smb.conf` (minimal QEMU-compatible config)
+- Required directories (`/var/log/samba`, `/var/lib/samba`, `/run/samba`)
+- Sets ownership and permissions
+- Adds `CAP_NET_BIND_SERVICE` capability to smbd
+
+**SMB Wrapper for modern Samba (4.x):**
+
+Modern Samba requires an `ncalrpc` subdirectory that QEMU doesn't create. Install this wrapper:
+
+```bash
+# Install wrapper (creates required directories on smbd spawn)
+sudo bash scripts/linux/install-smbd-wrapper.sh
+
+# To uninstall (restore original)
+sudo bash scripts/linux/install-smbd-wrapper.sh --uninstall
+```
+
+The wrapper intercepts smbd calls from QEMU, creates the required directories, then execs the real smbd.
+
+### Testing SMB
+
+After setup, test the SMB server:
+
+```bash
+# Create a test share
+mkdir -p /tmp/test_share
+echo "hello" > /tmp/test_share/test.txt
+
+# Run QEMU with SMB (in one terminal)
+qemu-system-x86_64 -netdev "user,id=net,smb=/tmp/test_share" -device virtio-net-pci,netdev=net ...
+
+# In the Windows VM, mount:
+net use Z: \\10.0.2.4\qemu
+```
+
+### Troubleshooting Mounts
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `virtiofs.exe not found` | virtio-win drivers not installed | Re-run bootstrap, check virtio-win ISO is attached |
+| `failed to load WinFsp DLL` | WinFsp not installed | Re-run bootstrap WinFsp installation |
+| `Network path not found` (SMB) | smbd not running | Run `sudo mise run setup-smb` |
+| SMB connection refused | Missing ncalrpc dir | Install wrapper: `sudo bash scripts/linux/install-smbd-wrapper.sh` |
+| Mount point exists but empty | virtiofs process died | Check Event Log: `Get-EventLog -LogName System -Source "VirtIO*"` |
+
+### Manual Mount Verification
+
+From the Windows VM (PowerShell as Admin):
+```powershell
+# Check virtio driver installation
+Get-PnpDevice -Class System | Where-Object { $_.FriendlyName -like '*VirtIO*' }
+
+# Check VirtIO-FS service
+Get-Service VirtIO-FS -ErrorAction SilentlyContinue
+
+# Check WinFsp service
+Get-Service WinFsp.Launcher -ErrorAction SilentlyContinue
+
+# Try manual mount (for debugging)
+& "C:\Program Files\Virtio-Win\VioFS\virtiofs.exe" -t project -m C:\Users\vagrant\project -d -D 4
+
+# Check Event Log for VirtIO errors
+Get-EventLog -LogName System -Source "VirtIO*" -Newest 20
+
+# Verify mount is working
+Test-Path "C:\Users\vagrant\project\Cargo.toml"
+```

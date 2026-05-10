@@ -81,6 +81,7 @@ impl ConnectionHandler {
 
     /// Compute exponential backoff delay.
     /// Only called after `idle_poll_count >= escalation_threshold`.
+    #[tracing::instrument(skip(self))]
     fn compute_delay(&self) -> Duration {
         let cycle_position = self
             .idle_poll_count
@@ -97,6 +98,7 @@ impl ConnectionHandler {
     ///
     /// Since `HttpReaderError` wraps `SendableBoxedError` (not `io::Error`),
     /// we classify by variant and error message content.
+    #[tracing::instrument]
     fn is_transient_error(e: &HttpReaderError) -> bool {
         // ReadFailed = stream returned no data, likely WouldBlock or EOF.
         // Treat as transient — the idle_timeout will eventually close stale connections.
@@ -128,7 +130,9 @@ impl ConnectionHandler {
     }
 
     /// Handle the Idle state.
+    #[tracing::instrument(skip(self))]
     fn handle_idle(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        tracing::trace!("Running idle connection handling");
         // Check idle timeout.
         if self.idle_exceeded() {
             tracing::trace!(
@@ -140,6 +144,11 @@ impl ConnectionHandler {
         }
 
         // Check delay cycle limit.
+        tracing::trace!(
+            "Checking if wwit cycle is below max: {} < {}",
+            &self.total_delay_cycles,
+            &self.config.max_delay_cycles
+        );
         if self.total_delay_cycles >= self.config.max_delay_cycles {
             tracing::trace!(
                 client_ip = %self.client_ip,
@@ -150,6 +159,11 @@ impl ConnectionHandler {
         }
 
         // Attempt to read the next request.
+        tracing::trace!(
+            "Reading next request from stream: {} < {}",
+            &self.total_delay_cycles,
+            &self.config.max_delay_cycles
+        );
         match read_next_request(&self.streams, &self.client_ip) {
             Some(Ok(req)) => {
                 // Data received — reset idle tracking.
@@ -258,6 +272,7 @@ impl ConnectionHandler {
     }
 
     /// Handle the Processing state.
+    #[tracing::instrument(skip(self))]
     fn handle_processing(
         &mut self,
         mut req: SimpleIncomingRequest,

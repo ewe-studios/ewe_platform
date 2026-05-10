@@ -52,3 +52,57 @@ run = "cargo check"
 [tasks.clippy]
 description = "Run clippy"
 run = "cargo clippy -- -D warnings"
+
+[tasks.setup-smb]
+description = "Setup SMB for Windows VM mounting (requires sudo)"
+doc = """
+Configures the host system for QEMU's built-in SMB server.
+This allows Windows VMs to mount host directories via SMB.
+
+Run with: mise run setup-smb
+
+Note: Requires sudo to install system-wide Samba configuration.
+"""
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Setting up SMB for QEMU..."
+echo ""
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SETUP_SCRIPT="${SCRIPT_DIR}/scripts/linux/smb-setup.sh"
+
+if [ ! -f "$SETUP_SCRIPT" ]; then
+    echo "Error: smb-setup.sh not found at $SETUP_SCRIPT"
+    exit 1
+fi
+
+# Run the setup script with sudo
+if [ "$EUID" -eq 0 ]; then
+    # Already running as root
+    bash "$SETUP_SCRIPT"
+else
+    # Use sudo
+    sudo bash "$SETUP_SCRIPT"
+fi
+
+echo ""
+echo "SMB setup complete!"
+"""
+
+[tasks.test-mount]
+description = "Test Windows SMB mount (starts VM, tests mount)"
+doc = """
+Runs the Windows SMB mount E2E test.
+This will:
+1. Start a Windows VM
+2. Test SMB mounting
+3. Report results
+
+Run with: mise run test-mount
+"""
+run = """
+#!/usr/bin/env bash
+cargo test --test e2e_tauri test_smb_mount_only -- --ignored --nocapture
+"""

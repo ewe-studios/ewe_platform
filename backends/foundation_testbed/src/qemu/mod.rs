@@ -679,6 +679,12 @@ fn build_qemu_args(
     if let Some(p) = ports.rdp_port {
         netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{p}-:3389"));
     }
+    // Enable built-in SMB server for Windows guests with project mount
+    if profile.os == GuestOs::Windows && project_mount.is_some() {
+        if let Some(host_path) = project_mount {
+            netdev.push_str(&format!(",smb={}", host_path.display()));
+        }
+    }
     args.push("-netdev".to_string());
     args.push(netdev);
     args.push("-device".to_string());

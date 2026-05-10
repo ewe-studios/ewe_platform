@@ -264,7 +264,29 @@ mount -t 9p -o trans=virtio,version=9p2000.L project /mnt/project
 echo "project /mnt/project 9p trans=virtio,version=9p2000.L 0 0" >> /etc/fstab
 ```
 
-**Windows guests:** Windows does not include virtio drivers by default. The `virtio-win` ISO (Fedora Project) must be attached as a CD-ROM and drivers installed via `pnputil`. The critical driver is `viofs.inf` (VirtIO Filesystem). See [Feature 11: Windows VM Setup](../11-windows-vm-setup/feature.md) for the automated installation process. Even with drivers installed, Windows requires the Plan 9 redirector service to be configured — currently the Windows mount test checks for directory existence at `C:\Users\vagrant\project` (Vagrant-created) rather than a true 9p mount.
+**Windows guests:** Windows does not include virtio drivers by default. The `virtio-win` ISO (Fedora Project) must be attached as a CD-ROM and drivers installed via `pnputil`. The critical driver is `viofs.inf` (VirtIO Filesystem). See [Feature 11: Windows VM Setup](../11-windows-vm-setup/feature.md) for the automated installation process.
+
+**Windows mount methods:** Windows VMs support two mount mechanisms:
+
+1. **virtiofs (Primary)** - Uses `virtiofsd` daemon on host + WinFsp on Windows guest
+   - Host: `virtiofsd --socket-path /path/to.sock --shared-dir /project`
+   - Guest: `virtiofs.exe -t project -m C:\Users\vagrant\project`
+   - QEMU args: `-chardev socket,... -device vhost-user-fs-pci,chardev=...`
+   - Requires shared memory: `-object memory-backend-memfd,id=mem,size=XM,share=on -machine memory-backend=mem`
+
+2. **SMB (Fallback)** - Uses QEMU's built-in SMB server
+   - QEMU arg: `-netdev user,id=net,smb=/project`
+   - Guest: `net use Z: \\10.0.2.4\qemu`
+   - Requires host setup: `sudo mise run setup-smb`
+   - May need wrapper fix on modern Samba: `sudo bash scripts/linux/install-smbd-wrapper.sh`
+
+**Windows mount bootstrap:** The Windows bootstrap automatically:
+1. Installs virtio-win drivers (if missing)
+2. Installs WinFsp (required by virtiofs.exe)
+3. Registers a scheduled task to auto-mount virtiofs on boot
+4. Falls back to SMB if virtiofs fails
+
+**Windows mount verification:** The bootstrap checks mount by attempting to read `C:\Users\vagrant\project\Cargo.toml` to verify the mount is working, not just present.
 
 **Performance note:** 9p has overhead for many small files (e.g., `target/` with
 thousands of `.d` files). For heavy builds, evaluate `virtio-fs` (requires
@@ -370,6 +392,50 @@ This is either:
 
 Option 1 is preferred — the `artifacts/` directory is a direct symlink to
 `$PWD/target/<target-triple>/release/` or the equivalent build output path.
+
+### SMB Setup for Windows Fallback
+
+When virtiofs fails or is unavailable, Windows guests can fall back to SMB mounting via QEMU's built-in SMB server.
+
+**Prerequisites:**
+1. Samba installed on host (provides `smbd` binary)
+2. `CAP_NET_BIND_SERVICE` capability on smbd (for ports 139/445)
+3. `/etc/samba/smb.conf` exists (can be minimal)
+
+**One-time setup:**
+```bash
+# Using mise (recommended)
+cd backends/foundation_testbed
+mise run setup-smb
+
+# Or manually
+sudo bash scripts/linux/smb-setup.sh
+```
+
+**The setup script does:**
+- Creates `/etc/samba/smb.conf` with QEMU-compatible settings
+- Creates required directories (`/var/log/samba`, `/var/lib/samba`, `/run/samba`)
+- Sets ownership for current user
+- Adds `CAP_NET_BIND_SERVICE` capability to smbd (required for privileged ports)
+
+**SMB Wrapper (for modern Samba 4.x):**
+
+Modern Samba requires an `ncalrpc` subdirectory that QEMU doesn't create. Install the wrapper to fix this:
+
+```bash
+# Install wrapper
+sudo bash scripts/linux/install-smbd-wrapper.sh
+
+# To uninstall (restore original)
+sudo bash scripts/linux/install-smbd-wrapper.sh --uninstall
+```
+
+The wrapper:
+- Intercepts smbd calls from QEMU
+- Creates `ncalrpc` and `cores` directories before exec'ing real smbd
+- Backs up original to `/usr/bin/smbd.bin`
+
+**Why this is needed:** QEMU spawns smbd when a Windows guest connects to the share, but modern Samba (4.x) exits immediately if the `ncalrpc` directory is missing. The wrapper ensures this directory exists before smbd starts.
 
 ### Build Logs
 
