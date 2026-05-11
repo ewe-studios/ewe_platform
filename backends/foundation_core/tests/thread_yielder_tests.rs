@@ -31,6 +31,19 @@ impl TaskIterator for DelayedTask {
     }
 }
 
+/// Task that completes immediately
+struct ImmediateTask;
+
+impl TaskIterator for ImmediateTask {
+    type Ready = ();
+    type Pending = ();
+    type Spawner = NoSpawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Some(TaskStatus::Ready(()))
+    }
+}
+
 #[test]
 fn shutdown_interrupts_delayed_tasks() {
     let start = Instant::now();
@@ -98,11 +111,50 @@ fn multiple_delayed_tasks_shutdown_quickly() {
 }
 
 /// Test that new work interrupts sleeping threads.
-/// This requires sleeper-aware yielding from Feature 03.
+/// This requires sleeper-aware yielding from Feature 03 to work correctly,
+/// as the thread must be sleeping on the sleeper deadline duration rather
+/// than a fixed yield duration for new work to properly interrupt it.
 #[test]
 #[ignore = "requires Feature 03: sleeper-aware yielding"]
 fn new_work_interrupts_sleep() {
-    // This test will be enabled when Feature 03 is implemented.
-    // It verifies that when a thread is sleeping (waiting on a sleeper),
-    // new work arrival notifies the CondVar to wake it up early.
+    use std::sync::mpsc::channel;
+
+    let (tx, rx) = channel::<()>();
+    let start = Instant::now();
+
+    let guard = initialize_pool(2, Some(42));
+
+    // Spawn task with long delay
+    spawn()
+        .with_task(DelayedTask {
+            delay: Duration::from_secs(30),
+            ran: Arc::new(AtomicUsize::new(0)),
+        })
+        .with_resolver(Box::new(FnReady::new(move |_, _| {
+            let _ = tx.send(());
+        })))
+        .schedule()
+        .expect("should schedule");
+
+    // Let thread sleep
+    std::thread::sleep(Duration::from_millis(100));
+
+    // Spawn new immediate task - should wake sleeping thread
+    spawn()
+        .with_task(ImmediateTask)
+        .schedule()
+        .expect("should schedule");
+
+    // Should receive completion quickly (not wait 30s)
+    rx.recv_timeout(Duration::from_secs(2))
+        .expect("Should complete quickly, new work should interrupt sleep");
+
+    drop(guard);
+
+    let elapsed = start.elapsed();
+    assert!(
+        elapsed < Duration::from_secs(3),
+        "Test took too long: {:?}",
+        elapsed
+    );
 }
