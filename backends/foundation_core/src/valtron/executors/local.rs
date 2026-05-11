@@ -1794,6 +1794,9 @@ pub struct LocalThreadExecutor<T: ProcessController + Clone> {
     kill_signal: Option<Arc<OnSignal>>,
     state: ReferencedExecutorState,
     no_work_yield: time::Duration,
+    /// Maximum duration to yield even when sleeper deadline is longer.
+    /// Ensures threads periodically wake to check for new work.
+    max_yield_duration: time::Duration,
     yielder: T,
 }
 
@@ -1806,6 +1809,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
             state: self.state.clone(),
             yielder: self.yielder.clone(),
             no_work_yield: self.no_work_yield,
+            max_yield_duration: self.max_yield_duration,
             kill_signal: self.kill_signal.clone(),
         }
     }
@@ -1832,6 +1836,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             yielder,
             kill_signal,
             no_work_yield,
+            max_yield_duration: time::Duration::from_millis(100),
             state: ReferencedExecutorState::new(
                 rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
                 activities,
@@ -2009,11 +2014,14 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
             }
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
-            // or fall back to the default yield duration if no sleepers exist
+            // or fall back to the default yield duration if no sleepers exist.
+            // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
+            const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
             let yield_duration = self
                 .state
                 .time_until_next_wakeup()
-                .unwrap_or(self.no_work_yield);
+                .unwrap_or(self.no_work_yield)
+                .min(MAX_YIELD_DURATION);
             self.yielder.yield_for(yield_duration);
         }
         tracing::debug!("run_until: exited loop");

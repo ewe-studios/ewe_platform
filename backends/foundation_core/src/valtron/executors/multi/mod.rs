@@ -4,11 +4,11 @@ use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
     get_allocatable_thread_count, split_thread_count, task::TaskIterator, BackgroundJobRegistry,
-    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper,
+    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper, ThreadYielders,
 };
 
 use crate::synca::{LockSignal, OnSignal};
-use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
+use crate::valtron::{SharedTaskQueue, SharedThreadYielders, ThreadPoolTaskBuilder, ThreadRegistry};
 
 use super::background::DEFAULT_BG_YIELD_DURATION;
 use super::PoolGuard;
@@ -31,6 +31,7 @@ pub struct LocalPoolHandle {
     shared_tasks: SharedTaskQueue,
     latch: Arc<LockSignal>,
     kill_signal: Arc<OnSignal>,
+    yielders: SharedThreadYielders,
 }
 
 impl LocalPoolHandle {
@@ -39,6 +40,7 @@ impl LocalPoolHandle {
             shared_tasks: registry.shared_tasks(),
             latch: registry.latch(),
             kill_signal: registry.kill_signal(),
+            yielders: registry.yielders(),
         }
     }
 
@@ -61,6 +63,7 @@ impl LocalPoolHandle {
         Action: ExecutionAction + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
+            .with_yielders(self.yielders.clone())
     }
 
     /// Create a task builder with explicit Mapper and Resolver types.
@@ -77,6 +80,7 @@ impl LocalPoolHandle {
         Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
+            .with_yielders(self.yielders.clone())
     }
 
     /// Signal all threads to die.

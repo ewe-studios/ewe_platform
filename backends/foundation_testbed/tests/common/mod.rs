@@ -67,7 +67,13 @@ impl TestVm {
                 GuestOs::Linux => "/mnt/project",
                 GuestOs::MacOS => "/Users/vagrant/project",
             };
-            config = config.with_project_mount(std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), guest_path, false);
+            // Find workspace root (from backends/foundation_testbed/tests/common/mod.rs)
+            let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()  // backends
+                .and_then(|p| p.parent())  // workspace root
+                .unwrap_or_else(|| Path::new("."))
+                .to_path_buf();
+            config = config.with_project_mount(workspace_root, guest_path, false);
         }
 
         let qemu = config.launch()?;

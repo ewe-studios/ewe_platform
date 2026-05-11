@@ -43,7 +43,11 @@
       "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-x86_64-linux.tar.gz\" | tar -tzf - | head -20)",
       "Bash(cargo test:*)",
       "Bash(python3:*)",
-      "Bash(TRYBUILD=overwrite cargo test -p foundation_macros json_hash_compile_tests)"
+      "Bash(TRYBUILD=overwrite cargo test -p foundation_macros json_hash_compile_tests)",
+      "Bash(pkill -9 qemu-system)",
+      "Bash(pkill -9 virtiofsd)",
+      "Bash(rm -rf ~/.local/share/foundation_testbed/state/*)",
+      "Bash(rm -f /tmp/test.monitor /tmp/*.monitor)"
     ]
   }
 }
