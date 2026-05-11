@@ -9,6 +9,23 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
+foundation_core = { workspace = true }
+foundation_errstacks = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+regex = { version = "1.12" }
+bytes = { version = "1.5" }
+sha1 = "0.10"
+base64 = "0.22"
+tracing = "0.1"
+uuid = { version = "1.6", features = ["v4"] }
+
+[dev-dependencies]
+foundation_testing = { workspace=true }
+tracing-test = { version = "0.2",  features = ["no-env-filter"] }
+serial_test = { version = "3" }
 
 [lints]
 workspace = true
