@@ -539,3 +539,113 @@ Setting both ensures:
 - Tools work in scheduled tasks running as SYSTEM
 - Tools work in new PowerShell/CMD sessions immediately
 - No "command not found" errors after bootstrap
+
+---
+
+## WebView2 Installation Fix (2026-05-10)
+
+### Problem
+
+After the long-running project mount setup step (~3.5 minutes), WinRM becomes unreachable with error:
+```
+WinRM not reachable on port 5985
+```
+
+This caused the WebView2 Runtime installation to fail, leaving the VM partially bootstrapped.
+
+### Root Cause
+
+The WinRM service becomes temporarily unresponsive after extended elevated operations (scheduled task running as SYSTEM for virtiofs mount setup). The WinRM shell connection times out or becomes stale.
+
+### Solution
+
+Enhanced `install_webview2()` function in `src/bootstrap/windows.rs` with:
+
+1. **Retry Logic**: 3 retry attempts with 5-10 second delays for both check and installation phases
+2. **WinRM Recovery via SSH**: When WinRM fails, attempts to restart the WinRM service via SSH PowerShell:
+   ```powershell
+   Restart-Service -Name 'WinRM' -Force
+   ```
+3. **Fresh WinRM Connections**: Each retry creates a new WinRM connection
+4. **SSH Fallback**: As last resort, attempts WebView2 installation via SSH PowerShell directly
+
+### Implementation
+
+```rust
+fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    // Retry check with WinRM
+    for attempt in 0..3 {
+        match winrm.run_ps(CHECK_WEBVIEW2_PS1) {
+            Ok(check) => { /* ... */ },
+            Err(e) => {
+                // Log warning, will retry
+            }
+        }
+    }
+    
+    // If WinRM still failing, restart via SSH
+    if last_error.is_some() {
+        let restart_script = r#"
+            Restart-Service -Name 'WinRM' -Force
+            // ...
+        "#;
+        crate::ssh::exec_ps_windows(session, restart_script)?;
+    }
+    
+    // Retry installation with fresh connections
+    for attempt in 0..3 {
+        let fresh_winrm = crate::winrm::WinRM::from_profile(profile)?;
+        match fresh_winrm.run_ps(INSTALL_WEBVIEW2_PS1) {
+            Ok(_) => return Ok(()),
+            Err(e) => { /* retry or fallback to SSH */ }
+        }
+    }
+}
+```
+
+### Bootstrap Verification Fix
+
+Added retry loop to verification step in `src/cli/bootstrap.rs`:
+
+```rust
+// Verify with retry — WinRM may need time to stabilize after nushell setup
+let mut verified = false;
+for attempt in 0..5 {
+    if bootstrap::is_bootstrapped(profile) {
+        verified = true;
+        break;
+    }
+    if attempt < 4 {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+    }
+}
+```
+
+### Exported Images
+
+| File | Size | Description |
+|------|------|-------------|
+| `windows-11-fully-bootstrapped.qcow2` | 30GB | Fully bootstrapped Windows 11 VM with all tools |
+| `*.manifest.json` | - | Export metadata |
+
+Location: `/home/darkvoid/EweStore/Testbed/`
+
+### Bootstrap Status (After Fix)
+
+All steps now complete successfully:
+- ✅ OpenSSH Server (1.3s)
+- ✅ SSH Key Authorization (1.6s)  
+- ✅ LocalAccountTokenFilterPolicy (31s)
+- ✅ Autologin (1.5s)
+- ✅ mise (0.4s)
+- ✅ cargo-binstall (33s)
+- ✅ VS Build Tools (1.4s)
+- ✅ WinFsp (1.4s)
+- ✅ VirtIO Drivers (1.3s)
+- ✅ Project Mount (206s)
+- ✅ **WebView2 Runtime (92s with retry/recovery)**
+- ✅ Defender Exclusions (3.2s)
+- ✅ Rustup ARM64 Config (0.02s)
+- ✅ Tools via mise (0.2s)
+- ✅ Nushell Default Shell (0.07s)
+- ✅ Bootstrap Marker (1.5s)
