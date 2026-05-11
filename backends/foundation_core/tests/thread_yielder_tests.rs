@@ -80,6 +80,7 @@ fn shutdown_interrupts_delayed_tasks() {
 }
 
 #[test]
+#[traced_test]
 fn multiple_delayed_tasks_shutdown_quickly() {
     let start = Instant::now();
 
@@ -116,6 +117,7 @@ fn multiple_delayed_tasks_shutdown_quickly() {
 /// When a thread is sleeping on a long sleeper deadline, spawning new work
 /// should interrupt the sleep so the new work is picked up quickly.
 #[test]
+#[traced_test]
 fn new_work_interrupts_sleep() {
     let start = Instant::now();
     let guard = initialize_pool(2, Some(42));

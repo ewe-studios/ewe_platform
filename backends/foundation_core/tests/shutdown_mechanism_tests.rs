@@ -39,6 +39,7 @@ impl TaskIterator for FiniteTask {
 /// WHAT: Tasks should complete normally when sleeper-aware yielding is active
 /// HOW: Spawn tasks and verify they complete within expected time
 #[test]
+#[traced_test]
 fn basic_execution_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
@@ -70,6 +71,7 @@ fn basic_execution_with_sleeper_aware_yielding() {
 /// WHAT: Multiple concurrent tasks should all complete
 /// HOW: Spawn multiple tasks and verify all complete
 #[test]
+#[traced_test]
 fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
