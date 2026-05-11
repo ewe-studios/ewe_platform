@@ -322,6 +322,47 @@ mod test_get_num_threads {
     }
 }
 
+/// `ThreadYielders` manages the collection of thread yielders for interruption.
+///
+/// This allows any code with access to the Arc<ThreadYielders> to interrupt
+/// all sleeping threads, useful when new work arrives that needs immediate attention.
+pub struct ThreadYielders {
+    yielders: RwLock<Vec<Arc<ThreadYielder>>>,
+}
+
+impl ThreadYielders {
+    /// Creates a new ThreadYielders registry.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            yielders: RwLock::new(Vec::new()),
+        }
+    }
+
+    /// Register a yielder for interrupt tracking.
+    pub fn register(&self, yielder: Arc<ThreadYielder>) {
+        let mut yielders = self.yielders.write().unwrap();
+        yielders.push(yielder);
+    }
+
+    /// Interrupt all registered yielders.
+    /// Call this when new work arrives to wake threads waiting in yield_for.
+    pub fn interrupt_all(&self) {
+        let yielders = self.yielders.read().unwrap();
+        for yielder in yielders.iter() {
+            yielder.interrupt();
+        }
+    }
+}
+
+impl Default for ThreadYielders {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub type SharedThreadYielders = sync::Arc<ThreadYielders>;
+
 pub struct ThreadYielder {
     thread_id: ThreadId,
     latch: Arc<LockSignal>,
@@ -678,6 +719,8 @@ pub struct ThreadPoolTaskBuilder<
 > {
     tasks: SharedTaskQueue,
     latch: Arc<LockSignal>,
+    /// Yielders registry to interrupt when new work arrives
+    yielders: Option<SharedThreadYielders>,
     task: Option<Task>,
     resolver: Option<Resolver>,
     mappers: Option<Vec<Mapper>>,
@@ -698,12 +741,20 @@ impl<
         Self {
             tasks,
             latch,
+            yielders: None,
             task: None,
             mappers: None,
             resolver: None,
             panic_handler: None,
             _marker: PhantomData,
         }
+    }
+
+    /// Set the yielders registry to interrupt when new work arrives.
+    #[must_use]
+    pub fn with_yielders(mut self, yielders: SharedThreadYielders) -> Self {
+        self.yielders = Some(yielders);
+        self
     }
 
     #[allow(clippy::return_self_not_must_use)]
@@ -928,6 +979,11 @@ impl<
 
         match self.tasks.push(task) {
             Ok(()) => {
+                // Interrupt any sleeping yielders so they pick up new work immediately
+                if let Some(ref yielders) = self.yielders {
+                    yielders.interrupt_all();
+                }
+
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
@@ -1178,7 +1234,7 @@ pub struct ThreadRegistry {
     thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
 
     // Yielder tracking for interrupt_all
-    yielders: RwLock<Vec<Arc<ThreadYielder>>>,
+    yielders: SharedThreadYielders,
 }
 
 impl std::fmt::Debug for ThreadRegistry {
@@ -1274,7 +1330,7 @@ impl ThreadRegistry {
                 threads: EntryList::new(),
             }))),
             thread_handles: RwLock::new(HashMap::new()),
-            yielders: RwLock::new(Vec::new()),
+            yielders: SharedThreadYielders::new(ThreadYielders::new()),
         }
     }
 
@@ -1323,17 +1379,19 @@ impl ThreadRegistry {
 
     /// Register a yielder for interrupt_all tracking.
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
-        let mut yielders = self.yielders.write().unwrap();
-        yielders.push(yielder);
+        self.yielders.register(yielder);
+    }
+
+    /// Get the shared yielders registry.
+    #[must_use]
+    pub fn yielders(&self) -> SharedThreadYielders {
+        Arc::clone(&self.yielders)
     }
 
     /// Interrupt all registered yielders.
     /// Call this during shutdown to wake threads waiting in yield_for.
     pub fn interrupt_all_yielders(&self) {
-        let yielders = self.yielders.read().unwrap();
-        for yielder in yielders.iter() {
-            yielder.interrupt();
-        }
+        self.yielders.interrupt_all();
     }
 
     /// Shutdown the registry - signals kill and waits for all threads.
