@@ -1009,22 +1009,22 @@ tauri --version
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed start linux-build` mounts `$PWD` into VM at `/mnt/project`
-- [ ] Running `cargo build` inside VM produces artifacts visible on host immediately
-- [ ] `$PWD/.testbed/artifacts/` mirrors build outputs
-- [ ] Build logs written to `$PWD/.testbed/logs/<profile>-build.log` (host-side, accessible after VM shutdown)
-- [ ] `testbed logs windows --errors` prints error patterns from the host-side log file
-- [ ] `testbed logs windows --follow` streams new lines as the build runs
-- [ ] `testbed mount verify` confirms mount is active and readable
-- [ ] Fallback to sync-based build works when mount is unavailable
-- [ ] UTM shared directories work for macOS UTM provider
-- [ ] Artifacts persist after VM shutdown (they're host files)
-- [ ] `testbed init` creates `$PWD/.testbed/scripts/<vm>/startup/` and `shutdown/` with built-in defaults
-- [ ] Startup scripts execute in numbered order after VM boot + SSH is reachable
-- [ ] Shutdown scripts execute in numbered order before VM powers off
-- [ ] Custom user scripts (`.sh`, `.nu`, `.ps1`) run correctly on their respective guest OSes
-- [ ] Script failure (non-zero exit) stops execution and surfaces the error to the user
-- [ ] `testbed init` creates `$PWD/.testbed/.gitignore` that ignores `state/`, `logs/`, `artifacts/`, `mounts/` but allows committing `testbed.toml` and `scripts/`
+- [x] `ewe_platform testbed start linux-build` mounts `$PWD` into VM at `/mnt/project`
+- [x] Running `cargo build` inside VM produces artifacts visible on host immediately
+- [x] `$PWD/.testbed/artifacts/` mirrors build outputs
+- [x] Build logs written to `$PWD/.testbed/logs/<profile>-build.log` (host-side, accessible after VM shutdown)
+- [x] `testbed logs windows --errors` prints error patterns from the host-side log file
+- [x] `testbed logs windows --follow` streams new lines as the build runs
+- [x] `testbed mount verify` confirms mount is active and readable
+- [x] Fallback to sync-based build works when mount is unavailable
+- [x] UTM shared directories work for macOS UTM provider
+- [x] Artifacts persist after VM shutdown (they're host files)
+- [x] `testbed init` creates `$PWD/.testbed/scripts/<vm>/startup/` and `shutdown/` with built-in defaults
+- [x] Startup scripts execute in numbered order after VM boot + SSH is reachable
+- [x] Shutdown scripts execute in numbered order before VM powers off
+- [x] Custom user scripts (`.sh`, `.nu`, `.ps1`) run correctly on their respective guest OSes
+- [x] Script failure (non-zero exit) stops execution and surfaces the error to the user
+- [x] `testbed init` creates `$PWD/.testbed/.gitignore` that ignores `state/`, `logs/`, `artifacts/`, `mounts/` but allows committing `testbed.toml` and `scripts/`
 
 ## Verification Commands
 

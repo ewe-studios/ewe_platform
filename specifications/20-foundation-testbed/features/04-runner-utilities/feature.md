@@ -6,7 +6,7 @@ priority: "high"
 depends_on: ["bootstrap-build-pipeline"]
 estimated_effort: "medium"
 created: 2026-05-02
-last_updated: 2026-05-04
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
   completed: 12
@@ -95,13 +95,13 @@ The nushell wrapper provides consistent syntax for both OSes. Internally, Linux 
 
 ## Success Criteria
 
-- [ ] `run(profile)` launches a Tauri app with Xvfb on Linux, window is visible on VNC
-- [ ] `run(profile)` launches a `.exe` on Windows, output captured to run.log
-- [ ] `screenshot(profile, "out.png")` produces a PNG of the VM display
-- [ ] `logs(profile, "build", follow=true)` streams live build output
-- [ ] `logs(profile, "build", errors=true)` shows only error stanzas with context
-- [ ] `push(profile, "./local.txt", "/remote.txt")` transfers file to VM
-- [ ] `pull(profile, "/remote.txt", "./local.txt")` retrieves file from VM
+- [x] `run(profile)` launches a Tauri app with Xvfb on Linux, window is visible on VNC
+- [x] `run(profile)` launches a `.exe` on Windows, output captured to run.log
+- [x] `screenshot(profile, "out.png")` produces a PNG of the VM display
+- [x] `logs(profile, "build", follow=true)` streams live build output
+- [x] `logs(profile, "build", errors=true)` shows only error stanzas with context
+- [x] `push(profile, "./local.txt", "/remote.txt")` transfers file to VM
+- [x] `pull(profile, "/remote.txt", "./local.txt")` retrieves file from VM
 
 ## Verification Commands
 

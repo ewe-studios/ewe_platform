@@ -1,18 +1,18 @@
 ---
 feature: "macOS VM Support"
 description: "Run macOS guests on Linux via QEMU with OpenCore bootloader, enabling cross-compilation for Apple targets from a Linux host"
-status: "in-progress"
+status: "implemented"
 priority: "medium"
 depends_on: ["01-qemu-backend", "02-vm-communication"]
 estimated_effort: "large"
 created: 2026-05-03
-last_updated: 2026-05-04
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 10
-  uncompleted: 2
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 83%
+  completion_percentage: 100%
 ---
 
 # macOS VM Support
@@ -321,11 +321,11 @@ if profile.os == GuestOs::MacOS {
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed start macos-build --headless` boots macOS with SSH accessible
-- [ ] `ewe_platform testbed import macos-build` downloads/creates macOS image via native IPSW extraction
-- [ ] `ewe_platform testbed build macos-build --target aarch64-apple-darwin` produces Mach-O binary
-- [ ] `ewe_platform testbed doctor --profile macos-build` checks macOS VM health
-- [ ] macOS VM runs alongside Windows/Linux VMs without port conflicts
+- [x] `ewe_platform testbed start macos-build --headless` boots macOS with SSH accessible
+- [x] `ewe_platform testbed import macos-build` downloads/creates macOS image via native IPSW extraction
+- [x] `ewe_platform testbed build macos-build --target aarch64-apple-darwin` produces Mach-O binary
+- [x] `ewe_platform testbed doctor --profile macos-build` checks macOS VM health
+- [x] macOS VM runs alongside Windows/Linux VMs without port conflicts
 
 ## Prebuilt Image Status
 

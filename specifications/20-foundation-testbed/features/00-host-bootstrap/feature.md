@@ -1,18 +1,18 @@
 ---
 feature: "Host Bootstrap — mise + nushell + pitchfork"
 description: "First-run host setup: install mise, nushell, and pitchfork on the host machine. Creates a unified foundation for shell execution, tool management, and service/process registration across all testbed operations."
-status: "pending"
+status: "implemented"
 priority: "critical"
 depends_on: []
 estimated_effort: "small"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 1
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 1
+  completion_percentage: 100%
 ---
 
 # Host Bootstrap — mise + nushell + pitchfork
@@ -216,12 +216,12 @@ ssh_exec(profile, &script.to_command());
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed doctor` checks for mise, nushell, pitchfork on host
-- [ ] `ewe_platform testbed start` auto-installs missing prerequisites (with confirmation)
-- [ ] `mise global` lists nu and pitchfork as installed tools
-- [ ] `pitchfork list` shows running VMs after `testbed start`
-- [ ] All VM-side commands execute via `nu -c` (no bash/PowerShell dialect splits)
-- [ ] Bootstrap is idempotent — running on an already-configured host is a no-op
+- [x] `ewe_platform testbed doctor` checks for mise, nushell, pitchfork on host
+- [x] `ewe_platform testbed start` auto-installs missing prerequisites (with confirmation)
+- [x] `mise global` lists nu and pitchfork as installed tools
+- [x] `pitchfork list` shows running VMs after `testbed start`
+- [x] All VM-side commands execute via `nu -c` (no bash/PowerShell dialect splits)
+- [x] Bootstrap is idempotent — running on an already-configured host is a no-op
 
 ## Verification Commands
 

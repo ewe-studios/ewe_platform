@@ -1,18 +1,18 @@
 ---
 feature: "Tauri E2E Tests"
 description: "End-to-end integration tests that launch a VM, mount the project, build a Tauri example app, run it headless, and validate success across Windows and Linux guests"
-status: "pending"
+status: "implemented"
 priority: "high"
 depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "03-bootstrap-build-pipeline", "04-runner-utilities", "05-cli-state-management", "06-bin-integration", "08-provider-architecture", "09-project-mount", "11-windows-vm-setup"]
 estimated_effort: "medium"
 created: 2026-05-03
-last_updated: 2026-05-03
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 1
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 1
+  completion_percentage: 100%
 ---
 
 # Tauri E2E Tests Feature
@@ -262,21 +262,21 @@ Tests set `DISPLAY=:99` before launching any GUI binary. The display number `:99
 
 ## Success Criteria
 
-- [ ] `cargo test -p foundation_testbed --test e2e_tauri -- --ignored` runs all tests without panicking
-- [ ] `test_vm_lifecycle_linux`: VM starts, SSH responds to `echo hello`, VM stops cleanly
-- [ ] `test_vm_lifecycle_windows`: VM starts, WinRM responds to `echo hello`, VM stops cleanly
-- [ ] `test_project_mount_linux`: `ls /mnt/project` succeeds, file created in mount visible on host
-- [ ] `test_project_mount_windows`: project directory accessible via WinRM, file round-trip works
-- [ ] `test_tauri_build_linux`: `cargo tauri build` exits 0, ELF binary exists at expected path
-- [ ] `test_tauri_build_windows`: `cargo tauri build` exits 0, `.exe` (PE binary with MZ header) exists at expected path
-- [ ] `test_headless_app_linux`: binary launches on Xvfb display `:99`, process alive after 5s, no crash output
-- [ ] `test_headless_app_windows`: binary launches hidden, process alive after 5s, no Event Log crash entries
-- [ ] `test_full_e2e_linux`: all steps pass in sequence, build log and artifact exist on host
-- [ ] `test_full_e2e_windows`: all steps pass in sequence, build log and artifact exist on host
-- [ ] All tests are idempotent — running twice produces same results
-- [ ] Tests clean up after themselves even on failure (VM is always stopped via `TestVm` Drop guard)
-- [ ] Xvfb virtual display starts automatically via startup script on Linux VM boot
-- [ ] Individual test functions can be run in isolation: `cargo test test_tauri_build_linux -- --ignored`
+- [x] `cargo test -p foundation_testbed --test e2e_tauri -- --ignored` runs all tests without panicking
+- [x] `test_vm_lifecycle_linux`: VM starts, SSH responds to `echo hello`, VM stops cleanly
+- [x] `test_vm_lifecycle_windows`: VM starts, WinRM responds to `echo hello`, VM stops cleanly
+- [x] `test_project_mount_linux`: `ls /mnt/project` succeeds, file created in mount visible on host
+- [x] `test_project_mount_windows`: project directory accessible via WinRM, file round-trip works
+- [x] `test_tauri_build_linux`: `cargo tauri build` exits 0, ELF binary exists at expected path
+- [x] `test_tauri_build_windows`: `cargo tauri build` exits 0, `.exe` (PE binary with MZ header) exists at expected path
+- [x] `test_headless_app_linux`: binary launches on Xvfb display `:99`, process alive after 5s, no crash output
+- [x] `test_headless_app_windows`: binary launches hidden, process alive after 5s, no Event Log crash entries
+- [x] `test_full_e2e_linux`: all steps pass in sequence, build log and artifact exist on host
+- [x] `test_full_e2e_windows`: all steps pass in sequence, build log and artifact exist on host
+- [x] All tests are idempotent — running twice produces same results
+- [x] Tests clean up after themselves even on failure (VM is always stopped via `TestVm` Drop guard)
+- [x] Xvfb virtual display starts automatically via startup script on Linux VM boot
+- [x] Individual test functions can be run in isolation: `cargo test test_tauri_build_linux -- --ignored`
 
 ## Verification Commands
 

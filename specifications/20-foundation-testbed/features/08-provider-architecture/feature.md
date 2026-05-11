@@ -1,18 +1,18 @@
 ---
 feature: "Provider Architecture — QEMU + UTM backends"
 description: "Split foundation_testbed into a provider-based architecture: QEMU on Linux, UTM on macOS. Shared code stays common, provider-specific code is gated behind feature flags and OS detection. Extract CLI into a reusable module, add standalone binary support, and create a nested mise.toml."
-status: "in-progress"
+status: "implemented"
 priority: "critical"
 depends_on: ["00-host-bootstrap", "01-qemu-backend", "02-vm-communication", "05-cli-state-management", "06-bin-integration"]
 estimated_effort: "x-large"
 created: 2026-05-03
-last_updated: 2026-05-04
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 5
-  uncompleted: 14
+  completed: 19
+  uncompleted: 0
   total: 19
-  completion_percentage: 26%
+  completion_percentage: 100%
 ---
 
 # Provider Architecture — QEMU + UTM Backends
@@ -1141,19 +1141,19 @@ shared directories (UTM). Builds write directly to the host filesystem.
 
 ## Success Criteria
 
-- [ ] `cargo build -p foundation_testbed --features qemu` builds on Linux
-- [ ] `cargo build -p foundation_testbed --features utm` builds on macOS
-- [ ] `cargo build -p foundation_testbed --features cli` provides standalone binary
-- [ ] `ewe_platform testbed start windows-build` works on Linux (QEMU) and macOS (UTM)
-- [ ] `ewe_platform testbed doctor` reports provider-specific health
-- [ ] `foundation_testbed/mise.toml` works standalone (cd into dir, `mise run doctor`)
-- [ ] Root `mise.toml` references foundation_testbed tasks
-- [ ] Zero code duplication between QEMU and UTM providers for shared logic
-- [ ] Clap dependency only compiled when `cli` feature is enabled
-- [ ] All existing tests pass with `--features qemu`
-- [ ] Host directory mount works: builds inside VM produce files in `$PWD/.testbed/artifacts/`
-- [ ] VM state stored in `$PWD/.testbed/state/`, images in `$HOME/.testbed/images/`
-- [ ] No async dependencies — all I/O is synchronous
+- [x] `cargo build -p foundation_testbed --features qemu` builds on Linux
+- [x] `cargo build -p foundation_testbed --features utm` builds on macOS
+- [x] `cargo build -p foundation_testbed --features cli` provides standalone binary
+- [x] `ewe_platform testbed start windows-build` works on Linux (QEMU) and macOS (UTM)
+- [x] `ewe_platform testbed doctor` reports provider-specific health
+- [x] `foundation_testbed/mise.toml` works standalone (cd into dir, `mise run doctor`)
+- [x] Root `mise.toml` references foundation_testbed tasks
+- [x] Zero code duplication between QEMU and UTM providers for shared logic
+- [x] Clap dependency only compiled when `cli` feature is enabled
+- [x] All existing tests pass with `--features qemu`
+- [x] Host directory mount works: builds inside VM produce files in `$PWD/.testbed/artifacts/`
+- [x] VM state stored in `$PWD/.testbed/state/`, images in `$HOME/.testbed/images/`
+- [x] No async dependencies — all I/O is synchronous
 
 ## Verification Commands
 

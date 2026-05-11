@@ -9,10 +9,10 @@ created: 2026-05-02
 last_updated: 2026-05-02
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 8
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 8
+  completion_percentage: 100%
 ---
 
 # QEMU Backend Feature
@@ -101,14 +101,14 @@ The lowest-level feature: manages the QEMU process lifecycle, virtual disk image
 
 ## Success Criteria
 
-- [ ] `QemuVm::launch(profile, DisplayMode::Headless)` starts a QEMU process with correct args
-- [ ] `QemuVm::shutdown()` gracefully powers down the VM within 30 seconds
-- [ ] `qcow2::create(path, 80)` produces an 80 GB qcow2 file
-- [ ] `qcow2::download(url, dest)` downloads with progress bar, resumes on interruption
-- [ ] `snapshot::save(vm, "before-build")` creates an internal snapshot
-- [ ] `snapshot::load(vm, "before-build")` restores VM to that state
-- [ ] No root privileges required for any operation
-- [ ] Multiple VMs can launch simultaneously without port conflicts
+- [x] `QemuVm::launch(profile, DisplayMode::Headless)` starts a QEMU process with correct args
+- [x] `QemuVm::shutdown()` gracefully powers down the VM within 30 seconds
+- [x] `qcow2::create(path, 80)` produces an 80 GB qcow2 file
+- [x] `qcow2::download(url, dest)` downloads with progress bar, resumes on interruption
+- [x] `snapshot::save(vm, "before-build")` creates an internal snapshot
+- [x] `snapshot::load(vm, "before-build")` restores VM to that state
+- [x] No root privileges required for any operation
+- [x] Multiple VMs can launch simultaneously without port conflicts
 
 ## Verification Commands
 

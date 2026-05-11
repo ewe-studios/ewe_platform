@@ -186,13 +186,13 @@ testbed export <name>
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed export linux-build --out ./export.qcow2` exports a valid qcow2 + manifest.json
-- [ ] `ewe_platform testbed export linux-build --store alex_r2` uploads to R2 via rclone
-- [ ] `ewe_platform testbed export linux-build --store team_s3` uploads to S3 via aws CLI
-- [ ] `ewe_platform testbed export linux-build --shrink` produces a smaller compressed qcow2
-- [ ] Exported images can be imported via `testbed.toml` `[[image_stores]]` entries
-- [ ] Manifest shows installed tools and bootstrap version on import
-- [ ] SHA256 verification catches corrupted downloads
+- [x] `ewe_platform testbed export linux-build --out ./export.qcow2` exports a valid qcow2 + manifest.json
+- [x] `ewe_platform testbed export linux-build --store alex_r2` uploads to R2 via rclone
+- [x] `ewe_platform testbed export linux-build --store team_s3` uploads to S3 via aws CLI
+- [x] `ewe_platform testbed export linux-build --shrink` produces a smaller compressed qcow2
+- [x] Exported images can be imported via `testbed.toml` `[[image_stores]]` entries
+- [x] Manifest shows installed tools and bootstrap version on import
+- [x] SHA256 verification catches corrupted downloads
 
 ## Verification Commands
 

@@ -1,12 +1,12 @@
 ---
 description: "Cross-platform VM testbed using QEMU/KVM for building and testing Windows/Linux/macOS binaries from a Linux host"
-status: "in-progress"
+status: "implemented"
 priority: "high"
 created: 2026-05-02
 author: "Main Agent"
 metadata:
   version: "2.0"
-  last_updated: 2026-05-04
+  last_updated: 2026-05-11
   estimated_effort: "large"
   tags: [qemu, vm, cross-compilation, windows, macos, linux, testing]
   stack_files: [rust.md]
@@ -15,10 +15,10 @@ metadata:
 has_features: true
 has_fundamentals: false
 tasks:
-  completed: 85
-  uncompleted: 10
+  completed: 95
+  uncompleted: 0
   total: 95
-  completion_percentage: 89%
+  completion_percentage: 100%
 ---
 
 # Overview
@@ -129,10 +129,10 @@ sequenceDiagram
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed start windows --headless` boots a Windows VM with SSH/WinRM/RDP accessible on localhost
-- [ ] `ewe_platform testbed build windows --project ./my-tauri-app` produces `.msi`/`.exe` artifacts in `.build/windows/`
-- [ ] Multiple VMs can run simultaneously without port conflicts
-- [ ] VM snapshots can be saved and restored
-- [ ] `ewe_platform testbed screenshot windows --out demo.png` captures the Windows display
-- [ ] All errors return `foundation_errstacks::Error` types with actionable messages
-- [ ] Zero root privileges required for any operation
+- [x] `ewe_platform testbed start windows --headless` boots a Windows VM with SSH/WinRM/RDP accessible on localhost
+- [x] `ewe_platform testbed build windows --project ./my-tauri-app` produces `.msi`/`.exe` artifacts in `.build/windows/`
+- [x] Multiple VMs can run simultaneously without port conflicts
+- [x] VM snapshots can be saved and restored
+- [x] `ewe_platform testbed screenshot windows --out demo.png` captures the Windows display
+- [x] All errors return `foundation_errstacks::Error` types with actionable messages
+- [x] Zero root privileges required for any operation

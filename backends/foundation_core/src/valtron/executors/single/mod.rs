@@ -18,16 +18,45 @@ use crate::{
     synca::{IdleMan, SleepyMan},
 };
 use concurrent_queue::ConcurrentQueue;
+use foundation_nostd::primitives::SpinWaiter;
 
-#[derive(Clone, Default)]
-pub struct NoThreadController;
+/// NoThreadController provides a single-threaded ProcessController
+/// that uses iteration-based spinning for environments without OS sleep support (WASM).
+///
+/// Uses SpinWaiter from foundation_nostd which provides:
+/// - Iteration-based timing (not Duration::ZERO which would spin forever)
+/// - Interruptible via AtomicBool flag
+/// - Bounded spinning (never spins forever)
+#[derive(Clone)]
+pub struct NoThreadController {
+    waiter: SpinWaiter,
+}
+
+impl NoThreadController {
+    /// Creates a new NoThreadController with platform-appropriate settings.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            #[cfg(target_arch = "wasm32")]
+            waiter: SpinWaiter::wasm(),
+            #[cfg(not(target_arch = "wasm32"))]
+            waiter: SpinWaiter::embedded(),
+        }
+    }
+}
+
+impl Default for NoThreadController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl ProcessController for NoThreadController {
     fn yield_for(&self, dur: std::time::Duration) {
-        tracing::info!(
-            "Called to yield process for duration({:?}) but NoThreadController does nothing",
-            dur
-        );
+        // Use SpinWaiter instead of doing nothing
+        // This provides actual delay via iteration counting
+        // Works in WASM, no_std, and single-threaded environments
+        self.waiter.wait(dur);
     }
 }
 
@@ -63,7 +92,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
                     ),
                 ),
                 PriorityOrder::Top,
-                NoThreadController,
+                NoThreadController::new(), // Changed from NoThreadController
                 DEFAULT_YIELD_WAIT_TIME,
                 None,
                 None,
