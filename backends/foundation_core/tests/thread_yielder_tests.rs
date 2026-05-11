@@ -14,6 +14,7 @@ use foundation_core::valtron::{
     multi::{initialize_pool, spawn},
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
+use tracing_test::traced_test;
 
 /// Task that returns Delayed with a specific duration
 struct DelayedTask {
