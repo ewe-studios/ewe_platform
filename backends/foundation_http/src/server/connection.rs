@@ -81,7 +81,6 @@ impl ConnectionHandler {
 
     /// Compute exponential backoff delay.
     /// Only called after `idle_poll_count >= escalation_threshold`.
-    #[tracing::instrument(skip(self))]
     fn compute_delay(&self) -> Duration {
         let cycle_position = self
             .idle_poll_count
@@ -98,7 +97,6 @@ impl ConnectionHandler {
     ///
     /// Since `HttpReaderError` wraps `SendableBoxedError` (not `io::Error`),
     /// we classify by variant and error message content.
-    #[tracing::instrument]
     fn is_transient_error(e: &HttpReaderError) -> bool {
         // ReadFailed = stream returned no data, likely WouldBlock or EOF.
         // Treat as transient — the idle_timeout will eventually close stale connections.

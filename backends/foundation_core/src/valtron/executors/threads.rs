@@ -364,7 +364,7 @@ impl ProcessController for ThreadYielder {
                 .send(ThreadActivity::Parked(self.thread_id.clone()))
                 .expect("should sent event");
 
-            std::thread::park_timeout(remaining_timeout);
+            std::thread::park_timeout(std::time::Duration::from_secs(1));
 
             // check the state and see if we've crossed that threshold.
             let elapsed = started.elapsed();
