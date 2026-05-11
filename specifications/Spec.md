@@ -164,13 +164,36 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [23: Valtron Executor Deep Dive](./23-valtron-executor-deep-dive/)
+**Status:** ⏳ Pending
+**Description:** Comprehensive analysis of valtron executor architecture, identifying core behaviors, logic patterns, footguns, and improvement opportunities. Fixes CondVar/park_timeout mismatch causing ~18s test delays.
+**Has Features:** Yes (4 features)
+**Builds On:** [09-multi-threaded-executor-improvements](./09-multi-threaded-executor-improvements/)
+**Related To:** [03-wasm-friendly-sync-primitives](./03-wasm-friendly-sync-primitives/), [04-condvar-primitives](./04-condvar-primitives/), [12-background-job-registry](./12-background-job-registry/)
+
+| Feature | Description | Tasks | Dependencies |
+|---------|-------------|-------|--------------|
+| [00-core-architecture-analysis](./23-valtron-executor-deep-dive/features/00-core-architecture-analysis/) | Deep dive into executor components, state machines, TaskStatus variants | 12 | None |
+| [01-thread-yielder-improvements](./23-valtron-executor-deep-dive/features/01-thread-yielder-improvements/) | Fix CondVar/park_timeout mismatch | 8 | #00 |
+| [02-wasm-compatibility](./23-valtron-executor-deep-dive/features/02-wasm-compatibility/) | no_std-compatible yielding strategy | 6 | #00, #01 |
+| [03-shutdown-mechanism-fixes](./23-valtron-executor-deep-dive/features/03-shutdown-mechanism-fixes/) | Proper sleeper notification | 7 | #00, #01 |
+
+**Total Tasks:** 33
+**Key Issues:**
+- CondVar/park_timeout mismatch (CRITICAL) - causes ~18s test delays
+- NoThreadController does nothing (HIGH) - 100% CPU busy-waiting
+- Sleeping tasks not notified on shutdown (HIGH) - uninterruptible delays
+- drivers.rs busy-waiting (MEDIUM) - inefficient CPU usage
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 8
-- **Completed:** 4 (50%)
-- **In Progress:** 1 (12.5%)
-- **Pending:** 3 (37.5%)
+- **Total Specifications:** 9
+- **Completed:** 4 (44.4%)
+- **In Progress:** 1 (11.1%)
+- **Pending:** 4 (44.4%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -185,6 +208,7 @@ This directory contains all project specifications and requirements. Each specif
 - 07: TCP-Resilient Batch Readers
 - 09: Valtron StreamIterator Migration
 - 17: Foundation JSON Schema
+- 23: Valtron Executor Deep Dive
 
 ## Specification Guidelines
 
@@ -211,4 +235,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-04-28*
+*Last updated: 2026-05-11*

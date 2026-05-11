@@ -164,7 +164,7 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
     let addr = listener.local_addr().expect("local_addr failed");
 
     let config = ServerConfig::defaults().with_keep_alive(
-        foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(120)),
+        foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(5)),
     );
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
