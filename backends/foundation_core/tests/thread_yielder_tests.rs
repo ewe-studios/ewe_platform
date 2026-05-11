@@ -47,6 +47,7 @@ impl TaskIterator for ImmediateTask {
 }
 
 #[test]
+#[traced_test]
 fn shutdown_interrupts_delayed_tasks() {
     let start = Instant::now();
 
