@@ -65,7 +65,10 @@ fn single_threaded_can_spawn_and_run_tasks() {
     initialize_pool(seed);
 
     spawn()
-        .with_task(FiniteTask { remaining: 1, value: 42 })
+        .with_task(FiniteTask {
+            remaining: 1,
+            value: 42,
+        })
         .with_resolver(Box::new(FnReady::new(move |item, _| {
             if let TaskStatus::Ready(val) = item {
                 results_clone.borrow_mut().push(val);
@@ -91,7 +94,10 @@ fn single_threaded_spawns_multiple_tasks() {
     for i in 0..10 {
         let results_clone = Rc::clone(&results);
         spawn()
-            .with_task(FiniteTask { remaining: 1, value: i })
+            .with_task(FiniteTask {
+                remaining: 1,
+                value: i,
+            })
             .with_resolver(Box::new(FnReady::new(move |item, _| {
                 if let TaskStatus::Ready(val) = item {
                     results_clone.borrow_mut().push(val);

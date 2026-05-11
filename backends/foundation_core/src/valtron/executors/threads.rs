@@ -345,7 +345,10 @@ impl ThreadYielders {
         tracing::trace!("ThreadYielders::register() - registering yielder");
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
-        tracing::trace!("ThreadYielders::register() - done, {} yielders registered", yielders.len());
+        tracing::trace!(
+            "ThreadYielders::register() - done, {} yielders registered",
+            yielders.len()
+        );
     }
 
     /// Interrupt all registered yielders.
@@ -354,9 +357,15 @@ impl ThreadYielders {
     pub fn interrupt_all(&self) {
         tracing::trace!("ThreadYielders::interrupt_all() - acquiring read lock");
         let yielders = self.yielders.read().unwrap();
-        tracing::trace!("ThreadYielders::interrupt_all() - interrupting {} yielders", yielders.len());
+        tracing::trace!(
+            "ThreadYielders::interrupt_all() - interrupting {} yielders",
+            yielders.len()
+        );
         for (i, yielder) in yielders.iter().enumerate() {
-            tracing::trace!("ThreadYielders::interrupt_all() - interrupting yielder {}", i);
+            tracing::trace!(
+                "ThreadYielders::interrupt_all() - interrupting yielder {}",
+                i
+            );
             yielder.interrupt();
         }
         tracing::trace!("ThreadYielders::interrupt_all() - done");

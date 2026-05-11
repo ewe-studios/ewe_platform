@@ -165,6 +165,11 @@ pub enum Body {
     /// `LineFeedBody` returns a body reader that iterating through
     /// each line yielding each line to the reader.
     LineFeedBody(SimpleHeaders),
+
+    /// `SseBody` indicates an SSE (Server-Sent Events) body that should be
+    /// parsed as SSE events after HTTP headers have been processed.
+    /// The body content type is `text/event-stream`.
+    SseBody(SimpleHeaders),
 }
 
 pub enum SimpleBody {
@@ -183,7 +188,8 @@ impl From<SendSafeBody> for IncomingResponseParts {
             SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingResponseParts::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
-            | SendSafeBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(val),
+            | SendSafeBody::ChunkedStream(_)
+            | SendSafeBody::SseStream(_) => IncomingResponseParts::StreamedBody(val),
         }
     }
 }
@@ -195,7 +201,8 @@ impl From<SendSafeBody> for IncomingRequestParts {
             SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingRequestParts::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
-            | SendSafeBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(val),
+            | SendSafeBody::ChunkedStream(_)
+            | SendSafeBody::SseStream(_) => IncomingRequestParts::StreamedBody(val),
         }
     }
 }
@@ -300,6 +307,14 @@ pub enum SendSafeBody {
     Stream(Option<BoxedSendableIterator<Vec<u8>, BoxedError>>),
     ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
     LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
+    /// SSE event stream body.
+    ///
+    /// WHY: SSE responses have `Content-Type: text/event-stream` and need special handling.
+    /// WHAT: Holds an iterator that yields SSE events (`ParseResult`) parsed from the stream.
+    ///
+    /// NOTE: The iterator wraps an `SseParser` that reads lines and yields parsed SSE events.
+    /// This allows the HTTP layer to return a complete SSE body handler to the caller.
+    SseStream(Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, BoxedError>>),
 }
 
 impl Eq for SendSafeBody {}
@@ -327,6 +342,11 @@ impl PartialEq for SendSafeBody {
                 (None, None) => true,
                 _ => false,
             },
+            (Self::SseStream(me), Self::SseStream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
             _ => false,
         }
     }
@@ -344,6 +364,7 @@ impl core::fmt::Debug for SendSafeBody {
             Stream(Option<()>),
             ChunkedStream(Option<()>),
             LineFeedStream(Option<()>),
+            SseStream(Option<()>),
         }
 
         let repr = match self {
@@ -356,6 +377,8 @@ impl core::fmt::Debug for SendSafeBody {
             Self::ChunkedStream(None) => SendSafeBodyRepr::ChunkedStream(None),
             Self::LineFeedStream(Some(_)) => SendSafeBodyRepr::LineFeedStream(Some(())),
             Self::LineFeedStream(None) => SendSafeBodyRepr::LineFeedStream(None),
+            Self::SseStream(Some(_)) => SendSafeBodyRepr::SseStream(Some(())),
+            Self::SseStream(None) => SendSafeBodyRepr::SseStream(None),
         };
 
         write!(f, "{repr:?}")
@@ -381,6 +404,9 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::LineFeedStream(iter) => {
                 SimpleBody::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
             }
+            // SseStream cannot be converted to SimpleBody as it requires special handling
+            // In this case, we return SimpleBody::None as SSE streams should be handled separately
+            SendSafeBody::SseStream(_) => SimpleBody::None,
         }
     }
 }
@@ -2139,6 +2165,17 @@ impl Iterator for Http11RequestBodyIterator {
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
+                    SendSafeBody::SseStream(mut streamer_container) => {
+                        // SSE streams should not be rendered as request bodies
+                        // This is a response-only body type
+                        if streamer_container.take().is_some() {
+                            tracing::warn!(
+                                "SseStream body type is not supported for HTTP request rendering"
+                            );
+                        }
+                        self.0 = Some(Http11RequestBodyState::End);
+                        Some(Ok(b"\r\n".to_vec()))
+                    }
                 }
             }
             Http11RequestBodyState::LineFeedStreaming(container) => {
@@ -2480,6 +2517,17 @@ impl Iterator for Http11ResponseIterator {
                             self.0 = Some(Http11ResState::End);
                             Some(Ok(b"".to_vec()))
                         }
+                    }
+                    SendSafeBody::SseStream(mut streamer_container) => {
+                        // SSE streams should not be rendered as response bodies directly
+                        // They are for consuming SSE events, not for HTTP response rendering
+                        if streamer_container.take().is_some() {
+                            tracing::warn!(
+                                "SseStream body type is not supported for HTTP response rendering"
+                            );
+                        }
+                        self.0 = Some(Http11ResState::End);
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -3501,6 +3549,9 @@ where
                             SendSafeBody::Text(inner) => Some(Ok(IncomingRequestParts::SizedBody(
                                 SendSafeBody::Text(inner),
                             ))),
+                            SendSafeBody::SseStream(inner) => Some(Ok(
+                                IncomingRequestParts::StreamedBody(SendSafeBody::SseStream(inner)),
+                            )),
                         }
                     }
                     Err(err) => {
@@ -3815,7 +3866,7 @@ where
                 }
 
                 // if header has content type that is equal to text/event-stream
-                // then set state to line feed streaming body.
+                // then set state to SSE streaming body.
                 if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
                     tracing::trace!("Response content types: {:?}", &content_types,);
                     if content_types
@@ -3825,8 +3876,8 @@ where
                         .count()
                         != 0
                     {
-                        tracing::trace!("Response uses LineFeed based body: {:?}", &content_types,);
-                        self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
+                        tracing::trace!("Response uses SSE based body: {:?}", &content_types,);
+                        self.state = HttpReadState::Body(Body::SseBody(headers.clone()));
 
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
                     }
@@ -3980,6 +4031,9 @@ where
                             )),
                             SendSafeBody::Text(inner) => Some(Ok(
                                 IncomingResponseParts::SizedBody(SendSafeBody::Text(inner)),
+                            )),
+                            SendSafeBody::SseStream(inner) => Some(Ok(
+                                IncomingResponseParts::StreamedBody(SendSafeBody::SseStream(inner)),
                             )),
                         }
                     }
@@ -4889,6 +4943,56 @@ impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
     }
 }
 
+/// Iterator for SSE (Server-Sent Events) streams.
+///
+/// WHY: SSE bodies need to be parsed as events, not just raw bytes or lines.
+/// WHAT: Wraps an SseParser to yield ParseResult items from an SSE stream.
+pub struct SimpleSseIterator<T: std::io::Read + Send>(
+    SimpleHeaders,
+    crate::wire::simple_http::sse::SseParser<T>,
+);
+
+impl<T: std::io::Read + Send> Clone for SimpleSseIterator<T> {
+    fn clone(&self) -> Self {
+        // SseParser cannot be cloned, so we create a new one with the same stream
+        // This is a limitation - SSE streams cannot be truly cloned
+        Self(self.0.clone(), self.1.clone_stream())
+    }
+}
+
+impl<T: std::io::Read + Send> SimpleSseIterator<T> {
+    /// Create a new SSE iterator from headers and a stream.
+    ///
+    /// WHY: SSE streams are created after HTTP headers are parsed.
+    /// WHAT: Wraps the stream in an SseParser for event parsing.
+    #[must_use]
+    pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
+        let parser = crate::wire::simple_http::sse::SseParser::new(stream);
+        Self(headers, parser)
+    }
+}
+
+impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
+    type Item = Result<crate::wire::event_source::ParseResult, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.1.parse_next() {
+            Ok(Some(result)) => {
+                tracing::trace!("SseIterator::next: got event");
+                Some(Ok(result))
+            }
+            Ok(None) => {
+                tracing::trace!("SseIterator::next: end of stream");
+                None
+            }
+            Err(err) => {
+                tracing::error!("SseIterator::next: error: {:?}", err);
+                Some(Err(Box::new(err)))
+            }
+        }
+    }
+}
+
 pub struct SimpleHttpChunkIterator<T: std::io::Read + Send>(
     Vec<String>,
     SimpleHeaders,
@@ -5224,6 +5328,15 @@ impl BodyExtractor for SimpleHttpBody {
                     stream,
                 ));
                 Ok(SendSafeBody::ChunkedStream(Some(chunked_iterator)))
+            }
+            Body::SseBody(headers) => {
+                tracing::trace!(
+                    "SseBody: returning SSE body iterator with headers={:?}",
+                    headers
+                );
+                // Create an SSE iterator that yields ParseResult items
+                let sse_iterator = Box::new(SimpleSseIterator::new(headers, stream));
+                Ok(SendSafeBody::SseStream(Some(sse_iterator)))
             }
         }
     }

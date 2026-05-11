@@ -227,6 +227,9 @@ pub fn collect_string_strict(
                         }
                         Ok(lines.join("\n"))
                     }
+                    SendSafeBody::SseStream(_) => Err(StringBodyError::StreamIteratorError(
+                        "SSE stream cannot be converted to string - use SseParser directly".into(),
+                    )),
                     SendSafeBody::None => Err(StringBodyError::NoBody),
                 };
             }
@@ -384,6 +387,9 @@ pub fn collect_bytes_strict(
                         }
                         Ok(bytes)
                     }
+                    SendSafeBody::SseStream(_) => Err(BodyReaderError::StreamIteratorError(
+                        "SSE stream cannot be converted to bytes - use SseParser directly".into(),
+                    )),
                     SendSafeBody::None => Err(BodyReaderError::NoBody),
                 };
             }
@@ -538,6 +544,12 @@ pub fn collect_bytes_direct(
                         }
                     }
                     return bytes;
+                }
+                SendSafeBody::SseStream(_) => {
+                    tracing::warn!(
+                        "SSE stream cannot be converted to bytes directly - use SseParser"
+                    );
+                    return Vec::new();
                 }
                 SendSafeBody::None => {
                     tracing::debug!("Response has no body");
@@ -755,6 +767,10 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
         SendSafeBody::LineFeedStream(mut opt_iter) => opt_iter
             .take()
             .map_or(Vec::new(), collect_from_linefeed_stream),
+        SendSafeBody::SseStream(_) => {
+            tracing::warn!("SSE stream cannot be collected as bytes directly");
+            Vec::new()
+        }
     }
 }
 
@@ -853,6 +869,10 @@ pub fn collect_bytes_into<W: std::io::Write>(
             if let Some(iter) = opt_iter.take() {
                 total_bytes = write_from_linefeed_stream(iter, writer)?;
             }
+        }
+        SendSafeBody::SseStream(_) => {
+            tracing::warn!("SSE stream cannot be written as bytes directly");
+            // No bytes to write for SSE streams
         }
     }
 
@@ -1205,6 +1225,9 @@ where
                         }
                         Ok(ProcessStreamResult::Completed)
                     }
+                    SendSafeBody::SseStream(_) => Err(BodyReaderError::StreamIteratorError(
+                        "SSE stream cannot be processed as byte chunks".into(),
+                    )),
                     SendSafeBody::None => Ok(ProcessStreamResult::NoBody),
                 };
             }

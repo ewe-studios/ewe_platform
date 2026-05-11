@@ -10,7 +10,8 @@
 //!
 //! HOW: State machine where each `next()` call advances through states.
 //! Uses `HttpConnectionPool` for connection management with pooling support.
-//! Uses `SseParser` to parse SSE events from the connection stream.
+//! Uses `HttpResponseReader` to parse HTTP response headers before SSE parsing,
+//! ensuring HTTP headers are not incorrectly parsed as SSE events.
 //!
 //! PHASE 1 SCOPE: Basic SSE client with `TaskIterator` pattern.
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
@@ -24,8 +25,10 @@ use crate::wire::simple_http::client::HttpClientConnection;
 use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
+    SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use crate::extensions::result_ext::BoxedError;
 use std::io::Write;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -67,9 +70,21 @@ enum EventSourceState {
         url: Uri,
         request: Box<SimpleIncomingRequest>,
     },
+    /// Waiting for HTTP response headers to be parsed.
+    /// This state ensures we properly parse HTTP response before SSE parsing.
+    AwaitingHeaders {
+        conn: HttpClientConnection,
+        reader: HttpSendResponseReader<SimpleHttpBody, RawStream>,
+    },
     Reading {
         conn: HttpClientConnection,
         parser: SseParser<RawStream>,
+        last_activity: Instant,
+    },
+    /// Reading from SSE stream iterator (when body was returned as SseStream).
+    ReadingStream {
+        conn: HttpClientConnection,
+        iterator: Box<dyn Iterator<Item = Result<ParseResult, BoxedError>> + Send>,
         last_activity: Instant,
     },
     Closed(EventSourceCloseReason),
@@ -353,7 +368,8 @@ where
                     "Connection established, sending request"
                 );
 
-                // Clone the stream for the parser (keeps connection handle for pool return)
+                // Clone the stream for response reading (keeps connection handle for pool return)
+                // clone_stream() returns SharedByteBufferStream<RawStream>
                 let stream = connection.clone_stream();
 
                 // Render full HTTP request (headers + body) and write to socket
@@ -361,17 +377,160 @@ where
                 let _ = Http11::Request(*request).http_render_to_writer(&mut stream_writer);
                 let _ = stream_writer.flush();
 
-                debug!(state = "Reading", "Request sent, streaming events");
+                debug!(state = "Connecting", "Request sent, awaiting HTTP response");
 
-                // Create parser from cloned stream
-                let parser = SseParser::new(stream);
+                // Create HttpResponseReader to parse HTTP response headers FIRST
+                // This ensures HTTP headers are not parsed as SSE events
+                // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
+                let reader = HttpSendResponseReader::from(
+                    crate::wire::simple_http::HttpResponseReader::new(
+                        stream,
+                        SimpleHttpBody::default(),
+                    ),
+                );
 
-                self.state = Some(EventSourceState::Reading {
+                self.state = Some(EventSourceState::AwaitingHeaders {
                     conn: connection,
-                    parser,
-                    last_activity: Instant::now(),
+                    reader,
                 });
-                Some(TaskStatus::Pending(EventSourceProgress::Reading))
+                Some(TaskStatus::Pending(EventSourceProgress::Connecting))
+            }
+
+            EventSourceState::AwaitingHeaders { conn, mut reader } => {
+                debug!(state = "AwaitingHeaders", "Reading HTTP response");
+
+                // Read through the response to get past headers
+                // This ensures HTTP headers are parsed and not treated as SSE events
+                let mut status: Option<Status> = None;
+                let mut headers_validated = false;
+
+                loop {
+                    match reader.next() {
+                        Some(Ok(IncomingResponseParts::Intro(s, _, _))) => {
+                            debug!(status = ?s, "Got HTTP status");
+
+                            // Verify status code is 200 OK
+                            if s != Status::OK {
+                                error!(status = ?s, "Unexpected HTTP status code");
+                                self.state = Some(EventSourceState::Closed(
+                                    EventSourceCloseReason::ConnectionError,
+                                ));
+                                return None;
+                            }
+                            status = Some(s);
+                        }
+                        Some(Ok(IncomingResponseParts::Headers(h))) => {
+                            debug!(headers = ?h, "Got HTTP headers");
+
+                            // Verify Content-Type is text/event-stream
+                            let content_type = h
+                                .get(&SimpleHeader::CONTENT_TYPE)
+                                .and_then(|v| v.first())
+                                .map(|s| s.as_str());
+
+                            match content_type {
+                                Some(ct) if ct.contains("text/event-stream") => {
+                                    debug!(content_type = %ct, "Content-Type is valid for SSE");
+                                    headers_validated = true;
+                                }
+                                Some(ct) => {
+                                    error!(content_type = %ct, "Invalid Content-Type for SSE");
+                                    self.state = Some(EventSourceState::Closed(
+                                        EventSourceCloseReason::ConnectionError,
+                                    ));
+                                    return None;
+                                }
+                                None => {
+                                    error!("Missing Content-Type header");
+                                    self.state = Some(EventSourceState::Closed(
+                                        EventSourceCloseReason::ConnectionError,
+                                    ));
+                                    return None;
+                                }
+                            }
+                        }
+                        Some(Ok(IncomingResponseParts::StreamedBody(SendSafeBody::SseStream(
+                            opt_iter,
+                        )))) => {
+                            debug!("Got SSE stream body");
+                            // Extract the iterator from SseStream
+                            match opt_iter {
+                                Some(iterator) => {
+                                    // Transition to ReadingStream state with the iterator
+                                    self.state =
+                                        Some(EventSourceState::ReadingStream {
+                                            conn,
+                                            iterator,
+                                            last_activity: Instant::now(),
+                                        });
+                                    return Some(TaskStatus::Pending(
+                                        EventSourceProgress::Reading,
+                                    ));
+                                }
+                                None => {
+                                    error!("SseStream iterator is None");
+                                    self.state = Some(EventSourceState::Closed(
+                                        EventSourceCloseReason::ConnectionError,
+                                    ));
+                                    return None;
+                                }
+                            }
+                        }
+                        Some(Ok(IncomingResponseParts::SizedBody(_))) => {
+                            error!("Expected streamed SSE body, got sized body");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
+                        }
+                        Some(Ok(IncomingResponseParts::NoBody)) => {
+                            error!("Response has no body");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
+                        }
+                        Some(Err(e)) => {
+                            error!(error = ?e, "Failed to read HTTP response");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
+                        }
+                        None => {
+                            if !headers_validated {
+                                error!("HTTP response ended before headers");
+                                self.state = Some(EventSourceState::Closed(
+                                    EventSourceCloseReason::ConnectionError,
+                                ));
+                                return None;
+                            }
+                            // End of response, but this shouldn't happen for SSE
+                            break;
+                        }
+                        _ => {
+                            // Skip unknown parts
+                            continue;
+                        }
+                    }
+                }
+
+                // Ensure we got a valid status and headers
+                if status.is_none() || !headers_validated {
+                    error!("Incomplete HTTP response");
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
+                    return None;
+                }
+
+                // We should have transitioned to ReadingStream above
+                // If we're here, something went wrong
+                error!("Failed to transition to ReadingStream state");
+                self.state = Some(EventSourceState::Closed(
+                    EventSourceCloseReason::ConnectionError,
+                ));
+                None
             }
 
             EventSourceState::Reading {
@@ -420,6 +579,62 @@ where
                     }
                     None => {
                         debug!(state = "Reading", "Stream EOF");
+                        // EOF - stream exhausted
+                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::Eof));
+                        None
+                    }
+                }
+            }
+
+            // EventSourceState::ReadingIter variant removed - we now use SseParser directly
+            // which provides the same Iterator interface
+
+            EventSourceState::ReadingStream {
+                mut iterator,
+                last_activity,
+                conn,
+            } => {
+                // Check for idle timeout
+                if let Some(timeout) = self.idle_timeout() {
+                    if last_activity.elapsed() > timeout {
+                        warn!(
+                            elapsed_secs = ?last_activity.elapsed().as_secs(),
+                            timeout_secs = ?timeout.as_secs(),
+                            "Idle timeout exceeded"
+                        );
+                        // Idle timeout exceeded - close connection for reconnection
+                        self.state = Some(EventSourceState::Closed(
+                            EventSourceCloseReason::IdleTimeout,
+                        ));
+                        return None;
+                    }
+                }
+
+                trace!(state = "ReadingStream", "Polling for SSE events");
+
+                match iterator.next() {
+                    Some(Ok(parse_result)) => {
+                        // Track last event ID from ParseResult
+                        if parse_result.last_known_id.is_some() {
+                            self.last_event_id = parse_result.last_known_id.clone();
+                        }
+                        // Reset activity timestamp on successful event
+                        self.state = Some(EventSourceState::ReadingStream {
+                            conn,
+                            iterator,
+                            last_activity: Instant::now(),
+                        });
+                        Some(TaskStatus::Ready(parse_result))
+                    }
+                    Some(Err(e)) => {
+                        error!(error = ?e, "SSE parse error");
+                        // I/O or parse error - close the connection
+                        self.state =
+                            Some(EventSourceState::Closed(EventSourceCloseReason::ParseError));
+                        None
+                    }
+                    None => {
+                        debug!(state = "ReadingStream", "Stream EOF");
                         // EOF - stream exhausted
                         self.state = Some(EventSourceState::Closed(EventSourceCloseReason::Eof));
                         None

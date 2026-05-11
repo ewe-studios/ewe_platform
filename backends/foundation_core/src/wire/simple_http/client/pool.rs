@@ -114,10 +114,16 @@ impl ConnectionPool {
             // Pop from the back (LIFO reuse) until we find a valid non-stale stream
             while let Some((ts, stream)) = queue.pop_back() {
                 if now.duration_since(ts) <= self.max_idle_time {
-                    tracing::debug!("[pool] checkout hit for {key} (idle {:?})", now.duration_since(ts));
+                    tracing::debug!(
+                        "[pool] checkout hit for {key} (idle {:?})",
+                        now.duration_since(ts)
+                    );
                     return Some(stream);
                 }
-                tracing::debug!("[pool] checkout stale for {key} (idle {:?})", now.duration_since(ts));
+                tracing::debug!(
+                    "[pool] checkout stale for {key} (idle {:?})",
+                    now.duration_since(ts)
+                );
             }
             // If queue is empty, remove the key to keep map small
             if queue.is_empty() {

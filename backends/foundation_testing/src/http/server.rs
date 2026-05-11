@@ -514,6 +514,18 @@ impl TestHttpServer {
             stream.write_all(&rendered)?;
             stream.flush()?;
             tracing::info!("flush response");
+
+            // Check if Connection: close was requested
+            // HTTP/1.1 defaults to keep-alive, so we only close if explicitly requested
+            let should_close = response
+                .headers
+                .iter()
+                .any(|(k, v)| k.eq_ignore_ascii_case("connection") && v.eq_ignore_ascii_case("close"));
+
+            if should_close {
+                tracing::debug!("Connection: close requested, closing connection");
+                break;
+            }
         }
 
         Ok(())
