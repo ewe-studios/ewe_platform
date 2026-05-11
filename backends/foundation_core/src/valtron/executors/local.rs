@@ -56,6 +56,18 @@ pub enum Sleepable {
     Atomic(sync::Arc<AtomicBool>, Entry),
 }
 
+impl Sleepable {
+    /// Returns the deadline when this sleeper will be ready.
+    /// For Timable sleepers, returns the Instant when duration expires.
+    /// For Atomic sleepers, returns None (no specific deadline).
+    pub fn deadline(&self) -> Option<time::Instant> {
+        match self {
+            Sleepable::Timable(inner) => Some(inner.deadline()),
+            Sleepable::Atomic(_, _) => None,
+        }
+    }
+}
+
 impl Timeable for Sleepable {
     fn remaining_duration(&self) -> Option<time::Duration> {
         match self {
@@ -380,6 +392,20 @@ impl ExecutorState {
     #[must_use]
     pub fn has_sleeping_tasks(&self) -> bool {
         self.sleepers.has_pending_tasks()
+    }
+
+    /// Returns the duration until the next sleeper wakes up.
+    ///
+    /// Used for sleeper-aware yielding - when no work is available,
+    /// threads can sleep until the earliest sleeper deadline instead
+    /// of using a fixed yield duration.
+    ///
+    /// Returns None if no sleepers are registered.
+    /// Returns Duration::ZERO if a sleeper is already past its deadline.
+    #[inline]
+    #[must_use]
+    pub fn time_until_next_wakeup(&self) -> Option<time::Duration> {
+        self.sleepers.time_until_next()
     }
 
     /// Returns True/False indicative if the executor has any local
@@ -1288,6 +1314,14 @@ impl ReferencedExecutorState {
         self.inner.number_of_sleepers()
     }
 
+    /// Returns the duration until the next sleeper wakes up.
+    /// Used for sleeper-aware yielding in worker threads.
+    #[inline]
+    #[must_use]
+    pub fn time_until_next_wakeup(&self) -> Option<time::Duration> {
+        self.inner.time_until_next_wakeup()
+    }
+
     #[inline]
     #[must_use]
     pub fn total_tasks(&self) -> usize {
@@ -1974,7 +2008,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     break;
                 }
             }
-            self.yielder.yield_for(self.no_work_yield);
+            // Use sleeper-aware yielding: sleep until the next sleeper wakes up
+            // or fall back to the default yield duration if no sleepers exist
+            let yield_duration = self
+                .state
+                .time_until_next_wakeup()
+                .unwrap_or(self.no_work_yield);
+            self.yielder.yield_for(yield_duration);
         }
         tracing::debug!("run_until: exited loop");
     }
@@ -2008,7 +2048,12 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::CanProgress(_) => {}
                 }
             }
-            self.yielder.yield_for(self.no_work_yield);
+            // Use sleeper-aware yielding when no immediate work
+            let yield_duration = self
+                .state
+                .time_until_next_wakeup()
+                .unwrap_or(self.no_work_yield);
+            self.yielder.yield_for(yield_duration);
         }
     }
 
@@ -2054,7 +2099,12 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         tracing::debug!("No work received, yielding until signaled");
-                        self.yielder.yield_for(self.no_work_yield);
+                        // Use sleeper-aware yielding: sleep until next sleeper wakes
+                        let yield_duration = self
+                            .state
+                            .time_until_next_wakeup()
+                            .unwrap_or(self.no_work_yield);
+                        self.yielder.yield_for(yield_duration);
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {

@@ -52,7 +52,7 @@ fn tauri_app_host_path() -> PathBuf {
 }
 
 /// Path to the example Tauri app inside the guest, relative to the mount point.
-const TAURI_APP_GUEST: &str = "tauri-app";
+const TAURI_APP_GUEST: &str = "examples/testbed/tauri-app";
 
 // ── 10.3 VM Lifecycle Tests ──────────────────────────────────────────────────
 
