@@ -166,6 +166,11 @@ impl<T> DurationWaker<T> {
             .checked_add(self.how_long)
             .map(|when_ready| when_ready.checked_duration_since(now).is_none())
     }
+
+    /// Returns the deadline when this waker will be ready.
+    pub fn deadline(&self) -> time::Instant {
+        self.from + self.how_long
+    }
 }
 
 #[derive(Debug)]
@@ -265,10 +270,48 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.sleepers.read().unwrap().active_slots()
     }
 
-    /// Returns the list of
+    /// Returns the list of matured (ready) sleepers.
     #[must_use]
     pub fn get_matured(&self) -> Vec<T> {
         self.sleepers.write().unwrap().select_take(Waiter::is_ready)
+    }
+
+    /// Returns the earliest deadline among all Timable sleepers.
+    ///
+    /// Used to calculate how long a thread should sleep when no work is available.
+    /// Returns None if no sleepers have deadlines (e.g., all are Atomic).
+    pub fn minimum_deadline(&self) -> Option<time::Instant>
+    where
+        T: crate::synca::sleepers::Timeable,
+    {
+        let sleepers = self.sleepers.read().unwrap();
+        let remaining_durations: Vec<time::Duration> = (*sleepers)
+            .map_with(|sleeper| sleeper.remaining_duration())
+            .into_iter()
+            .collect();
+        let deadlines: Vec<time::Instant> = remaining_durations
+            .into_iter()
+            .map(|remaining| time::Instant::now() + remaining)
+            .collect();
+        deadlines.into_iter().min()
+    }
+
+    /// Returns the duration until the earliest sleeper deadline.
+    ///
+    /// Returns None if no sleepers have deadlines.
+    /// Returns Duration::ZERO if a sleeper is already past its deadline.
+    pub fn time_until_next(&self) -> Option<time::Duration>
+    where
+        T: crate::synca::sleepers::Timeable,
+    {
+        self.minimum_deadline().map(|deadline| {
+            let now = time::Instant::now();
+            if deadline > now {
+                deadline - now
+            } else {
+                time::Duration::ZERO
+            }
+        })
     }
 }
 #[cfg(test)]
