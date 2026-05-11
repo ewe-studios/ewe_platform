@@ -7,13 +7,14 @@
 //! These tests verify that sequential no-body + body requests succeed
 //! when connection pooling is enabled.
 
-use foundation_core::valtron::single::initialize_pool;
+use foundation_core::valtron::initialize_pool;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use tracing_test::traced_test;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -29,9 +30,10 @@ fn server_addr(server: &TestHttpServer) -> SocketAddr {
 /// the second request fails with `ReadFailed` because the stream was
 /// returned to the pool in an inconsistent state.
 #[test]
-#[serial(valtron)]
+#[serial(valtron_pool)]
+#[traced_test]
 fn test_pool_204_then_get_succeeds() {
-    initialize_pool(45);
+    let _guard = initialize_pool(45, None);
 
     let request_count = Arc::new(AtomicUsize::new(0));
     let request_count_clone = request_count.clone();
@@ -93,15 +95,19 @@ fn test_pool_204_then_get_succeeds() {
 /// with connection pooling. Each HEAD response returns the connection to
 /// the pool after draining.
 #[test]
-#[serial(valtron)]
+#[serial(valtron_pool)]
+#[traced_test]
 fn test_pool_sequential_head_requests() {
-    initialize_pool(45);
+    let _guard = initialize_pool(45, None);
 
     let request_count = Arc::new(AtomicUsize::new(0));
     let request_count_clone = request_count.clone();
 
+    tracing::trace!("[test] starting testhttpserver");
     let server = TestHttpServer::with_response(move |_req| {
         request_count.fetch_add(1, Ordering::SeqCst);
+
+        tracing::trace!("[TEST] Sending response");
         HttpResponse {
             status: 200,
             status_text: "OK".to_string(),
@@ -116,9 +122,11 @@ fn test_pool_sequential_head_requests() {
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
 
+    tracing::trace!("[TEST] Creating http client");
     let client = SimpleHttpClient::from_system();
 
     for i in 0..3 {
+        tracing::trace!("[test] sending request for head at index: {}", i);
         let resp = client
             .head(&base_url)
             .unwrap()
@@ -127,15 +135,21 @@ fn test_pool_sequential_head_requests() {
             .send()
             .unwrap_or_else(|e| panic!("HEAD request {} should succeed: {e}", i + 1));
 
+        tracing::trace!("[TEST] Received response for request: {}", i);
         assert_eq!(
             resp.get_status().into_usize(),
             200,
             "HEAD {} should return 200",
             i + 1
         );
+        tracing::trace!(
+            "[TEST] Finished checking status for request response: {}",
+            i
+        );
     }
 
     assert_eq!(request_count_clone.load(Ordering::SeqCst), 3);
+    tracing::trace!("Finished test");
 }
 
 /// WHY: Verify the full sequence that originally exposed the bug:
@@ -143,15 +157,18 @@ fn test_pool_sequential_head_requests() {
 /// with `ReadFailed` because the DELETE's 204 response left the
 /// connection in an inconsistent state.
 #[test]
-#[serial(valtron)]
+#[serial(valtron_pool)]
+#[traced_test]
 fn test_pool_put_head_delete_head_sequence() {
-    initialize_pool(45);
+    let _guard = initialize_pool(45, None);
 
+    tracing::trace!("[test] starting testhttpserver");
     let request_count = Arc::new(AtomicUsize::new(0));
     let request_count_clone = request_count.clone();
 
     let server = TestHttpServer::with_response(move |_req| {
         request_count.fetch_add(1, Ordering::SeqCst);
+        tracing::trace!("[TEST] Sending response");
         HttpResponse {
             status: 200,
             status_text: "OK".to_string(),
@@ -163,9 +180,11 @@ fn test_pool_put_head_delete_head_sequence() {
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
 
+    tracing::trace!("[TEST] Creating http client");
     let client = SimpleHttpClient::from_system();
 
     // PUT
+    tracing::trace!("[TEST] Sending put request");
     let resp = client
         .put(&base_url)
         .unwrap()
@@ -176,6 +195,7 @@ fn test_pool_put_head_delete_head_sequence() {
     assert_eq!(resp.get_status().into_usize(), 200);
 
     // HEAD (first)
+    tracing::trace!("[TEST] Sending head request");
     let resp = client
         .head(&base_url)
         .unwrap()
@@ -186,6 +206,7 @@ fn test_pool_put_head_delete_head_sequence() {
     assert_eq!(resp.get_status().into_usize(), 200);
 
     // DELETE
+    tracing::trace!("[TEST] Sending delete request");
     let resp = client
         .delete(&base_url)
         .unwrap()
@@ -196,6 +217,7 @@ fn test_pool_put_head_delete_head_sequence() {
     assert_eq!(resp.get_status().into_usize(), 200);
 
     // HEAD (second) — this previously failed with ReadFailed
+    tracing::trace!("[TEST] Sending head(2) request");
     let resp = client
         .head(&base_url)
         .unwrap()
@@ -206,4 +228,5 @@ fn test_pool_put_head_delete_head_sequence() {
     assert_eq!(resp.get_status().into_usize(), 200);
 
     assert_eq!(request_count_clone.load(Ordering::SeqCst), 4);
+    tracing::trace!("[TEST] Finished tests");
 }

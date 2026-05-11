@@ -46,17 +46,54 @@ impl HttpClientConnection {
     /// # Arguments
     ///
     /// * `stream` - The stream to drain
+    #[tracing::instrument(skip(self))]
     pub fn drain_stream(&mut self) {
+        tracing::trace!("drain_stream: starting to drain connection");
+
         // Read any remaining buffered data into a small buffer
         // This ensures the HTTP response reader state machine is fully consumed
         let mut drain_buf = [0u8; 1024];
+        let mut total_drained: usize = 0;
+        let mut iterations: u32 = 0;
+
         loop {
+            iterations += 1;
+            tracing::trace!(
+                "drain_stream: iteration {}, total_drained={}",
+                iterations,
+                total_drained
+            );
+
             match self.stream.read(&mut drain_buf) {
-                Ok(0) => break,    // EOF - stream fully drained
-                Ok(_) => continue, // More data read, keep draining
-                Err(_) => break,   // Read error - stop draining to avoid blocking
+                Ok(0) => {
+                    tracing::trace!(
+                        "drain_stream: EOF reached after {} iterations, {} bytes drained",
+                        iterations,
+                        total_drained
+                    );
+                    break; // EOF - stream fully drained
+                }
+                Ok(n) => {
+                    total_drained += n;
+                    tracing::trace!("drain_stream: read {} bytes (total: {})", n, total_drained);
+                    continue; // More data read, keep draining
+                }
+                Err(e) => {
+                    tracing::trace!(
+                        "drain_stream: read error after {} iterations: {:?}",
+                        iterations,
+                        e
+                    );
+                    break; // Read error - stop draining to avoid blocking
+                }
             }
         }
+
+        tracing::trace!(
+            "drain_stream: completed - drained {} bytes in {} iterations",
+            total_drained,
+            iterations
+        );
     }
 }
 

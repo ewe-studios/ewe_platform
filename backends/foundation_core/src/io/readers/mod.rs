@@ -104,16 +104,18 @@ impl<R: Read> Iterator for BatchReader<R> {
     type Item = Result<Data, io::Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         if self.done {
+            tracing::trace!("Reading is now considered done!");
             return None;
         }
 
         let mut buf = vec![0u8; self.batch_size];
         match self.reader.read(&mut buf) {
             Ok(0) => {
-                tracing::debug!("Zero bytes read occured");
+                tracing::trace!("Zero bytes read occured");
                 if self.eof_on_zero_read {
-                    tracing::debug!("Stream is now considered finished");
+                    tracing::trace!("Stream is now considered finished");
                     self.done = true;
                     None
                 } else {
@@ -138,10 +140,15 @@ impl<R: Read> Iterator for BatchReader<R> {
                 }
             }
             Ok(n) => {
-                tracing::debug!("Received data Bytes(len={})", n);
+                tracing::trace!("Received data Bytes(len={})", n);
                 self.received_data = true;
                 self.consecutive_retries = 0;
                 buf.truncate(n);
+                tracing::trace!(
+                    "Truncating to length Bytes(len={}) with data: {:?}",
+                    n,
+                    &buf
+                );
                 Some(Ok(Data::Bytes(buf)))
             }
             Err(e)
@@ -149,15 +156,24 @@ impl<R: Read> Iterator for BatchReader<R> {
             {
                 tracing::error!("Timeout/WouldBlock error received: {:?}", &e);
                 self.consecutive_retries += 1;
+                tracing::trace!(
+                    "Checking consecutive errors (max={}): current={}",
+                    &self.max_consecutive_retries,
+                    self.consecutive_retries
+                );
                 if self.consecutive_retries > self.max_consecutive_retries {
                     self.done = true;
 
                     // if data was received then we know maybe its
                     // just really EOF. Let the data interpreter decides.
                     if self.received_data {
+                        tracing::trace!("Finished reading, saw data, ending");
                         return None;
                     }
 
+                    tracing::trace!(
+                        "Problematic, max retries reached, returning exahaustion errors"
+                    );
                     Some(Err(io::Error::new(
                         e.kind(),
                         "max consecutive retries exceeded without progress",

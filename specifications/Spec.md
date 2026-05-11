@@ -187,13 +187,31 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [25: Valtron Quality Improvements](./25-valtron-quality-improvements/)
+**Status:** ⏳ Pending
+**Description:** Address footguns, semantic bugs, and quality issues in valtron module identified during deep-dive review. Covers iterator semantics, performance, error propagation, and code quality.
+**Has Features:** No
+**Builds On:** [23-valtron-executor-deep-dive](./23-valtron-executor-deep-dive/)
+
+**Key Issues:**
+- TaskIterator/Iterator blanket impl recursion trap (HIGH)
+- CollectAllStream O(n) remove instead of swap_remove (HIGH)
+- TransformIterator conflates filtering with termination (HIGH)
+- StateMachineTask silently swallows errors (MEDIUM)
+- MapAllPendingAndDoneStream discards exhausted sources (MEDIUM)
+- Multi-threaded stream wait uses spin+sleep polling (MEDIUM)
+
+**Total Tasks:** 13
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 9
-- **Completed:** 4 (44.4%)
-- **In Progress:** 1 (11.1%)
-- **Pending:** 4 (44.4%)
+- **Total Specifications:** 10
+- **Completed:** 4 (40%)
+- **In Progress:** 1 (10%)
+- **Pending:** 5 (50%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -209,6 +227,7 @@ This directory contains all project specifications and requirements. Each specif
 - 09: Valtron StreamIterator Migration
 - 17: Foundation JSON Schema
 - 23: Valtron Executor Deep Dive
+- 25: Valtron Quality Improvements
 
 ## Specification Guidelines
 
@@ -235,4 +254,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-05-11*
+*Last updated: 2026-05-12*
