@@ -1,0 +1,2 @@
+qemu-system-x86_64: -drive file=/home/darkvoid/.cache/foundation_testbed/images/ubuntu-24.04-x86_64.qcow2,format=qcow2,if=virtio: Failed to get "write" lock
+Is another process using the image [/home/darkvoid/.cache/foundation_testbed/images/ubuntu-24.04-x86_64.qcow2]?

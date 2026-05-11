@@ -53,7 +53,7 @@ futures-core = { version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
-serial_test = "0.6.0"
+serial_test = "3.3.1"
 
 [lints]
 workspace = true

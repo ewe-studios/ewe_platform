@@ -340,18 +340,26 @@ impl ThreadYielders {
     }
 
     /// Register a yielder for interrupt tracking.
+    #[tracing::instrument(skip(self))]
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
+        tracing::trace!("ThreadYielders::register() - registering yielder");
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
+        tracing::trace!("ThreadYielders::register() - done, {} yielders registered", yielders.len());
     }
 
     /// Interrupt all registered yielders.
     /// Call this when new work arrives to wake threads waiting in yield_for.
+    #[tracing::instrument(skip(self))]
     pub fn interrupt_all(&self) {
+        tracing::trace!("ThreadYielders::interrupt_all() - acquiring read lock");
         let yielders = self.yielders.read().unwrap();
-        for yielder in yielders.iter() {
+        tracing::trace!("ThreadYielders::interrupt_all() - interrupting {} yielders", yielders.len());
+        for (i, yielder) in yielders.iter().enumerate() {
+            tracing::trace!("ThreadYielders::interrupt_all() - interrupting yielder {}", i);
             yielder.interrupt();
         }
+        tracing::trace!("ThreadYielders::interrupt_all() - done");
     }
 }
 
@@ -371,6 +379,14 @@ pub struct ThreadYielder {
     condvar: Arc<CondVar>,
     /// State for CondVar waiting
     wait_state: Arc<CvMutex<WaitState>>,
+}
+
+impl std::fmt::Debug for ThreadYielder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ThreadYielder")
+            .field("thread_id", &self.thread_id)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -395,12 +411,28 @@ impl ThreadYielder {
     }
 
     /// Interrupt the current wait by notifying the CondVar.
-    /// This wakes the thread waiting in `wait_timeout` immediately.
+    /// This wakes the thread waiting in `wait_timeout_while` immediately.
+    ///
+    /// WHY: Called during shutdown (via interrupt_all_yielders) or when new work arrives
+    /// WHAT: Sets state to Notified and calls notify_all() on the CondVar
+    /// HOW:
+    ///   1. Acquire lock on wait_state
+    ///   2. Set state to Notified (causes predicate in wait_timeout_while to return false)
+    ///   3. Call notify_all() to wake any waiting threads
+    ///
+    /// This wakes threads waiting in yield_for() even if they're in the middle
+    /// of a long sleep. The wait_timeout_while will check the predicate again
+    /// after waking and return immediately since state != Waiting.
+    #[tracing::instrument(skip(self))]
     pub fn interrupt(&self) {
+        tracing::trace!("ThreadYielder::interrupt() - setting state to Notified");
         if let Ok(mut guard) = self.wait_state.lock() {
             *guard = WaitState::Notified;
+            tracing::trace!("ThreadYielder::interrupt() - state set to Notified");
         }
+        tracing::trace!("ThreadYielder::interrupt() - calling condvar.notify_all()");
         self.condvar.notify_all();
+        tracing::trace!("ThreadYielder::interrupt() - done");
     }
 }
 
@@ -417,33 +449,53 @@ impl Clone for ThreadYielder {
 }
 
 impl ProcessController for ThreadYielder {
+    /// WHY: Uses CondVar::wait_timeout_while for interruptible waiting
+    /// WHAT: Blocks thread with timeout, but can be woken early via interrupt()
+    /// HOW:
+    ///   1. Acquire lock on wait_state
+    ///   2. Call wait_timeout_while which atomically:
+    ///      - Checks predicate (returns immediately if false)
+    ///      - If true, unlocks mutex and waits for timeout or notification
+    ///      - On wakeup, re-locks mutex and re-checks predicate
+    ///   3. Returns when either:
+    ///      - Duration expires (timed_out=true)
+    ///      - interrupt() sets state to Notified and calls notify_all()
+    ///
+    /// CRITICAL FIX: wait_timeout_while returns the guard still locked.
+    /// We MUST use that returned guard directly to reset state.
+    /// Attempting to acquire the lock again causes deadlock.
     fn yield_for(&self, dur: std::time::Duration) {
+        tracing::trace!("ThreadYielder::yield_for() - START, duration={:?}", dur);
         // Send parked notification
         self.sender
             .send(ThreadActivity::Parked(self.thread_id.clone()))
             .expect("should send event");
 
-        // Use CondVar::wait_timeout instead of park_timeout
-        // This allows interruption via notify_all from shutdown
+        tracing::trace!("ThreadYielder::yield_for() - acquiring wait_state lock");
         let guard = self.wait_state.lock().unwrap();
-        if *guard == WaitState::Notified {
-            // Already notified - reset and return immediately
-            // (shouldn't happen in normal flow, but handle it)
-        } else {
-            // Wait for the duration or until notified
-            let _result = self.condvar.wait_timeout(guard, dur);
-            // Result tells us if we were notified or timed out
-            // In either case, we continue
-        }
 
-        // Reset state for next use
-        if let Ok(mut guard) = self.wait_state.lock() {
-            *guard = WaitState::Waiting;
-        }
+        tracing::trace!("ThreadYielder::yield_for() - calling wait_timeout_while");
+        // Wait while not notified (spurious wakeups are handled by re-checking)
+        // The wait_timeout_while atomically:
+        // 1. Checks the predicate (returns immediately if false)
+        // 2. If predicate is true, unlocks mutex and waits
+        // 3. On wakeup, re-locks mutex and re-checks predicate
+        // This ensures we never miss a notification that arrives between check and wait
+        let (mut guard, result) = self
+            .condvar
+            .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
+            .unwrap();
+        let _timed_out = result.timed_out();
+        tracing::trace!("ThreadYielder::yield_for() - wait_timeout_while returned");
+
+        // CRITICAL: Reset state using the guard returned by wait_timeout_while.
+        // The guard is still locked - don't try to acquire again or deadlock!
+        *guard = WaitState::Waiting;
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
             .expect("should send event");
+        tracing::trace!("ThreadYielder::yield_for() - END");
     }
 }
 
@@ -1378,8 +1430,11 @@ impl ThreadRegistry {
     }
 
     /// Register a yielder for interrupt_all tracking.
+    #[tracing::instrument(skip(self))]
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
+        tracing::trace!("ThreadRegistry::register_yielder() - registering yielder");
         self.yielders.register(yielder);
+        tracing::trace!("ThreadRegistry::register_yielder() - done");
     }
 
     /// Get the shared yielders registry.
@@ -1391,7 +1446,9 @@ impl ThreadRegistry {
     /// Interrupt all registered yielders.
     /// Call this during shutdown to wake threads waiting in yield_for.
     pub fn interrupt_all_yielders(&self) {
+        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - calling interrupt_all");
         self.yielders.interrupt_all();
+        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - done");
     }
 
     /// Shutdown the registry - signals kill and waits for all threads.
