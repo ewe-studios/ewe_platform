@@ -1,12 +1,13 @@
 [package]
 name = "foundation_shell"
 version = "0.0.1"
+description = "A nushell integrated library for integrating nushell as a library in any project"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords.workspace = true
+keywords = ["foundation_shell", "foundation_nushell"]
 
 [dependencies]
 foundation_core = { workspace = true }
