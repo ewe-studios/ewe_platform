@@ -15,6 +15,7 @@ use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use tracing_test::traced_test;
 
 // -- TestHttpServer-based tests (initial connection verification)
 
@@ -34,6 +35,7 @@ fn server_addr(server: &TestHttpServer) -> SocketAddr {
 /// with GET/no body, so `.with_body()` only applied to reconnections.
 #[test]
 #[serial(valtron_pool)]
+#[traced_test]
 fn test_reconnecting_task_initial_connection_sends_post_with_body() {
     #[derive(Clone, Default)]
     struct CapturedRequest {
@@ -155,6 +157,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 /// 4. Both connections have the Authorization header
 #[test]
 #[serial(valtron_pool)]
+#[traced_test]
 fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
     #[derive(Clone, Default)]
     struct CapturedRequests {

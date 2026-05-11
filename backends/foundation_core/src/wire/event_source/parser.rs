@@ -125,7 +125,9 @@ impl<R: Read> SseParser<R> {
         loop {
             let mut line = String::new();
 
+            tracing::trace!("Pulling next set of bytes from reader");
             let bytes_read = self.buffer.read_line(&mut line)?;
+            tracing::trace!("Read total bytes {} from reader: {:?}", bytes_read, &line);
 
             if bytes_read == 0 {
                 // EOF - dispatch any accumulated data before returning
