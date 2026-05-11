@@ -104,7 +104,7 @@ tracing-core = { version = "0.1" }
 thiserror = { version = "2"}
 
 # specific for testing serially
-serial_test = "0.6.0"
+serial_test = "3.3.1"
 
 # testing with timeouts
 ntest = "0.9"

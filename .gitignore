@@ -171,3 +171,6 @@ artefacts/temples/output_directory
 
 *.gguf
 *.safetensors
+
+backends/foundation_testbed/.testbed
+backends/foundation_testbed/.testbed/.*

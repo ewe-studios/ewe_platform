@@ -14,6 +14,7 @@ use foundation_core::valtron::{
     multi::{initialize_pool, spawn},
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
+use serial_test::serial;
 use tracing_test::traced_test;
 
 /// Task that returns Ready a limited number of times then completes
@@ -40,6 +41,8 @@ impl TaskIterator for FiniteTask {
 /// WHAT: Tasks should complete normally when sleeper-aware yielding is active
 /// HOW: Spawn tasks and verify they complete within expected time
 #[test]
+#[traced_test]
+#[serial]
 fn basic_execution_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
@@ -48,7 +51,10 @@ fn basic_execution_with_sleeper_aware_yielding() {
 
     // Spawn a simple task
     spawn()
-        .with_task(FiniteTask { remaining: 5, value: 42 })
+        .with_task(FiniteTask {
+            remaining: 5,
+            value: 42,
+        })
         .with_resolver(Box::new(FnReady::new(move |item, _| {
             if let TaskStatus::Ready(val) = item {
                 counter_clone.fetch_add(val, Ordering::SeqCst);
@@ -71,6 +77,8 @@ fn basic_execution_with_sleeper_aware_yielding() {
 /// WHAT: Multiple concurrent tasks should all complete
 /// HOW: Spawn multiple tasks and verify all complete
 #[test]
+#[traced_test]
+#[serial]
 fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
@@ -81,7 +89,10 @@ fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     for i in 0..5 {
         let results_inner = Arc::clone(&results_clone);
         spawn()
-            .with_task(FiniteTask { remaining: 1, value: i })
+            .with_task(FiniteTask {
+                remaining: 1,
+                value: i,
+            })
             .with_resolver(Box::new(FnReady::new(move |item, _| {
                 if let TaskStatus::Ready(val) = item {
                     results_inner.lock().unwrap().push(val);

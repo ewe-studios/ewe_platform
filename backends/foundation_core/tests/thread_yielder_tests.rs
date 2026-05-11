@@ -5,6 +5,7 @@
 
 #![cfg(feature = "multi")]
 
+use serial_test::serial;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
@@ -48,11 +49,12 @@ impl TaskIterator for ImmediateTask {
 
 #[test]
 #[traced_test]
+#[serial]
 fn shutdown_interrupts_delayed_tasks() {
     let start = Instant::now();
 
-    // Initialize pool with 2 threads
-    let guard = initialize_pool(2, Some(42));
+    // Initialize pool with seed=42, thread_num=10
+    let guard = initialize_pool(42, Some(10));
 
     // Spawn task with 10s delay
     spawn()
@@ -81,10 +83,12 @@ fn shutdown_interrupts_delayed_tasks() {
 }
 
 #[test]
+#[traced_test]
+#[serial]
 fn multiple_delayed_tasks_shutdown_quickly() {
     let start = Instant::now();
 
-    let guard = initialize_pool(4, Some(42));
+    let guard = initialize_pool(42, Some(4));
 
     // Spawn multiple tasks with long delays
     for _ in 0..10 {
@@ -117,9 +121,11 @@ fn multiple_delayed_tasks_shutdown_quickly() {
 /// When a thread is sleeping on a long sleeper deadline, spawning new work
 /// should interrupt the sleep so the new work is picked up quickly.
 #[test]
+#[traced_test]
+#[serial]
 fn new_work_interrupts_sleep() {
     let start = Instant::now();
-    let guard = initialize_pool(2, Some(42));
+    let guard = initialize_pool(42, Some(4));
 
     // Spawn task with long delay - this will cause the thread to sleep for 30s
     spawn()

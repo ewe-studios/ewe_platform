@@ -4,11 +4,13 @@ use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
     get_allocatable_thread_count, split_thread_count, task::TaskIterator, BackgroundJobRegistry,
-    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper, ThreadYielders,
+    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper,
 };
 
 use crate::synca::{LockSignal, OnSignal};
-use crate::valtron::{SharedTaskQueue, SharedThreadYielders, ThreadPoolTaskBuilder, ThreadRegistry};
+use crate::valtron::{
+    SharedTaskQueue, SharedThreadYielders, ThreadPoolTaskBuilder, ThreadRegistry,
+};
 
 use super::background::DEFAULT_BG_YIELD_DURATION;
 use super::PoolGuard;
