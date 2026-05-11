@@ -145,7 +145,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
-        install_webview2(session, winrm)
+        install_webview2(profile, session, winrm)
     })?;
 
     logger::step(logger, "set Windows Defender exclusions", || {
@@ -240,7 +240,7 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
-        install_webview2(session, winrm)
+        install_webview2(profile, session, winrm)
     })?;
 
     logger::step(logger, "set Windows Defender exclusions", || {
@@ -470,12 +470,83 @@ fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: Prog
 }
 
 /// Install WebView2 Runtime (required by Tauri).
-fn install_webview2(_session: &mut VmSession, winrm: &WinRM) -> Result<()> {
-    let check = winrm.run_ps(CHECK_WEBVIEW2_PS1)?;
-    if check.stdout.trim() == "installed" {
-        return Ok(());
+///
+/// Includes retry logic with WinRM reconnection — after long-running operations
+/// (like project mount setup), WinRM may become temporarily unavailable.
+fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM) -> Result<()> {
+    // Retry loop: check if already installed
+    let mut last_error = None;
+    for attempt in 0..3 {
+        if attempt > 0 {
+            tracing::debug!("WebView2 check attempt {}/3", attempt + 1);
+            std::thread::sleep(std::time::Duration::from_secs(5));
+        }
+        match winrm.run_ps(CHECK_WEBVIEW2_PS1) {
+            Ok(check) => {
+                if check.stdout.trim() == "installed" {
+                    return Ok(());
+                }
+                break; // Not installed, proceed to installation
+            }
+            Err(e) => {
+                tracing::warn!("WebView2 check failed (attempt {}): {}", attempt + 1, e);
+                last_error = Some(e);
+            }
+        }
     }
-    winrm.run_ps(INSTALL_WEBVIEW2_PS1)?;
+
+    // If all checks failed, try to restart WinRM service via SSH
+    if last_error.is_some() {
+        tracing::info!("WinRM unreachable, attempting recovery via SSH...");
+
+        // Try to restart WinRM service via SSH PowerShell
+        let restart_script = r#"
+            try {
+                Restart-Service -Name 'WinRM' -Force -ErrorAction Stop
+                Start-Sleep -Seconds 3
+                $svc = Get-Service -Name 'WinRM'
+                if ($svc.Status -eq 'Running') { 'RESTARTED' } else { 'FAILED' }
+            } catch { 'FAILED: ' + $_.Exception.Message }
+        "#;
+
+        match crate::ssh::exec_ps_windows(session, restart_script) {
+            Ok((output, _)) => {
+                tracing::info!("WinRM restart result: {}", output.trim());
+                std::thread::sleep(std::time::Duration::from_secs(10));
+            }
+            Err(e) => {
+                tracing::warn!("SSH WinRM restart failed: {}", e);
+            }
+        }
+    }
+
+    // Retry installation with fresh WinRM connection
+    for attempt in 0..3 {
+        if attempt > 0 {
+            tracing::debug!("WebView2 install attempt {}/3", attempt + 1);
+            std::thread::sleep(std::time::Duration::from_secs(10));
+        }
+
+        // Use fresh WinRM connection for each attempt
+        let fresh_winrm = crate::winrm::WinRM::from_profile(profile)?;
+        match fresh_winrm.run_ps(INSTALL_WEBVIEW2_PS1) {
+            Ok(_) => return Ok(()),
+            Err(e) => {
+                tracing::warn!("WebView2 install failed (attempt {}): {}", attempt + 1, e);
+                if attempt == 2 {
+                    // Last attempt - try via SSH PowerShell directly
+                    tracing::info!("Trying WebView2 install via SSH as fallback...");
+                    return crate::ssh::exec_ps_windows(session, INSTALL_WEBVIEW2_PS1)
+                        .map(|_| ())
+                        .map_err(|e| TestbedError::BootstrapFailed {
+                            step: "install WebView2 Runtime".to_string(),
+                            message: format!("All WinRM and SSH attempts failed: {}", e),
+                        });
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 

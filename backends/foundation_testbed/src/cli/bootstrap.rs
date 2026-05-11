@@ -159,8 +159,18 @@ fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &Bo
         .map_err(|e| format!("SSH connection failed: {e}"))?;
     bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress, force_vsbuild)?;
 
-    // Verify
-    if !bootstrap::is_bootstrapped(profile) {
+    // Verify with retry — WinRM may need time to stabilize after nushell setup
+    let mut verified = false;
+    for attempt in 0..5 {
+        if bootstrap::is_bootstrapped(profile) {
+            verified = true;
+            break;
+        }
+        if attempt < 4 {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+        }
+    }
+    if !verified {
         return Err(crate::config::TestbedError::BootstrapFailed {
             step: "verification".to_string(),
             message: "bootstrap marker not found after completion".to_string(),

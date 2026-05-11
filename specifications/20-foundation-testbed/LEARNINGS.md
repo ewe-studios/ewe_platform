@@ -82,3 +82,44 @@ Even with `viofs` driver installed, Windows doesn't have a native `mount` comman
 
 ### Image Export
 Configured Windows qcow2 (17GB) exported to `/home/darkvoid/EweStore/Testbed/` for reuse. EweStore serves as the centralized artifact store for VM images and ISOs.
+
+### WebView2 Installation Failure & Fix (2026-05-10)
+**Problem:** After long-running project mount setup (~3.5 min), WinRM becomes unreachable with "WinRM not reachable on port 5985", causing WebView2 installation to fail.
+
+**Root Cause:** WinRM service becomes temporarily unresponsive after extended elevated operations (scheduled task running as SYSTEM for virtiofs mount setup). The WinRM shell connection times out or becomes stale.
+
+**Solution:** Enhanced `install_webview2()` with retry logic and WinRM recovery:
+1. **Retry loop** — 3 attempts with delays for check and installation phases
+2. **WinRM recovery via SSH** — When WinRM fails, restart the WinRM service via SSH PowerShell
+3. **Fresh connections** — Each retry creates a new WinRM connection
+4. **SSH fallback** — Last resort: install via SSH PowerShell directly
+
+**Code Pattern:**
+```rust
+fn install_with_recovery(profile, session, winrm) {
+    // Try original WinRM connection with retries
+    for attempt in 0..3 {
+        match winrm.run_ps(script) {
+            Ok(result) => return Ok(result),
+            Err(e) => retry_with_delay(),
+        }
+    }
+    
+    // Recovery: restart WinRM via SSH
+    if winrm_still_failing {
+        ssh::exec_ps_windows(session, "Restart-Service WinRM")?;
+        sleep(Duration::from_secs(10));
+    }
+    
+    // Retry with fresh connections
+    for attempt in 0..3 {
+        let fresh_winrm = WinRM::from_profile(profile)?;
+        match fresh_winrm.run_ps(script) {
+            Ok(result) => return Ok(result),
+            Err(e) => retry_or_fallback_to_ssh(),
+        }
+    }
+}
+```
+
+**Key Insight:** WinRM is reliable for short operations but can become unresponsive after long-running SYSTEM tasks. Having SSH as a fallback/recovery mechanism makes the bootstrap resilient.
