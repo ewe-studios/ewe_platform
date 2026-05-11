@@ -13,6 +13,7 @@ const CONFIGURE_MISE_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/linux
 const INSTALL_TOOLS_MISE_SH: &str = include_str!("../../scripts/linux/install_tools_mise.sh");
 const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/linux/set_nushell_default_shell.sh");
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/linux/setup_ssh_keys.sh");
+const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/linux/setup_project_mount.sh");
 
 /// Tauri system dependencies on Debian/Ubuntu that mise cannot install.
 const TAURI_SYSTEM_DEPS: &[&str] = &[
@@ -103,11 +104,31 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         Ok(())
     })?;
 
+    logger::step(logger, "set up project mount", || {
+        setup_project_mount(session)
+    })?;
+
     logger::step(logger, "write bootstrap marker", || {
         crate::ssh::exec(session, "touch ~/.testbed-bootstrapped")?;
         Ok(())
     })?;
 
+    Ok(())
+}
+
+fn setup_project_mount(session: &mut VmSession) -> Result<()> {
+    // Check if already mounted
+    let check = crate::ssh::exec(
+        session,
+        "mount | grep -q '9p' && echo 'mounted' || echo 'not mounted'",
+    )?;
+    if check.contains("mounted") {
+        return Ok(());
+    }
+
+    // Create mount point and mount
+    let script = SETUP_PROJECT_MOUNT_SH;
+    crate::ssh::exec(session, script)?;
     Ok(())
 }
 

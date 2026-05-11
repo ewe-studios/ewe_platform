@@ -355,11 +355,11 @@ cargo run -p ewe_platform -- testbed network windows-build --type virtiofs --hos
 - [x] SMB wrapper script fixes ncalrpc issue with modern Samba
 - [x] `testbed network` command implemented for testing mount configurations
 - [x] Daemonize mode runs full diagnosis in background then stops VM
-- [ ] Windows VM boots and virtiofs mount is available at `C:\Users\vagrant\project`
-- [ ] Host files are visible inside VM through mount (e.g., `Cargo.toml` exists)
-- [ ] SMB fallback works when virtiofs fails
-- [ ] Mount persists across VM reboots
-- [ ] `test_project_mount_windows` E2E test passes
+- [x] Windows VM boots and virtiofs mount is available at `C:\Users\vagrant\project`
+- [x] Host files are visible inside VM through mount (e.g., `Cargo.toml` exists)
+- [x] SMB fallback works when virtiofs fails
+- [x] Mount persists across VM reboots
+- [x] `test_project_mount_windows` E2E test passes
 
 ---
 

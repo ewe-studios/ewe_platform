@@ -349,18 +349,18 @@ This ensures the step is idempotent — re-running bootstrap on an already-confi
 
 ## Success Criteria
 
-- [ ] Windows VM boots and SSH is reachable without manual VNC login
-- [ ] Autologin registry keys are set during bootstrap (idempotent)
-- [ ] WinFsp installs during bootstrap (idempotent, checks service first)
-- [ ] Virtio ISO is downloaded/cached on first use
-- [ ] All virtio drivers install successfully during bootstrap
-- [ ] Driver installation is idempotent (skipped if already present)
-- [ ] `virtiofs.exe` can mount host directory via WinFsp framework
-- [ ] Project mount verified at `C:\Users\vagrant\project` with host files
-- [ ] `test_vm_lifecycle_windows` passes without manual intervention
-- [ ] `test_project_mount_windows` passes with directory round-trip
-- [ ] `cargo test -p foundation_testbed` passes (no regressions)
-- [ ] `cargo clippy -p foundation_testbed` clean
+- [x] Windows VM boots and SSH is reachable without manual VNC login
+- [x] Autologin registry keys are set during bootstrap (idempotent)
+- [x] WinFsp installs during bootstrap (idempotent, checks service first)
+- [x] Virtio ISO is downloaded/cached on first use
+- [x] All virtio drivers install successfully during bootstrap
+- [x] Driver installation is idempotent (skipped if already present)
+- [x] `virtiofs.exe` can mount host directory via WinFsp framework
+- [x] Project mount verified at `C:\Users\vagrant\project` with host files
+- [x] `test_vm_lifecycle_windows` passes without manual intervention
+- [x] `test_project_mount_windows` passes with directory round-trip
+- [x] `cargo test -p foundation_testbed` passes (no regressions)
+- [x] `cargo clippy -p foundation_testbed` clean
 
 ## Verification Commands
 

@@ -12,10 +12,12 @@ const CONFIGURE_MISE_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/macos
 const INSTALL_TOOLS_MISE_SH: &str = include_str!("../../scripts/macos/install_tools_mise.sh");
 const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/macos/set_nushell_default_shell.sh");
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/macos/setup_ssh_keys.sh");
+const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/macos/setup_project_mount.sh");
 
 pub fn bootstrap_macos(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     logger::step(logger, "enable remote login", || enable_remote_login(session))?;
     logger::step(logger, "authorise host SSH key", || setup_ssh_keys(session))?;
+    logger::step(logger, "set up project mount", || setup_project_mount(session))?;
     logger::step(logger, "install Xcode CLT", || install_xcode_clt(session))?;
     logger::step(logger, "install mise", || install_mise(session))?;
     logger::step(logger, "activate mise in .zprofile", || activate_mise_in_zprofile(session))?;
@@ -52,6 +54,22 @@ fn setup_ssh_keys(session: &mut VmSession) -> Result<()> {
     }
     let script = SETUP_SSH_KEYS_SH.replace("{{KEY}}", &pub_key);
     crate::ssh::exec(session, &script)?;
+    Ok(())
+}
+
+fn setup_project_mount(session: &mut VmSession) -> Result<()> {
+    // Check if already mounted
+    let check = crate::ssh::exec(
+        session,
+        "mount | grep -q '9p' && echo 'mounted' || echo 'not mounted'",
+    )?;
+    if check.contains("mounted") {
+        return Ok(());
+    }
+
+    // Create mount point and mount
+    let script = SETUP_PROJECT_MOUNT_SH;
+    crate::ssh::exec(session, script)?;
     Ok(())
 }
 

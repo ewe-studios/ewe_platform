@@ -127,12 +127,12 @@ Inside VMs, the bootstrap installs mise and nushell, then uses mise to manage al
 
 ## Success Criteria
 
-- [ ] `ewe_platform testbed doctor` works from anywhere in the project
-- [ ] `ewe_platform testbed start windows --headless` boots VM from the platform binary
-- [ ] `ewe_platform testbed ui click windows --x 500 --y 300` sends a mouse click
-- [ ] `ewe_platform testbed ui validate windows --template testbed/golden-windows.png` compares screenshot
-- [ ] README covers all commands with examples
-- [ ] `mise install` in `backends/foundation_testbed/` installs QEMU
+- [x] `ewe_platform testbed doctor` works from anywhere in the project
+- [x] `ewe_platform testbed start windows --headless` boots VM from the platform binary
+- [x] `ewe_platform testbed ui click windows --x 500 --y 300` sends a mouse click
+- [x] `ewe_platform testbed ui validate windows --template testbed/golden-windows.png` compares screenshot
+- [x] README covers all commands with examples
+- [x] `mise install` in `backends/foundation_testbed/` installs QEMU
 
 ## Verification Commands
 

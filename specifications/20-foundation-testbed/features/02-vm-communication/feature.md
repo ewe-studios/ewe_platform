@@ -1,18 +1,18 @@
 ---
 feature: "VM Communication"
 description: "SSH client layer, WinRM SOAP client, and image download/import — platform-agnostic communication with guest VMs"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["qemu-backend"]
 estimated_effort: "medium"
 created: 2026-05-02
-last_updated: 2026-05-02
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 8
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 8
+  completion_percentage: 100%
 ---
 
 # VM Communication Feature
@@ -91,14 +91,14 @@ Provides the communication channels between the host and guest VMs. This layer i
 
 ## Success Criteria
 
-- [ ] `ssh::connect(profile)` establishes connection with auth fallback chain
-- [ ] `ssh::exec(session, "echo hello")` returns "hello"
-- [ ] `ssh::exec_streaming(profile, "sleep 5 && echo done")` shows live output on terminal
-- [ ] `winrm.ping()` returns true when Windows VM WinRM is listening
-- [ ] `winrm.run_ps("Get-Host")` returns PowerShell host info with exit code 0
-- [ ] `winrm.run_elevated("Restart-Service sshd", 60)` runs as SYSTEM and completes
-- [ ] `import::download(url, dest)` downloads with progress, resumes on interruption
-- [ ] All code compiles on Linux without macOS dependencies
+- [x] `ssh::connect(profile)` establishes connection with auth fallback chain
+- [x] `ssh::exec(session, "echo hello")` returns "hello"
+- [x] `ssh::exec_streaming(profile, "sleep 5 && echo done")` shows live output on terminal
+- [x] `winrm.ping()` returns true when Windows VM WinRM is listening
+- [x] `winrm.run_ps("Get-Host")` returns PowerShell host info with exit code 0
+- [x] `winrm.run_elevated("Restart-Service sshd", 60)` runs as SYSTEM and completes
+- [x] `import::download(url, dest)` downloads with progress, resumes on interruption
+- [x] All code compiles on Linux without macOS dependencies
 
 ## Verification Commands
 

@@ -83,7 +83,7 @@ QEMU creates a temporary directory with smb.conf but doesn't create the `ncalrpc
 - [x] Windows scripts include `-t project` tag
 - [x] WinFsp installation script
 - [x] virtio-win driver installation script
-- [ ] **Needs testing**: Full Windows VM boot with virtiofs mount
+- [x] **Needs testing**: Full Windows VM boot with virtiofs mount
 
 ---
 

@@ -18,6 +18,7 @@ pub mod reader_spin_rwlock;
 pub mod spin_mutex;
 pub mod spin_rwlock;
 pub mod spin_wait;
+pub mod spin_waiter;
 pub mod wait_duration;
 
 // Re-export poison types
@@ -46,6 +47,7 @@ pub use atomic_option::AtomicOption;
 // Re-export synchronization helpers
 pub use barrier::{BarrierWaitResult, SpinBarrier};
 pub use spin_wait::SpinWait;
+pub use spin_waiter::SpinWaiter;
 
 // Re-export condvar types (includes mutexes and guards)
 pub use condvar::{

@@ -1,18 +1,18 @@
 ---
 feature: "Bootstrap & Build Pipeline"
 description: "Idempotent OS bootstrapping, code sync, tool installation, cargo tauri build, and artifact retrieval inside VMs"
-status: "pending"
+status: "implemented"
 priority: "high"
 depends_on: ["vm-communication"]
 estimated_effort: "large"
 created: 2026-05-02
-last_updated: 2026-05-02
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
-  completed: 0
+  completed: 1
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 1
+  completion_percentage: 100%
 ---
 
 # Bootstrap & Build Pipeline Feature
@@ -138,21 +138,21 @@ When building `x86_64-unknown-linux-gnu` from an ARM64 Linux VM:
 
 ## Success Criteria
 
-- [ ] First `ewe_platform testbed start windows` bootstraps a fresh VM in ~15-25 minutes
-- [ ] Subsequent `start windows` skips bootstrap (marker file present) in <1 minute
-- [ ] Failed mid-way bootstrap resumes from last incomplete step (step-by-step idempotency)
-- [ ] `ewe_platform testbed build windows --project ./tauri-app` produces `.msi` in `.build/windows/x86_64/`
-- [ ] `ewe_platform testbed build linux --project ./tauri-app` produces `.deb` in `.build/linux/arm64/`
-- [ ] Build failure extracts error stanzas from log automatically
-- [ ] Bootstrap is idempotent — re-running on already-bootstrapped VM is a no-op
-- [ ] Linux multiarch enables x86_64 cross-compilation from ARM64 Linux VM
-- [ ] Nushell is set as the default shell on both Windows and Linux VMs after bootstrap
-- [ ] All VM-side commands execute via `nu -c "..."` with consistent behavior across OSes
-- [ ] Windows Defender exclusions configured (project, .cargo, .rustup directories)
-- [ ] ARM64 Windows hosts force x86_64 rustup default-host (VS Build Tools workaround)
-- [ ] Host SSH public key installed in VM (both user + admin paths on Windows)
-- [ ] Per-phase elapsed timing printed on build completion
-- [ ] `testbed init` creates `$PWD/.testbed/scripts/<vm>/startup/` and `shutdown/` directories with built-in defaults
+- [x] First `ewe_platform testbed start windows` bootstraps a fresh VM in ~15-25 minutes
+- [x] Subsequent `start windows` skips bootstrap (marker file present) in <1 minute
+- [x] Failed mid-way bootstrap resumes from last incomplete step (step-by-step idempotency)
+- [x] `ewe_platform testbed build windows --project ./tauri-app` produces `.msi` in `.build/windows/x86_64/`
+- [x] `ewe_platform testbed build linux --project ./tauri-app` produces `.deb` in `.build/linux/arm64/`
+- [x] Build failure extracts error stanzas from log automatically
+- [x] Bootstrap is idempotent — re-running on already-bootstrapped VM is a no-op
+- [x] Linux multiarch enables x86_64 cross-compilation from ARM64 Linux VM
+- [x] Nushell is set as the default shell on both Windows and Linux VMs after bootstrap
+- [x] All VM-side commands execute via `nu -c "..."` with consistent behavior across OSes
+- [x] Windows Defender exclusions configured (project, .cargo, .rustup directories)
+- [x] ARM64 Windows hosts force x86_64 rustup default-host (VS Build Tools workaround)
+- [x] Host SSH public key installed in VM (both user + admin paths on Windows)
+- [x] Per-phase elapsed timing printed on build completion
+- [x] `testbed init` creates `$PWD/.testbed/scripts/<vm>/startup/` and `shutdown/` directories with built-in defaults
 
 ## Verification Commands
 

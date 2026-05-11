@@ -10,6 +10,7 @@
 use clap::{ArgMatches, Command};
 
 mod bootstrap;
+mod build;
 mod debloat;
 mod provider;
 mod qemu;
@@ -39,6 +40,31 @@ pub fn command() -> Command {
                 .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
                 .arg(clap::Arg::new("force-vsbuild").long("force-vsbuild-install").action(clap::ArgAction::SetTrue)
                     .help("Skip VS Build Tools precheck and force reinstallation (Windows only)")),
+        )
+        .subcommand(
+            Command::new("build")
+                .about("Build a project inside a VM and retrieve artifacts")
+                .arg_required_else_help(true)
+                .arg(clap::Arg::new("profile").required(true).help("VM profile name"))
+                .arg(
+                    clap::Arg::new("project")
+                        .long("project")
+                        .short('p')
+                        .required(true)
+                        .help("Path to the project directory to build"),
+                )
+                .arg(
+                    clap::Arg::new("target")
+                        .long("target")
+                        .short('t')
+                        .help("Target triple override (e.g., x86_64-pc-windows-msvc)"),
+                )
+                .arg(
+                    clap::Arg::new("no-artifacts")
+                        .long("no-artifacts")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Skip artifact retrieval (leave in VM)"),
+                ),
         )
         .subcommand(
             Command::new("debloat")
@@ -265,6 +291,7 @@ pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + S
         Some(("ls", _)) => provider::cmd_ls(),
         Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m),
         Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m),
+        Some(("build", m)) => build::cmd_build(m),
         Some(("debloat", m)) => debloat::cmd_debloat(m),
         // SSH-based commands
         Some(("exec", m)) => ssh_cmds::cmd_exec(m),

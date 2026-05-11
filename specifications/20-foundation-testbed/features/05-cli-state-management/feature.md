@@ -6,7 +6,7 @@ priority: "high"
 depends_on: ["runner-utilities"]
 estimated_effort: "medium"
 created: 2026-05-02
-last_updated: 2026-05-04
+last_updated: 2026-05-11
 author: "Main Agent"
 tasks:
   completed: 14
@@ -208,12 +208,12 @@ Each `ewe_platform testbed <command>` delegates to a `foundation_testbed` public
 
 ## Success Criteria
 
-- [ ] All 21 CLI commands are registered and callable via `ewe_platform testbed <cmd>`
-- [ ] `ewe_platform testbed doctor` prints actionable health status
-- [ ] VM state persists across restarts of the CLI
-- [ ] Stale PIDs are detected and cleaned up automatically
-- [ ] Custom profiles via `~/.config/foundation_testbed/config.toml` work
-- [ ] All errors are `TestbedError` variants with helpful messages
+- [x] All 21 CLI commands are registered and callable via `ewe_platform testbed <cmd>`
+- [x] `ewe_platform testbed doctor` prints actionable health status
+- [x] VM state persists across restarts of the CLI
+- [x] Stale PIDs are detected and cleaned up automatically
+- [x] Custom profiles via `~/.config/foundation_testbed/config.toml` work
+- [x] All errors are `TestbedError` variants with helpful messages
 
 ## Verification Commands
 
