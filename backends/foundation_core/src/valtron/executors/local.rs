@@ -1974,16 +1974,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     where
         S: Fn(ProgressIndicator) -> bool,
     {
-        /// panics: if [`kill_signal`] is not set or instantiated
-        /// require `kill_signal` to be provided.
-        let kill_signal = self.kill_signal
-            .clone()
-            .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
-
         loop {
-            if kill_signal.probe() {
-                tracing::debug!("Received signal to stop and die at loop level, stopping");
-                return;
+            // Check kill_signal if provided, otherwise continue
+            if let Some(ref kill_signal) = self.kill_signal {
+                if kill_signal.probe() {
+                    tracing::debug!("Received signal to stop and die at loop level, stopping");
+                    return;
+                }
             }
 
             let local_executor = self.state.local_engine();

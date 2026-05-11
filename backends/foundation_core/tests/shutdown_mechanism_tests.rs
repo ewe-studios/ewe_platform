@@ -14,6 +14,7 @@ use foundation_core::valtron::{
     multi::{initialize_pool, spawn},
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
+use serial_test::serial;
 use tracing_test::traced_test;
 
 /// Task that returns Ready a limited number of times then completes
@@ -41,6 +42,7 @@ impl TaskIterator for FiniteTask {
 /// HOW: Spawn tasks and verify they complete within expected time
 #[test]
 #[traced_test]
+#[serial]
 fn basic_execution_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
@@ -73,6 +75,7 @@ fn basic_execution_with_sleeper_aware_yielding() {
 /// HOW: Spawn multiple tasks and verify all complete
 #[test]
 #[traced_test]
+#[serial]
 fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     let _guard = initialize_pool(42, Some(3));
 
