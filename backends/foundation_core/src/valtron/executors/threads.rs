@@ -13,7 +13,7 @@ use std::{
         Arc,
     },
     thread::JoinHandle,
-    time::{self, Instant},
+    time::{self},
 };
 
 use crate::valtron::{ConcurrentQueueStreamIterator, Stream, DEFAULT_YIELD_WAIT_TIME};
@@ -49,6 +49,7 @@ use crate::valtron::{
 };
 
 use crate::compati::{Mutex, RwLock};
+use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
 // ============================================================================
 // PoolGuard - Drop-based Lifecycle Handle
@@ -139,6 +140,8 @@ impl PoolGuard {
             tracing::warn!("PoolGuard::shutdown() - signaling kill to all threads");
             // Signal kill to all threads (shared signal stops both registries)
             self.registry.kill_signal().turn_on();
+            // Interrupt all yielding threads (wakes CondVar waits)
+            self.registry.interrupt_all_yielders();
             // Wake all blocked/parked task threads
             self.registry.latch().signal_all();
             // Shut down background workers first (they share the kill signal)
@@ -323,6 +326,16 @@ pub struct ThreadYielder {
     thread_id: ThreadId,
     latch: Arc<LockSignal>,
     sender: mpp::Sender<ThreadActivity>,
+    /// CondVar for interruptible waiting - replaces park_timeout
+    condvar: Arc<CondVar>,
+    /// State for CondVar waiting
+    wait_state: Arc<CvMutex<WaitState>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum WaitState {
+    Waiting,
+    Notified,
 }
 
 impl ThreadYielder {
@@ -335,48 +348,61 @@ impl ThreadYielder {
             thread_id,
             latch,
             sender,
+            condvar: Arc::new(CondVar::new()),
+            wait_state: Arc::new(CvMutex::new(WaitState::Waiting)),
         }
+    }
+
+    /// Interrupt the current wait by notifying the CondVar.
+    /// This wakes the thread waiting in `wait_timeout` immediately.
+    pub fn interrupt(&self) {
+        if let Ok(mut guard) = self.wait_state.lock() {
+            *guard = WaitState::Notified;
+        }
+        self.condvar.notify_all();
     }
 }
 
 impl Clone for ThreadYielder {
     fn clone(&self) -> Self {
-        Self::new(
-            self.thread_id.clone(),
-            self.latch.clone(),
-            self.sender.clone(),
-        )
+        Self {
+            thread_id: self.thread_id.clone(),
+            latch: self.latch.clone(),
+            sender: self.sender.clone(),
+            condvar: self.condvar.clone(),
+            wait_state: self.wait_state.clone(),
+        }
     }
 }
 
 impl ProcessController for ThreadYielder {
     fn yield_for(&self, dur: std::time::Duration) {
-        // will request that the current thread be
-        // parked for the giving duration though parking
-        // may not last that duration so you need to be aware
-        // the thread could be woken up, so we
-        // specifically loop till we've reached beyond duration
-        let started = Instant::now();
+        // Send parked notification
+        self.sender
+            .send(ThreadActivity::Parked(self.thread_id.clone()))
+            .expect("should send event");
 
-        let mut remaining_timeout = dur;
-        loop {
-            self.sender
-                .send(ThreadActivity::Parked(self.thread_id.clone()))
-                .expect("should sent event");
+        // Use CondVar::wait_timeout instead of park_timeout
+        // This allows interruption via notify_all from shutdown
+        let guard = self.wait_state.lock().unwrap();
+        if *guard == WaitState::Notified {
+            // Already notified - reset and return immediately
+            // (shouldn't happen in normal flow, but handle it)
+        } else {
+            // Wait for the duration or until notified
+            let _result = self.condvar.wait_timeout(guard, dur);
+            // Result tells us if we were notified or timed out
+            // In either case, we continue
+        }
 
-            std::thread::park_timeout(remaining_timeout);
-
-            // check the state and see if we've crossed that threshold.
-            let elapsed = started.elapsed();
-            if elapsed >= remaining_timeout {
-                break;
-            }
-            remaining_timeout -= remaining_timeout;
+        // Reset state for next use
+        if let Ok(mut guard) = self.wait_state.lock() {
+            *guard = WaitState::Waiting;
         }
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
-            .expect("should sent event");
+            .expect("should send event");
     }
 }
 
@@ -1150,6 +1176,9 @@ pub struct ThreadRegistry {
     // Thread tracking
     registry: SharedThreadRegistry,
     thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
+
+    // Yielder tracking for interrupt_all
+    yielders: RwLock<Vec<Arc<ThreadYielder>>>,
 }
 
 impl std::fmt::Debug for ThreadRegistry {
@@ -1245,6 +1274,7 @@ impl ThreadRegistry {
                 threads: EntryList::new(),
             }))),
             thread_handles: RwLock::new(HashMap::new()),
+            yielders: RwLock::new(Vec::new()),
         }
     }
 
@@ -1291,9 +1321,26 @@ impl ThreadRegistry {
         &self.waitgroup
     }
 
+    /// Register a yielder for interrupt_all tracking.
+    pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
+        let mut yielders = self.yielders.write().unwrap();
+        yielders.push(yielder);
+    }
+
+    /// Interrupt all registered yielders.
+    /// Call this during shutdown to wake threads waiting in yield_for.
+    pub fn interrupt_all_yielders(&self) {
+        let yielders = self.yielders.read().unwrap();
+        for yielder in yielders.iter() {
+            yielder.interrupt();
+        }
+    }
+
     /// Shutdown the registry - signals kill and waits for all threads.
     pub fn shutdown(&self) {
         self.kill_signal.turn_on();
+        // Interrupt all yielding threads first
+        self.interrupt_all_yielders();
         self.latch.signal_all();
         self.waitgroup.wait();
         self.join_all_threads();
@@ -1415,9 +1462,11 @@ impl ThreadRegistry {
         };
 
         // Register thread in registry first
+        let worker_tag = format!("worker-{seed}");
+
         let thread_ref = ThreadRef::new(
             seed,
-            format!("worker-{seed}"),
+            worker_tag.clone(),
             self.shared_tasks.clone(),
             None,
             self.registry.clone(),
@@ -1434,10 +1483,13 @@ impl ThreadRegistry {
         // Get updated thread_ref from registry (process field is now populated)
         let thread_ref = self.registry.get_thread(thread_id.clone());
 
+        // Register the yielder for interrupt_all tracking
+        let process_clone = thread_ref.process.clone().unwrap();
+        self.register_yielder(Arc::new(process_clone.clone()));
+
         let priority = self.priority.clone();
         let seed_clone = thread_ref.seed;
         let task_clone = thread_ref.tasks.clone();
-        let process_clone = thread_ref.process.clone().unwrap();
         let thread_kill_signal = thread_ref.global_kill_signal.clone();
 
         let sender_id = thread_id.clone();
@@ -1459,7 +1511,7 @@ impl ThreadRegistry {
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
-            tracing::warn!("Worker thread {} STARTED", seed_clone);
+            tracing::info!("Worker thread({}) {} STARTED", &worker_tag, seed_clone);
 
             // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
@@ -1471,6 +1523,7 @@ impl ThreadRegistry {
 
                 let thread_executor = LocalThreadExecutor::from_seed(
                     seed_clone,
+                    worker_tag.clone(),
                     task_clone,
                     IdleMan::new(
                         thread_max_idle_count,
@@ -1497,13 +1550,23 @@ impl ThreadRegistry {
                 sender
                     .send(ThreadActivity::Stopped(sender_id.clone()))
                     .expect("should send event");
+                tracing::trace!(
+                    "Worker thread({}) {} stopped blocking and shoiuld now stop (ok)",
+                    &worker_tag,
+                    seed_clone
+                );
             }) {
                 Ok(()) => {
-                    tracing::warn!("Worker thread {} STOPPED (ok)", seed_clone);
+                    tracing::warn!("Worker thread({}) {} STOPPED (ok)", &worker_tag, seed_clone);
                     Ok(())
                 }
                 Err(err) => {
-                    tracing::warn!("Worker thread {} STOPPED (panic: {:?})", seed_clone, err);
+                    tracing::warn!(
+                        "Worker thread({}) {} STOPPED (panic: {:?})",
+                        &worker_tag,
+                        seed_clone,
+                        err
+                    );
                     sender
                         .send(ThreadActivity::Panicked(sender_id.clone(), err))
                         .expect("should send event");

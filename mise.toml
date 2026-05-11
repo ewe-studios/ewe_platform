@@ -13,7 +13,16 @@
 [env]
 CARGO_TERM_COLOR = "always"
 PROJECT_ROOT = "{{config_root}}"
-_.path = ["./node_modules/.bin", "./tools/depot_tools"]
+TOOLS_DIR = "{{config_root}}/tools"
+DEPOT_DIR = "{{env.TOOLS_DIR}}/depot_tools"
+DAWN_DIR = "{{env.TOOLS_DIR}}/dawn"
+EMSDK_DIR = "{{env.TOOLS_DIR}}/emsdk"
+WHISPER_DIR = "{{env.TOOLS_DIR}}/whisper.cpp"
+LLAMA_SUBMODULE_PATH = "tools/llama.cpp"
+LLAMA_DIR = "{{config_root}}/{{env.LLAMA_SUBMODULE_PATH}}"
+LLAMA_BINDINGS_DIR = "{{config_root}}/infrastructure/llama-bindings"
+LLAMA_SYMLINK_DIR = "{{env.LLAMA_BINDINGS_DIR}}/llama.cpp"
+_.path = ["./node_modules/.bin", "{{env.DEPOT_DIR}}"]
 
 # =============================================================================
 # Test model — single source of truth for llama-server integration tests.
@@ -37,6 +46,8 @@ pnpm = "latest"
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:bacon" = "latest"
+"aqua:nushell/nushell" = "latest"
+pitchfork = "latest"
 # wrangler is managed via project devDependencies (pnpm), not mise —
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.
@@ -51,11 +62,12 @@ depends = ["setup:tools", "setup:wasm", "setup:cloudflare"]
 run = 'echo "✓ Development environment setup complete"'
 
 [tasks."setup:tools"]
-description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit"
+description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit, and C/C++ toolchains"
+depends = ["tools:llama:init", "tools:emsdk:init", "tools:dawn:clone"]
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
-echo "Installing pnmp tools..."
+echo "Installing pnpm dependencies..."
 pnpm install
 echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
 """
@@ -74,13 +86,12 @@ description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gcl
 run = """
 #!/usr/bin/env bash
 set -e
-DEPOT_DIR="$PROJECT_ROOT/tools/depot_tools"
 if [ -d "$DEPOT_DIR/.git" ]; then
     echo "depot_tools already present, updating..."
     git -C "$DEPOT_DIR" pull --ff-only
 else
     echo "Cloning depot_tools into $DEPOT_DIR..."
-    mkdir -p "$PROJECT_ROOT/tools"
+    mkdir -p "$TOOLS_DIR"
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$DEPOT_DIR"
 fi
 echo "✓ depot_tools installed. Ensure tools/depot_tools is on PATH (mise handles this)."
@@ -92,12 +103,11 @@ depends = ["setup:depot-tools"]
 run = """
 #!/usr/bin/env bash
 set -e
-DAWN_DIR="$PROJECT_ROOT/tools/dawn"
 if [ -d "$DAWN_DIR/.git" ]; then
     echo "Dawn already cloned at $DAWN_DIR"
 else
     echo "Cloning Dawn into $DAWN_DIR..."
-    mkdir -p "$PROJECT_ROOT/tools"
+    mkdir -p "$TOOLS_DIR"
     git clone https://dawn.googlesource.com/dawn "$DAWN_DIR"
 fi
 
@@ -110,6 +120,47 @@ fi
 echo "Running gclient sync..."
 gclient sync
 echo "✓ Dawn cloned and synced at $DAWN_DIR"
+"""
+
+[tasks."tools:llama:symlink"]
+description = "Create symlink from LLAMA_SYMLINK_DIR to ../../tools/llama.cpp"
+run = """
+#!/usr/bin/env bash
+set -e
+LINK="$LLAMA_SYMLINK_DIR"
+TARGET="../../{{env.LLAMA_SUBMODULE_PATH}}"
+if [ -L "$LINK" ]; then
+    echo "Symlink already exists: $LINK"
+else
+    if [ -d "$LINK" ]; then
+        echo "ERROR: directory exists at $LINK, cannot create symlink"
+        echo "Remove the directory first, then re-run this task"
+        exit 1
+    fi
+    ln -s "$TARGET" "$LINK"
+    echo "Created symlink: $LINK -> $TARGET"
+fi
+"""
+
+[tasks."tools:llama:init"]
+description = "Initialize and update llama.cpp submodule"
+depends = ["tools:llama:symlink"]
+run = """
+#!/usr/bin/env bash
+set -e
+echo "Initializing llama.cpp submodule..."
+git submodule update --init --recursive {{env.LLAMA_SUBMODULE_PATH}}
+echo "✓ llama.cpp submodule ready"
+"""
+
+[tasks."tools:emsdk:init"]
+description = "Initialize and update emsdk submodule"
+run = """
+#!/usr/bin/env bash
+set -e
+echo "Initializing emsdk submodule..."
+git submodule update --init --recursive tools/emsdk
+echo "✓ emsdk submodule ready"
 """
 
 [tasks."setup:cloudflare"]
@@ -155,7 +206,7 @@ run = """
 git submodule update --remote .agents
 git submodule update --remote tools/dawn
 git submodule update --remote tools/emsdk
-git submodule update --remote infrastructure/llama-bindings/llama.cpp/
+git submodule update --remote {{env.LLAMA_SUBMODULE_PATH}}
 """
 
 # =============================================================================
@@ -503,7 +554,6 @@ ls -lh "$PROJECT_ROOT/support/bin/llama-server"
 description = "Clean llama-server build artifacts (both CMake and support/bin)"
 run = """
 #!/usr/bin/env bash
-LLAMA_DIR="$PROJECT_ROOT/infrastructure/llama-bindings/llama.cpp"
 if [ -d "$LLAMA_DIR/build" ]; then
     echo "Cleaning llama.cpp build directory..."
     rm -rf "$LLAMA_DIR/build"
@@ -1081,6 +1131,260 @@ run = 'echo "✓ All quality checks passed"'
 # Tasks - Help
 # =============================================================================
 
+[tasks."sys:install-testbed"]
+description = "Install testbed dependencies (auto-detects Debian / Ubuntu / Arch Linux)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Detect distro from /etc/os-release
+if [ -f /etc/os-release ]; then
+    ID=$(. /etc/os-release && echo "$ID" | tr -d '"')
+    ID_LIKE=$(. /etc/os-release && echo "${ID_LIKE:-}" | tr -d '"')
+else
+    ID=""
+    ID_LIKE=""
+fi
+
+echo "=== Testbed Dependencies Installer ==="
+echo "Detected distro: ${ID:-unknown} (ID_LIKE: ${ID_LIKE:-none})"
+echo ""
+
+install_debian() {
+    echo "Using apt (Debian/Ubuntu)..."
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \\
+        qemu-system-x86 \\
+        qemu-system-gui \\
+        qemu-utils \\
+        ovmf \\
+        gvncviewer \\
+        openssh-client \\
+        curl \\
+        spice-client-gtk \\
+        virt-viewer
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/OVMF/"
+}
+
+install_ubuntu() {
+    echo "Using apt (Ubuntu)..."
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \\
+        qemu-system-x86 \\
+        qemu-system-gui \\
+        qemu-utils \\
+        ovmf \\
+        gvncviewer \\
+        openssh-client \\
+        curl \\
+        spice-client-gtk \\
+        virt-viewer
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/OVMF/"
+}
+
+install_arch() {
+    PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
+
+    echo "Packages: ${PKGS[*]}"
+    echo ""
+
+    if command -v yay &>/dev/null; then
+        echo "Using yay (AUR helper)..."
+        yay -Syu --needed --noconfirm "${PKGS[@]}"
+    elif command -v pacman &>/dev/null; then
+        echo "Using pacman (requires sudo)..."
+        sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+    else
+        echo "ERROR: Neither yay nor pacman found."
+        exit 1
+    fi
+
+    echo ""
+    echo "✓ QEMU with SPICE/UI + OVMF installed"
+    echo "  OVMF firmware: /usr/share/edk2/x64/"
+}
+
+case "$ID" in
+    debian|debian-like)
+        install_debian
+        ;;
+    ubuntu)
+        install_ubuntu
+        ;;
+    arch)
+        install_arch
+        ;;
+    *)
+        # Fallback: try ID_LIKE for derivatives
+        case "$ID_LIKE" in
+            *debian*) install_debian ;;
+            *ubuntu*) install_ubuntu ;;
+            *arch*)   install_arch ;;
+            *)
+                echo "ERROR: Unsupported distro '$ID'."
+                echo "Install QEMU + OVMF + a VNC/SPICE viewer manually, then retry."
+                exit 1
+                ;;
+        esac
+        ;;
+esac
+"""
+
+[tasks."sys:arch:testbed"]
+description = "Install testbed dependencies on Arch Linux (yay or sudo pacman)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
+
+echo "Installing testbed dependencies on Arch Linux..."
+echo "Packages: ${PKGS[*]}"
+echo ""
+
+if command -v yay &>/dev/null; then
+    echo "Using yay (AUR helper)..."
+    yay -Syu --needed --noconfirm "${PKGS[@]}"
+elif command -v pacman &>/dev/null; then
+    echo "Using pacman (requires sudo)..."
+    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+else
+    echo "ERROR: Neither yay nor pacman found."
+    exit 1
+fi
+
+echo ""
+echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/edk2/x64/"
+"""
+
+[tasks."sys:debian:testbed"]
+description = "Install testbed dependencies on Debian (apt)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing testbed dependencies on Debian..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \\
+    qemu-system-x86 \\
+    qemu-system-gui \\
+    qemu-utils \\
+    ovmf \\
+    gvncviewer \\
+    openssh-client \\
+    curl \\
+    spice-client-gtk \\
+    virt-viewer
+
+echo ""
+echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/OVMF/"
+"""
+
+[tasks."sys:ubuntu:testbed"]
+description = "Install testbed dependencies on Ubuntu (apt)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing testbed dependencies on Ubuntu..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \\
+    qemu-system-x86 \\
+    qemu-system-gui \\
+    qemu-utils \\
+    ovmf \\
+    gvncviewer \\
+    openssh-client \\
+    curl \\
+    spice-client-gtk \\
+    virt-viewer
+
+echo ""
+echo "✓ All testbed dependencies installed"
+echo "  OVMF firmware: /usr/share/OVMF/"
+"""
+
+[tasks."sys:arch:quickemu"]
+description = "Install quickemu (for macOS VM image creation) on Arch Linux"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing quickemu on Arch Linux..."
+echo "quickemu automates macOS download, OpenCore setup, and QEMU config generation"
+
+PKGS=(quickemu jq python3)
+
+if command -v yay &>/dev/null; then
+    echo "Using yay (AUR helper)..."
+    yay -Syu --needed --noconfirm "${PKGS[@]}"
+elif command -v pacman &>/dev/null; then
+    echo "Using pacman (requires sudo)..."
+    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
+else
+    echo "ERROR: Neither yay nor pacman found."
+    exit 1
+fi
+
+echo ""
+echo "✓ quickemu installed"
+echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
+echo "  Configs are stored in: ./macos-sonoma/"
+"""
+
+[tasks."sys:debian:quickemu"]
+description = "Install quickemu on Debian/Ubuntu (for macOS VM image creation)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Installing quickemu on Debian/Ubuntu..."
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends quickemu jq python3
+
+echo ""
+echo "✓ quickemu installed"
+echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
+echo "  Configs are stored in: ./macos-sonoma/"
+"""
+
+[tasks."macos:create-image"]
+description = "Create a macOS VM image using quickget (downloads from Apple CDN)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+VERSION="${1:-sonoma}"
+echo "Creating macOS ${VERSION} VM image..."
+echo ""
+
+if ! command -v quickget &>/dev/null; then
+    echo "ERROR: quickget not installed."
+    echo "Run: mise run sys:install-testbed  (then install quickemu)"
+    exit 1
+fi
+
+# quickget downloads the installer and creates the VM config
+# Output directory: macos-<version>/
+quickget macos "$VERSION"
+
+echo ""
+echo "✓ macOS ${VERSION} image created in ./macos-${VERSION}/"
+echo "  Disk image: macos-${VERSION}/macOS.qcow2"
+echo "  EFI disk:   macos-${VERSION}/OpenCore/OpenCore.qcow2"
+echo ""
+echo "Next: cargo run -p ewe_platform -- testbed import macos-build"
+"""
+
 [tasks.help]
 description = "Show help message with all available tasks"
 run = """
@@ -1094,6 +1398,15 @@ echo "  setup:tools        Install rustfmt, clippy, cargo-nextest, etc."
 echo "  setup:wasm         Install WASM targets"
 echo "  setup:cloudflare   Install Cloudflare tools (wrangler, miniflare)"
 echo "  setup:check        Verify installed tools"
+echo ""
+echo "System (Linux testbed dependencies):"
+echo "  sys:install-testbed  Auto-detect distro and install testbed deps"
+echo "  sys:arch:testbed     Arch Linux — QEMU + SPICE + OVMF (yay/pacman)"
+echo "  sys:debian:testbed   Debian — QEMU + SPICE + OVMF (apt)"
+echo "  sys:ubuntu:testbed   Ubuntu — QEMU + SPICE + OVMF (apt)"
+echo "  sys:arch:quickemu    Arch Linux — install quickemu for macOS images"
+echo "  sys:debian:quickemu  Debian/Ubuntu — install quickemu for macOS images"
+echo "  macos:create-image   Create macOS VM image (usage: macos:create-image <version>)"
 echo ""
 echo "Cloudflare (R2, D1):"
 echo "  cf:login           Authenticate with Cloudflare"

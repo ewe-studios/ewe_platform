@@ -1356,6 +1356,9 @@ impl<T: Read> ByteBufferPointer<T> {
         let force = self.greater_than_40_percent();
         self.truncate(force);
 
+        let len = self.buffer.len();
+        // tracing::trace!("Current buffer: {} -> {:?}", len, &self.buffer[..len.min(64)]);
+
         // extract and add more to buffer from reader.
         // self.reader.fill_buf()?;
         let mut copied = vec![0; self.pull_amount];
@@ -1366,10 +1369,16 @@ impl<T: Read> ByteBufferPointer<T> {
                 return Err(err);
             }
         };
+        // tracing::trace!("Copied buffer: {:?} -> {:?}", read, &copied[..read]);
 
         // copy into the buffer the data just extracted from the buffer.
         // let location_before_extend = self.buffer.len();
         self.buffer.extend_from_slice(&copied[0..read]);
+        // tracing::trace!(
+        //     "Extended buffer: {:?} -> {:?}",
+        //     self.buffer.len(),
+        //     &self.buffer[0..self.buffer.len()],
+        // );
 
         Ok(read)
     }

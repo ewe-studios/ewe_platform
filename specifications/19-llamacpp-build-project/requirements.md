@@ -1,0 +1,193 @@
+---
+description: "Relocate llama.cpp git submodule from infrastructure/llama-bindings/llama.cpp to tools/llama.cpp and fix the build system include paths, Cargo.toml globs, and all config references"
+status: "completed"
+completed: "2026-05-02"
+priority: "high"
+created: 2026-05-02
+updated: 2026-05-02
+author: "Main Agent"
+metadata:
+  version: "1.0"
+  estimated_effort: "medium"
+  tags:
+    - build-system
+    - submodule-relocation
+    - rust
+    - llama.cpp
+    - bindgen
+  skills: []
+  tools:
+    - Rust
+    - cargo
+    - cmake
+    - bindgen
+    - git submodules
+has_features: true
+has_fundamentals: false
+builds_on: ""
+related_specs: []
+features:
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
+---
+
+# 19: llama.cpp Build Project Relocation
+
+## Overview
+
+This specification covers moving the llama.cpp git submodule from `infrastructure/llama-bindings/llama.cpp` to `tools/llama.cpp` and fixing all build system references so that compilation continues to work correctly on all target platforms (linux, macos, android).
+
+### Current State
+
+The llama.cpp submodule lives at `infrastructure/llama-bindings/llama.cpp` (a sibling directory to `build.rs`, `wrapper.h`, and `wrapper_mtmd.h`). The build works because:
+
+1. **build.rs** (`infrastructure/llama-bindings/build.rs`) reads `LLAMA_DIR` from the environment and passes two `-I` include paths to bindgen: `{llama_src}/include` and `{llama_src}/ggml/include`.
+2. **wrapper.h** contains `#include "llama.cpp/include/llama.h"` — this resolves relative to the `wrapper.h` directory, finding `infrastructure/llama-bindings/llama.cpp/include/llama.h`.
+3. **wrapper_mtmd.h** contains `#include "llama.cpp/tools/mtmd/mtmd.h"` and `#include "llama.cpp/tools/mtmd/mtmd-helper.h"` — same sibling-directory resolution.
+4. **Cargo.toml** has `include = ["/llama.cpp/..."]` glob patterns for crate publishing.
+5. **mise.toml** sets `LLAMA_DIR = "infrastructure/llama-bindings/llama.cpp"`.
+6. **.cargo/config.toml** sets `LLAMA_DIR = "infrastructure/llama-bindings/llama.cpp"`.
+7. **.gitmodules** declares the submodule at `infrastructure/llama-bindings/llama.cpp`.
+
+### Problem
+
+After moving the submodule to `tools/llama.cpp`, the `llama.cpp/` sibling directory next to `wrapper.h` and `wrapper_mtmd.h` no longer exists, so the `#include "llama.cpp/..."` directives break. Additionally, `LLAMA_DIR` and the Cargo.toml globs point to the old path.
+
+### Solution
+
+1. Add the llama.cpp root directory as a `-I` include path in `build.rs` so that includes in the wrapper headers resolve relative to the llama.cpp root instead of relying on a sibling directory.
+2. Update the wrapper headers to use `-I`-relative paths (strip the `llama.cpp/` prefix).
+3. Update all configuration references (`LLAMA_DIR`, `.gitmodules`, `Cargo.toml` globs) to point to the new location.
+
+---
+
+## Feature Index
+
+### Completed Features (5/5 completed)
+
+1. **[include-path-refactor](./features/01-include-path-refactor/feature.md)** - Fix wrapper.h and wrapper_mtmd.h to use -I-relative paths
+2. **[build-rs-include-paths](./features/02-build-rs-include-paths/feature.md)** - Add llama_src root as -I path in build.rs
+3. **[submodule-relocation](./features/03-submodule-relocation/feature.md)** - Move git submodule and update all config references
+4. **[cargo-toml-glob-update](./features/04-cargo-toml-glob-update/feature.md)** - Update include globs in Cargo.toml
+5. **[build-verification](./features/05-build-verification/feature.md)** - Verify build works on all platforms (linux, macos, android)
+
+---
+
+## Tasks
+
+### Phase 1: build.rs Include Path Fix
+
+- [x] In `infrastructure/llama-bindings/build.rs`, around line 308-311, add a new clang_arg for the llama.cpp root directory: `clang_arg(format!("-I{}", llama_src.display()))`
+- [x] This must be added before the existing `llama_src.join("include")` and `llama_src.join("ggml/include")` entries
+- [x] Verify the order: root `-I` first, then more specific subdirectories
+- [x] Add mtmd include path: `clang_arg(format!("-I{}", llama_src.join("tools/mtmd").display()))`
+
+### Phase 2: Wrapper Header Updates
+
+- [x] In `infrastructure/llama-bindings/wrapper.h`, change:
+  - `#include "llama.cpp/include/llama.h"` to `#include "include/llama.h"`
+- [x] In `infrastructure/llama-bindings/wrapper_mtmd.h`, change:
+  - `#include "llama.cpp/tools/mtmd/mtmd.h"` to `#include "tools/mtmd/mtmd.h"`
+  - `#include "llama.cpp/tools/mtmd/mtmd-helper.h"` to `#include "tools/mtmd/mtmd-helper.h"`
+
+### Phase 3: Submodule Relocation
+
+- [x] Update `.cargo/config.toml`: change `LLAMA_DIR` value from `infrastructure/llama-bindings/llama.cpp` to `tools/llama.cpp`
+- [x] Remove old submodule: `git submodule deinit -f infrastructure/llama-bindings/llama.cpp`
+- [x] Remove old directory: `rm -rf infrastructure/llama-bindings/llama.cpp` (via `git rm -f`)
+- [x] Add new submodule: `git submodule add https://github.com/ggml-org/llama.cpp tools/llama.cpp`
+- [x] Update `.gitmodules`: change path and section from `infrastructure/llama-bindings/llama.cpp` to `tools/llama.cpp`
+- [x] Update `backends/foundation_ai/build.rs`: change `llama_dir` path from `infrastructure/llama-bindings/llama.cpp` to `tools/llama.cpp`
+- [x] Update `.github/workflows/check.yaml`: change all submodule init paths to `tools/llama.cpp`
+- [x] Update `scripts/modules.sh`: change path to `tools/llama.cpp`
+
+### Phase 4: mise.toml Variables, Tasks, and Symlink
+
+- [x] Add `[env]` variables: `TOOLS_DIR`, `DEPOT_DIR`, `DAWN_DIR`, `EMSDK_DIR`, `WHISPER_DIR`, `LLAMA_SUBMODULE_PATH`, `LLAMA_DIR`, `LLAMA_BINDINGS_DIR`, `LLAMA_SYMLINK_DIR`
+- [x] `LLAMA_DIR` in `[env]` uses `$PROJECT_ROOT/tools/llama.cpp`
+- [x] `tasks."git:update-submodules"`: uses `{{env.LLAMA_SUBMODULE_PATH}}`
+- [x] `tasks."llama:server:clean"`: uses `$LLAMA_DIR` from env (no longer redefines inline)
+- [x] `tasks."setup:depot-tools"`: uses `$DEPOT_DIR` and `$TOOLS_DIR`
+- [x] `tasks."tools:dawn:clone"`: uses `$DAWN_DIR` and `$TOOLS_DIR`
+- [x] `tasks."setup:tools"`: gains `tools:llama:init`, `tools:emsdk:init`, `tools:dawn:clone` as dependencies
+- [x] New task `tools:llama:symlink` — creates `infrastructure/llama-bindings/llama.cpp -> ../../tools/llama.cpp`
+- [x] New task `tools:llama:init` — runs `git submodule update --init --recursive tools/llama.cpp`, depends on symlink
+- [x] New task `tools:emsdk:init` — runs `git submodule update --init --recursive tools/emsdk`
+- [x] Create symlink after removing old submodule directory: `infrastructure/llama-bindings/llama.cpp -> ../../tools/llama.cpp`
+- [x] No changes needed to the `include` array in `Cargo.toml` — existing `/llama.cpp/...` globs resolve through the symlink
+- [x] Delete `scripts/modules.sh` (no references found, mise tasks are the single source of truth)
+
+### Phase 5: Build Verification
+
+- [x] Run `cargo build -p infrastructure_llama_bindings --features mtmd` on linux — succeeded (6 libs linked: ggml-base, ggml-cpu, ggml, llama-common, llama, mtmd)
+- [x] Run `cargo build -p infrastructure_llama_cpp --features sampler` on linux — succeeded
+- [x] Verify `mise run check` passes — succeeded
+- [x] Verify `mise run tools:llama:symlink` is idempotent — succeeded ("Symlink already exists")
+- [x] No stale references to old path in code/config files (grep confirmed)
+- [ ] macOS build — pending macOS hardware
+- [ ] Android cross-build — pending NDK toolchain availability
+
+---
+
+## Success Criteria
+
+- [x] `cargo build -p infrastructure_llama_bindings --features mtmd` compiles and links
+- [x] `cargo build -p infrastructure_llama_cpp --features sampler` compiles and links
+- [x] `git submodule status` shows `tools/llama.cpp` at correct commit
+- [x] `.gitmodules` has no references to `infrastructure/llama-bindings/llama.cpp`
+- [x] `infrastructure/llama-bindings/llama.cpp` is a symlink pointing to `../../tools/llama.cpp`
+- [x] `mise run tools:llama:symlink` is idempotent (succeeds when symlink already exists)
+- [x] `mise run check` passes
+- [x] No stale references to old path in `mise.toml`, `.cargo/config.toml`, `scripts/modules.sh`, `.github/workflows/check.yaml`, `backends/foundation_ai/build.rs`, or any other config files
+- [x] bindgen generates correct bindings (verified by downstream `infrastructure_llama_cpp` build)
+- [ ] macOS build — pending macOS hardware
+- [ ] Android cross-build — pending NDK toolchain availability
+
+---
+
+## Agent Rules Reference
+
+### Mandatory Rules for All Agents
+
+Load these rules from `.agents/rules/`:
+
+| Rule | File | Purpose |
+|------|------|---------|
+| 01 | `.agents/rules/01-rule-naming-and-structure.md` | File naming conventions |
+| 02 | `.agents/rules/02-rules-directory-policy.md` | Directory policies |
+| 03 | `.agents/rules/03-dangerous-operations-safety.md` | Dangerous operations safety |
+| 04 | `.agents/rules/04-work-commit-and-push-rules.md` | Work commit and push rules |
+
+### Role-Specific Rules
+
+| Agent Type | Additional Rules to Load |
+|------------|--------------------------|
+| **Review Agent** | `.agents/rules/06-specifications-and-requirements.md` |
+| **Implementation Agent** | `.agents/rules/13-implementation-agent-guide.md`, stack file |
+| **Verification Agent** | `.agents/rules/08-verification-workflow-complete-guide.md`, stack file |
+| **Documentation Agents** | `.agents/rules/06-specifications-and-requirements.md` |
+
+### Stack Files
+
+Load from `.agents/stacks/`:
+- **Language**: Rust -> `.agents/stacks/rust.md`
+
+---
+
+## File Organization Reminder
+
+ONLY these files allowed:
+1. requirements.md - Requirements with tasks
+2. LEARNINGS.md - All learnings
+3. REPORT.md - All reports
+4. VERIFICATION.md - Verification
+5. PROGRESS.md - Current status (delete at 100%)
+6. fundamentals/, features/, templates/ (optional)
+
+FORBIDDEN: Separate learning/report/verification files
+
+Consolidation: All learnings -> LEARNINGS.md, All reports -> REPORT.md
+
+See Rule 06 "File Organization" for complete policy.

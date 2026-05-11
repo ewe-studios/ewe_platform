@@ -1,0 +1,85 @@
+[package]
+name = "foundation_testbed"
+version = "0.0.1"
+edition = "2024"
+description = "Cross-platform VM testbed using QEMU/KVM for building and testing binaries"
+license = "MIT"
+
+[features]
+default = ["qemu"]
+
+# Linux: QEMU/KVM backend
+qemu = []
+
+# macOS: UTM/Hypervisor backend
+utm = []
+
+# CLI: standalone clap binary + bin/platform integration
+cli = ["dep:clap"]
+
+# All providers (for testing on a machine with both)
+all-providers = ["qemu", "utm"]
+
+[dependencies]
+foundation_errstacks = { path = "../foundation_errstacks" }
+foundation_core = { path = "../foundation_core", features = ["multi"] }
+
+# CLI
+clap = { version = "4", features = ["derive"], optional = true }
+
+# Networking / VM communication
+ssh2 = { version = "0.9", features = ["vendored-openssl"] }
+
+# Process management
+which = "7"
+
+# Progress / UX
+indicatif = "0.17"
+
+# Archive / compression
+tar = "0.4"
+flate2 = "1"
+xz2 = "0.1"
+
+# Auth / utils
+base64 = "0.22"
+dirs = "6"
+tracing = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+anyhow = "1"
+derive_more = { version = "2", features = ["display", "error", "from"] }
+
+# Image processing (screenshot validation)
+image = "0.25"
+
+# Process checks (kill(pid, 0) for stale detection)
+libc = "0.2"
+
+# Time formatting (state timestamps)
+chrono = "0.4"
+
+# Config file parsing
+toml = "0.8"
+
+# Disk space checking (doctor command)
+fs2 = "0.4"
+
+# Checksums (export manifest SHA256)
+sha2 = "0.10"
+
+# Hostname detection (export manifest creator)
+whoami = "2"
+
+[dev-dependencies]
+serial_test = "3"
+tempfile = "3"
+
+[[bin]]
+name = "testbed"
+path = "src/bin/testbed.rs"
+required-features = ["cli"]

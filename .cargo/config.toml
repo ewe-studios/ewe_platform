@@ -12,7 +12,7 @@ TEMPLATES_DIR = { value = "templates", relative = true, force = true }
 # build environment variables for infrastructure
 TOOLS_DIR = { value = "tools", relative=true, force = true }
 LLAMA_BINDINGS_DIR = { value = "infrastructure/llama-bindings", relative=true, force = true }
-LLAMA_DIR = { value = "infrastructure/llama-bindings/llama.cpp", relative=true, force = true }
+LLAMA_DIR = { value = "tools/llama.cpp", relative = true, force = true }
 DAWN_DIR = { value = "tools/dawn", relative=true, force = true }
 EMSDK_DIR = { value = "tools/emsdk", relative=true, force = true }
 

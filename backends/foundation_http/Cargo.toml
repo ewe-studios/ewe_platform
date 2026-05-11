@@ -1,0 +1,48 @@
+[package]
+name = "foundation_http"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Connection-owned, worker-pooled HTTP serving framework built on foundation_core"
+keywords = ["http", "server", "foundation", "sync"]
+
+[dependencies]
+foundation_core = { workspace = true }
+foundation_errstacks = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+regex = { version = "1.12" }
+bytes = { version = "1.5" }
+sha1 = "0.10"
+base64 = "0.22"
+tracing = "0.1"
+uuid = { version = "1.6", features = ["v4"] }
+
+[dev-dependencies]
+foundation_testing = { workspace=true }
+tracing-test = { version = "0.2",  features = ["no-env-filter"] }
+serial_test = { version = "3" }
+
+[features]
+default = []
+multi = ["foundation_core/multi"]
+middleware-cors = []
+middleware-logging = []
+middleware-auth = []
+middleware-compression = ["foundation_core/compression"]
+# TLS backends — mirrors foundation_core's SSL feature set.
+# `ssl` is the recommended default (rustls + ring).
+ssl = ["foundation_core/ssl-rustls-ring"]
+ssl-rustls = ["foundation_core/ssl-rustls"]
+ssl-rustls-ring = ["foundation_core/ssl-rustls-ring"]
+ssl-rustls-awsrc = ["foundation_core/ssl-rustls-awsrc"]
+ssl-openssl = ["foundation_core/ssl-openssl"]
+ssl-native-tls = ["foundation_core/ssl-native-tls"]
+
+[lints]
+workspace = true

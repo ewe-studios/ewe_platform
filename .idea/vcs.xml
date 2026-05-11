@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.agents" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/artefacts/models/whisper.cpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/build" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/buildtools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/testing" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/EGL-Registry/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/OpenGL-Registry/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/abseil-cpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/angle" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/catapult" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/clang-format/script" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/depot_tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/directx-headers/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/directx-shader-compiler/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/dxc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/dxheaders" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/glfw3/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/glslang/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/google_benchmark/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/googletest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/jinja2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/libFuzzer/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/libc++/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/libc++abi/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/libdrm/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/libprotobuf-mutator/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/llvm-libc/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/markupsafe" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/partition_alloc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/protobuf" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/spirv-headers/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/spirv-tools/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/swiftshader" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-deps" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-headers/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-loader/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-tools/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-utility-libraries/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan-validation-layers/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/vulkan_memory_allocator" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/webgpu-cts" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/webgpu-headers/src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/third_party/zlib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/tools/clang" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/tools/mb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/tools/memory" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/tools/protoc_wrapper" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/dawn/tools/valgrind" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/depot_tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/emsdk" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/llama.cpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/tools/whisper.cpp" vcs="Git" />
+  </component>
+</project>

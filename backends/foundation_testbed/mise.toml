@@ -1,0 +1,108 @@
+# foundation_testbed — self-contained dev environment
+# Works standalone: `cd backends/foundation_testbed && mise run doctor`
+
+[env]
+PROJECT_ROOT = "{{config_root}}"
+
+[tools]
+# QEMU provider (Linux)
+"mise:qemu" = { version = "latest", os = "linux" }
+
+[tasks.check]
+description = "Check testbed prerequisites"
+run = """
+#!/usr/bin/env bash
+if [[ "$(uname)" == "Linux" ]]; then
+    which qemu-system-x86_64 || { echo "QEMU not installed"; exit 1; }
+    test -e /dev/kvm || echo "Warning: /dev/kvm not available (no KVM acceleration)"
+elif [[ "$(uname)" == "Darwin" ]]; then
+    test -d /Applications/UTM.app || { echo "UTM not installed"; exit 1; }
+fi
+echo "✓ Testbed prerequisites satisfied"
+"""
+
+[tasks.doctor]
+description = "Run foundation_testbed health check"
+run = "cargo run --release --features cli -- doctor"
+
+[tasks.start]
+description = "Start a VM"
+run = """
+#!/usr/bin/env bash
+PROFILE="${1:-linux-build}"
+cargo run --release -- start "$PROFILE"
+"""
+
+[tasks.stop]
+description = "Stop a VM"
+run = """
+#!/usr/bin/env bash
+PROFILE="${1:-linux-build}"
+cargo run --release -- stop "$PROFILE"
+"""
+
+[tasks.test]
+description = "Run unit tests"
+run = "cargo test"
+
+[tasks.check-rust]
+description = "Run cargo check"
+run = "cargo check"
+
+[tasks.clippy]
+description = "Run clippy"
+run = "cargo clippy -- -D warnings"
+
+[tasks.setup-smb]
+description = "Setup SMB for Windows VM mounting (requires sudo)"
+doc = """
+Configures the host system for QEMU's built-in SMB server.
+This allows Windows VMs to mount host directories via SMB.
+
+Run with: mise run setup-smb
+
+Note: Requires sudo to install system-wide Samba configuration.
+"""
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "Setting up SMB for QEMU..."
+echo ""
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SETUP_SCRIPT="${SCRIPT_DIR}/scripts/linux/smb-setup.sh"
+
+if [ ! -f "$SETUP_SCRIPT" ]; then
+    echo "Error: smb-setup.sh not found at $SETUP_SCRIPT"
+    exit 1
+fi
+
+# Run the setup script with sudo
+if [ "$EUID" -eq 0 ]; then
+    # Already running as root
+    bash "$SETUP_SCRIPT"
+else
+    # Use sudo
+    sudo bash "$SETUP_SCRIPT"
+fi
+
+echo ""
+echo "SMB setup complete!"
+"""
+
+[tasks.test-mount]
+description = "Test Windows SMB mount (starts VM, tests mount)"
+doc = """
+Runs the Windows SMB mount E2E test.
+This will:
+1. Start a Windows VM
+2. Test SMB mounting
+3. Report results
+
+Run with: mise run test-mount
+"""
+run = """
+#!/usr/bin/env bash
+cargo test --test e2e_tauri test_smb_mount_only -- --ignored --nocapture
+"""

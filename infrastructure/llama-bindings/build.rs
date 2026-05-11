@@ -307,6 +307,7 @@ fn main() {
     // Bindings
     let mut bindings_builder = bindgen::Builder::default()
         .header("wrapper.h")
+        .clang_arg(format!("-I{}", llama_src.display()))
         .clang_arg(format!("-I{}", llama_src.join("include").display()))
         .clang_arg(format!("-I{}", llama_src.join("ggml/include").display()))
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
@@ -321,6 +322,7 @@ fn main() {
     if cfg!(feature = "mtmd") {
         bindings_builder = bindings_builder
             .header("wrapper_mtmd.h")
+            .clang_arg(format!("-I{}", llama_src.join("tools/mtmd").display()))
             .allowlist_function("mtmd_.*")
             .allowlist_type("mtmd_.*");
     }

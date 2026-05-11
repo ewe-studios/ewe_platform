@@ -8,9 +8,15 @@
 	path = tools/dawn
 	depth = 1
 	url = https://github.com/google/dawn.git
-[submodule "infrastructure/llama-bindings/llama.cpp"]
-	path = infrastructure/llama-bindings/llama.cpp
-	url = https://github.com/ggml-org/llama.cpp
+[submodule "tools/whisper.cpp"]
+	path = tools/whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp.git
 [submodule ".agents"]
 	path = .agents
 	url = https://github.com/ewe-studios/agentic-coding-starter.git
+[submodule "tools/llama.cpp"]
+	path = tools/llama.cpp
+	url = https://github.com/ggml-org/llama.cpp
+[submodule "artefacts/models/whisper.cpp"]
+	path = artefacts/models/whisper.cpp
+	url = https://huggingface.co/ggerganov/whisper.cpp
