@@ -43,7 +43,12 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(300); // 5 min
 const TAURI_APP: &str = "examples/testbed/tauri-app";
 
 fn project_dir() -> PathBuf {
-    std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+    // Get the workspace root (2 levels up from foundation_testbed crate)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|p| p.parent())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/home/darkvoid/Boxxed/@dev/ewe_platform"))
 }
 
 /// Return the absolute path to the example Tauri app on the host.
@@ -274,6 +279,12 @@ fn test_tauri_build_linux() -> Result<()> {
     vm.bootstrap()?;
 
     println!("[build/linux] Building Tauri app in VM...");
+
+    // Trust the mise config in the project (use -y to auto-accept)
+    let trust_cmd = format!("cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo 'y' | ~/.local/bin/mise trust 2>&1");
+    let trust_output = vm.ssh_exec(&trust_cmd)?;
+    println!("  Trust output: {}", trust_output);
+
     let build_cmd = format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
          export DISPLAY=:99 && \
@@ -283,7 +294,7 @@ fn test_tauri_build_linux() -> Result<()> {
     println!("  Build output:\n{}", output);
 
     let artifact_on_host = tauri_app_host_path()
-        .join("target/x86_64-unknown-linux-gnu/release/tauri-e2e-test");
+        .join("target/release/tauri-e2e-test");
 
     let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "Tauri build artifact should exist");
@@ -345,16 +356,27 @@ fn test_headless_app_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
+    // Clear any stale bootstrap marker (fresh VM may have marker without tools)
+    let _ = vm.ssh_exec("rm -f ~/.testbed-bootstrapped");
+
+    vm.bootstrap()?;
+
     println!("[headless/linux] Building Tauri app...");
+    // Trust the mise config first
+    let _ = vm.ssh_exec(&format!(
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo 'y' | ~/.local/bin/mise trust 2>&1"
+    ))?;
     let build_output = vm.ssh_exec(&format!(
-        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && cargo tauri build 2>&1 | tail -5"
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
+         export DISPLAY=:99 && \
+         ~/.local/bin/mise exec -- cargo tauri build 2>&1 | tail -5"
     ))?;
     println!("  Build output:\n{}", build_output);
 
     println!("[headless/linux] Launching app on Xvfb :99...");
     let launch_script = format!(
         "export DISPLAY=:99 && \
-         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
+         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true"
     );
@@ -584,7 +606,7 @@ fn test_full_e2e_linux() -> Result<()> {
     println!("  Build output:\n{}", build_output);
 
     let artifact_on_host = tauri_app_host_path()
-        .join("target/x86_64-unknown-linux-gnu/release/tauri-e2e-test");
+        .join("target/release/tauri-e2e-test");
     let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "build artifact should exist");
     let is_elf = assert_elf_binary(&artifact_on_host)?;
@@ -593,7 +615,7 @@ fn test_full_e2e_linux() -> Result<()> {
     println!("[e2e/linux] Launching app on Xvfb :99...");
     let launch_output = vm.ssh_exec(&format!(
         "export DISPLAY=:99 && \
-         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test & \
+         {LINUX_MOUNT}/{TAURI_APP_GUEST}/target/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
          kill $APP_PID 2>/dev/null; true"
     ))?;

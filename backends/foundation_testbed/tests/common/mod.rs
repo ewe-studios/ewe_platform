@@ -278,7 +278,7 @@ pub fn ensure_image(profile_name: &str) -> Result<PathBuf> {
 /// Assert that a build completed successfully (exit code 0, artifact exists).
 pub fn assert_build_ok_linux(vm: &TestVm, project_path: &str) -> Result<bool> {
     let output = vm.ssh_exec(&format!(
-        "test -f {project_path}/target/x86_64-unknown-linux-gnu/release/tauri-e2e-test && echo OK || echo MISSING"
+        "test -f {project_path}/target/release/tauri-e2e-test && echo OK || echo MISSING"
     ))?;
     Ok(output.trim() == "OK")
 }

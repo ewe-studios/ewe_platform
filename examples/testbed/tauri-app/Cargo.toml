@@ -3,8 +3,13 @@ name = "tauri-e2e-test"
 version = "0.1.0"
 edition = "2021"
 
+# Standalone workspace to avoid inheriting parent workspace's experimental features
+[workspace]
+resolver = "2"
+members = ["."]
+
 [dependencies]
-tauri = "2"
+tauri = { version = "2", features = [] }
 
 [build-dependencies]
-tauri-build = "2"
+tauri-build = { version = "2", features = [] }

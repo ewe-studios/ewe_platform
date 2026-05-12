@@ -1,4 +1,5 @@
 #!/bin/bash
-TAURI_SYSTEM_DEPS="build-essential curl git pkg-config libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev libxdo-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev xvfb scrot openbox"
-apt-get update -qq
-DEBIAN_FRONTEND=noninteractive apt-get install -y $TAURI_SYSTEM_DEPS
+# System dependencies for building Tauri apps on Debian/Ubuntu
+# The DEPS placeholder is replaced by bootstrap_linux.rs
+sudo apt-get update -qq
+DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {{DEPS}}

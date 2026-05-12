@@ -17,7 +17,7 @@ const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/linux/setup_pro
 
 /// Tauri system dependencies on Debian/Ubuntu that mise cannot install.
 const TAURI_SYSTEM_DEPS: &[&str] = &[
-    "build-essential", "curl", "git", "pkg-config",
+    "build-essential", "curl", "git", "pkg-config", "clang", "lld",
     "libwebkit2gtk-4.1-dev", "libgtk-3-dev", "libayatana-appindicator3-dev",
     "librsvg2-dev", "libssl-dev", "libxdo-dev", "libsoup-3.0-dev",
     "libjavascriptcoregtk-4.1-dev", "xvfb", "scrot", "openbox",
@@ -25,15 +25,30 @@ const TAURI_SYSTEM_DEPS: &[&str] = &[
 
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     logger::step(logger, "install system deps", || {
-        let xvfb_present = crate::ssh::exec(
+        // Check if all critical deps are present, not just Xvfb
+        let xvfb_check = crate::ssh::exec(
             session,
             "command -v Xvfb >/dev/null 2>&1 && echo present || echo missing",
-        )
-        .unwrap_or_default();
-        if !xvfb_present.contains("present") {
+        );
+        let clang_check = crate::ssh::exec(
+            session,
+            "command -v clang >/dev/null 2>&1 && echo present || echo missing",
+        );
+        let xvfb_present = xvfb_check.unwrap_or_default();
+        let clang_present = clang_check.unwrap_or_default();
+        logger.message(&format!("  Xvfb check: {:?}", xvfb_present.trim()));
+        logger.message(&format!("  Clang check: {:?}", clang_present.trim()));
+        if !xvfb_present.contains("present") || !clang_present.contains("present") {
             let deps = TAURI_SYSTEM_DEPS.join(" ");
-            let script = INSTALL_SYSTEM_DEPS_SH.replace("{{DEPS}}", &deps);
-            crate::ssh::exec(session, &script)?;
+            logger.message(&format!("  Installing deps: {}", deps));
+            // Run apt-get commands directly instead of using a script
+            let update_output = crate::ssh::exec(session, "sudo apt-get update -qq 2>&1")?;
+            logger.message(&format!("  apt-get update output: {}", update_output));
+            let install_cmd = format!("DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {}", deps);
+            let install_output = crate::ssh::exec(session, &install_cmd)?;
+            logger.message(&format!("  apt-get install output: {}", install_output));
+        } else {
+            logger.message("  Skipping system deps install (all present)");
         }
         Ok(())
     })?;
@@ -44,7 +59,21 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         if !mise.contains("missing") && !mise.is_empty() {
             return Ok(());
         }
-        crate::ssh::exec(session, INSTALL_MISE_SH)?;
+        // Run mise install directly
+        let install_cmd = r#"curl -fsSL https://mise.run | sh && [ -f ~/.local/bin/mise ] && ~/.local/bin/mise --version"#;
+        let install_output = crate::ssh::exec(session, install_cmd)?;
+        logger.message(&format!("mise install output: {}", install_output));
+        // Verify mise was actually installed
+        let verify = crate::ssh::exec(
+            session,
+            "[ -f ~/.local/bin/mise ] && ~/.local/bin/mise --version || (echo 'mise install verification failed' && exit 1)",
+        )?;
+        if verify.contains("verification failed") {
+            return Err(crate::config::TestbedError::BootstrapFailed {
+                step: "install mise".to_string(),
+                message: format!("mise binary not found after install. Output: {}", install_output),
+            });
+        }
         Ok(())
     })?;
 
