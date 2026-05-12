@@ -786,6 +786,8 @@ pub struct ThreadPoolTaskBuilder<
     resolver: Option<Resolver>,
     mappers: Option<Vec<Mapper>>,
     panic_handler: Option<BoxedPanicHandler>,
+    /// Channel capacity for bounded queues (None = unbounded)
+    channel_capacity: Option<usize>,
     _marker: PhantomData<(Done, Pending, Action)>,
 }
 
@@ -807,6 +809,7 @@ impl<
             mappers: None,
             resolver: None,
             panic_handler: None,
+            channel_capacity: None,
             _marker: PhantomData,
         }
     }
@@ -852,6 +855,19 @@ impl<
         self
     }
 
+    /// Sets the channel capacity for bounded queues.
+    ///
+    /// When set, `ready_iter`, `stream_iter`, and `schedule_iter` will use
+    /// bounded channels with the specified capacity. When the channel is full,
+    /// producers will apply backpressure (return Pending/Reschedule).
+    ///
+    /// Default is unbounded (None).
+    #[allow(clippy::return_self_not_must_use)]
+    pub fn with_channel_capacity(mut self, capacity: usize) -> Self {
+        self.channel_capacity = Some(capacity);
+        self
+    }
+
     /// `ready_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapping iterator that allows you synchronously receive those
@@ -866,7 +882,10 @@ impl<
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(NotifyQueue::unbounded());
+            match self.channel_capacity {
+                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+                None => Arc::new(NotifyQueue::unbounded()),
+            };
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -937,8 +956,10 @@ impl<
         wait_cycle: time::Duration,
         max_turns: usize,
     ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
-            Arc::new(NotifyQueue::unbounded());
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> = match self.channel_capacity {
+            Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+            None => Arc::new(NotifyQueue::unbounded()),
+        };
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -980,7 +1001,10 @@ impl<
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(NotifyQueue::unbounded());
+            match self.channel_capacity {
+                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+                None => Arc::new(NotifyQueue::unbounded()),
+            };
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {

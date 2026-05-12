@@ -8,6 +8,7 @@ use crate::compati::Mutex;
 use crate::synca::Entry;
 use crate::valtron::executors::local::NotifyQueue;
 use crate::valtron::iterators::Stream;
+use concurrent_queue::PushError;
 
 use crate::valtron::{
     task::TaskStatus, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
@@ -158,78 +159,78 @@ where
                 }
             },
             TaskStatus::Ignore => {
-                if let Ok(()) = self.channel.push(Stream::Ignore) {
-                    State::Pending(None)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(Stream::Ignore) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Delayed(inner) => {
-                if let Ok(()) = self.channel.push(Stream::Delayed(inner)) {
-                    State::Pending(Some(inner))
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(Stream::Delayed(inner)) {
+                    Ok(()) => State::Pending(Some(inner)),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Init => {
-                if let Ok(()) = self.channel.push(Stream::Init) {
-                    State::Pending(None)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(Stream::Init) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Pending(inner) => {
-                if let Ok(()) = self.channel.push(Stream::Pending(inner)) {
-                    State::Pending(None)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(Stream::Pending(inner)) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Ready(inner) => {
-                if let Ok(()) = self.channel.push(Stream::Next(inner)) {
-                    State::ReadyValue(entry)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task");
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(Stream::Next(inner)) {
+                    Ok(()) => State::ReadyValue(entry),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
         })
@@ -392,69 +393,72 @@ where
             }
             TaskStatus::Delayed(inner) => {
                 tracing::debug!("Got  delayed: {entry:?}");
-                if let Ok(()) = self.channel.push(TaskStatus::Delayed(inner)) {
-                    State::Pending(Some(inner))
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(TaskStatus::Delayed(inner)) {
+                    Ok(()) => State::Pending(Some(inner)),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Init => {
                 tracing::debug!("Got init: {entry:?}");
-                if let Ok(()) = self.channel.push(TaskStatus::Init) {
-                    tracing::debug!("Written TaskStatus::Init into receiving channel");
-                    State::Pending(None)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(TaskStatus::Init) {
+                    Ok(()) => {
+                        tracing::debug!("Written TaskStatus::Init into receiving channel");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Pending(inner) => {
                 tracing::debug!("Got pending value");
-                if let Ok(()) = self.channel.push(TaskStatus::Pending(inner)) {
-                    State::Pending(None)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(TaskStatus::Pending(inner)) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Ready(inner) => {
                 tracing::debug!("Got ready value");
-                let send_result = self.channel.push(TaskStatus::Ready(inner));
-                if let Ok(()) = send_result {
-                    tracing::debug!("Written TaskStatus::Ready into receiving channel");
-                    State::ReadyValue(entry)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task");
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(TaskStatus::Ready(inner)) {
+                    Ok(()) => {
+                        tracing::debug!("Written TaskStatus::Ready into receiving channel");
+                        State::ReadyValue(entry)
+                    }
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Ignore => State::Pending(None),
@@ -601,18 +605,18 @@ where
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
             TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
             TaskStatus::Ready(inner) => {
-                if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) {
-                    State::ReadyValue(entry)
-                } else {
-                    tracing::error!("Failed to deliver status to channel, closing task");
-
-                    // close the queue
-                    self.channel.close();
-
-                    // set alive signal to empty.
-                    self.alive.take();
-
-                    State::Done
+                match self.channel.push(TaskStatus::Ready(inner)) {
+                    Ok(()) => State::ReadyValue(entry),
+                    Err(PushError::Full(_)) => {
+                        tracing::debug!("Channel full, applying backpressure");
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
                 }
             }
             TaskStatus::Ignore => State::Pending(None),
