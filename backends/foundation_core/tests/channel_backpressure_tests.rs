@@ -6,20 +6,17 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use concurrent_queue::ConcurrentQueue;
+use foundation_core::valtron::{BoxedSendExecutionIterator, TaskStatus, WrapTask};
 use foundation_core::valtron::{
-    InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    PriorityOrder, ExecutionAction,
-};
-use foundation_core::valtron::{
-    BoxedSendExecutionIterator, TaskStatus,
-    WrapTask,
+    ExecutionAction, InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
+    PriorityOrder,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
     valtron::{ProcessController, ProgressIndicator},
 };
-use concurrent_queue::ConcurrentQueue;
 use tracing_test::traced_test;
 
 /// No-op process controller for tests
@@ -46,7 +43,10 @@ fn test_bounded_notify_queue_push_error_full() {
 
     // Third push should fail with Full error
     let result = queue.push(3);
-    assert!(result.is_err(), "Push should fail when bounded queue is full");
+    assert!(
+        result.is_err(),
+        "Push should fail when bounded queue is full"
+    );
 
     // The error should contain the value that couldn't be pushed
     match result {
@@ -86,7 +86,10 @@ fn test_store_and_retry_pattern() {
     assert_eq!(queue.len(), 0);
 
     // Retry the stored value
-    assert!(queue.push(stored_value).is_ok(), "Retry should succeed after making space");
+    assert!(
+        queue.push(stored_value).is_ok(),
+        "Retry should succeed after making space"
+    );
 
     // Verify the retried value is in the queue
     assert_eq!(queue.pop().unwrap(), 99);
@@ -154,8 +157,11 @@ fn test_bounded_queue_producer_consumer_coordination() {
 
     // All consumed values should have been produced
     for c in &consumed {
-        assert!(produced.contains(c) || pending == Some(*c),
-            "Consumed value {} should be in produced or pending", c);
+        assert!(
+            produced.contains(c) || pending == Some(*c),
+            "Consumed value {} should be in produced or pending",
+            c
+        );
     }
 }
 
@@ -208,18 +214,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
         .expect("should schedule");
 
     // Run until all values are collected
-    executor.run_until({
-        let receiver = Arc::clone(&receiver);
-        let results = Arc::clone(&results);
-        move |state| {
-            while let Some(status) = receiver.lock().unwrap().next() {
-                if let TaskStatus::Ready(val) = status {
-                    results.lock().unwrap().push(val);
-                }
-            }
-            results.lock().unwrap().len() >= 10 || state == ProgressIndicator::NoWork
-        }
-    });
+    executor.run_until(|state| state == ProgressIndicator::NoWork);
 
     // Collect any remaining results
     while let Some(status) = receiver.lock().unwrap().next() {
@@ -281,20 +276,12 @@ fn test_executor_ready_iter_no_message_loss() {
         .apply(None, executor.boxed_engine())
         .expect("should schedule");
 
-    executor.run_until({
-        let receiver = Arc::clone(&receiver);
-        let results = Arc::clone(&results);
-        move |state| {
-            while let Some(status) = receiver.lock().unwrap().next() {
-                if let TaskStatus::Ready(val) = status {
-                    results.lock().unwrap().push(val);
-                }
-            }
-            results.lock().unwrap().len() >= 5 || state == ProgressIndicator::NoWork
-        }
-    });
+    // Run until no more work - predicate just checks state, doesn't hold locks
+    executor.run_until({ move |state| state == ProgressIndicator::NoWork });
 
-    while let Some(status) = receiver.lock().unwrap().next() {
+    // Collect all results after executor completes
+    let mut receiver = receiver.lock().unwrap();
+    while let Some(status) = receiver.next() {
         if let TaskStatus::Ready(val) = status {
             results.lock().unwrap().push(val);
         }

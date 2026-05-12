@@ -267,6 +267,7 @@ if (Test-Path "${mountLetter}:") {
 fn test_tauri_build_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
+    vm.bootstrap()?;
 
     println!("[build/linux] Building Tauri app in VM...");
     let build_cmd = format!(

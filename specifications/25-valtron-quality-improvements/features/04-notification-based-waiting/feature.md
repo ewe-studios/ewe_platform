@@ -91,7 +91,10 @@ poll-based with fixed sleep intervals.
 **TASK-04-01: `NotifyQueue<T>` Wrapper**
 - Created `NotifyQueue<T>` in `local.rs:103-243` wrapping `ConcurrentQueue<T>` with CondVar-based notification
 - `push()` calls `notify_one()` after pushing item
-- `wait_for_item(timeout: Duration)` uses CondVar `wait_timeout` for efficient blocking
+- **`wait_for_item(timeout: Duration)` blocks indefinitely** until item available or queue closed
+  - The `timeout` parameter controls CondVar re-check interval, NOT "return None after timeout"
+  - Loops internally: wait → check queue → if empty, wait again
+  - Only returns `None` when `PopError::Closed` (queue closed), never on timeout
 - Handles race condition: checks queue again after acquiring lock before waiting
 - Default timeout from `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT = 10ms` in `constants.rs:33`
 
@@ -116,21 +119,23 @@ poll-based with fixed sleep intervals.
 
 ### What We Learned
 
-1. **Single-threaded vs Multi-threaded Timeout Requirements**: In single-threaded mode, wait timeouts
+1. **Critical: `wait_for_item` must block indefinitely, not return None on timeout**: The Valtron stream contract requires that `None` means "stream closed", not "no data yet". Returning `None` on timeout broke the `run_until` pattern and all sequential blocking behavior. The timeout is only for CondVar re-checking, not for giving up.
+
+2. **Single-threaded vs Multi-threaded Timeout Requirements**: In single-threaded mode, wait timeouts
    MUST be very short (microseconds, not milliseconds). If we block for too long waiting for a
    notification in single-threaded mode, nothing else runs to produce the notification - causing
    deadlock. This is why the tests use `Duration::from_micros(10)` to `Duration::from_micros(50)`.
 
-2. **CondVar Race Condition**: There's a race between checking the queue empty and acquiring the
+3. **CondVar Race Condition**: There's a race between checking the queue empty and acquiring the
    CondVar mutex. The implementation handles this by checking the queue again immediately after
    acquiring the lock (before waiting). This ensures we don't miss notifications that arrived
    between the initial check and lock acquisition.
 
-3. **OS Timeout Rounding**: `std::thread::park_timeout(20ns)` gets rounded up by the OS scheduler
+4. **OS Timeout Rounding**: `std::thread::park_timeout(20ns)` gets rounded up by the OS scheduler
    to ~1-50μs anyway, making sub-microsecond timeouts ineffective. The 1ms default is the smallest
    meaningful duration that actually allows the thread to sleep.
 
-4. **Iterator Interface Returns Option**: `NotifyRecvIterator::next()` returns `Option<T>`, not `T`.
+5. **Iterator Interface Returns Option**: `NotifyRecvIterator::next()` returns `Option<T>`, not `T`.
    This was a source of test compilation errors where we compared against `Stream::Next(1)` instead
    of `Some(Stream::Next(1))`.
 
@@ -149,39 +154,53 @@ poll-based with fixed sleep intervals.
 
 ### Issues Fixed During Implementation
 
-**Issue 1: Type Mismatches in Tests**
+**Issue 1: `wait_for_item` returned None on timeout (BROKEN BEHAVIOR)**
+- **Problem**: Original implementation returned `None` when timeout expired. This broke the Valtron stream contract where `None` means "stream closed", not "no data yet". This caused all sequential blocking behavior to fail.
+- **Fix**: Changed `wait_for_item` to loop indefinitely until item available or queue closed. Timeout only controls CondVar re-check interval.
+
+**Issue 2: Type Mismatches in Tests**
 - **Problem**: Tests compared `Stream::Next(1)` against iterator output, but `next()` returns `Option<Stream<D, P>>`
 - **Fix**: Changed assertions to `Some(Stream::Next(1))` to wrap in Option
 
-**Issue 2: Type Inference for Generic NotifyQueue**
+**Issue 3: Type Inference for Generic NotifyQueue**
 - **Problem**: Rust couldn't infer type parameter `T` in `NotifyQueue::unbounded()`
 - **Fix**: Added explicit type annotations: `let queue: NotifyQueue<i32> = NotifyQueue::unbounded()`
 
-**Issue 3: Mutable Borrow in Closure**
+**Issue 4: Mutable Borrow in Closure**
 - **Problem**: `run_until()` takes `Fn` closure but tests needed to mutate captured `receiver`
 - **Fix**: Wrapped receiver in `Arc<Mutex<NotifyRecvIterator>>` to allow mutation through shared ownership
 
-**Issue 4: Unused Import**
+**Issue 5: Unused Import**
 - **Problem**: `mpp::RecvIterator` import was no longer needed after migration
 - **Fix**: Removed the unused import from test module imports
 
 ### Tests Added
 
-13 new single-threaded tests in `local.rs:4217-4590`:
+15 tests in `notification_based_waiting.rs`:
 
-1. `test_notify_queue_short_timeout_single_threaded` - Verifies microsecond timeouts work
-2. `test_notify_queue_receives_item_with_notification` - Basic receive functionality
-3. `test_notify_queue_multiple_items_short_timeout` - Batch processing with short timeouts
-4. `test_notify_recv_iterator_short_timeout` - Iterator interface with short timeout
-5. `test_notify_recv_iterator_iterates_with_notification` - Iterator notification flow
-6. `test_single_threaded_executor_with_notification_tasks` - Full executor integration test
-7. `test_single_threaded_executor_pends_without_blocking` - Tasks that pend/sleep don't block
-8. `test_notify_queue_stream_iterator_short_timeout` - Stream iterator short timeout
-9. `test_notify_queue_stream_iterator_receives_values` - Stream value notification
-10. `test_notify_queue_race_condition_handling` - Race condition between check and lock
-11. `test_notify_queue_bounded_capacity` - Bounded queue behavior
-12. `test_single_threaded_producer_consumer_interleaved` - Producer/consumer pattern
-13. `test_notify_queue_extremely_short_timeout` - 1 microsecond timeout (extreme case)
+1. `test_notify_queue_blocks_until_item_available` - Verifies blocking until producer pushes item
+2. `test_notify_queue_returns_none_when_closed` - Verifies None only returned when queue closed
+3. `test_notify_queue_receives_item_with_notification` - Basic notification receive
+4. `test_notify_queue_multiple_items_blocking` - Batch processing with blocking waits
+5. `test_notify_queue_timeout_is_recheck_interval` - Timeout is re-check interval, not return trigger
+6. `test_notify_queue_race_condition_handling` - Race between check and lock
+7. `test_notify_queue_bounded_capacity` - Bounded queue behavior
+8. `test_notify_recv_iterator_blocks_until_item` - Iterator blocks until item available
+9. `test_notify_recv_iterator_iterates_with_notification` - Iterator notification flow
+10. `test_notify_queue_stream_iterator_blocks_until_values` - Stream iterator blocking
+11. `test_notify_queue_stream_iterator_returns_none_when_closed` - Stream iterator closed handling
+12. `test_notify_queue_stream_iterator_receives_values` - Stream value notification
+13. `test_single_threaded_executor_with_notification_tasks` - Full executor integration
+14. `test_single_threaded_executor_pends_without_blocking` - Tasks that pend don't block executor
+15. `test_single_threaded_producer_consumer_interleaved` - Producer/consumer pattern
+
+### Critical Behavior Change
+
+**`wait_for_item` now blocks indefinitely** until either:
+- An item is available → returns `Some(item)`
+- The queue is closed → returns `None`
+
+The `timeout` parameter is used only for internal re-checking with the CondVar, NOT as a "return None after timeout" mechanism. This aligns with Valtron stream semantics where `None` means "stream closed", not "no data yet".
 
 ### Verification
 
@@ -200,8 +219,12 @@ poll-based with fixed sleep intervals.
 
 ## Key Takeaways
 
-1. **Single-threaded mode requires microsecond timeouts**: When there's only one thread, blocking for milliseconds waiting for a notification that can only come from the same thread causes deadlock. All single-threaded waits must use microsecond-scale timeouts.
+1. **`None` means "closed", not "empty"**: The Valtron stream contract requires `wait_for_item` to block indefinitely until an item is available. Returning `None` on timeout breaks the entire sequential execution model. Only return `None` when the queue is closed.
 
-2. **Notification beats polling**: The CondVar-based notification mechanism eliminates the spin-sleep overhead and provides much lower latency for value delivery.
+2. **Timeout is for re-checking, not giving up**: The `timeout` parameter in `wait_for_item` controls how long to wait on the CondVar before re-checking the queue state. It does NOT mean "return None after timeout".
 
-3. **Race handling is critical**: The implementation correctly handles the race between checking queue state and acquiring the notification lock by re-checking after lock acquisition.
+3. **Single-threaded mode requires microsecond timeouts**: When there's only one thread, blocking for milliseconds waiting for a notification that can only come from the same thread causes deadlock. All single-threaded waits must use microsecond-scale timeouts.
+
+4. **Notification beats polling**: The CondVar-based notification mechanism eliminates the spin-sleep overhead and provides much lower latency for value delivery.
+
+5. **Race handling is critical**: The implementation correctly handles the race between checking queue state and acquiring the notification lock by re-checking after lock acquisition.

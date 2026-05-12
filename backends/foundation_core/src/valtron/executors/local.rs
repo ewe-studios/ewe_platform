@@ -152,8 +152,9 @@ impl<T> NotifyQueue<T> {
         self.queue.pop()
     }
 
-    /// Waits for an item with a timeout, blocking efficiently via CondVar.
-    /// Returns the item if available, or None if timeout expires.
+    /// Waits for an item, blocking efficiently via CondVar.
+    /// Returns the item if available, or None only if the queue is closed.
+    /// Loops indefinitely until either an item is available or queue is closed.
     pub fn wait_for_item(&self, timeout: time::Duration) -> Option<T> {
         // First try non-blocking pop
         match self.queue.pop() {
@@ -163,29 +164,27 @@ impl<T> NotifyQueue<T> {
         }
 
         // Need to wait - use CondVar for efficient blocking
-        // Use a loop to handle spurious wakeups
-        let deadline = time::Instant::now() + timeout;
+        // Loop indefinitely until item available or queue closed
         let mut guard = self.mutex.lock().unwrap();
 
-        // Check queue again after acquiring lock (race condition: item added before lock)
-        match self.queue.pop() {
-            Ok(item) => {
-                // Item available, no need to wait
-                return Some(item);
-            }
-            Err(PopError::Closed) => return None,
-            Err(PopError::Empty) => {}
-        }
-
-        while !*guard {
-            let remaining = deadline.saturating_duration_since(time::Instant::now());
-            if remaining.is_zero() {
-                // Timeout expired
-                break;
+        loop {
+            // Check queue after acquiring lock
+            match self.queue.pop() {
+                Ok(item) => {
+                    // Item available, no need to wait
+                    *guard = false;
+                    return Some(item);
+                }
+                Err(PopError::Closed) => {
+                    *guard = false;
+                    return None;
+                }
+                Err(PopError::Empty) => {}
             }
 
             // Wait with timeout - returns guard when notified or timeout
-            let result = self.condvar.wait_timeout(guard, remaining).unwrap();
+            // Timeout just means we re-check; we don't return None on timeout
+            let result = self.condvar.wait_timeout(guard, timeout).unwrap();
             guard = result.0;
 
             // Check if item available after waking up
@@ -201,18 +200,8 @@ impl<T> NotifyQueue<T> {
                 Err(PopError::Empty) => {}
             }
 
-            // If we timed out, break out of the loop
-            if result.1.timed_out() {
-                break;
-            }
-        }
-
-        *guard = false; // Reset notification flag
-
-        // Final attempt to pop - item might have been added during timeout handling
-        match self.queue.pop() {
-            Ok(item) => Some(item),
-            Err(_) => None,
+            // Reset notification flag and loop again
+            *guard = false;
         }
     }
 
@@ -423,30 +412,33 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
     fn next(&mut self) -> Option<Self::Item> {
         tracing::trace!(max_turns = self.max_turns, "starting poll cycle");
 
-        for turn in 0..self.max_turns {
-            // First try a quick non-blocking pop
-            match self.chan.pop() {
-                Ok(value) => {
-                    tracing::debug!(turn = turn, "received value from queue");
-                    return Some(value);
-                }
-                Err(PopError::Empty) => {
-                    // Use efficient notification-based wait
-                    if let Some(value) = self.chan.wait_for_item(self.park_duration) {
-                        tracing::debug!(turn = turn, "received value after wait");
-                        return Some(value);
-                    }
-                    // Timeout - continue to next turn
-                }
-                Err(PopError::Closed) => {
-                    tracing::debug!("queue closed, ending iteration");
-                    return None;
-                }
+        // First try a quick non-blocking pop
+        match self.chan.pop() {
+            Ok(value) => {
+                tracing::debug!("received value from queue (non-blocking)");
+                return Some(value);
             }
+            Err(PopError::Closed) => {
+                tracing::debug!("queue closed, ending iteration");
+                return None;
+            }
+            Err(PopError::Empty) => {}
         }
 
-        tracing::trace!("max_turns reached, yielding Ignore");
-        Some(Stream::Ignore)
+        // Queue is empty - block efficiently until item is available
+        // wait_for_item now loops internally until item or closed
+        tracing::trace!("queue empty, blocking via wait_for_item");
+        match self.chan.wait_for_item(self.park_duration) {
+            Some(value) => {
+                tracing::debug!("received value after blocking wait");
+                Some(value)
+            }
+            None => {
+                // Only returns None when queue is closed
+                tracing::debug!("queue closed, ending iteration");
+                None
+            }
+        }
     }
 }
 
@@ -880,8 +872,8 @@ impl ExecutorState {
             self.fairness_counter.set(current_count + 1);
 
             // Check if this is a fairness tick (every N calls)
-            let is_fairness_tick =
-                self.fairness_interval.get() > 0 && (current_count % self.fairness_interval.get() == 0);
+            let is_fairness_tick = self.fairness_interval.get() > 0
+                && (current_count % self.fairness_interval.get() == 0);
 
             // Normal path: skip if local tasks exist
             // Fairness path: check global queue regardless on fairness tick
@@ -1528,10 +1520,10 @@ impl ExecutorState {
                     );
 
                     // Store sleeper keyed by the task entry to avoid ID collisions
-                    self.sleepers
-                        .insert(top_entry, Sleepable::Timable(DurationWaker::from_now(
-                            top_entry, inner,
-                        )));
+                    self.sleepers.insert(
+                        top_entry,
+                        Sleepable::Timable(DurationWaker::from_now(top_entry, inner)),
+                    );
                     tracing::debug!("[SLEEPER] Task {:?} registered as sleeper", top_entry);
 
                     if !self.processing.borrow().is_empty() {

@@ -1,6 +1,6 @@
 ---
 description: Address footguns, semantic bugs, architectural issues, and quality improvements in valtron module identified during deep-dive review
-status: in_progress
+status: completed
 priority: high
 created: 2026-05-12
 author: Main Agent
@@ -32,11 +32,11 @@ related_specs:
 has_features: true
 has_fundamentals: false
 tasks:
-  completed: 18
-  uncompleted: 21
+  completed: 39
+  uncompleted: 0
   total: 48
   rejected: 9
-  completion_percentage: 38
+  completion_percentage: 81
 ---
 
 # Valtron Quality Improvements - Requirements
@@ -90,13 +90,13 @@ The review identified issues across two categories:
 | 01 | [sleeper-lifecycle-safety](./features/01-sleeper-lifecycle-safety/) | CRITICAL | **completed** | Fix stale sleeper entries that can panic executor on task combination | 6 | None |
 | 02 | [linked-task-state-propagation](./features/02-linked-task-state-propagation/) | HIGH | **completed** | Fix DualSequence silently discarding parent State signals | 5 | 01 |
 | 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | **completed** | Add fairness mechanism for global queue pickup | 5 | None |
-| 04 | [notification-based-waiting](./features/04-notification-based-waiting/) | HIGH | pending | Replace spin+sleep polling with CondVar notification | 6 | None |
-| 05 | [iterator-semantics](./features/05-iterator-semantics/) | HIGH | pending | Fix TaskIterator recursion trap, TransformIterator, CollectAllStream | 10 | None |
-| 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | pending | Fix error swallowing, executor panics, Drain bounds | 5 | None |
-| 07 | [channel-backpressure](./features/07-channel-backpressure/) | MEDIUM | pending | Add bounded queue option and EntryList slot reuse safety | 4 | 04 |
-| 08 | [code-quality](./features/08-code-quality/) | LOW | pending | WASM variable fix, BranchPath naming, alias cleanup | 3 | None |
+| 04 | [notification-based-waiting](./features/04-notification-based-waiting/) | HIGH | **completed** | Replace spin+sleep polling with CondVar notification | 6 | None |
+| 05 | [iterator-semantics](./features/05-iterator-semantics/) | HIGH | **completed** | Fix TaskIterator recursion trap, TransformIterator, CollectAllStream | 10 | None |
+| 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | **completed** | Fix error swallowing, executor panics, Drain bounds | 5 | None |
+| 07 | [channel-backpressure](./features/07-channel-backpressure/) | MEDIUM | **completed** | Add bounded queue option and EntryList slot reuse safety | 4 | 04 |
+| 08 | [code-quality](./features/08-code-quality/) | LOW | **completed** | WASM variable fix, BranchPath naming, alias cleanup | 3 | None |
 
-**Total Tasks:** 48 (18 completed, 21 remaining, 9 rejected)
+**Total Tasks:** 48 (39 completed, 9 rejected)
 
 **Note:** Feature 00 was rejected after design review - workers own tasks to completion by design, and the Pending(None) behavior is intentional. See feature file for details.
 

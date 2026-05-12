@@ -9,20 +9,19 @@
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use concurrent_queue::ConcurrentQueue;
+use foundation_core::valtron::{
+    BoxedSendExecutionIterator, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
+};
 use foundation_core::valtron::{
     InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
     NotifyQueueStreamIterator, NotifyRecvIter, NotifyRecvIterator, PriorityOrder,
-};
-use foundation_core::valtron::{
-    BoxedSendExecutionIterator, ExecutionAction, NoSpawner, TaskIterator, TaskStatus,
-    WrapTask,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
     valtron::{ProcessController, ProgressIndicator, Stream},
 };
-use concurrent_queue::ConcurrentQueue;
 use tracing_test::traced_test;
 
 /// No-op process controller for tests
@@ -37,29 +36,52 @@ impl ProcessController for NoYielder {
 // NotifyQueue Tests
 // ============================================================================
 
-/// Test that NotifyQueue works correctly with very short timeouts in single-threaded mode.
-/// This simulates the scenario where the executor must not block for long.
+/// Test that NotifyQueue blocks until item is available in single-threaded mode.
+/// Uses a producer thread to push items while consumer waits.
 #[test]
-fn test_notify_queue_short_timeout_single_threaded() {
-    let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
+#[traced_test]
+fn test_notify_queue_blocks_until_item_available() {
+    let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
+    let queue_clone = queue.clone();
 
-    // In single-threaded mode, timeout must be very short (microseconds)
-    // Longer timeouts would block the only thread, preventing progress
-    let very_short_timeout = Duration::from_micros(10);
+    // Producer thread pushes item after short delay
+    let producer = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(10));
+        queue_clone.push(42).expect("push should succeed");
+    });
 
-    // Queue starts empty, should return None immediately-ish
+    // Consumer waits for item (blocks until available)
     let start = Instant::now();
-    let result = queue.wait_for_item(very_short_timeout);
+    let result = queue.wait_for_item(Duration::from_micros(100));
     let elapsed = start.elapsed();
 
-    // Should return None since queue is empty
+    producer.join().expect("producer should complete");
+
+    assert_eq!(result, Some(42));
+    // Should have waited at least 10ms for the producer
+    assert!(
+        elapsed >= Duration::from_millis(5),
+        "Should have blocked waiting for item"
+    );
+}
+
+/// Test that NotifyQueue returns None when queue is closed.
+#[test]
+#[traced_test]
+fn test_notify_queue_returns_none_when_closed() {
+    let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
+
+    // Close the queue
+    queue.close();
+
+    // Should return None immediately since queue is closed
+    let result = queue.wait_for_item(Duration::from_millis(100));
     assert!(result.is_none());
-    // Should complete quickly (not block for a long time)
-    assert!(elapsed < Duration::from_millis(5), "Wait took too long: {:?}", elapsed);
 }
 
 /// Test that NotifyQueue correctly receives items with notification.
 #[test]
+#[traced_test]
 fn test_notify_queue_receives_item_with_notification() {
     let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
 
@@ -71,25 +93,31 @@ fn test_notify_queue_receives_item_with_notification() {
     assert_eq!(result, Some(42));
 }
 
-/// Test NotifyQueue handles multiple items with short timeouts.
+/// Test NotifyQueue handles multiple items with blocking behavior.
 /// This simulates a stream of values being processed.
 #[test]
-fn test_notify_queue_multiple_items_short_timeout() {
-    let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
-    let short_timeout = Duration::from_micros(50);
+#[traced_test]
+fn test_notify_queue_multiple_items_blocking() {
+    let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
+    let queue_clone = queue.clone();
 
-    // Push multiple items
-    for i in 0..5 {
-        queue.push(i).expect("push should succeed");
-    }
+    // Producer pushes items with small delays
+    let producer = std::thread::spawn(move || {
+        for i in 0..5 {
+            std::thread::sleep(Duration::from_millis(5));
+            queue_clone.push(i).expect("push should succeed");
+        }
+    });
 
-    // Receive all items with short timeouts
+    // Receive all items (blocks for each)
     let mut received = Vec::new();
     for _ in 0..5 {
-        if let Some(item) = queue.wait_for_item(short_timeout) {
+        if let Some(item) = queue.wait_for_item(Duration::from_micros(100)) {
             received.push(item);
         }
     }
+
+    producer.join().expect("producer should complete");
 
     assert_eq!(received, vec![0, 1, 2, 3, 4]);
 }
@@ -97,6 +125,7 @@ fn test_notify_queue_multiple_items_short_timeout() {
 /// Test that demonstrates the timeout race condition handling.
 /// Item added between initial check and lock acquisition.
 #[test]
+#[traced_test]
 fn test_notify_queue_race_condition_handling() {
     let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
 
@@ -111,11 +140,15 @@ fn test_notify_queue_race_condition_handling() {
 
     assert_eq!(result, Some(100));
     // Should be very fast since item was already there
-    assert!(elapsed < Duration::from_millis(10), "Race handling took too long");
+    assert!(
+        elapsed < Duration::from_millis(10),
+        "Race handling took too long"
+    );
 }
 
 /// Test bounded NotifyQueue capacity handling in single-threaded mode.
 #[test]
+#[traced_test]
 fn test_notify_queue_bounded_capacity() {
     let queue: NotifyQueue<i32> = NotifyQueue::bounded(2);
 
@@ -125,7 +158,10 @@ fn test_notify_queue_bounded_capacity() {
 
     // Third push should fail (bounded)
     let result = queue.push(3);
-    assert!(result.is_err(), "Push should fail when bounded queue is full");
+    assert!(
+        result.is_err(),
+        "Push should fail when bounded queue is full"
+    );
 
     // Pop one to make space
     assert_eq!(queue.pop(), Ok(1));
@@ -134,56 +170,74 @@ fn test_notify_queue_bounded_capacity() {
     queue.push(3).unwrap();
 }
 
-/// Test that very short timeouts (1 microsecond) still work correctly.
-/// This is the extreme case for single-threaded mode.
+/// Test that extremely short timeout parameter still results in blocking behavior.
+/// The timeout is just for internal re-checking, not for returning None.
 #[test]
-fn test_notify_queue_extremely_short_timeout() {
-    let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
+#[traced_test]
+fn test_notify_queue_timeout_is_recheck_interval() {
+    let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
+    let queue_clone = queue.clone();
 
-    // 1 microsecond timeout - extremely short
-    let ultra_short = Duration::from_micros(1);
+    // Producer pushes item after delay
+    let producer = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(20));
+        queue_clone.push(99).expect("push should succeed");
+    });
 
-    // Empty queue should return None even with ultra-short timeout
+    // Even with ultra-short timeout parameter, should block until item available
     let start = Instant::now();
-    let result = queue.wait_for_item(ultra_short);
+    let result = queue.wait_for_item(Duration::from_micros(1));
     let elapsed = start.elapsed();
 
-    assert!(result.is_none());
-    // Even with 1us timeout, actual elapsed might be higher due to scheduling
-    // but should still be reasonably fast
-    assert!(elapsed < Duration::from_millis(10), "Ultra-short timeout took too long");
+    producer.join().expect("producer should complete");
+
+    assert_eq!(result, Some(99));
+    // Should have blocked at least 20ms
+    assert!(
+        elapsed >= Duration::from_millis(10),
+        "Should have blocked despite ultra-short timeout param"
+    );
 }
 
 // ============================================================================
 // NotifyRecvIter Tests
 // ============================================================================
 
-/// Test NotifyRecvIter with very short timeout in single-threaded context.
+/// Test that NotifyRecvIter blocks until item is available.
 #[test]
-fn test_notify_recv_iterator_short_timeout() {
+#[traced_test]
+fn test_notify_recv_iterator_blocks_until_item() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let recv_iter = NotifyRecvIter::new(queue.clone());
+    let queue_clone = queue.clone();
 
-    // Use microsecond timeout (critical for single-threaded)
-    let timeout = Duration::from_micros(10);
+    // Producer pushes item after delay
+    let producer = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(20));
+        queue_clone.push(42).expect("push should succeed");
+    });
 
-    // Should return None on empty queue
+    // Consumer blocks waiting for item
     let start = Instant::now();
-    let result = recv_iter.block_recv(timeout);
+    let result = recv_iter.block_recv(Duration::from_micros(100));
     let elapsed = start.elapsed();
 
-    assert!(result.is_none());
-    assert!(elapsed < Duration::from_millis(5), "Block recv took too long: {:?}", elapsed);
+    producer.join().expect("producer should complete");
+
+    assert_eq!(result, Some(42));
+    // Should have blocked at least 20ms
+    assert!(
+        elapsed >= Duration::from_millis(10),
+        "Should have blocked waiting for item"
+    );
 }
 
 /// Test NotifyRecvIterator correctly iterates with notification.
 #[test]
+#[traced_test]
 fn test_notify_recv_iterator_iterates_with_notification() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyRecvIterator::from_notify_queue(
-        queue.clone(),
-        Duration::from_micros(100),
-    );
+    let iterator = NotifyRecvIterator::from_notify_queue(queue.clone(), Duration::from_micros(100));
 
     // Push items
     queue.push(1).unwrap();
@@ -199,26 +253,56 @@ fn test_notify_recv_iterator_iterates_with_notification() {
 // NotifyQueueStreamIterator Tests
 // ============================================================================
 
-/// Test NotifyQueueStreamIterator with short timeouts in single-threaded mode.
+/// Test NotifyQueueStreamIterator blocks until values are available.
 #[test]
-fn test_notify_queue_stream_iterator_short_timeout() {
+#[traced_test]
+fn test_notify_queue_stream_iterator_blocks_until_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let queue_clone = queue.clone();
 
-    // Create iterator with very short timeout (microseconds)
-    let mut iterator = NotifyQueueStreamIterator::new(
-        queue.clone(),
-        3, // max_turns
-        Duration::from_micros(10), // park_duration as timeout
-    );
+    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
 
-    // Empty queue should yield Ignore quickly
+    // Producer pushes values after delay
+    let producer = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(20));
+        queue_clone.push(Stream::Next(1)).unwrap();
+        std::thread::sleep(Duration::from_millis(5));
+        queue_clone.push(Stream::Next(2)).unwrap();
+    });
+
+    // Iterator blocks waiting for values
     let start = Instant::now();
-    let result = iterator.next();
+    let result1 = iterator.next();
+    let result2 = iterator.next();
     let elapsed = start.elapsed();
 
-    assert_eq!(result, Some(Stream::Ignore));
-    // Should complete very quickly with short timeout
-    assert!(elapsed < Duration::from_millis(2), "Iterator took too long: {:?}", elapsed);
+    producer.join().expect("producer should complete");
+
+    assert_eq!(result1, Some(Stream::Next(1)));
+    assert_eq!(result2, Some(Stream::Next(2)));
+    // Should have blocked at least 20ms
+    assert!(
+        elapsed >= Duration::from_millis(15),
+        "Iterator should have blocked waiting for values"
+    );
+}
+
+/// Test NotifyQueueStreamIterator returns None when queue is closed.
+#[test]
+#[traced_test]
+fn test_notify_queue_stream_iterator_returns_none_when_closed() {
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+
+    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+
+    // Push a value then close
+    queue.push(Stream::Next(42)).unwrap();
+    queue.close();
+
+    // First next returns the value
+    assert_eq!(iterator.next(), Some(Stream::Next(42)));
+    // Second next returns None (queue closed)
+    assert_eq!(iterator.next(), None);
 }
 
 /// Test NotifyQueueStreamIterator receives values via notification.
@@ -226,11 +310,7 @@ fn test_notify_queue_stream_iterator_short_timeout() {
 fn test_notify_queue_stream_iterator_receives_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
-    let mut iterator = NotifyQueueStreamIterator::new(
-        queue.clone(),
-        5,
-        Duration::from_micros(50),
-    );
+    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
 
     // Push values
     queue.push(Stream::Next(1)).unwrap();
@@ -294,24 +374,12 @@ fn test_single_threaded_executor_with_notification_tasks() {
         .apply(None, executor.boxed_engine())
         .expect("should schedule");
 
-    // Run until task completes
-    executor.run_until({
-        let receiver = Arc::clone(&receiver);
-        let results = Arc::clone(&results);
-        move |state| {
-            // Collect available results with very short timeout
-            while let Some(status) = receiver.lock().unwrap().next() {
-                if let TaskStatus::Ready(val) = status {
-                    results.lock().unwrap().push(val);
-                }
-            }
-            // Continue until we have all 3 values
-            results.lock().unwrap().len() >= 3 || state == ProgressIndicator::NoWork
-        }
-    });
+    // Run until task completes - predicate just checks state, doesn't hold locks
+    executor.run_until({ move |state| state == ProgressIndicator::NoWork });
 
-    // Collect any remaining results
-    while let Some(status) = receiver.lock().unwrap().next() {
+    // Collect all results after executor completes
+    let mut receiver = receiver.lock().unwrap();
+    while let Some(status) = receiver.next() {
         if let TaskStatus::Ready(val) = status {
             results.lock().unwrap().push(val);
         }
@@ -354,9 +422,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
         type Spawner = NoSpawner;
         type Pending = Duration;
 
-        fn next_status(
-            &mut self,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let mut count = self.0.lock().unwrap();
             *count += 1;
             if *count >= 5 {
@@ -385,17 +451,16 @@ fn test_single_threaded_executor_pends_without_blocking() {
         .apply(None, executor.boxed_engine())
         .expect("should schedule");
 
-    // Run until no more work
+    // Run until no more work - predicate just checks state, doesn't hold locks
     let start = Instant::now();
     executor.run_until({
-        let receiver = Arc::clone(&receiver);
-        move |_| {
-            // Drain receiver with short timeout
-            while let Some(_status) = receiver.lock().unwrap().next() {}
-            false // Keep running until timeout
-        }
+        move |_| false // Keep running until timeout
     });
     let elapsed = start.elapsed();
+
+    // Drain receiver after executor completes
+    let mut receiver = receiver.lock().unwrap();
+    while let Some(_status) = receiver.next() {}
 
     // Should complete reasonably quickly, not hang
     assert!(
