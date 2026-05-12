@@ -9,19 +9,6 @@ pub use super::streams::Stream;
 /// This is intended for owned types where the receiving thread owns the object fully.
 pub type CloneableBoxIterator<T, E> = Box<dyn CloneableIterator<Item = AnyResult<T, E>>>;
 
-// Nice pre-defined types, feel free to define yours
-pub type CloneableI8Iterator<E> = CloneableBoxIterator<i8, E>;
-pub type CloneableU8Iterator<E> = CloneableBoxIterator<u8, E>;
-pub type CloneableU16Iterator<E> = CloneableBoxIterator<u16, E>;
-pub type CloneableU32Iterator<E> = CloneableBoxIterator<u32, E>;
-pub type CloneableU64Iterator<E> = CloneableBoxIterator<u64, E>;
-pub type CloneableI16Iterator<E> = CloneableBoxIterator<i16, E>;
-pub type CloneableI32Iterator<E> = CloneableBoxIterator<i32, E>;
-pub type CloneableI64Iterator<E> = CloneableBoxIterator<i64, E>;
-pub type CloneableVecIterator<E> = CloneableBoxIterator<Vec<u8>, E>;
-pub type CloneableStringIterator<E> = CloneableBoxIterator<String, E>;
-pub type CloneableByteIterator<'a, E> = CloneableBoxIterator<&'a [u8], E>;
-
 /// `CloneableIterator` defines a trait which requires the implementing type to
 /// be Send and Cloneable this allows you to have a implementing type that can
 /// safely be cloned and wholly send across a thread into another without having
@@ -41,19 +28,6 @@ pub type CloneableSendBoxIterator<T, E> = Box<dyn CloneableSendIterator<Item = A
 pub trait CloneableSendIterator: Iterator + Send {
     fn clone_box_send_iterator(&self) -> Box<dyn CloneableSendIterator<Item = Self::Item>>;
 }
-
-// Nice pre-defined types, feel free to define yours
-pub type SendableCloneableI8Iterator<E> = CloneableSendBoxIterator<i8, E>;
-pub type CloneableSendU8Iterator<E> = CloneableSendBoxIterator<u8, E>;
-pub type CloneableSendU16Iterator<E> = CloneableSendBoxIterator<u16, E>;
-pub type CloneableSendU32Iterator<E> = CloneableSendBoxIterator<u32, E>;
-pub type CloneableSendU64Iterator<E> = CloneableSendBoxIterator<u64, E>;
-pub type CloneableSendI16Iterator<E> = CloneableSendBoxIterator<i16, E>;
-pub type CloneableSendI32Iterator<E> = CloneableSendBoxIterator<i32, E>;
-pub type CloneableSendI64Iterator<E> = CloneableSendBoxIterator<i64, E>;
-pub type SendableVecIterator<E> = CloneableSendBoxIterator<Vec<u8>, E>;
-pub type CloneableSendStringIterator<E> = CloneableSendBoxIterator<String, E>;
-pub type CloneableSendByteIterator<'a, E> = CloneableSendBoxIterator<&'a [u8], E>;
 
 impl<T, I> CloneableIterator for T
 where
@@ -156,18 +130,8 @@ pub trait SendableIterator<T>: Iterator<Item = T> + Send {}
 
 pub type SendableBoxIterator<T, E> = Box<dyn SendableIterator<AnyResult<T, E>>>;
 
-// Nice pre-defined types, feel free to define yours
-pub type SendableI8Iterator<E> = SendableBoxIterator<i8, E>;
-pub type SendU8Iterator<E> = SendableBoxIterator<u8, E>;
-pub type SendU16Iterator<E> = SendableBoxIterator<u16, E>;
-pub type SendU32Iterator<E> = SendableBoxIterator<u32, E>;
-pub type SendU64Iterator<E> = SendableBoxIterator<u64, E>;
-pub type SendI16Iterator<E> = SendableBoxIterator<i16, E>;
-pub type SendI32Iterator<E> = SendableBoxIterator<i32, E>;
-pub type SendI64Iterator<E> = SendableBoxIterator<i64, E>;
+// Only commonly-used concrete type aliases; define your own as needed
 pub type SendVecIterator<E> = SendableBoxIterator<Vec<u8>, E>;
-pub type SendStringIterator<E> = SendableBoxIterator<String, E>;
-pub type SendByteIterator<'a, E> = SendableBoxIterator<&'a [u8], E>;
 
 // impl<T, I> SendableIterator<I> for T where T: Box<dyn SendableIterator<T> + Send + 'static> {}
 

@@ -29,7 +29,7 @@ pub enum CollectionState {
 ///     if condition2 {
 ///         return `Branch::Right(item)`;
 ///     }
-///     `Branch::SKIP`
+///     `Branch::Skip`
 /// });
 ///
 /// Then people can use `branch_one` and `branch_two` wherever
@@ -70,7 +70,7 @@ pub enum CollectionState {
 #[derive(Display)]
 pub enum BranchPath<L, R> {
     /// indicates no branch gets value and should just get a ignore/skip status.
-    SKIP,
+    Skip,
 
     /// Indicates the left hand of the map should get the value returned.
     Left(L),

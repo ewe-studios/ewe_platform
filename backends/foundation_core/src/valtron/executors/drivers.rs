@@ -389,7 +389,7 @@ where
     S: futures_core::Stream + 'static,
     S::Item: 'static,
 {
-    drive_non_send_iterator(crate::valtron::from_stream(future))
+    drive_non_send_iterator(crate::valtron::from_stream(stream))
 }
 
 // ===========================================
