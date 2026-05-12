@@ -763,6 +763,12 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     where
         F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
 
+    /// Transform items until transformer returns None.
+    /// When transformer returns None, iterator terminates.
+    fn transform_until<F>(self, transformer: F) -> STransformUntil<Self, F>
+    where
+        F: Fn(Stream<Self::D, Self::P>) -> Option<Stream<Self::D, Self::P>> + Send + 'static;
+
     /// Skip items while state predicate returns true.
     fn skip_while_state<F>(self, predicate: F) -> SSkipWhileState<Self, F>
     where
@@ -1188,6 +1194,17 @@ where
         STakeWhileState {
             inner: self,
             predicate,
+            done: false,
+        }
+    }
+
+    fn transform_until<F>(self, transformer: F) -> STransformUntil<Self, F>
+    where
+        F: Fn(Stream<Self::D, Self::P>) -> Option<Stream<Self::D, Self::P>> + Send + 'static,
+    {
+        STransformUntil {
+            inner: self,
+            transformer,
             done: false,
         }
     }
@@ -2670,6 +2687,38 @@ where
         } else {
             self.done = true;
             None
+        }
+    }
+}
+
+/// Wrapper for `transform_until()` - transform until transformer returns None
+///
+/// When the transformer returns None, the iterator terminates.
+/// This is useful for early termination based on transformation results.
+pub struct STransformUntil<I, F> {
+    inner: I,
+    transformer: F,
+    done: bool,
+}
+
+impl<I, F> Iterator for STransformUntil<I, F>
+where
+    I: StreamIterator,
+    F: Fn(Stream<I::D, I::P>) -> Option<Stream<I::D, I::P>> + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        let item = self.inner.next()?;
+        match (self.transformer)(item) {
+            Some(transformed) => Some(transformed),
+            None => {
+                self.done = true;
+                None
+            }
         }
     }
 }

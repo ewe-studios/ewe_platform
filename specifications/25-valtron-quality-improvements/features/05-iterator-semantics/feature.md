@@ -1,7 +1,7 @@
 ---
 feature: iterator-semantics
 description: Fix TransformIterator filter_map semantics, add TransformUntilIterator for all iterator types, fix CollectAllStream O(n) remove
-status: pending
+status: completed
 priority: high
 created: 2026-05-12
 tasks:

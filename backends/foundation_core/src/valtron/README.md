@@ -379,3 +379,64 @@ fn main() {
     let items = shared_list.borrow().clone(); // should be: vec![0, 1, 2, 3, 4]);
 }
 ```
+
+---
+
+## ⚠️ CRITICAL: TaskIterator/Iterator Recursion Trap
+
+**Location:** `task.rs:311-401`
+
+**Problem:** The `TaskIterator` trait has a blanket implementation for any type that implements `Iterator<Item = TaskStatus<...>>`. This creates bidirectional coherence:
+
+```rust
+// Any Iterator<TaskStatus<...>> automatically implements TaskIterator
+impl<I, D, P, S> TaskIterator for I
+where
+    I: Iterator<Item = TaskStatus<D, P, S>>,
+    ...
+```
+
+**The Trap:** Wrapper types that implement BOTH `Iterator` and `TaskIterator` will infinitely recurse on `next_status()`:
+
+```rust
+// WRONG - implements both, causes infinite recursion!
+pub struct BadWrapper<I: TaskIterator> {
+    inner: I,
+}
+
+impl<I: TaskIterator> Iterator for BadWrapper<I> {
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next_status() // Calls Iterator::next() due to blanket impl
+        // Which calls next_status() again... infinite loop!
+    }
+}
+
+impl<I: TaskIterator> TaskIterator for BadWrapper<I> {
+    // Blanket impl provides this, causing the recursion
+}
+```
+
+**The Solution:** Wrapper types should:
+1. Implement `TaskIterator` with explicit `next_status()`
+2. Delegate to `inner.next_status()` (not `Iterator::next()`)
+3. Use `Box<dyn TaskIterator>` to break the cycle via `as_mut().next_status()`
+
+```rust
+// CORRECT - explicit TaskIterator impl
+pub struct GoodWrapper<I: TaskIterator> {
+    inner: I,
+}
+
+impl<I: TaskIterator> TaskIterator for GoodWrapper<I> {
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.inner.next_status() // Direct delegation, no recursion
+    }
+}
+```
+
+**Bottom Line:** Never implement both `Iterator<Item = TaskStatus<...>>` and `TaskIterator` on the same type. The blanket impl makes them mutually exclusive. Use `Box<dyn TaskIterator>` or explicit delegation to break the cycle.

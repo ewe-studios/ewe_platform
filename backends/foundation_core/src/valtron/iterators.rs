@@ -194,11 +194,24 @@ impl<T: Send, V: Send> SendableIterator<V> for TransformSendIterator<T, V> {}
 impl<T: Send, V: Send> Iterator for TransformSendIterator<T, V> {
     type Item = V;
 
+    /// Returns the next transformed item.
+    ///
+    /// Uses filter_map semantics: if the transformer returns None, the item
+    /// is skipped and the next source item is attempted. This continues
+    /// until either the transformer returns Some(transformed) or the source
+    /// is exhausted.
+    ///
+    /// NOTE: This iterator processes items in a loop internally which is
+    /// acceptable for this specific use case. Callers should be aware that
+    /// next() may process multiple source items before returning.
     fn next(&mut self) -> Option<Self::Item> {
-        match self.source.next() {
-            Some(item) => (self.transformer)(item),
-            _ => None,
+        while let Some(item) = self.source.next() {
+            if let Some(transformed) = (self.transformer)(item) {
+                return Some(transformed);
+            }
+            // transformer returned None - skip this item, try next
         }
+        None
     }
 }
 
@@ -220,10 +233,97 @@ impl<T, V> TransformIterator<T, V> {
 impl<T, V> Iterator for TransformIterator<T, V> {
     type Item = V;
 
+    /// Returns the next transformed item.
+    ///
+    /// Uses filter_map semantics: if the transformer returns None, the item
+    /// is skipped and the next source item is attempted. This continues
+    /// until either the transformer returns Some(transformed) or the source
+    /// is exhausted.
+    ///
+    /// NOTE: This iterator processes items in a loop internally which is
+    /// acceptable for this specific use case. Callers should be aware that
+    /// next() may process multiple source items before returning.
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(item) = self.source.next() {
+            if let Some(transformed) = (self.transformer)(item) {
+                return Some(transformed);
+            }
+            // transformer returned None - skip this item, try next
+        }
+        None
+    }
+}
+
+/// TransformUntilIterator - preserves take_while-on-None behavior.
+///
+/// Unlike TransformIterator which skips None values (filter_map semantics),
+/// TransformUntilIterator stops iterating when the transformer returns None.
+/// This preserves the old behavior for callers that need it.
+pub struct TransformUntilIterator<T, V> {
+    transformer: Box<dyn Fn(T) -> Option<V>>,
+    source: BoxedIterator<T>,
+}
+
+impl<T, V> TransformUntilIterator<T, V> {
+    #[must_use]
+    pub fn new(tn: Box<dyn Fn(T) -> Option<V>>, source: BoxedIterator<T>) -> Self {
+        Self {
+            transformer: tn,
+            source,
+        }
+    }
+}
+
+impl<T, V> Iterator for TransformUntilIterator<T, V> {
+    type Item = V;
+
+    /// Returns the next transformed item.
+    ///
+    /// Uses take_while semantics: when transformer returns None, iterator
+    /// terminates (returns None). This is the old TransformIterator behavior.
     fn next(&mut self) -> Option<Self::Item> {
         match self.source.next() {
             Some(item) => (self.transformer)(item),
-            _ => None,
+            None => None,
+        }
+    }
+}
+
+/// TransformUntilSendIterator - Send variant preserving take_while-on-None behavior.
+///
+/// Unlike TransformSendIterator which skips None values (filter_map semantics),
+/// TransformUntilSendIterator stops iterating when the transformer returns None.
+pub struct TransformUntilSendIterator<T: Send, V: Send> {
+    transformer: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
+    source: Box<dyn SendableIterator<T>>,
+}
+
+impl<T: Send, V: Send> TransformUntilSendIterator<T, V> {
+    #[must_use]
+    pub fn new(
+        tn: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
+        source: Box<dyn SendableIterator<T>>,
+    ) -> Self {
+        Self {
+            transformer: tn,
+            source,
+        }
+    }
+}
+
+impl<T: Send, V: Send> SendableIterator<V> for TransformUntilSendIterator<T, V> {}
+
+impl<T: Send, V: Send> Iterator for TransformUntilSendIterator<T, V> {
+    type Item = V;
+
+    /// Returns the next transformed item.
+    ///
+    /// Uses take_while semantics: when transformer returns None, iterator
+    /// terminates (returns None). This is the old TransformSendIterator behavior.
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.source.next() {
+            Some(item) => (self.transformer)(item),
+            None => None,
         }
     }
 }

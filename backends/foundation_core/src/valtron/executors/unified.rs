@@ -748,8 +748,8 @@ where
                 Some(Stream::Pending(self.sources.len()))
             }
             None => {
-                // Source exhausted - remove it
-                self.sources.remove(idx);
+                // Source exhausted - remove it using swap_remove for O(1) complexity
+                self.sources.swap_remove(idx);
                 if self.current_index >= self.sources.len() && !self.sources.is_empty() {
                     self.current_index = 0;
                 }

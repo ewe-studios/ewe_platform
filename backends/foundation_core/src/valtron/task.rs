@@ -1940,6 +1940,14 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     where
         F: Fn(&TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) -> bool + Send + 'static;
 
+    /// Transform items until transformer returns None.
+    /// When transformer returns None, iterator terminates.
+    fn transform_until<F>(self, transformer: F) -> TTransformUntil<Self, F>
+    where
+        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
+            + Send
+            + 'static;
+
     /// Skip items while state predicate returns true.
     fn skip_while_state<F>(self, predicate: F) -> TSkipWhileState<Self, F>
     where
@@ -2446,6 +2454,19 @@ where
         TTakeWhileState {
             inner: self,
             predicate,
+            done: false,
+        }
+    }
+
+    fn transform_until<F>(self, transformer: F) -> TTransformUntil<Self, F>
+    where
+        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
+            + Send
+            + 'static,
+    {
+        TTransformUntil {
+            inner: self,
+            transformer,
             done: false,
         }
     }
@@ -3531,6 +3552,40 @@ where
             Some(status)
         } else {
             Some(TaskStatus::Ignore)
+        }
+    }
+}
+
+/// Wrapper for `transform_until()` - transform until transformer returns None
+///
+/// When the transformer returns None, the iterator terminates.
+/// This is useful for early termination based on transformation results.
+pub struct TTransformUntil<I, F> {
+    inner: I,
+    transformer: F,
+    done: bool,
+}
+
+impl<I, F> Iterator for TTransformUntil<I, F>
+where
+    I: TaskIterator,
+    F: Fn(TaskStatus<I::Ready, I::Pending, I::Spawner>) -> Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>
+        + Send
+        + 'static,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        let status = self.inner.next_status()?;
+        match (self.transformer)(status) {
+            Some(transformed) => Some(transformed),
+            None => {
+                self.done = true;
+                None
+            }
         }
     }
 }
