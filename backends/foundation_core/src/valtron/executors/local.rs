@@ -311,60 +311,36 @@ impl ExecutorState {
         *self.packed_tasks.borrow().get(target).unwrap_or(&false)
     }
 
-    /// De-registers this task and it's dependents from the packed hashmap.
-    #[inline]
-    pub fn unpack_task_and_dependents(&self, target: Entry) {
-        tracing::debug!("Unpacking: tasks and dependents for: {:?}", &target);
-        self.packed_tasks.borrow_mut().remove(&target);
-        for dependent in self.get_task_dependents(target) {
-            tracing::debug!(
-                "Unpacking: task's: {:?} dependent : {:?}",
-                &dependent,
-                &target
-            );
-            self.packed_tasks.borrow_mut().remove(&dependent);
-        }
-    }
-
-    /// Register this task and its dependents in the packed hashmap.
-    #[inline]
-    pub fn pack_task_and_dependents(&self, target: Entry) {
-        tracing::debug!("Packing: tasks and dependents for: {:?}", &target);
-        self.packed_tasks.borrow_mut().insert(target, true);
-        for dependent in self.get_task_dependents(target) {
-            tracing::debug!(
-                "Packing: task's: {:?} dependent : {:?}",
-                &target,
-                &dependent,
-            );
-            self.packed_tasks.borrow_mut().insert(dependent, true);
-        }
-    }
-
     /// `wake_up` adds the entry into the list of wakers
     /// that should be woken up by the executor.
+    ///
+    /// # Design Note (Feature 01: Sleeper Lifecycle Safety)
+    /// Includes defensive check to skip stale entries that no longer exist in
+    /// local_tasks. This prevents panics when a sleeper matures after its
+    /// associated task was combined/removed. See `remove_sleepers_for_entry`
+    /// for the full stale sleeper lifecycle explanation.
     #[inline]
     pub fn wake_up(&self, target: Entry) {
-        // get all the list of dependents and add back into queue.
-        let deps = self.get_task_dependents(target);
+        tracing::debug!("[SLEEPER] Waking up task {:?}", target);
+
+        // Check if entry still exists in local_tasks
+        if !self.local_tasks.borrow_mut().has(&target) {
+            tracing::warn!(
+                "[SLEEPER] Task {:?} no longer exists in local_tasks, skipping wake_up",
+                target
+            );
+            return;
+        }
 
         // remove packed registry
         self.packed_tasks.borrow_mut().remove(&target);
 
         match self.wakeup_priority {
             PriorityOrder::Top => {
-                for dependent in deps.into_iter().rev() {
-                    self.packed_tasks.borrow_mut().remove(&dependent);
-                    self.processing.borrow_mut().push_front(dependent);
-                }
                 self.processing.borrow_mut().push_front(target);
             }
             PriorityOrder::Bottom => {
                 self.processing.borrow_mut().push_back(target);
-                for dependent in deps {
-                    self.packed_tasks.borrow_mut().remove(&dependent);
-                    self.processing.borrow_mut().push_back(dependent);
-                }
             }
         }
     }
@@ -455,13 +431,20 @@ impl ExecutorState {
         self.local_tasks.borrow().active_slots()
     }
 
-    /// Returns the total remaining tasks that are
-    /// active and not sleeping.
+    /// Returns the total remaining tasks that are active and not sleeping.
+    ///
+    /// # Design Note
+    /// Uses `saturating_sub` to prevent underflow panic when sleepers reference
+    /// entries that have been removed (stale sleeper entries). This can happen when
+    /// a task sleeps, then spawns a child via SpawnFinished and gets combined into
+    /// a new task. The old entry is removed but its sleeper remains until cleaned up.
     pub fn total_active_tasks(&self) -> usize {
         let local_task_count = self.local_tasks.borrow().active_slots();
         let sleeping_task_count = self.sleepers.count();
         let in_process_task_count = self.number_of_inprocess();
-        let active_task_count = local_task_count - sleeping_task_count;
+        // Use saturating_sub to prevent underflow when sleepers reference
+        // entries that have been removed (stale sleeper entries).
+        let active_task_count = local_task_count.saturating_sub(sleeping_task_count);
         tracing::debug!(
             "Local TaskCount={} and SleepingTaskCount={}, InProcessTasks={}, ActiveTasks={}",
             local_task_count,
@@ -470,6 +453,24 @@ impl ExecutorState {
             active_task_count,
         );
         active_task_count
+    }
+
+    /// Removes any sleepers referencing the given entry.
+    ///
+    /// # Design Note (Feature 01: Sleeper Lifecycle Safety)
+    /// Must be called when a task is removed to prevent stale sleeper entries.
+    /// Stale entries occur when:
+    /// 1. Task A sleeps (registered in sleepers with entry E)
+    /// 2. Task A spawns child via SpawnFinished, gets combined into new task
+    /// 3. Old entry E is removed from local_tasks via take()
+    /// 4. Sleeper for E remains in sleepers -> stale entry
+    /// 5. When sleeper matures, wake_up tries to process non-existent entry -> panic
+    ///
+    /// Calling this before take() prevents the stale entry issue.
+    /// This was the root cause of the "entry must always have a task attached" panic.
+    #[inline]
+    pub fn remove_sleepers_for_entry(&self, entry: &Entry) {
+        let _ = self.sleepers.remove(entry);
     }
 
     /// `schedule_next` will attempt to pull a new task from the
@@ -742,6 +743,18 @@ impl ExecutorState {
 
             // remove task from queue
             self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+            // Clean up sleepers before removing the task to prevent stale entries
+            tracing::trace!(
+                "[MARKER-REMOVE-NONE] Removing sleeper record if found: {:?}",
+                top_entry
+            );
+            self.remove_sleepers_for_entry(&top_entry);
+
+            tracing::trace!(
+                "[MARKER-REMOVE-NONE] Removing task after None: {:?}",
+                top_entry
+            );
             self.local_tasks.borrow_mut().take(&top_entry);
 
             // Task Iterator is really done
@@ -761,6 +774,12 @@ impl ExecutorState {
 
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                // Clean up sleepers before removing the task
+                tracing::trace!(
+                    "[MARKER-REMOVE-SPAWNFAILED] Removing task after SpawnFailed: {:?}",
+                    top_entry
+                );
+                self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
 
                 // no need to push entry since it must have
@@ -780,6 +799,12 @@ impl ExecutorState {
 
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                // Clean up sleepers before removing the task
+                tracing::trace!(
+                    "[MARKER-REMOVE-PANICKED] Removing task after Panicked: {:?}",
+                    top_entry
+                );
+                self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
 
                 // no need to push entry since it must have
@@ -818,12 +843,18 @@ impl ExecutorState {
                         SpawnType::Lifted => {
                             let child_entry = info.parent().unwrap();
 
+                            tracing::trace!(
+                                "[MARKER-COMBINE-LIFTED] Taking parent {:?} and child {:?} for combining",
+                                top_entry, child_entry
+                            );
+
                             // get the parent task - i.e top_entry
                             let parent_task = self
                                 .local_tasks
                                 .borrow_mut()
                                 .take(&top_entry)
                                 .expect("get parent task");
+
                             let child_task = self
                                 .local_tasks
                                 .borrow_mut()
@@ -870,6 +901,11 @@ impl ExecutorState {
 
                         let parent_entry = info.parent().unwrap();
                         let child_entry = info.child().unwrap();
+
+                        tracing::trace!(
+                            "[MARKER-COMBINE-LIFTEDWITHPARENT] Taking parent {:?} and child {:?} for combining",
+                            parent_entry, child_entry
+                        );
 
                         tracing::debug!(
                             "Retrieve parent id={:?} and child={:?}",
@@ -928,6 +964,7 @@ impl ExecutorState {
                             .borrow_mut()
                             .take(&parent_entry)
                             .expect("get parent task");
+
                         let child_task = self
                             .local_tasks
                             .borrow_mut()
@@ -979,7 +1016,26 @@ impl ExecutorState {
                 );
 
                 // now unpack and take entry out of local tasks
+                tracing::trace!(
+                    "[MARKER-UNPARK-DONE] Unparking task after Done: {:?}",
+                    top_entry
+                );
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                tracing::trace!(
+                    "[MARKER-REMOVE-DONE] Removing task after Done: {:?}",
+                    top_entry
+                );
+                // Clean up sleepers before removing the task
+                tracing::trace!(
+                    "[MARKER-CLEANUP-DONE] Cleaning up sleepers for entry: {:?}",
+                    top_entry
+                );
+                self.remove_sleepers_for_entry(&top_entry);
+
+                tracing::trace!(
+                    "[MARKER-CLEANUP-DONE] Take task from local task registry: {:?}",
+                    top_entry
+                );
                 self.local_tasks.borrow_mut().take(&top_entry);
 
                 tracing::debug!(
@@ -1032,17 +1088,18 @@ impl ExecutorState {
                 // the processing queue and gets registered with the
                 // sleepers (which monitors task that are sleeping).
                 let final_state = if let Some(inner) = duration {
-                    tracing::debug!("Task provided duration: {:?}", &inner);
+                    tracing::debug!(
+                        "[SLEEPER] Task {:?} going to sleep for {:?}",
+                        top_entry,
+                        inner
+                    );
 
-                    // pack this entry and it's dependents into our packed registry.
-                    self.pack_task_and_dependents(top_entry);
-
-                    // I do not think I need to use the sleeper returned entry id.
-                    let _ = self
-                        .sleepers
-                        .insert(Sleepable::Timable(DurationWaker::from_now(
+                    // Store sleeper keyed by the task entry to avoid ID collisions
+                    self.sleepers
+                        .insert(top_entry, Sleepable::Timable(DurationWaker::from_now(
                             top_entry, inner,
                         )));
+                    tracing::debug!("[SLEEPER] Task {:?} registered as sleeper", top_entry);
 
                     if !self.processing.borrow().is_empty() {
                         return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
@@ -3329,8 +3386,7 @@ mod test_local_thread_executor {
 
     #[test]
     #[traced_test]
-    fn scenario_5_task_a_spawns_task_b_that_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness(
-    ) {
+    fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
         let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
