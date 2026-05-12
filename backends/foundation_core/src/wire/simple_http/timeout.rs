@@ -17,6 +17,7 @@
 //! let timeout = calculator.calculate_read_timeout(&context);
 //! ```
 
+use crate::wire::simple_http::client_classifier::ClientClassifier;
 use crate::wire::simple_http::latency_tracker::LatencyTracker;
 use crate::wire::simple_http::load_tracker::LoadTracker;
 use std::time::Duration;
@@ -231,6 +232,8 @@ pub struct TimeoutCalculator {
     latency_tracker: Option<LatencyTracker>,
     /// Optional load tracker for load-based scaling.
     load_tracker: Option<LoadTracker>,
+    /// Optional client classifier for DoS protection.
+    client_classifier: Option<ClientClassifier>,
     /// Factor to apply to P99 latency as safety margin (default: 2.0).
     latency_safety_factor: f64,
 }
@@ -243,6 +246,7 @@ impl TimeoutCalculator {
             config: TimeoutConfig::default(),
             latency_tracker: None,
             load_tracker: None,
+            client_classifier: None,
             latency_safety_factor: 2.0,
         }
     }
@@ -254,6 +258,7 @@ impl TimeoutCalculator {
             config,
             latency_tracker: None,
             load_tracker: None,
+            client_classifier: None,
             latency_safety_factor: 2.0,
         }
     }
@@ -265,6 +270,7 @@ impl TimeoutCalculator {
             config,
             latency_tracker: Some(tracker),
             load_tracker: None,
+            client_classifier: None,
             latency_safety_factor: 2.0,
         }
     }
@@ -276,6 +282,7 @@ impl TimeoutCalculator {
             config,
             latency_tracker: None,
             load_tracker: Some(tracker),
+            client_classifier: None,
             latency_safety_factor: 2.0,
         }
     }
@@ -294,10 +301,30 @@ impl TimeoutCalculator {
         self
     }
 
+    /// Enable client classification for DoS protection.
+    #[must_use]
+    pub fn with_client_classifier(mut self, classifier: ClientClassifier) -> Self {
+        self.client_classifier = Some(classifier);
+        self
+    }
+
+    /// Enable client classification with default config.
+    #[must_use]
+    pub fn enable_client_classification(mut self) -> Self {
+        self.client_classifier = Some(ClientClassifier::new());
+        self
+    }
+
     /// Get the load tracker if enabled.
     #[must_use]
     pub fn load_tracker(&self) -> Option<&LoadTracker> {
         self.load_tracker.as_ref()
+    }
+
+    /// Get the client classifier if enabled.
+    #[must_use]
+    pub fn client_classifier(&self) -> Option<&ClientClassifier> {
+        self.client_classifier.as_ref()
     }
 
     /// Set the latency safety factor.
@@ -328,6 +355,26 @@ impl TimeoutCalculator {
         if let Some(ref tracker) = self.latency_tracker {
             tracker.record(endpoint, duration);
         }
+    }
+
+    /// Record a transfer for client classification.
+    ///
+    /// WHY: Server needs to track transfer rates per client IP to classify
+    /// clients for DoS protection and apply appropriate timeouts.
+    ///
+    /// Does nothing if client classification is not enabled.
+    pub fn record_client_transfer(&self, client_ip: &str, bytes: usize, duration: Duration) {
+        if let Some(ref classifier) = self.client_classifier {
+            classifier.record_transfer(client_ip, bytes, duration);
+        }
+    }
+
+    /// Get classification for a client IP.
+    ///
+    /// Returns None if client classification is not enabled.
+    #[must_use]
+    pub fn classify_client(&self, client_ip: &str) -> Option<crate::wire::simple_http::client_classifier::ClientClassification> {
+        self.client_classifier.as_ref().map(|c| c.classify(client_ip))
     }
 
     /// Calculate read timeout for a request.
@@ -380,6 +427,34 @@ impl TimeoutCalculator {
 
         // Clamp to bounds
         adjusted_timeout.clamp(self.config.min_read_timeout, self.config.max_read_timeout)
+    }
+
+    /// Calculate read timeout with client IP for classification.
+    ///
+    /// WHY: Server connections need to classify clients by IP for DoS protection
+    /// and apply appropriate timeout multipliers based on transfer rate history.
+    ///
+    /// WHAT: Calculates read timeout with optional client classification multiplier.
+    ///
+    /// HOW: Applies client-specific multiplier if client_classifier is configured
+    /// and client_ip is provided.
+    #[must_use]
+    pub fn calculate_read_timeout_with_client(
+        &self,
+        ctx: &TimeoutContext,
+        client_ip: Option<&str>,
+    ) -> Duration {
+        let base_timeout = self.calculate_read_timeout(ctx);
+
+        // Apply client classification multiplier if available
+        if let Some(ref classifier) = self.client_classifier {
+            if let Some(ip) = client_ip {
+                let multiplier = classifier.timeout_multiplier(ip);
+                return Duration::from_millis((base_timeout.as_millis() as f64 * multiplier) as u64);
+            }
+        }
+
+        base_timeout
     }
 
     /// Calculate write timeout for a request.
