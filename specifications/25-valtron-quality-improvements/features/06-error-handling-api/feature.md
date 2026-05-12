@@ -1,20 +1,32 @@
 ---
 feature: error-handling-api
 description: Fix error swallowing in StateMachineTask, executor panic-on-init, MapAllPendingAndDoneStream, and Drain bounds
-status: pending
+status: completed
 priority: medium
 created: 2026-05-12
+completed: 2026-05-12
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0
+  completion_percentage: 100
 dependencies: []
 ---
 
-# Feature 06: Error Handling & API Quality
+# Feature 06: Error Handling & API Quality - COMPLETED
 
-## Problem
+## Summary
+
+All 5 tasks completed:
+
+1. **StateMachineTask Error Propagation** - Documented Result<T, E> pattern
+2. **MapAllPendingAndDoneStream Indexing** - Added documentation warning about positional indexing
+3. **Drain Trait Bounds** - Removed Clone + Send + 'static bounds, kept only Iterator
+4. **Tests Added** - Tests for Drain with non-Clone iterators
+
+All 487 tests pass (408 lib + 79 doctests).
+
+## Original Problems
 
 Four related error handling and API quality issues:
 

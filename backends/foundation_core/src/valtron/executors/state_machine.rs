@@ -3,6 +3,35 @@
 //! This module provides traits and utilities for implementing `TaskIterators`
 //! using state machine patterns, making it easier to build complex async-like
 //! workflows.
+//!
+//! # Error Handling Pattern
+//!
+//! To propagate errors through your state machine, use `Result<T, E>` as the
+//! `Output` type. When an error occurs, return `StateTransition::Complete(Err(e))`
+//! instead of `StateTransition::Error(e)`:
+//!
+//! ```rust,ignore
+//! impl StateMachine for MyMachine {
+//!     type State = MyState;
+//!     type Output = Result<MyValue, MyError>;  // Result as Output
+//!     type Error = MyError;
+//!     type Action = NoAction;
+//!
+//!     fn transition(&mut self, state: Self::State) -> StateTransition<...> {
+//!         match state {
+//!             MyState::Working => {
+//!                 match do_work() {
+//!                     Ok(value) => StateTransition::Complete(Ok(value)),
+//!                     Err(e) => StateTransition::Complete(Err(e)),  // Error as Output
+//!                 }
+//!             }
+//!         }
+//!     }
+//! }
+//! ```
+//!
+//! `StateTransition::Error` is reserved for unrecoverable failures that should
+//! terminate the task immediately without yielding a value.
 
 use crate::valtron::{ExecutionAction, NoAction, TaskIterator, TaskStatus};
 use std::time::Duration;
@@ -111,11 +140,12 @@ where
                 Some(TaskStatus::Ready(output))
             }
             StateTransition::Error(_err) => {
-                // Map error to None (task failed and stops)
-                // Design decision: StateMachines handle errors internally
-                // or propagate via Output type (e.g., Result<T, E>)
-                tracing::warn!(
-                    "State machine error (ignored): {:?}",
+                // Error handling strategy: Use Result<T, E> as Output type.
+                // When your StateMachine uses Result<T, E> as Output, you can
+                // convert errors to output via StateTransition::Complete(Err(e)).
+                // StateTransition::Error is reserved for unrecoverable failures.
+                tracing::error!(
+                    "State machine error: {:?}",
                     std::any::type_name::<M::Error>()
                 );
                 None

@@ -1189,7 +1189,11 @@ where
 /// # Arguments
 ///
 /// * `tasks` - Vector of `TaskIterators` to execute in parallel
-/// * `mapper` - Function that transforms `Vec<Stream<D, P>>` into output type `O`
+/// * `mapper` - Function that transforms `Vec<Stream<D, P>>` into output type `O`.
+///   **Warning:** The vector only contains states from active sources. When a
+///   source completes, it is removed from the vector. Do not rely on positional
+///   indexing - the position of a source in this vector changes as other sources
+///   complete.
 /// * `wait_cycle` - Optional polling duration (defaults to `DEFAULT_WAIT_CYCLE`)
 ///
 /// # Returns
@@ -1231,6 +1235,19 @@ where
 /// This type holds the `DrivenStreamIterator`s and applies the mapper function
 /// to the current state of all sources on each poll. This enables progress
 /// tracking and state-aware transformations.
+///
+/// # Important Note on Positional Indexing
+///
+/// The mapper receives a `Vec<Stream<T::Ready, T::Pending>>` containing only
+/// the states of active (non-exhausted) sources. When a source completes,
+/// it is removed from this vector. **Do not rely on positional indexing**
+/// into this vector - if you need to track individual source progress,
+/// use unique identifiers in your task outputs.
+///
+/// For example, if source at index 1 completes before source at index 0,
+/// the mapper will receive a 1-element vector on the next poll:
+/// - Before: `[Stream::Next(0), Stream::Next(1)]` (2 elements)
+/// - After source 1 completes: `[Stream::Next(0)]` (1 element, was at index 0)
 pub struct MapAllPendingAndDoneStream<T, F, O>
 where
     T: TaskIterator + Send + 'static,
