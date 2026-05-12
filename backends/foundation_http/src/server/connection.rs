@@ -22,8 +22,6 @@ use foundation_errstacks::ErrorTrace;
 
 use crate::reader::read_next_request;
 use crate::serve::{respond, ConnectionResult, ServeError};
-use crate::server::KeepAliveConfig;
-
 use crate::app::HttpApp;
 
 // ---------------------------------------------------------------------------

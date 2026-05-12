@@ -5,6 +5,8 @@
 //! HTTP requests via `SimpleHttpClient` with `StaticSocketAddr` resolver,
 //! and verifies the responses.
 
+#![cfg(feature = "multi")]
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -172,8 +174,6 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || {
-        // Initialize the valtron thread pool in this thread
-        let _guard = initialize_pool(42, Some(5));
         server.serve_with_listener(listener, shutdown_thread);
     });
 

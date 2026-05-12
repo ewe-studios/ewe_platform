@@ -92,43 +92,34 @@ let sleep_duration = calculator.calculate_sleep_duration(&ctx);  // Returns 50ms
 - `backends/foundation_core/src/wire/event_source/task.rs`
 - `backends/foundation_core/src/wire/event_source/reconnecting_task.rs`
 
-### HTTP Server (foundation_http) - ⏳ PENDING
+### HTTP Server (foundation_http) - ✅ COMPLETED
 
-**Current Status:** Server has owned timeout fields that need migration.
+**State Structs Updated:**
+- `KeepAliveConfig` - now has `timeout_calculator: TimeoutCalculator` (removed `min_delay`, `max_delay`, `idle_timeout`)
+- `ServerConfig` - now has `timeout_calculator: TimeoutCalculator` (removed `would_block_sleep`, `accept_error_sleep`)
+- `ConnectionHandler` - uses calculator for delay computation and idle timeout
 
-**Files to Update:**
-- `backends/foundation_http/src/server/mod.rs` - `KeepAliveConfig` and `ServerConfig`
-- `backends/foundation_http/src/server/connection.rs` - `ConnectionHandler`
-
-**Current Owned Timeout Fields:**
-
+**Dynamic Timeout Usage:**
 ```rust
-// KeepAliveConfig (server/mod.rs)
-pub struct KeepAliveConfig {
-    pub min_delay: Duration,           // Remove - use calculator
-    pub max_delay: Duration,           // Remove - use calculator  
-    pub idle_timeout: Duration,        // Remove - use calculator.calculate_read_timeout()
-    pub escalation_threshold: u32,
-    pub max_delay_cycles: u32,
-}
+// Getting idle timeout from calculator (server connection)
+let ctx = TimeoutContext::default().streaming();
+let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
 
-// ServerConfig (server/mod.rs)
-pub struct ServerConfig {
-    pub would_block_sleep: Duration,   // Remove - use calculator.calculate_sleep_duration()
-    pub accept_error_sleep: Duration,  // Remove - use calculator.calculate_sleep_duration()
-    pub keep_alive: KeepAliveConfig,
-    pub max_body_bytes: usize,
-}
+// Getting delay for backoff (server polling)
+let ctx = TimeoutContext::default().streaming();
+let delay = self.timeout_calculator.calculate_sleep_duration(&ctx);  // Returns 50ms for streaming
+
+// Server-specific timeout config with longer timeouts
+let timeout_config = TimeoutConfig {
+    min_read_timeout: Duration::from_secs(120), // 2 min idle timeout
+    max_read_timeout: Duration::from_secs(300), // 5 max read
+    ..TimeoutConfig::default()
+};
 ```
 
-**Changes Needed:**
-1. Add `timeout_calculator: TimeoutCalculator` to `KeepAliveConfig`
-2. Replace custom `compute_delay()` in `ConnectionHandler` with `calculator.calculate_sleep_duration()`
-3. Replace `idle_timeout` check with `calculator.calculate_read_timeout()`
-4. Update `ServerConfig` to use calculator for `would_block_sleep` and `accept_error_sleep`
-5. Use streaming context for SSE/WebSocket connections, default for regular HTTP
-
-**Note:** This requires cross-crate integration since `foundation_http` depends on `foundation_core`.
+**Files Modified:**
+- `backends/foundation_http/src/server/mod.rs`
+- `backends/foundation_http/src/server/connection.rs`
 ```
 
 ## API Design
@@ -312,7 +303,7 @@ let ws = WebSocketTask::connect_with_config(url, resolver, timeout_config)?;
 - [x] `previous_timeout` field added to TimeoutContext
 - [x] Builder method `with_previous_timeout()` added
 - [x] EventSource structs use TimeoutCalculator (no owned timeout fields)
-- [x] HTTP Server - No implementation exists (skipped)
+- [x] HTTP Server uses TimeoutCalculator (no owned timeout fields)
 - [x] All protocol code updated to use calculator methods
 - [x] Zero breaking changes to public API
 - [x] All tests pass
