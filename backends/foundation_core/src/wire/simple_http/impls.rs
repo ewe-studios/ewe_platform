@@ -3305,11 +3305,19 @@ where
                     &line_read_result
                 );
 
-                if let Err(e) = line_read_result {
-                    tracing::trace!("Http read error: {:?}", &e);
-
-                    self.state = HttpReadState::Finished;
-                    return Some(Err(e));
+                match line_read_result {
+                    Err(e) => {
+                        tracing::trace!("Http read error: {:?}", &e);
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(e));
+                    }
+                    Ok(0) => {
+                        // EOF - peer closed connection
+                        tracing::trace!("EOF reached, closing connection");
+                        self.state = HttpReadState::Finished;
+                        return None;
+                    }
+                    Ok(_) => {}
                 }
 
                 let intro_parts: Vec<&str> = line
@@ -3747,11 +3755,19 @@ where
                     &line,
                     &line_read_result
                 );
-                if let Err(e) = line_read_result {
-                    tracing::trace!("Http read error: {:?}", &e);
-
-                    self.state = HttpReadState::Finished;
-                    return Some(Err(e));
+                match line_read_result {
+                    Err(e) => {
+                        tracing::trace!("Http read error: {:?}", &e);
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(e));
+                    }
+                    Ok(0) => {
+                        // EOF - peer closed connection
+                        tracing::trace!("EOF reached, closing connection");
+                        self.state = HttpReadState::Finished;
+                        return None;
+                    }
+                    Ok(_) => {}
                 }
 
                 let intro_parts: Vec<&str> = line

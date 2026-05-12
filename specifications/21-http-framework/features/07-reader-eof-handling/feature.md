@@ -1,14 +1,14 @@
 ---
 feature: reader-eof-handling
 description: Fix HttpRequestReader and HttpResponseReader infinite loop on EOF (read_line returns Ok(0))
-status: pending
+status: completed
 priority: critical
 created: 2026-05-12
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0
+  completion_percentage: 100
 dependencies: []
 ---
 
@@ -107,8 +107,8 @@ This preserves the existing `SKIP` behavior for genuine blank lines (which have
 
 ## Tasks
 
-- [ ] TASK-EOF-01: In `HttpRequestReader::next()` (`impls.rs:3308-3313`): replace `if let Err(e) = line_read_result` with match that handles `Ok(0)` → transition to `Finished`, return `None`
-- [ ] TASK-EOF-02: In `HttpResponseReader::next()` (`impls.rs:3750-3754`): same fix — match `Ok(0)` → `Finished` + `None`
-- [ ] TASK-EOF-03: Add test: `HttpRequestReader` with a stream that returns EOF immediately — verify iterator returns `None` (not infinite `SKIP`)
-- [ ] TASK-EOF-04: Add test: `HttpRequestReader` with stream that sends one complete request then EOF — verify first request is read, then iterator returns `None` on second `next_request()` call
-- [ ] TASK-EOF-05: Add test: test server connection handler exits promptly when client closes connection — verify no tight `Ok(0)` loop in logs and handler thread terminates within 1s
+- [x] **TASK-EOF-01**: In `HttpRequestReader::next()` (`impls.rs:3308-3313`): replace `if let Err(e) = line_read_result` with match that handles `Ok(0)` → transition to `Finished`, return `None`
+- [x] **TASK-EOF-02**: In `HttpResponseReader::next()` (`impls.rs:3750-3754`): same fix — match `Ok(0)` → `Finished` + `None`
+- [x] **TASK-EOF-03**: Add test: `HttpRequestReader` with a stream that returns EOF immediately — verify iterator returns `None` (not infinite `SKIP`)
+- [x] **TASK-EOF-04**: Add test: `HttpRequestReader` with stream that sends one complete request then EOF — verify first request is read, then iterator returns `None` on second `next_request()` call
+- [x] **TASK-EOF-05**: Add test: test server connection handler exits promptly when client closes connection — verify no tight `Ok(0)` loop in logs and handler thread terminates within 1s
