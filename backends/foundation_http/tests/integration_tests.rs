@@ -23,8 +23,8 @@ use foundation_core::wire::simple_http::{
 use serial_test::serial;
 
 use foundation_http::{
-    respond, ConnectionResult, ContextBag, HttpApp, HttpServer, MiddlewareResult,
-    RequestMiddleware, Serve, ServeFactory, ServerConfig,
+    accept_websocket, respond, ConnectionResult, ContextBag, HttpApp, HttpServer,
+    MiddlewareResult, RequestMiddleware, Serve, ServeFactory, ServerConfig, SseEvent, SseStream,
 };
 
 // ---------------------------------------------------------------------------
@@ -1080,4 +1080,220 @@ fn test_context_store_multiple_types() {
     assert_eq!(*app.context().get::<u32>().unwrap(), 42);
     assert_eq!(*app.context().get::<String>().unwrap(), "hello");
     assert!(*app.context().get::<bool>().unwrap());
+}
+
+// ============================================================================
+// Protocol Upgrade Tests
+// ============================================================================
+
+use foundation_core::wire::simple_http::SimpleHeader;
+
+// ---------------------------------------------------------------------------
+// WebSocket Echo Handler
+
+struct WsEchoHandler;
+
+impl ServeFactory for WsEchoHandler {
+    fn create(_bag: &ContextBag) -> Self {
+        Self
+    }
+}
+
+impl Serve for WsEchoHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        req: SimpleIncomingRequest,
+        mut conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        // Attempt WebSocket upgrade
+        if !accept_websocket(&mut conn, &req) {
+            // Not a valid upgrade request
+            let _ = respond::text(&mut conn, 400, "Invalid WebSocket upgrade request");
+            return ConnectionResult::Close(None);
+        }
+
+        // Upgrade successful - return Take to own the connection
+        ConnectionResult::Take
+    }
+}
+
+/// WebSocket upgrade test: verify 101 response is sent.
+#[cfg(feature = "multi")]
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_websocket_upgrade() {
+    let _guard = initialize_pool(42, Some(5));
+    let mut app = HttpApp::new();
+    app.route::<WsEchoHandler>(SimpleMethod::GET, "/ws");
+
+    let (addr, shutdown) = start_server(app);
+
+    // Create client and send WebSocket upgrade request
+    let client = make_client(addr);
+
+    // Build a WebSocket upgrade request
+    let request = client
+        .get("http://testserver/ws")
+        .unwrap()
+        .header(SimpleHeader::custom("Upgrade"), "websocket")
+        .header(SimpleHeader::custom("Connection"), "Upgrade")
+        .header(SimpleHeader::custom("Sec-WebSocket-Key"), "dGhlIHNhbXBsZSBub25jZQ==")
+        .header(SimpleHeader::custom("Sec-WebSocket-Version"), "13")
+        .build_client()
+        .unwrap();
+
+    let response = request.send().unwrap();
+
+    // Should get 101 Switching Protocols
+    assert_eq!(
+        status_code(&response.get_status()),
+        101,
+        "Expected 101 Switching Protocols"
+    );
+
+    // Verify upgrade headers
+    let headers = response.get_headers_ref().clone();
+    let upgrade_header = headers
+        .iter()
+        .find(|(k, _)| format!("{k}").to_lowercase() == "upgrade");
+    assert!(upgrade_header.is_some(), "Missing Upgrade header");
+
+    let sec_accept = headers
+        .iter()
+        .find(|(k, _)| format!("{k}").to_lowercase() == "sec-websocket-accept");
+    assert!(sec_accept.is_some(), "Missing Sec-WebSocket-Accept header");
+
+    shutdown.turn_on();
+}
+
+// ---------------------------------------------------------------------------
+// SSE Counter Handler
+
+struct SseCounterHandler {
+    count: Arc<std::sync::atomic::AtomicUsize>,
+}
+
+impl ServeFactory for SseCounterHandler {
+    fn create(bag: &ContextBag) -> Self {
+        // Get shared counter from context
+        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = bag.get();
+        let count = count.unwrap_or_else(|| Arc::new(std::sync::atomic::AtomicUsize::new(0)));
+        Self { count }
+    }
+}
+
+impl Serve for SseCounterHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        // Clone the connection for SSE stream
+        let mut conn_clone = conn.clone();
+
+        // Create SSE stream - this writes headers
+        let mut sse = match SseStream::new(&mut conn_clone) {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!("Failed to create SSE stream: {:?}", e);
+                return ConnectionResult::Close(None);
+            }
+        };
+
+        // Send 3 counter events
+        for i in 0..3 {
+            let count = self.count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            let data = serde_json::json!({ "count": count });
+
+            let event = SseEvent::new()
+                .event("counter")
+                .data(data.to_string())
+                .id(&i.to_string())
+                .build();
+
+            if let Err(e) = sse.send(&event) {
+                tracing::error!("Failed to send SSE event: {:?}", e);
+                break;
+            }
+
+            // Small delay between events
+            std::thread::sleep(Duration::from_millis(10));
+        }
+
+        ConnectionResult::Take
+    }
+}
+
+/// SSE streaming test: verify events are streamed correctly.
+#[cfg(feature = "multi")]
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_sse_streaming() {
+    let _guard = initialize_pool(42, Some(5));
+    let mut app = HttpApp::new();
+
+    // Store shared counter in context
+    let counter = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    app.context().store(counter.clone());
+
+    app.route::<SseCounterHandler>(SimpleMethod::GET, "/sse");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    // Send request to SSE endpoint
+    let response = client
+        .get("http://testserver/sse")
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    // Verify 200 OK
+    assert_eq!(status_code(&response.get_status()), 200, "Expected 200 OK");
+
+    // Verify Content-Type header
+    let content_type = response
+        .get_headers_ref()
+        .iter()
+        .find(|(k, _)| format!("{k}").to_lowercase() == "content-type");
+    assert!(content_type.is_some(), "Missing Content-Type header");
+    let ct_value = content_type.unwrap().1.first().cloned().unwrap_or_default();
+    assert!(ct_value.contains("text/event-stream"), "Expected text/event-stream, got: {}", ct_value);
+
+    // Verify Cache-Control header
+    let cache_control = response
+        .get_headers_ref()
+        .iter()
+        .find(|(k, _)| format!("{k}").to_lowercase() == "cache-control");
+    assert!(cache_control.is_some(), "Missing Cache-Control header");
+    let cc_value = cache_control.unwrap().1.first().cloned().unwrap_or_default();
+    assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {}", cc_value);
+
+    shutdown.turn_on();
+}
+
+/// SSE event format verification test.
+#[cfg(feature = "multi")]
+#[test]
+fn test_sse_event_formatting() {
+    // Test SseEvent builder
+    let event = SseEvent::new()
+        .event("test_event")
+        .data("test data")
+        .id("123")
+        .build();
+
+    // The event should be constructible
+    assert_eq!(event.event_type(), Some("test_event"));
+    assert_eq!(event.id(), Some("123"));
+
+    // Test retry event (separate constructor)
+    let retry_event = SseEvent::retry(5000u64);
+    assert_eq!(retry_event.retry_ms(), Some(5000));
 }

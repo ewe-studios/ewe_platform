@@ -2,7 +2,10 @@
 # Start the display manager (LightDM) for GUI auto-login
 # This script starts LightDM which provides the graphical login screen with auto-login
 
-set -e
+# Don't exit on error, we want to see what happens
+# set -e
+
+echo "=== Starting Display Manager ==="
 
 # Detect if we're in a VM or container
 if [ -f /etc/os-release ]; then

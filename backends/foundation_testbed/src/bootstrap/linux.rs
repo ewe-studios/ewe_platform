@@ -191,8 +191,19 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     // This can be enabled via a profile flag or environment variable
     logger::step(logger, "install gui (optional)", || {
         if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
-            logger.message("  Installing GUI environment...");
-            crate::ssh::exec(session, INSTALL_GUI_SH)?;
+            logger.message("  Installing GUI environment (this may take a few minutes)...");
+            // Write script to file line by line to avoid escaping issues
+            crate::ssh::exec(session, "rm -f /tmp/install_gui.sh && touch /tmp/install_gui.sh")?;
+            for line in INSTALL_GUI_SH.lines() {
+                // Escape single quotes in the line
+                let escaped = line.replace("'", "'\"'\"'");
+                crate::ssh::exec(session, &format!("echo '{}' >> /tmp/install_gui.sh", escaped))?;
+            }
+            let output = crate::ssh::exec(session, "chmod +x /tmp/install_gui.sh && bash /tmp/install_gui.sh 2>&1")?;
+            logger.message("  GUI installation output:");
+            for line in output.lines() {
+                logger.message(&format!("    {}", line));
+            }
             logger.message("  GUI environment installed");
         } else {
             logger.message("  Skipping GUI install (set TESTBED_INSTALL_GUI=1 to enable)");
@@ -204,7 +215,13 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "start display manager", || {
         if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Starting display manager (LightDM)...");
-            match crate::ssh::exec(session, START_DISPLAY_MANAGER_SH) {
+            // Write script to file line by line
+            crate::ssh::exec(session, "rm -f /tmp/start_dm.sh && touch /tmp/start_dm.sh")?;
+            for line in START_DISPLAY_MANAGER_SH.lines() {
+                let escaped = line.replace("'", "'\"'\"'");
+                crate::ssh::exec(session, &format!("echo '{}' >> /tmp/start_dm.sh", escaped))?;
+            }
+            match crate::ssh::exec(session, "chmod +x /tmp/start_dm.sh && bash /tmp/start_dm.sh 2>&1") {
                 Ok(output) => {
                     logger.message("  Display manager output:");
                     for line in output.lines() {

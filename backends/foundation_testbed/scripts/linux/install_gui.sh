@@ -3,7 +3,10 @@
 # Supports: Debian, Ubuntu, Arch Linux
 # This is optional and only needed for interactive GUI testing
 
-set -e
+# Don't exit on error, we want to see what happens
+# set -e
+
+echo "=== Starting GUI Installation ==="
 
 # Detect distro
 if [ -f /etc/os-release ]; then

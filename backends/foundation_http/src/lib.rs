@@ -47,7 +47,7 @@ pub use server::{HttpServer, ServerConfig, KeepAliveConfig};
 pub use client_ip::ClientIp;
 pub use router::{ArcServe, Router};
 pub use middleware::{MiddlewareResult, RequestMiddleware};
-pub use upgrade::accept_websocket;
+pub use upgrade::{accept_websocket, SseStream, UpgradeError};
 
 // Re-export SSE types from foundation_core
 pub use foundation_core::wire::event_source::{EventWriter, SseEvent};
