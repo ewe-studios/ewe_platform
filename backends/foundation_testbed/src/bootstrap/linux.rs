@@ -15,6 +15,7 @@ const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/linux/set
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/linux/setup_ssh_keys.sh");
 const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/linux/setup_project_mount.sh");
 const INSTALL_GUI_SH: &str = include_str!("../../scripts/linux/install_gui.sh");
+const START_DISPLAY_MANAGER_SH: &str = include_str!("../../scripts/linux/start_display_manager.sh");
 
 /// Detect Linux distro and return package manager type
 fn detect_distro(session: &mut VmSession) -> Result<String> {
@@ -195,6 +196,28 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             logger.message("  GUI environment installed");
         } else {
             logger.message("  Skipping GUI install (set TESTBED_INSTALL_GUI=1 to enable)");
+        }
+        Ok(())
+    })?;
+
+    // Optional: Start the display manager (requires GUI to be installed)
+    logger::step(logger, "start display manager", || {
+        if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
+            logger.message("  Starting display manager (LightDM)...");
+            match crate::ssh::exec(session, START_DISPLAY_MANAGER_SH) {
+                Ok(output) => {
+                    logger.message("  Display manager output:");
+                    for line in output.lines() {
+                        logger.message(&format!("    {}", line));
+                    }
+                }
+                Err(e) => {
+                    logger.message(&format!("  Warning: Could not start display manager: {}", e));
+                    logger.message("  You can start it manually later with: sudo systemctl start lightdm");
+                }
+            }
+        } else {
+            logger.message("  Skipping display manager start (set TESTBED_START_GUI=1 to enable)");
         }
         Ok(())
     })?;
