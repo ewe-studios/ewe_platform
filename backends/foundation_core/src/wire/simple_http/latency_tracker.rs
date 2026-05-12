@@ -14,10 +14,10 @@
 //! # Example
 //!
 //! ```
-//! use foundation_core::wire::simple_http::timeout::{LatencyTracker, TimeoutCalculator};
+//! use foundation_core::wire::simple_http::latency_tracker::LatencyTracker;
 //! use std::time::Duration;
 //!
-//! let tracker = LatencyTracker::with_defaults();
+//! let tracker = LatencyTracker::new();
 //!
 //! // Record a latency sample
 //! tracker.record("api.example.com/users", Duration::from_millis(150));

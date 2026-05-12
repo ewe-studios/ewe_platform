@@ -16,7 +16,7 @@ use std::{
     time::{self},
 };
 
-use crate::valtron::{ConcurrentQueueStreamIterator, Stream, DEFAULT_YIELD_WAIT_TIME};
+use crate::valtron::{Stream, DEFAULT_YIELD_WAIT_TIME};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use rand::{RngCore, SeedableRng};
@@ -27,10 +27,10 @@ use crate::{
     extensions::result_ext::SendableBoxedError,
     retries::ExponentialBackoffDecider,
     synca::{
-        mpp::{self, RecvIterator},
+        mpp::{self},
         Entry, EntryList, IdleMan, LockSignal, OnSignal, SleepyMan, WaitGroup,
     },
-    valtron::{AnyResult, LocalThreadExecutor},
+    valtron::{AnyResult, LocalThreadExecutor, NotifyQueue, NotifyQueueStreamIterator, NotifyRecvIterator},
 };
 
 use crate::valtron::{
@@ -864,9 +864,9 @@ impl<
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -884,7 +884,7 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(RecvIterator::from_chan(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
@@ -910,7 +910,7 @@ impl<
     pub fn stream_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         self.stream_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
     }
 
@@ -936,9 +936,9 @@ impl<
         self,
         wait_cycle: time::Duration,
         max_turns: usize,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -956,7 +956,7 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(ConcurrentQueueStreamIterator::new(
+                Ok(NotifyQueueStreamIterator::new(
                     iter_chan, max_turns, wait_cycle,
                 ))
             }
@@ -978,9 +978,9 @@ impl<
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -998,7 +998,7 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(RecvIterator::from_chan(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),

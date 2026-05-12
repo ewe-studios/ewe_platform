@@ -4,6 +4,7 @@ mod chunked_tests;
 mod event_source;
 mod flatten_combinators;
 mod map_circuit;
+mod notification_based_waiting;
 mod simple_http;
 mod stream_iterators;
 mod sync_boundary_helpers;

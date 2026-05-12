@@ -1,13 +1,10 @@
 //! Custom builders for executors
 
-use crate::valtron::{SpawnInfo, Stream};
+use crate::valtron::{NotifyQueue, NotifyQueueStreamIterator, NotifyRecvIterator, SpawnInfo, Stream};
 
 use std::{any::Any, marker::PhantomData, sync::Arc, time};
 
-use crate::{
-    synca::mpp::RecvIterator, valtron::ConcurrentQueueStreamIterator, valtron::StreamConsumingIter,
-};
-use concurrent_queue::ConcurrentQueue;
+use crate::valtron::StreamConsumingIter;
 
 use crate::{synca::Entry, valtron::AnyResult};
 
@@ -102,7 +99,7 @@ impl<
     /// `scheduled_stream_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `ConcurrentQueueStreamIterator` that implements the [`Iterator`] trait.
+    /// values from a `NotifyQueueStreamIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -113,7 +110,7 @@ impl<
     pub fn scheduled_stream_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         self.scheduled_stream_iter_with_config(
             wait_cycle,
             crate::valtron::executors::DEFAULT_MAX_TURNS,
@@ -121,26 +118,26 @@ impl<
     }
 
     /// `scheduled_stream_iter_with_config` adds a task into execution queue and returns
-    /// a `ConcurrentQueueStreamIterator` with configurable polling behavior.
+    /// a `NotifyQueueStreamIterator` with configurable polling behavior.
     ///
     /// This makes it possible to build synchronous experiences in an async world,
     /// with fine-grained control over iterator polling strategy.
     ///
     /// # Arguments
     ///
-    /// * `wait_cycle` - Thread park duration when queue is empty (passed to `ConcurrentQueueStreamIterator`)
+    /// * `wait_cycle` - Thread park duration when queue is empty (passed to `NotifyQueueStreamIterator`)
     /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
     ///
     /// # Returns
     ///
-    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
     pub fn scheduled_stream_iter_with_config(
         self,
         wait_cycle: time::Duration,
         max_turns: usize,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -153,13 +150,13 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|_| ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
     }
 
     /// `schedule_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
+    /// values from a `NotifyRecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -169,9 +166,9 @@ impl<
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -184,7 +181,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
     }
 
     /// `schedule` delivers a task to the bottom of the thread-local execution queue.
@@ -213,7 +210,7 @@ impl<
     /// `lift_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
+    /// values from a `NotifyRecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -223,9 +220,9 @@ impl<
     pub fn lift_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let parent = self.parent;
         let boxed_task = match self.task {
@@ -239,10 +236,10 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
     }
 
-    /// `stream_lift_iter` similar to `lift_iter` returns a `ConcurrentQueueStreamIterator`
+    /// `stream_lift_iter` similar to `lift_iter` returns a `NotifyQueueStreamIterator`
     /// which returns a simplified representation without the complexity of the `Action`
     /// type providing easier usage within logic blocks.
     ///
@@ -250,11 +247,11 @@ impl<
     pub fn stream_lift_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         self.stream_lift_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
     }
 
-    /// `stream_lift_iter_with_config` returns a `ConcurrentQueueStreamIterator`
+    /// `stream_lift_iter_with_config` returns a `NotifyQueueStreamIterator`
     /// with configurable polling behavior.
     ///
     /// # Arguments
@@ -264,14 +261,14 @@ impl<
     ///
     /// # Returns
     ///
-    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
     pub fn stream_lift_iter_with_config(
         self,
         wait_cycle: time::Duration,
         max_turns: usize,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let parent = self.parent;
         let boxed_task = match self.task {
@@ -285,7 +282,7 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|_| ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
     }
 
     /// `lift` delivers a task to the top of the thread-local execution queue.
@@ -318,13 +315,13 @@ impl<
     pub fn sequenced_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
         let Some(parent) = self.parent else {
             return Err(ExecutorError::ParentMustBeSupplied);
         };
 
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -337,7 +334,7 @@ impl<
 
         self.engine
             .sequenced(boxed_task.into(), parent)
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
     }
 
     /// Creates a stream from a sequenced task, allowing iteration to retrieve results.
@@ -346,7 +343,7 @@ impl<
     pub fn stream_sequenced_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         self.stream_sequenced_iter_with_config(
             wait_cycle,
             crate::valtron::executors::DEFAULT_MAX_TURNS,
@@ -362,18 +359,18 @@ impl<
     ///
     /// # Returns
     ///
-    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
     pub fn stream_sequenced_iter_with_config(
         self,
         wait_cycle: time::Duration,
         max_turns: usize,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         let Some(parent) = self.parent else {
             return Err(ExecutorError::ParentMustBeSupplied);
         };
 
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -386,7 +383,7 @@ impl<
 
         self.engine
             .sequenced(boxed_task.into(), parent)
-            .map(|_| ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
     }
 
     /// Places a task at the head of the thread-local execution queue with the given parent.
@@ -446,7 +443,7 @@ impl<
         self.engine.broadcast(task?)
     }
 
-    /// `stream_broadcast_iter` similar to `broadcast_iter` returns a `ConcurrentQueueStreamIterator`
+    /// `stream_broadcast_iter` similar to `broadcast_iter` returns a `NotifyQueueStreamIterator`
     /// which returns a simplified representation without the complexity of the `Action`
     /// type providing easier usage within logic blocks.
     ///
@@ -454,14 +451,14 @@ impl<
     pub fn stream_broadcast_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         self.stream_broadcast_iter_with_config(
             wait_cycle,
             crate::valtron::executors::DEFAULT_MAX_TURNS,
         )
     }
 
-    /// `stream_broadcast_iter_with_config` returns a `ConcurrentQueueStreamIterator`
+    /// `stream_broadcast_iter_with_config` returns a `NotifyQueueStreamIterator`
     /// with configurable polling behavior.
     ///
     /// # Arguments
@@ -471,14 +468,14 @@ impl<
     ///
     /// # Returns
     ///
-    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
     pub fn stream_broadcast_iter_with_config(
         self,
         wait_cycle: time::Duration,
         max_turns: usize,
-    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -491,13 +488,13 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|_| ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
     }
 
     /// `broadcast_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
+    /// values from a `NotifyRecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -507,9 +504,9 @@ impl<
     pub fn broadcast_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -522,7 +519,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
     }
 }
 

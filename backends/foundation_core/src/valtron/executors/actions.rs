@@ -16,10 +16,9 @@
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
-use concurrent_queue::ConcurrentQueue;
+use crate::valtron::executors::local::NotifyQueue;
 
 use crate::{
-    synca::mpp::RecvIterator,
     valtron::{
         spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ConsumingIter, ExecutionAction,
         ExecutorError, GenericResult, NoAction, SpawnInfo, SpawnType, TaskIterator, TaskStatus,
@@ -360,7 +359,7 @@ pub struct InlineSendAction<Done, Pending, Action, Task, Mapper>(
         InlineSendActionBehaviour,
         Task,
         Vec<Mapper>,
-        Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+        Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     )>,
 )
 where
@@ -381,12 +380,18 @@ where
         mappers: Vec<Mapper>,
         task: Task,
         wait_cycle: std::time::Duration,
-    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
         (
             Self(Some((behaviour, task, mappers, iter_chan.clone()))),
-            RecvIterator::from_chan(iter_chan, wait_cycle),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
         )
     }
 }
@@ -410,12 +415,18 @@ where
         mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
         task: Task,
         wait_cycle: std::time::Duration,
-    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
         (
             Self(Some((behaviour, task, mappers, iter_chan.clone()))),
-            RecvIterator::from_chan(iter_chan, wait_cycle),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
         )
     }
 }
@@ -505,7 +516,7 @@ pub struct InlineAction<Done, Pending, Action, Task, Mapper>(
         InlineActionBehaviour,
         Task,
         Vec<Mapper>,
-        Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+        Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     )>,
 )
 where
@@ -526,12 +537,18 @@ where
         mappers: Vec<Mapper>,
         task: Task,
         wait_cycle: std::time::Duration,
-    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
         (
             Self(Some((behaviour, task, mappers, iter_chan.clone()))),
-            RecvIterator::from_chan(iter_chan, wait_cycle),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
         )
     }
 }
@@ -555,12 +572,18 @@ where
         mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>>,
         task: Task,
         wait_cycle: std::time::Duration,
-    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
-        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(ConcurrentQueue::unbounded());
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
         (
             Self(Some((behaviour, task, mappers, iter_chan.clone()))),
-            RecvIterator::from_chan(iter_chan, wait_cycle),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
         )
     }
 }

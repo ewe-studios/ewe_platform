@@ -1,8 +1,9 @@
 ---
 feature: pending-none-livelock
 description: Fix unbounded CPU spin when tasks return Pending(None) through Init/Ignore states
-status: pending
+status: rejected
 priority: critical
+rejection_reason: "Workers own tasks to completion by design — they don't pull more work than necessary. The Pending(None) spin behavior is intentional."
 created: 2026-05-12
 tasks:
   completed: 0

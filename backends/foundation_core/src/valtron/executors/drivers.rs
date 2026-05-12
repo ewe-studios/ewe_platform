@@ -11,13 +11,12 @@ use crate::valtron::FutureTask;
 use crate::valtron::StreamTask;
 
 use crate::{
-    synca::mpp::RecvIterator,
-    valtron::{ConcurrentQueueStreamIterator, Stream},
     valtron::{
         ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
         InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
         TaskStatusMapper,
     },
+    valtron::{NotifyQueueStreamIterator, NotifyRecvIterator, Stream},
 };
 
 // ===========================================
@@ -140,15 +139,15 @@ pub fn run_until_ready_state() {
     });
 }
 
-/// [`run_until_receiver_has_value`] with a reciever object until the receiver object has a value(s)
+/// [`run_until_receiver_has_value`] with a receiver object until the receiver object has a value(s)
 /// to report or the.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_receiver_has_value<T, S>(
-    stream: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    stream: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
     #[allow(unused_variables)] checker: S,
-) -> RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
+) -> NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
 where
     S: Fn(ProgressIndicator) -> bool,
     T: TaskIterator + Send + 'static,
@@ -186,9 +185,9 @@ where
 /// In multi-threaded mode, this waits for the concurrent queue to receive items.
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_stream_has_value<T, S>(
-    stream: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
+    stream: NotifyQueueStreamIterator<T::Ready, T::Pending>,
     #[allow(unused_variables)] checker: S,
-) -> ConcurrentQueueStreamIterator<T::Ready, T::Pending>
+) -> NotifyQueueStreamIterator<T::Ready, T::Pending>
 where
     S: Fn(ProgressIndicator) -> bool,
     T: TaskIterator + Send + 'static,
@@ -216,32 +215,31 @@ where
         }
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-    {
-        use std::time::Duration;
-
-        let initial_empty_count = stream.len();
-        let is_closed = stream.is_closed();
-        tracing::debug!(
-            "multi-threaded wait - initial queue len={}, closed={}, starting wait loop",
-            initial_empty_count,
-            is_closed
-        );
-
-        let mut iterations = 0;
-        while stream.is_empty() && !stream.is_closed() {
-            iterations += 1;
-            std::hint::spin_loop();
-            std::thread::sleep(Duration::from_micros(100));
-        }
-
-        tracing::debug!(
-            "multi-threaded wait finished - iterations={}, final queue_len={}, closed={}",
-            iterations,
-            stream.len(),
-            stream.is_closed()
-        );
-    }
+    // #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+    // {
+    //     let initial_empty_count = stream.len();
+    //     let is_closed = stream.is_closed();
+    //     tracing::debug!(
+    //         "multi-threaded wait - initial queue len={}, closed={}, using notification-based wait",
+    //         initial_empty_count,
+    //         is_closed
+    //     );
+    //
+    //     // // Use notification-based waiting instead of spin-sleep
+    //     // // The NotifyQueueStreamIterator already uses wait_for_item internally
+    //     // // We just need to check if we should wait at all
+    //     // if stream.is_empty() && !stream.is_closed() {
+    //     //     // Use a short wait to allow notification to arrive
+    //     //     // This replaces the spin-sleep loop
+    //     //     std::thread::park_timeout(Duration::from_micros(100));
+    //     // }
+    //
+    //     tracing::debug!(
+    //         "multi-threaded wait finished - final queue_len={}, closed={}",
+    //         stream.len(),
+    //         stream.is_closed()
+    //     );
+    // }
 
     stream
 }
@@ -565,7 +563,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_receiver<T>(
-    incoming: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    incoming: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
 ) -> DrivenNonSendRecvIterator<T>
 where
     T: TaskIterator + 'static,
@@ -583,7 +581,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_receiver<T>(
-    incoming: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    incoming: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
 ) -> DrivenRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -601,7 +599,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_stream<T>(
-    incoming: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
+    incoming: NotifyQueueStreamIterator<T::Ready, T::Pending>,
 ) -> DrivenNonSendStreamIterator<T>
 where
     T: TaskIterator + 'static,
@@ -619,7 +617,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_stream<T>(
-    incoming: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
+    incoming: NotifyQueueStreamIterator<T::Ready, T::Pending>,
 ) -> DrivenStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -750,9 +748,7 @@ where
 /// This is good for non send-safe types you want to use in non-send contexts.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenNonSendStreamIterator<T>(
-    Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>,
-)
+pub struct DrivenNonSendStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -767,7 +763,7 @@ where
     T::Spawner: ExecutionAction + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: ConcurrentQueueStreamIterator<T::Ready, T::Pending>) -> Self {
+    pub fn new(task_iterator: NotifyQueueStreamIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
     }
 }
@@ -802,7 +798,7 @@ where
     }
 }
 
-pub struct DrivenStreamIterator<T>(Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>)
+pub struct DrivenStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -817,7 +813,7 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: ConcurrentQueueStreamIterator<T::Ready, T::Pending>) -> Self {
+    pub fn new(task_iterator: NotifyQueueStreamIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
     }
 
@@ -887,7 +883,7 @@ where
 }
 
 pub struct DrivenRecvIterator<T>(
-    Option<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
+    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
 )
 where
     T: TaskIterator + Send + 'static,
@@ -903,12 +899,14 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>) -> Self {
+    pub fn new(
+        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    ) -> Self {
         Self(Some(task_iterator))
     }
 }
 
-// This is safe to send since it contains a type `RecvIterator`
+// This is safe to send since it contains a type `NotifyRecvIterator`
 // which is safe to send.
 unsafe impl<T> Send for DrivenRecvIterator<T>
 where
@@ -965,7 +963,7 @@ where
 }
 
 pub struct DrivenNonSendRecvIterator<T>(
-    Option<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
+    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
 )
 where
     T: TaskIterator + 'static,
@@ -981,7 +979,9 @@ where
     T::Spawner: ExecutionAction + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>) -> Self {
+    pub fn new(
+        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    ) -> Self {
         Self(Some(task_iterator))
     }
 }

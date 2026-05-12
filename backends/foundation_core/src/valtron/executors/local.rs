@@ -24,7 +24,7 @@ use crate::{
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
-use concurrent_queue::{ConcurrentQueue, PushError};
+use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 
 #[allow(unused)]
 use crate::compati::Mutex;
@@ -34,6 +34,8 @@ use crate::valtron::{
     ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, SpawnInfo,
     SpawnType, TaskReadyResolver, TaskStatusMapper, ThreadActivity,
 };
+
+use crate::valtron::executors::constants::DEFAULT_KILL_SIGNAL_CHECK_INTERVAL;
 
 /// `PriorityOrder` defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -83,6 +85,368 @@ impl Waiter for Sleepable {
             Sleepable::Timable(inner) => inner.is_ready(),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
         }
+    }
+}
+
+// ============================================================================
+// Feature 04: Notification-Based Waiting
+// ============================================================================
+
+/// `NotifyQueue` wraps a `ConcurrentQueue` with CondVar-based notification.
+///
+/// When `push()` is called, it notifies one waiting consumer via CondVar.
+/// Consumers use `wait_for_item()` to block efficiently until an item is available.
+///
+/// This replaces spin-sleep polling with proper blocking synchronization,
+/// significantly reducing CPU usage and latency in multi-threaded scenarios.
+#[derive(Debug)]
+pub struct NotifyQueue<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// CondVar for notifying waiting consumers
+    condvar: Arc<foundation_nostd::comp::condvar_comp::CondVar>,
+    /// Mutex for CondVar wait condition
+    mutex: Arc<foundation_nostd::comp::condvar_comp::Mutex<bool>>,
+}
+
+impl<T> Clone for NotifyQueue<T> {
+    fn clone(&self) -> Self {
+        Self {
+            queue: self.queue.clone(),
+            condvar: self.condvar.clone(),
+            mutex: self.mutex.clone(),
+        }
+    }
+}
+
+impl<T> NotifyQueue<T> {
+    /// Creates a new NotifyQueue with an unbounded ConcurrentQueue.
+    pub fn unbounded() -> Self {
+        Self {
+            queue: Arc::new(ConcurrentQueue::unbounded()),
+            condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
+            mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
+        }
+    }
+
+    /// Creates a new NotifyQueue with a bounded ConcurrentQueue.
+    pub fn bounded(capacity: usize) -> Self {
+        Self {
+            queue: Arc::new(ConcurrentQueue::bounded(capacity)),
+            condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
+            mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
+        }
+    }
+
+    /// Pushes an item to the queue and notifies one waiting consumer.
+    pub fn push(&self, item: T) -> Result<(), PushError<T>> {
+        self.queue.push(item)?;
+        // Set notification flag and notify one waiting consumer
+        let mut guard = self.mutex.lock().unwrap();
+        *guard = true;
+        self.condvar.notify_one();
+        Ok(())
+    }
+
+    /// Pops an item from the queue without waiting.
+    pub fn pop(&self) -> Result<T, PopError> {
+        self.queue.pop()
+    }
+
+    /// Waits for an item with a timeout, blocking efficiently via CondVar.
+    /// Returns the item if available, or None if timeout expires.
+    pub fn wait_for_item(&self, timeout: time::Duration) -> Option<T> {
+        // First try non-blocking pop
+        match self.queue.pop() {
+            Ok(item) => return Some(item),
+            Err(PopError::Closed) => return None,
+            Err(PopError::Empty) => {}
+        }
+
+        // Need to wait - use CondVar for efficient blocking
+        // Use a loop to handle spurious wakeups
+        let deadline = time::Instant::now() + timeout;
+        let mut guard = self.mutex.lock().unwrap();
+
+        // Check queue again after acquiring lock (race condition: item added before lock)
+        match self.queue.pop() {
+            Ok(item) => {
+                // Item available, no need to wait
+                return Some(item);
+            }
+            Err(PopError::Closed) => return None,
+            Err(PopError::Empty) => {}
+        }
+
+        while !*guard {
+            let remaining = deadline.saturating_duration_since(time::Instant::now());
+            if remaining.is_zero() {
+                // Timeout expired
+                break;
+            }
+
+            // Wait with timeout - returns guard when notified or timeout
+            let result = self.condvar.wait_timeout(guard, remaining).unwrap();
+            guard = result.0;
+
+            // Check if item available after waking up
+            match self.queue.pop() {
+                Ok(item) => {
+                    *guard = false; // Reset notification flag
+                    return Some(item);
+                }
+                Err(PopError::Closed) => {
+                    *guard = false;
+                    return None;
+                }
+                Err(PopError::Empty) => {}
+            }
+
+            // If we timed out, break out of the loop
+            if result.1.timed_out() {
+                break;
+            }
+        }
+
+        *guard = false; // Reset notification flag
+
+        // Final attempt to pop - item might have been added during timeout handling
+        match self.queue.pop() {
+            Ok(item) => Some(item),
+            Err(_) => None,
+        }
+    }
+
+    /// Returns true if the queue is empty.
+    pub fn is_empty(&self) -> bool {
+        self.queue.is_empty()
+    }
+
+    /// Returns true if the queue is closed.
+    pub fn is_closed(&self) -> bool {
+        self.queue.is_closed()
+    }
+
+    /// Returns the current length of the queue.
+    pub fn len(&self) -> usize {
+        self.queue.len()
+    }
+
+    /// Closes the queue.
+    pub fn close(&self) -> bool {
+        self.queue.close()
+    }
+
+    /// Returns a reference to the underlying queue.
+    pub fn queue(&self) -> &ConcurrentQueue<T> {
+        &self.queue
+    }
+}
+
+/// `NotifyRecvIter` provides notification-based receiving for `NotifyQueue`.
+///
+/// This is the notification-aware counterpart to `RecvIter` in `mpp.rs`.
+/// Instead of spin-polling with park_timeout, it uses CondVar notification
+/// for efficient blocking when the queue is empty.
+#[derive(Debug)]
+pub struct NotifyRecvIter<T> {
+    queue: Arc<NotifyQueue<T>>,
+}
+
+impl<T> Clone for NotifyRecvIter<T> {
+    fn clone(&self) -> Self {
+        Self {
+            queue: self.queue.clone(),
+        }
+    }
+}
+
+impl<T> NotifyRecvIter<T> {
+    pub fn new(queue: Arc<NotifyQueue<T>>) -> Self {
+        Self { queue }
+    }
+
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.queue.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.queue.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.queue.len()
+    }
+
+    /// Blocks efficiently until an item is available or timeout.
+    /// Returns None if timeout expires or queue is closed.
+    pub fn block_recv(&self, timeout: time::Duration) -> Option<T> {
+        self.queue.wait_for_item(timeout)
+    }
+}
+
+/// `NotifyRecvIterator` provides an Iterator interface over `NotifyRecvIter`.
+///
+/// This is the notification-aware counterpart to `RecvIterator` in `mpp.rs`.
+/// It uses CondVar notification instead of spin-polling, significantly
+/// reducing CPU usage when waiting for values.
+#[derive(Debug)]
+pub struct NotifyRecvIterator<T>(NotifyRecvIter<T>, time::Duration);
+
+impl<T> NotifyRecvIterator<T> {
+    pub fn from_notify_queue(item: Arc<NotifyQueue<T>>, dur: time::Duration) -> Self {
+        Self::new(NotifyRecvIter::new(item), dur)
+    }
+
+    #[must_use]
+    pub fn new(item: NotifyRecvIter<T>, dur: time::Duration) -> Self {
+        Self(item, dur)
+    }
+
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.0.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<T> Iterator for NotifyRecvIterator<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.block_recv(self.1)
+    }
+}
+
+// ============================================================================
+// NotifyQueueStreamIterator - Notification-based stream iterator
+// ============================================================================
+
+use crate::valtron::iterators::Stream;
+
+/// `NotifyQueueStreamIterator` provides notification-based iteration over a `NotifyQueue<Stream<D, P>>`.
+///
+/// This is the notification-aware counterpart to `ConcurrentQueueStreamIterator` in `streams.rs`.
+/// It uses CondVar notification instead of spin-polling, significantly reducing CPU usage
+/// when waiting for stream values.
+///
+/// The iterator polls the queue up to `max_turns` times, yielding `Stream::Ignore` if no
+/// value is available. Between polls, it efficiently waits using CondVar notification.
+#[derive(Debug)]
+pub struct NotifyQueueStreamIterator<D, P> {
+    chan: Arc<NotifyQueue<Stream<D, P>>>,
+    max_turns: usize,
+    park_duration: time::Duration,
+}
+
+impl<D, P> NotifyQueueStreamIterator<D, P> {
+    /// Creates a new NotifyQueueStreamIterator.
+    ///
+    /// ## Arguments
+    ///
+    /// * `chan` - The notification queue to poll
+    /// * `max_turns` - Number of poll attempts before yielding Stream::Ignore
+    /// * `park_duration` - Duration to wait between polls (used as timeout for wait_for_item)
+    ///
+    /// ## Panics
+    ///
+    /// Panics if `max_turns` is 0 (must be at least 1)
+    pub fn new(
+        chan: Arc<NotifyQueue<Stream<D, P>>>,
+        max_turns: usize,
+        park_duration: time::Duration,
+    ) -> Self {
+        assert!(max_turns > 0, "max_turns must be greater than 0");
+        tracing::trace!(
+            max_turns = max_turns,
+            park_duration_ms = park_duration.as_millis(),
+            "created NotifyQueueStreamIterator"
+        );
+        Self {
+            chan,
+            max_turns,
+            park_duration,
+        }
+    }
+
+    /// Returns a reference to the underlying channel.
+    #[must_use]
+    pub fn chan(&self) -> &Arc<NotifyQueue<Stream<D, P>>> {
+        &self.chan
+    }
+
+    /// Returns the configured max_turns value.
+    #[must_use]
+    pub fn max_turns(&self) -> usize {
+        self.max_turns
+    }
+
+    /// Returns the configured park_duration value.
+    #[must_use]
+    pub fn park_duration(&self) -> time::Duration {
+        self.park_duration
+    }
+
+    /// Returns true if the underlying queue is closed.
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.chan.is_closed()
+    }
+
+    /// Returns the current number of items in the queue.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.chan.len()
+    }
+
+    /// Returns true if the queue is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.chan.is_empty()
+    }
+}
+
+impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        tracing::trace!(max_turns = self.max_turns, "starting poll cycle");
+
+        for turn in 0..self.max_turns {
+            // First try a quick non-blocking pop
+            match self.chan.pop() {
+                Ok(value) => {
+                    tracing::debug!(turn = turn, "received value from queue");
+                    return Some(value);
+                }
+                Err(PopError::Empty) => {
+                    // Use efficient notification-based wait
+                    if let Some(value) = self.chan.wait_for_item(self.park_duration) {
+                        tracing::debug!(turn = turn, "received value after wait");
+                        return Some(value);
+                    }
+                    // Timeout - continue to next turn
+                }
+                Err(PopError::Closed) => {
+                    tracing::debug!("queue closed, ending iteration");
+                    return None;
+                }
+            }
+        }
+
+        tracing::trace!("max_turns reached, yielding Ignore");
+        Some(Stream::Ignore)
     }
 }
 
@@ -1928,6 +2292,10 @@ pub struct LocalThreadExecutor<T: ProcessController + Clone> {
     /// schedule_next(), check global queue regardless of local task state.
     /// Prevents long-running local tasks from starving global queue.
     fairness_interval: cell::Cell<usize>,
+
+    /// Feature 04: How often to check kill signal in block_on() inner loop.
+    /// Default is every 16 iterations (checked within the 200-iteration inner loop).
+    kill_signal_check_interval: usize,
 }
 
 // --- constructors
@@ -1942,6 +2310,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
             max_yield_duration: self.max_yield_duration,
             kill_signal: self.kill_signal.clone(),
             fairness_interval: cell::Cell::new(self.fairness_interval.get()),
+            kill_signal_check_interval: self.kill_signal_check_interval,
         }
     }
 }
@@ -1962,6 +2331,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
         fairness_interval: usize,
+        kill_signal_check_interval: usize,
     ) -> Self {
         Self {
             state_owner: state_owner.clone(),
@@ -1970,6 +2340,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             no_work_yield,
             max_yield_duration: time::Duration::from_millis(100),
             fairness_interval: cell::Cell::new(fairness_interval),
+            kill_signal_check_interval,
             state: ReferencedExecutorState::new(
                 rc::Rc::new(ExecutorState::new(
                     state_owner,
@@ -2009,6 +2380,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             activities,
             ExecutorState::DEFAULT_GLOBAL_QUEUE_FAIRNESS_INTERVAL,
+            DEFAULT_KILL_SIGNAL_CHECK_INTERVAL,
         )
     }
 
@@ -2044,7 +2416,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// queue even if local tasks exist, preventing starvation.
     ///
     /// # Example
-    /// ```
+    /// ```ignore
     /// let executor = LocalThreadExecutor::from_seed(...)
     ///     .with_fairness_interval(64);
     /// ```
@@ -2053,6 +2425,20 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         // Also update the inner ExecutorState via clone_state()
         // Note: This updates the shared state since ExecutorState is behind Rc
         self.state.clone_state().fairness_interval.set(interval);
+        self
+    }
+
+    /// Feature 04: Sets the kill signal check interval for block_on() inner loop.
+    /// Every N iterations, the kill signal is checked within the 200-iteration inner loop.
+    /// Default is 16. Lower values check more frequently but add overhead.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let executor = LocalThreadExecutor::from_seed(...)
+    ///     .with_kill_signal_check_interval(32);
+    /// ```
+    pub fn with_kill_signal_check_interval(mut self, interval: usize) -> Self {
+        self.kill_signal_check_interval = interval;
         self
     }
 }
@@ -2247,18 +2633,22 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 return;
             }
 
-            for _ in 0..200 {
-                if kill_signal.probe() {
-                    tracing::debug!("Received signal stoppng immediately");
+            // Feature 04: Check kill signal every N iterations instead of every iteration
+            // This reduces overhead while still ensuring timely shutdown
+            for i in 0..200 {
+                // Check kill signal at configured interval (default: every 16 iterations)
+                if i % self.kill_signal_check_interval == 0 && kill_signal.probe() {
+                    tracing::debug!("Received signal stopping immediately");
                     return;
                 }
 
                 match self.run_once() {
                     ProgressIndicator::CanProgress(_) => {}
                     ProgressIndicator::NoWork => {
+                        // Also check kill signal when no work
                         if kill_signal.probe() {
                             tracing::debug!(
-                                "Received signal stoppng immediately at no work probing"
+                                "Received signal stopping immediately at no work probing"
                             );
                             return;
                         }
@@ -2272,8 +2662,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         self.yielder.yield_for(yield_duration);
                     }
                     ProgressIndicator::SpinWait(duration) => {
+                        // Also check kill signal during spin wait
                         if kill_signal.probe() {
-                            tracing::debug!("Received signal stoppng immediately at spin wait");
+                            tracing::debug!("Received signal stopping immediately at spin wait");
                             return;
                         }
 
@@ -2390,7 +2781,7 @@ mod test_local_thread_executor {
     use crate::{
         panic_if_failed,
         retries::ExponentialBackoffDecider,
-        synca::{mpp::RecvIterator, SleepyMan},
+        synca::SleepyMan,
         valtron::{
             BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour,
             IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator,
@@ -2443,7 +2834,7 @@ mod test_local_thread_executor {
 
     enum ListItemInner {
         List(Option<Vec<usize>>),
-        Response(RecvIterator<TaskStatus<usize, (), NoSpawner>>),
+        Response(NotifyRecvIterator<TaskStatus<usize, (), NoSpawner>>),
         Done,
     }
 

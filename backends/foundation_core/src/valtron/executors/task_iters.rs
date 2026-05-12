@@ -3,11 +3,10 @@
 
 use std::{any::Any, marker::PhantomData};
 
-use concurrent_queue::ConcurrentQueue;
-
 use crate::compati::Mutex;
 
 use crate::synca::Entry;
+use crate::valtron::executors::local::NotifyQueue;
 use crate::valtron::iterators::Stream;
 
 use crate::valtron::{
@@ -36,7 +35,7 @@ where
     alive: Option<()>,
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
-    channel: std::sync::Arc<ConcurrentQueue<Stream<Done, Pending>>>,
+    channel: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -49,7 +48,7 @@ where
     pub fn new(
         iter: Task,
         mappers: Vec<Mapper>,
-        chan: std::sync::Arc<ConcurrentQueue<Stream<Done, Pending>>>,
+        chan: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
     ) -> Self {
         Self {
             channel: chan,
@@ -256,7 +255,7 @@ where
     alive: Option<()>,
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
-    channel: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -269,7 +268,7 @@ where
     pub fn new(
         iter: Task,
         mappers: Vec<Mapper>,
-        chan: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     ) -> Self {
         Self {
             channel: chan,
@@ -481,7 +480,7 @@ where
     alive: Option<()>,
     mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
-    channel: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -494,7 +493,7 @@ where
     pub fn new(
         iter: Task,
         mappers: Vec<Mapper>,
-        chan: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     ) -> Self {
         Self {
             mappers,

@@ -17,11 +17,24 @@ pub const DEFAULT_MAX_TURNS: usize = 15;
 
 /// `DEFAULT_PARK_DURATION` is the default duration to park thread when queue is empty
 /// in `ConcurrentQueueStreamIterator` (std mode only).
-pub const DEFAULT_PARK_DURATION: time::Duration = time::Duration::from_nanos(20);
+/// Changed from 20ns to 1ms in Feature 04 - 20ns was being rounded up by OS to microseconds anyway.
+pub const DEFAULT_PARK_DURATION: time::Duration = time::Duration::from_millis(1);
 
 /// `DEFAULT_WAIT_CYCLE` is the default duration to wait for queue items to appear
 /// in `ConcurrentQueueStreamIterator` (std mode only).
-pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(100);
+pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_micros(100);
+
+// ============================================================================
+// Feature 04: Notification-Based Waiting Constants
+// ============================================================================
+
+/// `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT` is the default timeout for `NotifyQueue::wait_for_item()`.
+/// This is how long a consumer will wait on the CondVar before returning `None`.
+pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(10);
+
+/// `DEFAULT_KILL_SIGNAL_CHECK_INTERVAL` is how often to check kill signal in `block_on()` inner loop.
+/// Default is every 16 iterations (instead of checking every iteration or only every 200).
+pub const DEFAULT_KILL_SIGNAL_CHECK_INTERVAL: usize = 16;
 
 pub const BACK_OFF_JITER: f32 = 0.75;
 pub const BACK_OFF_THREAD_FACTOR: u32 = 6;

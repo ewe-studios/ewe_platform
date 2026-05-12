@@ -30,6 +30,8 @@ errors should propagate through `TaskStatus::Ready(Err(e))`.
 
 **Location:** `single/mod.rs:63-66, 125-129, 148-153`
 
+**Verdict:**: we want a panic, its intended
+
 Every public function (`run_once`, `run_until`, `spawn`) panics if the pool isn't
 initialized. In a large application, if any code path reaches valtron before
 `initialize_pool()` is called, you get a hard panic with no recovery.
@@ -55,12 +57,11 @@ The blanket impl requires `Clone + Send + 'static` on the iterator, but draining
    instead of returning `None`. This requires the error type to be convertible to the output
    type, or adding an error variant to the output.
 
-2. **Global executor**: Evaluate switching from panic to `Result`-based errors. This is a
-   larger API change — assess feasibility and migration impact.
-
 3. **MapAllPendingAndDoneStream**: Either maintain a fixed-length `Vec<Option<Stream>>`
    with `None` entries for exhausted sources, or document clearly that the mapper must not
-   rely on positional indexing.
+   rely on positional indexing. 
+
+    Document clearly on the type and trait methods. But if use Option improves speed because no removal is needed, then use Vec<Option<Stream>>, same for task Iterators.
 
 4. **Drain trait**: Remove `Clone` and `Send` bounds from the blanket impl.
 
