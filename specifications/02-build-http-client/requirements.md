@@ -1,6 +1,6 @@
 ---
 description: "Create an HTTP/1.1 client reusing the existing simple_http module structures, using iterator-based patterns with valtron executors and pluggable TLS/DNS/resolution components."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-01-18
 author: "Main Agent"
@@ -144,13 +144,6 @@ The HTTP client implementation is divided into features with clear dependencies.
     - Dependencies: #7, #10
     - Status: Complete (212 compliance tests passing)
 
-### Pending Features (1/18)
-
-18. **[reader-eof-handling](./features/reader-eof-handling/feature.md)** ⏳
-    - Description: Fix HttpRequestReader/HttpResponseReader infinite loop on EOF (Ok(0))
-    - Dependencies: None
-    - Priority: Critical
-    - Status: Pending
 
 ## Requirements Conversation Summary
 

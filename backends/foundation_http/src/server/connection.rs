@@ -22,9 +22,9 @@ use foundation_errstacks::ErrorTrace;
 
 use crate::reader::read_next_request;
 use crate::serve::{respond, ConnectionResult, ServeError};
+use crate::server::KeepAliveConfig;
 
 use crate::app::HttpApp;
-use crate::server::KeepAliveConfig;
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -141,7 +141,6 @@ impl ConnectionHandler {
         if self.idle_exceeded() {
             tracing::trace!(
                 client_ip = %self.client_ip,
-                total_idle_duration = ?self.total_idle_duration,
                 "Idle timeout exceeded, closing connection"
             );
             return None;

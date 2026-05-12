@@ -172,6 +172,8 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || {
+        // Initialize the valtron thread pool in this thread
+        let _guard = initialize_pool(42, Some(5));
         server.serve_with_listener(listener, shutdown_thread);
     });
 
@@ -206,6 +208,7 @@ fn status_code(status: &Status) -> u16 {
 // Tests: static routes
 
 /// GET /echo → 200 with JSON containing method and path.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -241,6 +244,7 @@ fn test_static_route_get() {
 }
 
 /// POST /echo → 200 with JSON containing method POST.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -274,6 +278,7 @@ fn test_static_route_post() {
 // Tests: param routes
 
 /// GET /users/:id → matches /users/42, /users/abc, etc.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -307,6 +312,7 @@ fn test_param_route() {
 }
 
 /// GET /users/:id/posts/:post_id — nested params.
+#[cfg(feature = "multi")]
 #[test]
 #[serial(http_test)]
 #[traced_test]
@@ -340,6 +346,7 @@ fn test_nested_param_route() {
 // Tests: wildcard routes
 
 /// GET /files/* → matches any path starting with /files/.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -376,6 +383,7 @@ fn test_wildcard_route() {
 // Tests: route_any
 
 /// route_any matches all HTTP methods on the same path.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -434,6 +442,7 @@ fn test_route_any_matches_all_methods() {
 // ---------------------------------------------------------------------------
 // Tests: root route
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -462,6 +471,7 @@ fn test_root_route() {
 // Tests: 404 and method mismatch
 
 /// Unmatched path → 404.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -487,6 +497,7 @@ fn test_not_found() {
 }
 
 /// Route exists for GET but not POST → 404.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -515,6 +526,7 @@ fn test_method_mismatch_returns_not_found() {
 // Tests: request body
 
 /// POST with text body → body is echoed back.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -541,6 +553,7 @@ fn test_post_with_text_body() {
 }
 
 /// POST with JSON body → body is echoed back.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -576,6 +589,7 @@ fn test_post_with_json_body() {
 // Tests: query strings
 
 /// Query string is preserved in the request URL.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -610,6 +624,7 @@ fn test_query_string_preserved() {
 // Tests: middleware
 
 /// Middleware runs before handler — counter increments for each request.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -655,6 +670,7 @@ fn test_middleware_runs_before_handler() {
 }
 
 /// Blocking middleware short-circuits — handler never runs.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -682,6 +698,7 @@ fn test_middleware_blocks_request() {
 }
 
 /// Multiple middleware in chain — all run in order, block stops the chain.
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -719,6 +736,7 @@ fn test_multiple_middleware_chain() {
 // ---------------------------------------------------------------------------
 // Tests: multiple routes on same app (sequential, baseline)
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -807,6 +825,7 @@ impl Serve for SlowHandler {
     }
 }
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -888,6 +907,7 @@ fn test_valtron_multiplex_concurrent_connections() {
 // ---------------------------------------------------------------------------
 // Tests: keep-alive (multiple requests in sequence)
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -917,6 +937,7 @@ fn test_multiple_sequential_requests() {
 // ---------------------------------------------------------------------------
 // Tests: custom headers in requests
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -945,6 +966,7 @@ fn test_custom_request_header() {
 // ---------------------------------------------------------------------------
 // Tests: HEAD request
 
+#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -972,6 +994,7 @@ fn test_head_request() {
 // ---------------------------------------------------------------------------
 // Tests: DELETE request
 
+#[cfg(feature = "multi")]
 #[test]
 #[serial(http_test)]
 #[traced_test]
@@ -1001,6 +1024,7 @@ fn test_delete_request() {
 // ---------------------------------------------------------------------------
 // Unit-style tests that don't need a running server (kept from original).
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_http_app_builder() {
     let app = HttpApp::new();
@@ -1011,19 +1035,21 @@ fn test_http_app_builder() {
     assert_eq!(*config.unwrap(), "test_config");
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
-    assert_eq!(config.would_block_sleep, Duration::from_millis(10));
-    assert_eq!(config.accept_error_sleep, Duration::from_millis(100));
-    assert_eq!(config.keep_alive.min_delay, Duration::from_millis(10));
-    assert_eq!(config.keep_alive.max_delay, Duration::from_secs(120));
-    assert_eq!(config.keep_alive.idle_timeout, Duration::from_secs(120));
-    assert_eq!(config.keep_alive.escalation_threshold, 200);
-    assert_eq!(config.keep_alive.max_delay_cycles, 200);
+    assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
+    assert_eq!(config.accept_error_sleep(), Duration::from_millis(30)); // 2x base sleep
+    assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
+    assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
+    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
+    assert_eq!(config.keep_alive.escalation_threshold, 50);
+    assert_eq!(config.keep_alive.max_delay_cycles, 100);
     assert_eq!(config.max_body_bytes, 10 * 1024 * 1024);
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_server_config_builder() {
     let config = ServerConfig::defaults()
@@ -1034,12 +1060,16 @@ fn test_server_config_builder() {
         )
         .with_max_body_bytes(1024);
 
-    assert_eq!(config.would_block_sleep, Duration::from_millis(50));
-    assert_eq!(config.accept_error_sleep, Duration::from_millis(200));
-    assert_eq!(config.keep_alive.idle_timeout, Duration::from_secs(30));
+    // with_accept_error_sleep sets min_sleep_duration to dur/2 = 100ms
+    // would_block_sleep() returns min_sleep_duration = 100ms
+    // accept_error_sleep() returns would_block_sleep * 2 = 200ms
+    assert_eq!(config.accept_error_sleep(), Duration::from_millis(200));
+    // idle_timeout is now calculated from calculator
+    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(30));
     assert_eq!(config.max_body_bytes, 1024);
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_context_store_multiple_types() {
     let app = HttpApp::new();

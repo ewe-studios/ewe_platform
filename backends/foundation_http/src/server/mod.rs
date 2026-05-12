@@ -177,9 +177,9 @@ impl ServerConfig {
     /// Create a config with a custom timeout calculator.
     #[must_use]
     pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
-        self.timeout_calculator = calculator;
         // Also update keep_alive to use the same calculator
         self.keep_alive = self.keep_alive.with_timeout_calculator(calculator.clone());
+        self.timeout_calculator = calculator;
         self
     }
 

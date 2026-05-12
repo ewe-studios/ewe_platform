@@ -51,6 +51,18 @@ pub struct TimeoutConfig {
 
     /// Maximum number of retry attempts for transient failures.
     pub max_retries: usize,
+
+    /// Minimum sleep duration between work iterations (default: 15ms).
+    /// Used by `calculate_sleep_duration` for HTTP polling.
+    pub min_sleep_duration: Duration,
+
+    /// Maximum sleep duration between work iterations (default: 100ms).
+    /// Used by `calculate_sleep_duration` as upper clamp.
+    pub max_sleep_duration: Duration,
+
+    /// Sleep fraction divisor for timeout-based calculation (default: 100 = 1%).
+    /// `sleep_ms = timeout_ms / sleep_timeout_fraction`.
+    pub sleep_timeout_fraction: u64,
 }
 
 impl Default for TimeoutConfig {
@@ -68,6 +80,9 @@ impl Default for TimeoutConfig {
     /// | max_total_timeout | 300s | Maximum overall request time |
     /// | ttfb_timeout | 5s | Server response latency |
     /// | max_retries | 3 | Balance reliability vs latency |
+    /// | min_sleep_duration | 15ms | Base sleep for HTTP polling |
+    /// | max_sleep_duration | 100ms | Upper clamp for calculated sleep |
+    /// | sleep_timeout_fraction | 100 | 1% of timeout for calculated sleep |
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
@@ -78,6 +93,9 @@ impl Default for TimeoutConfig {
             max_total_timeout: Duration::from_secs(300),
             ttfb_timeout: Duration::from_secs(5),
             max_retries: 3,
+            min_sleep_duration: Duration::from_millis(15),
+            max_sleep_duration: Duration::from_millis(100),
+            sleep_timeout_fraction: 100,
         }
     }
 }
@@ -352,25 +370,28 @@ impl TimeoutCalculator {
     /// ```
     #[must_use]
     pub fn calculate_sleep_duration(&self, ctx: &TimeoutContext) -> Duration {
-        // Base sleep duration: 15ms for HTTP-style operations
-        let base_sleep_ms = 15u64;
+        // Base sleep duration from config
+        let base_sleep_ms = self.config.min_sleep_duration.as_millis() as u64;
 
         // For streaming operations, use longer sleep to reduce CPU
         if ctx.is_streaming {
-            // Streaming: 50ms (suitable for WebSocket/SSE)
-            return Duration::from_millis(50);
+            // Streaming: use max_sleep_duration (suitable for WebSocket/SSE)
+            return self.config.max_sleep_duration;
         }
 
-        // For upload operations, slightly longer sleep
+        // For upload operations, use middle value
         if ctx.is_upload {
-            return Duration::from_millis(25);
+            let mid_ms = (base_sleep_ms + self.config.max_sleep_duration.as_millis() as u64) / 2;
+            return Duration::from_millis(mid_ms);
         }
 
         // Calculate based on expected timeout - sleep should be small fraction
         if ctx.expected_body_size.is_some() {
             let read_timeout = self.calculate_read_timeout(ctx);
-            // Sleep should be ~1% of expected timeout, min 15ms, max 100ms
-            let sleep_ms = (read_timeout.as_millis() as u64 / 100).clamp(base_sleep_ms, 100);
+            // Sleep should be fraction of expected timeout, clamped to min/max
+            let fraction = self.config.sleep_timeout_fraction.max(1);
+            let sleep_ms = (read_timeout.as_millis() as u64 / fraction)
+                .clamp(base_sleep_ms, self.config.max_sleep_duration.as_millis() as u64);
             return Duration::from_millis(sleep_ms);
         }
 
