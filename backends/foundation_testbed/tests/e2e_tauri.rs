@@ -267,13 +267,17 @@ if (Test-Path "${mountLetter}:") {
 fn test_tauri_build_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
+
+    // Clear any stale bootstrap marker (fresh VM may have marker without tools)
+    let _ = vm.ssh_exec("rm -f ~/.testbed-bootstrapped");
+
     vm.bootstrap()?;
 
     println!("[build/linux] Building Tauri app in VM...");
     let build_cmd = format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
          export DISPLAY=:99 && \
-         cargo tauri build 2>&1 | tail -20"
+         ~/.local/bin/mise exec -- cargo tauri build 2>&1 | tail -20"
     );
     let output = vm.ssh_exec(&build_cmd)?;
     println!("  Build output:\n{}", output);
