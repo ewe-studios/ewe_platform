@@ -14,16 +14,47 @@ const INSTALL_TOOLS_MISE_SH: &str = include_str!("../../scripts/linux/install_to
 const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/linux/set_nushell_default_shell.sh");
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/linux/setup_ssh_keys.sh");
 const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/linux/setup_project_mount.sh");
+const INSTALL_GUI_SH: &str = include_str!("../../scripts/linux/install_gui.sh");
+
+/// Detect Linux distro and return package manager type
+fn detect_distro(session: &mut VmSession) -> Result<String> {
+    let os_release = crate::ssh::exec(session, "cat /etc/os-release 2>/dev/null || echo 'ID=unknown'")?;
+
+    if os_release.contains("ID=ubuntu") || os_release.contains("ID=debian") || os_release.contains("ID_LIKE=debian") {
+        Ok("debian".to_string())
+    } else if os_release.contains("ID=arch") || os_release.contains("ID_LIKE=arch") || os_release.contains("ID=manjaro") {
+        Ok("arch".to_string())
+    } else if crate::ssh::exec(session, "command -v apt-get >/dev/null 2>&1 && echo yes").unwrap_or_default().contains("yes") {
+        Ok("debian".to_string())
+    } else if crate::ssh::exec(session, "command -v pacman >/dev/null 2>&1 && echo yes").unwrap_or_default().contains("yes") {
+        Ok("arch".to_string())
+    } else {
+        Ok("unknown".to_string())
+    }
+}
 
 /// Tauri system dependencies on Debian/Ubuntu that mise cannot install.
-const TAURI_SYSTEM_DEPS: &[&str] = &[
+const TAURI_SYSTEM_DEPS_DEBIAN: &[&str] = &[
     "build-essential", "curl", "git", "pkg-config", "clang", "lld",
     "libwebkit2gtk-4.1-dev", "libgtk-3-dev", "libayatana-appindicator3-dev",
     "librsvg2-dev", "libssl-dev", "libxdo-dev", "libsoup-3.0-dev",
     "libjavascriptcoregtk-4.1-dev", "xvfb", "scrot", "openbox",
 ];
 
+/// Tauri system dependencies on Arch Linux.
+const TAURI_SYSTEM_DEPS_ARCH: &[&str] = &[
+    "base-devel", "curl", "git", "pkg-config", "clang", "lld",
+    "webkit2gtk", "gtk3", "libayatana-appindicator",
+    "librsvg", "openssl", "libxdo",
+    "libsoup3", "webkit2gtk-4.1",
+    "xorg-server-xvfb", "scrot", "openbox",
+];
+
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
+    // Detect distro type
+    let distro = detect_distro(session)?;
+    logger.message(&format!("Detected distro: {}", distro));
+
     logger::step(logger, "install system deps", || {
         // Check if all critical deps are present, not just Xvfb
         let xvfb_check = crate::ssh::exec(
@@ -39,14 +70,32 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         logger.message(&format!("  Xvfb check: {:?}", xvfb_present.trim()));
         logger.message(&format!("  Clang check: {:?}", clang_present.trim()));
         if !xvfb_present.contains("present") || !clang_present.contains("present") {
-            let deps = TAURI_SYSTEM_DEPS.join(" ");
-            logger.message(&format!("  Installing deps: {}", deps));
-            // Run apt-get commands directly instead of using a script
-            let update_output = crate::ssh::exec(session, "sudo apt-get update -qq 2>&1")?;
-            logger.message(&format!("  apt-get update output: {}", update_output));
-            let install_cmd = format!("DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {}", deps);
-            let install_output = crate::ssh::exec(session, &install_cmd)?;
-            logger.message(&format!("  apt-get install output: {}", install_output));
+            match distro.as_str() {
+                "debian" => {
+                    let deps = TAURI_SYSTEM_DEPS_DEBIAN.join(" ");
+                    logger.message(&format!("  Installing deps (Debian/Ubuntu): {}", deps));
+                    let update_output = crate::ssh::exec(session, "sudo apt-get update -qq 2>&1")?;
+                    logger.message(&format!("  apt-get update output: {}", update_output));
+                    let install_cmd = format!("DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {}", deps);
+                    let install_output = crate::ssh::exec(session, &install_cmd)?;
+                    logger.message(&format!("  apt-get install output: {}", install_output));
+                }
+                "arch" => {
+                    let deps = TAURI_SYSTEM_DEPS_ARCH.join(" ");
+                    logger.message(&format!("  Installing deps (Arch): {}", deps));
+                    let update_output = crate::ssh::exec(session, "sudo pacman -Sy --noconfirm 2>&1")?;
+                    logger.message(&format!("  pacman update output: {}", update_output));
+                    let install_cmd = format!("sudo pacman -S --noconfirm {}", deps);
+                    let install_output = crate::ssh::exec(session, &install_cmd)?;
+                    logger.message(&format!("  pacman install output: {}", install_output));
+                }
+                _ => {
+                    return Err(crate::config::TestbedError::BootstrapFailed {
+                        step: "install system deps".to_string(),
+                        message: format!("Unsupported distro: {}. Please install deps manually.", distro),
+                    });
+                }
+            }
         } else {
             logger.message("  Skipping system deps install (all present)");
         }
@@ -135,6 +184,19 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
 
     logger::step(logger, "set up project mount", || {
         setup_project_mount(session)
+    })?;
+
+    // Optional: Install GUI packages (not enabled by default)
+    // This can be enabled via a profile flag or environment variable
+    logger::step(logger, "install gui (optional)", || {
+        if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
+            logger.message("  Installing GUI environment...");
+            crate::ssh::exec(session, INSTALL_GUI_SH)?;
+            logger.message("  GUI environment installed");
+        } else {
+            logger.message("  Skipping GUI install (set TESTBED_INSTALL_GUI=1 to enable)");
+        }
+        Ok(())
     })?;
 
     logger::step(logger, "write bootstrap marker", || {
