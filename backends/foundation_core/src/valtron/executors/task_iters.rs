@@ -37,6 +37,8 @@ where
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
+    /// Pending message when channel is full (backpressure)
+    pending_msg: Option<Stream<Done, Pending>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -57,6 +59,7 @@ where
             panic_handler: None,
             local_mappers: mappers,
             task: Mutex::new(iter),
+            pending_msg: None,
             _marker: PhantomData,
         }
     }
@@ -111,6 +114,24 @@ where
             return None;
         }
 
+        // First, try to send any pending message from previous backpressure
+        if let Some(msg) = self.pending_msg.take() {
+            match self.channel.push(msg) {
+                Ok(()) => {}
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel still full, re-queueing pending message");
+                    self.pending_msg = Some(msg);
+                    return Some(State::Pending(None));
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    return Some(State::Done);
+                }
+            }
+        }
+
         let task_response =
             match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
                 Ok(inner) => inner,
@@ -162,7 +183,8 @@ where
                 match self.channel.push(Stream::Ignore) {
                     Ok(()) => State::Pending(None),
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                        tracing::debug!("Channel full, storing Stream::Ignore for retry");
+                        self.pending_msg = Some(Stream::Ignore);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -177,7 +199,8 @@ where
                 match self.channel.push(Stream::Delayed(inner)) {
                     Ok(()) => State::Pending(Some(inner)),
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                        tracing::debug!("Channel full, storing Stream::Delayed for retry");
+                        self.pending_msg = Some(Stream::Delayed(inner));
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -192,7 +215,8 @@ where
                 match self.channel.push(Stream::Init) {
                     Ok(()) => State::Pending(None),
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                        tracing::debug!("Channel full, storing Stream::Init for retry");
+                        self.pending_msg = Some(Stream::Init);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -206,8 +230,9 @@ where
             TaskStatus::Pending(inner) => {
                 match self.channel.push(Stream::Pending(inner)) {
                     Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                    Err(PushError::Full(msg)) => {
+                        tracing::debug!("Channel full, storing Stream::Pending for retry");
+                        self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -221,8 +246,9 @@ where
             TaskStatus::Ready(inner) => {
                 match self.channel.push(Stream::Next(inner)) {
                     Ok(()) => State::ReadyValue(entry),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                    Err(PushError::Full(msg)) => {
+                        tracing::debug!("Channel full, storing Stream::Next for retry");
+                        self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -257,6 +283,8 @@ where
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    /// Pending message when channel is full (backpressure)
+    pending_msg: Option<TaskStatus<Done, Pending, Action>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -277,6 +305,7 @@ where
             panic_handler: None,
             local_mappers: mappers,
             task: Mutex::new(iter),
+            pending_msg: None,
             _marker: PhantomData,
         }
     }
@@ -332,6 +361,24 @@ where
             tracing::debug!("Returning none going forward for consumer: {entry:?}");
 
             return None;
+        }
+
+        // First, try to send any pending message from previous backpressure
+        if let Some(msg) = self.pending_msg.take() {
+            match self.channel.push(msg) {
+                Ok(()) => {}
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel still full, re-queueing pending message");
+                    self.pending_msg = Some(msg);
+                    return Some(State::Pending(None));
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    return Some(State::Done);
+                }
+            }
         }
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
@@ -396,7 +443,8 @@ where
                 match self.channel.push(TaskStatus::Delayed(inner)) {
                     Ok(()) => State::Pending(Some(inner)),
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                        tracing::debug!("Channel full, storing TaskStatus::Delayed for retry");
+                        self.pending_msg = Some(TaskStatus::Delayed(inner));
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -415,7 +463,8 @@ where
                         State::Pending(None)
                     }
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                        tracing::debug!("Channel full, storing TaskStatus::Init for retry");
+                        self.pending_msg = Some(TaskStatus::Init);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -430,8 +479,9 @@ where
                 tracing::debug!("Got pending value");
                 match self.channel.push(TaskStatus::Pending(inner)) {
                     Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                    Err(PushError::Full(msg)) => {
+                        tracing::debug!("Channel full, storing TaskStatus::Pending for retry");
+                        self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -449,8 +499,9 @@ where
                         tracing::debug!("Written TaskStatus::Ready into receiving channel");
                         State::ReadyValue(entry)
                     }
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                    Err(PushError::Full(msg)) => {
+                        tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
+                        self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
@@ -485,6 +536,8 @@ where
     mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    /// Pending message when channel is full (backpressure)
+    pending_msg: Option<TaskStatus<Done, Pending, Action>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -505,6 +558,7 @@ where
             channel: chan,
             panic_handler: None,
             task: Mutex::new(iter),
+            pending_msg: None,
             _marker: PhantomData,
         }
     }
@@ -554,6 +608,24 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         self.alive?;
+
+        // First, try to send any pending message from previous backpressure
+        if let Some(msg) = self.pending_msg.take() {
+            match self.channel.push(msg) {
+                Ok(()) => {}
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel still full, re-queueing pending message");
+                    self.pending_msg = Some(msg);
+                    return Some(State::Pending(None));
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    return Some(State::Done);
+                }
+            }
+        }
 
         let task_response =
             match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
@@ -607,8 +679,9 @@ where
             TaskStatus::Ready(inner) => {
                 match self.channel.push(TaskStatus::Ready(inner)) {
                     Ok(()) => State::ReadyValue(entry),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, applying backpressure");
+                    Err(PushError::Full(msg)) => {
+                        tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
+                        self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {

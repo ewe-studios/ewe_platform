@@ -1,4 +1,5 @@
 // Test modules for foundation_core
+mod channel_backpressure_tests;
 mod chunked_encoding;
 mod chunked_tests;
 mod event_source;
