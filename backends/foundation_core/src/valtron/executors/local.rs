@@ -159,6 +159,17 @@ pub struct ExecutorState {
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
     pub idler: rc::Rc<cell::RefCell<IdleMan>>,
+
+    /// Feature 03: Global Queue Fairness
+    /// Counter for fairness mechanism - increments on every schedule_next() call.
+    /// When counter % fairness_interval == 0, we check global queue even if local
+    /// tasks exist, preventing long-running local tasks from starving global queue.
+    pub fairness_counter: cell::Cell<usize>,
+
+    /// Feature 03: Interval between forced global queue checks.
+    /// Every N calls to schedule_next(), check global queue regardless of local state.
+    /// Uses Cell for interior mutability so builder can update it.
+    pub fairness_interval: cell::Cell<usize>,
 }
 
 // --- constructors
@@ -166,12 +177,17 @@ pub struct ExecutorState {
 static DEQUEUE_CAPACITY: usize = 10;
 
 impl ExecutorState {
+    /// Default interval for fairness mechanism.
+    /// Every N calls to schedule_next(), check global queue regardless of local task state.
+    pub const DEFAULT_GLOBAL_QUEUE_FAIRNESS_INTERVAL: usize = 32;
+
     pub fn new(
         state_owner: String,
         global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
+        fairness_interval: usize,
     ) -> Self {
         Self {
             state_owner,
@@ -187,6 +203,8 @@ impl ExecutorState {
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
+            fairness_counter: cell::Cell::new(0),
+            fairness_interval: cell::Cell::new(fairness_interval),
         }
     }
 }
@@ -200,6 +218,10 @@ pub enum ScheduleOutcome {
     /// Indicates we successfully acquired a global task
     /// from the global queue.
     GlobalTaskAcquired,
+
+    /// Feature 03: Indicates we acquired a global task via fairness mechanism
+    /// even though local tasks were running. Task was added to back of queue.
+    GlobalTaskAcquiredFairness,
 
     /// Indicate no global task was acquired and no task
     /// is being processed.
@@ -244,6 +266,8 @@ impl Clone for ExecutorState {
             task_graph: self.task_graph.clone(),
             packed_tasks: self.packed_tasks.clone(),
             processing: self.processing.clone(),
+            fairness_counter: self.fairness_counter.clone(),
+            fairness_interval: self.fairness_interval.clone(),
         }
     }
 }
@@ -478,11 +502,28 @@ impl ExecutorState {
     /// and if so returns true to indicate success else a false
     /// to indicate no task was taking from the global queue
     /// as the local queue had a task or no task was found.
+    ///
+    /// # Feature 03: Global Queue Fairness
+    /// Implements fairness mechanism: every `fairness_interval` calls,
+    /// checks global queue even if local tasks exist to prevent
+    /// long-running local tasks from starving global queue.
     #[inline]
     pub fn schedule_next(&self) -> ScheduleOutcome {
         let span = tracing::trace_span!("LocalThreadExecutor::schedule_next");
         span.in_scope(|| {
-            if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty()
+            // Feature 03: Increment fairness counter on every call
+            let current_count = self.fairness_counter.get();
+            self.fairness_counter.set(current_count + 1);
+
+            // Check if this is a fairness tick (every N calls)
+            let is_fairness_tick =
+                self.fairness_interval.get() > 0 && (current_count % self.fairness_interval.get() == 0);
+
+            // Normal path: skip if local tasks exist
+            // Fairness path: check global queue regardless on fairness tick
+            if !is_fairness_tick
+                && self.local_tasks.borrow().active_slots() > 0
+                && !self.processing.borrow().is_empty()
             {
                 return ScheduleOutcome::LocalTaskRunning;
             }
@@ -490,10 +531,34 @@ impl ExecutorState {
             match self.global_tasks.pop() {
                 Ok(task) => {
                     let task_entry = self.local_tasks.borrow_mut().insert(task);
-                    self.processing.borrow_mut().push_front(task_entry);
-                    ScheduleOutcome::GlobalTaskAcquired
+                    if is_fairness_tick && self.local_tasks.borrow().active_slots() > 1 {
+                        // Fairness mode: add to back of queue when local tasks exist
+                        // This preserves local task priority while ensuring global
+                        // tasks eventually get processed
+                        self.processing.borrow_mut().push_back(task_entry);
+                        tracing::debug!(
+                            "Fairness tick {}: acquired global task {:?}, pushed to back",
+                            current_count,
+                            task_entry
+                        );
+                        ScheduleOutcome::GlobalTaskAcquiredFairness
+                    } else {
+                        // Normal mode: add to front of queue
+                        self.processing.borrow_mut().push_front(task_entry);
+                        ScheduleOutcome::GlobalTaskAcquired
+                    }
                 }
-                Err(_) => ScheduleOutcome::NoTaskRunningOrAcquired,
+                Err(_) => {
+                    if is_fairness_tick {
+                        // No global task on fairness tick, return local running if exists
+                        if self.local_tasks.borrow().active_slots() > 0
+                            && !self.processing.borrow().is_empty()
+                        {
+                            return ScheduleOutcome::LocalTaskRunning;
+                        }
+                    }
+                    ScheduleOutcome::NoTaskRunningOrAcquired
+                }
             }
         })
     }
@@ -508,7 +573,9 @@ impl ExecutorState {
             }
 
             match self.schedule_next() {
-                ScheduleOutcome::GlobalTaskAcquired => {
+                ScheduleOutcome::GlobalTaskAcquired
+                | ScheduleOutcome::GlobalTaskAcquiredFairness => {
+                    // Feature 03: Fairness-acquired tasks treated same as normal
                     tracing::debug!("Successfully acquired new tasks for processing");
                     ProgressIndicator::CanProgress(None)
                 }
@@ -607,7 +674,9 @@ impl ExecutorState {
                 // attempt to get global task else return
                 // duration as is.
                 match self.schedule_next() {
-                    ScheduleOutcome::GlobalTaskAcquired => {
+                    ScheduleOutcome::GlobalTaskAcquired
+                    | ScheduleOutcome::GlobalTaskAcquiredFairness => {
+                        // Feature 03: Fairness-acquired tasks treated same as normal
                         tracing::debug!(
                             "Global task indicate we can make progress, possible acquired task"
                         );
@@ -1855,6 +1924,10 @@ pub struct LocalThreadExecutor<T: ProcessController + Clone> {
     /// Ensures threads periodically wake to check for new work.
     max_yield_duration: time::Duration,
     yielder: T,
+    /// Feature 03: Interval for fairness mechanism. Every N calls to
+    /// schedule_next(), check global queue regardless of local task state.
+    /// Prevents long-running local tasks from starving global queue.
+    fairness_interval: cell::Cell<usize>,
 }
 
 // --- constructors
@@ -1868,6 +1941,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
             no_work_yield: self.no_work_yield,
             max_yield_duration: self.max_yield_duration,
             kill_signal: self.kill_signal.clone(),
+            fairness_interval: cell::Cell::new(self.fairness_interval.get()),
         }
     }
 }
@@ -1887,6 +1961,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         no_work_yield: time::Duration,
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
+        fairness_interval: usize,
     ) -> Self {
         Self {
             state_owner: state_owner.clone(),
@@ -1894,15 +1969,24 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             no_work_yield,
             max_yield_duration: time::Duration::from_millis(100),
+            fairness_interval: cell::Cell::new(fairness_interval),
             state: ReferencedExecutorState::new(
-                rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
+                rc::Rc::new(ExecutorState::new(
+                    state_owner,
+                    tasks,
+                    priority,
+                    rng,
+                    idler,
+                    fairness_interval,
+                )),
                 activities,
             ),
         }
     }
 
-    /// creates a new local executor which uses the provided
+    /// Creates a new local executor which uses the provided
     /// seed for `ChaCha8Rng` generator.
+    /// Uses the default fairness interval.
     pub fn from_seed(
         seed: u64,
         state_owner: String,
@@ -1924,11 +2008,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             no_work_yield,
             kill_signal,
             activities,
+            ExecutorState::DEFAULT_GLOBAL_QUEUE_FAIRNESS_INTERVAL,
         )
     }
 
     /// Allows supplying a custom Rng generator for creating the initial
     /// `ChaCha8Rng` seed.
+    /// Uses the default fairness interval.
     pub fn from_rng<R: rand::Rng>(
         state_owner: String,
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
@@ -1951,6 +2037,23 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             activities,
         )
+    }
+
+    /// Feature 03: Sets the fairness interval for global queue checks.
+    /// Every N calls to schedule_next(), the executor will check the global
+    /// queue even if local tasks exist, preventing starvation.
+    ///
+    /// # Example
+    /// ```
+    /// let executor = LocalThreadExecutor::from_seed(...)
+    ///     .with_fairness_interval(64);
+    /// ```
+    pub fn with_fairness_interval(mut self, interval: usize) -> Self {
+        self.fairness_interval.set(interval);
+        // Also update the inner ExecutorState via clone_state()
+        // Note: This updates the shared state since ExecutorState is behind Rc
+        self.state.clone_state().fairness_interval.set(interval);
+        self
     }
 }
 

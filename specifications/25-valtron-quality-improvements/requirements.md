@@ -32,11 +32,11 @@ related_specs:
 has_features: true
 has_fundamentals: false
 tasks:
-  completed: 13
-  uncompleted: 26
+  completed: 18
+  uncompleted: 21
   total: 48
   rejected: 9
-  completion_percentage: 27
+  completion_percentage: 38
 ---
 
 # Valtron Quality Improvements - Requirements
@@ -89,20 +89,20 @@ The review identified issues across two categories:
 | 00 | [pending-none-livelock](./features/00-pending-none-livelock/) | CRITICAL | **rejected** | Fix unbounded CPU spin when tasks return Pending(None) | 9 | None |
 | 01 | [sleeper-lifecycle-safety](./features/01-sleeper-lifecycle-safety/) | CRITICAL | **completed** | Fix stale sleeper entries that can panic executor on task combination | 6 | None |
 | 02 | [linked-task-state-propagation](./features/02-linked-task-state-propagation/) | HIGH | **completed** | Fix DualSequence silently discarding parent State signals | 5 | 01 |
-| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | pending | Add fairness mechanism for global queue pickup | 5 | None |
+| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | **completed** | Add fairness mechanism for global queue pickup | 5 | None |
 | 04 | [notification-based-waiting](./features/04-notification-based-waiting/) | HIGH | pending | Replace spin+sleep polling with CondVar notification | 6 | None |
 | 05 | [iterator-semantics](./features/05-iterator-semantics/) | HIGH | pending | Fix TaskIterator recursion trap, TransformIterator, CollectAllStream | 10 | None |
 | 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | pending | Fix error swallowing, executor panics, Drain bounds | 5 | None |
 | 07 | [channel-backpressure](./features/07-channel-backpressure/) | MEDIUM | pending | Add bounded queue option and EntryList slot reuse safety | 4 | 04 |
 | 08 | [code-quality](./features/08-code-quality/) | LOW | pending | WASM variable fix, BranchPath naming, alias cleanup | 3 | None |
 
-**Total Tasks:** 48 (13 completed, 26 remaining, 9 rejected)
+**Total Tasks:** 48 (18 completed, 21 remaining, 9 rejected)
 
 **Note:** Feature 00 was rejected after design review - workers own tasks to completion by design, and the Pending(None) behavior is intentional. See feature file for details.
 
 **Note:** Feature 01 is now complete. The `Sleepers` data structure was rewritten to use `HashMap<Entry, T>` keyed by task entry directly, eliminating entry ID collision bugs.
 
-**Note:** Feature 02 is now complete. `DualSequenceChildAndParentLinkedTask` now properly propagates parent state signals (Pending, SpawnFinished, Panicked, Reschedule) that were previously silently discarded.
+**Note:** Feature 03 is now complete. Added fairness mechanism that checks global queue every N calls to `schedule_next()`, preventing long-running local tasks from starving global queue. Tasks acquired via fairness are pushed to back of processing queue.
 
 ---
 
@@ -158,7 +158,7 @@ The review identified issues across two categories:
 | 00 | [pending-none-livelock](./features/00-pending-none-livelock/) | CRITICAL | **rejected** | Fix unbounded CPU spin when tasks return Pending(None) | 9 | None |
 | 01 | [sleeper-lifecycle-safety](./features/01-sleeper-lifecycle-safety/) | CRITICAL | **in_progress** | Fix stale sleeper entries that can panic executor on task combination | 6 | None |
 | 02 | [linked-task-state-propagation](./features/02-linked-task-state-propagation/) | HIGH | pending | Fix DualSequence silently discarding parent State signals | 5 | 01 |
-| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | pending | Add fairness mechanism for global queue pickup | 5 | None |
+| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | **completed** | Add fairness mechanism for global queue pickup | 5 | None |
 | 04 | [notification-based-waiting](./features/04-notification-based-waiting/) | HIGH | pending | Replace spin+sleep polling with CondVar notification | 6 | None |
 | 05 | [iterator-semantics](./features/05-iterator-semantics/) | HIGH | pending | Fix TaskIterator recursion trap, TransformIterator, CollectAllStream | 10 | None |
 | 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | pending | Fix error swallowing, executor panics, Drain bounds | 5 | None |
