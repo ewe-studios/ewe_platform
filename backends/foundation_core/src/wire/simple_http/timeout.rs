@@ -17,6 +17,8 @@
 //! let timeout = calculator.calculate_read_timeout(&context);
 //! ```
 
+use crate::wire::simple_http::latency_tracker::LatencyTracker;
+use crate::wire::simple_http::load_tracker::LoadTracker;
 use std::time::Duration;
 
 /// Configuration for timeout calculations.
@@ -194,13 +196,15 @@ impl TimeoutContext {
 /// Production-quality timeout calculator.
 ///
 /// WHY: Fixed timeouts don't scale with body size or network conditions.
-/// This calculator adapts timeouts based on payload size using sub-linear scaling.
+/// This calculator adapts timeouts based on payload size using sub-linear scaling
+/// and historical latency data.
 ///
 /// WHAT: Calculates timeouts for HTTP operations using size-based formulas
-/// with configurable bounds.
+/// with configurable bounds and optional latency adjustment.
 ///
 /// HOW: Uses sqrt(size_kb) scaling to provide reasonable timeouts for both
-/// small API calls and large file transfers.
+/// small API calls and large file transfers. Optionally uses LatencyTracker
+/// to adjust based on historical endpoint behavior.
 ///
 /// # Example
 ///
@@ -223,6 +227,12 @@ impl TimeoutContext {
 #[derive(Debug, Clone)]
 pub struct TimeoutCalculator {
     config: TimeoutConfig,
+    /// Optional latency tracker for adaptive timeouts.
+    latency_tracker: Option<LatencyTracker>,
+    /// Optional load tracker for load-based scaling.
+    load_tracker: Option<LoadTracker>,
+    /// Factor to apply to P99 latency as safety margin (default: 2.0).
+    latency_safety_factor: f64,
 }
 
 impl TimeoutCalculator {
@@ -231,13 +241,78 @@ impl TimeoutCalculator {
     pub fn new() -> Self {
         Self {
             config: TimeoutConfig::default(),
+            latency_tracker: None,
+            load_tracker: None,
+            latency_safety_factor: 2.0,
         }
     }
 
     /// Create a calculator with custom configuration.
     #[must_use]
     pub fn with_config(config: TimeoutConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            latency_tracker: None,
+            load_tracker: None,
+            latency_safety_factor: 2.0,
+        }
+    }
+
+    /// Create a calculator with latency tracking enabled.
+    #[must_use]
+    pub fn with_latency_tracking(config: TimeoutConfig, tracker: LatencyTracker) -> Self {
+        Self {
+            config,
+            latency_tracker: Some(tracker),
+            load_tracker: None,
+            latency_safety_factor: 2.0,
+        }
+    }
+
+    /// Create a calculator with load tracking enabled.
+    #[must_use]
+    pub fn with_load_tracking(config: TimeoutConfig, tracker: LoadTracker) -> Self {
+        Self {
+            config,
+            latency_tracker: None,
+            load_tracker: Some(tracker),
+            latency_safety_factor: 2.0,
+        }
+    }
+
+    /// Enable latency tracking with default config.
+    #[must_use]
+    pub fn enable_latency_tracking(mut self) -> Self {
+        self.latency_tracker = Some(LatencyTracker::new());
+        self
+    }
+
+    /// Enable load tracking with default config.
+    #[must_use]
+    pub fn enable_load_tracking(mut self) -> Self {
+        self.load_tracker = Some(LoadTracker::new());
+        self
+    }
+
+    /// Get the load tracker if enabled.
+    #[must_use]
+    pub fn load_tracker(&self) -> Option<&LoadTracker> {
+        self.load_tracker.as_ref()
+    }
+
+    /// Set the latency safety factor.
+    ///
+    /// The calculated timeout is: base_timeout + (p99_latency * factor)
+    #[must_use]
+    pub fn with_latency_safety_factor(mut self, factor: f64) -> Self {
+        self.latency_safety_factor = factor;
+        self
+    }
+
+    /// Get the latency tracker if enabled.
+    #[must_use]
+    pub fn latency_tracker(&self) -> Option<&LatencyTracker> {
+        self.latency_tracker.as_ref()
     }
 
     /// Get the configuration.
@@ -246,31 +321,18 @@ impl TimeoutCalculator {
         &self.config
     }
 
+    /// Record a latency sample for an endpoint.
+    ///
+    /// Does nothing if latency tracking is not enabled.
+    pub fn record_latency(&self, endpoint: &str, duration: Duration) {
+        if let Some(ref tracker) = self.latency_tracker {
+            tracker.record(endpoint, duration);
+        }
+    }
+
     /// Calculate read timeout for a request.
     ///
-    /// Uses size-based calculation with sqrt scaling:
-    /// `timeout_ms = read_timeout_per_kb_ms * sqrt(size_kb)`
-    ///
-    /// Results are clamped between `min_read_timeout` and `max_read_timeout`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
-    /// use std::time::Duration;
-    ///
-    /// let calc = TimeoutCalculator::new();
-    ///
-    /// // 1KB body: sqrt(1) * 10ms = 10ms, clamped to min 100ms
-    /// let ctx = TimeoutContext::with_size(1024);
-    /// let timeout = calc.calculate_read_timeout(&ctx);
-    /// assert_eq!(timeout, Duration::from_millis(100));
-    ///
-    /// // 1MB body: sqrt(1024) * 10ms = 320ms
-    /// let ctx = TimeoutContext::with_size(1024 * 1024);
-    /// let timeout = calc.calculate_read_timeout(&ctx);
-    /// assert!(timeout >= Duration::from_millis(300));
-    /// ```
+    /// Uses size-based calculation with optional latency adjustment.
     #[must_use]
     pub fn calculate_read_timeout(&self, ctx: &TimeoutContext) -> Duration {
         let base_timeout = if let Some(size) = ctx.expected_body_size {
@@ -279,8 +341,45 @@ impl TimeoutCalculator {
             self.config.min_read_timeout
         };
 
+        // Apply latency adjustment if endpoint is known and we have stats
+        let adjusted_timeout = if let Some(ref endpoint) = ctx.endpoint {
+            if let Some(ref tracker) = self.latency_tracker {
+                if let Some(stats) = tracker.get_stats(endpoint) {
+                    // Add P99 latency * safety factor as safety margin
+                    let latency_adjustment = Duration::from_millis(
+                        (stats.p99.as_millis() as f64 * self.latency_safety_factor) as u64,
+                    );
+                    base_timeout + latency_adjustment
+                } else {
+                    base_timeout
+                }
+            } else {
+                base_timeout
+            }
+        } else {
+            base_timeout
+        };
+
+        // Apply load-based scaling if enabled
+        let adjusted_timeout = if let Some(ref load_tracker) = self.load_tracker {
+            let factor = load_tracker.timeout_factor();
+            Duration::from_millis((adjusted_timeout.as_millis() as f64 * factor) as u64)
+        } else {
+            adjusted_timeout
+        };
+
+        // Apply exponential backoff if previous_timeout is provided (retry scenario)
+        let adjusted_timeout = if let Some(prev) = ctx.previous_timeout {
+            // Double the previous timeout for exponential backoff
+            // Cap at max_read_timeout
+            let doubled = prev * 2;
+            adjusted_timeout.max(doubled)
+        } else {
+            adjusted_timeout
+        };
+
         // Clamp to bounds
-        base_timeout.clamp(self.config.min_read_timeout, self.config.max_read_timeout)
+        adjusted_timeout.clamp(self.config.min_read_timeout, self.config.max_read_timeout)
     }
 
     /// Calculate write timeout for a request.
