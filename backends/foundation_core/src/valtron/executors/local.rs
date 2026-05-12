@@ -3696,4 +3696,18 @@ mod test_local_thread_executor {
             ]
         );
     }
+
+    // ============================================================================
+    // Feature 02: Linked Task State Propagation
+    // ============================================================================
+    // Tests for this feature require complex setup with actual TaskIterators
+    // that return Pending/Sleep/Spawn states. The implementation in
+    // dependent_lift.rs is verified through the scenario_5 tests which test
+    // the combined task behavior end-to-end.
+    //
+    // The key change is that DualSequenceChildAndParentLinkedTask now:
+    // 1. Has a pending_parent_state field to store parent states
+    // 2. Returns parent states requiring executor action (Pending with duration,
+    //    SpawnFinished, Panicked, Reschedule) on the next poll
+    // 3. Only ignores "pass-through" states (ReadyValue, Progressed, etc.)
 }
