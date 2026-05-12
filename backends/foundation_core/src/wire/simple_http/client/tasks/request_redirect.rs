@@ -137,9 +137,25 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
 
                     let (data, pool, config, mut descriptor, remaining_redirects) = *state;
-                    let (_connect_timeout, read_timeout, _write_timeout) = config.get_op_timeout();
 
-                    tracing::debug!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
+                    // Calculate dynamic timeout based on request context
+                    // For HEAD requests: use min timeout (no body expected)
+                    // For other requests: use TTFB timeout for headers, dynamic for body
+                    let is_head_request = matches!(data.method, crate::wire::simple_http::SimpleMethod::HEAD);
+
+                    let read_timeout = if is_head_request {
+                        // HEAD requests have no body, use minimum timeout
+                        config.timeout_calculator.calculate_read_timeout(
+                            &crate::wire::simple_http::timeout::TimeoutContext::with_size(0)
+                        )
+                    } else {
+                        // For other requests, use the calculated read timeout
+                        // For header reading, we use a shorter TTFB-based timeout
+                        config.timeout_calculator.config().ttfb_timeout
+                    };
+
+                    tracing::debug!("Set read timeout to {:?} (method={:?})",
+                        read_timeout, data.method);
 
                     // Determine effective proxy configuration
                     let env_proxy = if config.proxy_from_env {
@@ -198,12 +214,9 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     }
 
-                    // 3. Set read timeout (preserve previous)
-                    let previous_timeout = connection
-                        .stream_mut()
-                        .get_current_read_timeout()
-                        .unwrap_or(None);
-
+                    // 3. Set read timeout based on request context
+                    // For HEAD requests: use minimum timeout
+                    // For other requests: use dynamic calculation
                     tracing::debug!("Set read timeout to {:?}", read_timeout);
 
                     if let Err(err) = connection
@@ -247,10 +260,31 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     }
 
-                    // Restore previous timeout
-                    let _ = connection
+                    // Extract Content-Length and calculate dynamic timeout for body reading
+                    let content_length = headers_result.as_ref().and_then(|h| {
+                        h.as_ref().ok().and_then(|parts| {
+                            if let IncomingResponseParts::Headers(hdrs) = parts {
+                                hdrs.get(&SimpleHeader::CONTENT_LENGTH)
+                                    .and_then(|v| v.first())
+                                    .and_then(|s| s.parse::<usize>().ok())
+                            } else {
+                                None
+                            }
+                        })
+                    });
+
+                    // Calculate dynamic timeout based on expected body size
+                    let body_read_timeout = config.calculate_read_timeout(content_length, false);
+                    tracing::debug!("Setting body read timeout to {:?} for Content-Length {:?}",
+                        body_read_timeout, content_length);
+
+                    // Set the calculated timeout for body reading
+                    if let Err(err) = connection
                         .stream_mut()
-                        .set_read_timeout_as(previous_timeout.unwrap_or(read_timeout));
+                        .set_read_timeout_as(body_read_timeout)
+                    {
+                        tracing::error!("Failed to set body read timeout: {}", err);
+                    }
 
                     tracing::debug!("Received request response intro: {:?}", &intro_result);
 

@@ -25,7 +25,7 @@ fn test_client_config_fields_public() {
         .with_connect_timeout(Duration::from_secs(10))
         .with_max_retries(3);
 
-    assert_eq!(config.connect_timeout, Duration::from_secs(10));
+    assert_eq!(config.timeout_calculator.config().connect_timeout, Duration::from_secs(10));
     assert_eq!(config.max_retries, 3);
 }
 

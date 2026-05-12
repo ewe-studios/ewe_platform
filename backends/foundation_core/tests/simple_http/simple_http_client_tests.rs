@@ -54,7 +54,7 @@ fn test_simple_http_client_connect_timeout() {
     let client = SimpleHttpClient::from_system().connect_timeout(Duration::from_secs(5));
     let config = client.client_config();
 
-    assert_eq!(config.connect_timeout, Duration::from_secs(5));
+    assert_eq!(config.timeout_calculator.config().connect_timeout, Duration::from_secs(5));
 }
 
 /// WHY: Verify `SimpleHttpClient::read_timeout` sets timeout
@@ -64,7 +64,7 @@ fn test_simple_http_client_read_timeout() {
     let client = SimpleHttpClient::from_system().read_timeout(Duration::from_secs(15));
 
     let config = client.client_config();
-    assert_eq!(config.read_timeout, Duration::from_secs(15));
+    assert_eq!(config.timeout_calculator.config().min_read_timeout, Duration::from_secs(15));
 }
 
 /// WHY: Verify `SimpleHttpClient::write_timeout` sets timeout
@@ -74,7 +74,7 @@ fn test_simple_http_client_write_timeout() {
     let client = SimpleHttpClient::from_system().write_timeout(Duration::from_secs(20));
 
     let config = client.client_config();
-    assert_eq!(config.write_timeout, Duration::from_secs(20));
+    assert_eq!(config.timeout_calculator.config().write_timeout_per_kb, Duration::from_secs(20));
 }
 
 /// WHY: Verify `SimpleHttpClient::max_redirects` sets redirect limit
@@ -107,7 +107,7 @@ fn test_simple_http_client_builder_chaining() {
         .with_connection_pool();
 
     let config = client.client_config();
-    assert_eq!(config.connect_timeout, Duration::from_secs(10));
+    assert_eq!(config.timeout_calculator.config().connect_timeout, Duration::from_secs(10));
     assert_eq!(config.max_redirects, 3);
     assert!(client.client_pool().is_some());
 }

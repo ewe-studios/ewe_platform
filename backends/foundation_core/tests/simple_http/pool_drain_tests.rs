@@ -104,7 +104,7 @@ fn test_pool_sequential_head_requests() {
     let request_count_clone = request_count.clone();
 
     tracing::trace!("[test] starting testhttpserver");
-    let server = TestHttpServer::with_response(move |_req| {
+    let mut server = TestHttpServer::with_response(move |_req| {
         request_count.fetch_add(1, Ordering::SeqCst);
 
         tracing::trace!("[TEST] Sending response");
@@ -150,6 +150,8 @@ fn test_pool_sequential_head_requests() {
 
     assert_eq!(request_count_clone.load(Ordering::SeqCst), 3);
     tracing::trace!("Finished test");
+    server.stop();
+    tracing::trace!("Updated test server to stop");
 }
 
 /// WHY: Verify the full sequence that originally exposed the bug:
@@ -166,7 +168,7 @@ fn test_pool_put_head_delete_head_sequence() {
     let request_count = Arc::new(AtomicUsize::new(0));
     let request_count_clone = request_count.clone();
 
-    let server = TestHttpServer::with_response(move |_req| {
+    let mut server = TestHttpServer::with_response(move |_req| {
         request_count.fetch_add(1, Ordering::SeqCst);
         tracing::trace!("[TEST] Sending response");
         HttpResponse {
@@ -228,5 +230,8 @@ fn test_pool_put_head_delete_head_sequence() {
     assert_eq!(resp.get_status().into_usize(), 200);
 
     assert_eq!(request_count_clone.load(Ordering::SeqCst), 4);
+
     tracing::trace!("[TEST] Finished tests");
+    server.stop();
+    tracing::trace!("[TEST] Updated test server to stop");
 }

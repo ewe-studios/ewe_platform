@@ -26,7 +26,8 @@ use foundation_core::wire::simple_http::{
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
 
 /// Handler that can return both an interim (1xx) and final response.
-type InterimResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>>>;
+type InterimResponseHandler =
+    Arc<Mutex<Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>>>;
 
 /// Simple HTTP request representation for testing.
 #[derive(Debug)]
@@ -219,6 +220,12 @@ impl TestHttpServer {
         Self::with_response(|_req| HttpResponse::ok(b"OK"))
     }
 
+    pub fn stop(&mut self) {
+        // Signal server thread to stop
+        self.running.store(false, Ordering::Relaxed);
+        // Thread will exit on next loop iteration
+    }
+
     /// Start server with custom response handler.
     ///
     /// # Purpose (WHY)
@@ -264,6 +271,7 @@ impl TestHttpServer {
         ));
 
         let running_clone = Arc::clone(&running);
+
         let handler_clone = Arc::clone(&handler);
 
         let handle = thread::spawn(move || {
@@ -277,9 +285,12 @@ impl TestHttpServer {
                     Ok((stream, sock_addr)) => {
                         tracing::info!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
+                        let kill_signal = Arc::clone(&running_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
-                            if let Err(e) = Self::handle_connection(stream, &handler) {
+                            if let Err(e) =
+                                Self::handle_connection(stream, &handler, kill_signal.clone())
+                            {
                                 tracing::info!("TestHttpServer connection error: {e}");
                             }
                         });
@@ -335,9 +346,8 @@ impl TestHttpServer {
         let addr = format!("http://{}", listener.local_addr().unwrap());
 
         let running = Arc::new(AtomicBool::new(true));
-        let handler = Arc::new(Mutex::new(
-            Box::new(handler) as Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>
-        ));
+        let handler = Arc::new(Mutex::new(Box::new(handler)
+            as Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>));
 
         let running_clone = Arc::clone(&running);
         let handler_clone = Arc::clone(&handler);
@@ -414,9 +424,11 @@ impl TestHttpServer {
     /// Handle a single HTTP connection.
     ///
     /// WHY: Processes incoming HTTP request and sends response.
+    #[tracing::instrument(skip(stream, handler))]
     fn handle_connection(
         mut stream: TcpStream,
         handler: &ResponseHandler,
+        running: Arc<AtomicBool>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Handle multiple requests per connection (HTTP keep-alive)
         // Loop until connection closes or max requests reached
@@ -428,8 +440,16 @@ impl TestHttpServer {
         let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
         let request_streams = http_streams::send::http_streams(conn);
 
+        let running_clone = Arc::clone(&running);
+
         for _req_num in 0..MAX_REQUESTS_PER_CONN {
+            if !running_clone.load(Ordering::Relaxed) {
+                tracing::debug!("[TestHTTPServer] Killing next request reader");
+                break;
+            }
+
             // fetch the intro portion and validate we have resources for processing request
+            tracing::debug!("[TestHTTPServer] Pulled next request");
             let request_reader = request_streams.next_request();
             tracing::debug!("Pulled next request");
 
@@ -477,9 +497,8 @@ impl TestHttpServer {
 
             let body = match body_part {
                 IncomingRequestParts::NoBody => SendSafeBody::None,
-                IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
-                    body
-                }
+                IncomingRequestParts::SizedBody(body)
+                | IncomingRequestParts::StreamedBody(body) => body,
                 _ => {
                     tracing::debug!("Failed to receive a IncomingRequestParts::Body(_)");
                     break;
@@ -517,10 +536,9 @@ impl TestHttpServer {
 
             // Check if Connection: close was requested
             // HTTP/1.1 defaults to keep-alive, so we only close if explicitly requested
-            let should_close = response
-                .headers
-                .iter()
-                .any(|(k, v)| k.eq_ignore_ascii_case("connection") && v.eq_ignore_ascii_case("close"));
+            let should_close = response.headers.iter().any(|(k, v)| {
+                k.eq_ignore_ascii_case("connection") && v.eq_ignore_ascii_case("close")
+            });
 
             if should_close {
                 tracing::debug!("Connection: close requested, closing connection");
@@ -645,9 +663,7 @@ impl TestHttpServer {
 
 impl Drop for TestHttpServer {
     fn drop(&mut self) {
-        // Signal server thread to stop
-        self.running.store(false, Ordering::Relaxed);
-        // Thread will exit on next loop iteration
+        self.stop();
     }
 }
 

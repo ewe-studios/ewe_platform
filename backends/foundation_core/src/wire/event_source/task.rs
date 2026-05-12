@@ -17,21 +17,22 @@
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 //! PHASE 3 SCOPE: Idle timeout support.
 
+use crate::extensions::result_ext::BoxedError;
 use crate::netcap::RawStream;
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{EventSourceError, ParseResult, SseParser};
 use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::client::HttpClientConnection;
 use crate::wire::simple_http::client::HttpConnectionPool;
+use crate::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
-use crate::extensions::result_ext::BoxedError;
 use std::io::Write;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tracing::{debug, error, info, instrument, trace, warn};
 
 /// [`EventSourceProgress`] indicates the current state of SSE connection.
@@ -61,7 +62,7 @@ pub struct EventSourceConfig {
     pub headers: Vec<(SimpleHeader, String)>,
     pub body: Option<SendSafeBody>,
     pub last_event_id: Option<String>,
-    pub idle_timeout: Option<Duration>,
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 enum EventSourceState {
@@ -76,6 +77,7 @@ enum EventSourceState {
         conn: HttpClientConnection,
         reader: HttpSendResponseReader<SimpleHttpBody, RawStream>,
     },
+    #[allow(dead_code)] // Reading state is reserved for future use
     Reading {
         conn: HttpClientConnection,
         parser: SseParser<RawStream>,
@@ -97,7 +99,7 @@ where
     state: Option<EventSourceState>,
     pool: Arc<HttpConnectionPool<R>>,
     last_event_id: Option<String>, // Track last event ID for reconnection
-    idle_timeout: Option<Duration>, // Track idle timeout configuration
+    timeout_calculator: TimeoutCalculator, // Timeout calculator for dynamic timeouts
 }
 
 impl<R> EventSourceTask<R>
@@ -142,11 +144,11 @@ where
                 headers: Vec::new(),
                 body: None,
                 last_event_id: None,
-                idle_timeout: None,
+                timeout_calculator: TimeoutCalculator::default(),
             })),
             pool,
             last_event_id: None,
-            idle_timeout: None,
+            timeout_calculator: TimeoutCalculator::default(),
         })
     }
 
@@ -188,11 +190,11 @@ where
                 headers: Vec::new(),
                 body: None,
                 last_event_id: None,
-                idle_timeout: None,
+                timeout_calculator: TimeoutCalculator::default(),
             })),
             pool,
             last_event_id: None,
-            idle_timeout: None,
+            timeout_calculator: TimeoutCalculator::default(),
         })
     }
 
@@ -252,28 +254,29 @@ where
         self.last_event_id.as_deref()
     }
 
-    /// Set idle timeout for the SSE connection.
+    /// Set the timeout calculator for dynamic timeout configuration.
     ///
-    /// WHY: Long-lived SSE connections may become stale if server stops sending events.
-    /// Idle timeout triggers reconnection if no data received for specified duration.
-    /// WHAT: Returns Self with `idle_timeout` configured.
+    /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
+    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// WHAT: Returns Self with `timeout_calculator` configured.
     ///
     /// # Parameters
     ///
-    /// * `timeout` - Duration of inactivity before triggering reconnection
+    /// * `calculator` - TimeoutCalculator for dynamic timeout computation
     #[must_use]
-    pub fn with_idle_timeout(mut self, timeout: Duration) -> Self {
-        debug!("Setting idle timeout");
+    pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
+        debug!("Setting timeout calculator");
         if let Some(EventSourceState::Init(ref mut config)) = self.state {
-            config.idle_timeout = Some(timeout);
+            config.timeout_calculator = calculator.clone();
         }
-        self.idle_timeout = Some(timeout);
+        self.timeout_calculator = calculator;
         self
     }
 
-    /// Get the configured idle timeout.
-    fn idle_timeout(&self) -> Option<Duration> {
-        self.idle_timeout
+    /// Get the configured timeout calculator.
+    #[must_use]
+    pub fn timeout_calculator(&self) -> &TimeoutCalculator {
+        &self.timeout_calculator
     }
 
     /// Get the close reason if the task is closed.
@@ -338,10 +341,8 @@ where
                     self.last_event_id = Some(id);
                 }
 
-                // Store idle_timeout from config for initial connection
-                if let Some(timeout) = config.idle_timeout {
-                    self.idle_timeout = Some(timeout);
-                }
+                // Store timeout_calculator from config for initial connection
+                self.timeout_calculator = config.timeout_calculator;
 
                 // Transition to Connecting state
                 self.state = Some(EventSourceState::Connecting {
@@ -457,15 +458,12 @@ where
                             match opt_iter {
                                 Some(iterator) => {
                                     // Transition to ReadingStream state with the iterator
-                                    self.state =
-                                        Some(EventSourceState::ReadingStream {
-                                            conn,
-                                            iterator,
-                                            last_activity: Instant::now(),
-                                        });
-                                    return Some(TaskStatus::Pending(
-                                        EventSourceProgress::Reading,
-                                    ));
+                                    self.state = Some(EventSourceState::ReadingStream {
+                                        conn,
+                                        iterator,
+                                        last_activity: Instant::now(),
+                                    });
+                                    return Some(TaskStatus::Pending(EventSourceProgress::Reading));
                                 }
                                 None => {
                                     error!("SseStream iterator is None");
@@ -538,20 +536,21 @@ where
                 last_activity,
                 conn,
             } => {
-                // Check for idle timeout
-                if let Some(timeout) = self.idle_timeout() {
-                    if last_activity.elapsed() > timeout {
-                        warn!(
-                            elapsed_secs = ?last_activity.elapsed().as_secs(),
-                            timeout_secs = ?timeout.as_secs(),
-                            "Idle timeout exceeded"
-                        );
-                        // Idle timeout exceeded - close connection for reconnection
-                        self.state = Some(EventSourceState::Closed(
-                            EventSourceCloseReason::IdleTimeout,
-                        ));
-                        return None;
-                    }
+                // Calculate idle timeout from calculator for streaming context
+                let ctx = TimeoutContext::default().streaming();
+                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+
+                if last_activity.elapsed() > idle_timeout {
+                    warn!(
+                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        timeout_secs = ?idle_timeout.as_secs(),
+                        "Idle timeout exceeded"
+                    );
+                    // Idle timeout exceeded - close connection for reconnection
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::IdleTimeout,
+                    ));
+                    return None;
                 }
 
                 trace!(state = "Reading", "Polling for SSE events");
@@ -588,26 +587,26 @@ where
 
             // EventSourceState::ReadingIter variant removed - we now use SseParser directly
             // which provides the same Iterator interface
-
             EventSourceState::ReadingStream {
                 mut iterator,
                 last_activity,
                 conn,
             } => {
-                // Check for idle timeout
-                if let Some(timeout) = self.idle_timeout() {
-                    if last_activity.elapsed() > timeout {
-                        warn!(
-                            elapsed_secs = ?last_activity.elapsed().as_secs(),
-                            timeout_secs = ?timeout.as_secs(),
-                            "Idle timeout exceeded"
-                        );
-                        // Idle timeout exceeded - close connection for reconnection
-                        self.state = Some(EventSourceState::Closed(
-                            EventSourceCloseReason::IdleTimeout,
-                        ));
-                        return None;
-                    }
+                // Calculate idle timeout from calculator for streaming context
+                let ctx = TimeoutContext::default().streaming();
+                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+
+                if last_activity.elapsed() > idle_timeout {
+                    warn!(
+                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        timeout_secs = ?idle_timeout.as_secs(),
+                        "Idle timeout exceeded"
+                    );
+                    // Idle timeout exceeded - close connection for reconnection
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::IdleTimeout,
+                    ));
+                    return None;
                 }
 
                 trace!(state = "ReadingStream", "Polling for SSE events");

@@ -17,6 +17,7 @@ use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::wire::simple_http::client::DnsResolver;
+use crate::wire::simple_http::timeout::TimeoutCalculator;
 use crate::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
@@ -30,6 +31,7 @@ pub struct ReconnectingConfig {
     max_retries: u32,
     server_retry: Option<Duration>,
     max_reconnect_duration: Option<Duration>,
+    timeout_calculator: TimeoutCalculator,
 }
 
 impl ReconnectingConfig {
@@ -42,6 +44,7 @@ impl ReconnectingConfig {
             max_retries: 5,
             server_retry: None,
             max_reconnect_duration: None,
+            timeout_calculator: TimeoutCalculator::default(),
         }
     }
 }
@@ -175,6 +178,18 @@ where
         self
     }
 
+    /// Set the timeout calculator for dynamic timeout configuration.
+    ///
+    /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
+    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// WHAT: Returns Self with `timeout_calculator` configured.
+    #[must_use]
+    pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
+        debug!("Setting timeout calculator");
+        self.config.timeout_calculator = calculator;
+        self
+    }
+
     /// Add a custom header (applied to all connections including reconnections).
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
@@ -229,6 +244,9 @@ where
         if let Some(ref last_id) = self.last_event_id {
             task = task.with_last_event_id(last_id);
         }
+
+        // Apply timeout calculator for dynamic timeouts
+        task = task.with_timeout_calculator(self.config.timeout_calculator.clone());
 
         Some(task)
     }

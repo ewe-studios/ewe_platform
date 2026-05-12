@@ -22,6 +22,7 @@ use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
+use crate::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use concurrent_queue::ConcurrentQueue;
 use std::io::Write;
 use std::sync::Arc;
@@ -32,9 +33,6 @@ use super::error::WebSocketError;
 use super::frame::{generate_mask, Opcode, WebSocketFrame};
 use super::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
 use super::message::WebSocketMessage;
-
-const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(5);
-const SLEEP_BETWEEN_WORK: Duration = Duration::from_millis(15);
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,7 +48,8 @@ pub struct WebSocketConnectInfo {
     pub subprotocols: Option<String>,
     pub extra_headers: Vec<(SimpleHeader, String)>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
-    pub read_timeout: Duration,
+    /// Dynamic timeout calculator - provides all timeout values
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 /// Open state data for WebSocket connection.
@@ -62,7 +61,7 @@ pub struct WebSocketConnectInfo {
 pub struct WebSocketOpenState {
     pub stream: crate::io::ioutils::SharedByteBufferStream<RawStream>,
     pub delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
-    pub read_timeout: Duration,
+    pub timeout_calculator: TimeoutCalculator,
     pub assembler: super::assembler::MessageAssembler,
     /// Buffer pool for zero-copy frame reading
     pub buffer_pool: Arc<crate::io::buffer_pool::BytesPool>,
@@ -77,7 +76,7 @@ pub struct WebSocketConnectingState {
     pub subprotocols: Option<String>,
     pub extra_headers: Vec<(SimpleHeader, String)>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
-    pub read_timeout: Duration,
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 /// `HandshakeSending` state data.
@@ -88,7 +87,7 @@ pub struct WebSocketHandshakeSendingState {
     pub ws_key: String,
     pub subprotocols: Option<String>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
-    pub read_timeout: Duration,
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 /// `HandshakeReading` state data.
@@ -98,7 +97,7 @@ pub struct WebSocketHandshakeReadingState {
     pub ws_key: String,
     pub subprotocols: Option<String>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
-    pub read_timeout: Duration,
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 /// `HandshakeValidating` state data.
@@ -108,7 +107,7 @@ pub struct WebSocketHandshakeValidatingState {
     pub ws_key: String,
     pub subprotocols: Option<String>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
-    pub read_timeout: Duration,
+    pub timeout_calculator: TimeoutCalculator,
 }
 
 /// [`WebSocketState`] represents the state machine states.
@@ -142,7 +141,6 @@ where
 {
     state: Option<WebSocketState>,
     pool: Arc<HttpConnectionPool<R>>,
-    sleep_between_work: Duration,
 }
 
 impl<R> WebSocketTask<R>
@@ -181,13 +179,12 @@ where
         ));
 
         Ok(Self {
-            sleep_between_work: SLEEP_BETWEEN_WORK,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
                 extra_headers: Vec::new(),
                 delivery_queue: None,
-                read_timeout: DEFAULT_READ_TIMEOUT,
+                timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
         })
@@ -221,13 +218,12 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         Ok(Self {
-            sleep_between_work: SLEEP_BETWEEN_WORK,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
                 extra_headers: Vec::new(),
                 delivery_queue: None,
-                read_timeout: DEFAULT_READ_TIMEOUT,
+                timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
         })
@@ -280,13 +276,12 @@ where
         ));
 
         Ok(Self {
-            sleep_between_work: sleep_between,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols,
                 extra_headers,
                 delivery_queue: Some(delivery),
-                read_timeout,
+                timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
         })
@@ -325,25 +320,17 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         Ok(Self {
-            sleep_between_work: sleep_between,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols,
                 extra_headers,
                 delivery_queue: Some(delivery),
-                read_timeout,
+                timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
         })
     }
 
-    #[must_use]
-    pub fn with_sleep_between(mut self, sleep_duration: Duration) -> Self {
-        self.sleep_between_work = sleep_duration;
-        self
-    }
-
-    /// Add a subprotocol to the connection.
     #[must_use]
     pub fn with_subprotocol(mut self, subprotocol: impl Into<String>) -> Self {
         let protocol_str = subprotocol.into();
@@ -404,7 +391,7 @@ where
 
                 debug!(ws_key = %ws_key, "Generated WebSocket key");
 
-                // Transition to Connecting state, carrying delivery_queue and read_timeout
+                // Transition to Connecting state, carrying delivery_queue and timeout_calculator
                 self.state = Some(WebSocketState::Connecting(Some(Box::new(
                     WebSocketConnectingState {
                         url,
@@ -412,7 +399,7 @@ where
                         subprotocols: info.subprotocols,
                         extra_headers: info.extra_headers,
                         delivery_queue: info.delivery_queue,
-                        read_timeout: info.read_timeout,
+                        timeout_calculator: info.timeout_calculator,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Connecting))
@@ -473,7 +460,7 @@ where
                     .map(|b| vec![b])
                     .collect();
 
-                // Transition to HandshakeSending, carrying delivery_queue and read_timeout
+                // Transition to HandshakeSending, carrying delivery_queue and timeout_calculator
                 self.state = Some(WebSocketState::HandshakeSending(Some(Box::new(
                     WebSocketHandshakeSendingState {
                         connection,
@@ -482,7 +469,7 @@ where
                         ws_key: state.ws_key,
                         subprotocols: state.subprotocols,
                         delivery_queue: state.delivery_queue,
-                        read_timeout: state.read_timeout,
+                        timeout_calculator: state.timeout_calculator,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -516,7 +503,7 @@ where
                         ws_key: state.ws_key,
                         subprotocols: state.subprotocols,
                         delivery_queue: state.delivery_queue,
-                        read_timeout: state.read_timeout,
+                        timeout_calculator: state.timeout_calculator,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -556,7 +543,7 @@ where
                                         ws_key: state.ws_key,
                                         subprotocols: state.subprotocols,
                                         delivery_queue: state.delivery_queue,
-                                        read_timeout: state.read_timeout,
+                                        timeout_calculator: state.timeout_calculator,
                                     }),
                                 )));
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -631,7 +618,7 @@ where
                                     WebSocketOpenState {
                                         stream,
                                         delivery_queue: queue,
-                                        read_timeout: state.read_timeout,
+                                        timeout_calculator: state.timeout_calculator,
                                         assembler: super::assembler::MessageAssembler::default(),
                                         buffer_pool,
                                         frame_buffer: bytes::BytesMut::new(),
@@ -753,14 +740,15 @@ where
                 // Read ONE frame per next() call
                 debug!("Attempting to decode WebSocket frame from stream");
 
-                // Set read timeout before reading
+                // Set read timeout before reading - get from calculator
+                let ctx = TimeoutContext::default();
+                let read_timeout = open_state.timeout_calculator.calculate_read_timeout(&ctx);
                 let _ = open_state
                     .stream
-                    .set_read_timeout_as(open_state.read_timeout);
+                    .set_read_timeout_as(read_timeout);
                 debug!(
-                    "Read timeout set to {:?} as {:?}",
-                    open_state.read_timeout,
-                    open_state.stream.get_current_read_timeout()
+                    "Read timeout set to {:?} from calculator",
+                    read_timeout,
                 );
 
                 // Use pooled buffer for zero-copy frame reading
@@ -879,9 +867,13 @@ where
                     {
                         // Read timeout - not an error, just no data available yet
                         // Stay in Open state and delay before retrying to avoid busy-spinning
+                        // Calculate sleep duration from TimeoutCalculator for streaming context
                         debug!("Read timeout - no data available yet, will retry after delay");
+                        // Calculate sleep BEFORE moving open_state
+                        let ctx = TimeoutContext::default().streaming();
+                        let sleep_duration = open_state.timeout_calculator.calculate_sleep_duration(&ctx);
                         self.state = Some(WebSocketState::Open(Some(open_state)));
-                        Some(TaskStatus::Delayed(self.sleep_between_work))
+                        Some(TaskStatus::Delayed(sleep_duration))
                     }
                     Err(e) => {
                         error!(error = ?e, "Frame decode error");

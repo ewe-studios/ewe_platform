@@ -13,6 +13,7 @@ use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
     MiddlewareChain, ProxyConfig, SystemDnsResolver,
 };
+use crate::wire::simple_http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::wire::simple_http::{HttpClientError, SimpleHeader, SimpleHeaders, SimpleHttpBody};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -24,19 +25,16 @@ use std::time::Duration;
 /// share configuration across requests or customize per-instance.
 ///
 /// WHAT: Holds timeouts, redirect settings, default headers, and proxy configuration.
+/// Uses TimeoutCalculator as the source of truth for all timeout values.
 ///
 /// HOW: Created via Default or explicit construction. Passed to `SimpleHttpClient`
-/// via builder pattern.
+/// via builder pattern. All timeout methods delegate to TimeoutCalculator.
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
-    /// Timeout for InlineLift/Schedule operations
+    /// Timeout for InlineLift/Schedule operations (separate from connection timeouts)
     pub inline_processing_timeout: std::time::Duration,
-    /// Connection timeout
-    pub connect_timeout: std::time::Duration,
-    /// Read timeout
-    pub read_timeout: std::time::Duration,
-    /// Write timeout
-    pub write_timeout: std::time::Duration,
+    /// Dynamic timeout calculator - source of truth for all timeout values
+    pub timeout_calculator: TimeoutCalculator,
     /// Maximum number of redirects to follow (0 = no redirects)
     pub max_redirects: u8,
     /// Headers to include in every request
@@ -68,7 +66,8 @@ pub struct ClientConfig {
 impl ClientConfig {
     /// Returns timeout configuration as individual durations.
     ///
-    /// WHY: Returns the stored timeouts used by internal tasks.
+    /// WHY: Returns timeouts from the TimeoutCalculator for internal tasks.
+    /// These are the base timeouts; actual request timeouts are calculated dynamically.
     ///
     /// # Returns
     ///
@@ -81,7 +80,8 @@ impl ClientConfig {
         std::time::Duration,
         std::time::Duration,
     ) {
-        (self.connect_timeout, self.read_timeout, self.write_timeout)
+        let config = self.timeout_calculator.config();
+        (config.connect_timeout, config.min_read_timeout, config.min_read_timeout)
     }
 
     /// Creates a `SimpleHttpBody` from this client configuration.
@@ -108,6 +108,65 @@ impl ClientConfig {
             self.batch_size,
             self.max_retries,
         )
+    }
+
+    /// Calculates dynamic read timeout based on expected body size.
+    ///
+    /// WHY: Fixed timeouts don't scale with body size. This uses the TimeoutCalculator
+    /// to compute appropriate timeouts based on payload size.
+    ///
+    /// WHAT: Creates a TimeoutContext with the given body size and calculates
+    /// the appropriate read timeout using size-based scaling.
+    ///
+    /// # Arguments
+    ///
+    /// * `expected_body_size` - Optional expected body size in bytes
+    /// * `is_upload` - Whether this is an upload operation
+    ///
+    /// # Returns
+    ///
+    /// Calculated read timeout duration.
+    #[must_use]
+    pub fn calculate_read_timeout(
+        &self,
+        expected_body_size: Option<usize>,
+        is_upload: bool,
+    ) -> std::time::Duration {
+        let mut ctx = TimeoutContext::default();
+        if let Some(size) = expected_body_size {
+            ctx.expected_body_size = Some(size);
+        }
+        ctx.is_upload = is_upload;
+        self.timeout_calculator.calculate_read_timeout(&ctx)
+    }
+
+    /// Calculates dynamic write timeout based on body size.
+    ///
+    /// WHY: Uploads need different timeout scaling than downloads.
+    ///
+    /// # Arguments
+    ///
+    /// * `body_size` - Optional body size in bytes
+    ///
+    /// # Returns
+    ///
+    /// Calculated write timeout duration.
+    #[must_use]
+    pub fn calculate_write_timeout(&self, body_size: Option<usize>) -> std::time::Duration {
+        let ctx = TimeoutContext::with_size(body_size.unwrap_or(0));
+        self.timeout_calculator.calculate_write_timeout(&ctx)
+    }
+
+    /// Gets the timeout configuration from the calculator.
+    ///
+    /// WHY: Allows access to underlying timeout bounds and settings.
+    ///
+    /// # Returns
+    ///
+    /// Reference to the TimeoutConfig.
+    #[must_use]
+    pub fn timeout_config(&self) -> &TimeoutConfig {
+        self.timeout_calculator.config()
     }
 
     /// Sets whether to automatically follow redirects like 302/303 responses, normally 301 is whats followed (default: true).
@@ -205,14 +264,16 @@ impl ClientConfig {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set connection timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's connect_timeout.
     ///
     /// # Arguments
     ///
     /// * `timeout` - Connection timeout duration
     #[must_use]
     pub fn with_connect_timeout(mut self, timeout: std::time::Duration) -> Self {
-        self.connect_timeout = timeout;
+        let mut config = *self.timeout_calculator.config();
+        config.connect_timeout = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 
@@ -226,14 +287,17 @@ impl ClientConfig {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set read timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's min_read_timeout.
+    /// Note: This sets the minimum; actual timeouts are calculated based on body size.
     ///
     /// # Arguments
     ///
-    /// * `timeout` - Read timeout duration
+    /// * `timeout` - Read timeout duration (minimum value)
     #[must_use]
     pub fn with_read_timeout(mut self, timeout: std::time::Duration) -> Self {
-        self.read_timeout = timeout;
+        let mut config = *self.timeout_calculator.config();
+        config.min_read_timeout = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 
@@ -241,14 +305,16 @@ impl ClientConfig {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set write timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's write timeout base.
     ///
     /// # Arguments
     ///
     /// * `timeout` - Write timeout duration
     #[must_use]
     pub fn with_write_timeout(mut self, timeout: std::time::Duration) -> Self {
-        self.write_timeout = timeout;
+        let mut config = *self.timeout_calculator.config();
+        config.write_timeout_per_kb = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 
@@ -289,16 +355,15 @@ impl Default for ClientConfig {
     /// Creates default client configuration.
     ///
     /// WHY: Sensible defaults for most use cases. Users can customize via builder.
+    /// All timeout values come from TimeoutCalculator's default TimeoutConfig.
     ///
-    /// WHAT: Default timeouts (15s connect, 10s read, 10s write), 5 redirects,
+    /// WHAT: Default timeouts from TimeoutCalculator, 5 redirects,
     /// no default headers, no proxy, no body size limit (client-friendly),
     /// auth/cookies stripped on cross-host redirects (security best practice).
     fn default() -> Self {
         Self {
             inline_processing_timeout: std::time::Duration::from_millis(10),
-            connect_timeout: std::time::Duration::from_secs(15),
-            read_timeout: std::time::Duration::from_secs(3),
-            write_timeout: std::time::Duration::from_secs(3),
+            timeout_calculator: TimeoutCalculator::new(),
             default_headers: BTreeMap::default(),
             max_redirects: 5,
             proxy: None,
@@ -630,14 +695,16 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set connection timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's connect_timeout.
     ///
     /// # Arguments
     ///
     /// * `timeout` - Connection timeout duration
     #[must_use]
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
-        self.config.connect_timeout = timeout;
+        let mut config = *self.config.timeout_calculator.config();
+        config.connect_timeout = timeout;
+        self.config.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 
@@ -645,14 +712,17 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set read timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's min_read_timeout.
+    /// Note: This sets the minimum; actual timeouts are calculated based on body size.
     ///
     /// # Arguments
     ///
-    /// * `timeout` - Read timeout duration
+    /// * `timeout` - Read timeout duration (minimum value)
     #[must_use]
     pub fn read_timeout(mut self, timeout: Duration) -> Self {
-        self.config.read_timeout = timeout;
+        let mut config = *self.config.timeout_calculator.config();
+        config.min_read_timeout = timeout;
+        self.config.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 
@@ -660,14 +730,16 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
     ///
-    /// WHAT: Builder method to set write timeout.
+    /// WHAT: Builder method that updates the TimeoutCalculator's write timeout base.
     ///
     /// # Arguments
     ///
     /// * `timeout` - Write timeout duration
     #[must_use]
     pub fn write_timeout(mut self, timeout: Duration) -> Self {
-        self.config.write_timeout = timeout;
+        let mut config = *self.config.timeout_calculator.config();
+        config.write_timeout_per_kb = timeout;
+        self.config.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
 

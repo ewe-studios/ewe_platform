@@ -189,19 +189,23 @@ This directory contains all project specifications and requirements. Each specif
 
 ### [25: Valtron Quality Improvements](./25-valtron-quality-improvements/)
 **Status:** ⏳ Pending
-**Description:** Address footguns, semantic bugs, and quality issues in valtron module identified during deep-dive review. Covers iterator semantics, performance, error propagation, and code quality.
-**Has Features:** No
+**Description:** Address architectural issues, semantic bugs, and quality improvements in valtron module identified during deep-dive review. Covers execution-model correctness, iterator semantics, error propagation, and code quality.
+**Has Features:** Yes (9 features)
 **Builds On:** [23-valtron-executor-deep-dive](./23-valtron-executor-deep-dive/)
 
-**Key Issues:**
-- TaskIterator/Iterator blanket impl recursion trap (HIGH)
-- CollectAllStream O(n) remove instead of swap_remove (HIGH)
-- TransformIterator conflates filtering with termination (HIGH)
-- StateMachineTask silently swallows errors (MEDIUM)
-- MapAllPendingAndDoneStream discards exhausted sources (MEDIUM)
-- Multi-threaded stream wait uses spin+sleep polling (MEDIUM)
+| Feature | Priority | Description | Tasks |
+|---------|----------|-------------|-------|
+| [00-pending-none-livelock](./25-valtron-quality-improvements/features/00-pending-none-livelock/) | CRITICAL | Fix unbounded CPU spin on Pending(None) | 9 |
+| [01-sleeper-lifecycle-safety](./25-valtron-quality-improvements/features/01-sleeper-lifecycle-safety/) | CRITICAL | Fix stale sleeper panic on task combination | 6 |
+| [02-linked-task-state-propagation](./25-valtron-quality-improvements/features/02-linked-task-state-propagation/) | HIGH | Fix DualSequence discarding parent State | 5 |
+| [03-global-queue-fairness](./25-valtron-quality-improvements/features/03-global-queue-fairness/) | HIGH | Fairness for global queue pickup | 4 |
+| [04-notification-based-waiting](./25-valtron-quality-improvements/features/04-notification-based-waiting/) | HIGH | Replace spin+sleep with CondVar notification | 6 |
+| [05-iterator-semantics](./25-valtron-quality-improvements/features/05-iterator-semantics/) | HIGH | TaskIterator recursion trap, TransformIterator, swap_remove | 6 |
+| [06-error-handling-api](./25-valtron-quality-improvements/features/06-error-handling-api/) | MEDIUM | Error swallowing, executor panics, Drain bounds | 5 |
+| [07-channel-backpressure](./25-valtron-quality-improvements/features/07-channel-backpressure/) | MEDIUM | Bounded queues, EntryList slot reuse | 4 |
+| [08-code-quality](./25-valtron-quality-improvements/features/08-code-quality/) | LOW | WASM fix, BranchPath naming, alias cleanup | 3 |
 
-**Total Tasks:** 13
+**Total Tasks:** 48
 
 ---
 

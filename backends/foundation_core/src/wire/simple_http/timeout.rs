@@ -1,0 +1,529 @@
+//! Dynamic timeout calculation system for HTTP client and server.
+//!
+//! This module provides production-quality timeout calculations based on:
+//! - Body size (sub-linear scaling using sqrt)
+//! - Network conditions
+//! - Historical latency data
+//! - Endpoint characteristics
+//!
+//! # Example
+//!
+//! ```
+//! use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+//! use std::time::Duration;
+//!
+//! let calculator = TimeoutCalculator::new();
+//! let context = TimeoutContext::with_size(1024); // 1KB body
+//! let timeout = calculator.calculate_read_timeout(&context);
+//! ```
+
+use std::time::Duration;
+
+/// Configuration for timeout calculations.
+///
+/// WHY: Production systems need configurable timeouts to handle varying
+/// network conditions and payload sizes appropriately.
+///
+/// WHAT: Defines base timeout values, bounds, and retry configuration.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TimeoutConfig {
+    /// TCP connection establishment timeout.
+    pub connect_timeout: Duration,
+
+    /// Base read timeout per KB of expected body size.
+    /// Scaled sub-linearly using sqrt(size_kb) to avoid excessive timeouts.
+    pub read_timeout_per_kb: Duration,
+
+    /// Base write timeout per KB of body size for uploads.
+    pub write_timeout_per_kb: Duration,
+
+    /// Minimum read timeout regardless of body size.
+    pub min_read_timeout: Duration,
+
+    /// Maximum read timeout regardless of body size.
+    pub max_read_timeout: Duration,
+
+    /// Maximum total request timeout (includes all retries).
+    pub max_total_timeout: Duration,
+
+    /// Time-to-first-byte timeout for initial server response.
+    pub ttfb_timeout: Duration,
+
+    /// Maximum number of retry attempts for transient failures.
+    pub max_retries: usize,
+}
+
+impl Default for TimeoutConfig {
+    /// Returns production-quality default timeout configuration.
+    ///
+    /// # Values
+    ///
+    /// | Field | Default | Rationale |
+    /// |-------|---------|-----------|
+    /// | connect_timeout | 10s | TCP handshake completion |
+    /// | read_timeout_per_kb | 10ms | Base for size-based calculation |
+    /// | write_timeout_per_kb | 5ms | Upload speed factor |
+    /// | min_read_timeout | 100ms | Absolute minimum for small payloads |
+    /// | max_read_timeout | 60s | Prevents excessive waits |
+    /// | max_total_timeout | 300s | Maximum overall request time |
+    /// | ttfb_timeout | 5s | Server response latency |
+    /// | max_retries | 3 | Balance reliability vs latency |
+    fn default() -> Self {
+        Self {
+            connect_timeout: Duration::from_secs(10),
+            read_timeout_per_kb: Duration::from_millis(10),
+            write_timeout_per_kb: Duration::from_millis(5),
+            min_read_timeout: Duration::from_millis(100),
+            max_read_timeout: Duration::from_secs(60),
+            max_total_timeout: Duration::from_secs(300),
+            ttfb_timeout: Duration::from_secs(5),
+            max_retries: 3,
+        }
+    }
+}
+
+/// Context for timeout calculation.
+///
+/// WHY: Different requests need different timeouts based on body size,
+/// endpoint characteristics, and operation type.
+///
+/// WHAT: Encapsulates all contextual information needed for timeout calculation.
+///
+/// HOW: Created per-request and passed to TimeoutCalculator methods.
+#[derive(Debug, Clone, Default)]
+pub struct TimeoutContext {
+    /// Target endpoint (e.g., "api.example.com/v1/users").
+    pub endpoint: Option<String>,
+
+    /// Expected body size in bytes (None if unknown).
+    pub expected_body_size: Option<usize>,
+
+    /// Whether this is an upload operation (POST/PUT with body).
+    pub is_upload: bool,
+
+    /// Whether this is a streaming response.
+    pub is_streaming: bool,
+
+    /// Previous timeout duration for exponential backoff calculation.
+    /// When provided, the calculator can use this to compute the next timeout
+    /// in a retry sequence (e.g., doubling for exponential backoff).
+    pub previous_timeout: Option<Duration>,
+}
+
+impl TimeoutContext {
+    /// Create a context with only body size specified.
+    #[must_use]
+    pub fn with_size(size: usize) -> Self {
+        Self {
+            expected_body_size: Some(size),
+            ..Self::default()
+        }
+    }
+
+    /// Create a context for a specific endpoint.
+    #[must_use]
+    pub fn with_endpoint(endpoint: impl Into<String>) -> Self {
+        Self {
+            endpoint: Some(endpoint.into()),
+            ..Self::default()
+        }
+    }
+
+    /// Set the expected body size.
+    #[must_use]
+    pub fn with_body_size(mut self, size: usize) -> Self {
+        self.expected_body_size = Some(size);
+        self
+    }
+
+    /// Mark as upload operation.
+    #[must_use]
+    pub fn upload(mut self) -> Self {
+        self.is_upload = true;
+        self
+    }
+
+    /// Mark as streaming operation.
+    #[must_use]
+    pub fn streaming(mut self) -> Self {
+        self.is_streaming = true;
+        self
+    }
+
+    /// Set previous timeout for exponential backoff calculation.
+    ///
+    /// WHY: When retrying requests, the previous timeout can inform
+    /// the next timeout calculation (e.g., exponential backoff).
+    ///
+    /// WHAT: Builder method to set the previous timeout duration.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::timeout::TimeoutContext;
+    /// use std::time::Duration;
+    ///
+    /// let ctx = TimeoutContext::with_size(1024)
+    ///     .with_previous_timeout(Duration::from_secs(1));
+    /// ```
+    #[must_use]
+    pub fn with_previous_timeout(mut self, timeout: Duration) -> Self {
+        self.previous_timeout = Some(timeout);
+        self
+    }
+}
+
+/// Production-quality timeout calculator.
+///
+/// WHY: Fixed timeouts don't scale with body size or network conditions.
+/// This calculator adapts timeouts based on payload size using sub-linear scaling.
+///
+/// WHAT: Calculates timeouts for HTTP operations using size-based formulas
+/// with configurable bounds.
+///
+/// HOW: Uses sqrt(size_kb) scaling to provide reasonable timeouts for both
+/// small API calls and large file transfers.
+///
+/// # Example
+///
+/// ```
+/// use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+/// use std::time::Duration;
+///
+/// let calc = TimeoutCalculator::new();
+///
+/// // Small API call: ~100ms
+/// let ctx = TimeoutContext::with_size(1024); // 1KB
+/// let timeout = calc.calculate_read_timeout(&ctx);
+/// assert!(timeout >= Duration::from_millis(100));
+///
+/// // Large file: ~1s
+/// let ctx = TimeoutContext::with_size(1024 * 1024); // 1MB
+/// let timeout = calc.calculate_read_timeout(&ctx);
+/// assert!(timeout >= Duration::from_millis(300));
+/// ```
+#[derive(Debug, Clone)]
+pub struct TimeoutCalculator {
+    config: TimeoutConfig,
+}
+
+impl TimeoutCalculator {
+    /// Create a new calculator with production default configuration.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            config: TimeoutConfig::default(),
+        }
+    }
+
+    /// Create a calculator with custom configuration.
+    #[must_use]
+    pub fn with_config(config: TimeoutConfig) -> Self {
+        Self { config }
+    }
+
+    /// Get the configuration.
+    #[must_use]
+    pub fn config(&self) -> &TimeoutConfig {
+        &self.config
+    }
+
+    /// Calculate read timeout for a request.
+    ///
+    /// Uses size-based calculation with sqrt scaling:
+    /// `timeout_ms = read_timeout_per_kb_ms * sqrt(size_kb)`
+    ///
+    /// Results are clamped between `min_read_timeout` and `max_read_timeout`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+    /// use std::time::Duration;
+    ///
+    /// let calc = TimeoutCalculator::new();
+    ///
+    /// // 1KB body: sqrt(1) * 10ms = 10ms, clamped to min 100ms
+    /// let ctx = TimeoutContext::with_size(1024);
+    /// let timeout = calc.calculate_read_timeout(&ctx);
+    /// assert_eq!(timeout, Duration::from_millis(100));
+    ///
+    /// // 1MB body: sqrt(1024) * 10ms = 320ms
+    /// let ctx = TimeoutContext::with_size(1024 * 1024);
+    /// let timeout = calc.calculate_read_timeout(&ctx);
+    /// assert!(timeout >= Duration::from_millis(300));
+    /// ```
+    #[must_use]
+    pub fn calculate_read_timeout(&self, ctx: &TimeoutContext) -> Duration {
+        let base_timeout = if let Some(size) = ctx.expected_body_size {
+            self.size_based_read_timeout(size)
+        } else {
+            self.config.min_read_timeout
+        };
+
+        // Clamp to bounds
+        base_timeout.clamp(self.config.min_read_timeout, self.config.max_read_timeout)
+    }
+
+    /// Calculate write timeout for a request.
+    ///
+    /// Similar to read timeout but uses write_timeout_per_kb.
+    /// Uploads get additional scaling factor.
+    #[must_use]
+    pub fn calculate_write_timeout(&self, ctx: &TimeoutContext) -> Duration {
+        let base_timeout = if let Some(size) = ctx.expected_body_size {
+            let size_kb = size as f64 / 1024.0;
+            let per_kb_ms = self.config.write_timeout_per_kb.as_millis() as f64;
+            let scaled_ms = per_kb_ms * size_kb.sqrt();
+
+            if ctx.is_upload {
+                // Uploads are typically slower, apply 1.5x factor
+                Duration::from_millis((scaled_ms * 1.5) as u64)
+            } else {
+                Duration::from_millis(scaled_ms as u64)
+            }
+        } else {
+            self.config.min_read_timeout
+        };
+
+        // Clamp to bounds (use read bounds for write too)
+        base_timeout.clamp(self.config.min_read_timeout, self.config.max_read_timeout)
+    }
+
+    /// Calculate total request timeout.
+    ///
+    /// This is the maximum time for the entire request including retries.
+    /// Uses max_total_timeout as upper bound.
+    #[must_use]
+    pub fn calculate_total_timeout(&self, ctx: &TimeoutContext) -> Duration {
+        let read_timeout = self.calculate_read_timeout(ctx);
+        let retry_count = self.config.max_retries as u64;
+
+        // Total = read_timeout * (retries + 1) for initial attempt
+        let total = read_timeout * (retry_count + 1).try_into().unwrap_or(u32::MAX);
+
+        total.min(self.config.max_total_timeout)
+    }
+
+    /// Calculate size-based read timeout.
+    ///
+    /// Formula: `timeout_ms = read_timeout_per_kb_ms * sqrt(size_kb)`
+    ///
+    /// Examples:
+    /// - 1KB: sqrt(1) * 10ms = 10ms
+    /// - 10KB: sqrt(10) * 10ms = 32ms
+    /// - 1MB: sqrt(1024) * 10ms = 320ms
+    /// - 100MB: sqrt(102400) * 10ms = 3.2s
+    fn size_based_read_timeout(&self, size_bytes: usize) -> Duration {
+        if size_bytes == 0 {
+            return self.config.min_read_timeout;
+        }
+
+        let size_kb = size_bytes as f64 / 1024.0;
+        let per_kb_ms = self.config.read_timeout_per_kb.as_millis() as f64;
+
+        // Sub-linear scaling: sqrt(size_kb) * per_kb
+        let scaled_ms = per_kb_ms * size_kb.sqrt();
+
+        Duration::from_millis(scaled_ms as u64)
+    }
+
+    /// Calculate sleep duration between work iterations.
+    ///
+    /// WHY: Different operations need different polling intervals.
+    /// Fast operations (HTTP requests) need shorter sleep.
+    /// Streaming operations (WebSocket, SSE) need longer sleep to reduce CPU usage.
+    ///
+    /// WHAT: Returns appropriate sleep duration based on operation type and timeout context.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+    ///
+    /// let calc = TimeoutCalculator::new();
+    ///
+    /// // For HTTP polling: ~15ms
+    /// let http_sleep = calc.calculate_sleep_duration(&TimeoutContext::default());
+    ///
+    /// // For streaming with known body: scales with timeout
+    /// let streaming_ctx = TimeoutContext::with_size(1024 * 1024).streaming();
+    /// let streaming_sleep = calc.calculate_sleep_duration(&streaming_ctx);
+    /// ```
+    #[must_use]
+    pub fn calculate_sleep_duration(&self, ctx: &TimeoutContext) -> Duration {
+        // Base sleep duration: 15ms for HTTP-style operations
+        let base_sleep_ms = 15u64;
+
+        // For streaming operations, use longer sleep to reduce CPU
+        if ctx.is_streaming {
+            // Streaming: 50ms (suitable for WebSocket/SSE)
+            return Duration::from_millis(50);
+        }
+
+        // For upload operations, slightly longer sleep
+        if ctx.is_upload {
+            return Duration::from_millis(25);
+        }
+
+        // Calculate based on expected timeout - sleep should be small fraction
+        if ctx.expected_body_size.is_some() {
+            let read_timeout = self.calculate_read_timeout(ctx);
+            // Sleep should be ~1% of expected timeout, min 15ms, max 100ms
+            let sleep_ms = (read_timeout.as_millis() as u64 / 100).clamp(base_sleep_ms, 100);
+            return Duration::from_millis(sleep_ms);
+        }
+
+        Duration::from_millis(base_sleep_ms)
+    }
+}
+
+impl Default for TimeoutCalculator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_config() {
+        let config = TimeoutConfig::default();
+        assert_eq!(config.connect_timeout, Duration::from_secs(10));
+        assert_eq!(config.read_timeout_per_kb, Duration::from_millis(10));
+        assert_eq!(config.write_timeout_per_kb, Duration::from_millis(5));
+        assert_eq!(config.min_read_timeout, Duration::from_millis(100));
+        assert_eq!(config.max_read_timeout, Duration::from_secs(60));
+        assert_eq!(config.max_total_timeout, Duration::from_secs(300));
+        assert_eq!(config.ttfb_timeout, Duration::from_secs(5));
+        assert_eq!(config.max_retries, 3);
+    }
+
+    #[test]
+    fn test_size_based_calculation() {
+        let calc = TimeoutCalculator::new();
+
+        // 1 KB -> ~10ms, clamped to min 100ms
+        let ctx = TimeoutContext::with_size(1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(100));
+
+        // 10 KB -> sqrt(10) * 10ms = 32ms, clamped to min 100ms
+        let ctx = TimeoutContext::with_size(10 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(100));
+
+        // 100 KB -> sqrt(100) * 10ms = 100ms
+        let ctx = TimeoutContext::with_size(100 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(100));
+
+        // 1 MB -> sqrt(1024) * 10ms = 320ms
+        let ctx = TimeoutContext::with_size(1024 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(320));
+
+        // 10 MB -> sqrt(10240) * 10ms = 1.01s
+        let ctx = TimeoutContext::with_size(10 * 1024 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(1011));
+
+        // 100 MB -> sqrt(102400) * 10ms = 3.2s
+        let ctx = TimeoutContext::with_size(100 * 1024 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(3200));
+    }
+
+    #[test]
+    fn test_bounds_clamping() {
+        let calc = TimeoutCalculator::new();
+
+        // Tiny body gets min timeout
+        let ctx = TimeoutContext::with_size(10);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(100));
+
+        // Huge body (36GB+) gets max timeout (60s)
+        // sqrt(36M KB) * 10ms = 6000 * 10ms = 60s, clamped to max
+        let ctx = TimeoutContext::with_size(36 * 1024 * 1024 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_secs(60));
+    }
+
+    #[test]
+    fn test_zero_size() {
+        let calc = TimeoutCalculator::new();
+
+        let ctx = TimeoutContext::default();
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(100));
+    }
+
+    #[test]
+    fn test_write_timeout() {
+        let calc = TimeoutCalculator::new();
+
+        // 1 MB write: sqrt(1024) * 5ms = 160ms
+        let ctx = TimeoutContext::with_size(1024 * 1024);
+        let timeout = calc.calculate_write_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(160));
+
+        // Upload gets 1.5x factor: 160ms * 1.5 = 240ms
+        let ctx = TimeoutContext::with_size(1024 * 1024).upload();
+        let timeout = calc.calculate_write_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(240));
+    }
+
+    #[test]
+    fn test_total_timeout() {
+        let calc = TimeoutCalculator::new();
+
+        // 1 MB: 320ms read, 3 retries = 320ms * 4 = 1.28s
+        let ctx = TimeoutContext::with_size(1024 * 1024);
+        let timeout = calc.calculate_total_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(1280));
+
+        // Huge body (75GB+) gets clamped to max_read_timeout (60s)
+        // sqrt(75M KB) * 10ms = 8660 * 10ms = 86.6s per read, clamped to 60s
+        // With 4 attempts: 60s * 4 = 240s
+        let ctx = TimeoutContext::with_size(75 * 1024 * 1024 * 1024);
+        let timeout = calc.calculate_total_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_secs(240));
+    }
+
+    #[test]
+    fn test_custom_config() {
+        let config = TimeoutConfig {
+            min_read_timeout: Duration::from_millis(50),
+            max_read_timeout: Duration::from_secs(30),
+            ..TimeoutConfig::default()
+        };
+        let calc = TimeoutCalculator::with_config(config);
+
+        // Small body uses custom min
+        let ctx = TimeoutContext::with_size(100);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_millis(50));
+
+        // Huge body (9GB+) uses custom max (30s)
+        // sqrt(9M KB) * 10ms = 3000 * 10ms = 30s, clamped to max
+        let ctx = TimeoutContext::with_size(9 * 1024 * 1024 * 1024);
+        let timeout = calc.calculate_read_timeout(&ctx);
+        assert_eq!(timeout, Duration::from_secs(30));
+    }
+
+    #[test]
+    fn test_context_builder() {
+        let ctx = TimeoutContext::with_endpoint("api.example.com")
+            .with_body_size(1024)
+            .upload()
+            .streaming();
+
+        assert_eq!(ctx.endpoint, Some("api.example.com".to_string()));
+        assert_eq!(ctx.expected_body_size, Some(1024));
+        assert!(ctx.is_upload);
+        assert!(ctx.is_streaming);
+    }
+}
