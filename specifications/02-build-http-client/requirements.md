@@ -25,9 +25,9 @@ related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
   completed: 17
-  uncompleted: 0
-  total: 17
-  completion_percentage: 100
+  uncompleted: 1
+  total: 18
+  completion_percentage: 94
 ---
 
 # Overview
@@ -51,7 +51,7 @@ This specification defines the implementation of a robust, idiomatic HTTP/1.1 cl
 
 ## Known Issues
 
-None currently identified.
+- **Reader EOF infinite loop (CRITICAL)**: `HttpRequestReader` and `HttpResponseReader` spin at 100% CPU when connection reaches EOF. See [reader-eof-handling](./features/reader-eof-handling/feature.md).
 
 ## Feature Index
 
@@ -144,9 +144,13 @@ The HTTP client implementation is divided into features with clear dependencies.
     - Dependencies: #7, #10
     - Status: Complete (212 compliance tests passing)
 
-### Pending Features (0/17)
+### Pending Features (1/18)
 
-None - All features complete!
+18. **[reader-eof-handling](./features/reader-eof-handling/feature.md)** ⏳
+    - Description: Fix HttpRequestReader/HttpResponseReader infinite loop on EOF (Ok(0))
+    - Dependencies: None
+    - Priority: Critical
+    - Status: Pending
 
 ## Requirements Conversation Summary
 

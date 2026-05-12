@@ -28,7 +28,7 @@ This directory contains all project specifications and requirements. Each specif
 ### [02: Build HTTP Client](./02-build-http-client/)
 **Status:** 🔄 In Progress
 **Description:** Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors.
-**Has Features:** Yes (13 features)
+**Has Features:** Yes (18 features, 17 complete, 1 pending)
 
 | Feature | Description | Tasks | Dependencies |
 |---------|-------------|-------|--------------|
@@ -45,8 +45,9 @@ This directory contains all project specifications and requirements. Each specif
 | [cookie-jar](./02-build-http-client/features/cookie-jar/) | Automatic cookie handling | 15 | public-api |
 | [middleware](./02-build-http-client/features/middleware/) | Request/response interceptors | 14 | public-api |
 | [websocket](./02-build-http-client/features/websocket/) | WebSocket client and server | 20 | connection, public-api |
+| [reader-eof-handling](./02-build-http-client/features/reader-eof-handling/) | **CRITICAL**: Fix reader infinite loop on EOF Ok(0) | 5 | None |
 
-**Total Tasks:** 143
+**Total Tasks:** 148
 
 ---
 
@@ -165,7 +166,7 @@ This directory contains all project specifications and requirements. Each specif
 ---
 
 ### [23: Valtron Executor Deep Dive](./23-valtron-executor-deep-dive/)
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 **Description:** Comprehensive analysis of valtron executor architecture, identifying core behaviors, logic patterns, footguns, and improvement opportunities. Fixes CondVar/park_timeout mismatch causing ~18s test delays.
 **Has Features:** Yes (4 features)
 **Builds On:** [09-multi-threaded-executor-improvements](./09-multi-threaded-executor-improvements/)
@@ -213,15 +214,16 @@ This directory contains all project specifications and requirements. Each specif
 
 ### Summary
 - **Total Specifications:** 10
-- **Completed:** 4 (40%)
+- **Completed:** 5 (50%)
 - **In Progress:** 1 (10%)
-- **Pending:** 5 (50%)
+- **Pending:** 4 (40%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
 - 03: WASM-Friendly Sync Primitives
 - 04: CondVar Primitives
 - 12: Background Job Registry
+- 23: Valtron Executor Deep Dive
 
 ### In Progress 🔄
 - 02: Build HTTP Client
@@ -230,7 +232,6 @@ This directory contains all project specifications and requirements. Each specif
 - 07: TCP-Resilient Batch Readers
 - 09: Valtron StreamIterator Migration
 - 17: Foundation JSON Schema
-- 23: Valtron Executor Deep Dive
 - 25: Valtron Quality Improvements
 
 ## Specification Guidelines

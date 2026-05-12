@@ -2,13 +2,13 @@
 //!
 //! Each accepted TCP connection becomes a valtron task that the executor
 //! multiplexes. When no data is available (WouldBlock), the task yields
-//! `TaskStatus::Delayed(duration)` with exponential backoff.
+//! `TaskStatus::Delayed(duration)` with dynamic timeout calculation.
 //!
 //! WHY: Replaces `BackgroundJobRegistry::submit()` which blocked a thread
 //! per connection. Now idle connections yield via `Delayed`, freeing the
 //! thread for other work — enabling true HTTP/1.1 keep-alive multiplexing.
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
@@ -17,6 +17,7 @@ use foundation_core::wire::simple_http::{
     HTTPStreams, Http11, HttpReaderError, RenderHttp, SimpleHeader, SimpleIncomingRequest,
     SimpleOutgoingResponse,
 };
+use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_errstacks::ErrorTrace;
 
 use crate::reader::read_next_request;
@@ -48,11 +49,12 @@ pub struct ConnectionHandler {
     streams: HTTPStreams<RawStream>,
     conn: SharedByteBufferStream<RawStream>,
     client_ip: String,
-    config: KeepAliveConfig,
+    timeout_calculator: TimeoutCalculator,
+    escalation_threshold: u32,
+    max_delay_cycles: u32,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
-    total_idle_duration: Duration,
     total_delay_cycles: u32,
 }
 
@@ -63,33 +65,36 @@ impl ConnectionHandler {
         streams: HTTPStreams<RawStream>,
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
-        config: KeepAliveConfig,
+        config: crate::server::KeepAliveConfig,
     ) -> Self {
         Self {
             app,
             streams,
             conn,
             client_ip,
-            config,
+            timeout_calculator: config.timeout_calculator,
+            escalation_threshold: config.escalation_threshold,
+            max_delay_cycles: config.max_delay_cycles,
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
-            total_idle_duration: Duration::ZERO,
             total_delay_cycles: 0,
         }
     }
 
-    /// Compute exponential backoff delay.
-    /// Only called after `idle_poll_count >= escalation_threshold`.
-    fn compute_delay(&self) -> Duration {
-        let cycle_position = self
-            .idle_poll_count
-            .saturating_sub(self.config.escalation_threshold);
-        let base = self.config.min_delay.as_secs_f64();
-        let max = self.config.max_delay.as_secs_f64();
+    /// Compute delay using the timeout calculator.
+    /// Called after `idle_poll_count >= escalation_threshold`.
+    fn compute_delay(&self) -> std::time::Duration {
+        // Use streaming context for SSE/WebSocket-capable server connections
+        let ctx = TimeoutContext::default().streaming();
+        self.timeout_calculator.calculate_sleep_duration(&ctx)
+    }
 
-        let delay = (base * 2.0_f64.powi(cycle_position as i32)).min(max);
-        Duration::from_secs_f64(delay)
+    /// Get idle timeout from calculator.
+    fn idle_timeout(&self) -> std::time::Duration {
+        // Use streaming context for server connections
+        let ctx = TimeoutContext::default().streaming();
+        self.timeout_calculator.calculate_read_timeout(&ctx)
     }
 
     /// Classify an error: transient errors (WouldBlock-like) are treated as
@@ -115,16 +120,17 @@ impl ConnectionHandler {
 
     /// Update idle tracking state.
     fn track_idle(&mut self) {
-        let now = Instant::now();
-        if let Some(since) = self.idle_since {
-            self.total_idle_duration += now - since;
+        if self.idle_since.is_none() {
+            self.idle_since = Some(Instant::now());
         }
-        self.idle_since = Some(now);
     }
 
     /// Check if idle timeout has been exceeded.
     fn idle_exceeded(&self) -> bool {
-        self.total_idle_duration >= self.config.idle_timeout
+        match self.idle_since {
+            Some(since) => since.elapsed() >= self.idle_timeout(),
+            None => false,
+        }
     }
 
     /// Handle the Idle state.
@@ -143,11 +149,11 @@ impl ConnectionHandler {
 
         // Check delay cycle limit.
         tracing::trace!(
-            "Checking if wwit cycle is below max: {} < {}",
+            "Checking if wait cycle is below max: {} < {}",
             &self.total_delay_cycles,
-            &self.config.max_delay_cycles
+            &self.max_delay_cycles
         );
-        if self.total_delay_cycles >= self.config.max_delay_cycles {
+        if self.total_delay_cycles >= self.max_delay_cycles {
             tracing::trace!(
                 client_ip = %self.client_ip,
                 total_delay_cycles = self.total_delay_cycles,
@@ -160,7 +166,7 @@ impl ConnectionHandler {
         tracing::trace!(
             "Reading next request from stream: {} < {}",
             &self.total_delay_cycles,
-            &self.config.max_delay_cycles
+            &self.max_delay_cycles
         );
         match read_next_request(&self.streams, &self.client_ip) {
             Some(Ok(req)) => {
@@ -178,7 +184,6 @@ impl ConnectionHandler {
 
                 self.idle_poll_count = 0;
                 self.idle_since = None;
-                self.total_idle_duration = Duration::ZERO;
                 self.total_delay_cycles = 0;
 
                 tracing::trace!(
@@ -198,7 +203,7 @@ impl ConnectionHandler {
                     self.idle_poll_count += 1;
                     self.track_idle();
 
-                    if self.idle_poll_count < self.config.escalation_threshold {
+                    if self.idle_poll_count < self.escalation_threshold {
                         // Fast polling phase — keep the executor spinning.
                         self.state = Some(HandlerState::Idle);
                         return Some(TaskStatus::Pending(()));
@@ -209,7 +214,7 @@ impl ConnectionHandler {
 
                     // Track delay cycles: each time we cross another multiple
                     // of escalation_threshold, increment the cycle counter.
-                    let new_cycle_count = self.idle_poll_count / self.config.escalation_threshold;
+                    let new_cycle_count = self.idle_poll_count / self.escalation_threshold;
                     if new_cycle_count > self.total_delay_cycles {
                         self.total_delay_cycles = new_cycle_count;
                     }
@@ -244,13 +249,13 @@ impl ConnectionHandler {
                 self.idle_poll_count += 1;
                 self.track_idle();
 
-                if self.idle_poll_count < self.config.escalation_threshold {
+                if self.idle_poll_count < self.escalation_threshold {
                     self.state = Some(HandlerState::Idle);
                     return Some(TaskStatus::Pending(()));
                 }
 
                 let delay = self.compute_delay();
-                let new_cycle_count = self.idle_poll_count / self.config.escalation_threshold;
+                let new_cycle_count = self.idle_poll_count / self.escalation_threshold;
                 if new_cycle_count > self.total_delay_cycles {
                     self.total_delay_cycles = new_cycle_count;
                 }

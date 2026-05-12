@@ -10,6 +10,7 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::synca::OnSignal;
+use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use foundation_core::wire::simple_http::HTTPStreams;
 
 #[cfg(any(
@@ -42,15 +43,14 @@ use crate::serve::respond;
 /// WHY: All connections use the valtron keep-alive handler. This struct
 /// controls how long idle connections are kept alive and how aggressively
 /// the executor polls them.
+///
+/// NOTE: Now uses `TimeoutCalculator` as the single source of truth for
+/// timeout values. The calculator provides dynamic timeout calculation
+/// based on context.
 #[derive(Clone)]
 pub struct KeepAliveConfig {
-    /// Minimum delay between polls when idle (default: 10ms).
-    pub min_delay: Duration,
-    /// Maximum delay between polls when idle (default: 120s).
-    /// Exponential backoff: min_delay * 2^n, clamped to this value.
-    pub max_delay: Duration,
-    /// Idle timeout after which the connection is closed (default: 120s).
-    pub idle_timeout: Duration,
+    /// Timeout calculator for dynamic timeout calculation.
+    pub timeout_calculator: TimeoutCalculator,
     /// Number of consecutive polls with no data before switching from
     /// `Pending` to `Delayed` (default: 200).
     pub escalation_threshold: u32,
@@ -63,34 +63,61 @@ impl KeepAliveConfig {
     /// Create a config with default values.
     #[must_use]
     pub fn defaults() -> Self {
+        // Server-specific timeout config with longer timeouts for connections
+        let timeout_config = TimeoutConfig {
+            min_read_timeout: Duration::from_secs(120), // 2 min idle timeout
+            max_read_timeout: Duration::from_secs(300), // 5 max read
+            ..TimeoutConfig::default()
+        };
+
         Self {
-            min_delay: Duration::from_secs(1),
-            max_delay: Duration::from_secs(120),
-            idle_timeout: Duration::from_secs(120),
+            timeout_calculator: TimeoutCalculator::with_config(timeout_config),
             escalation_threshold: 50,
             max_delay_cycles: 100,
         }
     }
 
-    /// Set the minimum delay.
+    /// Create a config with a custom timeout calculator.
     #[must_use]
-    pub fn with_min_delay(mut self, dur: Duration) -> Self {
-        self.min_delay = dur;
+    pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
+        self.timeout_calculator = calculator;
         self
     }
 
-    /// Set the maximum delay.
-    #[must_use]
-    pub fn with_max_delay(mut self, dur: Duration) -> Self {
-        self.max_delay = dur;
-        self
-    }
-
-    /// Set the idle timeout.
+    /// Set the idle timeout (convenience method that updates calculator config).
+    ///
+    /// WHY: Backward compatibility - users can still call `with_idle_timeout()`
+    /// but now it updates the underlying calculator.
     #[must_use]
     pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
-        self.idle_timeout = dur;
+        // Create new config with updated idle timeout
+        let new_config = TimeoutConfig {
+            min_read_timeout: dur,
+            ..*self.timeout_calculator.config()
+        };
+        self.timeout_calculator = TimeoutCalculator::with_config(new_config);
         self
+    }
+
+    /// Get the minimum delay from calculator.
+    #[must_use]
+    pub fn min_delay(&self) -> Duration {
+        // Use sleep duration for default context as base min delay
+        self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default())
+    }
+
+    /// Get the maximum delay from calculator.
+    #[must_use]
+    pub fn max_delay(&self) -> Duration {
+        // Max delay is based on max read timeout
+        self.timeout_calculator.config().max_read_timeout
+    }
+
+    /// Get the idle timeout from calculator.
+    #[must_use]
+    pub fn idle_timeout(&self) -> Duration {
+        // Idle timeout is the read timeout for default context
+        self.timeout_calculator.calculate_read_timeout(&TimeoutContext::default())
     }
 }
 
@@ -105,11 +132,12 @@ impl Default for KeepAliveConfig {
 /// WHY: All durations are configurable — no hardcoded values.
 /// WHAT: `ServerConfig::default()` provides sane defaults; users can
 /// override individual fields via builder-style methods.
+///
+/// NOTE: Now uses `TimeoutCalculator` as the single source of truth for
+/// timeout values, providing dynamic timeout calculation based on context.
 pub struct ServerConfig {
-    /// Sleep duration when accept returns `WouldBlock` (default: 10ms).
-    pub would_block_sleep: Duration,
-    /// Sleep duration after an accept error (default: 100ms).
-    pub accept_error_sleep: Duration,
+    /// Timeout calculator for dynamic timeout calculation.
+    pub timeout_calculator: TimeoutCalculator,
     /// Keep-alive configuration. Always present with defaults.
     pub keep_alive: KeepAliveConfig,
     /// Maximum body size in bytes (default: 10 MB).
@@ -131,8 +159,7 @@ impl ServerConfig {
     #[must_use]
     pub fn defaults() -> Self {
         Self {
-            would_block_sleep: Duration::from_millis(10),
-            accept_error_sleep: Duration::from_millis(100),
+            timeout_calculator: TimeoutCalculator::default(),
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
             #[cfg(any(
@@ -147,17 +174,56 @@ impl ServerConfig {
         }
     }
 
-    /// Set the `WouldBlock` sleep duration.
+    /// Create a config with a custom timeout calculator.
     #[must_use]
-    pub fn with_would_block_sleep(mut self, dur: Duration) -> Self {
-        self.would_block_sleep = dur;
+    pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
+        self.timeout_calculator = calculator;
+        // Also update keep_alive to use the same calculator
+        self.keep_alive = self.keep_alive.with_timeout_calculator(calculator.clone());
         self
     }
 
-    /// Set the accept error sleep duration.
+    /// Get the `WouldBlock` sleep duration from calculator.
+    #[must_use]
+    pub fn would_block_sleep(&self) -> Duration {
+        // Use sleep duration for default context
+        self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default())
+    }
+
+    /// Get the accept error sleep duration from calculator.
+    /// Uses a longer duration for error recovery.
+    #[must_use]
+    pub fn accept_error_sleep(&self) -> Duration {
+        // Use 2x the base sleep duration for error recovery
+        let base = self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default());
+        base * 2
+    }
+
+    /// Set the `WouldBlock` sleep duration (convenience method).
+    ///
+    /// WHY: Backward compatibility - updates the underlying calculator config.
+    #[must_use]
+    pub fn with_would_block_sleep(mut self, dur: Duration) -> Self {
+        let new_config = TimeoutConfig {
+            min_sleep_duration: dur,
+            ..*self.timeout_calculator.config()
+        };
+        self.timeout_calculator = TimeoutCalculator::with_config(new_config);
+        self
+    }
+
+    /// Set the accept error sleep duration (convenience method).
+    ///
+    /// WHY: Backward compatibility - updates the underlying calculator config.
     #[must_use]
     pub fn with_accept_error_sleep(mut self, dur: Duration) -> Self {
-        self.accept_error_sleep = dur;
+        // Note: accept_error_sleep is derived from would_block_sleep * 2
+        // So we set would_block_sleep to half the desired error sleep
+        let new_config = TimeoutConfig {
+            min_sleep_duration: dur / 2,
+            ..*self.timeout_calculator.config()
+        };
+        self.timeout_calculator = TimeoutCalculator::with_config(new_config);
         self
     }
 
@@ -171,15 +237,20 @@ impl ServerConfig {
     /// Convenience: set both min and max delay to the same value.
     #[must_use]
     pub fn with_poll_interval(mut self, dur: Duration) -> Self {
-        self.keep_alive.min_delay = dur;
-        self.keep_alive.max_delay = dur;
+        // Update the keep_alive calculator
+        let new_config = TimeoutConfig {
+            min_sleep_duration: dur,
+            max_sleep_duration: dur,
+            ..*self.keep_alive.timeout_calculator.config()
+        };
+        self.keep_alive.timeout_calculator = TimeoutCalculator::with_config(new_config);
         self
     }
 
     /// Convenience: set the idle timeout.
     #[must_use]
     pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
-        self.keep_alive.idle_timeout = dur;
+        self.keep_alive = self.keep_alive.with_idle_timeout(dur);
         self
     }
 
@@ -325,8 +396,8 @@ impl HttpServer {
         wrap_stream: impl Fn(std::net::TcpStream) -> Result<RawStream, String> + Send + Sync + 'static,
     ) {
         let wrap_stream = Arc::new(wrap_stream);
-        let would_block_sleep = self.config.would_block_sleep;
-        let accept_error_sleep = self.config.accept_error_sleep;
+        let would_block_sleep = self.config.would_block_sleep();
+        let accept_error_sleep = self.config.accept_error_sleep();
         let keep_alive_config = self.config.keep_alive.clone();
 
         loop {
