@@ -1,4 +1,5 @@
 use super::types::AnyResult;
+use crate::io::readers::Data;
 
 pub use super::streams::Stream;
 
@@ -115,6 +116,9 @@ pub type BoxedSendableIterator<T, E> = BoxedSendIterator<AnyResult<T, E>>;
 
 /// [`BoxedSendableVecIterator`] defines a sendable boxed iterator that can be Send.
 pub type BoxedSendableVecIterator<E> = BoxedSendableIterator<Vec<u8>, E>;
+
+/// [`BoxedSendableDataIterator`] defines a sendable boxed iterator yielding `Data`.
+pub type BoxedSendableDataIterator<E> = BoxedSendableIterator<Data, E>;
 
 /// [`BoxedResultIterator`] defines a type alias for a boxed iterator that always returns a Result object.
 pub type BoxedResultIterator<T, E> = BoxedIterator<AnyResult<T, E>>;

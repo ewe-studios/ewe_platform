@@ -3,13 +3,14 @@
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
-use crate::io::readers::EofReader;
-use crate::io::readers::FullBodyReader;
-use crate::io::readers::{BatchReader, BatchStreamReader};
+use crate::io::readers::{BatchReader, Data, DataBytesIterator};
+use crate::io::readers::EOFStreamReader;
+use crate::io::readers::LimitedBatchStreamReader;
+use crate::io::readers::LimitedEOFStreamReader;
 use crate::io::ubytes;
 use crate::valtron::{
-    BoxedResultIterator, BoxedSendableIterator, BoxedSendableVecIterator, CloneableFn,
-    SendVecIterator, StringBoxedIterator, TransformIterator, VecBoxedIterator,
+    BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
+    StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
 use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
@@ -304,7 +305,7 @@ pub enum SendSafeBody {
     Text(String),
     Bytes(Vec<u8>),
     // Send-safe iterator variants using BoxedSendableIterator which requires Send
-    Stream(Option<BoxedSendableIterator<Vec<u8>, BoxedError>>),
+    Stream(Option<BoxedSendableDataIterator<BoxedError>>),
     ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
     LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
     /// SSE event stream body.
@@ -395,7 +396,11 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::Text(s) => SimpleBody::Text(s),
             SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
             SendSafeBody::Stream(iter) => {
-                SimpleBody::Stream(iter.map(|i| i as VecBoxedIterator<BoxedError>))
+                let bytes_iter = iter.map(|i| {
+                    let wrapped = DataBytesIterator::new(i);
+                    Box::new(wrapped) as VecBoxedIterator<BoxedError>
+                });
+                SimpleBody::Stream(bytes_iter)
             }
             // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
             SendSafeBody::ChunkedStream(iter) => {
@@ -1643,7 +1648,7 @@ impl SimpleOutgoingResponseBuilder {
     }
 
     #[must_use]
-    pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: BoxedSendableDataIterator<BoxedError>) -> Self {
         self.body = Some(SendSafeBody::Stream(Some(body)));
         self
     }
@@ -1830,7 +1835,7 @@ impl SimpleIncomingRequestBuilder {
     }
 
     #[must_use]
-    pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: BoxedSendableDataIterator<BoxedError>) -> Self {
         self.body = Some(SendSafeBody::Stream(Some(body)));
         self
     }
@@ -2078,7 +2083,7 @@ pub enum Http11RequestBodyState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<VecBoxedIterator<BoxedError>>),
+    BodyStreaming(Option<BoxedSendableDataIterator<BoxedError>>),
 
     /// `ChunkedBodyStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
@@ -2245,11 +2250,18 @@ impl Iterator for Http11RequestBodyIterator {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
-                            Ok(inner) => {
+                            Ok(Data::Bytes(inner)) => {
                                 self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(
                                     body_iterator,
                                 )));
                                 Some(Ok(inner))
+                            }
+                            Ok(Data::Retry) => {
+                                // Transient retry — yield empty and continue
+                                self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(
+                                    body_iterator,
+                                )));
+                                Some(Ok(b"".to_vec()))
                             }
                             Err(err) => {
                                 // tell the iterator we want it to end
@@ -2388,7 +2400,7 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<BoxedSendableVecIterator<BoxedError>>),
+    BodyStreaming(Option<BoxedSendableDataIterator<BoxedError>>),
     LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
@@ -2601,10 +2613,15 @@ impl Iterator for Http11ResponseIterator {
 
                     if let Some(collected) = next {
                         match collected {
-                            Ok(inner) => {
+                            Ok(Data::Bytes(inner)) => {
                                 self.0 = Some(Http11ResState::BodyStreaming(Some(actual_iterator)));
 
                                 Some(Ok(inner))
+                            }
+                            Ok(Data::Retry) => {
+                                // Transient retry — yield empty and continue
+                                self.0 = Some(Http11ResState::BodyStreaming(Some(actual_iterator)));
+                                Some(Ok(b"".to_vec()))
                             }
                             Err(err) => {
                                 // tell the iterator we want it to end
@@ -5219,44 +5236,27 @@ impl BodyExtractor for SimpleHttpBody {
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {
-                tracing::trace!("FullBody: reading as full body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
+                tracing::trace!("FullBody: streaming body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
 
-                // Use explicit max_body_size if provided, otherwise fall back to self.0
                 #[allow(clippy::cast_possible_truncation)]
                 let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
 
-                tracing::trace!(
-                    "FullBody: borrow stream: {:?}, headers={:?}",
-                    &optional_max_body_size,
-                    headers
-                );
-                match stream.do_once_mut(|borrowed_stream| {
-                    tracing::trace!(
-                        "FullBody: acquired borrow stream with EOFReader: {:?}, headers={:?}",
-                        &optional_max_body_size,
-                        headers
-                    );
+                let batch = BatchReader::new(stream)
+                    .batch_size(self.2)
+                    .eof_on_zero_read(true)
+                    .max_consecutive_retries(self.3);
 
-                    EofReader::read_to_end(
-                        borrowed_stream,
-                        self.2, // batch_size
-                        self.3, // max_retries
-                        effective_max_size,
-                    )
-                    .map(SendSafeBody::Bytes)
-                }) {
-                    Ok(inner) => {
-                        tracing::trace!("Finished reading data from stream");
-                        Ok(inner)
-                    }
-                    Err(err) => {
-                        tracing::error!("Failed to read from stream: {:?}", &err);
-                        Err(Box::new(err))
-                    }
-                }
+                let stream: BoxedSendableDataIterator<BoxedError> =
+                    if let Some(max) = effective_max_size {
+                        Box::new(LimitedEOFStreamReader::new(batch, max))
+                    } else {
+                        Box::new(EOFStreamReader::new(batch))
+                    };
+
+                Ok(SendSafeBody::Stream(Some(stream)))
             }
             Body::LimitedBody(content_length, headers) => {
-                tracing::trace!("LimitedBody: reading as limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
+                tracing::trace!("LimitedBody: streaming limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
 
                 if content_length == 0 {
                     tracing::trace!("LimitedBody: content length is 0");
@@ -5286,51 +5286,16 @@ impl BodyExtractor for SimpleHttpBody {
                     }
                 }
 
-                if content_length <= self.1 {
-                    tracing::trace!(
-                        "LimitedBody: full body reader reading content (max={})",
-                        &self.1
-                    );
+                // Always stream — no threshold check
+                let batch = BatchReader::new(stream)
+                    .batch_size(self.2)
+                    .max_consecutive_retries(self.3);
 
-                    // Small body: read entirely into memory with retry resilience
-                    match stream.do_once_mut(|borrowed_stream| {
-                        tracing::trace!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+                #[allow(clippy::cast_possible_truncation)]
+                let stream_reader: BoxedSendableDataIterator<BoxedError> =
+                    Box::new(LimitedBatchStreamReader::new(batch, content_length as usize));
 
-                        // if lesser than batch size, then just use content length.
-                        let batch_size = if content_length < (self.2 as u64) {
-                            content_length
-                        } else {
-                            self.2 as u64
-                        };
-
-                        tracing::trace!("FullBodyReader: reading body under: batch_size={:?}", &batch_size);
-
-                        #[allow(clippy::cast_possible_truncation)]
-                        FullBodyReader::new(batch_size as usize)
-                            .read_full(borrowed_stream, content_length as usize, self.3)
-                            .map(SendSafeBody::Bytes)
-                    }) {
-                        Ok(inner) => {
-                            tracing::trace!("Finished reading data from stream");
-                            Ok(inner)
-                        }
-                        Err(err) => {
-                            tracing::error!("Failed to read from stream: {:?}", &err);
-                            Err(Box::new(err))
-                        }
-                    }
-                } else {
-                    tracing::trace!("BatchReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
-
-                    // Large body: stream via BatchStreamReader
-                    let batch = BatchReader::new(stream)
-                        .batch_size(self.2)
-                        .max_consecutive_retries(self.3);
-                    let stream_reader: Box<BatchStreamReader<SharedByteBufferStream<T>>> =
-                        Box::new(BatchStreamReader::new(batch));
-
-                    Ok(SendSafeBody::Stream(Some(stream_reader)))
-                }
+                Ok(SendSafeBody::Stream(Some(stream_reader)))
             }
             Body::ChunkedBody(transfer_encoding, headers) => {
                 tracing::trace!(
@@ -5350,7 +5315,6 @@ impl BodyExtractor for SimpleHttpBody {
                     "SseBody: returning SSE body iterator with headers={:?}",
                     headers
                 );
-                // Create an SSE iterator that yields ParseResult items
                 let sse_iterator = Box::new(SimpleSseIterator::new(headers, stream));
                 Ok(SendSafeBody::SseStream(Some(sse_iterator)))
             }

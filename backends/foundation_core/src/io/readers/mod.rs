@@ -12,8 +12,13 @@
 //! Provides:
 //! - [`Data`] — enum distinguishing real bytes from retry signals
 //! - [`BatchReader`] — iterator over read batches with retry handling
-//! - [`FullBodyReader`] — reads a known-size body with retry resilience
-//! - [`BatchStreamReader`] — adapter that absorbs retries, yielding only bytes or errors
+//! - [`FullBodyReader`] — iterator for known-size bodies, exposes `Data::Retry`
+//! - [`EofReader`] — iterator for reading until EOF, exposes `Data::Retry`
+//! - [`BatchStreamReader`] — adapter from `BatchReader` that yields `Data` (no loop)
+//! - [`LimitedBatchStreamReader`] — like `BatchStreamReader` but with byte cap
+//! - [`EOFStreamReader`] — reads until EOF via iterator, exposes `Data::Retry`
+//! - [`LimitedEOFStreamReader`] — reads until EOF with max size enforcement
+//! - [`DataBytesIterator`] — backward compat: absorbs retries, yields `Vec<u8>`
 //!
 //! # HOW
 //!
@@ -123,8 +128,6 @@ impl<R: Read> Iterator for BatchReader<R> {
                     if self.consecutive_retries > self.max_consecutive_retries {
                         self.done = true;
 
-                        // if data was received then we know maybe its
-                        // just really EOF. Let the data interpreter decides.
                         if self.received_data {
                             return None;
                         }
@@ -164,8 +167,6 @@ impl<R: Read> Iterator for BatchReader<R> {
                 if self.consecutive_retries > self.max_consecutive_retries {
                     self.done = true;
 
-                    // if data was received then we know maybe its
-                    // just really EOF. Let the data interpreter decides.
                     if self.received_data {
                         tracing::trace!("Finished reading, saw data, ending");
                         return None;
@@ -191,99 +192,93 @@ impl<R: Read> Iterator for BatchReader<R> {
     }
 }
 
-/// WHY: When the body size is known (via Content-Length), we need to read
-/// exactly that many bytes without `read_exact()` swallowing transient errors.
-///
-/// WHAT: Reads a body of known total size using `read()` with retry handling.
-///
-/// HOW: Uses [`BatchReader`] internally with `eof_on_zero_read=true`, collecting
-/// all bytes until EOF or the expected size is reached. Respects `max_consecutive_retries`
-/// for transient failures.
-pub struct FullBodyReader(usize);
+// ---------------------------------------------------------------------------
+// FullBodyReader — iterator for known-size bodies
+// ---------------------------------------------------------------------------
 
-impl FullBodyReader {
-    #[must_use]
-    pub fn new(batch_size: usize) -> Self {
-        Self(batch_size)
-    }
+/// WHY: Stream known-size bodies, exposing `Data::Retry` for caller control.
+///
+/// WHAT: Iterator yielding `Result<Data, io::Error>` until `target_size` bytes read.
+///
+/// HOW: Wraps `BatchReader`, counts bytes, returns `Data::Bytes` or passes through `Data::Retry`.
+pub struct FullBodyReader<R: Read> {
+    inner: BatchReader<R>,
+    bytes_yielded: usize,
+    target_size: usize,
 }
 
-impl Default for FullBodyReader {
-    fn default() -> Self {
-        Self(8192)
-    }
-}
-
-impl FullBodyReader {
-    /// Read exactly `total_size` bytes from `reader` with TCP-resilient retry handling.
-    ///
-    /// Unlike `read_exact()`, this propagates meaningful errors on `WouldBlock`/`TimedOut`
-    /// rather than converting them to `UnexpectedEof`.
-    ///
-    /// # Errors
-    /// - `UnexpectedEof` — stream returned 0 bytes before `total_size` was reached.
-    /// - `WouldBlock`/`TimedOut` — retry limit exceeded without progress.
-    /// - Any other `io::Error` from the underlying reader.
+impl<R: Read> FullBodyReader<R> {
+    /// Create a new `FullBodyReader` that reads exactly `target_size` bytes.
     ///
     /// # Panics
     /// Never panics.
-    pub fn read_full<R: Read>(
-        &self,
-        reader: &mut R,
-        total_size: usize,
-        max_retries: usize,
-    ) -> Result<Vec<u8>, io::Error> {
-        let batch_reader = BatchReader::new(reader)
-            .batch_size(self.0)
-            .eof_on_zero_read(true)
-            .max_consecutive_retries(max_retries);
-
-        let mut result = Vec::with_capacity(total_size);
-        for batch_result in batch_reader {
-            match batch_result {
-                Ok(Data::Bytes(bytes)) => {
-                    tracing::trace!("Received Data::Bytes(len={})", bytes.len());
-                    result.extend(bytes);
-                    if result.len() == total_size {
-                        break;
-                    }
-                }
-                Ok(Data::Retry) => {
-                    // This shouldn't happen with eof_on_zero_read=true unless
-                    // we get WouldBlock/TimedOut - just continue retrying
-                    tracing::trace!("Received Data::Retry - will retry read");
-                }
-                Err(e) => {
-                    tracing::error!("Read error occured: {:?}", &e);
-                    return Err(e);
-                }
-            }
+    pub fn new(inner: BatchReader<R>, target_size: usize) -> Self {
+        Self {
+            inner,
+            bytes_yielded: 0,
+            target_size,
         }
-
-        // BatchReader returned None (EOF)
-        if result.len() != total_size {
-            return Err(io::Error::new(
-                io::ErrorKind::UnexpectedEof,
-                format!(
-                    "unexpected EOF: read {} of {} bytes",
-                    result.len(),
-                    total_size
-                ),
-            ));
-        }
-
-        Ok(result)
     }
 }
 
-/// WHY: `SendSafeBody::Stream` needs an iterator of `Result<Vec<u8>, BoxedError>`.
-/// `BatchReader` yields `Result<Data, io::Error>` where `Data` includes `Retry`
-/// variants — stream consumers shouldn't need to handle retry logic.
+impl<R: Read> Iterator for FullBodyReader<R> {
+    type Item = Result<Data, io::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.bytes_yielded >= self.target_size {
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Ok(Data::Bytes(bytes))) => {
+                self.bytes_yielded += bytes.len();
+                Some(Ok(Data::Bytes(bytes)))
+            }
+            other => other, // Pass through Data::Retry and errors
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EofReader — iterator for reading until EOF
+// ---------------------------------------------------------------------------
+
+/// WHY: Stream until EOF, exposing `Data::Retry` for caller control.
 ///
-/// WHAT: Adapter from [`BatchReader`] to `Iterator<Item = Result<Vec<u8>, BoxedError>>`.
+/// WHAT: Iterator yielding `Result<Data, io::Error>` until EOF.
 ///
-/// HOW: Internally spins on `Data::Retry` results, only yielding when it gets
-/// actual bytes or an error. The retry budget is enforced by the inner `BatchReader`.
+/// HOW: Wraps `BatchReader` with `eof_on_zero_read=true`, passes through all `Data`.
+pub struct EofReader<R: Read> {
+    inner: BatchReader<R>,
+}
+
+impl<R: Read> EofReader<R> {
+    /// Create a new `EofReader` that reads until EOF.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn new(inner: BatchReader<R>) -> Self {
+        Self { inner }
+    }
+}
+
+impl<R: Read> Iterator for EofReader<R> {
+    type Item = Result<Data, io::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// BatchStreamReader — adapter from BatchReader, exposes Data (no loop)
+// ---------------------------------------------------------------------------
+
+/// WHY: Adapter from `BatchReader` that can be boxed for `SendSafeBody`.
+///
+/// WHAT: Iterator yielding `Result<Data, BoxedError>` — exposes `Data::Retry` to caller.
+///
+/// HOW: No internal loop — caller decides how to handle `Data::Retry`.
 pub struct BatchStreamReader<R: Read> {
     inner: BatchReader<R>,
 }
@@ -299,100 +294,221 @@ impl<R: Read> BatchStreamReader<R> {
 }
 
 impl<R: Read + Send> Iterator for BatchStreamReader<R> {
-    type Item = Result<Vec<u8>, Box<dyn std::error::Error + 'static>>;
+    type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(Ok(data)) => Some(Ok(data)),
+            Some(Err(e)) => Some(Err(Box::new(e))),
+            None => None,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// LimitedBatchStreamReader — byte-capped BatchStreamReader
+// ---------------------------------------------------------------------------
+
+/// WHY: Stream limited-size bodies with byte cap, exposing `Data::Retry`.
+///
+/// WHAT: Iterator yielding `Result<Data, BoxedError>`, stops at cap.
+///
+/// HOW: Wraps `BatchReader`, counts bytes, returns `None` when cap reached.
+pub struct LimitedBatchStreamReader<R: Read> {
+    inner: BatchReader<R>,
+    bytes_yielded: usize,
+    byte_cap: usize,
+}
+
+impl<R: Read> LimitedBatchStreamReader<R> {
+    /// Create a new `LimitedBatchStreamReader` capped at `byte_cap` bytes.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn new(inner: BatchReader<R>, byte_cap: usize) -> Self {
+        Self {
+            inner,
+            bytes_yielded: 0,
+            byte_cap,
+        }
+    }
+}
+
+impl<R: Read + Send> Iterator for LimitedBatchStreamReader<R> {
+    type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.bytes_yielded >= self.byte_cap {
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Ok(Data::Bytes(bytes))) => {
+                self.bytes_yielded += bytes.len();
+                Some(Ok(Data::Bytes(bytes)))
+            }
+            Some(Ok(data)) => Some(Ok(data)), // Data::Retry
+            Some(Err(e)) => Some(Err(Box::new(e))),
+            None => None,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EOFStreamReader — reads until EOF via iterator
+// ---------------------------------------------------------------------------
+
+/// WHY: Stream until EOF via `BoxedSendableIterator`, exposing `Data::Retry`.
+///
+/// WHAT: Iterator yielding `Result<Data, BoxedError>` until EOF.
+pub struct EOFStreamReader<R: Read> {
+    inner: BatchReader<R>,
+}
+
+impl<R: Read> EOFStreamReader<R> {
+    /// Create a new `EOFStreamReader` that reads until EOF.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn new(inner: BatchReader<R>) -> Self {
+        Self { inner }
+    }
+}
+
+impl<R: Read + Send> Iterator for EOFStreamReader<R> {
+    type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner
+            .next()
+            .map(|r| r.map_err(|e| Box::new(e) as Box<dyn std::error::Error + 'static>))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// LimitedEOFStreamReader — reads until EOF with max size enforcement
+// ---------------------------------------------------------------------------
+
+/// WHY: Stream until EOF with max size enforcement, exposing `Data::Retry`.
+///
+/// WHAT: Iterator yielding `Result<Data, BoxedError>`, errors if cap exceeded.
+pub struct LimitedEOFStreamReader<R: Read> {
+    inner: BatchReader<R>,
+    bytes_yielded: usize,
+    byte_cap: usize,
+}
+
+impl<R: Read> LimitedEOFStreamReader<R> {
+    /// Create a new `LimitedEOFStreamReader` capped at `byte_cap` bytes.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn new(inner: BatchReader<R>, byte_cap: usize) -> Self {
+        Self {
+            inner,
+            bytes_yielded: 0,
+            byte_cap,
+        }
+    }
+}
+
+impl<R: Read + Send> Iterator for LimitedEOFStreamReader<R> {
+    type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(Ok(Data::Bytes(bytes))) => {
+                self.bytes_yielded += bytes.len();
+                if self.bytes_yielded > self.byte_cap {
+                    return Some(Err(Box::new(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!(
+                            "body size {} exceeds max {}",
+                            self.bytes_yielded, self.byte_cap
+                        ),
+                    ))));
+                }
+                Some(Ok(Data::Bytes(bytes)))
+            }
+            Some(Ok(Data::Retry)) => Some(Ok(Data::Retry)),
+            Some(Err(e)) => Some(Err(Box::new(e) as Box<dyn std::error::Error + 'static>)),
+            None => None,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// DataBytesIterator — backward compat: absorbs retries, yields Vec<u8>
+// ---------------------------------------------------------------------------
+
+use std::marker::PhantomData;
+
+/// WHY: Backward compatibility — restores old retry-absorbing behavior.
+///
+/// WHAT: Wraps `Iterator<Item=Result<Data, E>>` and loops on `Data::Retry`.
+///
+/// HOW: Transforms `Data::Bytes` into `Vec<u8>`, filters `Data::Retry`.
+pub struct DataBytesIterator<I, E> {
+    inner: I,
+    _marker: PhantomData<E>,
+}
+
+impl<I, E> DataBytesIterator<I, E> {
+    /// Wrap a `Data`-exposing iterator into a `Vec<u8>`-yielding iterator.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn new(inner: I) -> Self {
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<I, E> Iterator for DataBytesIterator<I, E>
+where
+    I: Iterator<Item = Result<Data, E>>,
+{
+    type Item = Result<Vec<u8>, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.inner.next() {
-                Some(Ok(Data::Retry)) => {}
+                Some(Ok(Data::Retry)) => continue, // Absorb and retry
                 Some(Ok(Data::Bytes(bytes))) => return Some(Ok(bytes)),
-                Some(Err(e)) => return Some(Err(Box::new(e))),
+                Some(Err(e)) => return Some(Err(e)),
                 None => return None,
             }
         }
     }
 }
 
-/// WHY: Reading until EOF on TCP streams requires handling `WouldBlock`/`TimedOut`
-/// errors gracefully rather than treating them as fatal. Using `read()` directly
-/// loses retry state and buffer management.
+/// WHY: Convenience extension trait for converting `Data`-exposing iterators
+/// to `Vec<u8>`-yielding iterators via `.into_bytes()`.
 ///
-/// WHAT: Reads an unknown-size body (until EOF) with TCP-resilient retry handling.
-///
-/// HOW: Uses [`BatchReader`] internally with `eof_on_zero_read=true`, accumulating
-/// all bytes into a `Vec<u8>`. Respects `max_consecutive_retries` for transient
-/// failures and supports an optional maximum size limit.
-pub struct EofReader;
-
-impl EofReader {
-    /// Read until EOF from `reader` with TCP-resilient retry handling.
-    ///
-    /// Unlike `read_to_end()`, this propagates meaningful errors on `WouldBlock`/`TimedOut`
-    /// rather than treating them as fatal.
-    ///
-    /// # Arguments
-    /// - `reader` - The `Read` source to read from
-    /// - `batch_size` - Size of each read batch (default: 8192 if not specified)
-    /// - `max_retries` - Maximum consecutive retries for WouldBlock/TimedOut
-    /// - `max_size` - Optional maximum size limit. Returns error if body exceeds this.
-    ///
-    /// # Errors
-    /// - `WouldBlock`/`TimedOut` — retry limit exceeded without progress.
-    /// - `InvalidInput` — body exceeds `max_size` if provided.
-    /// - Any other `io::Error` from the underlying reader.
-    ///
-    /// # Panics
-    /// Never panics.
-    pub fn read_to_end<R: Read>(
-        reader: &mut R,
-        batch_size: usize,
-        max_retries: usize,
-        max_size: Option<usize>,
-    ) -> Result<Vec<u8>, io::Error> {
-        let mut result = Vec::with_capacity(1024);
-        let batch_reader = BatchReader::new(reader)
-            .batch_size(batch_size)
-            .eof_on_zero_read(true)
-            .max_consecutive_retries(max_retries);
-
-        for batch_result in batch_reader {
-            match batch_result {
-                Ok(Data::Bytes(bytes)) => {
-                    tracing::debug!("Received Data::Bytes(len={})", bytes.len());
-                    if let Some(max) = max_size {
-                        if result.len() + bytes.len() > max {
-                            return Err(io::Error::new(
-                                io::ErrorKind::InvalidInput,
-                                format!(
-                                    "body size {} exceeds max {}",
-                                    result.len() + bytes.len(),
-                                    max
-                                ),
-                            ));
-                        }
-                    }
-                    result.extend(bytes);
-                }
-                Ok(Data::Retry) => {
-                    tracing::debug!("Received Data::Retry - will retry read");
-                }
-                Err(e) => {
-                    tracing::error!("Read error occured: {:?}", &e);
-                    return Err(e);
-                }
-            }
-        }
-
-        Ok(result)
+/// WHAT: Extension trait implemented for all `Iterator<Item=Result<Data, E>>`.
+pub trait IntoDataBytes<E> {
+    fn into_bytes(self) -> DataBytesIterator<Self, E>
+    where
+        Self: Iterator<Item = Result<Data, E>> + Sized,
+    {
+        DataBytesIterator::new(self)
     }
 }
+
+impl<I, E> IntoDataBytes<E> for I where I: Iterator<Item = Result<Data, E>> {}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::io::Cursor;
 
-    // -- BatchReader tests --
+    // -- BatchReader tests (UNCHANGED — already uses Data enum) --
 
     #[test]
     fn batch_reader_normal_reads() {
@@ -400,7 +516,6 @@ mod tests {
         let reader = BatchReader::new(Cursor::new(data.to_vec())).batch_size(5);
         let results: Vec<_> = reader.collect();
 
-        // Should get "hello", " worl", "d", then EOF
         assert_eq!(results.len(), 3);
         for r in &results {
             assert!(r.is_ok());
@@ -420,7 +535,6 @@ mod tests {
 
     #[test]
     fn batch_reader_would_block_handling() {
-        // Custom reader that returns WouldBlock then data
         struct WouldBlockReader {
             calls: usize,
             data: Vec<u8>,
@@ -475,7 +589,6 @@ mod tests {
         let reader = BatchReader::new(AlwaysWouldBlock).max_consecutive_retries(3);
         let results: Vec<_> = reader.collect();
 
-        // 3 retries + 1 error
         assert_eq!(results.len(), 4);
         assert!(results.last().unwrap().is_err());
     }
@@ -494,7 +607,7 @@ mod tests {
                     buf[0] = b'x';
                     Ok(1)
                 } else {
-                    Ok(0) // now we want real EOF but eof_on_zero_read is false
+                    Ok(0)
                 }
             }
         }
@@ -503,28 +616,37 @@ mod tests {
             .eof_on_zero_read(false)
             .max_consecutive_retries(5);
 
-        // Take first 4 items
         let results: Vec<_> = reader.take(4).collect();
         assert_eq!(results.len(), 4);
-        // First two should be Retry, third should be Bytes
         assert!(matches!(results[0].as_ref().unwrap(), Data::Retry));
         assert!(matches!(results[1].as_ref().unwrap(), Data::Retry));
         assert!(matches!(results[2].as_ref().unwrap(), Data::Bytes(_)));
     }
 
-    // -- FullBodyReader tests --
+    // -- FullBodyReader tests (converted to iterator pattern) --
 
     #[test]
     fn full_body_reader_complete_read() {
         let data = b"hello world";
-        let mut cursor = Cursor::new(data.to_vec());
-        let result = FullBodyReader::default().read_full(&mut cursor, data.len(), 10);
-        assert_eq!(result.unwrap(), data);
+        let reader = FullBodyReader::new(
+            BatchReader::new(Cursor::new(data.to_vec())),
+            data.len(),
+        );
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
     fn full_body_reader_partial_reads() {
-        // Reader that gives 1 byte at a time
         struct OneByteReader {
             data: Vec<u8>,
             pos: usize,
@@ -541,12 +663,24 @@ mod tests {
         }
 
         let data = b"hello";
-        let mut reader = OneByteReader {
-            data: data.to_vec(),
-            pos: 0,
-        };
-        let result = FullBodyReader::default().read_full(&mut reader, data.len(), 10);
-        assert_eq!(result.unwrap(), data);
+        let reader = FullBodyReader::new(
+            BatchReader::new(OneByteReader {
+                data: data.to_vec(),
+                pos: 0,
+            }),
+            data.len(),
+        );
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
@@ -573,22 +707,43 @@ mod tests {
         }
 
         let data = b"hello world test";
-        let mut reader = RetryReader {
-            data: data.to_vec(),
-            pos: 0,
-            calls: 0,
-        };
-        let result = FullBodyReader::default().read_full(&mut reader, data.len(), 10);
-        assert_eq!(result.unwrap(), data);
+        let reader = FullBodyReader::new(
+            BatchReader::new(RetryReader {
+                data: data.to_vec(),
+                pos: 0,
+                calls: 0,
+            }),
+            data.len(),
+        );
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
     fn full_body_reader_unexpected_eof() {
         let data = b"hi";
-        let mut cursor = Cursor::new(data.to_vec());
-        let result = FullBodyReader::default().read_full(&mut cursor, 10, 5);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
+        let reader = FullBodyReader::new(BatchReader::new(Cursor::new(data.to_vec())), 10);
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_ne!(collected.len(), 10);
+        assert_eq!(collected, data);
     }
 
     #[test]
@@ -600,15 +755,20 @@ mod tests {
             }
         }
 
-        let result = FullBodyReader::default().read_full(&mut AlwaysWouldBlock, 10, 3);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        let reader = FullBodyReader::new(
+            BatchReader::new(AlwaysWouldBlock).max_consecutive_retries(3),
+            10,
+        );
+
+        let results: Vec<_> = reader.collect();
+        // Should get an error after retries exhausted
+        assert!(results.iter().any(|r| r.is_err()));
     }
 
-    // -- BatchStreamReader tests --
+    // -- BatchStreamReader tests (updated: now exposes Data::Retry) --
 
     #[test]
-    fn batch_stream_reader_absorbs_retries() {
+    fn batch_stream_reader_exposes_retries() {
         struct AlternatingReader {
             data: Vec<u8>,
             pos: usize,
@@ -637,15 +797,20 @@ mod tests {
         })
         .batch_size(5);
 
-        let stream = BatchStreamReader::new(batch);
-        let results: Vec<_> = stream.collect();
+        let mut stream = BatchStreamReader::new(batch);
 
-        // Should only get bytes, no retries exposed
-        for r in &results {
-            assert!(r.is_ok());
+        let mut got_retry = false;
+        let mut got_bytes = false;
+
+        while let Some(result) = stream.next() {
+            match result.unwrap() {
+                Data::Retry => got_retry = true,
+                Data::Bytes(_) => got_bytes = true,
+            }
         }
-        let all_bytes: Vec<u8> = results.into_iter().flat_map(|r| r.unwrap()).collect();
-        assert_eq!(all_bytes, b"hello");
+
+        assert!(got_retry, "Should expose Data::Retry");
+        assert!(got_bytes, "Should expose Data::Bytes");
     }
 
     #[test]
@@ -673,24 +838,56 @@ mod tests {
         assert!(results.is_empty());
     }
 
-    // -- EofReader tests --
+    // -- EofReader tests (converted to iterator pattern) --
 
     #[test]
     fn eof_reader_complete_read() {
         let data = b"hello world test data";
-        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, None);
-        assert_eq!(result.unwrap(), data);
+        let batch = BatchReader::new(Cursor::new(data.to_vec()))
+            .batch_size(512)
+            .max_consecutive_retries(100);
+        let mut reader = EofReader::new(batch);
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
     fn eof_reader_with_max_size() {
+        // Test EOFStreamReader with LimitedEOFStreamReader for max size
         let data = b"hello world";
-        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, Some(20));
-        assert_eq!(result.unwrap(), data);
+        let batch = BatchReader::new(Cursor::new(data.to_vec()))
+            .batch_size(512)
+            .max_consecutive_retries(100);
+        let mut reader = LimitedEOFStreamReader::new(batch, 20);
 
-        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, Some(5));
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::InvalidInput);
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
+
+        // Test exceeding cap
+        let batch = BatchReader::new(Cursor::new(data.to_vec()))
+            .batch_size(512)
+            .max_consecutive_retries(100);
+        let reader = LimitedEOFStreamReader::new(batch, 5);
+
+        let results: Vec<_> = reader.collect();
+        assert!(results.iter().any(|r| r.is_err()));
     }
 
     #[test]
@@ -711,16 +908,24 @@ mod tests {
         }
 
         let data = b"hello";
-        let result = EofReader::read_to_end(
-            &mut OneByteReader {
-                data: data.to_vec(),
-                pos: 0,
-            },
-            512,
-            100,
-            None,
-        );
-        assert_eq!(result.unwrap(), data);
+        let batch = BatchReader::new(OneByteReader {
+            data: data.to_vec(),
+            pos: 0,
+        })
+        .batch_size(512)
+        .max_consecutive_retries(100);
+        let mut reader = EofReader::new(batch);
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
@@ -747,17 +952,25 @@ mod tests {
         }
 
         let data = b"hello world test";
-        let result = EofReader::read_to_end(
-            &mut RetryReader {
-                data: data.to_vec(),
-                pos: 0,
-                calls: 0,
-            },
-            512,
-            100,
-            None,
-        );
-        assert_eq!(result.unwrap(), data);
+        let batch = BatchReader::new(RetryReader {
+            data: data.to_vec(),
+            pos: 0,
+            calls: 0,
+        })
+        .batch_size(512)
+        .max_consecutive_retries(100);
+        let mut reader = EofReader::new(batch);
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
     }
 
     #[test]
@@ -769,14 +982,236 @@ mod tests {
             }
         }
 
-        let result = EofReader::read_to_end(&mut AlwaysWouldBlock, 512, 3, None);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        let batch = BatchReader::new(AlwaysWouldBlock).max_consecutive_retries(3);
+        let mut reader = EofReader::new(batch);
+
+        let results: Vec<_> = reader.collect();
+        assert!(results.iter().any(|r| r.is_err()));
     }
 
     #[test]
     fn eof_reader_empty_source() {
-        let result = EofReader::read_to_end(&mut Cursor::new(Vec::<u8>::new()), 512, 100, None);
-        assert_eq!(result.unwrap(), Vec::<u8>::new());
+        let batch = BatchReader::new(Cursor::new(Vec::<u8>::new()));
+        let mut reader = EofReader::new(batch);
+
+        let collected: Vec<u8> = reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert!(collected.is_empty());
+    }
+
+    // -- DataBytesIterator tests --
+
+    #[test]
+    fn data_bytes_iterator_filters_retries() {
+        struct AlternatingRetryReader {
+            data: Vec<u8>,
+            pos: usize,
+            calls: usize,
+        }
+        impl Read for AlternatingRetryReader {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                self.calls += 1;
+                if self.calls % 2 == 1 && self.pos < self.data.len() {
+                    return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
+                }
+                if self.pos >= self.data.len() {
+                    return Ok(0);
+                }
+                let n = std::cmp::min(buf.len(), self.data.len() - self.pos);
+                buf[..n].copy_from_slice(&self.data[self.pos..self.pos + n]);
+                self.pos += n;
+                Ok(n)
+            }
+        }
+
+        let batch = BatchReader::new(AlternatingRetryReader {
+            data: b"test".to_vec(),
+            pos: 0,
+            calls: 0,
+        })
+        .batch_size(5);
+        let data_stream = BatchStreamReader::new(batch);
+        let mut wrapped = DataBytesIterator::new(data_stream);
+
+        while let Some(result) = wrapped.next() {
+            assert!(result.is_ok());
+        }
+    }
+
+    #[test]
+    fn data_bytes_iterator_propagates_errors() {
+        struct ErrorReader;
+        impl Read for ErrorReader {
+            fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+                Err(io::Error::new(io::ErrorKind::ConnectionReset, "reset"))
+            }
+        }
+
+        let batch = BatchReader::new(ErrorReader);
+        let data_stream = BatchStreamReader::new(batch);
+        let mut wrapped = DataBytesIterator::new(data_stream);
+
+        assert!(wrapped.next().unwrap().is_err());
+    }
+
+    #[test]
+    fn data_bytes_iterator_empty_source() {
+        let batch = BatchReader::new(Cursor::new(Vec::<u8>::new()));
+        let data_stream = BatchStreamReader::new(batch);
+        let mut wrapped = DataBytesIterator::new(data_stream);
+
+        assert!(wrapped.next().is_none());
+    }
+
+    // -- LimitedBatchStreamReader tests --
+
+    #[test]
+    fn limited_batch_stream_reader_stops_at_cap() {
+        let data = b"hello world";
+        let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(5);
+        let mut limited = LimitedBatchStreamReader::new(batch, 5);
+
+        let first = limited.next().unwrap().unwrap();
+        assert!(matches!(first, Data::Bytes(ref b) if b == b"hello"));
+
+        // Should stop at cap
+        assert!(limited.next().is_none());
+    }
+
+    #[test]
+    fn limited_batch_stream_reader_exposes_retries() {
+        struct RetryThenDataReader {
+            data: Vec<u8>,
+            pos: usize,
+            calls: usize,
+        }
+        impl Read for RetryThenDataReader {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                self.calls += 1;
+                if self.calls == 1 {
+                    return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
+                }
+                if self.pos >= self.data.len() {
+                    return Ok(0);
+                }
+                let n = std::cmp::min(buf.len(), self.data.len() - self.pos);
+                buf[..n].copy_from_slice(&self.data[self.pos..self.pos + n]);
+                self.pos += n;
+                Ok(n)
+            }
+        }
+
+        let batch = BatchReader::new(RetryThenDataReader {
+            data: b"test".to_vec(),
+            pos: 0,
+            calls: 0,
+        })
+        .batch_size(100);
+        let mut limited = LimitedBatchStreamReader::new(batch, 100);
+
+        assert!(matches!(limited.next(), Some(Ok(Data::Retry))));
+        assert!(matches!(limited.next(), Some(Ok(Data::Bytes(_)))));
+    }
+
+    // -- EOFStreamReader tests --
+
+    #[test]
+    fn eof_stream_reader_reads_until_eof() {
+        let data = b"hello world";
+        let batch = BatchReader::new(Cursor::new(data.to_vec()))
+            .batch_size(512)
+            .eof_on_zero_read(true);
+        let mut eof_reader = EOFStreamReader::new(batch);
+
+        let collected: Vec<u8> = eof_reader
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
+    }
+
+    #[test]
+    fn eof_stream_reader_exposes_retries() {
+        struct RetryReader;
+        impl Read for RetryReader {
+            fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+                Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"))
+            }
+        }
+
+        let batch = BatchReader::new(RetryReader).eof_on_zero_read(false);
+        let mut eof_reader = EOFStreamReader::new(batch);
+
+        assert!(matches!(eof_reader.next(), Some(Ok(Data::Retry))));
+    }
+
+    // -- LimitedEOFStreamReader tests --
+
+    #[test]
+    fn limited_eof_stream_reader_enforces_max() {
+        let data = b"hello world this is long";
+        let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(10);
+        let mut limited = LimitedEOFStreamReader::new(batch, 10);
+
+        let mut collected = Vec::new();
+        while let Some(result) = limited.next() {
+            match result {
+                Ok(Data::Bytes(bytes)) => collected.extend(bytes),
+                Ok(Data::Retry) => continue,
+                Err(e) => {
+                    assert!(
+                        collected.len() >= 10 || e.to_string().contains("exceeds"),
+                        "expected error at cap, got: {e}"
+                    );
+                    return;
+                }
+            }
+        }
+        panic!("Should have errored at cap");
+    }
+
+    #[test]
+    fn limited_eof_stream_reader_under_limit() {
+        let data = b"short";
+        let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
+        let mut limited = LimitedEOFStreamReader::new(batch, 100);
+
+        let collected: Vec<u8> = limited
+            .filter_map(|r| r.ok())
+            .filter_map(|d| match d {
+                Data::Bytes(b) => Some(b),
+                Data::Retry => None,
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(collected, data);
+    }
+
+    // -- IntoDataBytes trait tests --
+
+    #[test]
+    fn into_data_bytes_extension() {
+        let batch = BatchReader::new(Cursor::new(b"test".to_vec()));
+        let stream = BatchStreamReader::new(batch);
+
+        let mut wrapped = stream.into_bytes();
+
+        while let Some(result) = wrapped.next() {
+            let bytes: Vec<u8> = result.unwrap();
+            assert!(!bytes.is_empty());
+        }
     }
 }

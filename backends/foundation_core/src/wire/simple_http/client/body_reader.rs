@@ -26,6 +26,7 @@
 //! ```
 
 use crate::extensions::result_ext::BoxedError;
+use crate::io::readers::{Data, DataBytesIterator};
 use crate::wire::simple_http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
@@ -175,7 +176,7 @@ pub fn collect_string_strict(
                     SendSafeBody::Stream(mut opt_iter) => {
                         let mut bytes = Vec::new();
                         if let Some(iter) = opt_iter.take() {
-                            for chunk_result in iter {
+                            for chunk_result in DataBytesIterator::new(iter) {
                                 match chunk_result {
                                     Ok(data) => bytes.extend_from_slice(&data),
                                     Err(e) => {
@@ -335,7 +336,7 @@ pub fn collect_bytes_strict(
                     SendSafeBody::Bytes(b) => Ok(b.clone()),
                     SendSafeBody::Stream(mut opt_iter) => {
                         if let Some(iter) = opt_iter.take() {
-                            for chunk_result in iter {
+                            for chunk_result in DataBytesIterator::new(iter) {
                                 match chunk_result {
                                     Ok(data) => bytes.extend_from_slice(&data),
                                     Err(e) => {
@@ -495,7 +496,7 @@ pub fn collect_bytes_direct(
                 SendSafeBody::Bytes(b) => return b.clone(),
                 SendSafeBody::Stream(mut opt_iter) => {
                     if let Some(iter) = opt_iter.take() {
-                        for chunk_result in iter {
+                        for chunk_result in DataBytesIterator::new(iter) {
                             match chunk_result {
                                 Ok(data) => bytes.extend_from_slice(&data),
                                 Err(e) => {
@@ -578,12 +579,13 @@ pub fn collect_bytes_direct(
 
 /// Process a stream iterator, collecting bytes into a Vec.
 /// Used internally by collect_bytes_from_send_safe for Stream variant.
+/// Handles Data-exposing iterators by wrapping with DataBytesIterator.
 fn collect_from_stream<I>(iter: I) -> Vec<u8>
 where
-    I: Iterator<Item = Result<Vec<u8>, BoxedError>>,
+    I: Iterator<Item = Result<Data, BoxedError>>,
 {
     let mut bytes = Vec::new();
-    for chunk_result in iter {
+    for chunk_result in DataBytesIterator::new(iter) {
         match chunk_result {
             Ok(data) => bytes.extend_from_slice(&data),
             Err(e) => {
@@ -645,16 +647,17 @@ where
 
 /// Process a stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
+/// Handles Data-exposing iterators by wrapping with DataBytesIterator.
 fn write_from_stream<I, W>(
     iter: I,
     writer: &mut W,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
 where
-    I: Iterator<Item = Result<Vec<u8>, BoxedError>>,
+    I: Iterator<Item = Result<Data, BoxedError>>,
     W: std::io::Write,
 {
     let mut total_bytes: u64 = 0;
-    for chunk_result in iter {
+    for chunk_result in DataBytesIterator::new(iter) {
         match chunk_result {
             Ok(data) => {
                 writer.write_all(&data)?;
@@ -1167,7 +1170,7 @@ where
                     }
                     SendSafeBody::Stream(mut opt_iter) => {
                         if let Some(iter) = opt_iter.take() {
-                            for chunk_result in iter {
+                            for chunk_result in DataBytesIterator::new(iter) {
                                 match chunk_result {
                                     Ok(data) => {
                                         if !processor(&data) {
@@ -1419,9 +1422,9 @@ mod tests {
     #[test]
     fn test_collect_from_stream_success() {
         let data = vec![
-            Ok(b"hello".to_vec()),
-            Ok(b" ".to_vec()),
-            Ok(b"world".to_vec()),
+            Ok(Data::Bytes(b"hello".to_vec())),
+            Ok(Data::Bytes(b" ".to_vec())),
+            Ok(Data::Bytes(b"world".to_vec())),
         ];
         let result = collect_from_stream(data.into_iter());
         assert_eq!(result, b"hello world".to_vec());
@@ -1429,8 +1432,8 @@ mod tests {
 
     #[test]
     fn test_collect_from_stream_error() {
-        let data: Vec<Result<Vec<u8>, BoxedError>> =
-            vec![Ok(b"hello".to_vec()), Err(make_error("stream error"))];
+        let data: Vec<Result<Data, BoxedError>> =
+            vec![Ok(Data::Bytes(b"hello".to_vec())), Err(make_error("stream error"))];
         let result = collect_from_stream(data.into_iter());
         // Should collect what it got before error
         assert_eq!(result, b"hello".to_vec());
@@ -1438,7 +1441,7 @@ mod tests {
 
     #[test]
     fn test_collect_from_stream_empty() {
-        let data: Vec<Result<Vec<u8>, BoxedError>> = vec![];
+        let data: Vec<Result<Data, BoxedError>> = vec![];
         let result = collect_from_stream(data.into_iter());
         assert!(result.is_empty());
     }
@@ -1515,7 +1518,7 @@ mod tests {
 
     #[test]
     fn test_write_from_stream_success() {
-        let data = vec![Ok(b"hello".to_vec()), Ok(b" world".to_vec())];
+        let data = vec![Ok(Data::Bytes(b"hello".to_vec())), Ok(Data::Bytes(b" world".to_vec()))];
         let mut output = Vec::new();
         let result = write_from_stream(data.into_iter(), &mut output);
         assert!(result.is_ok());
@@ -1525,8 +1528,8 @@ mod tests {
 
     #[test]
     fn test_write_from_stream_error() {
-        let data: Vec<Result<Vec<u8>, BoxedError>> =
-            vec![Ok(b"hello".to_vec()), Err(make_error("write error"))];
+        let data: Vec<Result<Data, BoxedError>> =
+            vec![Ok(Data::Bytes(b"hello".to_vec())), Err(make_error("write error"))];
         let mut output = Vec::new();
         let result = write_from_stream(data.into_iter(), &mut output);
         assert!(result.is_err());
@@ -1589,10 +1592,10 @@ mod tests {
     #[test]
     fn test_collect_bytes_from_send_safe_stream() {
         // Use SendableBoxedError which has Send + Sync for the iterator
-        let stream_data: Vec<Result<Vec<u8>, SendableBoxedError>> =
-            vec![Ok(b"chunk1".to_vec()), Ok(b"chunk2".to_vec())];
+        let stream_data: Vec<Result<Data, SendableBoxedError>> =
+            vec![Ok(Data::Bytes(b"chunk1".to_vec())), Ok(Data::Bytes(b"chunk2".to_vec()))];
         // Cast to BoxedError iterator via Box<dyn Iterator + Send>
-        let send_iter: Box<dyn Iterator<Item = Result<Vec<u8>, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -1693,9 +1696,9 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_into_stream() {
-        let stream_data: Vec<Result<Vec<u8>, SendableBoxedError>> =
-            vec![Ok(b"chunk1".to_vec()), Ok(b"chunk2".to_vec())];
-        let send_iter: Box<dyn Iterator<Item = Result<Vec<u8>, BoxedError>> + Send> = Box::new(
+        let stream_data: Vec<Result<Data, SendableBoxedError>> =
+            vec![Ok(Data::Bytes(b"chunk1".to_vec())), Ok(Data::Bytes(b"chunk2".to_vec()))];
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
