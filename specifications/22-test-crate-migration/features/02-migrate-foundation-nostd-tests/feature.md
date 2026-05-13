@@ -1,7 +1,7 @@
 ---
 name: "Migrate foundation_nostd Tests"
 description: "Move foundation_nostd tests from tests/backends/foundation_nostd/ to backends/foundation_nostd/tests/"
-status: "pending"
+status: "completed"
 priority: "medium"
 dependencies: ["01-migrate-foundation-core-tests"]
 estimated_effort: "small"

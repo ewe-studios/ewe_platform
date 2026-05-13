@@ -1,7 +1,7 @@
 ---
 name: "Cleanup and Verification"
 description: "Remove migrated test files from tests/, update module declarations, and verify no regressions"
-status: "pending"
+status: "completed"
 priority: "high"
 dependencies: ["01-migrate-foundation-core-tests", "02-migrate-foundation-nostd-tests", "03-migrate-foundation-macros-tests", "04-migrate-foundation-testing-tests"]
 estimated_effort: "medium"

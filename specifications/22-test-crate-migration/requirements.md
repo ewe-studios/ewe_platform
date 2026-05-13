@@ -1,6 +1,6 @@
 ---
 description: "Migrate single-crate tests from ./tests (ewe_platform_tests) into their respective crate test directories to eliminate circular dependency concerns and follow Rust testing best practices."
-status: "pending"
+status: "completed"
 priority: "medium"
 created: "2026-05-13"
 author: "Claude"
@@ -22,10 +22,10 @@ has_fundamentals: true
 builds_on: null
 related_specs: []
 features:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Overview

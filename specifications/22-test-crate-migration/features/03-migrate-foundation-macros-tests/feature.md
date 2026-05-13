@@ -1,7 +1,7 @@
 ---
 name: "Migrate foundation_macros Tests"
 description: "Move foundation_macros tests from tests/backends/ to backends/foundation_macros/tests/"
-status: "pending"
+status: "completed"
 priority: "low"
 dependencies: ["01-migrate-foundation-core-tests"]
 estimated_effort: "small"

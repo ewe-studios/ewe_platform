@@ -1,7 +1,7 @@
 ---
 name: "Migrate foundation_core Tests"
 description: "Move all single-crate tests from tests/backends/foundation_core/ to backends/foundation_core/tests/"
-status: "pending"
+status: "completed"
 priority: "high"
 dependencies: []
 estimated_effort: "medium"

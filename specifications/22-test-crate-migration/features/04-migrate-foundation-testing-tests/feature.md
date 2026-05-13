@@ -1,7 +1,7 @@
 ---
 name: "Migrate foundation_testing Tests"
 description: "Move foundation_testing self-tests from tests/backends/tests.rs to backends/foundation_testing/tests/"
-status: "pending"
+status: "completed"
 priority: "medium"
 dependencies: ["01-migrate-foundation-core-tests"]
 estimated_effort: "small"
