@@ -21,6 +21,7 @@ use std::time::Duration;
 use socket2::SockRef;
 
 use foundation_core::netcap::RawStream;
+use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
 use foundation_core::wire::simple_http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
@@ -332,8 +333,12 @@ impl SseTestServer {
         handler: &SseResponseHandler,
         conn_num: usize,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // Parse the HTTP request using the same infrastructure as TestHttpServer
-        let conn = RawStream::from_tcp(stream.try_clone()?)?;
+        // Parse the HTTP request using the same infrastructure as TestHttpServer.
+        // Clone the stream for reading and set to non-blocking to avoid hangs
+        // when reading body streams on blocking TCP.
+        let read_stream = stream.try_clone()?;
+        read_stream.set_nonblocking(true)?;
+        let conn = RawStream::from_tcp(read_stream)?;
         let request_streams = http_streams::send::http_streams(conn);
 
         let request_reader = request_streams.next_request();
@@ -374,7 +379,7 @@ impl SseTestServer {
             return Ok(());
         };
 
-        let body = match body_part {
+        let body_part = match body_part {
             IncomingRequestParts::NoBody => SendSafeBody::None,
             IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
                 body
@@ -385,12 +390,14 @@ impl SseTestServer {
             }
         };
 
+        let body = collect_bytes_from_send_safe(body_part);
+
         let request = HttpRequest {
             path: url,
             method,
             proto: Proto::HTTP11,
             headers,
-            body,
+            body: SendSafeBody::Bytes(body),
         };
 
         // Call the user's handler

@@ -66,20 +66,31 @@ fn test_event_source_task_connects_to_server() {
         "First next() should return Pending(Connecting)"
     );
 
-    // Second call: Connecting → Reading, returns Pending(Reading)
+    // Second call: Connecting → AwaitingHeaders, returns Pending(Connecting)
     let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Reading)),
-        "Second next() should return Pending(Reading) after successful connection"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Second next() should return Pending(Connecting) after connection established"
     );
 
-    // Third call: Reading → parse event → Ready(ParseResult)
+    // Third call: AwaitingHeaders → ReadingStream, returns Pending(Reading)
     let third = task.next_status();
-    match third {
+    assert_eq!(
+        third.as_ref().map(|s| match s {
+            TaskStatus::Pending(p) => Some(*p),
+            _ => None,
+        }),
+        Some(Some(EventSourceProgress::Reading)),
+        "Third next() should return Pending(Reading) after HTTP response parsed"
+    );
+
+    // Fourth call: ReadingStream → parse event → Ready(ParseResult)
+    let fourth = task.next_status();
+    match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
@@ -96,9 +107,9 @@ fn test_event_source_task_connects_to_server() {
         ),
     }
 
-    // Fourth call: stream exhausted → None (Closed)
-    let fourth = task.next_status();
-    assert!(fourth.is_none(), "Expected None after stream exhausted");
+    // Fifth call: stream exhausted → None (Closed)
+    let fifth = task.next_status();
+    assert!(fifth.is_none(), "Expected None after stream exhausted");
 }
 
 /// WHY: EventSourceTask should resolve DNS and connect to a real server.
@@ -116,7 +127,7 @@ fn test_event_source_task_dns_resolves_to_server() {
         EventSourceTask::connect(resolver, format!("http://sse.test:{}/events", addr.port()))
             .unwrap();
 
-    // First call: Init → Connecting (pool handles DNS internally)
+    // First call: Init → Connecting, returns Pending(Connecting)
     let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
@@ -127,20 +138,31 @@ fn test_event_source_task_dns_resolves_to_server() {
         "First next() should return Pending(Connecting)"
     );
 
-    // Second call: Connecting → Reading, returns Pending(Reading)
+    // Second call: Connecting → AwaitingHeaders, returns Pending(Connecting)
     let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Reading)),
-        "DNS should resolve to test server, returning Pending(Reading)"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Second next() should return Pending(Connecting) after connection established"
     );
 
-    // Third call: should yield the event
+    // Third call: AwaitingHeaders → ReadingStream, returns Pending(Reading)
     let third = task.next_status();
-    match third {
+    assert_eq!(
+        third.as_ref().map(|s| match s {
+            TaskStatus::Pending(p) => Some(*p),
+            _ => None,
+        }),
+        Some(Some(EventSourceProgress::Reading)),
+        "Third next() should return Pending(Reading) after HTTP response parsed"
+    );
+
+    // Fourth call: should yield the event
+    let fourth = task.next_status();
+    match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
@@ -178,20 +200,31 @@ fn test_event_source_task_url_with_query() {
         "Should transition to Connecting first"
     );
 
-    // Second call: Connecting → Reading
+    // Second call: Connecting → AwaitingHeaders
     let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Reading)),
-        "Should connect and return Pending(Reading)"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Should return Pending(Connecting) after connection established"
     );
 
-    // Third call: should receive the event
+    // Third call: AwaitingHeaders → ReadingStream
     let third = task.next_status();
-    match third {
+    assert_eq!(
+        third.as_ref().map(|s| match s {
+            TaskStatus::Pending(p) => Some(*p),
+            _ => None,
+        }),
+        Some(Some(EventSourceProgress::Reading)),
+        "Should return Pending(Reading) after HTTP response parsed"
+    );
+
+    // Fourth call: should receive the event
+    let fourth = task.next_status();
+    match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
@@ -229,20 +262,31 @@ fn test_event_source_task_localhost_url() {
         "Should transition to Connecting first"
     );
 
-    // Second call: Connecting → Reading
+    // Second call: Connecting → AwaitingHeaders
     let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Reading)),
-        "Should connect to localhost test server"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Should return Pending(Connecting) after connection established"
     );
 
-    // Third call: should receive the event
+    // Third call: AwaitingHeaders → ReadingStream
     let third = task.next_status();
-    match third {
+    assert_eq!(
+        third.as_ref().map(|s| match s {
+            TaskStatus::Pending(p) => Some(*p),
+            _ => None,
+        }),
+        Some(Some(EventSourceProgress::Reading)),
+        "Should connect to localhost test server and return Pending(Reading)"
+    );
+
+    // Fourth call: should receive the event
+    let fourth = task.next_status();
+    match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
