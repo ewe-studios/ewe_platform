@@ -14,7 +14,9 @@ use std::time::{Duration, SystemTime};
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
-use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask, ReconnectingProgress};
+use foundation_core::wire::event_source::{
+    Event, ReconnectingEventSourceTask, ReconnectingProgress,
+};
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -25,10 +27,10 @@ use serde::{Deserialize, Serialize};
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    AuthProvider, ExtractResult, Messages, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
-    CostStatus, UsageCosting, UsageReport,
+    AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
+    ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
+    ModelState, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter,
+    ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -280,16 +282,10 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let headers = response.get_headers_ref();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let status_code: usize = status.into();
+        let body_text = collect_string_strict(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
             let retry_after = extract_retry_after(headers);
@@ -562,16 +558,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let headers = response.get_headers_ref();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let status_code: usize = status.into();
+        let body_text = collect_string_strict(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
             let retry_after = extract_retry_after(headers);
@@ -586,7 +576,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
     }
 
     /// Generate embeddings via `/v1/embeddings` endpoint.
-    fn generate_embeddings(&self, interaction: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
+    fn generate_embeddings(
+        &self,
+        interaction: &ModelInteraction,
+    ) -> GenerationResult<Vec<Messages>> {
         let text = interaction
             .messages
             .iter()
@@ -650,7 +643,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             },
         };
         let emb_cost = calculate_cost(&self.pricing, &emb_usage, CostStatus::Actual);
-        let emb_usage = UsageReport { cost: emb_cost, ..emb_usage };
+        let emb_usage = UsageReport {
+            cost: emb_cost,
+            ..emb_usage
+        };
         self.cumulative_cost.borrow_mut().add(&emb_usage.cost);
         Ok(vec![Messages::Assistant {
             model: self.model_id.clone(),
@@ -691,10 +687,15 @@ impl ToolFormatter for OpenAIFormatter {
                 .iter()
                 .map(|tool| {
                     // Use the Args schema if present, otherwise default to empty object
-                    let parameters = tool.arguments.as_ref().map_or_else(|| serde_json::json!({
-                            "type": "object",
-                            "properties": {},
-                        }), |a| a.schema.clone());
+                    let parameters = tool.arguments.as_ref().map_or_else(
+                        || {
+                            serde_json::json!({
+                                "type": "object",
+                                "properties": {},
+                            })
+                        },
+                        |a| a.schema.clone(),
+                    );
                     serde_json::json!({
                         "type": "function",
                         "function": {
@@ -716,24 +717,40 @@ impl ToolFormatter for OpenAIFormatter {
         &self,
         response: &str,
     ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
-        let parsed: serde_json::Value =
-            serde_json::from_str(response).map_err(|e| {
-                ErrorTrace::new(ToolCallingError::Extract { reason: e.to_string() })
-                    .attach("source=openai_response")
-            })?;
+        let parsed: serde_json::Value = serde_json::from_str(response).map_err(|e| {
+            ErrorTrace::new(ToolCallingError::Extract {
+                reason: e.to_string(),
+            })
+            .attach("source=openai_response")
+        })?;
 
         let mut calls = Vec::new();
         let mut remaining_text = None;
 
-        if let Some(choice) = parsed.get("choices").and_then(|v| v.as_array()).and_then(|a| a.first()) {
+        if let Some(choice) = parsed
+            .get("choices")
+            .and_then(|v| v.as_array())
+            .and_then(|a| a.first())
+        {
             if let Some(message) = choice.get("message") {
                 // Check for tool_calls
                 if let Some(tool_calls) = message.get("tool_calls").and_then(|v| v.as_array()) {
                     for tc in tool_calls {
-                        let id = tc.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let id = tc
+                            .get("id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
                         let function = tc.get("function").and_then(|v| v.as_object());
-                        let name = function.and_then(|f| f.get("name")).and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let args_str = function.and_then(|f| f.get("arguments")).and_then(|v| v.as_str()).unwrap_or("{}");
+                        let name = function
+                            .and_then(|f| f.get("name"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let args_str = function
+                            .and_then(|f| f.get("arguments"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("{}");
                         let arguments: Option<HashMap<String, crate::types::ArgType>> =
                             serde_json::from_str(args_str).ok();
                         calls.push(ModelOutput::ToolCall {
@@ -754,21 +771,23 @@ impl ToolFormatter for OpenAIFormatter {
         }
 
         let has_tool_calls = !calls.is_empty();
-        Ok(ExtractResult { calls, remaining_text, has_tool_calls })
+        Ok(ExtractResult {
+            calls,
+            remaining_text,
+            has_tool_calls,
+        })
     }
 
     fn format_tool_response(
         &self,
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
-        let Messages::ToolResult {
-            id, content, ..
-        } = result
-        else {
+        let Messages::ToolResult { id, content, .. } = result else {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
-            }).attach("source=openai_formatter"));
+            })
+            .attach("source=openai_formatter"));
         };
 
         let content_str = match content {
@@ -1061,29 +1080,30 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             Some(reason) => StopReason::Message(reason.to_string()),
         };
 
-        let usage_report = self
-            .usage
-            .as_ref().map_or_else(empty_usage_report, |u| {
-                #[allow(clippy::cast_precision_loss)]
-                let usage = UsageReport {
-                    input: u.prompt_tokens as f64,
-                    output: u.completion_tokens as f64,
+        let usage_report = self.usage.as_ref().map_or_else(empty_usage_report, |u| {
+            #[allow(clippy::cast_precision_loss)]
+            let usage = UsageReport {
+                input: u.prompt_tokens as f64,
+                output: u.completion_tokens as f64,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: u.total_tokens as f64,
+                cost: UsageCosting {
+                    currency: String::from("USD"),
+                    input: 0.0,
+                    output: 0.0,
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: u.total_tokens as f64,
-                    cost: UsageCosting {
-                        currency: String::from("USD"),
-                        input: 0.0,
-                        output: 0.0,
-                        cache_read: 0.0,
-                        cache_write: 0.0,
-                        total_tokens: u.total_tokens as f64,
-                        status: CostStatus::Actual,
-                    },
-                };
-                let costing = calculate_cost(&self.pricing, &usage, CostStatus::Actual);
-                UsageReport { cost: costing, ..usage }
-            });
+                    status: CostStatus::Actual,
+                },
+            };
+            let costing = calculate_cost(&self.pricing, &usage, CostStatus::Actual);
+            UsageReport {
+                cost: costing,
+                ..usage
+            }
+        });
 
         let content = if self.tool_calls.is_empty() {
             ModelOutput::Text(TextContent {
@@ -1783,20 +1803,23 @@ fn build_chat_request(
         }
     }
 
-    let tools = interaction.tools_shed.as_ref().map(|shed| {
-        flatten_tools(shed)
-            .iter()
-            .map(|tool| OpenAITool {
-                tool_type: String::from("function"),
-                function: OpenAIFunction {
-                    name: tool.name.clone(),
-                    description: Some(tool.description.clone()),
-                    parameters: tool.arguments.as_ref()
-                        .map(|a| a.schema.clone()),
-                },
-            })
-            .collect::<Vec<_>>()
-    }).filter(|t: &Vec<OpenAITool>| !t.is_empty());
+    let tools = interaction
+        .tools_shed
+        .as_ref()
+        .map(|shed| {
+            flatten_tools(shed)
+                .iter()
+                .map(|tool| OpenAITool {
+                    tool_type: String::from("function"),
+                    function: OpenAIFunction {
+                        name: tool.name.clone(),
+                        description: Some(tool.description.clone()),
+                        parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
+                    },
+                })
+                .collect::<Vec<_>>()
+        })
+        .filter(|t: &Vec<OpenAITool>| !t.is_empty());
 
     let response_format = params.output_format.as_ref().map(|fmt| match fmt {
         crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
@@ -1905,7 +1928,8 @@ fn parse_chat_response(
 
     let usage_report = response
         .usage
-        .as_ref().map_or_else(empty_usage_report, |u| {
+        .as_ref()
+        .map_or_else(empty_usage_report, |u| {
             #[allow(clippy::cast_precision_loss)]
             let usage = UsageReport {
                 input: u.prompt_tokens as f64,
@@ -1924,7 +1948,10 @@ fn parse_chat_response(
                 },
             };
             let costing = calculate_cost(pricing, &usage, CostStatus::Actual);
-            UsageReport { cost: costing, ..usage }
+            UsageReport {
+                cost: costing,
+                ..usage
+            }
         });
 
     let output = if let Some(tool_calls) = &message.tool_calls {
@@ -1971,7 +1998,11 @@ fn parse_chat_response(
             provider: ModelProviders::OPENAI,
             error_detail: None,
             signature: None,
-            metadata: build_metadata(choice.logprobs.as_ref(), response.system_fingerprint.as_ref(), message.refusal.as_ref()),
+            metadata: build_metadata(
+                choice.logprobs.as_ref(),
+                response.system_fingerprint.as_ref(),
+                message.refusal.as_ref(),
+            ),
         },
         usage_report,
     ))
@@ -2343,7 +2374,8 @@ mod tests {
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
-        let (msg, _report) = parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+        let (msg, _report) =
+            parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
         if let Messages::Assistant {
             content,
@@ -2399,7 +2431,8 @@ mod tests {
         };
 
         let model_id = ModelId::Name("gpt-4".into(), None);
-        let (msg, _report) = parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+        let (msg, _report) =
+            parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
         if let Messages::Assistant {
             content,

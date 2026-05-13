@@ -13,6 +13,7 @@ use std::time::{Duration, SystemTime};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
 use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_core::wire::simple_http::client::body_reader::collect_string_strict;
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -24,8 +25,8 @@ use foundation_errstacks::ErrorTrace;
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
+    AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
     ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
     UsageCosting, UsageReport,
 };
@@ -651,15 +652,10 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let status_code: usize = status.into();
+        let body_text = collect_string_strict(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
             let detail = parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.clone());
@@ -694,10 +690,15 @@ impl ToolFormatter for AnthropicFormatter {
                 .iter()
                 .map(|tool| {
                     // Use the Args schema if present, otherwise default to empty object
-                    let input_schema = tool.arguments.as_ref().map_or_else(|| serde_json::json!({
-                            "type": "object",
-                            "properties": {},
-                        }), |a| a.schema.clone());
+                    let input_schema = tool.arguments.as_ref().map_or_else(
+                        || {
+                            serde_json::json!({
+                                "type": "object",
+                                "properties": {},
+                            })
+                        },
+                        |a| a.schema.clone(),
+                    );
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,
@@ -1102,17 +1103,15 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
 
 impl<R: DnsResolver + 'static> AnthropicStream<R> {
     fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {
-        let usage_report = self
-            .usage
-            .as_ref().map_or_else(empty_usage_report, |u| {
-                make_usage_report(
-                    u.input_tokens,
-                    u.output_tokens,
-                    u.cache_read_input_tokens,
-                    u.cache_creation_input_tokens,
-                    &self.pricing,
-                )
-            });
+        let usage_report = self.usage.as_ref().map_or_else(empty_usage_report, |u| {
+            make_usage_report(
+                u.input_tokens,
+                u.output_tokens,
+                u.cache_read_input_tokens,
+                u.cache_creation_input_tokens,
+                &self.pricing,
+            )
+        });
 
         let stop_reason = map_stop_reason(&self.stop_reason);
 
@@ -1242,7 +1241,11 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
     tools
 }
 
-#[allow(clippy::too_many_lines, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[allow(
+    clippy::too_many_lines,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 pub fn build_anthropic_request(
     model_name: &str,
     interaction: &ModelInteraction,
@@ -1303,9 +1306,9 @@ pub fn build_anthropic_request(
                     arguments,
                     ..
                 } => {
-                    let input = arguments
-                        .as_ref()
-                        .map_or(serde_json::Value::Null, |args| serde_json::to_value(args).unwrap_or(serde_json::Value::Null));
+                    let input = arguments.as_ref().map_or(serde_json::Value::Null, |args| {
+                        serde_json::to_value(args).unwrap_or(serde_json::Value::Null)
+                    });
                     Some(AnthropicMessage {
                         role: AnthropicRole::Assistant,
                         content: vec![AnthropicContentBlock::ToolUse {
@@ -1350,7 +1353,9 @@ pub fn build_anthropic_request(
     });
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => AnthropicToolChoice::Auto,
+        crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => {
+            AnthropicToolChoice::Auto
+        }
         crate::types::ToolChoice::Required => AnthropicToolChoice::Any,
         crate::types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
             name: f.function.name.clone(),
@@ -1423,7 +1428,10 @@ fn make_usage_report(
         },
     };
     let costing = calculate_cost(pricing, &usage, CostStatus::Actual);
-    UsageReport { cost: costing, ..usage }
+    UsageReport {
+        cost: costing,
+        ..usage
+    }
 }
 
 /// Parse an Anthropic Messages API response into messages and a usage report.

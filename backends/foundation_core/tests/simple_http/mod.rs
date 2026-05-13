@@ -14,12 +14,15 @@
 
 mod actions_tests;
 mod client_tests;
+mod compliance_tests;
 mod compression_tests;
 mod connection_tests;
 mod cookie_tests;
 mod eof_handling_tests;
 mod errors_tests;
 mod http_redirect_edge_cases_tests;
+mod http_redirect_integration;
+mod http_redirect_limit_tests;
 mod impls_chunk_parser_tests;
 mod impls_line_feed_tests;
 mod impls_service_action_tests;

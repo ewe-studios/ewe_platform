@@ -2,10 +2,13 @@
 
 mod assembler_tests;
 mod batch_writer_tests;
+mod echo_tests;
 mod error_tests;
 mod frame_tests;
 mod handshake_tests;
 mod message_tests;
 mod reconnecting_task_tests;
+mod reconnection_tests;
 mod server_tests;
+mod subprotocol_tests;
 mod task_tests;

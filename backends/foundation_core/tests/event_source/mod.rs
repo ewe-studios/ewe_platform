@@ -1,10 +1,14 @@
 #![cfg(test)]
 
+mod consumer_integration_tests;
 mod consumer_tests;
 mod core_tests;
 mod error_tests;
+mod parser_tests;
 mod reconnecting_integration_tests;
+mod reconnecting_task_integration_tests;
 mod reconnecting_task_tests;
 mod response_tests;
+mod task_integration_tests;
 mod task_tests;
 mod writer_tests;

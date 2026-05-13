@@ -19,9 +19,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    AuthProvider, GenerationMetadata, Messages, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    StopReason, TextContent, CostStatus, ToolShed, UsageCosting, UsageReport,
+    AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
+    ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
+    ModelState, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -308,15 +308,9 @@ pub enum ResponseEvent {
         item: ResponseOutputItem,
     },
     #[serde(rename = "response.output_text.delta")]
-    ResponseOutputTextDelta {
-        item_id: String,
-        delta: String,
-    },
+    ResponseOutputTextDelta { item_id: String, delta: String },
     #[serde(rename = "response.output_text.done")]
-    ResponseOutputTextDone {
-        item_id: String,
-        text: String,
-    },
+    ResponseOutputTextDone { item_id: String, text: String },
     #[serde(rename = "response.completed")]
     ResponseCompleted { response: Response },
     #[serde(rename = "response.failed")]
@@ -333,7 +327,8 @@ pub struct ResponsesProvider<R: DnsResolver = SystemDnsResolver> {
     api_key: Option<ConfidentialText>,
     http_client: Option<SimpleHttpClient<R>>,
     resolver: Option<R>,
-    models_cache: Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
+    models_cache:
+        Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
 impl Default for ResponsesProvider<SystemDnsResolver> {
@@ -443,16 +438,10 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let headers = response.get_headers_ref();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let status_code: usize = status.into();
+        let body_text = collect_string_strict(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
             let retry_after = extract_retry_after(headers);
@@ -477,9 +466,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
                     AuthCredential::SecretOnly(key) => {
                         self.api_key = Some(key.clone());
                     }
-                    AuthCredential::ClientSecret {
-                        client_secret, ..
-                    } => {
+                    AuthCredential::ClientSecret { client_secret, .. } => {
                         self.api_key = Some(client_secret.clone());
                     }
                     AuthCredential::OAuth(cred) => {
@@ -669,21 +656,24 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         };
 
         // Tools: flatten ToolShed into ResponseTool array
-        let tools = interaction.tools_shed.as_ref().map(|shed| {
-            flatten_tools(shed)
-                .iter()
-                .map(|tool| ResponseTool {
-                    tool_type: String::from("function"),
-                    function: ResponseFunction {
-                        name: tool.name.clone(),
-                        description: Some(tool.description.clone()),
-                        parameters: tool.arguments.as_ref()
-                            .map(|a| a.schema.clone()),
-                        strict: None,
-                    },
-                })
-                .collect::<Vec<_>>()
-        }).filter(|t: &Vec<ResponseTool>| !t.is_empty());
+        let tools = interaction
+            .tools_shed
+            .as_ref()
+            .map(|shed| {
+                flatten_tools(shed)
+                    .iter()
+                    .map(|tool| ResponseTool {
+                        tool_type: String::from("function"),
+                        function: ResponseFunction {
+                            name: tool.name.clone(),
+                            description: Some(tool.description.clone()),
+                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
+                            strict: None,
+                        },
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .filter(|t: &Vec<ResponseTool>| !t.is_empty());
 
         // Tool choice
         let tool_choice = interaction.tool_choice.as_ref().map(convert_tool_choice);
@@ -767,15 +757,10 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let status_code: usize = response.get_status().into();
-        let body_text = match response.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => String::new(),
-        };
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let status_code: usize = status.into();
+        let body_text = collect_string_strict(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
             let msg = format!("HTTP {status_code}: {body_text}");
@@ -1125,9 +1110,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                             v.as_object()
                                 .map(|obj| {
                                     obj.iter()
-                                        .map(|(k, v)| {
-                                            (k.clone(), json_value_to_arg_type(v))
-                                        })
+                                        .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
                                         .collect()
                                 })
                                 .unwrap_or_default()
@@ -1153,9 +1136,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
     })
 }
 
-fn build_response_metadata(
-    output: &[ResponseOutputItem],
-) -> Option<Vec<GenerationMetadata>> {
+fn build_response_metadata(output: &[ResponseOutputItem]) -> Option<Vec<GenerationMetadata>> {
     let has_reasoning = output
         .iter()
         .any(|item| matches!(item, ResponseOutputItem::Reasoning { .. }));

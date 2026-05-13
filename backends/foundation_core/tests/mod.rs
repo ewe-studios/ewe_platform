@@ -12,3 +12,4 @@ mod sync_boundary_helpers;
 mod task_iterators;
 mod threaded_future;
 mod websocket;
+mod wire;
