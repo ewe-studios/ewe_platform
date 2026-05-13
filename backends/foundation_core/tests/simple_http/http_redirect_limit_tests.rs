@@ -40,7 +40,7 @@ fn spawn_redirect_server() -> u16 {
 #[serial(valtron_pool)]
 fn redirect_limit_triggers_too_many_redirects() {
     // Initialize Valtron executor for HTTP client concurrency
-    let _pool_guard: PoolGuard = valtron::initialize_pool(42, None);
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
 
     // Spin up local redirect server
     let port = spawn_redirect_server();

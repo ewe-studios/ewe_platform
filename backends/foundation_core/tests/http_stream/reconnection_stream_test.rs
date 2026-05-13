@@ -6,6 +6,7 @@ use super::*;
 
 #[test]
 fn successfully_connects_on_first_try() {
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:3799"));
     let threader = thread::spawn(move || {
         let _ = listener.accept();
@@ -32,6 +33,7 @@ fn successfully_connects_on_first_try() {
 
 #[test]
 fn fails_reconnection_after_max_retries() {
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
     let endpoint = ClientEndpoint::Plain(panic_if_failed!(Endpoint::with_string(
         "http://127.0.0.1:8899"
     )));

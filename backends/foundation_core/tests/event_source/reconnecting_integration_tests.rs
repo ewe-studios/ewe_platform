@@ -44,6 +44,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
         auth_header: Arc<std::sync::Mutex<String>>,
     }
 
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let captured = CapturedRequest::default();
     let captured_clone = captured.clone();
 
@@ -164,6 +165,7 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
         requests: Arc<std::sync::Mutex<Vec<(String, String, String)>>>, // (method, body, auth)
     }
 
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let captured = CapturedRequests::default();
     let captured_clone = captured.clone();
     let connect_count = Arc::new(AtomicUsize::new(0));

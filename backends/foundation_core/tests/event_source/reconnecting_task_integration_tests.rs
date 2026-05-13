@@ -43,6 +43,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 /// WHAT: Verify events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_receives_events() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
 
     let addr = server_addr(&server);
@@ -80,6 +81,7 @@ fn test_reconnecting_task_receives_events() {
 /// WHAT: Verify events with id field update internal tracking.
 #[test]
 fn test_reconnecting_task_tracks_event_id() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"id: 42\ndata: tracked\n\nid: 43\ndata: also tracked\n\n")
     });
@@ -117,6 +119,7 @@ fn test_reconnecting_task_tracks_event_id() {
 #[test]
 fn test_reconnecting_task_connection_refused_retries() {
     // Bind and immediately drop to get a port that's guaranteed unused
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
     drop(listener);
@@ -149,6 +152,7 @@ fn test_reconnecting_task_connection_refused_retries() {
 /// WHAT: Verify all events in a multi-event stream are received.
 #[test]
 fn test_reconnecting_task_multiple_events() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"data: first\n\ndata: second\n\ndata: third\n\n")
     });
@@ -185,6 +189,7 @@ fn test_reconnecting_task_multiple_events() {
 /// WHAT: Verify Comment events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_passes_comments() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b": keep-alive\ndata: after comment\n\n")
     });
@@ -236,6 +241,7 @@ fn test_reconnecting_task_passes_comments() {
 /// and only retries on errors, not on legitimate EOF.
 #[test]
 fn test_reconnecting_task_eof_does_not_retry() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends one event then closes connection (legitimate EOF)
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
 
@@ -283,6 +289,7 @@ fn test_reconnecting_task_eof_does_not_retry() {
 /// This tests that errors (not EOF) trigger the reconnection logic.
 #[test]
 fn test_reconnecting_task_error_triggers_retry() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Bind and immediately drop to get a port that's guaranteed unused
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
@@ -317,6 +324,7 @@ fn test_reconnecting_task_error_triggers_retry() {
 /// WHAT: Verify close_reason() returns Eof for legitimate server close.
 #[test]
 fn test_reconnecting_task_close_reason_eof() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends event then closes normally
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
 
@@ -346,6 +354,7 @@ fn test_reconnecting_task_close_reason_eof() {
 fn test_reconnecting_task_max_reconnect_duration() {
     use std::time::Duration;
 
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Bind and immediately drop to get a port that's guaranteed unused
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
@@ -382,6 +391,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
 /// WHAT: Verify server-specified retry duration is respected.
 #[test]
 fn test_reconnecting_task_respects_server_retry() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends retry: 10 (10ms) then closes
     let server = TestHttpServer::with_response(|_req| sse_response(b"retry: 10\ndata: hello\n\n"));
 
@@ -417,6 +427,7 @@ fn test_reconnecting_task_respects_server_retry() {
 /// WHAT: Verify the server receives a POST request with the body on first connection.
 #[test]
 fn test_reconnecting_task_with_body_uses_post() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let captured_method = Arc::new(Mutex::new(None));
     let captured_body = Arc::new(Mutex::new(None));
     let method_clone = captured_method.clone();
@@ -481,6 +492,7 @@ fn test_reconnecting_task_with_body_uses_post() {
 /// WHAT: Verify the server receives a GET request when no body is set.
 #[test]
 fn test_reconnecting_task_default_method_is_get() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let captured_method = Arc::new(Mutex::new(None));
     let method_clone = captured_method.clone();
 

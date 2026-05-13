@@ -193,9 +193,17 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "install gui (optional)", || {
         if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Installing GUI environment (this may take a few minutes)...");
-            // Write script using base64 to avoid escaping issues entirely
+            // Write script using base64 in chunks to avoid command length limits
             let script_b64 = base64::engine::general_purpose::STANDARD.encode(INSTALL_GUI_SH);
-            crate::ssh::exec(session, &format!("echo '{}' | base64 -d > /tmp/install_gui.sh", script_b64))?;
+            // Clear any existing file
+            crate::ssh::exec(session, "rm -f /tmp/install_gui.sh")?;
+            // Write base64 content in chunks of 1000 chars to avoid SSH command limits
+            for chunk in script_b64.as_bytes().chunks(1000) {
+                let chunk_str = std::str::from_utf8(chunk).unwrap();
+                crate::ssh::exec(session, &format!("echo -n '{}' >> /tmp/install_gui.sh.b64", chunk_str))?;
+            }
+            // Decode the base64 content
+            crate::ssh::exec(session, "base64 -d /tmp/install_gui.sh.b64 > /tmp/install_gui.sh && rm /tmp/install_gui.sh.b64")?;
             let output = crate::ssh::exec(session, "chmod +x /tmp/install_gui.sh && bash /tmp/install_gui.sh 2>&1")?;
             logger.message("  GUI installation output:");
             for line in output.lines() {
@@ -212,9 +220,17 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "start display manager", || {
         if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Starting display manager (LightDM)...");
-            // Write script using base64
+            // Write script using base64 in chunks
             let script_b64 = base64::engine::general_purpose::STANDARD.encode(START_DISPLAY_MANAGER_SH);
-            crate::ssh::exec(session, &format!("echo '{}' | base64 -d > /tmp/start_dm.sh", script_b64))?;
+            // Clear any existing file
+            crate::ssh::exec(session, "rm -f /tmp/start_dm.sh")?;
+            // Write base64 content in chunks
+            for chunk in script_b64.as_bytes().chunks(1000) {
+                let chunk_str = std::str::from_utf8(chunk).unwrap();
+                crate::ssh::exec(session, &format!("echo -n '{}' >> /tmp/start_dm.sh.b64", chunk_str))?;
+            }
+            // Decode the base64 content
+            crate::ssh::exec(session, "base64 -d /tmp/start_dm.sh.b64 > /tmp/start_dm.sh && rm /tmp/start_dm.sh.b64")?;
             match crate::ssh::exec(session, "chmod +x /tmp/start_dm.sh && bash /tmp/start_dm.sh 2>&1") {
                 Ok(output) => {
                     logger.message("  Display manager output:");

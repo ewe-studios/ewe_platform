@@ -45,6 +45,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 /// WHAT: Verify full connect → read → event → close lifecycle.
 #[test]
 fn test_event_source_task_connects_to_server() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
 
     let addr = server_addr(&server);
@@ -103,6 +104,7 @@ fn test_event_source_task_connects_to_server() {
 /// WHAT: Verify MockDnsResolver routes to the test server's address and events are received.
 #[test]
 fn test_event_source_task_dns_resolves_to_server() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: resolved\n\n"));
 
     let addr = server_addr(&server);
@@ -153,6 +155,7 @@ fn test_event_source_task_dns_resolves_to_server() {
 /// WHAT: Verify URL query string is sent to the test server and events are received.
 #[test]
 fn test_event_source_task_url_with_query() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: with-query\n\n"));
 
     let addr = server_addr(&server);
@@ -202,6 +205,7 @@ fn test_event_source_task_url_with_query() {
 /// WHAT: Verify localhost URL connects, receives event, then closes.
 #[test]
 fn test_event_source_task_localhost_url() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: localhost\n\n"));
 
     let addr = server_addr(&server);
@@ -251,6 +255,7 @@ fn test_event_source_task_localhost_url() {
 /// WHAT: Verify task returns Pending(Connecting) then None when no server is listening.
 #[test]
 fn test_event_source_task_connection_refused() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Bind and immediately drop to get a port that's guaranteed unused
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
@@ -287,6 +292,7 @@ fn test_event_source_task_connection_refused() {
 /// WHAT: Verify task receives at least one event, then returns None.
 #[test]
 fn test_event_source_task_stream_exhaust() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: done\n\n"));
 
     let addr = server_addr(&server);
@@ -342,6 +348,8 @@ fn test_event_source_task_stream_exhaust() {
 /// WHAT: Verify the server receives a POST request when a body is provided.
 #[test]
 fn test_event_source_task_with_body_uses_post() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
+
     let captured_method = Arc::new(Mutex::new(None));
     let captured_body = Arc::new(Mutex::new(None));
     let method_clone = captured_method.clone();

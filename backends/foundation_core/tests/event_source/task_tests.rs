@@ -12,6 +12,7 @@ use foundation_core::wire::simple_http::{DnsError, SimpleHeader};
 /// WHAT: Verify connect returns Ok and transitions through Connecting → None when connection fails.
 #[test]
 fn test_event_source_task_connect_creates_task() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let resolver = MockDnsResolver::new();
     let mut task =
         EventSourceTask::connect(resolver.clone(), "http://test.invalid/events").unwrap();
@@ -40,6 +41,7 @@ fn test_event_source_task_connect_creates_task() {
 /// WHAT: Verify task returns Pending(Connecting) then None on connection failure.
 #[test]
 fn test_event_source_task_dns_failure() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let resolver = MockDnsResolver::new().with_error(
         "test.invalid",
         DnsError::NoAddressesFound("test.invalid".to_string()),

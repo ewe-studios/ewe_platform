@@ -17,7 +17,7 @@ use tracing_test::traced_test;
 #[serial(valtron_pool)]
 fn test_redirect_chain_resolves_successfully() {
     // Initialize Valtron executor for HTTP client concurrency
-    let _pool_guard = valtron::initialize_pool(42, None);
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = TestHttpServer::http_chain(vec![
         (301, "/step2"),
