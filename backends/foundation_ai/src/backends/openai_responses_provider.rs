@@ -11,6 +11,7 @@ use std::time::{Duration, SystemTime};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
 use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_core::wire::simple_http::client::body_reader::collect_strings_from_send_safe;
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -440,11 +441,11 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
 
         let (status, headers, body, _pool, _conn) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_string_strict(body)
+        let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
-            let retry_after = extract_retry_after(headers);
+            let retry_after = extract_retry_after(&headers);
             let msg = format!("HTTP {status_code}: {body_text}");
             return Ok(Err((status_code as u16, retry_after, msg)));
         }
@@ -757,9 +758,9 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
             .send()
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, _headers, body, _pool, _conn) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_string_strict(body)
+        let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {

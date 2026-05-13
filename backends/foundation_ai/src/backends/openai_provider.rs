@@ -17,6 +17,7 @@ use foundation_core::valtron::{execute, Stream, StreamIterator};
 use foundation_core::wire::event_source::{
     Event, ReconnectingEventSourceTask, ReconnectingProgress,
 };
+use foundation_core::wire::simple_http::client::body_reader::collect_strings_from_send_safe;
 use foundation_core::wire::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
@@ -284,11 +285,11 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
 
         let (status, headers, body, _pool, _conn) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_string_strict(body)
+        let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
-            let retry_after = extract_retry_after(headers);
+            let retry_after = extract_retry_after(&headers);
             let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, retry_after, msg)));
@@ -560,11 +561,11 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
 
         let (status, headers, body, _pool, _conn) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_string_strict(body)
+        let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
-            let retry_after = extract_retry_after(headers);
+            let retry_after = extract_retry_after(&headers);
             let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, retry_after, msg)));
