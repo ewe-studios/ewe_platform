@@ -67,12 +67,11 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
             }
             {
                 let mut b = captured.body.lock().unwrap();
-                *b = match &req.body {
-                    SendSafeBody::Text(s) => s.clone(),
-                    SendSafeBody::Bytes(v) => String::from_utf8_lossy(v).to_string(),
-                    SendSafeBody::None => String::new(),
-                    _ => "(stream body)".to_string(),
+                let bytes = match &req.body {
+                    foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+                    _ => Vec::new(),
                 };
+                *b = String::from_utf8_lossy(&bytes).to_string();
             }
             {
                 let mut a = captured.auth_header.lock().unwrap();
@@ -189,11 +188,12 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
                 SimpleMethod::Custom(s) => s.clone(),
             };
 
-            let body = match &req.body {
-                SendSafeBody::Text(s) => s.clone(),
-                SendSafeBody::Bytes(v) => String::from_utf8_lossy(v).to_string(),
-                SendSafeBody::None => String::new(),
-                _ => "(stream body)".to_string(),
+            let body = {
+                let bytes = match &req.body {
+                    foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+                    _ => Vec::new(),
+                };
+                String::from_utf8_lossy(&bytes).to_string()
             };
 
             let auth = req

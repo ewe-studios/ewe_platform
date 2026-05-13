@@ -338,12 +338,15 @@ impl<R: Read + Send> Iterator for LimitedBatchStreamReader<R> {
     type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        tracing::trace!("Pulling next data bytes from stream");
         if self.bytes_yielded >= self.byte_cap {
+            tracing::trace!("Readed max allowed bytes, stopping");
             return None;
         }
 
         match self.inner.next() {
             Some(Ok(Data::Bytes(bytes))) => {
+                tracing::trace!("Readed new bytes size from reader: {}", bytes.len());
                 self.bytes_yielded += bytes.len();
                 Some(Ok(Data::Bytes(bytes)))
             }
@@ -628,10 +631,7 @@ mod tests {
     #[test]
     fn full_body_reader_complete_read() {
         let data = b"hello world";
-        let reader = FullBodyReader::new(
-            BatchReader::new(Cursor::new(data.to_vec())),
-            data.len(),
-        );
+        let reader = FullBodyReader::new(BatchReader::new(Cursor::new(data.to_vec())), data.len());
 
         let collected: Vec<u8> = reader
             .filter_map(|r| r.ok())

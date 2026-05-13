@@ -92,6 +92,8 @@ EOF
 
         # Enable LightDM service
         sudo systemctl enable lightdm.service 2>/dev/null || true
+        # Set graphical target as default (boot to GUI instead of TTY)
+        sudo systemctl set-default graphical.target 2>/dev/null || true
         ;;
 
     arch|manjaro|endeavouros)
@@ -154,6 +156,8 @@ EOF
 
         # Enable LightDM service
         sudo systemctl enable lightdm.service 2>/dev/null || true
+        # Set graphical target as default (boot to GUI instead of TTY)
+        sudo systemctl set-default graphical.target 2>/dev/null || true
         ;;
 
     *)
@@ -161,11 +165,15 @@ EOF
             echo "Detected Debian-based distro (via ID_LIKE): $DISTRO"
             sudo apt-get update -qq
             DEBIAN_FRONTEND=noninteractive sudo apt-get install -y lightdm xserver-xorg openbox || true
+            # Set graphical target as default
+            sudo systemctl set-default graphical.target 2>/dev/null || true
         elif echo "$DISTRO_LIKE" | grep -q "arch"; then
             echo "Detected Arch-based distro (via ID_LIKE): $DISTRO"
             sudo pacman -Sy --noconfirm
             sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter xorg-server openbox || true
             sudo systemctl enable lightdm.service 2>/dev/null || true
+            # Set graphical target as default
+            sudo systemctl set-default graphical.target 2>/dev/null || true
         else
             echo "Unknown distro: $DISTRO"
             echo "Please install GUI packages manually"

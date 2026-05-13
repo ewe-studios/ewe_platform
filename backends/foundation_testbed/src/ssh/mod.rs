@@ -197,18 +197,23 @@ pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String,
     Ok((stdout, exit_code))
 }
 
-/// Upload a file to the guest via `scp` CLI.
+/// Upload a file to the guest via `scp` CLI with key-based auth.
 ///
-/// More reliable than libssh2's `scp_send` against Windows OpenSSH —
-/// `scp_send` was found to cause silent corruption or truncation with
-/// Windows OpenSSH server.
+/// Uses the same key files as `authenticate_raw`: ~/.ssh/id_ed25519, ~/.ssh/id_rsa,
+/// ~/.ssh/id_ecdsa, or the Vagrant insecure key.
 pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
+    let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
+        port: session.port,
+        source: anyhow::anyhow!("no SSH key found for SCP upload"),
+    })?;
+
     let status = Command::new("scp")
         .args([
             "-P", &session.port.to_string(),
             "-o", "StrictHostKeyChecking=no",
             "-o", "UserKnownHostsFile=/dev/null",
             "-o", "LogLevel=quiet",
+            "-i", &key_path,
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,
                 source: anyhow::anyhow!("local path {local:?} is not valid UTF-8"),
@@ -231,16 +236,47 @@ pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()>
     Ok(())
 }
 
-/// Download a file from the guest via `scp` CLI.
+/// Find an SSH key file for SCP authentication.
+/// Tries the same locations as `authenticate_raw`.
+fn find_ssh_key() -> Option<String> {
+    let key_names = ["id_ed25519", "id_rsa", "id_ecdsa"];
+    if let Some(home) = dirs::home_dir() {
+        let ssh_dir = home.join(".ssh");
+        for key_name in &key_names {
+            let key_path = ssh_dir.join(key_name);
+            if key_path.exists() {
+                return Some(key_path.to_string_lossy().to_string());
+            }
+        }
+    }
+
+    // Vagrant insecure key
+    if let Some(config_dir) = dirs::config_dir() {
+        let vagrant_key = config_dir.join("foundation_testbed/vagrant_insecure_key");
+        if vagrant_key.exists() {
+            return Some(vagrant_key.to_string_lossy().to_string());
+        }
+    }
+
+    None
+}
+
+/// Download a file from the guest via `scp` CLI with key-based auth.
 ///
-/// More reliable than libssh2's `scp_recv` against Windows OpenSSH.
+/// Uses the same key files as `authenticate_raw`.
 pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<()> {
+    let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
+        port: session.port,
+        source: anyhow::anyhow!("no SSH key found for SCP download"),
+    })?;
+
     let status = Command::new("scp")
         .args([
             "-P", &session.port.to_string(),
             "-o", "StrictHostKeyChecking=no",
             "-o", "UserKnownHostsFile=/dev/null",
             "-o", "LogLevel=quiet",
+            "-i", &key_path,
             &format!("{}@127.0.0.1:{remote}", session.user),
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,

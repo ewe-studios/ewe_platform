@@ -46,7 +46,8 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 #[test]
 fn test_event_source_task_connects_to_server() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -105,7 +106,8 @@ fn test_event_source_task_connects_to_server() {
 #[test]
 fn test_event_source_task_dns_resolves_to_server() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: resolved\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: resolved\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = MockDnsResolver::new().with_response("sse.test", vec![addr]);
@@ -156,7 +158,8 @@ fn test_event_source_task_dns_resolves_to_server() {
 #[test]
 fn test_event_source_task_url_with_query() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: with-query\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: with-query\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -206,7 +209,8 @@ fn test_event_source_task_url_with_query() {
 #[test]
 fn test_event_source_task_localhost_url() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: localhost\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: localhost\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -293,7 +297,8 @@ fn test_event_source_task_connection_refused() {
 #[test]
 fn test_event_source_task_stream_exhaust() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: done\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: done\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -357,14 +362,18 @@ fn test_event_source_task_with_body_uses_post() {
 
     let server = TestHttpServer::with_response(move |req| {
         *method_clone.lock().unwrap() = Some(req.method.clone());
-        let text = match &req.body {
-            SendSafeBody::Text(t) => Some(t.clone()),
-            SendSafeBody::Bytes(b) => Some(String::from_utf8_lossy(b).to_string()),
-            _ => None,
+        let bytes = match &req.body {
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+            _ => Vec::new(),
         };
-        *body_clone.lock().unwrap() = text;
+        *body_clone.lock().unwrap() = if bytes.is_empty() {
+            None
+        } else {
+            Some(String::from_utf8_lossy(&bytes).to_string())
+        };
         sse_response(b"data: post-ok\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -416,7 +425,8 @@ fn test_event_source_task_default_method_is_get() {
     let server = TestHttpServer::with_response(move |req| {
         *method_clone.lock().unwrap() = Some(req.method.clone());
         sse_response(b"data: get-ok\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);

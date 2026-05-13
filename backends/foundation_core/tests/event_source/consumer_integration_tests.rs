@@ -47,7 +47,8 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 fn test_sse_stream_connects_and_receives_event() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -100,7 +101,8 @@ fn test_sse_stream_multiple_events() {
 
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"data: first\n\ndata: second\n\ndata: third\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -142,7 +144,8 @@ fn test_sse_stream_preserves_event_data() {
     let expected_data = "test-payload-123";
     let server = TestHttpServer::with_response(move |_req| {
         sse_response(format!("data: {}\n\n", expected_data).as_bytes())
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);

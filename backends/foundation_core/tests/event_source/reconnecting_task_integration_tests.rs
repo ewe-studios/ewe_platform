@@ -14,6 +14,7 @@ use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use tracing_test::traced_test;
 
 /// Parse the SocketAddr from a TestHttpServer's base_url.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
@@ -44,7 +45,8 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 #[test]
 fn test_reconnecting_task_receives_events() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -84,7 +86,8 @@ fn test_reconnecting_task_tracks_event_id() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"id: 42\ndata: tracked\n\nid: 43\ndata: also tracked\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -155,7 +158,8 @@ fn test_reconnecting_task_multiple_events() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"data: first\n\ndata: second\n\ndata: third\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -192,7 +196,8 @@ fn test_reconnecting_task_passes_comments() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b": keep-alive\ndata: after comment\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -243,7 +248,8 @@ fn test_reconnecting_task_passes_comments() {
 fn test_reconnecting_task_eof_does_not_retry() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends one event then closes connection (legitimate EOF)
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -326,7 +332,8 @@ fn test_reconnecting_task_error_triggers_retry() {
 fn test_reconnecting_task_close_reason_eof() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends event then closes normally
-    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -393,7 +400,8 @@ fn test_reconnecting_task_max_reconnect_duration() {
 fn test_reconnecting_task_respects_server_retry() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Server sends retry: 10 (10ms) then closes
-    let server = TestHttpServer::with_response(|_req| sse_response(b"retry: 10\ndata: hello\n\n"));
+    let server = TestHttpServer::with_response(|_req| sse_response(b"retry: 10\ndata: hello\n\n"))
+        .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -426,8 +434,10 @@ fn test_reconnecting_task_respects_server_retry() {
 /// WHY: `with_body` on ReconnectingEventSourceTask should use POST.
 /// WHAT: Verify the server receives a POST request with the body on first connection.
 #[test]
+#[traced_test]
 fn test_reconnecting_task_with_body_uses_post() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
+
     let captured_method = Arc::new(Mutex::new(None));
     let captured_body = Arc::new(Mutex::new(None));
     let method_clone = captured_method.clone();
@@ -435,14 +445,23 @@ fn test_reconnecting_task_with_body_uses_post() {
 
     let server = TestHttpServer::with_response(move |req| {
         *method_clone.lock().unwrap() = Some(req.method.clone());
-        let text = match &req.body {
-            SendSafeBody::Text(t) => Some(t.clone()),
-            SendSafeBody::Bytes(b) => Some(String::from_utf8_lossy(b).to_string()),
-            _ => None,
+        tracing::trace!("Reading requests body from received requets");
+        let bytes = match &req.body {
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+            _ => Vec::new(),
         };
-        *body_clone.lock().unwrap() = text;
+
+        tracing::trace!("Checking body to respond with response.");
+        *body_clone.lock().unwrap() = if bytes.is_empty() {
+            None
+        } else {
+            Some(String::from_utf8_lossy(&bytes).to_string())
+        };
+
+        tracing::trace!("Sending SSE response.");
         sse_response(b"data: post-ok\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -457,6 +476,7 @@ fn test_reconnecting_task_with_body_uses_post() {
     let mut got_event = false;
     let mut steps = 0;
 
+    tracing::trace!("Checking status");
     while let Some(status) = task.next_status() {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
@@ -471,8 +491,10 @@ fn test_reconnecting_task_with_body_uses_post() {
         assert!(steps < 50, "Did not receive event within 50 steps");
     }
 
+    tracing::trace!("Finished checking status");
     assert!(got_event, "Should have received the event");
 
+    tracing::trace!("Check method");
     let method = captured_method.lock().unwrap();
     assert_eq!(
         *method,
@@ -480,6 +502,7 @@ fn test_reconnecting_task_with_body_uses_post() {
         "with_body should switch method to POST"
     );
 
+    tracing::trace!("Check body");
     let body = captured_body.lock().unwrap();
     assert_eq!(
         body.as_deref(),
@@ -499,7 +522,8 @@ fn test_reconnecting_task_default_method_is_get() {
     let server = TestHttpServer::with_response(move |req| {
         *method_clone.lock().unwrap() = Some(req.method.clone());
         sse_response(b"data: get-ok\n\n")
-    });
+    })
+    .close_after_response(true);
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);

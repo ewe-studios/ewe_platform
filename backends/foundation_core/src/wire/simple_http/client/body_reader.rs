@@ -756,21 +756,30 @@ where
 /// let response = client.get(url).send()?;
 /// let bytes = collect_bytes_from_send_safe(response.take_body());
 /// ```
+#[tracing::instrument]
 pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
     match body {
         SendSafeBody::Text(t) => t.into_bytes(),
         SendSafeBody::Bytes(b) => b,
         SendSafeBody::None => Vec::new(),
         SendSafeBody::Stream(mut opt_iter) => {
+            tracing::trace!("Pulling bytes from SendSafeBody::Stream");
             opt_iter.take().map_or(Vec::new(), collect_from_stream)
         }
-        SendSafeBody::ChunkedStream(mut opt_iter) => opt_iter
-            .take()
-            .map_or(Vec::new(), collect_from_chunked_stream),
-        SendSafeBody::LineFeedStream(mut opt_iter) => opt_iter
-            .take()
-            .map_or(Vec::new(), collect_from_linefeed_stream),
+        SendSafeBody::ChunkedStream(mut opt_iter) => {
+            tracing::trace!("Pulling bytes from SendSafeBody::ChunkedStream");
+            opt_iter
+                .take()
+                .map_or(Vec::new(), collect_from_chunked_stream)
+        }
+        SendSafeBody::LineFeedStream(mut opt_iter) => {
+            tracing::trace!("Pulling bytes from SendSafeBody::LineFeedStream");
+            opt_iter
+                .take()
+                .map_or(Vec::new(), collect_from_linefeed_stream)
+        }
         SendSafeBody::SseStream(_) => {
+            tracing::trace!("Pulling bytes from SendSafeBody::SseStream");
             tracing::warn!("SSE stream cannot be collected as bytes directly");
             Vec::new()
         }
@@ -1432,8 +1441,10 @@ mod tests {
 
     #[test]
     fn test_collect_from_stream_error() {
-        let data: Vec<Result<Data, BoxedError>> =
-            vec![Ok(Data::Bytes(b"hello".to_vec())), Err(make_error("stream error"))];
+        let data: Vec<Result<Data, BoxedError>> = vec![
+            Ok(Data::Bytes(b"hello".to_vec())),
+            Err(make_error("stream error")),
+        ];
         let result = collect_from_stream(data.into_iter());
         // Should collect what it got before error
         assert_eq!(result, b"hello".to_vec());
@@ -1518,7 +1529,10 @@ mod tests {
 
     #[test]
     fn test_write_from_stream_success() {
-        let data = vec![Ok(Data::Bytes(b"hello".to_vec())), Ok(Data::Bytes(b" world".to_vec()))];
+        let data = vec![
+            Ok(Data::Bytes(b"hello".to_vec())),
+            Ok(Data::Bytes(b" world".to_vec())),
+        ];
         let mut output = Vec::new();
         let result = write_from_stream(data.into_iter(), &mut output);
         assert!(result.is_ok());
@@ -1528,8 +1542,10 @@ mod tests {
 
     #[test]
     fn test_write_from_stream_error() {
-        let data: Vec<Result<Data, BoxedError>> =
-            vec![Ok(Data::Bytes(b"hello".to_vec())), Err(make_error("write error"))];
+        let data: Vec<Result<Data, BoxedError>> = vec![
+            Ok(Data::Bytes(b"hello".to_vec())),
+            Err(make_error("write error")),
+        ];
         let mut output = Vec::new();
         let result = write_from_stream(data.into_iter(), &mut output);
         assert!(result.is_err());
@@ -1592,8 +1608,10 @@ mod tests {
     #[test]
     fn test_collect_bytes_from_send_safe_stream() {
         // Use SendableBoxedError which has Send + Sync for the iterator
-        let stream_data: Vec<Result<Data, SendableBoxedError>> =
-            vec![Ok(Data::Bytes(b"chunk1".to_vec())), Ok(Data::Bytes(b"chunk2".to_vec()))];
+        let stream_data: Vec<Result<Data, SendableBoxedError>> = vec![
+            Ok(Data::Bytes(b"chunk1".to_vec())),
+            Ok(Data::Bytes(b"chunk2".to_vec())),
+        ];
         // Cast to BoxedError iterator via Box<dyn Iterator + Send>
         let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
             stream_data
@@ -1696,8 +1714,10 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_into_stream() {
-        let stream_data: Vec<Result<Data, SendableBoxedError>> =
-            vec![Ok(Data::Bytes(b"chunk1".to_vec())), Ok(Data::Bytes(b"chunk2".to_vec()))];
+        let stream_data: Vec<Result<Data, SendableBoxedError>> = vec![
+            Ok(Data::Bytes(b"chunk1".to_vec())),
+            Ok(Data::Bytes(b"chunk2".to_vec())),
+        ];
         let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
             stream_data
                 .into_iter()

@@ -18,6 +18,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_core::netcap::RawStream;
+use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
 use foundation_core::wire::simple_http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeaders,
     SimpleMethod, SimpleUrl,
@@ -155,6 +156,10 @@ pub struct TestHttpServer {
     _handle: Option<thread::JoinHandle<()>>,
     running: Arc<AtomicBool>,
     _handler: ResponseHandler,
+    /// When true, the server closes the TCP connection after sending a response.
+    /// Useful for testing SSE clients or HTTP/1.0-style servers.
+    /// Shared via Arc<AtomicBool> so it can be set after the server thread is spawned.
+    close_after_response: Arc<AtomicBool>,
 }
 
 impl TestHttpServer {
@@ -199,6 +204,24 @@ impl TestHttpServer {
                 code => HttpResponse::status(code, val),
             }
         })
+    }
+
+    /// Set whether the server should close the TCP connection after sending a response.
+    ///
+    /// WHY: SSE tests need to verify client behavior when the server closes the connection
+    /// after delivering a response. HTTP/1.1 defaults to keep-alive, so this flag lets
+    /// tests mimic servers that close after response delivery.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
+    ///     .close_after_response(true);
+    /// ```
+    #[must_use]
+    pub fn close_after_response(self, close: bool) -> Self {
+        self.close_after_response.store(close, Ordering::Relaxed);
+        self
     }
 
     /// Start a new test HTTP server on random port.
@@ -269,10 +292,12 @@ impl TestHttpServer {
         let handler = Arc::new(Mutex::new(
             Box::new(handler) as Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>
         ));
+        let close_after_response = Arc::new(AtomicBool::new(false));
 
         let running_clone = Arc::clone(&running);
 
         let handler_clone = Arc::clone(&handler);
+        let close_clone = Arc::clone(&close_after_response);
 
         let handle = thread::spawn(move || {
             // Set non-blocking so we can check running flag
@@ -286,11 +311,15 @@ impl TestHttpServer {
                         tracing::info!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
                         let kill_signal = Arc::clone(&running_clone);
+                        let should_close = Arc::clone(&close_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
-                            if let Err(e) =
-                                Self::handle_connection(stream, &handler, kill_signal.clone())
-                            {
+                            if let Err(e) = Self::handle_connection(
+                                stream,
+                                &handler,
+                                kill_signal.clone(),
+                                &should_close,
+                            ) {
                                 tracing::info!("TestHttpServer connection error: {e}");
                             }
                         });
@@ -312,6 +341,7 @@ impl TestHttpServer {
             _handle: Some(handle),
             running,
             _handler: handler,
+            close_after_response,
         }
     }
 
@@ -348,9 +378,11 @@ impl TestHttpServer {
         let running = Arc::new(AtomicBool::new(true));
         let handler = Arc::new(Mutex::new(Box::new(handler)
             as Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>));
+        let close_after_response = Arc::new(AtomicBool::new(false));
 
         let running_clone = Arc::clone(&running);
         let handler_clone = Arc::clone(&handler);
+        let close_clone = Arc::clone(&close_after_response);
 
         let handle = thread::spawn(move || {
             listener
@@ -362,8 +394,13 @@ impl TestHttpServer {
                     Ok((stream, sock_addr)) => {
                         tracing::info!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
+                        let should_close = Arc::clone(&close_clone);
                         thread::spawn(move || {
-                            if let Err(e) = Self::handle_connection_with_interim(stream, &handler) {
+                            if let Err(e) = Self::handle_connection_with_interim(
+                                stream,
+                                &handler,
+                                &should_close,
+                            ) {
                                 tracing::info!("TestHttpServer connection error: {e}");
                             }
                         });
@@ -384,6 +421,7 @@ impl TestHttpServer {
             _handle: Some(handle),
             running,
             _handler: Arc::new(Mutex::new(Box::new(|_| HttpResponse::ok(b"")))),
+            close_after_response,
         }
     }
 
@@ -429,6 +467,7 @@ impl TestHttpServer {
         mut stream: TcpStream,
         handler: &ResponseHandler,
         running: Arc<AtomicBool>,
+        close_after_response: &Arc<AtomicBool>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Handle multiple requests per connection (HTTP keep-alive)
         // Loop until connection closes or max requests reached
@@ -436,7 +475,11 @@ impl TestHttpServer {
 
         // Clone the stream for reading — keep original for writing responses.
         // The reader consumes bytes; the writer needs the original socket.
-        let read_stream = stream.try_clone().expect("should clone tcp stream");
+        let read_stream: TcpStream = stream.try_clone().expect("should clone tcp stream");
+        read_stream
+            .set_nonblocking(true)
+            .expect("should enable non-blocking");
+
         let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
         let request_streams = http_streams::send::http_streams(conn);
 
@@ -493,24 +536,18 @@ impl TestHttpServer {
                 break;
             };
 
-            tracing::debug!("Reviewing body part: {:?}", body_part);
-
-            let body = match body_part {
+            let body_part = match body_part {
                 IncomingRequestParts::NoBody => SendSafeBody::None,
                 IncomingRequestParts::SizedBody(body)
                 | IncomingRequestParts::StreamedBody(body) => body,
-                _ => {
+                _other => {
                     tracing::debug!("Failed to receive a IncomingRequestParts::Body(_)");
                     break;
                 }
             };
 
-            tracing::info!(
-                "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
-                method,
-                url,
-                proto,
-            );
+            tracing::trace!("[HTTP TEST SERVER] Read the body of request");
+            let body = collect_bytes_from_send_safe(body_part);
 
             tracing::info!("Got request");
             let request = HttpRequest {
@@ -518,7 +555,7 @@ impl TestHttpServer {
                 method,
                 proto,
                 headers,
-                body,
+                body: SendSafeBody::Bytes(body),
             };
 
             // Call user's handler to get response
@@ -534,11 +571,12 @@ impl TestHttpServer {
             stream.flush()?;
             tracing::info!("flush response");
 
-            // Check if Connection: close was requested
+            // Check if Connection: close was requested or configured
             // HTTP/1.1 defaults to keep-alive, so we only close if explicitly requested
-            let should_close = response.headers.iter().any(|(k, v)| {
-                k.eq_ignore_ascii_case("connection") && v.eq_ignore_ascii_case("close")
-            });
+            let should_close = close_after_response.load(Ordering::Relaxed)
+                || response.headers.iter().any(|(k, v)| {
+                    k.eq_ignore_ascii_case("connection") && v.eq_ignore_ascii_case("close")
+                });
 
             if should_close {
                 tracing::debug!("Connection: close requested, closing connection");
@@ -555,6 +593,7 @@ impl TestHttpServer {
     fn handle_connection_with_interim(
         mut stream: TcpStream,
         handler: &InterimResponseHandler,
+        close_after_response: &Arc<AtomicBool>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Parse minimal HTTP request (method, path, version)
         let conn = RawStream::from_tcp(stream.try_clone()?).expect("should wrap tcp stream");
@@ -608,7 +647,7 @@ impl TestHttpServer {
 
         tracing::debug!("Reviewing body part: {:?}", body_part);
 
-        let body = match body_part {
+        let body_part = match body_part {
             IncomingRequestParts::NoBody => SendSafeBody::None,
             IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
                 body
@@ -618,6 +657,9 @@ impl TestHttpServer {
                 return Ok(());
             }
         };
+
+        tracing::trace!("[HTTP TEST SERVER] Read the body of request");
+        let body = collect_bytes_from_send_safe(body_part);
 
         tracing::info!(
             "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
@@ -632,7 +674,7 @@ impl TestHttpServer {
             method,
             proto,
             headers,
-            body,
+            body: SendSafeBody::Bytes(body),
         };
 
         // Call user's handler to get interim + final response
@@ -656,6 +698,12 @@ impl TestHttpServer {
         stream.write_all(&rendered)?;
         stream.flush()?;
         tracing::info!("flush final response");
+
+        // Close the connection if configured to do so after response
+        if close_after_response.load(Ordering::Relaxed) {
+            tracing::debug!("Closing connection after response delivery");
+            drop(stream);
+        }
 
         Ok(())
     }
