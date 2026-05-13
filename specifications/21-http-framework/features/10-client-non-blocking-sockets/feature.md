@@ -205,6 +205,163 @@ Pooled connections (`ConnectionPool`) may have different non-blocking requiremen
 - `backends/foundation_core/src/wire/websocket/task.rs`
 - `backends/foundation_core/src/wire/event_source/reconnecting_task.rs`
 
+## Locations Requiring WouldBlock Handling
+
+If client sockets are made non-blocking, the following locations currently do NOT handle `WouldBlock` errors and would need to be updated:
+
+### Connection Establishment
+
+**File**: `backends/foundation_core/src/netcap/connection/mod.rs:311-326`
+```rust
+pub fn without_timeout(addr: SocketAddr) -> Result<Self, ...> {
+    Ok(Self::Tcp(TcpStream::connect(addr)?))  // BLOCKING - returns Err(WouldBlock) if non-blocking
+}
+
+pub fn with_timeout(addr: SocketAddr, timeout: Duration) -> Result<Self, ...> {
+    Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))  // BLOCKING
+}
+```
+**Issue**: `connect_timeout()` assumes blocking. For non-blocking, would need to use `TcpStream::connect()` then poll for writable.
+
+**File**: `backends/foundation_core/src/netcap/connection/mod.rs:330-344`
+```rust
+fn read_timeout_into(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize, io::Error> {
+    self.set_read_timeout(Some(timeout))?;
+    let result = self.read(buf);  // Would need WouldBlock retry loop
+    self.set_read_timeout(previous_read_timeout)?;
+    result
+}
+```
+**Issue**: Sets timeout and reads, but if non-blocking, `read()` returns `Err(WouldBlock)` immediately instead of waiting.
+
+### HTTP Client Request Sending
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs:200-215`
+```rust
+if let Err(err) = connection.stream_mut().write_all(request_string.as_bytes()) { ... }
+if let Err(err) = connection.stream_mut().flush() { ... }
+```
+**Issue**: `write_all()` expects blocking. For non-blocking, would need to handle partial writes and `WouldBlock`.
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs:222-231`
+```rust
+if let Err(err) = connection.stream_mut().set_read_timeout_as(read_timeout) { ... }
+```
+**Issue**: Sets timeout on socket, but non-blocking sockets don't honor `SO_RCVTIMEO` the same way - they return `WouldBlock` immediately.
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/tasks/send_request.rs:289`
+```rust
+if let Err(err) = conn.stream_mut().flush() { ... }
+```
+**Issue**: `flush()` with non-blocking socket may return `WouldBlock` if send buffer is full.
+
+### HTTP Client Connection Timeout Setup
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/connection.rs:751-755`
+```rust
+.write_all(connect_request.as_bytes())
+.flush()
+```
+**Issue**: Direct `write_all` and `flush` without WouldBlock handling. Used in proxy CONNECT and TLS handshake.
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/connection.rs:891-895`
+```rust
+.write_all(connect_request.as_bytes())
+.flush()
+```
+**Issue**: Same issue in proxy authentication handling.
+
+### WebSocket Client
+
+**File**: `backends/foundation_core/src/wire/websocket/task.rs:483-491`
+```rust
+let _ = state.connection.write_all(chunk);
+let _ = state.connection.flush();
+```
+**Issue**: WebSocket handshake writing. Would need WouldBlock handling for non-blocking sockets.
+
+**File**: `backends/foundation_core/src/wire/websocket/task.rs:712-736`
+```rust
+if let Err(err) = open_state.stream.write_all(&encoded) { ... }
+if let Err(err) = open_state.stream.flush() { ... }
+if let Err(err) = open_state.stream.flush() { ... }  // line 736
+```
+**Issue**: WebSocket frame writing in Open state. Multiple write/flush calls without WouldBlock handling.
+
+**File**: `backends/foundation_core/src/wire/websocket/task.rs:799-800`
+```rust
+let _ = open_state.stream.write_all(&pong_bytes);
+let _ = open_state.stream.flush();
+```
+**Issue**: Pong frame response writing without WouldBlock handling.
+
+### EventSource (SSE) Client
+
+**File**: `backends/foundation_core/src/wire/event_source/task.rs:379`
+```rust
+let _ = stream_writer.flush();
+```
+**Issue**: EventSource stream flushing without WouldBlock handling.
+
+### Timeout Configuration
+
+**File**: `backends/foundation_core/src/wire/simple_http/timeout.rs:32-68`
+```rust
+pub struct TimeoutConfig {
+    pub connect_timeout: Duration,
+    pub read_timeout_per_kb: Duration,
+    pub write_timeout_per_kb: Duration,
+    pub min_read_timeout: Duration,
+    pub max_read_timeout: Duration,
+    pub max_total_timeout: Duration,
+    pub ttfb_timeout: Duration,
+    pub max_retries: usize,  // <-- Retry logic
+    ...
+}
+```
+**Issue**: All timeout calculations assume blocking I/O with `SO_RCVTIMEO`/`SO_SNDTIMEO`. Non-blocking sockets ignore these timeouts and return `WouldBlock` immediately.
+
+### Retry Middleware
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/middleware.rs:633-698`
+```rust
+pub struct RetryMiddleware {
+    max_retries: u32,
+    retry_status_codes: Vec<u16>,
+    backoff: BackoffStrategy,
+}
+```
+**Issue**: Retry logic triggers on response status codes (429, 502, 503, 504), not on `WouldBlock` errors. Would need to add `WouldBlock` as a retryable error.
+
+### Body Reader
+
+**File**: `backends/foundation_core/src/wire/simple_http/client/body_reader.rs:646-693`
+```rust
+fn write_from_stream<I, W>(...) { ... }
+fn write_from_chunked_stream<I, W>(...) { ... }
+```
+**Issue**: Body writing operations without WouldBlock handling.
+
+## Impact Summary
+
+**Total locations requiring updates: ~20**
+
+**Categories**:
+1. Connection establishment (3 locations)
+2. HTTP request writing (4 locations)
+3. HTTP timeout setting (2 locations)
+4. WebSocket I/O (5 locations)
+5. EventSource I/O (1 location)
+6. Proxy/TLS handshake (2 locations)
+7. Timeout configuration (1 location)
+8. Retry middleware (1 location)
+9. Body reading/writing (2 locations)
+
+**Risk Assessment**: HIGH
+- Many I/O operations assume blocking semantics
+- Timeout/retry logic needs significant rework
+- Would require testing all client paths
+
 ## Notes
 
 The HTTP server fix was critical because:
