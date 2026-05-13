@@ -1,5 +1,6 @@
 //! Linux bootstrap via SSH — step-by-step idempotent.
 
+use base64::Engine;
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::bootstrap::BootstrapLogger;
 use crate::config::{Result, VmProfile};
@@ -192,13 +193,9 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "install gui (optional)", || {
         if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Installing GUI environment (this may take a few minutes)...");
-            // Write script to file line by line to avoid escaping issues
-            crate::ssh::exec(session, "rm -f /tmp/install_gui.sh && touch /tmp/install_gui.sh")?;
-            for line in INSTALL_GUI_SH.lines() {
-                // Escape single quotes in the line
-                let escaped = line.replace("'", "'\"'\"'");
-                crate::ssh::exec(session, &format!("echo '{}' >> /tmp/install_gui.sh", escaped))?;
-            }
+            // Write script using base64 to avoid escaping issues entirely
+            let script_b64 = base64::engine::general_purpose::STANDARD.encode(INSTALL_GUI_SH);
+            crate::ssh::exec(session, &format!("echo '{}' | base64 -d > /tmp/install_gui.sh", script_b64))?;
             let output = crate::ssh::exec(session, "chmod +x /tmp/install_gui.sh && bash /tmp/install_gui.sh 2>&1")?;
             logger.message("  GUI installation output:");
             for line in output.lines() {
@@ -215,12 +212,9 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "start display manager", || {
         if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Starting display manager (LightDM)...");
-            // Write script to file line by line
-            crate::ssh::exec(session, "rm -f /tmp/start_dm.sh && touch /tmp/start_dm.sh")?;
-            for line in START_DISPLAY_MANAGER_SH.lines() {
-                let escaped = line.replace("'", "'\"'\"'");
-                crate::ssh::exec(session, &format!("echo '{}' >> /tmp/start_dm.sh", escaped))?;
-            }
+            // Write script using base64
+            let script_b64 = base64::engine::general_purpose::STANDARD.encode(START_DISPLAY_MANAGER_SH);
+            crate::ssh::exec(session, &format!("echo '{}' | base64 -d > /tmp/start_dm.sh", script_b64))?;
             match crate::ssh::exec(session, "chmod +x /tmp/start_dm.sh && bash /tmp/start_dm.sh 2>&1") {
                 Ok(output) => {
                     logger.message("  Display manager output:");
@@ -269,8 +263,10 @@ mod tests {
 
     #[test]
     fn test_tauri_deps_not_empty() {
-        assert!(!TAURI_SYSTEM_DEPS.is_empty());
-        assert!(TAURI_SYSTEM_DEPS.len() > 10);
+        assert!(!TAURI_SYSTEM_DEPS_DEBIAN.is_empty());
+        assert!(TAURI_SYSTEM_DEPS_DEBIAN.len() > 10);
+        assert!(!TAURI_SYSTEM_DEPS_ARCH.is_empty());
+        assert!(TAURI_SYSTEM_DEPS_ARCH.len() > 10);
     }
 
     #[test]

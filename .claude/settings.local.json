@@ -47,7 +47,9 @@
       "Bash(pkill -9 qemu-system)",
       "Bash(pkill -9 virtiofsd)",
       "Bash(rm -rf ~/.local/share/foundation_testbed/state/*)",
-      "Bash(rm -f /tmp/test.monitor /tmp/*.monitor)"
+      "Bash(rm -f /tmp/test.monitor /tmp/*.monitor)",
+      "Bash(rm -rf /tmp/foundation_testbed/*)",
+      "Bash(mkdir -p /tmp/foundation_testbed)"
     ]
   }
 }
