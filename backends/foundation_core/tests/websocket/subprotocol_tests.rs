@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket subprotocol negotiation integration tests.
 //!
 //! Tests Sec-WebSocket-Protocol header handling during handshake.

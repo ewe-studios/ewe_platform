@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket server-side upgrade tests (RFC 6455 Section 4.2).
 
 use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};

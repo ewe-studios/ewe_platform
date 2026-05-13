@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket `TaskIterator` state machine tests.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};

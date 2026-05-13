@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket frame encoding/decoding tests (RFC 6455).
 
 use foundation_core::wire::websocket::{Opcode, WebSocketError, WebSocketFrame};

@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket handshake tests (RFC 6455 Section 4).
 
 use base64::Engine;

@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use foundation_core::wire::simple_http::*;
 use tracing_test::traced_test;
 

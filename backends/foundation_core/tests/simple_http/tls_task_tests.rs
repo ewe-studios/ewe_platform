@@ -1,4 +1,3 @@
-#![cfg(test)]
 //! Unit tests for `TlsHandshakeTask` moved into the canonical units test tree.
 //!
 //! These are non-destructive copies of the original in-crate `#[cfg(test)]`

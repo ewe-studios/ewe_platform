@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 mod assembler_tests;
 mod batch_writer_tests;
 mod echo_tests;

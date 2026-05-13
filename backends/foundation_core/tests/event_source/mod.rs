@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 mod consumer_integration_tests;
 mod consumer_tests;
 mod core_tests;

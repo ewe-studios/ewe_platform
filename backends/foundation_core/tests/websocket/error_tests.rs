@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket error tests.
 
 use foundation_core::wire::websocket::WebSocketError;

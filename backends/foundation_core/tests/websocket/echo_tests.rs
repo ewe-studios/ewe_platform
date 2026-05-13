@@ -1,6 +1,6 @@
-#![cfg(test)]
-
 //! WebSocket integration tests using real echo server.
+
+#![cfg(feature = "multi")]
 
 use std::time::Duration;
 

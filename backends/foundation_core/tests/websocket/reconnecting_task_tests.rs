@@ -1,4 +1,4 @@
-#![cfg(test)]
+#![cfg(feature = "multi")]
 
 //! WebSocket `ReconnectingWebSocketTask` state machine tests.
 

@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket message tests (RFC 6455).
 
 use foundation_core::wire::websocket::{Opcode, WebSocketFrame, WebSocketMessage};

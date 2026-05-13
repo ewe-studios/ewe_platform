@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use foundation_core::{netcap::Endpoint, panic_if_failed, retries::SameBackoffDecider};
 use std::{net::TcpListener, result::Result, thread};
 use tracing;

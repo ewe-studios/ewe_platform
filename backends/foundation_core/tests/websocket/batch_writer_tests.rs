@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! Batch frame writer tests.
 
 use foundation_core::wire::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};

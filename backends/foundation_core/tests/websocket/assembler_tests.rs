@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 //! WebSocket `MessageAssembler` tests (RFC 6455 Section 4.5 - Fragmentation).
 
 use foundation_core::wire::websocket::{
