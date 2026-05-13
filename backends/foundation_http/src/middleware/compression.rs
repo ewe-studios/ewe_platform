@@ -9,9 +9,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::wire::simple_http::{
-    SimpleHeader, SimpleIncomingRequest,
-};
+use foundation_core::wire::simple_http::SimpleIncomingRequest;
 
 use crate::context::ContextBag;
 use crate::middleware::{MiddlewareResult, RequestMiddleware};

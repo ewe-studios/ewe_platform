@@ -630,6 +630,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// This is a best-effort helper that calls into the pool's `put`/`release`
     /// style API. Adjust the call if your pool uses a different method name.
     pub fn return_to_pool(&self, conn: HttpClientConnection) {
+        tracing::trace!("Returning http client connection to the pool");
         // Destructure to move fields out without partially borrowing `conn`.
         let HttpClientConnection { host, port, stream } = conn;
         // Attempt to put the stream back; ignore failures to avoid panics.

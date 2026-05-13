@@ -154,7 +154,7 @@ impl RequestMiddleware for LoggerMiddleware {
         _ctx: &Arc<ContextBag>,
         req: &mut SimpleIncomingRequest,
     ) -> MiddlewareResult {
-        let start = Instant::now();
+        let _start = Instant::now();
 
         let method = format!("{}", req.method);
         let path = &req.request_url.url;

@@ -786,7 +786,7 @@ pub fn analyze_spec(
         if provider.contains('/') {
             // Multi-spec sub-provider: one group per spec
             let spec_group = provider.split('/').last().unwrap_or(provider).to_string();
-            let mut all_endpoints = processor.endpoints();
+            let all_endpoints = processor.endpoints();
             groups_map.insert(spec_group, all_endpoints);
         } else {
             // Top-level single-spec provider: split by path segments as before

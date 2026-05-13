@@ -139,7 +139,13 @@ impl ConnectionPool {
     ///
     /// If the per-host buffer exceeds `max_per_host`, the oldest entry is
     /// dropped to maintain the limit.
+    #[tracing::instrument(skip(self))]
     pub fn checkin(&self, host: &str, port: u16, stream: SharedByteBufferStream<RawStream>) {
+        tracing::trace!(
+            "Returning http client connection to the pool for host={:?}, port={:?}",
+            &host,
+            &port
+        );
         let key = format!("{host}:{port}");
         let Ok(mut map) = self.inner.lock() else {
             return;

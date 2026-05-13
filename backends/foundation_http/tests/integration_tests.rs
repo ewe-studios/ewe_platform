@@ -23,8 +23,8 @@ use foundation_core::wire::simple_http::{
 use serial_test::serial;
 
 use foundation_http::{
-    accept_websocket, respond, ConnectionResult, ContextBag, HttpApp, HttpServer,
-    MiddlewareResult, RequestMiddleware, Serve, ServeFactory, ServerConfig, SseEvent, SseStream,
+    accept_websocket, respond, ConnectionResult, ContextBag, HttpApp, HttpServer, MiddlewareResult,
+    RequestMiddleware, Serve, ServeFactory, ServerConfig, SseEvent, SseStream,
 };
 
 // ---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
     let addr = listener.local_addr().expect("local_addr failed");
 
     let config = ServerConfig::defaults().with_keep_alive(
-        foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(5)),
+        foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
     );
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
@@ -208,7 +208,7 @@ fn status_code(status: &Status) -> u16 {
 // Tests: static routes
 
 /// GET /echo → 200 with JSON containing method and path.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -244,7 +244,7 @@ fn test_static_route_get() {
 }
 
 /// POST /echo → 200 with JSON containing method POST.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -278,7 +278,7 @@ fn test_static_route_post() {
 // Tests: param routes
 
 /// GET /users/:id → matches /users/42, /users/abc, etc.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -312,7 +312,7 @@ fn test_param_route() {
 }
 
 /// GET /users/:id/posts/:post_id — nested params.
-#[cfg(feature = "multi")]
+
 #[test]
 #[serial(http_test)]
 #[traced_test]
@@ -346,7 +346,7 @@ fn test_nested_param_route() {
 // Tests: wildcard routes
 
 /// GET /files/* → matches any path starting with /files/.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -383,7 +383,7 @@ fn test_wildcard_route() {
 // Tests: route_any
 
 /// route_any matches all HTTP methods on the same path.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -442,7 +442,6 @@ fn test_route_any_matches_all_methods() {
 // ---------------------------------------------------------------------------
 // Tests: root route
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -471,7 +470,7 @@ fn test_root_route() {
 // Tests: 404 and method mismatch
 
 /// Unmatched path → 404.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -497,7 +496,7 @@ fn test_not_found() {
 }
 
 /// Route exists for GET but not POST → 404.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -526,7 +525,7 @@ fn test_method_mismatch_returns_not_found() {
 // Tests: request body
 
 /// POST with text body → body is echoed back.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -553,7 +552,7 @@ fn test_post_with_text_body() {
 }
 
 /// POST with JSON body → body is echoed back.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -589,7 +588,7 @@ fn test_post_with_json_body() {
 // Tests: query strings
 
 /// Query string is preserved in the request URL.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -624,7 +623,7 @@ fn test_query_string_preserved() {
 // Tests: middleware
 
 /// Middleware runs before handler — counter increments for each request.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -670,7 +669,7 @@ fn test_middleware_runs_before_handler() {
 }
 
 /// Blocking middleware short-circuits — handler never runs.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -698,7 +697,7 @@ fn test_middleware_blocks_request() {
 }
 
 /// Multiple middleware in chain — all run in order, block stops the chain.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -736,7 +735,6 @@ fn test_multiple_middleware_chain() {
 // ---------------------------------------------------------------------------
 // Tests: multiple routes on same app (sequential, baseline)
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -825,7 +823,6 @@ impl Serve for SlowHandler {
     }
 }
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -835,7 +832,7 @@ fn test_valtron_multiplex_concurrent_connections() {
     // only 2 could run at once. All 6 succeeding proves multiplexing.
 
     // Phase 1: sequential baseline — 3 requests one after another.
-    let _guard = initialize_pool(42, Some(5));
+    let _guard = initialize_pool(42, Some(10));
     let mut app = HttpApp::new();
     app.route::<SlowHandler>(SimpleMethod::GET, "/slow");
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
@@ -875,6 +872,9 @@ fn test_valtron_multiplex_concurrent_connections() {
     // at most 2 could run at once. All 6 succeeding proves idle connections
     // yield via TaskStatus::Delayed, freeing the thread for other work.
     const NUM_CONCURRENT: usize = 6;
+
+    tracing::trace!("[START] Sending concurrent requests");
+
     let handles: Vec<_> = (0..NUM_CONCURRENT)
         .map(|i| {
             let addr = addr;
@@ -907,7 +907,6 @@ fn test_valtron_multiplex_concurrent_connections() {
 // ---------------------------------------------------------------------------
 // Tests: keep-alive (multiple requests in sequence)
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -937,7 +936,6 @@ fn test_multiple_sequential_requests() {
 // ---------------------------------------------------------------------------
 // Tests: custom headers in requests
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -966,7 +964,6 @@ fn test_custom_request_header() {
 // ---------------------------------------------------------------------------
 // Tests: HEAD request
 
-#[cfg(feature = "multi")]
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -994,7 +991,6 @@ fn test_head_request() {
 // ---------------------------------------------------------------------------
 // Tests: DELETE request
 
-#[cfg(feature = "multi")]
 #[test]
 #[serial(http_test)]
 #[traced_test]
@@ -1024,7 +1020,6 @@ fn test_delete_request() {
 // ---------------------------------------------------------------------------
 // Unit-style tests that don't need a running server (kept from original).
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_http_app_builder() {
     let app = HttpApp::new();
@@ -1035,7 +1030,6 @@ fn test_http_app_builder() {
     assert_eq!(*config.unwrap(), "test_config");
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
@@ -1049,7 +1043,6 @@ fn test_server_config_defaults() {
     assert_eq!(config.max_body_bytes, 10 * 1024 * 1024);
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_server_config_builder() {
     let config = ServerConfig::defaults()
@@ -1069,7 +1062,6 @@ fn test_server_config_builder() {
     assert_eq!(config.max_body_bytes, 1024);
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_context_store_multiple_types() {
     let app = HttpApp::new();
@@ -1119,7 +1111,7 @@ impl Serve for WsEchoHandler {
 }
 
 /// WebSocket upgrade test: verify 101 response is sent.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -1139,7 +1131,10 @@ fn test_websocket_upgrade() {
         .unwrap()
         .header(SimpleHeader::custom("Upgrade"), "websocket")
         .header(SimpleHeader::custom("Connection"), "Upgrade")
-        .header(SimpleHeader::custom("Sec-WebSocket-Key"), "dGhlIHNhbXBsZSBub25jZQ==")
+        .header(
+            SimpleHeader::custom("Sec-WebSocket-Key"),
+            "dGhlIHNhbXBsZSBub25jZQ==",
+        )
         .header(SimpleHeader::custom("Sec-WebSocket-Version"), "13")
         .build_client()
         .unwrap();
@@ -1228,7 +1223,7 @@ impl Serve for SseCounterHandler {
 }
 
 /// SSE streaming test: verify events are streamed correctly.
-#[cfg(feature = "multi")]
+
 #[test]
 #[traced_test]
 #[serial(http_test)]
@@ -1264,7 +1259,11 @@ fn test_sse_streaming() {
         .find(|(k, _)| format!("{k}").to_lowercase() == "content-type");
     assert!(content_type.is_some(), "Missing Content-Type header");
     let ct_value = content_type.unwrap().1.first().cloned().unwrap_or_default();
-    assert!(ct_value.contains("text/event-stream"), "Expected text/event-stream, got: {}", ct_value);
+    assert!(
+        ct_value.contains("text/event-stream"),
+        "Expected text/event-stream, got: {}",
+        ct_value
+    );
 
     // Verify Cache-Control header
     let cache_control = response
@@ -1272,14 +1271,19 @@ fn test_sse_streaming() {
         .iter()
         .find(|(k, _)| format!("{k}").to_lowercase() == "cache-control");
     assert!(cache_control.is_some(), "Missing Cache-Control header");
-    let cc_value = cache_control.unwrap().1.first().cloned().unwrap_or_default();
+    let cc_value = cache_control
+        .unwrap()
+        .1
+        .first()
+        .cloned()
+        .unwrap_or_default();
     assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {}", cc_value);
 
     shutdown.turn_on();
 }
 
 /// SSE event format verification test.
-#[cfg(feature = "multi")]
+
 #[test]
 fn test_sse_event_formatting() {
     // Test SseEvent builder

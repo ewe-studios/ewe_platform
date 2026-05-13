@@ -11,6 +11,7 @@
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
 use foundation_core::valtron::{CollectAll, MapAllDone, MapAllPendingAndDone, Stream, TaskStatus};
+use tracing_test::traced_test;
 
 // Simple test stream iterator
 struct TestStream {
@@ -246,11 +247,12 @@ impl Iterator for CounterTask {
 
 /// Test 1: `execute_collect_all` aggregates outputs from multiple tasks
 #[test]
+#[traced_test]
 fn test_execute_collect_all_aggregates_outputs() {
     use foundation_core::valtron::{execute_collect_all, initialize_pool, DEFAULT_WAIT_CYCLE};
 
     // Initialize the valtron pool for this test
-    let _ = initialize_pool(42, None);
+    let _guard = initialize_pool(42, None);
 
     // Create three tasks that each produce a single value after 1 pending state
     let tasks = vec![
@@ -288,7 +290,7 @@ fn test_execute_map_all_applies_mapper() {
     use foundation_core::valtron::{execute_map_all, initialize_pool, DEFAULT_WAIT_CYCLE};
 
     // Initialize the valtron pool for this test
-    let _ = initialize_pool(42, None);
+    let _guard = initialize_pool(42, None);
 
     // Create three tasks that produce values immediately (no pending states)
     let tasks = vec![
@@ -327,7 +329,7 @@ fn test_execute_map_all_pending_and_done() {
     };
 
     // Initialize the valtron pool for this test
-    let _ = initialize_pool(42, None);
+    let _guard = initialize_pool(42, None);
 
     // Create two tasks that each go through 1 pending state before ready
     let tasks = vec![CounterTask::new(1, 42), CounterTask::new(1, 99)];

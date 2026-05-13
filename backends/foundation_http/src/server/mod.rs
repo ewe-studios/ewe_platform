@@ -67,8 +67,8 @@ impl KeepAliveConfig {
     pub fn defaults() -> Self {
         // Server-specific timeout config with longer timeouts for connections
         let timeout_config = TimeoutConfig {
-            min_read_timeout: Duration::from_secs(30), // 30 sec idle timeout
-            max_read_timeout: Duration::from_secs(120), // 2 min max read
+            min_read_timeout: Duration::from_secs(120), // 3 mins idle timeout
+            max_read_timeout: Duration::from_secs(300), // 5 mins max read
             ..TimeoutConfig::default()
         };
 

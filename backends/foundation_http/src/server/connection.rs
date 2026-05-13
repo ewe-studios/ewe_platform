@@ -13,16 +13,16 @@ use std::time::Instant;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_core::wire::simple_http::{
     HTTPStreams, Http11, HttpReaderError, RenderHttp, SimpleHeader, SimpleIncomingRequest,
     SimpleOutgoingResponse,
 };
-use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_errstacks::ErrorTrace;
 
+use crate::app::HttpApp;
 use crate::reader::read_next_request;
 use crate::serve::{respond, ConnectionResult, ServeError};
-use crate::app::HttpApp;
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -167,6 +167,8 @@ impl ConnectionHandler {
         );
         match read_next_request(&self.streams, &self.client_ip) {
             Some(Ok(req)) => {
+                tracing::trace!("Read request from connection!");
+
                 // Data received — reset idle tracking.
                 let should_close = req
                     .headers
@@ -195,6 +197,7 @@ impl ConnectionHandler {
                 Some(TaskStatus::Pending(()))
             }
             Some(Err(e)) => {
+                tracing::trace!("Connection returned error: {:?}!", &e);
                 if Self::is_transient_error(&e) {
                     // No data available — treat as idle.
                     self.idle_poll_count += 1;
@@ -242,6 +245,7 @@ impl ConnectionHandler {
                 }
             }
             None => {
+                tracing::trace!("Connection returned None, running idle sequence");
                 // No data at all (WouldBlock with no bytes read).
                 self.idle_poll_count += 1;
                 self.track_idle();

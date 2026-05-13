@@ -332,7 +332,7 @@ mod tests {
 
     #[test]
     fn test_base64_decode_empty() {
-        assert_eq!(base64::decode("").unwrap(), vec![]);
+        assert_eq!(base64::decode("").unwrap(), Vec::<u8>::new());
     }
 
     #[test]
