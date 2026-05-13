@@ -4,6 +4,7 @@
 //! All connections are submitted to the valtron executor via `valtron::send()`
 //! — no `BackgroundJobRegistry::submit()` for connection handling.
 
+use std::net::TcpStream;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -334,7 +335,7 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
-        self.serve_loop(listener, shutdown, |tcp| {
+        self.serve_loop(listener, shutdown, |tcp: TcpStream| {
             RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
@@ -439,6 +440,8 @@ impl HttpServer {
                             continue;
                         }
                     };
+
+                    // raw_stream.set
 
                     let shared_stream = SharedByteBufferStream::rwrite(raw_stream);
                     let streams = HTTPStreams::new(shared_stream.clone());

@@ -31,6 +31,8 @@ use std::time::Duration;
 /// via builder pattern. All timeout methods delegate to TimeoutCalculator.
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
+    /// Timeout for 100-continue response wait - before sending body
+    pub expect_continue_read_timeout: std::time::Duration,
     /// Timeout for InlineLift/Schedule operations (separate from connection timeouts)
     pub inline_processing_timeout: std::time::Duration,
     /// Dynamic timeout calculator - source of truth for all timeout values
@@ -81,7 +83,11 @@ impl ClientConfig {
         std::time::Duration,
     ) {
         let config = self.timeout_calculator.config();
-        (config.connect_timeout, config.min_read_timeout, config.min_read_timeout)
+        (
+            config.connect_timeout,
+            config.min_read_timeout,
+            config.min_read_timeout,
+        )
     }
 
     /// Creates a `SimpleHttpBody` from this client configuration.
@@ -138,6 +144,11 @@ impl ClientConfig {
         }
         ctx.is_upload = is_upload;
         self.timeout_calculator.calculate_read_timeout(&ctx)
+    }
+
+    #[must_use]
+    pub fn get_expect_continue_read_timeout(&self) -> std::time::Duration {
+        self.expect_continue_read_timeout
     }
 
     /// Calculates dynamic write timeout based on body size.
@@ -209,6 +220,11 @@ impl ClientConfig {
     #[must_use]
     pub fn with_headers_to_add(mut self, headers: Option<SimpleHeaders>) -> Self {
         self.headers_to_add = headers;
+        self
+    }
+
+    pub fn set_expect_continue_read_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.expect_continue_read_timeout = timeout;
         self
     }
 
@@ -362,6 +378,7 @@ impl Default for ClientConfig {
     /// auth/cookies stripped on cross-host redirects (security best practice).
     fn default() -> Self {
         Self {
+            expect_continue_read_timeout: std::time::Duration::from_secs(3),
             inline_processing_timeout: std::time::Duration::from_millis(10),
             timeout_calculator: TimeoutCalculator::new(),
             default_headers: BTreeMap::default(),

@@ -141,18 +141,19 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     // Calculate dynamic timeout based on request context
                     // For HEAD requests: use min timeout (no body expected)
                     // For other requests: use TTFB timeout for headers, dynamic for body
-                    let is_head_request = matches!(data.method, crate::wire::simple_http::SimpleMethod::HEAD);
 
-                    let read_timeout = if is_head_request {
-                        // HEAD requests have no body, use minimum timeout
-                        config.timeout_calculator.calculate_read_timeout(
-                            &crate::wire::simple_http::timeout::TimeoutContext::with_size(0)
-                        )
-                    } else {
-                        // For other requests, use the calculated read timeout
-                        // For header reading, we use a shorter TTFB-based timeout
-                        config.timeout_calculator.config().ttfb_timeout
-                    };
+                    let read_timeout =
+                        config.get_expect_continue_read_timeout();
+
+                    // let is_head_request = matches!(data.method, crate::wire::simple_http::SimpleMethod::HEAD);
+                    // let read_timeout = if is_head_request {
+                    //     // HEAD requests have no body, use minimum timeout
+                    //     config.get_expect_continue_read_timeout()
+                    // } else {
+                    //     // For other requests, use the calculated read timeout
+                    //     // For header reading, we use a shorter TTFB-based timeout
+                    //     config.timeout_calculator.config().ttfb_timeout
+                    // };
 
                     tracing::debug!("Set read timeout to {:?} (method={:?})",
                         read_timeout, data.method);
@@ -230,7 +231,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     }
 
-                    tracing::debug!("Get response reader from stream");
+                    tracing::debug!("Get response reader from stream for 100-continue");
 
                     // 4. Try to read response intro once
                     let simple_http_body = config.into_simple_http_body();
@@ -241,19 +242,23 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     );
 
                     // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
+                    tracing::trace!("[100-Continue] Waitiing for server response for 100-continue expect header with timeout: {:?}", read_timeout);
                     let intro_result = reader.next();
                     if !matches!(
                         &intro_result,
                         Some(Ok(IncomingResponseParts::Intro(_, _, _)))
                     ) {
+                        tracing::trace!("No starter response received with timeout, moving to write body");
                         self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
                             None, data, pool, connection, reader,
                         )))));
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                     }
 
+                    tracing::trace!("[100-continue, headers] Got intro response from server, moving to reading headers");
                     let headers_result = reader.next();
                     if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
+                        tracing::error!("Headers not received, returning timeout");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
                             HttpClientError::Timeout,
