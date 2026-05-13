@@ -28,3 +28,17 @@ pub trait RequestMiddleware: Send + Sync + 'static {
         req: &mut SimpleIncomingRequest,
     ) -> MiddlewareResult;
 }
+
+// Built-in middleware modules
+mod cors;
+mod logger;
+mod auth;
+mod compression;
+mod body_limit;
+
+// Re-export middleware types
+pub use cors::{CorsConfig, CorsMiddleware};
+pub use logger::{LoggerConfig, LoggerMiddleware, LogLevel};
+pub use auth::{AuthConfig, AuthMiddleware, AuthResult};
+pub use compression::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
+pub use body_limit::BodyLimitMiddleware;

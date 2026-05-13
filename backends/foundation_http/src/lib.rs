@@ -47,6 +47,11 @@ pub use server::{HttpServer, ServerConfig, KeepAliveConfig};
 pub use client_ip::ClientIp;
 pub use router::{ArcServe, Router};
 pub use middleware::{MiddlewareResult, RequestMiddleware};
+pub use middleware::{CorsConfig, CorsMiddleware};
+pub use middleware::{LoggerConfig, LoggerMiddleware, LogLevel};
+pub use middleware::{AuthConfig, AuthMiddleware, AuthResult};
+pub use middleware::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
+pub use middleware::{BodyLimitMiddleware};
 pub use upgrade::{accept_websocket, SseStream, UpgradeError};
 
 // Re-export SSE types from foundation_core
