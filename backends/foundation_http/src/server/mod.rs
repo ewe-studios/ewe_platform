@@ -10,7 +10,9 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
+use foundation_core::wire::simple_http::timeout::{
+    TimeoutCalculator, TimeoutConfig, TimeoutContext,
+};
 use foundation_core::wire::simple_http::HTTPStreams;
 
 #[cfg(any(
@@ -65,8 +67,8 @@ impl KeepAliveConfig {
     pub fn defaults() -> Self {
         // Server-specific timeout config with longer timeouts for connections
         let timeout_config = TimeoutConfig {
-            min_read_timeout: Duration::from_secs(120), // 2 min idle timeout
-            max_read_timeout: Duration::from_secs(300), // 5 max read
+            min_read_timeout: Duration::from_secs(30), // 30 sec idle timeout
+            max_read_timeout: Duration::from_secs(120), // 2 min max read
             ..TimeoutConfig::default()
         };
 
@@ -103,7 +105,8 @@ impl KeepAliveConfig {
     #[must_use]
     pub fn min_delay(&self) -> Duration {
         // Use sleep duration for default context as base min delay
-        self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default())
+        self.timeout_calculator
+            .calculate_sleep_duration(&TimeoutContext::default())
     }
 
     /// Get the maximum delay from calculator.
@@ -117,7 +120,8 @@ impl KeepAliveConfig {
     #[must_use]
     pub fn idle_timeout(&self) -> Duration {
         // Idle timeout is the read timeout for default context
-        self.timeout_calculator.calculate_read_timeout(&TimeoutContext::default())
+        self.timeout_calculator
+            .calculate_read_timeout(&TimeoutContext::default())
     }
 }
 
@@ -187,7 +191,8 @@ impl ServerConfig {
     #[must_use]
     pub fn would_block_sleep(&self) -> Duration {
         // Use sleep duration for default context
-        self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default())
+        self.timeout_calculator
+            .calculate_sleep_duration(&TimeoutContext::default())
     }
 
     /// Get the accept error sleep duration from calculator.
@@ -195,7 +200,9 @@ impl ServerConfig {
     #[must_use]
     pub fn accept_error_sleep(&self) -> Duration {
         // Use 2x the base sleep duration for error recovery
-        let base = self.timeout_calculator.calculate_sleep_duration(&TimeoutContext::default());
+        let base = self
+            .timeout_calculator
+            .calculate_sleep_duration(&TimeoutContext::default());
         base * 2
     }
 
@@ -312,6 +319,7 @@ impl HttpServer {
     }
 
     /// Start serving plain HTTP. Blocks until the shutdown signal is triggered.
+    #[tracing::instrument(skip(self, shutdown))]
     pub fn serve(self, shutdown: Arc<OnSignal>) {
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
@@ -333,6 +341,7 @@ impl HttpServer {
 
     /// Start serving from a pre-bound `TcpListener`. Useful for tests
     /// that need to confirm the port is bound before sending requests.
+    #[tracing::instrument(skip(self, listener, shutdown))]
     pub fn serve_with_listener(self, listener: std::net::TcpListener, shutdown: Arc<OnSignal>) {
         tracing::info!("Listening on {}", self.bind_addr);
         listener
@@ -356,6 +365,7 @@ impl HttpServer {
         feature = "ssl-openssl",
         feature = "ssl-native-tls",
     ))]
+    #[tracing::instrument(skip(self, shutdown))]
     pub fn serve_tls(self, shutdown: Arc<OnSignal>) {
         let acceptor = match &self.config.tls_acceptor {
             Some(a) => a.clone(),
@@ -389,6 +399,7 @@ impl HttpServer {
     }
 
     /// Generic accept loop — shared by `serve` and `serve_tls`.
+    #[tracing::instrument(skip(self, listener, shutdown, wrap_stream))]
     fn serve_loop(
         self,
         listener: std::net::TcpListener,
@@ -409,6 +420,12 @@ impl HttpServer {
             match listener.accept() {
                 Ok((tcp, addr)) => {
                     tracing::trace!("Accepted connection from {addr}");
+
+                    // Set socket to non-blocking mode for valtron executor compatibility
+                    if let Err(e) = tcp.set_nonblocking(true) {
+                        tracing::error!("Failed to set non-blocking mode: {e}");
+                        continue;
+                    }
 
                     let client_ip = addr.ip().to_string();
                     let wrap_clone = wrap_stream.clone();
