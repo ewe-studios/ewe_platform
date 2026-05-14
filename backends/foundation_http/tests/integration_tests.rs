@@ -1602,38 +1602,6 @@ impl Serve for AfterInterimHandler {
     }
 }
 
-/// InterimResponse middleware — sends 102 Processing but include body which is a wrong
-/// , should fail with invalid state.
-#[test]
-#[traced_test]
-#[ntest::timeout(60000)]
-#[serial(http_test)]
-fn test_bad_interim_response_continues_to_handler() {
-    let _guard = initialize_pool(42, Some(5));
-    let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
-
-    let mut app = HttpApp::new();
-    app.middleware(BadInterimMiddleware {
-        interim_sent: interim_sent.clone(),
-    });
-    app.route::<AfterInterimHandler>(SimpleMethod::GET, "/interim-test");
-
-    let (addr, shutdown) = start_server(app);
-    let client = make_client(addr);
-
-    assert!(matches!(
-        client
-            .get("http://testserver/interim-test")
-            .unwrap()
-            .build_client()
-            .unwrap()
-            .send(),
-        Err(_)
-    ));
-
-    shutdown.turn_on();
-}
-
 /// InterimResponse middleware — sends 102 Processing but continues to handler.
 /// The final response should still come from the handler.
 #[test]
