@@ -6986,12 +6986,11 @@ Hello world!";
             assert_eq!(request_one[0], expected_intro_one);
             assert_eq!(request_one[1], expected_headers_one);
             let actual_body = request_one.remove(2);
-            let (IncomingRequestParts::SizedBody(_) | IncomingRequestParts::StreamedBody(_)) = actual_body else {
+            let (IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body)) = actual_body else {
                 panic!("Expected body part");
             };
-            // NOTE: collect_bytes_from_send_safe cannot be used here for pipelined requests
-            // because LimitedBatchStreamReader reads full batches before checking the limit,
-            // causing it to overshoot Content-Length and consume subsequent requests' data.
+            let body_bytes = collect_bytes_from_send_safe(body);
+            assert_eq!(&body_bytes, b"AAA", "request 1 body should be exactly 'AAA'");
 
             let mut request_two = request_stream
                 .next_request()
@@ -7017,9 +7016,11 @@ Hello world!";
             assert_eq!(request_two[1], expected_intro_two);
             assert_eq!(request_two[2], expected_headers_two);
             let actual_body = request_two.remove(3);
-            let (IncomingRequestParts::SizedBody(_) | IncomingRequestParts::StreamedBody(_)) = actual_body else {
+            let (IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body)) = actual_body else {
                 panic!("Expected body part");
             };
+            let body_bytes = collect_bytes_from_send_safe(body);
+            assert_eq!(&body_bytes, b"BBBB", "request 2 body should be exactly 'BBBB'");
 
             let mut request_three = request_stream
                 .next_request()
@@ -7045,9 +7046,11 @@ Hello world!";
             assert_eq!(request_three[1], expected_intro_three);
             assert_eq!(request_three[2], expected_headers_three);
             let actual_body = request_three.remove(3);
-            let (IncomingRequestParts::SizedBody(_) | IncomingRequestParts::StreamedBody(_)) = actual_body else {
+            let (IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body)) = actual_body else {
                 panic!("Expected body part");
             };
+            let body_bytes = collect_bytes_from_send_safe(body);
+            assert_eq!(&body_bytes, b"CCCC\n", "request 3 body should be exactly 'CCCC\\n'");
 
             req_thread.join().expect("should be closed");
         }
