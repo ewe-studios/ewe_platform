@@ -2640,6 +2640,7 @@ dependencies = [
  "foundation_core",
  "foundation_errstacks",
  "foundation_testing",
+ "ntest",
  "regex",
  "serde",
  "serde_json",

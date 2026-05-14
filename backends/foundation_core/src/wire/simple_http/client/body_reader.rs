@@ -236,7 +236,7 @@ pub fn collect_string_strict(
                         } else {
                             Err(StringBodyError::NoBody)
                         }
-                    },
+                    }
                     SendSafeBody::None => Err(StringBodyError::NoBody),
                 };
             }
@@ -298,6 +298,88 @@ pub fn collect_string(
 // ============================================================================
 // Byte Body Reading
 // ============================================================================
+
+pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), BodyReaderError> {
+    match body {
+        SendSafeBody::Text(_) => Ok(()),
+        SendSafeBody::Bytes(_) => Ok(()),
+        SendSafeBody::Stream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                for chunk_result in DataBytesIterator::new(iter) {
+                    match chunk_result {
+                        Ok(_) => continue,
+                        Err(e) => {
+                            return Err(BodyReaderError::StreamIteratorError(
+                                e.to_string().into_boxed_str(),
+                            ))
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+        SendSafeBody::ChunkedStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                for chunk_result in iter {
+                    match chunk_result {
+                        Ok(_) => continue,
+                        Err(e) => {
+                            return Err(BodyReaderError::StreamIteratorError(
+                                e.to_string().into_boxed_str(),
+                            ))
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+        SendSafeBody::LineFeedStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                for line_result in iter {
+                    match line_result {
+                        Ok(_) => continue,
+                        Err(e) => {
+                            return Err(BodyReaderError::StreamIteratorError(
+                                e.to_string().into_boxed_str(),
+                            ))
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+        SendSafeBody::SseStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                drain_from_sse_stream(iter).map_err(|e| {
+                    BodyReaderError::StreamIteratorError(e.to_string().into_boxed_str())
+                })
+            } else {
+                Err(BodyReaderError::NoBody)
+            }
+        }
+        SendSafeBody::None => Ok(()),
+    }
+}
+
+pub fn drain_stream_iterator(
+    stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
+) -> Result<(), BodyReaderError> {
+    for part in stream {
+        match part {
+            Ok(
+                IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
+            ) => return drain_stream_iterator_from_send_safe(body),
+            Ok(
+                IncomingResponseParts::Intro(_, _, _)
+                | IncomingResponseParts::NoBody
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => return Ok(()),
+            Err(e) => return Err(BodyReaderError::StreamRead(e)),
+        }
+    }
+    Ok(())
+}
 
 /// Collect response body as raw bytes - core function returning Result.
 ///
@@ -400,7 +482,7 @@ pub fn collect_bytes_strict(
                         } else {
                             Err(BodyReaderError::NoBody)
                         }
-                    },
+                    }
                     SendSafeBody::None => Err(BodyReaderError::NoBody),
                 };
             }
@@ -655,6 +737,22 @@ where
     bytes
 }
 
+fn drain_from_sse_stream<I>(iter: I) -> Result<(), SendableBoxedError>
+where
+    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+{
+    for result in iter {
+        match result {
+            Ok(_) => continue,
+            Err(e) => {
+                tracing::warn!("SSE stream error: {e}");
+                return Err(e);
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Process an SSE stream iterator (yields ParseResult), collecting event data bytes into a Vec.
 /// Used internally by collect_bytes_from_send_safe for SseStream variant.
 fn collect_from_sse_stream<I>(iter: I) -> Vec<u8>
@@ -691,12 +789,12 @@ where
         {
             let pr = result?;
             match pr.event {
-            Event::Message { data, .. } => {
-                bytes.extend_from_slice(data.as_bytes());
-                bytes.push(b'\n');
+                Event::Message { data, .. } => {
+                    bytes.extend_from_slice(data.as_bytes());
+                    bytes.push(b'\n');
+                }
+                Event::Comment(_) | Event::Reconnect => continue,
             }
-            Event::Comment(_) | Event::Reconnect => continue,
-        }
         }
     }
     Ok(bytes)
@@ -837,9 +935,7 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
         }
         SendSafeBody::SseStream(mut opt_iter) => {
             tracing::trace!("Pulling bytes from SendSafeBody::SseStream");
-            opt_iter
-                .take()
-                .map_or(Vec::new(), collect_from_sse_stream)
+            opt_iter.take().map_or(Vec::new(), collect_from_sse_stream)
         }
     }
 }
@@ -1320,7 +1416,7 @@ where
                             }
                         }
                         Ok(ProcessStreamResult::Completed)
-                    },
+                    }
                     SendSafeBody::None => Ok(ProcessStreamResult::NoBody),
                 };
             }
@@ -1512,10 +1608,6 @@ where
     }
 }
 
-
-
-
-
 // ============================================================================
 // Collect body as Result<Vec<u8>> / Result<String> (propagates enforcement errors)
 // ============================================================================
@@ -1536,7 +1628,9 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
         SendSafeBody::Bytes(b) => Ok(b),
         SendSafeBody::None => Ok(Vec::new()),
         SendSafeBody::Stream(mut opt_iter) => {
-            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let Some(iter) = opt_iter.take() else {
+                return Ok(Vec::new());
+            };
             let mut buf = Vec::new();
             for item in iter {
                 match item? {
@@ -1547,7 +1641,9 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
             Ok(buf)
         }
         SendSafeBody::ChunkedStream(mut opt_iter) => {
-            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let Some(iter) = opt_iter.take() else {
+                return Ok(Vec::new());
+            };
             let mut buf = Vec::new();
             for item in iter {
                 match item? {
@@ -1558,7 +1654,9 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
             Ok(buf)
         }
         SendSafeBody::LineFeedStream(mut opt_iter) => {
-            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let Some(iter) = opt_iter.take() else {
+                return Ok(Vec::new());
+            };
             let mut buf = Vec::new();
             for item in iter {
                 match item? {
@@ -1572,7 +1670,9 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
             Ok(buf)
         }
         SendSafeBody::SseStream(mut opt_iter) => {
-            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let Some(iter) = opt_iter.take() else {
+                return Ok(Vec::new());
+            };
             let mut buf = Vec::new();
             for item in iter {
                 match item.map_err(|e| e as BoxedError)?.event {
@@ -2097,9 +2197,8 @@ mod tests {
             Ok(Data::Bytes(b"hello".to_vec())),
             Ok(Data::Bytes(b"world".to_vec())),
         ];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
         // First chunk: "hello" (5 bytes)
         match enforcing.next().unwrap().unwrap() {
@@ -2117,11 +2216,9 @@ mod tests {
 
     #[test]
     fn test_content_length_enforcing_truncated() {
-        let data: Vec<Result<Data, SendableBoxedError>> =
-            vec![Ok(Data::Bytes(b"short".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let data: Vec<Result<Data, SendableBoxedError>> = vec![Ok(Data::Bytes(b"short".to_vec()))];
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
         match enforcing.next().unwrap().unwrap() {
             Data::Bytes(b) => assert_eq!(&b, b"short"),
@@ -2145,9 +2242,8 @@ mod tests {
             Ok(Data::Bytes(b"b".to_vec())),
         ];
         // "a" (1 byte) + "b" (1 byte) = 2 bytes total; Retry doesn't count
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 2);
         match enforcing.next().unwrap().unwrap() {
             Data::Bytes(b) => assert_eq!(&b, b"a"),
@@ -2168,9 +2264,8 @@ mod tests {
             Ok(Data::Bytes(b"a".to_vec())),
             Err(make_sendable_error("boom")),
         ];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
         match enforcing.next().unwrap().unwrap() {
             Data::Bytes(b) => assert_eq!(&b, b"a"),
@@ -2184,20 +2279,17 @@ mod tests {
     #[test]
     fn test_content_length_enforcing_zero_expected_empty_body() {
         let data: Vec<Result<Data, SendableBoxedError>> = vec![];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 0);
         assert!(enforcing.next().is_none());
     }
 
     #[test]
     fn test_content_length_enforcing_stops_after_exhaustion() {
-        let data: Vec<Result<Data, SendableBoxedError>> =
-            vec![Ok(Data::Bytes(b"a".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let data: Vec<Result<Data, SendableBoxedError>> = vec![Ok(Data::Bytes(b"a".to_vec()))];
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut enforcing = ContentLengthEnforcingIterator::new(inner, 5);
         match enforcing.next().unwrap().unwrap() {
             Data::Bytes(b) => assert_eq!(&b, b"a"),
@@ -2243,9 +2335,8 @@ mod tests {
             Ok(Data::Bytes(b"abc".to_vec())),
             Ok(Data::Bytes(b"def".to_vec())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::Stream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2258,9 +2349,8 @@ mod tests {
             Ok(Data::Bytes(b"ab".to_vec())),
             Err(make_sendable_error("stream failed")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::Stream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_err());
@@ -2282,9 +2372,8 @@ mod tests {
             Ok(ChunkedData::Data(b"bar".to_vec(), None)),
             Ok(ChunkedData::DataEnded),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::ChunkedStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2305,9 +2394,8 @@ mod tests {
             Ok(LineFeed::Line("alpha".to_string())),
             Ok(LineFeed::Line("beta".to_string())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::LineFeedStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2347,9 +2435,8 @@ mod tests {
                 Some("1".to_string()),
             )),
         ];
-        let send_iter: Box<
-            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
-        > = Box::new(data.into_iter());
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+            Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2372,11 +2459,13 @@ mod tests {
                 },
                 None,
             )),
-            Ok(ParseResult::new(SseEvent::Comment("keepalive".to_string()), None)),
+            Ok(ParseResult::new(
+                SseEvent::Comment("keepalive".to_string()),
+                None,
+            )),
         ];
-        let send_iter: Box<
-            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
-        > = Box::new(data.into_iter());
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+            Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2426,9 +2515,8 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<
-            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
-        > = Box::new(data.into_iter());
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+            Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_string(body);
         assert!(result.is_ok());
@@ -2463,9 +2551,8 @@ mod tests {
         // Simulate a LimitedBatchStreamReader that returns fewer bytes than expected
         let data: Vec<Result<Data, SendableBoxedError>> =
             vec![Ok(Data::Bytes(b"partial".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let enforcing = ContentLengthEnforcingIterator::new(inner, 100);
         let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
             Box::new(enforcing);
@@ -2495,7 +2582,8 @@ mod tests {
         data: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
     ) -> SendSafeBody {
         let send_iter: Box<
-            dyn Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>> + Send,
+            dyn Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>
+                + Send,
         > = Box::new(data.into_iter());
         SendSafeBody::SseStream(Some(send_iter))
     }
@@ -2545,7 +2633,10 @@ mod tests {
                 },
                 None,
             )),
-            Ok(ParseResult::new(SseEvent::Comment("keepalive".to_string()), None)),
+            Ok(ParseResult::new(
+                SseEvent::Comment("keepalive".to_string()),
+                None,
+            )),
         ]);
         let result = collect_bytes_from_send_safe(body);
         assert_eq!(result, b"real\n".to_vec());
@@ -2585,9 +2676,8 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<
-            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
-        > = Box::new(data.into_iter());
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+            Box::new(data.into_iter());
         let stream: Box<
             dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
         > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(
@@ -2612,9 +2702,8 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<
-            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
-        > = Box::new(data.into_iter());
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+            Box::new(data.into_iter());
         let stream: Box<
             dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
         > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(

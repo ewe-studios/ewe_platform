@@ -127,6 +127,26 @@ impl ConnectionHandler {
         false
     }
 
+    fn has_body(req: &SimpleIncomingRequest) -> bool {
+        req.headers
+            .get(&SimpleHeader::CONTENT_LENGTH)
+            .is_some_and(|values| {
+                values
+                    .iter()
+                    .any(|v| v.trim().parse::<u64>().is_ok_and(|n| n > 0))
+            })
+            || req
+                .headers
+                .get(&SimpleHeader::TRANSFER_ENCODING)
+                .is_some_and(|values| {
+                    values.iter().any(|v| {
+                        v.to_lowercase()
+                            .split(',')
+                            .any(|part| part.trim() == "chunked")
+                    })
+                })
+    }
+
     fn has_expect_continue(req: &SimpleIncomingRequest) -> bool {
         req.headers
             .get(&SimpleHeader::EXPECT)
@@ -273,6 +293,19 @@ impl ConnectionHandler {
         continue_retries: usize,
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if Self::has_expect_continue(&req) {
+            // Always send 100-continue then skip waiting for no body there.
+            // If there's no body, skip WaitingForBody and go straight to Processing.
+            if !Self::has_body(&req) {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    method = %req.method,
+                    path = %req.request_url.url,
+                    "Expect: 100-continue with no body, skipping to Processing"
+                );
+                self.state = Some(HandlerState::Processing { req, should_close });
+                return Some(TaskStatus::Pending(()));
+            }
+
             // Send 100 Continue and wait for body data.
             match respond::continue_100(&mut self.conn.clone()) {
                 Ok(()) => {
@@ -489,12 +522,27 @@ impl ConnectionHandler {
                         status = %resp.status,
                         "Processing: middleware returned interim response"
                     );
-                    let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
+
+                    let client_ip = self.client_ip.clone();
+                    let client_status = resp.status.clone();
+
+                    if let Err(err) =
+                        Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
+                    {
+                        tracing::trace!(
+                            client_ip = %client_ip,
+                            status = %client_status,
+                            err = ?err,
+                            "Failed to write response to reader, stopping: {:?}", err);
+                        // stop immediately
+                        return None;
+                    }
                 }
             }
         }
 
         if let Some(mut resp) = middleware_response {
+            tracing::trace!("Running middleware response process");
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
@@ -508,6 +556,8 @@ impl ConnectionHandler {
             self.state = Some(HandlerState::Idle);
             return Some(TaskStatus::Pending(()));
         }
+
+        tracing::trace!("[NORMAL FLOW] Running normal request response flow");
 
         // Route dispatch.
         let method = &req.method;

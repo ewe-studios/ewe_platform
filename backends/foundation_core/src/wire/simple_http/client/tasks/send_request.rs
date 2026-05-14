@@ -19,6 +19,7 @@ use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
+use crate::wire::simple_http::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::wire::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
@@ -68,6 +69,7 @@ pub struct SendRequestTask<R>(
     ClientConfig,
     Arc<HttpConnectionPool<R>>,
     Uri,
+    usize,
 )
 where
     R: DnsResolver + Send + 'static;
@@ -94,7 +96,14 @@ where
             config,
             pool,
             parsed_uri,
+            5,
         )
+    }
+
+    #[must_use]
+    pub fn with_max_loop(mut self, max_loop: usize) -> Self {
+        self.4 = max_loop;
+        self
     }
 }
 
@@ -208,110 +217,207 @@ where
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
-                    Some(TaskStatus::Ready(item)) => match item {
-                        HttpRequestRedirectResponse::Done(
-                            stream,
-                            reader,
-                            boxed_optional_starters,
-                        ) => {
-                            if let Some(starter_array) = *boxed_optional_starters {
-                                let [first, second] = starter_array;
+                    Some(TaskStatus::Ready(item)) => {
+                        match item {
+                            HttpRequestRedirectResponse::Done(
+                                stream,
+                                mut reader,
+                                boxed_optional_starters,
+                            ) => {
+                                if let Some(starter_array) = *boxed_optional_starters {
+                                    let [first, second] = starter_array;
 
-                                tracing::debug!(
-                                        "HttpRequestRedirectResponse::Done: first = {:?}, second = {:?}",
+                                    tracing::debug!(
+                                        "SendRequest::Done: first = {:?}, second = {:?}",
                                         first,
                                         second
                                     );
 
-                                let intro = if let IncomingResponseParts::Intro(
-                                    status,
-                                    proto,
-                                    text,
-                                ) = first
-                                {
-                                    tracing::debug!("HttpRequestRedirectResponse::Done: parsed intro status={:?}", status);
-                                    (status, proto, text)
-                                } else {
-                                    self.0.take();
+                                    let mut intro =
+                                        if let IncomingResponseParts::Intro(status, proto, text) =
+                                            first
+                                        {
+                                            tracing::debug!(
+                                                "SendRequest::Done: parsed intro status={:?}",
+                                                status
+                                            );
+                                            (status, proto, text)
+                                        } else {
+                                            self.0.take();
 
-                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                        HttpClientError::ReadError,
-                                    )));
-                                };
+                                            return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                                HttpClientError::ReadError,
+                                            )));
+                                        };
 
-                                let IncomingResponseParts::Headers(headers) = second else {
-                                    self.0.take();
+                                    let IncomingResponseParts::Headers(headers) = second else {
+                                        self.0.take();
 
-                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                        HttpClientError::ReadError,
-                                    )));
-                                };
+                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpClientError::ReadError,
+                                        )));
+                                    };
 
-                                tracing::trace!("Setting state to SkipReading for request");
+                                    tracing::trace!("[PROCESSING HEADERS CHECK] Received headers with staters {:?}", &headers);
 
-                                self.0 = Some(SendRequestState::SkipReading(Box::new(Some(
-                                    RequestIntro::Success {
-                                        stream: Box::new(reader),
-                                        conn: stream,
-                                        intro,
-                                        headers,
-                                    },
-                                ))));
+                                    // if we see Processing then, lets pull the body then re-run the pull step
+                                    tracing::trace!("[PROCESSING CHECK] Checking status code({}) == Status::Processing", &intro.0);
+                                    if intro.0 == Status::Processing {
+                                        tracing::info!(
+                                        "[PROCESSING CHECK] Entering state of Status::Processing: {:?}",
+                                        (&intro.0, &intro.1, &intro.2)
+                                    );
 
-                                return Some(TaskStatus::Pending(
-                                    HttpRequestPending::WaitingIntroAndHeaders,
-                                ));
+                                        let mut current_loop: usize = 0;
+
+                                        // loop and collect the next until you see another intro
+                                        // and if its not a Status::Processing, then stop.
+                                        for next_state in &mut reader {
+                                            tracing::trace!(
+                                            "[PROCESSING CHECK] Got next state of request: {:?}",
+                                            &next_state
+                                        );
+
+                                            let next_item = match next_state {
+                                                Ok(item) => item,
+                                                Err(err) => {
+                                                    tracing::error!(
+                                                    "[PROCESSING CHECK] Failed to read next body from 102 status due to: {:?}",
+                                                    err
+                                                );
+                                                    return Some(TaskStatus::Ready(
+                                                        RequestIntro::Failed(
+                                                            HttpClientError::ReadError,
+                                                        ),
+                                                    ));
+                                                }
+                                            };
+
+                                            match next_item {
+                                                IncomingResponseParts::Intro(
+                                                    next_status,
+                                                    next_proto,
+                                                    next_text,
+                                                ) => {
+                                                    tracing::info!(
+                                                    "[PROCESSING CHECK, new-intro] Received next intro for status: {:?}",
+                                                    (&next_status, &next_proto, &next_text)
+                                                );
+
+                                                    // if Processing and loop is less than max, skipp it again
+                                                    if next_status == Status::Processing
+                                                        && current_loop < self.4
+                                                    {
+                                                        current_loop += 1;
+                                                        continue;
+                                                    }
+
+                                                    // if we've reached max or not Status::Processing then stop
+                                                    intro.0 = next_status;
+                                                    intro.1 = next_proto;
+                                                    intro.2 = next_text;
+                                                    break;
+                                                }
+                                                IncomingResponseParts::StreamedBody(stream) => {
+                                                    tracing::info!(
+                                                    "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
+                                                    &stream,
+                                                );
+
+                                                    if let Err(err) =
+                                                        drain_stream_iterator_from_send_safe(stream)
+                                                    {
+                                                        tracing::error!(
+                                                        "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
+                                                        err
+                                                    );
+                                                        return Some(TaskStatus::Ready(
+                                                            RequestIntro::Failed(
+                                                                HttpClientError::ReadError,
+                                                            ),
+                                                        ));
+                                                    }
+                                                }
+                                                _ => {
+                                                    tracing::trace!(
+                                                    "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
+                                                );
+                                                    continue;
+                                                }
+                                            }
+                                        }
+
+                                        tracing::trace!(
+                                            "[PROCESSING CHECK] Finished Status::Processing"
+                                        );
+                                    }
+
+                                    tracing::trace!("Setting state to SkipReading for request");
+
+                                    self.0 = Some(SendRequestState::SkipReading(Box::new(Some(
+                                        RequestIntro::Success {
+                                            stream: Box::new(reader),
+                                            conn: stream,
+                                            intro,
+                                            headers,
+                                        },
+                                    ))));
+
+                                    return Some(TaskStatus::Pending(
+                                        HttpRequestPending::WaitingIntroAndHeaders,
+                                    ));
+                                }
+
+                                tracing::trace!("Setting state to Reading for request");
+                                let (get_intro_stream_action, get_intro_receiver) =
+                                    InlineSendAction::boxed_mapper(
+                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                        Vec::new(),
+                                        GetRequestIntroTask::new(stream)
+                                            .with_body_config(self.1.into_simple_http_body()),
+                                        self.1.inline_processing_timeout,
+                                    );
+
+                                self.0 = Some(SendRequestState::Reading(drive_receiver(
+                                    get_intro_receiver,
+                                )));
+
+                                Some(TaskStatus::Spawn(
+                                    get_intro_stream_action.into_box_send_execution_action(),
+                                ))
                             }
-
-                            tracing::trace!("Setting state to Reading for request");
-                            let (get_intro_stream_action, get_intro_receiver) =
-                                InlineSendAction::boxed_mapper(
-                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                    Vec::new(),
-                                    GetRequestIntroTask::new(stream)
-                                        .with_body_config(self.1.into_simple_http_body()),
-                                    self.1.inline_processing_timeout,
-                                );
-
-                            self.0 = Some(SendRequestState::Reading(drive_receiver(
-                                get_intro_receiver,
-                            )));
-
-                            Some(TaskStatus::Spawn(
-                                get_intro_stream_action.into_box_send_execution_action(),
-                            ))
-                        }
-                        HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
-                            tracing::debug!(
+                            HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
+                                tracing::debug!(
                                 "FlushFailed(err={err:?}): Failed and re-attempt and fetch intro"
                             );
 
-                            if let Err(err) = conn.stream_mut().flush() {
-                                tracing::error!("Failed to flush HTTP stream: {}", err);
+                                if let Err(err) = conn.stream_mut().flush() {
+                                    tracing::error!("Failed to flush HTTP stream: {}", err);
+                                }
+
+                                let (get_intro_stream_action, get_intro_receiver) =
+                                    InlineSendAction::boxed_mapper(
+                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                        Vec::new(),
+                                        GetRequestIntroTask::new(conn)
+                                            .with_body_config(self.1.into_simple_http_body()),
+                                        self.1.inline_processing_timeout,
+                                    );
+
+                                self.0 = Some(SendRequestState::Reading(drive_receiver(
+                                    get_intro_receiver,
+                                )));
+
+                                Some(TaskStatus::Spawn(
+                                    get_intro_stream_action.into_box_send_execution_action(),
+                                ))
                             }
-
-                            let (get_intro_stream_action, get_intro_receiver) =
-                                InlineSendAction::boxed_mapper(
-                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                    Vec::new(),
-                                    GetRequestIntroTask::new(conn)
-                                        .with_body_config(self.1.into_simple_http_body()),
-                                    self.1.inline_processing_timeout,
-                                );
-
-                            self.0 = Some(SendRequestState::Reading(drive_receiver(
-                                get_intro_receiver,
-                            )));
-
-                            Some(TaskStatus::Spawn(
-                                get_intro_stream_action.into_box_send_execution_action(),
-                            ))
+                            HttpRequestRedirectResponse::Error(err) => {
+                                self.0.take();
+                                Some(TaskStatus::Ready(RequestIntro::Failed(err)))
+                            }
                         }
-                        HttpRequestRedirectResponse::Error(err) => {
-                            self.0.take();
-                            Some(TaskStatus::Ready(RequestIntro::Failed(err)))
-                        }
-                    },
+                    }
                 }
             }
             SendRequestState::SkipReading(boxed) => match *boxed {

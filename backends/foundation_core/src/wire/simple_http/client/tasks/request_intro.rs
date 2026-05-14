@@ -19,10 +19,12 @@ use derive_more::From;
 
 use crate::netcap::RawStream;
 use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
+use crate::wire::simple_http::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::wire::simple_http::client::{HttpClientConnection, ResponseIntro};
+use crate::wire::simple_http::IncomingResponseParts;
 use crate::wire::simple_http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
-    SimpleHttpBody,
+    SimpleHttpBody, Status,
 };
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
@@ -97,12 +99,18 @@ pub enum GetRequestIntroState {
     WithIntro(WithIntroData),
 }
 
-pub struct GetRequestIntroTask(Option<GetRequestIntroState>, Option<SimpleHttpBody>);
+pub struct GetRequestIntroTask(Option<GetRequestIntroState>, Option<SimpleHttpBody>, usize);
 
 impl GetRequestIntroTask {
     #[must_use]
     pub fn new(stream: HttpClientConnection) -> Self {
-        Self(Some(GetRequestIntroState::Init(Some(stream))), None)
+        Self(Some(GetRequestIntroState::Init(Some(stream))), None, 5)
+    }
+
+    #[must_use]
+    pub fn with_max_loop(mut self, max_loop: usize) -> Self {
+        self.2 = max_loop;
+        self
     }
 
     #[must_use]
@@ -121,6 +129,8 @@ impl TaskIterator for GetRequestIntroTask {
         match self.0.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
+                    tracing::trace!("[INTRO] Getting next status for request intro");
+
                     let body_config = self.1.take().unwrap_or_default();
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
@@ -138,8 +148,7 @@ impl TaskIterator for GetRequestIntroTask {
                         }
                     };
 
-                    let crate::wire::simple_http::IncomingResponseParts::Intro(status, proto, text) =
-                        intro
+                    let IncomingResponseParts::Intro(mut status, mut proto, mut text) = intro
                     else {
                         tracing::info!("Failed to read intro from stream");
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
@@ -148,6 +157,80 @@ impl TaskIterator for GetRequestIntroTask {
                     };
 
                     tracing::info!("Received intro for request: {:?}", (&status, &proto, &text));
+
+                    // if we see Processing then, lets pull the body then re-run the pull step
+                    if status == Status::Processing {
+                        tracing::info!(
+                            "Entering state of Status::Processing: {:?}",
+                            (&status, &proto, &text)
+                        );
+
+                        let mut current_loop: usize = 0;
+
+                        // loop and collect the next until you see another intro
+                        // and if its not a Status::Processing, then stop.
+                        for next_state in &mut reader {
+                            let next_item = match next_state {
+                                Ok(item) => item,
+                                Err(err) => {
+                                    tracing::error!(
+                                        "Failed to read next body from 102 status due to: {:?}",
+                                        err
+                                    );
+                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                        HttpReaderError::ReadFailed.into(),
+                                    )));
+                                }
+                            };
+
+                            match next_item {
+                                IncomingResponseParts::Intro(
+                                    next_status,
+                                    next_proto,
+                                    next_text,
+                                ) => {
+                                    tracing::info!(
+                                        "Received next intro for request: {:?}",
+                                        (&next_status, &next_proto, &next_text)
+                                    );
+
+                                    // if Processing and loop is less than max, skipp it again
+                                    if next_status == Status::Processing && current_loop < self.2 {
+                                        current_loop += 1;
+                                        continue;
+                                    }
+
+                                    // if we've reached max or not Status::Processing then stop
+                                    status = next_status;
+                                    proto = next_proto;
+                                    text = next_text;
+                                    break;
+                                }
+                                IncomingResponseParts::StreamedBody(stream) => {
+                                    tracing::info!(
+                                        "Saw next body under Status::Processing state: {:?}",
+                                        &stream,
+                                    );
+
+                                    if let Err(err) = drain_stream_iterator_from_send_safe(stream) {
+                                        tracing::error!(
+                                            "Failed to drain body from 102 status due to: {:?}",
+                                            err
+                                        );
+                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpReaderError::ReadFailed.into(),
+                                        )));
+                                    }
+                                }
+                                _ => {
+                                    tracing::trace!(
+                                        "Skipping body state from request under Status::Processing"
+                                    );
+                                    continue;
+                                }
+                            }
+                        }
+                    }
 
                     let _ = self
                         .0

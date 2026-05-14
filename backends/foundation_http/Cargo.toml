@@ -27,6 +27,7 @@ uuid = { version = "1.6", features = ["v4"] }
 foundation_testing = { workspace=true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
+ntest = { version = "0.9" }
 
 [features]
 default = []
