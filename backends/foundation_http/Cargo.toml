@@ -32,10 +32,6 @@ ntest = { version = "0.9" }
 [features]
 default = []
 multi = ["foundation_core/multi"]
-middleware-cors = []
-middleware-logging = []
-middleware-auth = []
-middleware-compression = ["foundation_core/compression"]
 # TLS backends — mirrors foundation_core's SSL feature set.
 # `ssl` is the recommended default (rustls + ring).
 ssl = ["foundation_core/ssl-rustls-ring"]
