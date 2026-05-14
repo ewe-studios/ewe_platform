@@ -58,7 +58,8 @@
       "Bash(export TESTBED_START_GUI=1)",
       "Bash(tee /tmp/test_run.log)",
       "Bash(export TESTBED_INSTALL_GNOME=1)",
-      "Bash(pkill -f \"qemu.*linux-build\")"
+      "Bash(pkill -f \"qemu.*linux-build\")",
+      "Bash(tee /tmp/gnome_test.log)"
     ]
   }
 }

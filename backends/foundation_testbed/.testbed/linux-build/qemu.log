@@ -1,1 +1,2 @@
-qemu-system-x86_64: terminating on signal 15 from pid 2377492 ()
+qemu-system-x86_64: -monitor unix:/home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_testbed/.testbed/linux-build/state/linux-build.monitor,server,nowait: UNIX socket path '/home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_testbed/.testbed/linux-build/state/linux-build.monitor' is too long
+Path must be less than 108 bytes

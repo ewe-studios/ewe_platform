@@ -1335,7 +1335,10 @@ impl Serve for ExpectContinueEchoHandler {
         // should have been delivered after the interim 100 Continue.
         // The body comes as a Stream (lazy iterator), so we need to
         // collect from it properly.
-        tracing::trace!("ExpectContinueEchoHandler: req.body variant = {:?}", req.body.as_ref().map(|b| std::mem::discriminant(b)));
+        tracing::trace!(
+            "ExpectContinueEchoHandler: req.body variant = {:?}",
+            req.body.as_ref().map(|b| std::mem::discriminant(b))
+        );
         let body_text = match req.body {
             Some(body) => {
                 let bytes = foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe(body);
@@ -1419,8 +1422,12 @@ fn test_expect_100_continue_json_body() {
 
     assert!(response.is_success(), "Expected 200 OK");
     let body = body_text(response.get_body_ref());
+    tracing::trace!("Body received: {:?}", body);
     assert!(body.contains("key"), "Body should contain 'key': {body}");
-    assert!(body.contains("value"), "Body should contain 'value': {body}");
+    assert!(
+        body.contains("value"),
+        "Body should contain 'value': {body}"
+    );
 
     shutdown.turn_on();
 }
@@ -1467,7 +1474,8 @@ struct InterimMiddleware {
 
 impl RequestMiddleware for InterimMiddleware {
     fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
-        self.interim_sent.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.interim_sent
+            .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
             foundation_core::wire::simple_http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Numbered(102, String::new()))

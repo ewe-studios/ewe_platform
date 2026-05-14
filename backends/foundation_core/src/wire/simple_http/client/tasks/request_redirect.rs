@@ -108,6 +108,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
         trace_span.in_scope(|| {
             match self.0.take()? {
                 HttpRequestRedirectState::Init(mut inner_opt) => {
+                    tracing::trace!("HttpRequestRedirectState::Init");
                     if let Some(inner) = inner_opt.take() {
                         let (data, pool, config, remaining_redirects) = *inner;
 
@@ -130,6 +131,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     None
                 }
                 HttpRequestRedirectState::Trying(inner_opt) => {
+                    tracing::trace!("HttpRequestRedirectState::Trying");
                     let Some(state) = inner_opt else {
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return None;
@@ -310,9 +312,10 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     };
 
                     let is_100_continue = status == &Status::Continue;
-                    tracing::debug!("Is 100-continue: {}", is_100_continue);
+                    tracing::trace!("Is 100-continue: {}", is_100_continue);
 
                     if is_100_continue {
+                        tracing::trace!("Moving to write body state for task: {}", is_100_continue);
                         self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
                             None,
                             data,
@@ -324,6 +327,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                     }
 
+                    tracing::trace!("No 100-continue, checking if redirect: {}", is_100_continue);
                     let is_redirect = (300..400).contains(&status.clone().into_usize());
                     tracing::debug!("Is redirect: {}", is_redirect);
 
@@ -432,9 +436,12 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     Some(TaskStatus::Pending(HttpOperationState::Connecting))
                 }
                 HttpRequestRedirectState::WriteBody(mut inner_opt) => {
+                    tracing::trace!("HttpRequestRedirectState::WriteBody");
                     if let Some(inner) = inner_opt.take() {
+                        tracing::trace!("HttpRequestRedirectState::WriteBody: taking connection state data pointers");
                         let (optional_starters, data, _pool, mut connection, reader) = *inner;
                         let body_renderer = Http11::request_body(data);
+                        tracing::trace!("HttpRequestRedirectState::WriteBody: creating body renderer and writing body to stream");
 
                         if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
                             tracing::error!("Failed to write request body: {}", err);
@@ -445,16 +452,22 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             )));
                         }
 
+                        tracing::trace!("HttpRequestRedirectState::WriteBody: written body to stream");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return match connection.stream_mut().flush() {
-                            Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                            Ok(()) => {
+                                tracing::trace!("HttpRequestRedirectState::WriteBody: flushed body to stream");
+                                Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
                                 connection,
                                 reader,
                                 Box::new(optional_starters),
-                            ))),
-                            Err(e) => Some(TaskStatus::Ready(
+                            )))},
+                            Err(e) => {
+                                tracing::trace!("HttpRequestRedirectState::WriteBody: failed to flush body to stream due to: {:?}", e);
+
+                                Some(TaskStatus::Ready(
                                 HttpRequestRedirectResponse::FlushFailed(connection, e),
-                            )),
+                            ))},
                         };
                     }
 

@@ -6,6 +6,7 @@ use crate::config::{Result, VmProfile};
 use crate::ssh::VmSession;
 
 const INSTALL_SYSTEM_DEPS_SH: &str = include_str!("../../scripts/linux/install_system_deps.sh");
+const INSTALL_DEV_DEPS_SH: &str = include_str!("../../scripts/linux/install_dev_deps.sh");
 const INSTALL_MISE_SH: &str = include_str!("../../scripts/linux/install_mise.sh");
 const ACTIVATE_MISE_BASHRC_SH: &str = include_str!("../../scripts/linux/activate_mise_bashrc.sh");
 const INSTALL_CARGO_BINSTALL_SH: &str = include_str!("../../scripts/linux/install_cargo_binstall.sh");
@@ -101,6 +102,28 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             }
         } else {
             logger.message("  Skipping system deps install (all present)");
+        }
+        Ok(())
+    })?;
+
+    // Install comprehensive dev dependencies (Rust, LLVM, GCC, ARM cross-compile, Tauri)
+    logger::step(logger, "install dev dependencies", || {
+        // Check if already installed by looking for key tools
+        let has_llvm = crate::ssh::exec(
+            session,
+            "command -v llvm-ar >/dev/null 2>&1 && echo present || echo missing",
+        ).unwrap_or_default();
+        let has_arm_gcc = crate::ssh::exec(
+            session,
+            "command -v aarch64-linux-gnu-gcc >/dev/null 2>&1 && echo present || echo missing",
+        ).unwrap_or_default();
+
+        if !has_llvm.contains("present") || !has_arm_gcc.contains("present") {
+            logger.message("  Installing dev deps (LLVM, GCC, ARM cross-compile, Tauri deps)...");
+            crate::ssh::exec(session, INSTALL_DEV_DEPS_SH)?;
+            logger.message("  Dev dependencies installed");
+        } else {
+            logger.message("  Skipping dev deps install (already present)");
         }
         Ok(())
     })?;

@@ -1003,6 +1003,23 @@ impl<T: Read> SharedByteBufferStream<T> {
     pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         self.0.do_once_mut(|inner| inner.read_line(buf))
     }
+
+    /// Probe the stream by filling the buffer if needed and returning the available byte count.
+    ///
+    /// If the buffer already has unconsumed data, returns its length without reading.
+    /// Otherwise calls `fill_up()` to try pulling more bytes from the underlying reader.
+    ///
+    /// # Errors
+    /// Returns the underlying `io::Error` if the fill fails (e.g. WouldBlock,
+    /// connection reset, etc.).
+    pub fn probe(&mut self) -> std::io::Result<usize> {
+        self.0.do_once_mut(|inner| {
+            if inner.is_empty_or_consumed() {
+                let _ = inner.fill_up()?;
+            }
+            Ok(inner.remaining())
+        })
+    }
 }
 
 // Implement cloning for the [`SharedByteBufferStream`].

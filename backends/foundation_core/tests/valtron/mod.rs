@@ -1,13 +1,9 @@
 // Test modules for foundation_core
-mod chunked_tests;
-mod event_source;
+mod channel_backpressure_tests;
 mod flatten_combinators;
 mod map_circuit;
 mod notification_based_waiting;
-mod simple_http;
 mod stream_iterators;
 mod sync_boundary_helpers;
 mod task_iterators;
-mod valtron;
-mod websocket;
-mod wire;
+mod threaded_future;

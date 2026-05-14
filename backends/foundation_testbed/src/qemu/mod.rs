@@ -128,6 +128,7 @@ impl QemuConfig {
         std::fs::create_dir_all(&monitor_dir_path).ok();
         let monitor_path = monitor_dir_path.join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
+        eprintln!("DEBUG: monitor_path = {:?}", monitor_path);
 
         // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
         let disk_path = crate::import::ensure_image(&self.profile)?;

@@ -507,12 +507,42 @@ pub fn monitor_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("state")
 }
 
-/// VM work directory: `$PWD/.testbed/[vm-name]/` — per-VM logs and artifacts.
+/// Find workspace root by searching for the directory containing Cargo.toml with [workspace]
+pub fn workspace_root() -> std::path::PathBuf {
+    let current = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let mut path = current.clone();
+
+    loop {
+        let cargo_toml = path.join("Cargo.toml");
+        if cargo_toml.exists() {
+            if let Ok(content) = std::fs::read_to_string(&cargo_toml) {
+                if content.contains("[workspace]") {
+                    return path;
+                }
+            }
+        }
+        if !path.pop() {
+            break;
+        }
+    }
+
+    // Fallback: check for .testbed directory in parent
+    path = current.clone();
+    loop {
+        if path.join(".testbed").exists() {
+            return path;
+        }
+        if !path.pop() {
+            break;
+        }
+    }
+
+    current
+}
+
+/// VM work directory: `$WORKSPACE_ROOT/.testbed/[vm-name]/` — per-VM logs and artifacts.
 pub fn work_dir(profile_name: &str) -> std::path::PathBuf {
-    std::env::current_dir()
-        .unwrap_or_else(|_| std::path::PathBuf::from("."))
-        .join(".testbed")
-        .join(profile_name)
+    workspace_root().join(".testbed").join(profile_name)
 }
 
 /// Per-VM logs directory: `$PWD/.testbed/[vm-name]/logs/`.
