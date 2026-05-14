@@ -1301,3 +1301,320 @@ fn test_sse_event_formatting() {
     let retry_event = SseEvent::retry(5000u64);
     assert_eq!(retry_event.retry_ms(), Some(5000));
 }
+
+// ============================================================================
+// Expect: 100-Continue Tests
+// ============================================================================
+
+/// Echo handler that reads the request body and echoes it back.
+/// Used to verify that Expect: 100-continue body delivery works.
+struct ExpectContinueEchoHandler;
+
+impl ServeFactory for ExpectContinueEchoHandler {
+    fn create(_bag: &ContextBag) -> Self {
+        Self
+    }
+}
+
+impl Serve for ExpectContinueEchoHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        req: SimpleIncomingRequest,
+        mut conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        // Pull the body — if Expect: 100-continue worked, the body
+        // should have been delivered after the interim 100 Continue.
+        let body_text = match req.body {
+            Some(SendSafeBody::Text(t)) => t,
+            Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(&b).to_string(),
+            _ => String::new(),
+        };
+        respond::text(&mut conn, 200, &body_text)
+            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+    }
+}
+
+/// Expect: 100-continue — client sends header with body, server responds
+/// with 100 Continue then reads the body and echoes it back.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_expect_100_continue_body_echo() {
+    let _guard = initialize_pool(42, Some(5));
+    let mut app = HttpApp::new();
+    app.route::<ExpectContinueEchoHandler>(SimpleMethod::POST, "/echo-body");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    // Send POST with Expect: 100-continue header and a text body.
+    // The client should wait for 100 Continue, then send the body.
+    // The server echoes the body back — if we get the body text,
+    // the 100-continue flow worked correctly.
+    let response = client
+        .post("http://testserver/echo-body")
+        .unwrap()
+        .header(SimpleHeader::EXPECT, "100-continue")
+        .body_text("hello via expect-continue")
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert!(response.is_success(), "Expected 200 OK");
+    let body = body_text(response.get_body_ref());
+    assert_eq!(
+        body, "hello via expect-continue",
+        "Body should be echoed back: {body}"
+    );
+
+    shutdown.turn_on();
+}
+
+/// Expect: 100-continue with JSON body — verifies the full flow
+/// works with structured content.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_expect_100_continue_json_body() {
+    let _guard = initialize_pool(42, Some(5));
+    let mut app = HttpApp::new();
+    app.route::<BodyEchoHandler>(SimpleMethod::POST, "/json-echo");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    let payload = serde_json::json!({ "key": "value", "number": 123 });
+
+    let response = client
+        .post("http://testserver/json-echo")
+        .unwrap()
+        .header(SimpleHeader::EXPECT, "100-continue")
+        .body_json(&payload)
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert!(response.is_success(), "Expected 200 OK");
+    let body = body_text(response.get_body_ref());
+    assert!(body.contains("key"), "Body should contain 'key': {body}");
+    assert!(body.contains("value"), "Body should contain 'value': {body}");
+
+    shutdown.turn_on();
+}
+
+/// GET with Expect: 100-continue — no body expected, server should skip
+/// sending 100 Continue and respond normally.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_expect_100_continue_get_no_body() {
+    let _guard = initialize_pool(42, Some(5));
+    let mut app = HttpApp::new();
+    app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    // GET with Expect header but no body — server should ignore it.
+    let response = client
+        .get("http://testserver/echo")
+        .unwrap()
+        .header(SimpleHeader::EXPECT, "100-continue")
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert!(response.is_success(), "Expected 200 OK");
+    let body = body_text(response.get_body_ref());
+    assert!(body.contains("GET"), "Body should contain GET: {body}");
+
+    shutdown.turn_on();
+}
+
+// ============================================================================
+// MiddlewareResult::InterimResponse Tests
+// ============================================================================
+
+/// Interim middleware — sends a 102 Processing response but continues
+/// the chain to the handler.
+struct InterimMiddleware {
+    interim_sent: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl RequestMiddleware for InterimMiddleware {
+    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+        self.interim_sent.store(true, std::sync::atomic::Ordering::SeqCst);
+        MiddlewareResult::InterimResponse(
+            foundation_core::wire::simple_http::SimpleOutgoingResponse::builder()
+                .with_status(Status::Numbered(102, String::new()))
+                .with_body(SendSafeBody::Text("processing...".into()))
+                .build()
+                .expect("valid interim response"),
+        )
+    }
+}
+
+/// Handler that confirms it ran after interim middleware.
+struct AfterInterimHandler;
+
+impl ServeFactory for AfterInterimHandler {
+    fn create(_bag: &ContextBag) -> Self {
+        Self
+    }
+}
+
+impl Serve for AfterInterimHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        req: SimpleIncomingRequest,
+        mut conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        let path = &req.request_url.url;
+        respond::text(&mut conn, 200, &format!("handler reached: {path}"))
+            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+    }
+}
+
+/// InterimResponse middleware — sends 102 Processing but continues to handler.
+/// The final response should still come from the handler.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_interim_response_continues_to_handler() {
+    let _guard = initialize_pool(42, Some(5));
+    let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let mut app = HttpApp::new();
+    app.middleware(InterimMiddleware {
+        interim_sent: interim_sent.clone(),
+    });
+    app.route::<AfterInterimHandler>(SimpleMethod::GET, "/interim-test");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    let response = client
+        .get("http://testserver/interim-test")
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    // The interim response (102) is written first, but the final response
+    // that the client sees is from the handler (200).
+    assert!(response.is_success(), "Expected 200 OK from handler");
+    let body = body_text(response.get_body_ref());
+    assert!(
+        body.contains("handler reached"),
+        "Handler should have run: {body}"
+    );
+    assert!(
+        body.contains("/interim-test"),
+        "Body should contain path: {body}"
+    );
+    // Verify middleware ran
+    assert!(
+        interim_sent.load(std::sync::atomic::Ordering::SeqCst),
+        "Interim middleware should have been executed"
+    );
+
+    shutdown.turn_on();
+}
+
+/// Multiple middleware: first sends InterimResponse, second does Continue,
+/// handler runs — verifying InterimResponse doesn't break the chain.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_interim_response_with_subsequent_middleware() {
+    let _guard = initialize_pool(42, Some(5));
+    let count = Arc::new(AtomicUsize::new(0));
+    let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let mw_interim = InterimMiddleware {
+        interim_sent: interim_sent.clone(),
+    };
+    let mw_counter = CounterMiddleware {
+        count: count.clone(),
+    };
+
+    let mut app = HttpApp::new();
+    app.middleware(mw_interim); // First: sends interim
+    app.middleware(mw_counter); // Second: increments counter
+    app.route::<AfterInterimHandler>(SimpleMethod::GET, "/chain-test");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    let response = client
+        .get("http://testserver/chain-test")
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert!(response.is_success(), "Expected 200 OK from handler");
+    // Counter middleware ran after interim middleware
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        1,
+        "Counter middleware should have run once"
+    );
+    assert!(
+        interim_sent.load(std::sync::atomic::Ordering::SeqCst),
+        "Interim middleware should have been executed"
+    );
+
+    shutdown.turn_on();
+}
+
+/// InterimResponse + blocking middleware: interim runs, then blocker
+/// short-circuits — handler should NOT run.
+#[test]
+#[traced_test]
+#[serial(http_test)]
+fn test_interim_response_then_blocker() {
+    let _guard = initialize_pool(42, Some(5));
+    let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let mut app = HttpApp::new();
+    app.middleware(InterimMiddleware {
+        interim_sent: interim_sent.clone(),
+    });
+    app.middleware(BlockMiddleware); // Short-circuits after interim
+    app.route::<AfterInterimHandler>(SimpleMethod::GET, "/blocked");
+
+    let (addr, shutdown) = start_server(app);
+    let client = make_client(addr);
+
+    let response = client
+        .get("http://testserver/blocked")
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    // BlockMiddleware short-circuits with 403
+    assert_eq!(
+        status_code(&response.get_status()),
+        403,
+        "Expected 403 from blocking middleware"
+    );
+    assert_eq!(body_text(response.get_body_ref()), "blocked by middleware");
+    // Interim still ran (was written to stream before blocker)
+    assert!(
+        interim_sent.load(std::sync::atomic::Ordering::SeqCst),
+        "Interim middleware should have been executed"
+    );
+
+    shutdown.turn_on();
+}

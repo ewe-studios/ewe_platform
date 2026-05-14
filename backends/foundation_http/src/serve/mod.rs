@@ -239,4 +239,27 @@ pub mod respond {
         let body = reason.unwrap_or("Internal Server Error");
         text(conn, 500, body)
     }
+
+    /// Write a 100 Continue interim response.
+    ///
+    /// Used for HTTP/1.1 Expect: 100-continue handling. The client sends
+    /// request headers with `Expect: 100-continue` and waits for this
+    /// response before sending the request body.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ServeError::InternalError` if the response cannot be rendered.
+    pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
+        let response = SimpleOutgoingResponse::builder()
+            .with_status(status_from_code(100))
+            .with_body(SendSafeBody::None)
+            .build()
+            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+
+        Http11::response(response)
+            .http_render_to_writer(conn)
+            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+
+        Ok(())
+    }
 }

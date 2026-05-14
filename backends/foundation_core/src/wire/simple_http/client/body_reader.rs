@@ -25,7 +25,7 @@
 //! }
 //! ```
 
-use crate::extensions::result_ext::BoxedError;
+use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::io::readers::{Data, DataBytesIterator};
 use crate::wire::event_source::Event;
 use crate::wire::simple_http::{
@@ -229,9 +229,14 @@ pub fn collect_string_strict(
                         }
                         Ok(lines.join("\n"))
                     }
-                    SendSafeBody::SseStream(_) => Err(StringBodyError::StreamIteratorError(
-                        "SSE stream cannot be converted to string - use SseParser directly".into(),
-                    )),
+                    SendSafeBody::SseStream(mut opt_iter) => {
+                        if let Some(iter) = opt_iter.take() {
+                            let bytes = collect_from_sse_stream(iter);
+                            String::from_utf8(bytes).map_err(StringBodyError::InvalidUtf8)
+                        } else {
+                            Err(StringBodyError::NoBody)
+                        }
+                    },
                     SendSafeBody::None => Err(StringBodyError::NoBody),
                 };
             }
@@ -389,9 +394,13 @@ pub fn collect_bytes_strict(
                         }
                         Ok(bytes)
                     }
-                    SendSafeBody::SseStream(_) => Err(BodyReaderError::StreamIteratorError(
-                        "SSE stream cannot be converted to bytes - use SseParser directly".into(),
-                    )),
+                    SendSafeBody::SseStream(mut opt_iter) => {
+                        if let Some(iter) = opt_iter.take() {
+                            Ok(collect_from_sse_stream(iter))
+                        } else {
+                            Err(BodyReaderError::NoBody)
+                        }
+                    },
                     SendSafeBody::None => Err(BodyReaderError::NoBody),
                 };
             }
@@ -547,10 +556,10 @@ pub fn collect_bytes_direct(
                     }
                     return bytes;
                 }
-                SendSafeBody::SseStream(_) => {
-                    tracing::warn!(
-                        "SSE stream cannot be converted to bytes directly - use SseParser"
-                    );
+                SendSafeBody::SseStream(mut opt_iter) => {
+                    if let Some(iter) = opt_iter.take() {
+                        return collect_from_sse_stream(iter);
+                    }
                     return Vec::new();
                 }
                 SendSafeBody::None => {
@@ -644,6 +653,53 @@ where
         }
     }
     bytes
+}
+
+/// Process an SSE stream iterator (yields ParseResult), collecting event data bytes into a Vec.
+/// Used internally by collect_bytes_from_send_safe for SseStream variant.
+fn collect_from_sse_stream<I>(iter: I) -> Vec<u8>
+where
+    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+{
+    let mut bytes = Vec::new();
+    for result in iter {
+        match result {
+            Ok(pr) => match pr.event {
+                Event::Message { data, .. } => {
+                    bytes.extend_from_slice(data.as_bytes());
+                    bytes.push(b'\n');
+                }
+                Event::Comment(_) | Event::Reconnect => continue,
+            },
+            Err(e) => {
+                tracing::warn!("SSE stream error: {e}");
+                break;
+            }
+        }
+    }
+    bytes
+}
+
+/// Strict variant: processes an SSE stream and propagates errors to the caller.
+/// Generic over the error type — callers map it to whatever they need.
+fn collect_from_sse_stream_strict<I, E>(iter: I) -> Result<Vec<u8>, E>
+where
+    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, E>>,
+{
+    let mut bytes = Vec::new();
+    for result in iter {
+        match result {
+            Ok(pr) => match pr.event {
+                Event::Message { data, .. } => {
+                    bytes.extend_from_slice(data.as_bytes());
+                    bytes.push(b'\n');
+                }
+                Event::Comment(_) | Event::Reconnect => continue,
+            },
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(bytes)
 }
 
 /// Process a stream iterator, writing bytes to a writer.
@@ -779,10 +835,11 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
                 .take()
                 .map_or(Vec::new(), collect_from_linefeed_stream)
         }
-        SendSafeBody::SseStream(_) => {
+        SendSafeBody::SseStream(mut opt_iter) => {
             tracing::trace!("Pulling bytes from SendSafeBody::SseStream");
-            tracing::warn!("SSE stream cannot be collected as bytes directly");
-            Vec::new()
+            opt_iter
+                .take()
+                .map_or(Vec::new(), collect_from_sse_stream)
         }
     }
 }
@@ -883,9 +940,13 @@ pub fn collect_bytes_into<W: std::io::Write>(
                 total_bytes = write_from_linefeed_stream(iter, writer)?;
             }
         }
-        SendSafeBody::SseStream(_) => {
-            tracing::warn!("SSE stream cannot be written as bytes directly");
-            // No bytes to write for SSE streams
+        SendSafeBody::SseStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                let bytes = collect_from_sse_stream_strict(iter)
+                    .map_err(|e| format!("SSE stream error: {e}"))?;
+                writer.write_all(&bytes)?;
+                total_bytes = bytes.len() as u64;
+            }
         }
     }
 
@@ -1238,9 +1299,28 @@ where
                         }
                         Ok(ProcessStreamResult::Completed)
                     }
-                    SendSafeBody::SseStream(_) => Err(BodyReaderError::StreamIteratorError(
-                        "SSE stream cannot be processed as byte chunks".into(),
-                    )),
+                    SendSafeBody::SseStream(mut opt_iter) => {
+                        if let Some(iter) = opt_iter.take() {
+                            for event_result in iter {
+                                match event_result {
+                                    Ok(pr) => match pr.event {
+                                        Event::Message { data, .. } => {
+                                            if !processor(data.as_bytes()) {
+                                                return Ok(ProcessStreamResult::StoppedByCallback);
+                                            }
+                                        }
+                                        Event::Comment(_) | Event::Reconnect => continue,
+                                    },
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
+                                }
+                            }
+                        }
+                        Ok(ProcessStreamResult::Completed)
+                    },
                     SendSafeBody::None => Ok(ProcessStreamResult::NoBody),
                 };
             }
@@ -1490,7 +1570,7 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
             let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
             let mut buf = Vec::new();
             for item in iter {
-                match item?.event {
+                match item.map_err(|e| e as BoxedError)?.event {
                     Event::Message { data, .. } => {
                         buf.extend_from_slice(data.as_bytes());
                         buf.push(b'\n');
@@ -2262,9 +2342,9 @@ mod tests {
                 Some("1".to_string()),
             )),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2289,9 +2369,9 @@ mod tests {
             )),
             Ok(ParseResult::new(SseEvent::Comment("keepalive".to_string()), None)),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
         assert!(result.is_ok());
@@ -2341,9 +2421,9 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, BoxedError>> + Send> = Box::new(
-            data.into_iter().map(|r| r.map_err(|e| e as BoxedError)),
-        );
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_string(body);
         assert!(result.is_ok());
@@ -2394,5 +2474,149 @@ mod tests {
         );
         assert!(err.to_string().contains("expected 100 bytes"));
         assert!(err.to_string().contains("got 7"));
+    }
+
+    // ========================================================================
+    // Tests for SSE stream handling in collection functions
+    // ========================================================================
+
+    fn make_sse_parse_result_vec(
+        events: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+    ) -> Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>> {
+        events
+    }
+
+    fn make_sse_stream(
+        data: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+    ) -> SendSafeBody {
+        let send_iter: Box<
+            dyn Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
+        SendSafeBody::SseStream(Some(send_iter))
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_sse_stream() {
+        use crate::wire::event_source::Event as SseEvent;
+        use crate::wire::event_source::ParseResult;
+
+        let body = make_sse_stream(vec![
+            Ok(ParseResult::new(
+                SseEvent::Message {
+                    id: Some("1".to_string()),
+                    event_type: None,
+                    data: "event one".to_string(),
+                    retry: None,
+                },
+                Some("1".to_string()),
+            )),
+            Ok(ParseResult::new(
+                SseEvent::Message {
+                    id: Some("2".to_string()),
+                    event_type: None,
+                    data: "event two".to_string(),
+                    retry: None,
+                },
+                Some("2".to_string()),
+            )),
+        ]);
+        let result = collect_bytes_from_send_safe(body);
+        // Each event data followed by \n
+        assert_eq!(result, b"event one\nevent two\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_sse_skips_comments() {
+        use crate::wire::event_source::Event as SseEvent;
+        use crate::wire::event_source::ParseResult;
+
+        let body = make_sse_stream(vec![
+            Ok(ParseResult::new(
+                SseEvent::Message {
+                    id: None,
+                    event_type: None,
+                    data: "real".to_string(),
+                    retry: None,
+                },
+                None,
+            )),
+            Ok(ParseResult::new(SseEvent::Comment("keepalive".to_string()), None)),
+        ]);
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"real\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_sse_stream() {
+        use crate::wire::event_source::Event as SseEvent;
+        use crate::wire::event_source::ParseResult;
+
+        let body = make_sse_stream(vec![Ok(ParseResult::new(
+            SseEvent::Message {
+                id: None,
+                event_type: None,
+                data: "sse data".to_string(),
+                retry: None,
+            },
+            None,
+        ))]);
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(output, b"sse data\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_string_strict_sse_stream() {
+        use crate::wire::event_source::Event as SseEvent;
+        use crate::wire::event_source::ParseResult;
+
+        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
+            SseEvent::Message {
+                id: None,
+                event_type: None,
+                data: "sse message".to_string(),
+                retry: None,
+            },
+            None,
+        ))];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
+        let stream: Box<
+            dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
+        > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(
+            SendSafeBody::SseStream(Some(send_iter)),
+        ))));
+        let result = collect_string_strict(stream);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "sse message\n");
+    }
+
+    #[test]
+    fn test_collect_bytes_strict_sse_stream() {
+        use crate::wire::event_source::Event as SseEvent;
+        use crate::wire::event_source::ParseResult;
+
+        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
+            SseEvent::Message {
+                id: None,
+                event_type: None,
+                data: "bytes".to_string(),
+                retry: None,
+            },
+            None,
+        ))];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
+        let stream: Box<
+            dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
+        > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(
+            SendSafeBody::SseStream(Some(send_iter)),
+        ))));
+        let result = collect_bytes_strict(stream);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), b"bytes\n".to_vec());
     }
 }

@@ -116,6 +116,35 @@ impl ConnectionHandler {
         false
     }
 
+    /// Check if request has `Expect: 100-continue` header.
+    fn has_expect_continue(req: &SimpleIncomingRequest) -> bool {
+        req.headers
+            .get(&SimpleHeader::EXPECT)
+            .map(|values| {
+                values
+                    .iter()
+                    .any(|v| v.trim().eq_ignore_ascii_case("100-continue"))
+            })
+            .unwrap_or(false)
+    }
+
+    /// Check if request appears to have a body to receive.
+    fn has_request_body(req: &SimpleIncomingRequest) -> bool {
+        if let Some(values) = req.headers.get(&SimpleHeader::CONTENT_LENGTH) {
+            if let Some(len) = values.first().and_then(|v| v.parse::<usize>().ok()) {
+                if len > 0 {
+                    return true;
+                }
+            }
+        }
+        if let Some(values) = req.headers.get(&SimpleHeader::TRANSFER_ENCODING) {
+            if values.iter().any(|v| v.contains("chunked")) {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Update idle tracking state.
     fn track_idle(&mut self) {
         if self.idle_since.is_none() {
@@ -293,6 +322,15 @@ impl ConnectionHandler {
             "Request received for processing"
         );
 
+        // Expect: 100-continue — send response before body is pulled.
+        // The body is a lazy SendSafeBody::Stream that hasn't been consumed yet,
+        // so we can safely write the 100 Continue response here. The client will
+        // then start sending the body into the TCP buffer before the handler pulls it.
+        if Self::has_expect_continue(&req) && Self::has_request_body(&req) {
+            tracing::trace!("Expect: 100-continue detected, sending 100 Continue");
+            let _ = respond::continue_100(&mut self.conn.clone());
+        }
+
         // Run middleware chain — middleware takes &mut req.
         let mut middleware_response: Option<SimpleOutgoingResponse> = None;
         for mw in self.app.middleware_chain() {
@@ -300,7 +338,16 @@ impl ConnectionHandler {
                 crate::middleware::MiddlewareResult::Continue => {}
                 crate::middleware::MiddlewareResult::Response(resp) => {
                     middleware_response = Some(resp);
-                    break;
+                    break; // short-circuit
+                }
+                crate::middleware::MiddlewareResult::InterimResponse(resp) => {
+                    // Render immediately but continue — do NOT break.
+                    // Useful for 100-Continue, progress trailers, etc.
+                    let _ = Http11::response(resp)
+                        .http_render_to_writer(&mut self.conn.clone());
+                    tracing::trace!(
+                        "Middleware rendered interim response, continuing chain"
+                    );
                 }
             }
         }

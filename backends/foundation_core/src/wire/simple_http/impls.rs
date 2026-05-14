@@ -318,7 +318,7 @@ pub enum SendSafeBody {
     ///
     /// NOTE: The iterator wraps an `SseParser` that reads lines and yields parsed SSE events.
     /// This allows the HTTP layer to return a complete SSE body handler to the caller.
-    SseStream(Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, BoxedError>>),
+    SseStream(Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, SendableBoxedError>>),
 }
 
 impl Eq for SendSafeBody {}
@@ -5013,7 +5013,7 @@ impl<T: std::io::Read + Send> SimpleSseIterator<T> {
 }
 
 impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
-    type Item = Result<crate::wire::event_source::ParseResult, BoxedError>;
+    type Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.1.parse_next() {
@@ -5027,7 +5027,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
             }
             Err(err) => {
                 tracing::error!("SseIterator::next: error: {:?}", err);
-                Some(Err(Box::new(err)))
+                Some(Err(Box::new(err) as SendableBoxedError))
             }
         }
     }

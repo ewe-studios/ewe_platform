@@ -17,7 +17,7 @@
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 //! PHASE 3 SCOPE: Idle timeout support.
 
-use crate::extensions::result_ext::BoxedError;
+use crate::extensions::result_ext::SendableBoxedError;
 use crate::netcap::RawStream;
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{EventSourceError, ParseResult, SseParser};
@@ -86,7 +86,7 @@ enum EventSourceState {
     /// Reading from SSE stream iterator (when body was returned as SseStream).
     ReadingStream {
         conn: HttpClientConnection,
-        iterator: Box<dyn Iterator<Item = Result<ParseResult, BoxedError>> + Send>,
+        iterator: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send>,
         last_activity: Instant,
     },
     Closed(EventSourceCloseReason),

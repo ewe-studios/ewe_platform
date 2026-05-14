@@ -10,8 +10,12 @@ use crate::context::ContextBag;
 pub enum MiddlewareResult {
     /// Continue to next middleware / handler.
     Continue,
-    /// Short-circuit with a response.
+    /// Short-circuit with a response — skip remaining middleware and the handler.
     Response(SimpleOutgoingResponse),
+    /// Render immediately but DO NOT short-circuit — middleware chain and handler
+    /// continue running after this interim response is written to the connection.
+    /// Useful for HTTP/1.1 100-Continue, progress trailers, etc.
+    InterimResponse(SimpleOutgoingResponse),
 }
 
 /// Synchronous request middleware.
