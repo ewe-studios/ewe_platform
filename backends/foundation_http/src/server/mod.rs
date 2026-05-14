@@ -316,13 +316,13 @@ pub struct HttpServer {
 }
 
 impl HttpServer {
-    /// Create a new HttpServer with default config.
+    /// Create a new `HttpServer` with default config.
     #[must_use]
     pub fn new(app: HttpApp, addr: &str) -> Self {
         Self::with_config(app, addr, ServerConfig::default())
     }
 
-    /// Create a new HttpServer with custom config.
+    /// Create a new `HttpServer` with custom config.
     #[must_use]
     pub fn with_config(app: HttpApp, addr: &str, config: ServerConfig) -> Self {
         Self {
@@ -333,8 +333,12 @@ impl HttpServer {
     }
 
     /// Start serving plain HTTP. Blocks until the shutdown signal is triggered.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve(self, shutdown: Arc<OnSignal>) {
+    pub fn serve(self, shutdown: &Arc<OnSignal>) {
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
             Err(e) => {
@@ -348,15 +352,19 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
-        self.serve_loop(listener, shutdown, |tcp: TcpStream| {
+        self.serve_loop(&listener, shutdown, |tcp: TcpStream| {
             RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
     /// Start serving from a pre-bound `TcpListener`. Useful for tests
     /// that need to confirm the port is bound before sending requests.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, listener, shutdown))]
-    pub fn serve_with_listener(self, listener: std::net::TcpListener, shutdown: Arc<OnSignal>) {
+    pub fn serve_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<OnSignal>) {
         tracing::info!("Listening on {}", self.bind_addr);
         listener
             .set_nonblocking(true)
@@ -416,8 +424,8 @@ impl HttpServer {
     #[tracing::instrument(skip(self, listener, shutdown, wrap_stream))]
     fn serve_loop(
         self,
-        listener: std::net::TcpListener,
-        shutdown: Arc<OnSignal>,
+        listener: &std::net::TcpListener,
+        shutdown: &Arc<OnSignal>,
         wrap_stream: impl Fn(std::net::TcpStream) -> Result<RawStream, String> + Send + Sync + 'static,
     ) {
         let wrap_stream = Arc::new(wrap_stream);
@@ -464,7 +472,7 @@ impl HttpServer {
                         streams,
                         shared_stream.clone(),
                         client_ip.clone(),
-                        keep_alive_config.clone(),
+                        &keep_alive_config,
                     );
 
                     match foundation_core::valtron::send(handler) {

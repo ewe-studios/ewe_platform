@@ -109,18 +109,19 @@ pub enum SegmentType {
 impl PartialEq for SegmentType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (SegmentType::Root, SegmentType::Root) => true,
-            (SegmentType::Static(a), SegmentType::Static(b)) => a == b,
+            (SegmentType::Root, SegmentType::Root)
+            | (SegmentType::AnyPath, SegmentType::AnyPath)
+            | (SegmentType::Index, SegmentType::Index)
+            | (SegmentType::Regex(_), SegmentType::Regex(_)) => true,
+            (SegmentType::Static(a) | SegmentType::Param(a), SegmentType::Static(b) | SegmentType::Param(b)) => {
+                a == b
+            }
             (SegmentType::Restricted(a_name, a_val), SegmentType::Restricted(b_name, b_val)) => {
                 a_name == b_name && a_val == b_val
             }
             (SegmentType::ParamRegex(a_name, _), SegmentType::ParamRegex(b_name, _)) => {
                 a_name == b_name
             }
-            (SegmentType::Regex(_), SegmentType::Regex(_)) => true,
-            (SegmentType::Param(a), SegmentType::Param(b)) => a == b,
-            (SegmentType::AnyPath, SegmentType::AnyPath) => true,
-            (SegmentType::Index, SegmentType::Index) => true,
             _ => false,
         }
     }
@@ -129,11 +130,11 @@ impl PartialEq for SegmentType {
 impl Eq for SegmentType {}
 
 static REGEX_ONLY_CAPTURE_ROUTES: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^\(.+\)$"#).unwrap());
+    LazyLock::new(|| Regex::new(r"^\(.+\)$").unwrap());
 static PARAM_REGEX_CAPTURE_ROUTES: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"::\(.+\)"#).unwrap());
+    LazyLock::new(|| Regex::new(r"::\(.+\)").unwrap());
 static PARAM_ROUTE_STARTER: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^:(\w+|\d+)"#).unwrap());
+    LazyLock::new(|| Regex::new(r"^:(\w+|\d+)").unwrap());
 
 impl<'a> TryFrom<&'a str> for SegmentType {
     type Error = RouteOp;
@@ -172,6 +173,7 @@ impl<'a> TryFrom<&'a str> for SegmentType {
 }
 
 impl SegmentType {
+    #[must_use]
     pub fn priority(&self) -> usize {
         match self {
             SegmentType::Index => 7,
@@ -185,21 +187,15 @@ impl SegmentType {
         }
     }
 
+    #[must_use]
     pub fn as_string(&self) -> String {
         format!("{self:?}")
     }
 
     fn match_value_from(&self, other: &SegmentType) -> RouteResult<Option<(String, String)>> {
         match (self, other) {
-            (SegmentType::Root, _) => Ok(None),
-            (SegmentType::Index, SegmentType::Index) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::Index) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::Static(_)) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::Param(_)) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::ParamRegex(_, _)) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::Regex(_)) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::Restricted(_, _)) => Ok(None),
-            (SegmentType::AnyPath, SegmentType::AnyPath) => Ok(None),
+            (SegmentType::Root | SegmentType::AnyPath, _)
+            | (SegmentType::Index, SegmentType::Index) => Ok(None),
             (SegmentType::Static(left), SegmentType::Static(right)) => {
                 if left != right {
                     return Err(RouteOp::NoMatchingRoute(other.as_string()));
@@ -250,6 +246,7 @@ pub struct RouteSegment {
     method: RouteMethod,
 }
 
+#[allow(clippy::missing_fields_in_debug)]
 impl std::fmt::Debug for RouteSegment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RouteSegment")
@@ -273,11 +270,10 @@ fn sort_segments(left: &RouteSegment, right: &RouteSegment) -> Ordering {
     }
 }
 
-fn parse_route_into_segments(route: &str) -> RouteResult<Vec<&str>> {
+fn parse_route_into_segments(route: &str) -> Vec<&str> {
     let mut segments = Vec::with_capacity(5);
     let target_route = route.strip_prefix('/').unwrap_or(route);
 
-    // Simple split on '/' — the original used StringPointer but split works equivalently
     for part in target_route.split('/') {
         if part.is_empty() {
             continue;
@@ -293,14 +289,16 @@ fn parse_route_into_segments(route: &str) -> RouteResult<Vec<&str>> {
         segments.push("/");
     }
 
-    Ok(segments)
+    segments
 }
 
 impl RouteSegment {
+    #[must_use]
     pub fn root() -> Self {
         Self::with_segment(SegmentType::Root)
     }
 
+    #[must_use]
     pub fn with_segment(segment: SegmentType) -> Self {
         Self {
             segment,
@@ -310,6 +308,7 @@ impl RouteSegment {
         }
     }
 
+    #[must_use]
     pub fn empty(segment: SegmentType) -> Self {
         Self {
             segment,
@@ -322,8 +321,14 @@ impl RouteSegment {
     // -----------------------------------------------------------------------
     // Route parsing — builds a tree from a path string
 
+    /// Parse a route path string into a tree of [`RouteSegment`]s.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RouteOp::InvalidSegment`] if the route string is empty or
+    /// contains an invalid segment.
     pub fn parse_route(route: &str) -> RouteResult<Self> {
-        let segments = parse_route_into_segments(route)?;
+        let segments = parse_route_into_segments(route);
 
         let route_segments: Result<Vec<RouteSegment>, RouteOp> = segments
             .iter()
@@ -353,6 +358,12 @@ impl RouteSegment {
     // -----------------------------------------------------------------------
     // Adding a sub-route
 
+    /// Add a sub-route segment to this node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `segment` is a `Root` segment, since root can never be
+    /// added as a sub-route.
     pub fn add_route(&mut self, segment: RouteSegment) {
         match &segment.segment {
             SegmentType::Root => panic!("should never add root segment as a subroute"),
@@ -470,7 +481,7 @@ impl RouteSegment {
         }
     }
 
-    pub fn merge_route_all_methods(&mut self, other: RouteSegment, handler: ArcServe) {
+    pub fn merge_route_all_methods(&mut self, other: &RouteSegment, handler: &ArcServe) {
         // Register for all standard HTTP methods
         for method in [
             SimpleMethod::GET,
@@ -490,8 +501,15 @@ impl RouteSegment {
     // -----------------------------------------------------------------------
     // Route matching
 
+    /// Match a route path against the route tree for the given HTTP method.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RouteOp::NoMatchingRoute`] if the route does not match any
+    /// registered pattern, or [`RouteOp::DidNotMatchExpected`] if a regex
+    /// parameter fails to match.
     pub fn match_route(&self, method: &SimpleMethod, route: &str) -> RouteResult<ArcServe> {
-        let segments = parse_route_into_segments(route)?;
+        let segments = parse_route_into_segments(route);
         let route_segments: Vec<SegmentType> = segments
             .iter()
             .map(|t| SegmentType::try_from(*t))
@@ -530,28 +548,24 @@ impl RouteSegment {
             return Ok((self.clone(), params));
         }
 
-        if !remaining.is_empty() {
-            match self.validate_against_self(next_segment_type.clone(), &mut params) {
-                Ok(_) => {
-                    let next = self.get_matching_segment_route(remaining[0].clone(), &mut params)?;
-                    Self::match_routes_from(next, remaining, params)
-                }
-                Err(err) => Err(err),
-            }
-        } else {
-            match self.validate_against_self(next_segment_type, &mut params) {
+        if remaining.is_empty() {
+            match self.validate_against_self(&next_segment_type, &mut params) {
                 Ok(target) => Ok((target.clone(), params)),
                 Err(err) => Err(err),
             }
+        } else {
+            self.validate_against_self(&next_segment_type, &mut params)?;
+            let next = self.get_matching_segment_route(&remaining[0], &mut params)?;
+            Self::match_routes_from(next, remaining, params)
         }
     }
 
     fn validate_against_self(
         &self,
-        segment: SegmentType,
+        segment: &SegmentType,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment> {
-        match self.segment.match_value_from(&segment)? {
+        match self.segment.match_value_from(segment)? {
             Some((key, value)) => {
                 params.entry(key).or_insert(value);
                 Ok(self)
@@ -562,10 +576,10 @@ impl RouteSegment {
 
     fn get_matching_segment_route(
         &self,
-        segment: SegmentType,
+        segment: &SegmentType,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment> {
-        match &segment {
+        match segment {
             SegmentType::Index => {
                 if self.segment != SegmentType::Root {
                     return Ok(self);
@@ -588,20 +602,19 @@ impl RouteSegment {
 
     fn match_against_dynamic_routes(
         &self,
-        segment: SegmentType,
+        segment: &SegmentType,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment> {
         for subroute in &self.dynamic_routes {
             if subroute.segment == SegmentType::AnyPath {
                 return Ok(subroute);
             }
-            match subroute.segment.match_value_from(&segment) {
-                Ok(Some((key, value))) => {
-                    params.entry(key).or_insert(value);
-                    return Ok(subroute);
-                }
-                Ok(None) => return Ok(subroute),
-                Err(_) => continue,
+            if let Ok(Some((key, value))) = subroute.segment.match_value_from(segment) {
+                params.entry(key).or_insert(value);
+                return Ok(subroute);
+            }
+            if subroute.segment.match_value_from(segment).is_ok_and(|v| v.is_none()) {
+                return Ok(subroute);
             }
         }
         Err(RouteOp::NoMatchingRoute(segment.as_string()))

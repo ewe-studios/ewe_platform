@@ -173,7 +173,7 @@ impl<T: Send, V: Send> Iterator for TransformSendIterator<T, V> {
     /// acceptable for this specific use case. Callers should be aware that
     /// next() may process multiple source items before returning.
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(item) = self.source.next() {
+        for item in self.source.by_ref() {
             if let Some(transformed) = (self.transformer)(item) {
                 return Some(transformed);
             }
@@ -212,7 +212,7 @@ impl<T, V> Iterator for TransformIterator<T, V> {
     /// acceptable for this specific use case. Callers should be aware that
     /// next() may process multiple source items before returning.
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(item) = self.source.next() {
+        for item in self.source.by_ref() {
             if let Some(transformed) = (self.transformer)(item) {
                 return Some(transformed);
             }

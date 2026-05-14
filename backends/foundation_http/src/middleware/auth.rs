@@ -23,13 +23,18 @@ pub enum AuthResult {
     Invalid(String),
 }
 
+/// Type alias for a bearer token validation function.
+pub type BearerValidator = Arc<dyn Fn(&str) -> bool + Send + Sync>;
+/// Type alias for a basic auth validation function.
+pub type BasicValidator = Arc<dyn Fn(&str, &str) -> bool + Send + Sync>;
+
 /// Authentication configuration.
 #[derive(Clone)]
 pub struct AuthConfig {
     /// Bearer token validation function.
-    pub bearer_validator: Option<Arc<dyn Fn(&str) -> bool + Send + Sync>>,
+    pub bearer_validator: Option<BearerValidator>,
     /// Basic auth validation function (username, password) -> bool.
-    pub basic_validator: Option<Arc<dyn Fn(&str, &str) -> bool + Send + Sync>>,
+    pub basic_validator: Option<BasicValidator>,
     /// Allowed paths (regex patterns) that bypass auth.
     pub public_paths: Vec<String>,
     /// Custom realm for WWW-Authenticate header.
@@ -153,14 +158,12 @@ impl AuthMiddleware {
     /// Validate Basic auth credentials.
     fn validate_basic(&self, credentials: &str) -> AuthResult {
         // Decode base64 credentials
-        let decoded = match base64::decode(credentials) {
-            Ok(d) => d,
-            Err(_) => return AuthResult::Invalid("Invalid base64 encoding".to_string()),
+        let Ok(decoded) = base64::decode(credentials) else {
+            return AuthResult::Invalid("Invalid base64 encoding".to_string());
         };
 
-        let creds = match String::from_utf8(decoded) {
-            Ok(s) => s,
-            Err(_) => return AuthResult::Invalid("Invalid UTF-8 in credentials".to_string()),
+        let Ok(creds) = String::from_utf8(decoded) else {
+            return AuthResult::Invalid("Invalid UTF-8 in credentials".to_string());
         };
 
         // Split username:password
@@ -249,6 +252,7 @@ mod base64 {
     /// Decode base64 string to bytes.
     pub fn decode(input: &str) -> Result<Vec<u8>, ()> {
         // Standard base64 alphabet
+        #[allow(dead_code)]
         const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
         // Remove padding
@@ -271,7 +275,7 @@ mod base64 {
         let mut bits_collected: u8 = 0;
 
         for c in input.chars() {
-            let value = if c == '+' {
+            let value = u32::from(if c == '+' {
                 62
             } else if c == '/' {
                 63
@@ -283,7 +287,7 @@ mod base64 {
                 c as u8 - b'A'
             } else {
                 continue; // Skip invalid characters
-            } as u32;
+            });
 
             buffer = (buffer << 6) | value;
             bits_collected += 6;

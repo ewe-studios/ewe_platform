@@ -106,10 +106,10 @@ fn get_header_value(headers: &SimpleHeaders, name: &str) -> String {
 ///
 /// WHY: SSE requires specific HTTP headers before streaming events.
 /// WHAT: Writes SSE headers (200 OK, text/event-stream), then wraps the stream
-/// in an EventWriter for sending events.
+/// in an `EventWriter` for sending events.
 ///
 /// NOTE: The handler must return `ConnectionResult::Take` after creating
-/// the SseStream to take ownership of the connection.
+/// the `SseStream` to take ownership of the connection.
 pub struct SseStream {
     writer: EventWriter<SharedByteBufferStream<RawStream>>,
 }
@@ -123,7 +123,7 @@ impl SseStream {
     /// - Cache-Control: no-cache
     /// - Connection: keep-alive
     ///
-    /// WHAT: Writes headers to the stream, then creates EventWriter wrapper.
+    /// WHAT: Writes headers to the stream, then creates `EventWriter` wrapper.
     ///
     /// # Errors
     ///
@@ -198,16 +198,16 @@ impl SseStream {
             .map_err(|e| UpgradeError::WriteError(e.to_string()))
     }
 
-    /// Get a reference to the underlying EventWriter.
+    /// Get a reference to the underlying `EventWriter`.
     ///
-    /// WHY: May need direct access to EventWriter for advanced use.
+    /// WHY: May need direct access to `EventWriter` for advanced use.
     /// WHAT: Returns immutable reference to the writer.
     #[must_use]
     pub fn writer(&self) -> &EventWriter<SharedByteBufferStream<RawStream>> {
         &self.writer
     }
 
-    /// Get a mutable reference to the underlying EventWriter.
+    /// Get a mutable reference to the underlying `EventWriter`.
     ///
     /// WHY: May need mutable access for custom operations.
     /// WHAT: Returns mutable reference to the writer.

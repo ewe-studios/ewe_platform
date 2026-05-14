@@ -57,9 +57,9 @@ impl Router {
     /// # Panics
     ///
     /// Panics if the path string is not a valid route pattern.
-    pub fn add_route_any(&mut self, path: &str, handler: ArcServe) {
+    pub fn add_route_any(&mut self, path: &str, handler: &ArcServe) {
         let segment_tree = RouteSegment::parse_route(path).expect("valid route pattern");
-        self.root.merge_route_all_methods(segment_tree, handler);
+        self.root.merge_route_all_methods(&segment_tree, handler);
     }
 
     /// Dispatch a request to the matched handler.

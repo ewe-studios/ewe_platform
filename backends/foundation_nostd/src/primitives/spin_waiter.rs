@@ -1,13 +1,13 @@
 //! Iteration-based waiter for single-threaded and WASM environments.
 //!
 //! Provides duration-based waiting using spin-loop iteration counting instead of
-//! OS sleep mechanisms. This is necessary for WASM and no_std environments where
+//! OS sleep mechanisms. This is necessary for WASM and `no_std` environments where
 //! `std::thread::sleep` is not available.
 //!
 //! # Platform-specific behavior
 //!
 //! - **WASM**: Uses ~100,000 iterations per millisecond (adjustable)
-//! - **no_std embedded**: Uses ~1,000,000 iterations per millisecond (adjustable)
+//! - **`no_std` embedded**: Uses ~1,000,000 iterations per millisecond (adjustable)
 //! - **Interruptible**: Can be interrupted via `AtomicBool` flag
 //! - **Bounded**: Never spins forever - has maximum spin limit
 //!
@@ -39,7 +39,7 @@ pub struct SpinWaiter {
 }
 
 impl Clone for SpinWaiter {
-    /// Clone creates a new SpinWaiter with the same configuration.
+    /// Clone creates a new `SpinWaiter` with the same configuration.
     /// The interrupt flag starts fresh (not interrupted).
     fn clone(&self) -> Self {
         Self {
@@ -51,13 +51,13 @@ impl Clone for SpinWaiter {
 }
 
 impl SpinWaiter {
-    /// Creates a new SpinWaiter with platform-specific defaults.
+    /// Creates a new `SpinWaiter` with platform-specific defaults.
     ///
     /// # Arguments
     ///
     /// * `iterations_per_ms` - Estimated spin-loop iterations per millisecond
     ///   - WASM: ~100,000 iterations/ms
-    ///   - no_std embedded: ~1,000,000 iterations/ms
+    ///   - `no_std` embedded: ~1,000,000 iterations/ms
     #[inline]
     #[must_use]
     pub const fn new(iterations_per_ms: u64) -> Self {
@@ -69,7 +69,7 @@ impl SpinWaiter {
         }
     }
 
-    /// Creates a new SpinWaiter for WASM environments.
+    /// Creates a new `SpinWaiter` for WASM environments.
     ///
     /// Uses 100,000 iterations per millisecond as a reasonable default for WASM.
     #[inline]
@@ -78,7 +78,7 @@ impl SpinWaiter {
         Self::new(100_000)
     }
 
-    /// Creates a new SpinWaiter for embedded no_std environments.
+    /// Creates a new `SpinWaiter` for embedded `no_std` environments.
     ///
     /// Uses 1,000,000 iterations per millisecond as a reasonable default for embedded.
     #[inline]
@@ -103,14 +103,15 @@ impl SpinWaiter {
     /// ```
     #[inline]
     pub fn wait(&self, dur: core::time::Duration) {
-        // Calculate total iterations needed
-        let total_spins = dur.as_millis() as u64 * self.iterations_per_ms;
+        // Check for interrupt every 1000 iterations
+        const INTERRUPT_CHECK_INTERVAL: u64 = 1000;
+
+        // Calculate total iterations needed (avoid u128 cast)
+        let total_spins = dur.as_secs() * 1000 * self.iterations_per_ms
+            + u64::from(dur.subsec_millis()) * self.iterations_per_ms;
 
         // Cap at maximum to prevent infinite spinning
         let spins_to_do = total_spins.min(self.max_total_iterations);
-
-        // Check for interrupt every 1000 iterations
-        const INTERRUPT_CHECK_INTERVAL: u64 = 1000;
 
         for i in 0..spins_to_do {
             hint::spin_loop();

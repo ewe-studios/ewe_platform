@@ -40,7 +40,8 @@ impl CompressionAlgorithm {
     }
 
     /// Get the content encoding header value.
-    fn content_encoding(&self) -> &'static str {
+    #[allow(dead_code)]
+    fn content_encoding(self) -> &'static str {
         match self {
             CompressionAlgorithm::Gzip => "gzip",
             CompressionAlgorithm::Brotli => "br",
@@ -128,6 +129,7 @@ impl CompressionConfig {
     }
 
     /// Check if a MIME type should be compressed.
+    #[allow(dead_code)]
     fn should_compress(&self, mime_type: &str) -> bool {
         self.mime_types.iter().any(|m| {
             mime_type.starts_with(m) || m.starts_with(mime_type)
@@ -158,7 +160,7 @@ impl CompressionMiddleware {
 
     /// Create a compression middleware with default config.
     #[must_use]
-    pub fn default() -> Self {
+    pub fn defaults() -> Self {
         Self::new(CompressionConfig::default())
     }
 
@@ -225,7 +227,14 @@ impl CompressionMiddleware {
     }
 }
 
+impl Default for CompressionMiddleware {
+    fn default() -> Self {
+        Self::new(CompressionConfig::default())
+    }
+}
+
 /// Request extension data for compression preference.
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct CompressionPreference {
     /// Selected compression algorithm (None = no compression).

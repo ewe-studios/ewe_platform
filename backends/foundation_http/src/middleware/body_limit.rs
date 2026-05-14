@@ -30,7 +30,7 @@ impl BodyLimitMiddleware {
     pub fn new(max_bytes: usize) -> Self {
         Self {
             max_bytes,
-            error_message: format!("Request body too large (max {} bytes)", max_bytes),
+            error_message: format!("Request body too large (max {max_bytes} bytes)"),
         }
     }
 

@@ -59,7 +59,12 @@
       "Bash(tee /tmp/test_run.log)",
       "Bash(export TESTBED_INSTALL_GNOME=1)",
       "Bash(pkill -f \"qemu.*linux-build\")",
-      "Bash(tee /tmp/gnome_test.log)"
+      "Bash(tee /tmp/gnome_test.log)",
+      "Bash(pkill -9 -f qemu-system-x86_64)",
+      "Bash(rm -rf /home/darkvoid/Boxxed/@dev/ewe_platform/.testbed/linux-build/*)",
+      "Bash(rm -rf /home/darkvoid/Boxxed/@dev/ewe_platform/.testbed/linux-build/state/*)",
+      "Bash(/home/darkvoid/Boxxed/@dev/ewe_platform/target/debug/testbed bootstrap *)",
+      "Bash(kill -9 2544977)"
     ]
   }
 }

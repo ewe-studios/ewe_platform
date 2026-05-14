@@ -66,7 +66,7 @@ pub struct EventSourceConfig {
 }
 
 enum EventSourceState {
-    Init(EventSourceConfig),
+    Init(Box<EventSourceConfig>),
     Connecting {
         url: Uri,
         request: Box<SimpleIncomingRequest>,
@@ -138,14 +138,14 @@ where
         ));
 
         Ok(Self {
-            state: Some(EventSourceState::Init(EventSourceConfig {
+            state: Some(EventSourceState::Init(Box::new(EventSourceConfig {
                 url: url_str,
                 method: SimpleMethod::GET,
                 headers: Vec::new(),
                 body: None,
                 last_event_id: None,
                 timeout_calculator: TimeoutCalculator::default(),
-            })),
+            }))),
             pool,
             last_event_id: None,
             timeout_calculator: TimeoutCalculator::default(),
@@ -184,14 +184,14 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         Ok(Self {
-            state: Some(EventSourceState::Init(EventSourceConfig {
+            state: Some(EventSourceState::Init(Box::new(EventSourceConfig {
                 url: url_str,
                 method: SimpleMethod::GET,
                 headers: Vec::new(),
                 body: None,
                 last_event_id: None,
                 timeout_calculator: TimeoutCalculator::default(),
-            })),
+            }))),
             pool,
             last_event_id: None,
             timeout_calculator: TimeoutCalculator::default(),

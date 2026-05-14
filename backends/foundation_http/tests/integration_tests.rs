@@ -174,7 +174,7 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || {
-        server.serve_with_listener(listener, shutdown_thread);
+        server.serve_with_listener(listener, &shutdown_thread);
     });
 
     (addr, shutdown)

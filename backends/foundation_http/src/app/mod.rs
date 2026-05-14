@@ -44,8 +44,8 @@ impl HttpApp {
 
     /// Register a handler for all HTTP methods on a path.
     pub fn route_any<H: ServeFactory>(&mut self, path: &str) -> &mut Self {
-        let handler = H::create(&self.ctx);
-        self.router.add_route_any(path, Arc::new(handler));
+        let handler: crate::router::ArcServe = Arc::new(H::create(&self.ctx));
+        self.router.add_route_any(path, &handler);
         self
     }
 

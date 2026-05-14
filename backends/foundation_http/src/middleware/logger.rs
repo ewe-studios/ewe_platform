@@ -27,7 +27,7 @@ pub enum LogLevel {
 
 impl LogLevel {
     /// Log a message at this level.
-    fn log(&self, message: impl std::fmt::Display) {
+    fn log(self, message: impl std::fmt::Display) {
         match self {
             LogLevel::Trace => tracing::trace!("{}", message),
             LogLevel::Debug => tracing::debug!("{}", message),
@@ -38,6 +38,7 @@ impl LogLevel {
 }
 
 /// Configuration for the logger middleware.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone)]
 pub struct LoggerConfig {
     /// Log level for incoming requests.
@@ -123,7 +124,7 @@ impl LoggerMiddleware {
 
     /// Create a logger middleware with default config.
     #[must_use]
-    pub fn default() -> Self {
+    pub fn defaults() -> Self {
         Self::new(LoggerConfig::default())
     }
 
@@ -148,6 +149,12 @@ impl LoggerMiddleware {
     }
 }
 
+impl Default for LoggerMiddleware {
+    fn default() -> Self {
+        Self::new(LoggerConfig::default())
+    }
+}
+
 impl RequestMiddleware for LoggerMiddleware {
     fn handle(
         &self,
@@ -161,11 +168,11 @@ impl RequestMiddleware for LoggerMiddleware {
 
         // Build log message
         let mut parts = Vec::new();
-        parts.push(format!("{} {}", method, path));
+        parts.push(format!("{method} {path}"));
 
         if self.config.include_client_ip {
             if let Some(ip) = Self::extract_client_ip(req) {
-                parts.push(format!("client_ip={}", ip));
+                parts.push(format!("client_ip={ip}"));
             }
         }
 
@@ -173,7 +180,7 @@ impl RequestMiddleware for LoggerMiddleware {
             if let Some(ref query) = req.request_url.queries {
                 let query_str: Vec<String> = query
                     .iter()
-                    .map(|(k, v)| format!("{}={}", k, v))
+                    .map(|(k, v)| format!("{k}={v}"))
                     .collect();
                 if !query_str.is_empty() {
                     parts.push(format!("query=?{}", query_str.join("&")));
@@ -187,7 +194,7 @@ impl RequestMiddleware for LoggerMiddleware {
                 .iter()
                 .map(|(k, v)| {
                     let values = v.join(", ");
-                    format!("{}: {}", k, values)
+                    format!("{k}: {values}")
                 })
                 .collect();
             if !headers.is_empty() {

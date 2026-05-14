@@ -688,15 +688,15 @@ where
 {
     let mut bytes = Vec::new();
     for result in iter {
-        match result {
-            Ok(pr) => match pr.event {
-                Event::Message { data, .. } => {
-                    bytes.extend_from_slice(data.as_bytes());
-                    bytes.push(b'\n');
-                }
-                Event::Comment(_) | Event::Reconnect => continue,
-            },
-            Err(e) => return Err(e),
+        {
+            let pr = result?;
+            match pr.event {
+            Event::Message { data, .. } => {
+                bytes.extend_from_slice(data.as_bytes());
+                bytes.push(b'\n');
+            }
+            Event::Comment(_) | Event::Reconnect => continue,
+        }
         }
     }
     Ok(bytes)
@@ -1451,15 +1451,16 @@ where
         }
     }
 }
-
 /// WHY: Same as `ContentLengthEnforcingIterator` but for `LineFeed` streams.
-////// WHAT: Tracks byte count from `LineFeed::Line` items and validates at EOF.
+/// WHAT: Tracks byte count from `LineFeed::Line` items and validates at EOF.
+#[allow(unused)]
 pub struct LineFeedContentLengthEnforcer<I> {
     inner: Option<I>,
     expected: usize,
     bytes_read: usize,
 }
 
+#[allow(unused)]
 impl<I> LineFeedContentLengthEnforcer<I> {
     fn new(inner: I, expected: usize) -> Self {
         Self {
@@ -1510,6 +1511,10 @@ where
         }
     }
 }
+
+
+
+
 
 // ============================================================================
 // Collect body as Result<Vec<u8>> / Result<String> (propagates enforcement errors)

@@ -58,7 +58,6 @@ impl RouteMethod {
     ///
     /// Returns `RouteOp::NoMatchingRoute` if no handler is registered
     /// for the given method.
-    #[must_use]
     pub fn get_method(&self, method: &SimpleMethod) -> RouteResult<ArcServe> {
         let opt = match method {
             SimpleMethod::GET => &self.get,

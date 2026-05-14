@@ -873,7 +873,7 @@ impl ExecutorState {
 
             // Check if this is a fairness tick (every N calls)
             let is_fairness_tick = self.fairness_interval.get() > 0
-                && (current_count % self.fairness_interval.get() == 0);
+                && current_count.is_multiple_of(self.fairness_interval.get());
 
             // Normal path: skip if local tasks exist
             // Fairness path: check global queue regardless on fairness tick

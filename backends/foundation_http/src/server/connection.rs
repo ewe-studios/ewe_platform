@@ -1,7 +1,7 @@
 //! `ConnectionHandler` — valtron-driven keep-alive connection handler.
 //!
 //! Each accepted TCP connection becomes a valtron task that the executor
-//! multiplexes. When no data is available (WouldBlock), the task yields
+//! multiplexes. When no data is available (`WouldBlock`), the task yields
 //! `TaskStatus::Delayed(duration)` with dynamic timeout calculation.
 //!
 //! WHY: Replaces `BackgroundJobRegistry::submit()` which blocked a thread
@@ -11,13 +11,12 @@
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::io::readers::Data;
 use foundation_core::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_core::wire::simple_http::{
-    HTTPStreams, Http11, HttpReaderError, RenderHttp, SendSafeBody, SimpleHeader,
-    SimpleIncomingRequest, SimpleOutgoingResponse,
+    HTTPStreams, Http11, HttpReaderError, RenderHttp, SimpleHeader, SimpleIncomingRequest,
+    SimpleOutgoingResponse,
 };
 use foundation_errstacks::ErrorTrace;
 
@@ -32,19 +31,22 @@ use crate::serve::{respond, ConnectionResult, ServeError};
 enum HandlerState {
     /// Waiting for the next request on an open connection.
     Idle,
-    /// Request was read successfully, ready to process.
-    Processing {
+    /// Retry 100-continue write after transient failure.
+    CheckExpect {
         req: SimpleIncomingRequest,
         should_close: bool,
+        continue_retries: usize,
     },
-    /// After sending 100 Continue, waiting for client to start writing body.
+    /// After sending 100 Continue, waiting for client body data.
     WaitingForBody {
         req: SimpleIncomingRequest,
         should_close: bool,
-        /// Zero-indexed attempt number.
         attempt: usize,
-        /// Delay used on the previous attempt (for penalty reduction).
-        last_delay: Duration,
+    },
+    /// Run middleware chain, route, and dispatch to handler.
+    Processing {
+        req: SimpleIncomingRequest,
+        should_close: bool,
     },
 }
 
@@ -60,6 +62,7 @@ pub struct ConnectionHandler {
     /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
     max_expect_attempts: usize,
+    max_continue_retries: usize,
     escalation_threshold: u32,
     max_delay_cycles: u32,
     state: Option<HandlerState>,
@@ -75,9 +78,13 @@ impl ConnectionHandler {
         streams: HTTPStreams<RawStream>,
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
-        config: crate::server::KeepAliveConfig,
+        config: &crate::server::KeepAliveConfig,
     ) -> Self {
-        let max_expect_attempts = config.timeout_calculator.config().expect_continue.max_attempts;
+        let max_expect_attempts = config
+            .timeout_calculator
+            .config()
+            .expect_continue
+            .max_attempts;
         Self {
             app,
             streams,
@@ -85,6 +92,7 @@ impl ConnectionHandler {
             client_ip,
             timeout_calculator: config.timeout_calculator.clone(),
             max_expect_attempts,
+            max_continue_retries: 3,
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             state: Some(HandlerState::Idle),
@@ -95,32 +103,21 @@ impl ConnectionHandler {
     }
 
     /// Compute delay using the timeout calculator.
-    /// Called after `idle_poll_count >= escalation_threshold`.
-    fn compute_delay(&self) -> std::time::Duration {
-        // Use streaming context for SSE/WebSocket-capable server connections
+    fn compute_delay(&self) -> Duration {
         let ctx = TimeoutContext::default().streaming();
         self.timeout_calculator.calculate_sleep_duration(&ctx)
     }
 
     /// Get idle timeout from calculator.
-    fn idle_timeout(&self) -> std::time::Duration {
-        // Use streaming context for server connections
+    fn idle_timeout(&self) -> Duration {
         let ctx = TimeoutContext::default().streaming();
         self.timeout_calculator.calculate_read_timeout(&ctx)
     }
 
-    /// Classify an error: transient errors (WouldBlock-like) are treated as
-    /// "no data available". All other errors are hard errors — send 400.
-    ///
-    /// Since `HttpReaderError` wraps `SendableBoxedError` (not `io::Error`),
-    /// we classify by variant and error message content.
     fn is_transient_error(e: &HttpReaderError) -> bool {
-        // ReadFailed = stream returned no data, likely WouldBlock or EOF.
-        // Treat as transient — the idle_timeout will eventually close stale connections.
         if matches!(e, HttpReaderError::ReadFailed) {
             return true;
         }
-        // LineReadFailed wraps SendableBoxedError — check message for WouldBlock.
         if matches!(e, HttpReaderError::LineReadFailed(_)) {
             let msg = e.to_string().to_lowercase();
             return msg.contains("wouldblock")
@@ -130,49 +127,22 @@ impl ConnectionHandler {
         false
     }
 
-    #[tracing::instrument(skip(req))]
     fn has_expect_continue(req: &SimpleIncomingRequest) -> bool {
-        let has = req
-            .headers
+        req.headers
             .get(&SimpleHeader::EXPECT)
-            .map(|values| {
+            .is_some_and(|values| {
                 values
                     .iter()
                     .any(|v| v.trim().eq_ignore_ascii_case("100-continue"))
             })
-            .unwrap_or(false);
-        tracing::trace!("Expect header check result: has_expect_continue={}", has);
-        has
     }
 
-    #[tracing::instrument(skip(req))]
-    fn has_request_body(req: &SimpleIncomingRequest) -> bool {
-        if let Some(values) = req.headers.get(&SimpleHeader::CONTENT_LENGTH) {
-            if let Some(len) = values.first().and_then(|v| v.parse::<usize>().ok()) {
-                if len > 0 {
-                    tracing::trace!("Request has Content-Length: {} > 0", len);
-                    return true;
-                }
-            }
-        }
-        if let Some(values) = req.headers.get(&SimpleHeader::TRANSFER_ENCODING) {
-            if values.iter().any(|v| v.contains("chunked")) {
-                tracing::trace!("Request has Transfer-Encoding: chunked");
-                return true;
-            }
-        }
-        tracing::trace!("Request has no body indicators (no Content-Length > 0, no chunked Transfer-Encoding)");
-        false
-    }
-
-    /// Update idle tracking state.
     fn track_idle(&mut self) {
         if self.idle_since.is_none() {
             self.idle_since = Some(Instant::now());
         }
     }
 
-    /// Check if idle timeout has been exceeded.
     fn idle_exceeded(&self) -> bool {
         match self.idle_since {
             Some(since) => since.elapsed() >= self.idle_timeout(),
@@ -180,11 +150,9 @@ impl ConnectionHandler {
         }
     }
 
-    /// Handle the Idle state.
-    #[tracing::instrument(skip(self))]
+    // ---- Idle state -------------------------------------------------------
+
     fn handle_idle(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
-        tracing::trace!("Running idle connection handling");
-        // Check idle timeout.
         if self.idle_exceeded() {
             tracing::trace!(
                 client_ip = %self.client_ip,
@@ -192,346 +160,351 @@ impl ConnectionHandler {
             );
             return None;
         }
-
-        // Check delay cycle limit.
-        tracing::trace!(
-            "Checking if wait cycle is below max: {} < {}",
-            &self.total_delay_cycles,
-            &self.max_delay_cycles
-        );
         if self.total_delay_cycles >= self.max_delay_cycles {
             tracing::trace!(
                 client_ip = %self.client_ip,
-                total_delay_cycles = self.total_delay_cycles,
+                max_delay_cycles = self.max_delay_cycles,
                 "Max delay cycles exceeded, closing connection"
             );
             return None;
         }
 
-        // Attempt to read the next request.
-        tracing::trace!(
-            "Reading next request from stream: {} < {}",
-            &self.total_delay_cycles,
-            &self.max_delay_cycles
-        );
+        tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
+
         match read_next_request(&self.streams, &self.client_ip) {
             Some(Ok(req)) => {
-                tracing::trace!("Read request from connection!");
+                let should_close =
+                    req.headers
+                        .get(&SimpleHeader::CONNECTION)
+                        .is_some_and(|values| {
+                            values
+                                .iter()
+                                .any(|v| v.trim().eq_ignore_ascii_case("close"))
+                        });
 
-                // Data received — reset idle tracking.
-                let should_close = req
-                    .headers
-                    .get(&SimpleHeader::CONNECTION)
-                    .map(|values| {
-                        values.iter().any(|v| {
-                            let v = v.trim();
-                            v.eq_ignore_ascii_case("close")
-                        })
-                    })
-                    .unwrap_or(false);
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    method = %req.method,
+                    path = %req.request_url.url,
+                    should_close = should_close,
+                    "Idle: received request, transitioning to CheckExpect"
+                );
 
                 self.idle_poll_count = 0;
                 self.idle_since = None;
                 self.total_delay_cycles = 0;
 
-                tracing::trace!(
-                    client_ip = %self.client_ip,
-                    method = ?req.method,
-                    path = %req.request_url.url,
-                    should_close = should_close,
-                    "Request received, transitioning to Processing"
-                );
-
-                self.state = Some(HandlerState::Processing { req, should_close });
+                self.state = Some(HandlerState::CheckExpect {
+                    req,
+                    should_close,
+                    continue_retries: 0,
+                });
                 Some(TaskStatus::Pending(()))
             }
             Some(Err(e)) => {
-                tracing::trace!("Connection returned error: {:?}!", &e);
                 if Self::is_transient_error(&e) {
-                    // No data available — treat as idle.
-                    self.idle_poll_count += 1;
-                    self.track_idle();
-
-                    if self.idle_poll_count < self.escalation_threshold {
-                        // Fast polling phase — keep the executor spinning.
-                        self.state = Some(HandlerState::Idle);
-                        return Some(TaskStatus::Pending(()));
-                    }
-
-                    // Delayed phase — compute exponential backoff.
-                    let delay = self.compute_delay();
-
-                    // Track delay cycles: each time we cross another multiple
-                    // of escalation_threshold, increment the cycle counter.
-                    let new_cycle_count = self.idle_poll_count / self.escalation_threshold;
-                    if new_cycle_count > self.total_delay_cycles {
-                        self.total_delay_cycles = new_cycle_count;
-                    }
-
                     tracing::trace!(
                         client_ip = %self.client_ip,
+                        err = ?e,
                         idle_poll_count = self.idle_poll_count,
-                        total_delay_cycles = self.total_delay_cycles,
-                        delay = ?delay,
-                        "No data (transient error), returning Delayed"
+                        "Idle: transient read error, delaying"
                     );
-
-                    self.state = Some(HandlerState::Idle);
-                    Some(TaskStatus::Delayed(delay))
+                    self.idle_poll_count += 1;
+                    self.track_idle();
+                    Some(self.maybe_delay_idle())
                 } else {
-                    // Hard parse error — send 400 and close.
-                    let err = ErrorTrace::new(ServeError::BadRequest {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        err = ?e,
+                        "Idle: non-transient read error, sending 400"
+                    );
+                    let _err = ErrorTrace::new(ServeError::BadRequest {
                         status: 400,
                         reason: e.to_string(),
                     });
-                    tracing::error!(
-                        client_ip = %self.client_ip,
-                        err = ?err,
-                        "Hard parse error from client"
-                    );
                     let _ = respond::text(&mut self.conn.clone(), 400, "Bad Request");
                     None
                 }
             }
             None => {
-                tracing::trace!("Connection returned None, running idle sequence");
-                // No data at all (WouldBlock with no bytes read).
-                self.idle_poll_count += 1;
-                self.track_idle();
-
-                if self.idle_poll_count < self.escalation_threshold {
-                    self.state = Some(HandlerState::Idle);
-                    return Some(TaskStatus::Pending(()));
-                }
-
-                let delay = self.compute_delay();
-                let new_cycle_count = self.idle_poll_count / self.escalation_threshold;
-                if new_cycle_count > self.total_delay_cycles {
-                    self.total_delay_cycles = new_cycle_count;
-                }
-
                 tracing::trace!(
                     client_ip = %self.client_ip,
-                    idle_poll_count = self.idle_poll_count,
-                    total_delay_cycles = self.total_delay_cycles,
-                    delay = ?delay,
-                    "No data (None), returning Delayed"
+                    "Idle: no data available (WouldBlock)"
                 );
-
-                self.state = Some(HandlerState::Idle);
-                Some(TaskStatus::Delayed(delay))
+                self.idle_poll_count += 1;
+                self.track_idle();
+                Some(self.maybe_delay_idle())
             }
         }
     }
 
-    /// Handle the WaitingForBody state — re-entry after 100 Continue delay.
-    ///
-    /// Checks if the shared TCP buffer has received data since we sent
-    /// 100 Continue. If yes, proceeds to middleware/handler dispatch.
-    /// If not, delays again with a reduced timeout.
-    #[tracing::instrument(skip(self))]
+    fn maybe_delay_idle(&mut self) -> TaskStatus<(), (), BoxedSendExecutionAction> {
+        if self.idle_poll_count < self.escalation_threshold {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                idle_poll_count = self.idle_poll_count,
+                "Idle: spinning without delay (below escalation threshold)"
+            );
+            self.state = Some(HandlerState::Idle);
+            return TaskStatus::Pending(());
+        }
+        let delay = self.compute_delay();
+        let new_cycle_count = self.idle_poll_count / self.escalation_threshold;
+        if new_cycle_count > self.total_delay_cycles {
+            self.total_delay_cycles = new_cycle_count;
+        }
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            idle_poll_count = self.idle_poll_count,
+            delay_cycles = self.total_delay_cycles,
+            delay_ms = delay.as_millis(),
+            "Idle: escalating delay due to prolonged inactivity"
+        );
+        self.state = Some(HandlerState::Idle);
+        TaskStatus::Delayed(delay)
+    }
+
+    // ---- CheckExpect state ------------------------------------------------
+
+    fn handle_check_expect(
+        &mut self,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        if Self::has_expect_continue(&req) {
+            // Send 100 Continue and wait for body data.
+            match respond::continue_100(&mut self.conn.clone()) {
+                Ok(()) => {
+                    tracing::trace!(
+                        client_ip = %self.client_ip,
+                        "Sent 100 Continue, entering WaitingForBody state"
+                    );
+                    self.state = Some(HandlerState::WaitingForBody {
+                        req,
+                        should_close,
+                        attempt: 0,
+                    });
+                    let delay = self
+                        .timeout_calculator
+                        .calculate_expect_continue_delay(
+                            &TimeoutContext::default(),
+                            0,
+                            self.max_expect_attempts,
+                        )
+                        .expect("first attempt must yield a delay");
+                    return Some(TaskStatus::Delayed(delay));
+                }
+                Err(e) => {
+                    let next = continue_retries + 1;
+                    if next <= self.max_continue_retries {
+                        tracing::trace!(
+                            client_ip = %self.client_ip,
+                            err = ?e,
+                            retry = next,
+                            max_retries = self.max_continue_retries,
+                            "100 Continue write failed, retrying"
+                        );
+                        // Re-enter CheckExpect with incremented counter.
+                        self.state = Some(HandlerState::CheckExpect {
+                            req,
+                            should_close,
+                            continue_retries: next,
+                        });
+                        // Short delay before retry — use base delay from calculator.
+                        let delay = self
+                            .timeout_calculator
+                            .calculate_expect_continue_delay(
+                                &TimeoutContext::default(),
+                                continue_retries,
+                                self.max_expect_attempts.max(1),
+                            )
+                            .unwrap_or(Duration::from_millis(100));
+                        return Some(TaskStatus::Delayed(delay));
+                    }
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        err = ?e,
+                        retries = continue_retries,
+                        max_retries = self.max_continue_retries,
+                        "Failed to write 100 Continue after all retries"
+                    );
+                    let _ = respond::text(
+                        &mut self.conn.clone(),
+                        502,
+                        "Bad Gateway — Expect: failed to write response",
+                    );
+                    return None;
+                }
+            }
+        }
+        // No expect header — go straight to processing.
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            method = %req.method,
+            path = %req.request_url.url,
+            "No Expect: 100-continue, transitioning to Processing"
+        );
+        self.state = Some(HandlerState::Processing { req, should_close });
+        Some(TaskStatus::Pending(()))
+    }
+
+    // ---- WaitingForBody state ---------------------------------------------
+
+    #[allow(clippy::too_many_lines)]
     fn handle_waiting_for_body(
         &mut self,
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
-        last_delay: Duration,
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         let next_attempt = attempt + 1;
 
-        // Check if the shared buffer has received data.
-        let buffered = self.conn.do_once(|bbp| bbp.len());
         tracing::trace!(
             client_ip = %self.client_ip,
             attempt = attempt,
-            buffered_bytes = buffered,
-            last_delay = ?last_delay,
-            "WaitingForBody: checking buffer after delay"
+            "WaitingForBody: probing for body data"
         );
 
-        if buffered > 0 {
-            tracing::trace!(
-                client_ip = %self.client_ip,
-                "WaitingForBody: data available in buffer, proceeding to processing"
-            );
-            // Body data has arrived — proceed to middleware and handler dispatch,
-            // skipping the 100-continue sending since it was already sent.
-            self.dispatch_processing(req, should_close, true)
-        } else {
-            // No data yet — try again if under max attempts.
-            let ctx = TimeoutContext::default().with_previous_timeout(last_delay);
-            match self.timeout_calculator.calculate_expect_continue_delay(&ctx, next_attempt, self.max_expect_attempts) {
-                Some(delay) => {
-                    tracing::trace!(
-                        client_ip = %self.client_ip,
-                        attempt = next_attempt,
-                        delay = ?delay,
-                        "WaitingForBody: no data yet, delaying again"
-                    );
-                    self.state = Some(HandlerState::WaitingForBody {
-                        req,
-                        should_close,
-                        attempt: next_attempt,
-                        last_delay: delay,
-                    });
-                    Some(TaskStatus::Delayed(delay))
-                }
-                None => {
+        match self.conn.probe() {
+            Ok(len) if len > 0 => {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    attempt = attempt,
+                    bytes_available = len,
+                    "WaitingForBody: body data available, transitioning to Processing"
+                );
+                self.state = Some(HandlerState::Processing { req, should_close });
+                Some(TaskStatus::Pending(()))
+            }
+            Ok(_) => self.waiting_for_body_retry(req, should_close, attempt, next_attempt),
+            Err(e) => {
+                let kind = e.kind();
+                if kind == std::io::ErrorKind::WouldBlock
+                    || kind == std::io::ErrorKind::TimedOut
+                    || kind == std::io::ErrorKind::Interrupted
+                {
+                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt)
+                } else {
                     tracing::warn!(
                         client_ip = %self.client_ip,
-                        max_attempts = self.max_expect_attempts,
-                        "WaitingForBody: max attempts exceeded, closing connection"
+                        attempt = attempt,
+                        err = ?e,
+                        "WaitingForBody: hard error on probe"
                     );
-                    // Max attempts reached — fail the request.
-                    let _ = respond::text(
-                        &mut self.conn.clone(),
-                        408,
-                        "Request Timeout — body not received after 100 Continue",
-                    );
+                    let _ = respond::text(&mut self.conn.clone(), 400, "Bad Request");
                     None
                 }
             }
         }
     }
 
-    /// Handle the Processing state.
-    #[tracing::instrument(skip(self))]
+    fn waiting_for_body_retry(
+        &mut self,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        attempt: usize,
+        next_attempt: usize,
+    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            attempt = attempt,
+            "WaitingForBody: no data, computing next delay"
+        );
+        let prev = self.timeout_calculator.calculate_expect_continue_delay(
+            &TimeoutContext::default(),
+            attempt,
+            self.max_expect_attempts,
+        );
+        let ctx = match prev {
+            Some(d) => TimeoutContext::default().with_previous_timeout(d),
+            None => TimeoutContext::default(),
+        };
+        if let Some(delay) = self.timeout_calculator.calculate_expect_continue_delay(
+            &ctx,
+            next_attempt,
+            self.max_expect_attempts,
+        ) {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                attempt = attempt,
+                delay_ms = delay.as_millis(),
+                "WaitingForBody: delaying before next retry"
+            );
+            self.state = Some(HandlerState::WaitingForBody {
+                req,
+                should_close,
+                attempt: next_attempt,
+            });
+            Some(TaskStatus::Delayed(delay))
+        } else {
+            tracing::warn!(
+                client_ip = %self.client_ip,
+                attempt = attempt,
+                max_attempts = self.max_expect_attempts,
+                "WaitingForBody: max attempts reached, sending 408"
+            );
+            let _ = respond::text(
+                &mut self.conn.clone(),
+                408,
+                "Request Timeout — body not received after 100 Continue",
+            );
+            None
+        }
+    }
+
+    // ---- Processing state -------------------------------------------------
+
     fn handle_processing(
         &mut self,
         mut req: SimpleIncomingRequest,
         should_close: bool,
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
-        self.dispatch_processing(req, should_close, false)
-    }
-
-    /// Internal processing — `sent_100_continue` skips the 100-continue
-    /// sending block when called from `WaitingForBody` (already sent).
-    fn dispatch_processing(
-        &mut self,
-        mut req: SimpleIncomingRequest,
-        should_close: bool,
-        sent_100_continue: bool,
-    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
-        let bag = self.app.context().clone();
-
         tracing::trace!(
-            request_proto = %req.proto,
-            request_uri = %req.request_uri,
-            request_url = %req.request_url,
-            request_method = %req.method,
-            request_headers = ?req.headers,
-            "Request received for processing"
+            client_ip = %self.client_ip,
+            method = %req.method,
+            path = %req.request_url.url,
+            "Processing: entering middleware chain"
         );
 
-        // Expect: 100-continue — send response before body is pulled.
-        // Skip if we already sent it from a previous dispatch (WaitingForBody path).
-        if !sent_100_continue {
-            let has_expect = Self::has_expect_continue(&req);
-            let has_body = Self::has_request_body(&req);
-            if has_expect && has_body {
-                tracing::trace!(
-                    client_ip = %self.client_ip,
-                    method = ?req.method,
-                    path = %req.request_url.url,
-                    "Expect: 100-continue detected — sending 100 Continue, transitioning to WaitingForBody"
-                );
-                match respond::continue_100(&mut self.conn.clone()) {
-                    Ok(()) => {
-                        tracing::trace!(client_ip = %self.client_ip, "100 Continue response written successfully");
-                        // Wait for client to receive 100 Continue and start writing body.
-                        let delay = self
-                            .timeout_calculator
-                            .calculate_expect_continue_delay(&TimeoutContext::default(), 0, self.max_expect_attempts)
-                            .expect("first attempt must yield a delay");
-                        self.state = Some(HandlerState::WaitingForBody {
-                            req,
-                            should_close,
-                            attempt: 0,
-                            last_delay: delay,
-                        });
-                        return Some(TaskStatus::Delayed(delay));
-                    }
-                    Err(e) => {
-                        tracing::error!(
-                            client_ip = %self.client_ip,
-                            err = ?e,
-                            "Failed to write 100 Continue response"
-                        );
-                    }
-                }
-            } else {
-                tracing::trace!(
-                    client_ip = %self.client_ip,
-                    has_expect_continue = has_expect,
-                    has_request_body = has_body,
-                    "Expect: 100-continue not applicable — skipping"
-                );
-            }
-        }
+        let bag = self.app.context().clone();
 
-        // Run middleware chain — middleware takes &mut req.
+        // Run middleware chain.
         let mut middleware_response: Option<SimpleOutgoingResponse> = None;
         for mw in self.app.middleware_chain() {
             match mw.handle(&bag, &mut req) {
                 crate::middleware::MiddlewareResult::Continue => {}
                 crate::middleware::MiddlewareResult::Response(resp) => {
+                    tracing::trace!(
+                        client_ip = %self.client_ip,
+                        status = %resp.status,
+                        "Processing: middleware short-circuited with response"
+                    );
                     middleware_response = Some(resp);
-                    break; // short-circuit
+                    break;
                 }
                 crate::middleware::MiddlewareResult::InterimResponse(resp) => {
-                    // Render immediately but continue — do NOT break.
-                    // Useful for 100-Continue, progress trailers, etc.
-                    let _ = Http11::response(resp)
-                        .http_render_to_writer(&mut self.conn.clone());
                     tracing::trace!(
-                        "Middleware rendered interim response, continuing chain"
+                        client_ip = %self.client_ip,
+                        status = %resp.status,
+                        "Processing: middleware returned interim response"
                     );
+                    let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
                 }
             }
         }
 
-        tracing::trace!(
-            request_proto = %req.proto,
-            request_uri = %req.request_uri,
-            request_url = %req.request_url,
-            request_method = %req.method,
-            request_headers = ?req.headers,
-            "Applied middleware chain"
-        );
-
         if let Some(mut resp) = middleware_response {
-            tracing::trace!(
-                request_proto = %req.proto,
-                request_uri = %req.request_uri,
-                request_url = %req.request_url,
-                request_method = %req.method,
-                request_headers = ?req.headers,
-                "Received middleware response"
-            );
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
             }
             let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
-            tracing::trace!(
-                request_proto = %req.proto,
-                request_uri = %req.request_uri,
-                request_url = %req.request_url,
-                request_method = %req.method,
-                request_headers = ?req.headers,
-                "Sent middleware response as request response"
-            );
             if should_close {
-                tracing::trace!(
-                    request_proto = %req.proto,
-                    request_uri = %req.request_uri,
-                    request_url = %req.request_url,
-                    request_method = %req.method,
-                    request_headers = ?req.headers,
-                    "Ending request processing"
-                );
+                tracing::trace!(client_ip = %self.client_ip, "Processing: connection closed after middleware response");
                 return None;
             }
+            tracing::trace!(client_ip = %self.client_ip, "Processing: returning to Idle after middleware response");
             self.state = Some(HandlerState::Idle);
             return Some(TaskStatus::Pending(()));
         }
@@ -541,68 +514,47 @@ impl ConnectionHandler {
         let path = &req.request_url.url;
 
         tracing::trace!(
-            request_proto = %req.proto,
-            request_uri = %req.request_uri,
-            request_url = %req.request_url,
-            request_method = %req.method,
-            request_headers = ?req.headers,
-            "Passing request to router"
+            client_ip = %self.client_ip,
+            method = %method,
+            path = %path,
+            "Processing: dispatching to route handler"
         );
 
-        match self.app.router().dispatch(method, path) {
-            Some(handler) => {
-                tracing::trace!(
-                    request_proto = %req.proto,
-                    request_uri = %req.request_uri,
-                    request_url = %req.request_url,
-                    request_method = %req.method,
-                    request_headers = ?req.headers,
-                    "Router returns handler"
-                );
-
-                let result = handler.serve(bag, req, self.conn.clone());
-
-                match result {
-                    ConnectionResult::Take => {
-                        tracing::trace!(
-                            client_ip = %self.client_ip,
-                            "Handler returned Take (connection taken)"
-                        );
-                        None
+        if let Some(handler) = self.app.router().dispatch(method, path) {
+            let result = handler.serve(bag, req, self.conn.clone());
+            match result {
+                ConnectionResult::Take => {
+                    tracing::trace!(client_ip = %self.client_ip, "Processing: handler took connection (e.g. WebSocket upgrade)");
+                    None
+                }
+                ConnectionResult::Close(err) => {
+                    if let Some(e) = &err {
+                        tracing::error!(client_ip = %self.client_ip, err = ?e, "Connection closed with error");
                     }
-                    ConnectionResult::Close(err) => {
-                        if let Some(e) = &err {
-                            tracing::error!(
-                                client_ip = %self.client_ip,
-                                err = ?e,
-                                "Connection closed with error"
-                            );
-                        }
-                        None
+                    None
+                }
+                ConnectionResult::Keep => {
+                    if should_close {
+                        return None;
                     }
-                    ConnectionResult::Keep => {
-                        if should_close {
-                            return None;
-                        }
-                        self.state = Some(HandlerState::Idle);
-                        Some(TaskStatus::Pending(()))
-                    }
+                    tracing::trace!(client_ip = %self.client_ip, "Processing: handler kept connection, returning to Idle");
+                    self.state = Some(HandlerState::Idle);
+                    Some(TaskStatus::Pending(()))
                 }
             }
-            None => {
-                tracing::trace!(
-                    client_ip = %self.client_ip,
-                    method = ?method,
-                    path = %path,
-                    "No route matched, returning 404"
-                );
-                let _ = respond::not_found(&mut self.conn.clone());
-                if should_close {
-                    return None;
-                }
-                self.state = Some(HandlerState::Idle);
-                Some(TaskStatus::Pending(()))
+        } else {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                method = %method,
+                path = %path,
+                "Processing: no route matched, returning 404"
+            );
+            let _ = respond::not_found(&mut self.conn.clone());
+            if should_close {
+                return None;
             }
+            self.state = Some(HandlerState::Idle);
+            Some(TaskStatus::Pending(()))
         }
     }
 }
@@ -616,19 +568,22 @@ impl TaskIterator for ConnectionHandler {
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        let Some(state) = self.state.take() else {
-            tracing::trace!("Ending Connection multiplexing");
-            return None;
-        };
+        let state = self.state.take()?;
 
-        tracing::trace!("Calling Connection multiplexing");
         match state {
             HandlerState::Idle => self.handle_idle(),
+            HandlerState::CheckExpect {
+                req,
+                should_close,
+                continue_retries,
+            } => self.handle_check_expect(req, should_close, continue_retries),
+            HandlerState::WaitingForBody {
+                req,
+                should_close,
+                attempt,
+            } => self.handle_waiting_for_body(req, should_close, attempt),
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
-            }
-            HandlerState::WaitingForBody { req, should_close, attempt, last_delay } => {
-                self.handle_waiting_for_body(req, should_close, attempt, last_delay)
             }
         }
     }

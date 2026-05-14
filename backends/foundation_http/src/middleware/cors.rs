@@ -20,7 +20,7 @@ use crate::middleware::{MiddlewareResult, RequestMiddleware};
 /// Controls which origins, methods, headers, and credentials are allowed.
 #[derive(Clone)]
 pub struct CorsConfig {
-    /// Allowed origins. Use "*" for any origin, or specific origins like "https://example.com".
+    /// Allowed origins. Use "*" for any origin, or specific origins like "<https://example.com>".
     /// Empty means no CORS (no Access-Control-Allow-Origin header).
     pub allowed_origins: Vec<String>,
     /// Allowed HTTP methods for preflight.

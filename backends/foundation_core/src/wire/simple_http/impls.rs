@@ -7,9 +7,7 @@ use crate::io::readers::{BatchReader, Data, DataBytesIterator};
 use crate::io::readers::EOFStreamReader;
 use crate::io::readers::LimitedBatchStreamReader;
 use crate::io::readers::LimitedEOFStreamReader;
-use crate::wire::simple_http::client::body_reader::{
-    ContentLengthEnforcingIterator, LineFeedContentLengthEnforcer,
-};
+use crate::wire::simple_http::client::body_reader::ContentLengthEnforcingIterator;
 use crate::io::ubytes;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
@@ -3509,8 +3507,7 @@ where
                         return Some(Err(HttpReaderError::DuplicateContentLength));
                     }
 
-                    let content_size_str = content_size_headers
-                        .get(0)
+                    let content_size_str = content_size_headers.first()
                         .expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {
@@ -4003,8 +4000,7 @@ where
                         return Some(Err(HttpReaderError::DuplicateContentLength));
                     }
 
-                    let content_size_str = content_size_headers
-                        .get(0)
+                    let content_size_str = content_size_headers.first()
                         .expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {

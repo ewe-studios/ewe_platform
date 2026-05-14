@@ -24,8 +24,8 @@ pub fn handle_close(
 
     let serve_error = err.downcast_ref::<ServeError>();
     let (status, reason) = match serve_error {
-        Some(ServeError::BadRequest { status, reason })
-        | Some(ServeError::InternalError { status, reason }) => (*status, reason.clone()),
+        Some(ServeError::BadRequest { status, reason } | ServeError::InternalError {
+status, reason }) => (*status, reason.clone()),
         None => (500, format!("{err}")),
     };
 

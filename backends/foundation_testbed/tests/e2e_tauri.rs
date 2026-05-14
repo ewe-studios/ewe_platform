@@ -592,6 +592,10 @@ fn test_full_e2e_linux() -> Result<()> {
     let mut vm = TestVm::new_with_mount(LINUX_PROFILE, true)?;
     vm.wait_for_ready(CONNECT_TIMEOUT)?;
 
+    // Clear stale bootstrap marker and run bootstrap
+    let _ = vm.ssh_exec("rm -f ~/.testbed-bootstrapped");
+    vm.bootstrap()?;
+
     let mount_list = vm.ssh_exec(&format!("ls {LINUX_MOUNT} | head -5"))?;
     assert!(
         !mount_list.trim().is_empty(),

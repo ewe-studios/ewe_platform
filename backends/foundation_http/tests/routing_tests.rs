@@ -223,7 +223,8 @@ fn test_add_route_any() {
     let mut router = Router::new();
     let count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route_any("/catch-all", make_handler(60, count.clone()));
+    let handler = Arc::new(make_handler(60, count.clone()));
+    router.add_route_any("/catch-all", &handler);
 
     assert!(router.dispatch(&SimpleMethod::GET, "/catch-all").is_some());
     assert!(router.dispatch(&SimpleMethod::POST, "/catch-all").is_some());
