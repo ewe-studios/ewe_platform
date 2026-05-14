@@ -1282,6 +1282,20 @@ impl<T: Read> ByteBufferPointer<T> {
         self.buffer.len() == 0
     }
 
+    /// Returns the number of unconsumed bytes in the buffer.
+    #[inline]
+    #[must_use]
+    pub fn remaining(&self) -> usize {
+        self.buffer.len().saturating_sub(self.pos)
+    }
+
+    /// Returns true when the buffer has no data or all data has been consumed.
+    #[inline]
+    #[must_use]
+    pub fn is_empty_or_consumed(&self) -> bool {
+        self.remaining() == 0
+    }
+
     #[inline]
     pub fn uncapture(&mut self) {
         self.uncapture_by(1);
