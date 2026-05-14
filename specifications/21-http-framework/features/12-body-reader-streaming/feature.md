@@ -1,7 +1,7 @@
 ---
 feature: body-reader-streaming
 description: Replace eager body reading with Data-exposing streaming readers, add DataBytesIterator for compatibility
-status: design
+status: completed
 priority: high
 depends_on: []
 estimated_effort: large
@@ -1050,49 +1050,49 @@ fn size_limit_enforcement_streaming() {
 
 ### Test Migration Checklist
 
-- [ ] Update `readers/mod.rs` inline tests (18 tests modified)
-- [ ] Add new reader tests in `readers/mod.rs` (15+ new tests)
-- [ ] Update `body_reader.rs` iteration patterns (23 locations)
-- [ ] Update `body_reader.rs` tests (~20 tests)
-- [ ] Update event source tests (4+ files)
-- [ ] Update simple_http request tests
-- [ ] Update simple_http middleware tests
-- [ ] Update simple_http compression tests
-- [ ] Create streaming readers integration tests
-- [ ] Verify all tests pass with `cargo test`
-- [ ] Document test patterns in migration guide
+- [x] Update `readers/mod.rs` inline tests (18 tests modified)
+- [x] Add new reader tests in `readers/mod.rs` (15+ new tests)
+- [x] Update `body_reader.rs` iteration patterns (23 locations)
+- [x] Update `body_reader.rs` tests (~20 tests)
+- [x] Update event source tests (4+ files)
+- [x] Update simple_http request tests
+- [x] Update simple_http middleware tests
+- [x] Update simple_http compression tests
+- [x] Create streaming readers integration tests
+- [x] Verify all tests pass with `cargo test`
+- [x] Document test patterns in migration guide
 
 ## Success Criteria
 
 ### Implementation
-- [ ] `BatchStreamReader` exposes `Data` (no loop)
-- [ ] `FullBodyReader` converted to `Data`-exposing iterator
-- [ ] `EofReader` converted to `Data`-exposing iterator
-- [ ] `LimitedBatchStreamReader` implemented with `Data` exposure
-- [ ] `EOFStreamReader` implemented with `Data` exposure
-- [ ] `LimitedEOFStreamReader` implemented with `Data` exposure
-- [ ] `DataBytesIterator` implemented for backward compatibility
-- [ ] `IntoDataBytes` extension trait implemented
-- [ ] `SendSafeBody::Stream` type changed to `Iterator<Item=Result<Data, BoxedError>>`
+- [x] `BatchStreamReader` exposes `Data` (no loop)
+- [x] `FullBodyReader` converted to `Data`-exposing iterator
+- [x] `EofReader` converted to `Data`-exposing iterator
+- [x] `LimitedBatchStreamReader` implemented with `Data` exposure
+- [x] `EOFStreamReader` implemented with `Data` exposure
+- [x] `LimitedEOFStreamReader` implemented with `Data` exposure
+- [x] `DataBytesIterator` implemented for backward compatibility
+- [x] `IntoDataBytes` extension trait implemented
+- [x] `SendSafeBody::Stream` type changed to `Iterator<Item=Result<Data, BoxedError>>`
 
 ### Body Integration
-- [ ] `collect_string`, `collect_bytes` updated to handle `Data`
-- [ ] All 23 usages in body_reader.rs updated
-- [ ] All body extraction returns streaming readers (no eager Bytes)
+- [x] `collect_string`, `collect_bytes` updated to handle `Data`
+- [x] All 23 usages in body_reader.rs updated
+- [x] All body extraction returns streaming readers (no eager Bytes)
 
 ### Tests
-- [ ] 18 inline tests in readers/mod.rs updated
-- [ ] 15+ new tests for new readers added
-- [ ] body_reader.rs iteration patterns updated (23 locations)
-- [ ] Event source tests updated (4+ files)
-- [ ] Simple HTTP tests updated (request, middleware, compression)
-- [ ] New integration test file created
-- [ ] All tests pass with `cargo test`
+- [x] 18 inline tests in readers/mod.rs updated
+- [x] 15+ new tests for new readers added
+- [x] body_reader.rs iteration patterns updated (23 locations)
+- [x] Event source tests updated (4+ files)
+- [x] Simple HTTP tests updated (request, middleware, compression)
+- [x] New integration test file created
+- [x] All tests pass with `cargo test`
 
 ### Documentation
-- [ ] `full_body_threshold` deprecated/removed
-- [ ] Migration guide updated with before/after examples
-- [ ] Test patterns documented
+- [x] `full_body_threshold` deprecated/removed
+- [x] Migration guide updated with before/after examples
+- [x] Test patterns documented
 
 ## Related Files
 

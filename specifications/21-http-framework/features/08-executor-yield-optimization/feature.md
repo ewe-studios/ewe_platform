@@ -59,10 +59,10 @@ All tests pass with the reduced yield time.
 
 ## Success Criteria
 
-- [ ] `pool_drain_tests` complete in <20 seconds (down from ~56s)
-- [ ] All existing tests still pass
-- [ ] No noticeable CPU increase in production workloads
-- [ ] Documentation updated with rationale
+- [x] `pool_drain_tests` complete in <20 seconds (down from ~56s)
+- [x] All existing tests still pass
+- [x] No noticeable CPU increase in production workloads
+- [x] Documentation updated with rationale
 
 ## Related Code
 

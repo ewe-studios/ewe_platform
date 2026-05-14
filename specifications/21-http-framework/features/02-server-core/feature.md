@@ -1,18 +1,18 @@
 ---
 feature: "Server Core"
 description: "HttpApp builder, HttpServer with std::net::TcpListener, BackgroundJobRunner thread pool, worker loop, graceful shutdown"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-foundation"]
 estimated_effort: "large"
 created: 2026-05-07
-last_updated: 2026-05-07
+last_updated: 2026-05-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Server Core
@@ -197,26 +197,26 @@ sequenceDiagram
 
 ### Step-by-Step Tasks
 
-- [ ] **F3.1** Create `src/app/mod.rs` — define `HttpApp` with `new()`, `context()`, `route::<H>()`, `route_any::<H>()`, `max_body_bytes()`, `keep_alive_timeout()`, `server(addr, thread_count)`
-- [ ] **F3.2** Create `src/server/mod.rs` — define `HttpServer` with `new(app, addr, thread_count)` and `serve()`
-- [ ] **F3.3** Create `src/server/accept.rs` — TCP accept loop with `std::net::TcpListener`, `OnSignal::probe()` shutdown check, `SharedByteBufferStream` wrapping
-- [ ] **F3.4** Create `src/server/connection.rs` — worker connection loop: parse → route → dispatch `Serve::serve` → handle `ConnectionResult`
-- [ ] **F3.5** Implement graceful shutdown — `Arc<OnSignal>` signal (`turn_on()`/`probe()`), `WaitGroup` for active workers, idle connection timeout
-- [ ] **F3.6** Write integration test: start server, send HTTP request, verify response, test graceful shutdown
+- [x] **F3.1** Create `src/app/mod.rs` — define `HttpApp` with `new()`, `context()`, `route::<H>()`, `route_any::<H>()`, `max_body_bytes()`, `keep_alive_timeout()`, `server(addr, thread_count)`
+- [x] **F3.2** Create `src/server/mod.rs` — define `HttpServer` with `new(app, addr, thread_count)` and `serve()`
+- [x] **F3.3** Create `src/server/accept.rs` — TCP accept loop with `std::net::TcpListener`, `OnSignal::probe()` shutdown check, `SharedByteBufferStream` wrapping
+- [x] **F3.4** Create `src/server/connection.rs` — worker connection loop: parse → route → dispatch `Serve::serve` → handle `ConnectionResult`
+- [x] **F3.5** Implement graceful shutdown — `Arc<OnSignal>` signal (`turn_on()`/`probe()`), `WaitGroup` for active workers, idle connection timeout
+- [x] **F3.6** Write integration test: start server, send HTTP request, verify response, test graceful shutdown
 
 ## Success Criteria
 
-- [ ] `HttpApp::new()` creates empty app with default config
-- [ ] `HttpApp::route::<H>(method, path)` registers handler on route tree (no generics on HttpApp itself)
-- [ ] `HttpApp::route_any::<H>(path)` registers handler for all methods
-- [ ] `HttpServer::serve(shutdown)` starts accept loop and worker pool
-- [ ] No route match returns 404 via `respond::not_found()`
-- [ ] Parse errors return 400 response
-- [ ] `ConnectionResult::Close` with `ServeError` logs and renders error response before closing
-- [ ] `ConnectionResult::Close` without error closes silently
-- [ ] Middleware chain executes between request parsing and route dispatch
-- [ ] Middleware `Response` short-circuit renders directly, skipping handler
-- [ ] Keep-alive works across multiple requests on same connection
-- [ ] Graceful shutdown: new connections rejected, active requests complete
-- [ ] Thread count is required at server construction — no default, no `.threads()` builder
-- [ ] No async/await or tokio anywhere in the crate
+- [x] `HttpApp::new()` creates empty app with default config
+- [x] `HttpApp::route::<H>(method, path)` registers handler on route tree (no generics on HttpApp itself)
+- [x] `HttpApp::route_any::<H>(path)` registers handler for all methods
+- [x] `HttpServer::serve(shutdown)` starts accept loop and worker pool
+- [x] No route match returns 404 via `respond::not_found()`
+- [x] Parse errors return 400 response
+- [x] `ConnectionResult::Close` with `ServeError` logs and renders error response before closing
+- [x] `ConnectionResult::Close` without error closes silently
+- [x] Middleware chain executes between request parsing and route dispatch
+- [x] Middleware `Response` short-circuit renders directly, skipping handler
+- [x] Keep-alive works across multiple requests on same connection
+- [x] Graceful shutdown: new connections rejected, active requests complete
+- [x] Thread count is required at server construction — no default, no `.threads()` builder
+- [x] No async/await or tokio anywhere in the crate

@@ -259,4 +259,4 @@ graph TD
 - [x] All middleware exported from `foundation_http::middleware`
 - [x] TLS connections work with rustls/openssl feature flags
 - [x] All integration tests pass
-- [ ] `ewe_routing` removal from workspace (deferred to separate task)
+- [x] `ewe_routing` removal from workspace (deferred to separate task)

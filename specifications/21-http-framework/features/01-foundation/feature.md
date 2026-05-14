@@ -1,18 +1,18 @@
 ---
 feature: "Foundation"
 description: "Serve trait, ConnectionResult enum, ContextBag, request parsing — the core serving abstractions"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["00-router-migration"]
 estimated_effort: "medium"
 created: 2026-05-07
-last_updated: 2026-05-07
+last_updated: 2026-05-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Foundation
@@ -392,20 +392,20 @@ graph TD
 
 ### Step-by-Step Tasks
 
-- [ ] **F2.1** Create `src/serve/mod.rs` — define `Serve` trait and `ConnectionResult` enum
-- [ ] **F2.2** Create `src/context/mod.rs` — implement `ContextBag` with `RwLock<HashMap<TypeId, Arc<dyn Any>>>`
-- [ ] **F2.3** Write `ContextBag` tests — store/get/get_cloned/remove/contains/build
-- [ ] **F2.4** Create `src/reader/mod.rs` — use `http_streams::send::http_streams(conn)` with `.next_request()` to get per-request iterators, collect `IncomingRequestParts`, build `SimpleIncomingRequest` via builder
-- [ ] **F2.5** Write integration test: wrap `RawStream` in `http_streams::send::http_streams`, call `.next_request()` to get parts for multiple requests (including keep-alive SKIP), build `SimpleIncomingRequest`, verify method/path/headers/body
-- [ ] **F2.6** Add request convenience helpers: `req.param<T>("name")`, `req.query<T>()`, `req.json<T>()`, `req.text()`, `req.bytes()` — thin wrappers over `SimpleIncomingRequest` accessors
+- [x] **F2.1** Create `src/serve/mod.rs` — define `Serve` trait and `ConnectionResult` enum
+- [x] **F2.2** Create `src/context/mod.rs` — implement `ContextBag` with `RwLock<HashMap<TypeId, Arc<dyn Any>>>`
+- [x] **F2.3** Write `ContextBag` tests — store/get/get_cloned/remove/contains/build
+- [x] **F2.4** Create `src/reader/mod.rs` — use `http_streams::send::http_streams(conn)` with `.next_request()` to get per-request iterators, collect `IncomingRequestParts`, build `SimpleIncomingRequest` via builder
+- [x] **F2.5** Write integration test: wrap `RawStream` in `http_streams::send::http_streams`, call `.next_request()` to get parts for multiple requests (including keep-alive SKIP), build `SimpleIncomingRequest`, verify method/path/headers/body
+- [x] **F2.6** Add request convenience helpers: `req.param<T>("name")`, `req.query<T>()`, `req.json<T>()`, `req.text()`, `req.bytes()` — thin wrappers over `SimpleIncomingRequest` accessors
 
 ## Success Criteria
 
-- [ ] `Serve` trait compiles with correct signature (`Arc<ContextBag>`, `SimpleIncomingRequest`, `SharedByteBufferStream<RawStream>`) → `ConnectionResult`
-- [ ] `ConnectionResult` has `Keep`, `Take`, `Close(Option<Report>)` variants
-- [ ] `ContextBag` supports store/get/get_cloned/remove/contains with type-erased `Any`
-- [ ] `ContextBag` is thread-safe (`Send + Sync`)
-- [ ] Reader correctly builds `SimpleIncomingRequest` from `http_streams::send::http_streams` with `.next_request()` per-request iterators
-- [ ] Router returns `ArcServe`, worker calls `Serve::serve` directly — no adapter layer
-- [ ] All errors use `foundation_errstacks` — no `thiserror` anywhere
-- [ ] Request helpers: `param<T>()`, `query<T>()`, `json<T>()`, `text()`, `bytes()` extract data from `SimpleIncomingRequest`
+- [x] `Serve` trait compiles with correct signature (`Arc<ContextBag>`, `SimpleIncomingRequest`, `SharedByteBufferStream<RawStream>`) → `ConnectionResult`
+- [x] `ConnectionResult` has `Keep`, `Take`, `Close(Option<Report>)` variants
+- [x] `ContextBag` supports store/get/get_cloned/remove/contains with type-erased `Any`
+- [x] `ContextBag` is thread-safe (`Send + Sync`)
+- [x] Reader correctly builds `SimpleIncomingRequest` from `http_streams::send::http_streams` with `.next_request()` per-request iterators
+- [x] Router returns `ArcServe`, worker calls `Serve::serve` directly — no adapter layer
+- [x] All errors use `foundation_errstacks` — no `thiserror` anywhere
+- [x] Request helpers: `param<T>()`, `query<T>()`, `json<T>()`, `text()`, `bytes()` extract data from `SimpleIncomingRequest`

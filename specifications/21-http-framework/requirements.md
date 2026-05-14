@@ -40,6 +40,13 @@ A connection-owned, worker-pooled HTTP serving framework built on `foundation_co
 | 4 | Middleware Polish | `04-middleware-polish` | `RequestMiddleware` trait, built-in middleware (CORS, auth, logging, compression), integration tests, TLS, workspace migration | 02-server-core |
 | 5 | Batteries Included | `05-batteries` | Static file serving, panic recovery, rate limiting, health checks, error middleware, request ID tracing | 02-server-core |
 | 6 | Valtron Keep-Alive | `06-valtron-keepalive` | Replace `BackgroundJobRegistry::submit` with `valtron::send(ConnectionHandler)` — non-blocking keep-alive via `TaskStatus::Delayed` with exponential backoff | 02-server-core |
+| 7 | Reader EOF Handling | `07-reader-eof-handling` | Fix EOF detection in BatchReader, SharedByteBufferStream, and body readers for zero-byte reads | None |
+| 8 | Executor Yield Optimization | `08-executor-yield-optimization` | Optimize valtron executor yield patterns to reduce unnecessary TaskStatus::Delayed cycles | None |
+| 9 | Non-Blocking Sockets | `09-non-blocking-sockets` | Convert raw TCP sockets to non-blocking mode with Data::Retry-based read/write loops | None |
+| 10 | Client Non-Blocking Sockets | `10-client-non-blocking-sockets` | HTTP client uses non-blocking sockets with Data::Retry for connection and I/O | 09-non-blocking-sockets |
+| 11 | Expect 100-Continue | `11-expect-100-continue` | Handle HTTP 100-Continue expectation for request body sending | 10-client-non-blocking-sockets |
+| 12 | Body Reader Streaming | `12-body-reader-streaming` | Replace eager body reading with Data-exposing streaming readers; add DataBytesIterator | None |
+| 13 | Content-Length Enforcement | `13-content-length-enforcement` | Content-Length byte enforcement at consumption time, error-propagating collection, duplicate CL rejection, SSE collection | 12-body-reader-streaming |
 
 ## High-Level Architecture
 

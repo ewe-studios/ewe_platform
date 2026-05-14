@@ -1,18 +1,18 @@
 ---
 feature: "Router Migration"
 description: "Migrate ewe_routing tree-based router into foundation_http, strip all tokio/tower/axum/async-trait dependencies, simplify to return matched Serve handlers"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-05-07
-last_updated: 2026-05-07
+last_updated: 2026-05-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Router Migration
@@ -169,20 +169,20 @@ graph TD
 
 ### Step-by-Step Tasks
 
-- [ ] **F1.1** Create `backends/foundation_http/` with Cargo.toml — no tokio/tower/axum/async-trait/http. Include required deps. Set up feature flags (tls, openssl-tls, middleware-*)
-- [ ] **F1.2** Create `src/router/mod.rs` — simplified `Router` struct with `new()`, `add_route()`, `dispatch()` → `Option<ArcServe>`
-- [ ] **F1.3** Migrate `RouteSegment` tree from `ewe_routing::routes.rs` to `src/router/segments.rs` — no changes to matching logic
-- [ ] **F1.4** Migrate `RouteMethod` dispatch to `src/router/method.rs` — store `ArcServe` per method instead of `Servicer`
-- [ ] **F1.5** Create `foundation_core::body` module — migrate `FromBytes`/`IntoBody`/`IntoBytes` from `ewe_routing::requests.rs` to `foundation_core/src/body/`, add `bytes` crate to `foundation_core` Cargo.toml
-- [ ] **F1.6** Remove all `Servicer`, `HandlerFunc`, `Request<T,S>`, `Response<S>`, `ResponseHead`, `RequestHead`, `ResponseFuture` code — they no longer exist
-- [ ] **F1.7** Write routing tests in `tests/routing_test.rs` — verify tree matching, param extraction, method dispatch, priority ordering, ArcServe dispatch
+- [x] **F1.1** Create `backends/foundation_http/` with Cargo.toml — no tokio/tower/axum/async-trait/http. Include required deps. Set up feature flags (tls, openssl-tls, middleware-*)
+- [x] **F1.2** Create `src/router/mod.rs` — simplified `Router` struct with `new()`, `add_route()`, `dispatch()` → `Option<ArcServe>`
+- [x] **F1.3** Migrate `RouteSegment` tree from `ewe_routing::routes.rs` to `src/router/segments.rs` — no changes to matching logic
+- [x] **F1.4** Migrate `RouteMethod` dispatch to `src/router/method.rs` — store `ArcServe` per method instead of `Servicer`
+- [x] **F1.5** Create `foundation_core::body` module — migrate `FromBytes`/`IntoBody`/`IntoBytes` from `ewe_routing::requests.rs` to `foundation_core/src/body/`, add `bytes` crate to `foundation_core` Cargo.toml
+- [x] **F1.6** Remove all `Servicer`, `HandlerFunc`, `Request<T,S>`, `Response<S>`, `ResponseHead`, `RequestHead`, `ResponseFuture` code — they no longer exist
+- [x] **F1.7** Write routing tests in `tests/routing_test.rs` — verify tree matching, param extraction, method dispatch, priority ordering, ArcServe dispatch
 
 ## Success Criteria
 
-- [ ] `backends/foundation_http/Cargo.toml` has zero tokio/tower/axum/async-trait/http dependencies
-- [ ] `Router` has no generic type parameters for request/response — just `Router<'a>`
-- [ ] `Router::dispatch` returns `Option<ArcServe>` — no Response, no Future
-- [ ] Route matching correctly handles static, param, regex, restricted, and wildcard segments
-- [ ] Param extraction works correctly (e.g., `:id` → `"123"`)
-- [ ] Priority ordering is correct (static > restricted > param-regex > regex > param > anypath)
-- [ ] All routing tests pass
+- [x] `backends/foundation_http/Cargo.toml` has zero tokio/tower/axum/async-trait/http dependencies
+- [x] `Router` has no generic type parameters for request/response — just `Router<'a>`
+- [x] `Router::dispatch` returns `Option<ArcServe>` — no Response, no Future
+- [x] Route matching correctly handles static, param, regex, restricted, and wildcard segments
+- [x] Param extraction works correctly (e.g., `:id` → `"123"`)
+- [x] Priority ordering is correct (static > restricted > param-regex > regex > param > anypath)
+- [x] All routing tests pass

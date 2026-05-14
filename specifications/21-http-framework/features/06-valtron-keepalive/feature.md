@@ -1,7 +1,7 @@
 ---
 feature: "Valtron Keep-Alive"
 description: "Replace BackgroundJobRegistry::submit with valtron TaskIterator for non-blocking HTTP/1.1 keep-alive — each connection becomes a multiplexed valtron task using TaskStatus::Delayed with exponential backoff"
-status: "pending"
+status: completed
 priority: "high"
 depends_on: ["02-server-core"]
 estimated_effort: "large"
@@ -618,28 +618,28 @@ graph LR
 
 ### Step-by-Step Tasks
 
-- [ ] **F6.1** Add `KeepAliveConfig` struct to `server/mod.rs` with defaults and builder methods (min_delay, max_delay, idle_timeout, escalation_threshold, max_delay_cycles)
-- [ ] **F6.2** Replace `keep_alive_timeout: Option<Duration>` with `keep_alive: KeepAliveConfig` on `ServerConfig`
-- [ ] **F6.3** Create `ConnectionHandler` struct with all fields and constructor
-- [ ] **F6.4** Implement `TaskIterator` for `ConnectionHandler`: `handle_idle()` with escalation threshold + delay cycle tracking, `handle_processing()`, `compute_delay()`
-- [ ] **F6.5** Update `serve_loop` to use `valtron::send(ConnectionHandler::new(...))` instead of `bg_clone.submit(...)`; remove `handle_connection` function
-- [ ] **F6.6** Remove `Connection: close` from `render_response()` in `serve/mod.rs` and middleware response rendering; verify all 24 integration tests pass; verify `test_valtron_multiplex_concurrent_connections` passes with pool=3 and 6 concurrent connections
+- [x] **F6.1** Add `KeepAliveConfig` struct to `server/mod.rs` with defaults and builder methods (min_delay, max_delay, idle_timeout, escalation_threshold, max_delay_cycles)
+- [x] **F6.2** Replace `keep_alive_timeout: Option<Duration>` with `keep_alive: KeepAliveConfig` on `ServerConfig`
+- [x] **F6.3** Create `ConnectionHandler` struct with all fields and constructor
+- [x] **F6.4** Implement `TaskIterator` for `ConnectionHandler`: `handle_idle()` with escalation threshold + delay cycle tracking, `handle_processing()`, `compute_delay()`
+- [x] **F6.5** Update `serve_loop` to use `valtron::send(ConnectionHandler::new(...))` instead of `bg_clone.submit(...)`; remove `handle_connection` function
+- [x] **F6.6** Remove `Connection: close` from `render_response()` in `serve/mod.rs` and middleware response rendering; verify all 24 integration tests pass; verify `test_valtron_multiplex_concurrent_connections` passes with pool=3 and 6 concurrent connections
 
 ## Success Criteria
 
-- [ ] `KeepAliveConfig::defaults()` provides sane defaults (10ms min_delay, 120s max_delay, 120s idle_timeout, 200 escalation_threshold, 200 max_delay_cycles)
-- [ ] `ServerConfig::with_keep_alive(KeepAliveConfig)` replaces the keep-alive config
-- [ ] `ServerConfig` defaults to `KeepAliveConfig::defaults()` — keep-alive always on
-- [ ] `ConnectionHandler` implements `TaskIterator` with `Send + 'static`
-- [ ] `valtron::send(handler)` submits connections to executor
-- [ ] First `escalation_threshold` polls return `TaskStatus::Pending(())` (fast polling)
-- [ ] After escalation threshold, idle connections yield `TaskStatus::Delayed` with computed exponential interval
-- [ ] Exponential backoff works: 10ms → 20ms → 40ms → ... → 120s cap
-- [ ] Connection closes after `max_delay_cycles` complete delay cycles without data
-- [ ] Idle timeout closes connections after configured duration
-- [ ] `Connection: close` from client is detected and honored
-- [ ] `ConnectionResult::Take` (WebSocket, SSE) works correctly
-- [ ] All existing integration tests pass (24 tests)
-- [ ] Thread count independence: `test_valtron_multiplex_concurrent_connections` passes with pool=3 (2 valtron + 1 bg) and 6 concurrent connections
-- [ ] No `Connection: close` header on normal responses
-- [ ] `tracing::trace!` logging at key state transitions
+- [x] `KeepAliveConfig::defaults()` provides sane defaults (10ms min_delay, 120s max_delay, 120s idle_timeout, 200 escalation_threshold, 200 max_delay_cycles)
+- [x] `ServerConfig::with_keep_alive(KeepAliveConfig)` replaces the keep-alive config
+- [x] `ServerConfig` defaults to `KeepAliveConfig::defaults()` — keep-alive always on
+- [x] `ConnectionHandler` implements `TaskIterator` with `Send + 'static`
+- [x] `valtron::send(handler)` submits connections to executor
+- [x] First `escalation_threshold` polls return `TaskStatus::Pending(())` (fast polling)
+- [x] After escalation threshold, idle connections yield `TaskStatus::Delayed` with computed exponential interval
+- [x] Exponential backoff works: 10ms → 20ms → 40ms → ... → 120s cap
+- [x] Connection closes after `max_delay_cycles` complete delay cycles without data
+- [x] Idle timeout closes connections after configured duration
+- [x] `Connection: close` from client is detected and honored
+- [x] `ConnectionResult::Take` (WebSocket, SSE) works correctly
+- [x] All existing integration tests pass (24 tests)
+- [x] Thread count independence: `test_valtron_multiplex_concurrent_connections` passes with pool=3 (2 valtron + 1 bg) and 6 concurrent connections
+- [x] No `Connection: close` header on normal responses
+- [x] `tracing::trace!` logging at key state transitions
