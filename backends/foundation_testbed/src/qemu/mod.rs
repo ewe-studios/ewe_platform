@@ -124,7 +124,9 @@ impl QemuConfig {
         let resolved = net::allocate_ports(&self.profile)?;
 
         // Build monitor socket path
-        let monitor_path = monitor_dir().join(format!("{}.monitor", self.profile.name));
+        let monitor_dir_path = monitor_dir(&self.profile.name);
+        std::fs::create_dir_all(&monitor_dir_path).ok();
+        let monitor_path = monitor_dir_path.join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
 
         // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
@@ -343,7 +345,7 @@ impl QemuVm {
         }
 
         // Clean up monitor socket
-        let monitor_path = monitor_dir().join(format!("{}.monitor", self.profile.name));
+        let monitor_path = monitor_dir(&self.profile.name).join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path);
 
         Ok(())

@@ -15,7 +15,9 @@ const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/linux/set
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/linux/setup_ssh_keys.sh");
 const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/linux/setup_project_mount.sh");
 const INSTALL_GUI_SH: &str = include_str!("../../scripts/linux/install_gui.sh");
+const INSTALL_GNOME_SH: &str = include_str!("../../scripts/linux/install_gnome.sh");
 const START_DISPLAY_MANAGER_SH: &str = include_str!("../../scripts/linux/start_display_manager.sh");
+const START_GNOME_DM_SH: &str = include_str!("../../scripts/linux/start_gnome_dm.sh");
 
 /// Detect Linux distro and return package manager type
 fn detect_distro(session: &mut VmSession) -> Result<String> {
@@ -190,7 +192,33 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     // Optional: Install GUI packages (not enabled by default)
     // This can be enabled via a profile flag or environment variable
     logger::step(logger, "install gui (optional)", || {
-        if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
+        if std::env::var("TESTBED_INSTALL_GNOME").is_ok() {
+            logger.message("  Installing GNOME desktop environment (this may take 5-10 minutes)...");
+            // Write script locally and upload via SCP (now with key auth)
+            let temp_path = std::env::temp_dir().join("install_gnome.sh");
+            std::fs::write(&temp_path, INSTALL_GNOME_SH)
+                .map_err(|e| crate::config::TestbedError::BootstrapFailed {
+                    step: "write gnome install script".to_string(),
+                    message: e.to_string(),
+                })?;
+            crate::ssh::upload(session, &temp_path, "/tmp/install_gnome.sh")
+                .map_err(|e| crate::config::TestbedError::BootstrapFailed {
+                    step: "upload gnome install script".to_string(),
+                    message: format!("{:?}", e),
+                })?;
+            // Use streaming exec to see real-time output
+            let exit_code = crate::ssh::streaming::exec_streaming_session(
+                session,
+                "chmod +x /tmp/install_gnome.sh && sudo /tmp/install_gnome.sh"
+            )?;
+            if exit_code != 0 {
+                return Err(crate::config::TestbedError::BootstrapFailed {
+                    step: "install gnome".to_string(),
+                    message: format!("GNOME install script exited with code {}", exit_code),
+                });
+            }
+            logger.message("  GNOME desktop environment installed");
+        } else if std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Installing GUI environment (this may take a few minutes)...");
             // Write script locally and upload via SCP (now with key auth)
             let temp_path = std::env::temp_dir().join("install_gui.sh");
@@ -204,44 +232,61 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
                     step: "upload gui install script".to_string(),
                     message: format!("{:?}", e),
                 })?;
-            let output = crate::ssh::exec(session, "chmod +x /tmp/install_gui.sh && sudo /tmp/install_gui.sh 2>&1")?;
-            logger.message("  GUI installation output:");
-            for line in output.lines() {
-                logger.message(&format!("    {}", line));
+            // Use streaming exec to see real-time output
+            let exit_code = crate::ssh::streaming::exec_streaming_session(
+                session,
+                "chmod +x /tmp/install_gui.sh && sudo /tmp/install_gui.sh"
+            )?;
+            if exit_code != 0 {
+                return Err(crate::config::TestbedError::BootstrapFailed {
+                    step: "install gui".to_string(),
+                    message: format!("GUI install script exited with code {}", exit_code),
+                });
             }
             logger.message("  GUI environment installed");
         } else {
-            logger.message("  Skipping GUI install (set TESTBED_INSTALL_GUI=1 to enable)");
+            logger.message("  Skipping GUI install (set TESTBED_INSTALL_GUI=1 or TESTBED_INSTALL_GNOME=1 to enable)");
         }
         Ok(())
     })?;
 
     // Optional: Start the display manager (requires GUI to be installed)
     logger::step(logger, "start display manager", || {
-        if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
-            logger.message("  Starting display manager (LightDM)...");
+        if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GNOME").is_ok() {
+            // Determine which display manager script to use
+            let (script_name, script_content, dm_name) = if std::env::var("TESTBED_INSTALL_GNOME").is_ok() {
+                ("start_gnome_dm.sh", START_GNOME_DM_SH, "GDM")
+            } else {
+                ("start_dm.sh", START_DISPLAY_MANAGER_SH, "LightDM")
+            };
+
+            logger.message(&format!("  Starting display manager ({})...", dm_name));
             // Write script locally and upload via SCP (now with key auth)
-            let temp_path = std::env::temp_dir().join("start_dm.sh");
-            std::fs::write(&temp_path, START_DISPLAY_MANAGER_SH)
+            let temp_path = std::env::temp_dir().join(script_name);
+            std::fs::write(&temp_path, script_content)
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "write display manager script".to_string(),
                     message: e.to_string(),
                 })?;
-            crate::ssh::upload(session, &temp_path, "/tmp/start_dm.sh")
+            crate::ssh::upload(session, &temp_path, &format!("/tmp/{}", script_name))
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "upload display manager script".to_string(),
                     message: format!("{:?}", e),
                 })?;
-            match crate::ssh::exec(session, "chmod +x /tmp/start_dm.sh && sudo /tmp/start_dm.sh 2>&1") {
-                Ok(output) => {
-                    logger.message("  Display manager output:");
-                    for line in output.lines() {
-                        logger.message(&format!("    {}", line));
+            // Use streaming exec to see real-time output
+            match crate::ssh::streaming::exec_streaming_session(
+                session,
+                &format!("chmod +x /tmp/{} && sudo /tmp/{}", script_name, script_name)
+            ) {
+                Ok(exit_code) => {
+                    if exit_code != 0 {
+                        logger.message(&format!("  Warning: Display manager script exited with code {}", exit_code));
+                        logger.message(&format!("  You can start it manually later with: sudo systemctl start {}", dm_name.to_lowercase()));
                     }
                 }
                 Err(e) => {
                     logger.message(&format!("  Warning: Could not start display manager: {}", e));
-                    logger.message("  You can start it manually later with: sudo systemctl start lightdm");
+                    logger.message(&format!("  You can start it manually later with: sudo systemctl start {}", dm_name.to_lowercase()));
                 }
             }
         } else {

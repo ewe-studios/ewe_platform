@@ -80,7 +80,7 @@ impl TestVm {
         let ssh_port = qemu.resolved_ports.ssh_port;
 
         // Save state
-        let monitor_path = foundation_testbed::config::monitor_dir()
+        let monitor_path = foundation_testbed::config::monitor_dir(&profile.name)
             .join(format!("{}.monitor", profile.name));
         let vm_state = state::from_qemu(
             &profile.name,

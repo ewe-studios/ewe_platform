@@ -49,7 +49,16 @@
       "Bash(rm -rf ~/.local/share/foundation_testbed/state/*)",
       "Bash(rm -f /tmp/test.monitor /tmp/*.monitor)",
       "Bash(rm -rf /tmp/foundation_testbed/*)",
-      "Bash(mkdir -p /tmp/foundation_testbed)"
+      "Bash(mkdir -p /tmp/foundation_testbed)",
+      "Bash(rm -rf .testbed/*/state)",
+      "Bash(mkdir -p .testbed/linux-build/state)",
+      "Bash(rm -rf .testbed/linux-build/state/*)",
+      "Bash(export HEADFUL=1)",
+      "Bash(export TESTBED_INSTALL_GUI=1)",
+      "Bash(export TESTBED_START_GUI=1)",
+      "Bash(tee /tmp/test_run.log)",
+      "Bash(export TESTBED_INSTALL_GNOME=1)",
+      "Bash(pkill -f \"qemu.*linux-build\")"
     ]
   }
 }

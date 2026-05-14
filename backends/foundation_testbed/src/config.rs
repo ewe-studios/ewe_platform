@@ -220,6 +220,10 @@ pub struct UserVmProfile {
     /// e.g. `artefacts = { "vsb_layout.windows.zip" = "/path/to/zip" }`
     #[serde(default)]
     pub artefacts: HashMap<String, String>,
+    /// Per-VM state directory for sockets and ephemeral state.
+    /// Defaults to `$PWD/.testbed/[vm-name]/state/` if not specified.
+    #[serde(default)]
+    pub state_directory: Option<String>,
 }
 
 /// Per-VM mount configuration from testbed.toml.
@@ -488,9 +492,19 @@ pub fn state_dir() -> std::path::PathBuf {
     cache_dir().join("state")
 }
 
-/// Monitor socket directory: `/tmp/foundation_testbed/`
-pub fn monitor_dir() -> std::path::PathBuf {
-    std::path::PathBuf::from("/tmp").join("foundation_testbed")
+/// Monitor socket directory for a VM: `$PWD/.testbed/[vm-name]/state/` or from `testbed.toml` `[[vms]].state_directory`.
+/// Per-VM sockets and ephemeral state.
+pub fn monitor_dir(profile_name: &str) -> std::path::PathBuf {
+    // Check if user config specifies a custom state directory for this VM
+    if let Some(config) = load_user_config() {
+        if let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name) {
+            if let Some(ref custom_dir) = entry.profile.state_directory {
+                return std::path::PathBuf::from(custom_dir);
+            }
+        }
+    }
+    // Default: $PWD/.testbed/[vm-name]/state/
+    work_dir(profile_name).join("state")
 }
 
 /// VM work directory: `$PWD/.testbed/[vm-name]/` — per-VM logs and artifacts.
@@ -633,7 +647,6 @@ pub fn ensure_dirs() -> std::io::Result<()> {
     std::fs::create_dir_all(cache_dir())?;
     std::fs::create_dir_all(image_cache_dir())?;
     std::fs::create_dir_all(state_dir())?;
-    std::fs::create_dir_all(monitor_dir())?;
     let testbed = std::env::current_dir().unwrap_or_default().join(".testbed");
     std::fs::create_dir_all(&testbed)?;
     std::fs::create_dir_all(testbed.join("artifacts"))?;
