@@ -473,6 +473,7 @@ impl<R: Read + Send> Iterator for LimitedEOFStreamReader<R> {
         }
 
         let remaining = self.byte_cap - self.bytes_yielded;
+        tracing::trace!(remaining = %remaining, "Remaining bytes to read: {}", &remaining);
         match self.inner.next_bytes(Some(remaining)) {
             Some(Ok(Data::Bytes(bytes))) => {
                 self.bytes_yielded += bytes.len();
