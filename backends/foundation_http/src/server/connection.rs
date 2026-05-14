@@ -8,7 +8,7 @@
 //! per connection. Now idle connections yield via `Delayed`, freeing the
 //! thread for other work — enabling true HTTP/1.1 keep-alive multiplexing.
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
@@ -42,6 +42,8 @@ enum HandlerState {
         should_close: bool,
         /// Zero-indexed attempt number.
         attempt: usize,
+        /// Delay used on the previous attempt (for penalty reduction).
+        last_delay: Duration,
     },
 }
 
@@ -332,6 +334,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        last_delay: Duration,
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         let next_attempt = attempt + 1;
 
@@ -341,6 +344,7 @@ impl ConnectionHandler {
             client_ip = %self.client_ip,
             attempt = attempt,
             buffered_bytes = buffered,
+            last_delay = ?last_delay,
             "WaitingForBody: checking buffer after delay"
         );
 
@@ -354,7 +358,8 @@ impl ConnectionHandler {
             self.dispatch_processing(req, should_close, true)
         } else {
             // No data yet — try again if under max attempts.
-            match self.timeout_calculator.calculate_expect_continue_delay(next_attempt, self.max_expect_attempts) {
+            let ctx = TimeoutContext::default().with_previous_timeout(last_delay);
+            match self.timeout_calculator.calculate_expect_continue_delay(&ctx, next_attempt, self.max_expect_attempts) {
                 Some(delay) => {
                     tracing::trace!(
                         client_ip = %self.client_ip,
@@ -366,6 +371,7 @@ impl ConnectionHandler {
                         req,
                         should_close,
                         attempt: next_attempt,
+                        last_delay: delay,
                     });
                     Some(TaskStatus::Delayed(delay))
                 }
@@ -432,15 +438,16 @@ impl ConnectionHandler {
                     Ok(()) => {
                         tracing::trace!(client_ip = %self.client_ip, "100 Continue response written successfully");
                         // Wait for client to receive 100 Continue and start writing body.
+                        let delay = self
+                            .timeout_calculator
+                            .calculate_expect_continue_delay(&TimeoutContext::default(), 0, self.max_expect_attempts)
+                            .expect("first attempt must yield a delay");
                         self.state = Some(HandlerState::WaitingForBody {
                             req,
                             should_close,
                             attempt: 0,
+                            last_delay: delay,
                         });
-                        let delay = self
-                            .timeout_calculator
-                            .calculate_expect_continue_delay(0, self.max_expect_attempts)
-                            .expect("first attempt must yield a delay");
                         return Some(TaskStatus::Delayed(delay));
                     }
                     Err(e) => {
@@ -619,8 +626,8 @@ impl TaskIterator for ConnectionHandler {
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
             }
-            HandlerState::WaitingForBody { req, should_close, attempt } => {
-                self.handle_waiting_for_body(req, should_close, attempt)
+            HandlerState::WaitingForBody { req, should_close, attempt, last_delay } => {
+                self.handle_waiting_for_body(req, should_close, attempt, last_delay)
             }
         }
     }

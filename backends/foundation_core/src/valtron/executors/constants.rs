@@ -8,7 +8,7 @@ pub const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
 /// `DEFAULT_OP_READ_TIME` defaults how long we wait for a message from
 /// the activity queue.
 pub const DEFAULT_OP_READ_TIME: time::Duration = time::Duration::from_millis(100); // 100ms
-pub const DEFAULT_YIELD_WAIT_TIME: time::Duration = time::Duration::from_millis(1500); // 1.5s
+pub const DEFAULT_YIELD_WAIT_TIME: time::Duration = time::Duration::from_millis(2500); // 2.5s
 
 /// `DEFAULT_MAX_TURNS` is the default number of poll attempts before yielding `Stream::Ignore`
 /// in `ConcurrentQueueStreamIterator`. This balances responsiveness (checking other tasks)
@@ -30,7 +30,8 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 
 /// `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT` is the default timeout for `NotifyQueue::wait_for_item()`.
 /// This is how long a consumer will wait on the CondVar before returning `None`.
-pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(10);
+pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
+    std::time::Duration::from_millis(10);
 
 /// `DEFAULT_KILL_SIGNAL_CHECK_INTERVAL` is how often to check kill signal in `block_on()` inner loop.
 /// Default is every 16 iterations (instead of checking every iteration or only every 200).
