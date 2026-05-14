@@ -54,7 +54,7 @@ case "$DISTRO" in
             lxappearance
             pcmanfm
             lxterminal
-            leafpad
+            mousepad
             feh
             nitrogen
             compton
@@ -74,10 +74,13 @@ case "$DISTRO" in
             menu-xdg
         )
 
+        echo "Updating package list..."
         sudo apt-get update -qq
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y "${GUI_DEPS[@]}" || {
+        echo "Installing GUI packages (this may take 5-10 minutes)..."
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y "${GUI_DEPS[@]}" 2>&1 | tee /tmp/gui_install.log || {
             echo "Some packages failed to install, continuing..."
         }
+        echo "Package installation complete"
 
         # Configure LightDM with auto-login
         echo "Configuring LightDM auto-login..."
@@ -117,7 +120,7 @@ EOF
             lxappearance
             pcmanfm-gtk3
             lxterminal
-            leafpad
+            mousepad
             feh
             nitrogen
             picom
@@ -230,7 +233,7 @@ sudo tee "$USER_HOME/.config/openbox/menu.xml" > /dev/null << 'MENU'
         </item>
         <item label="Text Editor">
             <action name="Execute">
-                <execute>leafpad</execute>
+                <execute>mousepad</execute>
             </action>
         </item>
         <separator />

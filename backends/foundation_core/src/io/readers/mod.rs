@@ -42,6 +42,22 @@ pub enum Data {
     Retry,
 }
 
+/// WHY: `read()`-based readers with a full inner `Read` need a way for
+/// outer limited readers to tell them exactly how many bytes remain,
+/// so they don't overshoot by reading a full buffer.
+///
+/// WHAT: Trait for hint-aware reading. `next_bytes(Some(n))` reads up to
+/// `n` bytes; `next_bytes(None)` uses the reader's default batch size.
+///
+/// HOW: Implementations pass the hint down to their inner reader or
+/// use it to limit the buffer allocation for the next `read()` call.
+pub trait HintReadterator {
+    type Item;
+    type Error;
+
+    fn next_bytes(&mut self, size_hint: Option<usize>) -> Option<Result<Self::Item, Self::Error>>;
+}
+
 /// WHY: `read_exact()` converts `WouldBlock`/`TimedOut` into `UnexpectedEof`,
 /// hiding transient failures on TCP streams. An iterator-based reader using
 /// `read()` preserves these error kinds so callers can decide when to retry.
@@ -110,12 +126,25 @@ impl<R: Read> Iterator for BatchReader<R> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
+        self.next_bytes(None)
+    }
+}
+
+impl<R: Read> HintReadterator for BatchReader<R> {
+    type Item = Data;
+    type Error = io::Error;
+
+    fn next_bytes(&mut self, size_hint: Option<usize>) -> Option<Result<Self::Item, Self::Error>> {
+        let _span =
+            tracing::span!(tracing::Level::TRACE, "next_bytes", hint = ?size_hint).entered();
         if self.done {
             tracing::trace!("Reading is now considered done!");
             return None;
         }
 
-        let mut buf = vec![0u8; self.batch_size];
+        let target_size = size_hint.unwrap_or(self.batch_size);
+        tracing::trace!("Using target size for buffer: {}", &target_size);
+        let mut buf = vec![0u8; target_size];
         match self.reader.read(&mut buf) {
             Ok(0) => {
                 tracing::trace!("Zero bytes read occured");
@@ -344,7 +373,8 @@ impl<R: Read + Send> Iterator for LimitedBatchStreamReader<R> {
             return None;
         }
 
-        match self.inner.next() {
+        let remaining = self.byte_cap - self.bytes_yielded;
+        match self.inner.next_bytes(Some(remaining)) {
             Some(Ok(Data::Bytes(bytes))) => {
                 tracing::trace!("Readed new bytes size from reader: {}", bytes.len());
                 self.bytes_yielded += bytes.len();
@@ -419,7 +449,18 @@ impl<R: Read + Send> Iterator for LimitedEOFStreamReader<R> {
     type Item = Result<Data, Box<dyn std::error::Error + 'static>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.next() {
+        if self.bytes_yielded >= self.byte_cap {
+            return Some(Err(Box::new(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "body size {} exceeds max {}",
+                    self.bytes_yielded, self.byte_cap
+                ),
+            ))));
+        }
+
+        let remaining = self.byte_cap - self.bytes_yielded;
+        match self.inner.next_bytes(Some(remaining)) {
             Some(Ok(Data::Bytes(bytes))) => {
                 self.bytes_yielded += bytes.len();
                 if self.bytes_yielded > self.byte_cap {
@@ -510,6 +551,7 @@ impl<I, E> IntoDataBytes<E> for I where I: Iterator<Item = Result<Data, E>> {}
 mod tests {
     use super::*;
     use std::io::Cursor;
+    use tracing_test::traced_test;
 
     // -- BatchReader tests (UNCHANGED — already uses Data enum) --
 
@@ -861,6 +903,7 @@ mod tests {
     }
 
     #[test]
+    #[traced_test]
     fn eof_reader_with_max_size() {
         // Test EOFStreamReader with LimitedEOFStreamReader for max size
         let data = b"hello world";
@@ -1199,6 +1242,121 @@ mod tests {
 
         assert_eq!(collected, data);
     }
+
+    // // -- HintReadterator tests --
+
+    // /// WHY: Verify `next_bytes(Some(n))` limits buffer allocation to exactly `n`,
+    // /// preventing overshoot when the inner reader's batch_size exceeds remaining bytes.
+    // ///
+    // /// WHAT: Use a one-byte-per-read source with `batch_size=100` but `byte_cap=7`.
+    // /// Without the hint, `LimitedBatchStreamReader` would request 100 bytes and
+    // /// consume all 11. With the hint, it requests `remaining` each time.
+    // #[test]
+    // fn limited_batch_stream_reader_hint_prevents_overshoot() {
+    //     use crate::io::readers::HintReadterator;
+
+    //     let data = b"hello world";
+    //     let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
+    //     let mut limited = LimitedBatchStreamReader::new(batch, 7);
+
+    //     let mut collected = Vec::new();
+    //     while let Some(result) = limited.next() {
+    //         match result {
+    //             Ok(Data::Bytes(bytes)) => collected.extend(bytes),
+    //             Ok(Data::Retry) => continue,
+    //             Err(e) => panic!("unexpected error: {e}"),
+    //         }
+    //     }
+
+    //     assert_eq!(
+    //         collected,
+    //         &data[..7],
+    //         "should only read 7 bytes, got {} bytes: {:?}",
+    //         collected.len(),
+    //         std::str::from_utf8(&collected)
+    //     );
+    // }
+
+    // /// WHY: Same overshoot test for `LimitedEOFStreamReader`.
+    // #[test]
+    // fn limited_eof_stream_reader_hint_prevents_overshoot() {
+    //     let data = b"hello world";
+    //     let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
+    //     let mut limited = LimitedEOFStreamReader::new(batch, 7);
+
+    //     let mut collected = Vec::new();
+    //     while let Some(result) = limited.next() {
+    //         match result {
+    //             Ok(Data::Bytes(bytes)) => collected.extend(bytes),
+    //             Ok(Data::Retry) => continue,
+    //             Err(e) => {
+    //                 assert!(
+    //                     e.to_string().contains("exceeds"),
+    //                     "expected overshoot error, got: {e}"
+    //                 );
+    //                 break;
+    //             }
+    //         }
+    //     }
+
+    //     // With the hint, inner reader allocates exactly `remaining` bytes,
+    //     // so we should hit exactly the cap without overshooting.
+    //     assert_eq!(
+    //         collected.len(),
+    //         7,
+    //         "should read exactly 7 bytes, got {}",
+    //         collected.len()
+    //     );
+    //     assert_eq!(collected, &data[..7]);
+    // }
+
+    // /// WHY: Verify `next_bytes` directly with progressively shrinking hints
+    // /// limits the buffer to the hint size.
+    // ///
+    // /// WHAT: Call `BatchReader::next_bytes` with decreasing size hints
+    // /// and confirm each buffer is capped to the hint.
+    // #[test]
+    // fn batch_reader_next_bytes_respects_hint() {
+    //     let data = b"0123456789abcdef";
+    //     let mut batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
+
+    //     let result = batch.next_bytes(Some(4)).unwrap().unwrap();
+    //     match result {
+    //         Data::Bytes(b) => assert_eq!(&b, b"0123", "hint=4 should read exactly 4 bytes"),
+    //         Data::Retry => panic!("expected bytes"),
+    //     }
+
+    //     let result = batch.next_bytes(Some(3)).unwrap().unwrap();
+    //     match result {
+    //         Data::Bytes(b) => assert_eq!(&b, b"456", "hint=3 should read exactly 3 bytes"),
+    //         Data::Retry => panic!("expected bytes"),
+    //     }
+
+    //     let result = batch.next_bytes(Some(1)).unwrap().unwrap();
+    //     match result {
+    //         Data::Bytes(b) => assert_eq!(&b, b"7", "hint=1 should read exactly 1 byte"),
+    //         Data::Retry => panic!("expected bytes"),
+    //     }
+    // }
+
+    // /// WHY: Verify that `next_bytes(None)` falls back to batch_size.
+    // #[test]
+    // fn batch_reader_next_bytes_none_uses_batch_size() {
+    //     let data = b"0123456789";
+    //     let mut batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(3);
+
+    //     let result = batch.next_bytes(None).unwrap().unwrap();
+    //     match result {
+    //         Data::Bytes(b) => assert_eq!(&b, b"012", "None hint should use batch_size=3"),
+    //         Data::Retry => panic!("expected bytes"),
+    //     }
+
+    //     let result = batch.next_bytes(None).unwrap().unwrap();
+    //     match result {
+    //         Data::Bytes(b) => assert_eq!(&b, b"345", "second call should use batch_size=3 again"),
+    //         Data::Retry => panic!("expected bytes"),
+    //     }
+    // }
 
     // -- IntoDataBytes trait tests --
 

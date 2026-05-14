@@ -237,8 +237,17 @@ pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()>
 }
 
 /// Find an SSH key file for SCP authentication.
-/// Tries the same locations as `authenticate_raw`.
+/// Tries the same locations as `authenticate_raw`, with Vagrant key first.
 fn find_ssh_key() -> Option<String> {
+    // 1. Vagrant insecure key (for Vagrant-sourced VM images) - try first
+    if let Some(config_dir) = dirs::config_dir() {
+        let vagrant_key = config_dir.join("foundation_testbed/vagrant_insecure_key");
+        if vagrant_key.exists() {
+            return Some(vagrant_key.to_string_lossy().to_string());
+        }
+    }
+
+    // 2. User's key files
     let key_names = ["id_ed25519", "id_rsa", "id_ecdsa"];
     if let Some(home) = dirs::home_dir() {
         let ssh_dir = home.join(".ssh");
@@ -247,14 +256,6 @@ fn find_ssh_key() -> Option<String> {
             if key_path.exists() {
                 return Some(key_path.to_string_lossy().to_string());
             }
-        }
-    }
-
-    // Vagrant insecure key
-    if let Some(config_dir) = dirs::config_dir() {
-        let vagrant_key = config_dir.join("foundation_testbed/vagrant_insecure_key");
-        if vagrant_key.exists() {
-            return Some(vagrant_key.to_string_lossy().to_string());
         }
     }
 

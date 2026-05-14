@@ -220,8 +220,18 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     logger::step(logger, "start display manager", || {
         if std::env::var("TESTBED_START_GUI").is_ok() || std::env::var("TESTBED_INSTALL_GUI").is_ok() {
             logger.message("  Starting display manager (LightDM)...");
-            // Copy script from 9p mount and execute
-            crate::ssh::exec(session, "cp /mnt/project/backends/foundation_testbed/scripts/linux/start_display_manager.sh /tmp/start_dm.sh")?;
+            // Write script locally and upload via SCP (now with key auth)
+            let temp_path = std::env::temp_dir().join("start_dm.sh");
+            std::fs::write(&temp_path, START_DISPLAY_MANAGER_SH)
+                .map_err(|e| crate::config::TestbedError::BootstrapFailed {
+                    step: "write display manager script".to_string(),
+                    message: e.to_string(),
+                })?;
+            crate::ssh::upload(session, &temp_path, "/tmp/start_dm.sh")
+                .map_err(|e| crate::config::TestbedError::BootstrapFailed {
+                    step: "upload display manager script".to_string(),
+                    message: format!("{:?}", e),
+                })?;
             match crate::ssh::exec(session, "chmod +x /tmp/start_dm.sh && sudo /tmp/start_dm.sh 2>&1") {
                 Ok(output) => {
                     logger.message("  Display manager output:");
