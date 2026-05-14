@@ -195,8 +195,16 @@ fn body_text(body: &SendSafeBody) -> String {
     match body {
         SendSafeBody::Text(s) => s.clone(),
         SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+        SendSafeBody::None => String::new(),
         _ => String::new(),
     }
+}
+
+/// Collect body text from a response by taking ownership (handles Stream variants).
+fn body_text_owned(body: SendSafeBody) -> String {
+    use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
+    let bytes = collect_bytes_from_send_safe(body);
+    String::from_utf8_lossy(&bytes).to_string()
 }
 
 /// Extract status code as u16.
@@ -1325,11 +1333,21 @@ impl Serve for ExpectContinueEchoHandler {
     ) -> ConnectionResult {
         // Pull the body — if Expect: 100-continue worked, the body
         // should have been delivered after the interim 100 Continue.
+        // The body comes as a Stream (lazy iterator), so we need to
+        // collect from it properly.
+        tracing::trace!("ExpectContinueEchoHandler: req.body variant = {:?}", req.body.as_ref().map(|b| std::mem::discriminant(b)));
         let body_text = match req.body {
-            Some(SendSafeBody::Text(t)) => t,
-            Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(&b).to_string(),
-            _ => String::new(),
+            Some(body) => {
+                let bytes = foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe(body);
+                tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
+                String::from_utf8_lossy(&bytes).to_string()
+            }
+            None => {
+                tracing::trace!("ExpectContinueEchoHandler: no body present");
+                String::new()
+            }
         };
+        tracing::trace!("ExpectContinueEchoHandler: echoing body = {:?}", body_text);
         respond::text(&mut conn, 200, &body_text)
             .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
     }
@@ -1363,7 +1381,8 @@ fn test_expect_100_continue_body_echo() {
         .unwrap();
 
     assert!(response.is_success(), "Expected 200 OK");
-    let body = body_text(response.get_body_ref());
+    let (_, _, body, _, _) = response.into_parts();
+    let body = body_text_owned(body);
     assert_eq!(
         body, "hello via expect-continue",
         "Body should be echoed back: {body}"

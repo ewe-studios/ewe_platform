@@ -12,7 +12,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::synca::OnSignal;
 use foundation_core::wire::simple_http::timeout::{
-    TimeoutCalculator, TimeoutConfig, TimeoutContext,
+    ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
 use foundation_core::wire::simple_http::HTTPStreams;
 
@@ -123,6 +123,19 @@ impl KeepAliveConfig {
         // Idle timeout is the read timeout for default context
         self.timeout_calculator
             .calculate_read_timeout(&TimeoutContext::default())
+    }
+
+    /// Set the 100-continue expect delay configuration.
+    ///
+    /// WHY: Controls how long the server waits for the client body after
+    /// sending 100 Continue, with configurable base delay, max attempts,
+    /// and per-attempt penalty reduction.
+    #[must_use]
+    pub fn with_expect_continue(mut self, config: ExpectContinueConfig) -> Self {
+        let mut tc = *self.timeout_calculator.config();
+        tc.expect_continue = config;
+        self.timeout_calculator = TimeoutCalculator::with_config(tc);
+        self
     }
 }
 
@@ -484,4 +497,9 @@ impl HttpServer {
 
         tracing::info!("Server stopped");
     }
+}
+
+// Re-export timeout types so users can configure expect-continue behavior.
+pub mod timeout {
+    pub use foundation_core::wire::simple_http::timeout::ExpectContinueConfig;
 }

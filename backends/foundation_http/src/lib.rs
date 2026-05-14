@@ -44,6 +44,7 @@ pub use serve::respond;
 pub use context::ContextBag;
 pub use app::HttpApp;
 pub use server::{HttpServer, ServerConfig, KeepAliveConfig};
+pub use server::timeout::ExpectContinueConfig;
 pub use client_ip::ClientIp;
 pub use router::{ArcServe, Router};
 pub use middleware::{MiddlewareResult, RequestMiddleware};

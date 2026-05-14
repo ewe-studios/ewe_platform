@@ -36,6 +36,13 @@ enum HandlerState {
         req: SimpleIncomingRequest,
         should_close: bool,
     },
+    /// After sending 100 Continue, waiting for client to start writing body.
+    WaitingForBody {
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        /// Zero-indexed attempt number.
+        attempt: usize,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +54,9 @@ pub struct ConnectionHandler {
     streams: HTTPStreams<RawStream>,
     conn: SharedByteBufferStream<RawStream>,
     client_ip: String,
+    /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
+    max_expect_attempts: usize,
     escalation_threshold: u32,
     max_delay_cycles: u32,
     state: Option<HandlerState>,
@@ -65,12 +74,14 @@ impl ConnectionHandler {
         client_ip: String,
         config: crate::server::KeepAliveConfig,
     ) -> Self {
+        let max_expect_attempts = config.timeout_calculator.config().expect_continue.max_attempts;
         Self {
             app,
             streams,
             conn,
             client_ip,
-            timeout_calculator: config.timeout_calculator,
+            timeout_calculator: config.timeout_calculator.clone(),
+            max_expect_attempts,
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             state: Some(HandlerState::Idle),
@@ -116,32 +127,38 @@ impl ConnectionHandler {
         false
     }
 
-    /// Check if request has `Expect: 100-continue` header.
+    #[tracing::instrument(skip(req))]
     fn has_expect_continue(req: &SimpleIncomingRequest) -> bool {
-        req.headers
+        let has = req
+            .headers
             .get(&SimpleHeader::EXPECT)
             .map(|values| {
                 values
                     .iter()
                     .any(|v| v.trim().eq_ignore_ascii_case("100-continue"))
             })
-            .unwrap_or(false)
+            .unwrap_or(false);
+        tracing::trace!("Expect header check result: has_expect_continue={}", has);
+        has
     }
 
-    /// Check if request appears to have a body to receive.
+    #[tracing::instrument(skip(req))]
     fn has_request_body(req: &SimpleIncomingRequest) -> bool {
         if let Some(values) = req.headers.get(&SimpleHeader::CONTENT_LENGTH) {
             if let Some(len) = values.first().and_then(|v| v.parse::<usize>().ok()) {
                 if len > 0 {
+                    tracing::trace!("Request has Content-Length: {} > 0", len);
                     return true;
                 }
             }
         }
         if let Some(values) = req.headers.get(&SimpleHeader::TRANSFER_ENCODING) {
             if values.iter().any(|v| v.contains("chunked")) {
+                tracing::trace!("Request has Transfer-Encoding: chunked");
                 return true;
             }
         }
+        tracing::trace!("Request has no body indicators (no Content-Length > 0, no chunked Transfer-Encoding)");
         false
     }
 
@@ -304,12 +321,89 @@ impl ConnectionHandler {
         }
     }
 
+    /// Handle the WaitingForBody state — re-entry after 100 Continue delay.
+    ///
+    /// Checks if the shared TCP buffer has received data since we sent
+    /// 100 Continue. If yes, proceeds to middleware/handler dispatch.
+    /// If not, delays again with a reduced timeout.
+    #[tracing::instrument(skip(self))]
+    fn handle_waiting_for_body(
+        &mut self,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        attempt: usize,
+    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        let next_attempt = attempt + 1;
+
+        // Check if the shared buffer has received data.
+        let buffered = self.conn.do_once(|bbp| bbp.len());
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            attempt = attempt,
+            buffered_bytes = buffered,
+            "WaitingForBody: checking buffer after delay"
+        );
+
+        if buffered > 0 {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "WaitingForBody: data available in buffer, proceeding to processing"
+            );
+            // Body data has arrived — proceed to middleware and handler dispatch,
+            // skipping the 100-continue sending since it was already sent.
+            self.dispatch_processing(req, should_close, true)
+        } else {
+            // No data yet — try again if under max attempts.
+            match self.timeout_calculator.calculate_expect_continue_delay(next_attempt, self.max_expect_attempts) {
+                Some(delay) => {
+                    tracing::trace!(
+                        client_ip = %self.client_ip,
+                        attempt = next_attempt,
+                        delay = ?delay,
+                        "WaitingForBody: no data yet, delaying again"
+                    );
+                    self.state = Some(HandlerState::WaitingForBody {
+                        req,
+                        should_close,
+                        attempt: next_attempt,
+                    });
+                    Some(TaskStatus::Delayed(delay))
+                }
+                None => {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        max_attempts = self.max_expect_attempts,
+                        "WaitingForBody: max attempts exceeded, closing connection"
+                    );
+                    // Max attempts reached — fail the request.
+                    let _ = respond::text(
+                        &mut self.conn.clone(),
+                        408,
+                        "Request Timeout — body not received after 100 Continue",
+                    );
+                    None
+                }
+            }
+        }
+    }
+
     /// Handle the Processing state.
     #[tracing::instrument(skip(self))]
     fn handle_processing(
         &mut self,
         mut req: SimpleIncomingRequest,
         should_close: bool,
+    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        self.dispatch_processing(req, should_close, false)
+    }
+
+    /// Internal processing — `sent_100_continue` skips the 100-continue
+    /// sending block when called from `WaitingForBody` (already sent).
+    fn dispatch_processing(
+        &mut self,
+        mut req: SimpleIncomingRequest,
+        should_close: bool,
+        sent_100_continue: bool,
     ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         let bag = self.app.context().clone();
 
@@ -323,12 +417,48 @@ impl ConnectionHandler {
         );
 
         // Expect: 100-continue — send response before body is pulled.
-        // The body is a lazy SendSafeBody::Stream that hasn't been consumed yet,
-        // so we can safely write the 100 Continue response here. The client will
-        // then start sending the body into the TCP buffer before the handler pulls it.
-        if Self::has_expect_continue(&req) && Self::has_request_body(&req) {
-            tracing::trace!("Expect: 100-continue detected, sending 100 Continue");
-            let _ = respond::continue_100(&mut self.conn.clone());
+        // Skip if we already sent it from a previous dispatch (WaitingForBody path).
+        if !sent_100_continue {
+            let has_expect = Self::has_expect_continue(&req);
+            let has_body = Self::has_request_body(&req);
+            if has_expect && has_body {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    method = ?req.method,
+                    path = %req.request_url.url,
+                    "Expect: 100-continue detected — sending 100 Continue, transitioning to WaitingForBody"
+                );
+                match respond::continue_100(&mut self.conn.clone()) {
+                    Ok(()) => {
+                        tracing::trace!(client_ip = %self.client_ip, "100 Continue response written successfully");
+                        // Wait for client to receive 100 Continue and start writing body.
+                        self.state = Some(HandlerState::WaitingForBody {
+                            req,
+                            should_close,
+                            attempt: 0,
+                        });
+                        let delay = self
+                            .timeout_calculator
+                            .calculate_expect_continue_delay(0, self.max_expect_attempts)
+                            .expect("first attempt must yield a delay");
+                        return Some(TaskStatus::Delayed(delay));
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            client_ip = %self.client_ip,
+                            err = ?e,
+                            "Failed to write 100 Continue response"
+                        );
+                    }
+                }
+            } else {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    has_expect_continue = has_expect,
+                    has_request_body = has_body,
+                    "Expect: 100-continue not applicable — skipping"
+                );
+            }
         }
 
         // Run middleware chain — middleware takes &mut req.
@@ -488,6 +618,9 @@ impl TaskIterator for ConnectionHandler {
             HandlerState::Idle => self.handle_idle(),
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
+            }
+            HandlerState::WaitingForBody { req, should_close, attempt } => {
+                self.handle_waiting_for_body(req, should_close, attempt)
             }
         }
     }

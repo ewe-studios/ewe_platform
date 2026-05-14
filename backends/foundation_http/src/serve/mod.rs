@@ -249,17 +249,21 @@ pub mod respond {
     /// # Errors
     ///
     /// Returns `ServeError::InternalError` if the response cannot be rendered.
+    #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
+        tracing::trace!("Building 100 Continue response");
         let response = SimpleOutgoingResponse::builder()
             .with_status(status_from_code(100))
             .with_body(SendSafeBody::None)
             .build()
             .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
 
+        tracing::trace!("Rendering 100 Continue response to connection");
         Http11::response(response)
             .http_render_to_writer(conn)
             .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
 
+        tracing::trace!("100 Continue response rendered successfully");
         Ok(())
     }
 }

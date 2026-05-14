@@ -22,6 +22,36 @@ use crate::wire::simple_http::latency_tracker::LatencyTracker;
 use crate::wire::simple_http::load_tracker::LoadTracker;
 use std::time::Duration;
 
+/// Configuration for 100-continue expect delay behavior.
+///
+/// WHY: After sending 100 Continue, the server must pause to give the client
+/// time to receive the response and start writing the body. This config
+/// controls how long and how many times the server delays before failing.
+///
+/// WHAT: Base delay, max retry attempts, and per-attempt penalty reduction.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ExpectContinueConfig {
+    /// Base delay after sending 100 Continue (default: 50ms).
+    pub base_delay: Duration,
+
+    /// Maximum number of delay attempts before failing the request (default: 5).
+    pub max_attempts: usize,
+
+    /// Amount subtracted from the delay on each retry (default: 10ms).
+    /// Delay = base_delay - (attempt * penalty_reduction), clamped to min.
+    pub penalty_reduction: Duration,
+}
+
+impl Default for ExpectContinueConfig {
+    fn default() -> Self {
+        Self {
+            base_delay: Duration::from_millis(50),
+            max_attempts: 5,
+            penalty_reduction: Duration::from_millis(10),
+        }
+    }
+}
+
 /// Configuration for timeout calculations.
 ///
 /// WHY: Production systems need configurable timeouts to handle varying
@@ -66,6 +96,9 @@ pub struct TimeoutConfig {
     /// Sleep fraction divisor for timeout-based calculation (default: 100 = 1%).
     /// `sleep_ms = timeout_ms / sleep_timeout_fraction`.
     pub sleep_timeout_fraction: u64,
+
+    /// 100-continue expect delay configuration.
+    pub expect_continue: ExpectContinueConfig,
 }
 
 impl Default for TimeoutConfig {
@@ -86,6 +119,9 @@ impl Default for TimeoutConfig {
     /// | min_sleep_duration | 15ms | Base sleep for HTTP polling |
     /// | max_sleep_duration | 100ms | Upper clamp for calculated sleep |
     /// | sleep_timeout_fraction | 100 | 1% of timeout for calculated sleep |
+    /// | expect_continue.base_delay | 50ms | Initial pause after 100 Continue |
+    /// | expect_continue.max_attempts | 5 | Retries before failing request |
+    /// | expect_continue.penalty_reduction | 10ms | Per-attempt delay reduction |
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
@@ -99,6 +135,7 @@ impl Default for TimeoutConfig {
             min_sleep_duration: Duration::from_millis(15),
             max_sleep_duration: Duration::from_millis(100),
             sleep_timeout_fraction: 100,
+            expect_continue: ExpectContinueConfig::default(),
         }
     }
 }
@@ -570,6 +607,50 @@ impl TimeoutCalculator {
         }
 
         Duration::from_millis(base_sleep_ms)
+    }
+
+    /// Calculate delay for 100-continue expect-continue body wait.
+    ///
+    /// WHY: After sending 100 Continue, the server must pause to let the client
+    /// receive the response and start writing the body. Each retry reduces the
+    /// delay by the configured penalty so retries get progressively shorter.
+    ///
+    /// WHAT: Takes `TimeoutContext.previous_timeout` as the prior delay. On the
+    /// first call (no `previous_timeout`), uses `base_delay`. On retries,
+    /// `delay = previous_timeout - penalty_reduction`, clamped to
+    /// `[min_sleep_duration, max_read_timeout]`.
+    ///
+    /// # Returns
+    ///
+    /// - `Some(Duration)` if `current_try < max_tries` — the delay to use.
+    /// - `None` if `current_try >= max_tries` — caller should fail the request.
+    #[must_use]
+    pub fn calculate_expect_continue_delay(
+        &self,
+        ctx: &TimeoutContext,
+        current_try: usize,
+        max_tries: usize,
+    ) -> Option<Duration> {
+        if current_try >= max_tries {
+            return None;
+        }
+
+        let ec = &self.config.expect_continue;
+
+        // First attempt uses base_delay; subsequent attempts reduce previous delay.
+        let previous = ctx.previous_timeout.unwrap_or(ec.base_delay);
+        let delay = previous.saturating_sub(ec.penalty_reduction);
+
+        // Clamp to [min_sleep_duration, max_read_timeout]
+        let delay = delay.clamp(self.config.min_sleep_duration, self.config.max_read_timeout);
+
+        Some(delay)
+    }
+
+    /// Get the expect-continue config.
+    #[must_use]
+    pub fn expect_continue_config(&self) -> &ExpectContinueConfig {
+        &self.config.expect_continue
     }
 }
 
