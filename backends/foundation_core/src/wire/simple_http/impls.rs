@@ -7,6 +7,9 @@ use crate::io::readers::{BatchReader, Data, DataBytesIterator};
 use crate::io::readers::EOFStreamReader;
 use crate::io::readers::LimitedBatchStreamReader;
 use crate::io::readers::LimitedEOFStreamReader;
+use crate::wire::simple_http::client::body_reader::{
+    ContentLengthEnforcingIterator, LineFeedContentLengthEnforcer,
+};
 use crate::io::ubytes;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
@@ -3039,13 +3042,6 @@ where
                 }
             }
 
-            // ALLOW empty header value
-            if header_value.is_empty() {
-                // return Err(HttpReaderError::InvalidHeaderValue);
-                line.clear();
-                continue;
-            }
-
             if header_value == "," {
                 return Err(HttpReaderError::InvalidHeaderValue);
             }
@@ -3073,6 +3069,7 @@ where
             tracing::trace!("[2] HeaderValue: {:?}", &header_value);
 
             let actual_key = SimpleHeader::from(header_key);
+
             if let Some(values) = headers.get_mut(&actual_key) {
                 if header_value.trim() == "" {
                     line.clear();
@@ -3506,9 +3503,14 @@ where
                         return Some(Ok(IncomingRequestParts::Headers(headers)));
                     }
 
-                    let selected = content_size_headers.len() - 1;
+                    // Reject duplicate Content-Length
+                    if content_size_headers.len() > 1 {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::DuplicateContentLength));
+                    }
+
                     let content_size_str = content_size_headers
-                        .get(selected)
+                        .get(0)
                         .expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {
@@ -3995,9 +3997,14 @@ where
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
                     }
 
-                    let selected = content_size_headers.len() - 1;
+                    // Reject duplicate Content-Length
+                    if content_size_headers.len() > 1 {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::DuplicateContentLength));
+                    }
+
                     let content_size_str = content_size_headers
-                        .get(selected)
+                        .get(0)
                         .expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {
@@ -5292,8 +5299,11 @@ impl BodyExtractor for SimpleHttpBody {
                     .max_consecutive_retries(self.3);
 
                 #[allow(clippy::cast_possible_truncation)]
+                let limited = LimitedBatchStreamReader::new(batch, content_length as usize);
+                // Enforce that the promised Content-Length is actually delivered
+                let enforcing = ContentLengthEnforcingIterator::new(limited, content_length as usize);
                 let stream_reader: BoxedSendableDataIterator<BoxedError> =
-                    Box::new(LimitedBatchStreamReader::new(batch, content_length as usize));
+                    Box::new(enforcing);
 
                 Ok(SendSafeBody::Stream(Some(stream_reader)))
             }

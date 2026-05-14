@@ -27,6 +27,7 @@
 
 use crate::extensions::result_ext::BoxedError;
 use crate::io::readers::{Data, DataBytesIterator};
+use crate::wire::event_source::Event;
 use crate::wire::simple_http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
@@ -1304,6 +1305,210 @@ where
             false
         }
     }
+}
+
+// ============================================================================
+// Content-Length Enforcement Wrapper
+// ============================================================================
+
+/// WHY: When `Content-Length` is declared, the body must match the promised size.
+/// If the stream ends early (e.g., connection dropped, pipelined response starts),
+/// callers should get an error rather than silently receiving a truncated body.
+///
+/// WHAT: Iterator wrapper that tracks total bytes read and validates against
+/// expected `Content-Length` when the inner iterator reaches EOF.
+///
+/// HOW: Accumulates byte counts from `Data::Bytes` items. On inner `None`,
+/// compares `bytes_read` against `expected`. Returns error on mismatch.
+pub struct ContentLengthEnforcingIterator<I> {
+    inner: Option<I>,
+    expected: usize,
+    bytes_read: usize,
+}
+
+impl<I> ContentLengthEnforcingIterator<I> {
+    pub fn new(inner: I, expected: usize) -> Self {
+        Self {
+            inner: Some(inner),
+            expected,
+            bytes_read: 0,
+        }
+    }
+}
+
+impl<I> Iterator for ContentLengthEnforcingIterator<I>
+where
+    I: Iterator<Item = Result<Data, BoxedError>>,
+{
+    type Item = Result<Data, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut inner = self.inner.take()?;
+
+        match inner.next() {
+            Some(Ok(Data::Bytes(bytes))) => {
+                self.bytes_read += bytes.len();
+                self.inner = Some(inner);
+                Some(Ok(Data::Bytes(bytes)))
+            }
+            Some(other) => {
+                self.inner = Some(inner);
+                Some(other)
+            }
+            None => {
+                if self.bytes_read != self.expected {
+                    Some(Err(Box::new(std::io::Error::new(
+                        std::io::ErrorKind::UnexpectedEof,
+                        format!(
+                            "body truncated: expected {} bytes per Content-Length, got {}",
+                            self.expected, self.bytes_read
+                        ),
+                    ))))
+                } else {
+                    None
+                }
+            }
+        }
+    }
+}
+
+/// WHY: Same as `ContentLengthEnforcingIterator` but for `LineFeed` streams.
+////// WHAT: Tracks byte count from `LineFeed::Line` items and validates at EOF.
+pub struct LineFeedContentLengthEnforcer<I> {
+    inner: Option<I>,
+    expected: usize,
+    bytes_read: usize,
+}
+
+impl<I> LineFeedContentLengthEnforcer<I> {
+    fn new(inner: I, expected: usize) -> Self {
+        Self {
+            inner: Some(inner),
+            expected,
+            bytes_read: 0,
+        }
+    }
+}
+
+impl<I> Iterator for LineFeedContentLengthEnforcer<I>
+where
+    I: Iterator<Item = Result<LineFeed, BoxedError>>,
+{
+    type Item = Result<LineFeed, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut inner = self.inner.take()?;
+
+        match inner.next() {
+            Some(Ok(LineFeed::Line(line))) => {
+                // +1 for the newline that was stripped
+                self.bytes_read += line.len() + 1;
+                self.inner = Some(inner);
+                Some(Ok(LineFeed::Line(line)))
+            }
+            Some(Ok(LineFeed::SKIP | LineFeed::END)) => {
+                self.inner = Some(inner);
+                Some(Ok(LineFeed::SKIP))
+            }
+            Some(Err(e)) => {
+                self.inner = Some(inner);
+                Some(Err(e))
+            }
+            None => {
+                if self.bytes_read != self.expected {
+                    Some(Err(Box::new(std::io::Error::new(
+                        std::io::ErrorKind::UnexpectedEof,
+                        format!(
+                            "body truncated: expected {} bytes per Content-Length, got {}",
+                            self.expected, self.bytes_read
+                        ),
+                    ))))
+                } else {
+                    None
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Collect body as Result<Vec<u8>> / Result<String> (propagates enforcement errors)
+// ============================================================================
+
+/// WHY: `collect_bytes_from_send_safe` silently discards stream errors.
+/// When a `ContentLengthEnforcingIterator` detects a mismatch, the error must
+/// propagate to the caller. This method returns `Result` so enforcement errors
+/// are surfaced.
+///
+/// WHAT: Drains all body variants into `Vec<u8>`, returning the first error
+/// encountered from the inner iterator.
+///
+/// HOW: For eager bodies (`Text`/`Bytes`) it returns immediately. For streaming
+/// bodies it iterates until `None`, returning any `Err` from the stream.
+pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
+    match body {
+        SendSafeBody::Text(t) => Ok(t.into_bytes()),
+        SendSafeBody::Bytes(b) => Ok(b),
+        SendSafeBody::None => Ok(Vec::new()),
+        SendSafeBody::Stream(mut opt_iter) => {
+            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let mut buf = Vec::new();
+            for item in iter {
+                match item? {
+                    Data::Bytes(bytes) => buf.extend_from_slice(&bytes),
+                    Data::Retry => {}
+                }
+            }
+            Ok(buf)
+        }
+        SendSafeBody::ChunkedStream(mut opt_iter) => {
+            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let mut buf = Vec::new();
+            for item in iter {
+                match item? {
+                    ChunkedData::Data(bytes, _) => buf.extend_from_slice(&bytes),
+                    ChunkedData::Trailers(_) | ChunkedData::DataEnded => {}
+                }
+            }
+            Ok(buf)
+        }
+        SendSafeBody::LineFeedStream(mut opt_iter) => {
+            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let mut buf = Vec::new();
+            for item in iter {
+                match item? {
+                    LineFeed::Line(line) => {
+                        buf.extend_from_slice(line.as_bytes());
+                        buf.push(b'\n');
+                    }
+                    LineFeed::SKIP | LineFeed::END => {}
+                }
+            }
+            Ok(buf)
+        }
+        SendSafeBody::SseStream(mut opt_iter) => {
+            let Some(iter) = opt_iter.take() else { return Ok(Vec::new()) };
+            let mut buf = Vec::new();
+            for item in iter {
+                match item?.event {
+                    Event::Message { data, .. } => {
+                        buf.extend_from_slice(data.as_bytes());
+                        buf.push(b'\n');
+                    }
+                    Event::Comment(_) | Event::Reconnect => {}
+                }
+            }
+            Ok(buf)
+        }
+    }
+}
+
+/// WHY: Same as `try_collect_bytes` but returns a `String`.
+///
+/// WHAT: Collects body bytes via `try_collect_bytes`, then validates UTF-8.
+pub fn try_collect_string(body: SendSafeBody) -> Result<String, BoxedError> {
+    let bytes = try_collect_bytes(body)?;
+    String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
 }
 
 // ============================================================================

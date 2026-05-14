@@ -3,7 +3,7 @@ mod test_http_reader {
 
     use foundation_core::netcap::RawStream;
     use foundation_core::panic_if_failed;
-    use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
+    use foundation_core::wire::simple_http::client::body_reader::{collect_bytes_from_send_safe, try_collect_bytes};
     use foundation_core::wire::simple_http::{
         http_streams, HttpReaderError, IncomingRequestParts, SendSafeBody, SimpleHeader,
         SimpleMethod, SimpleUrl,
@@ -217,7 +217,7 @@ mod http_response_compliance {
     use foundation_core::extensions::result_ext::BoxedError;
 
     use foundation_core::netcap::RawStream;
-    use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
+    use foundation_core::wire::simple_http::client::body_reader::{collect_bytes_from_send_safe, try_collect_bytes};
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
@@ -1834,9 +1834,8 @@ mod http_response_compliance {
         #[traced_test]
         fn parse_stream_with_multiple_lines_with_newlines_ending_with_double_newlines() {
             let message =
-                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\n\nevent2: 0123456789\n\n\n\n";
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\ndata: line1\n\ndata: line2\n\n\n\n";
 
-            // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
 
@@ -1853,8 +1852,6 @@ mod http_response_compliance {
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
                 .expect("should generate output");
-
-            dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingResponseParts> = vec![
                 IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
@@ -1879,8 +1876,9 @@ mod http_response_compliance {
             };
 
             let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
-            // SseStream yields parsed SSE events; verify we got events
-            assert!(!events.is_empty(), "Should have parsed at least one SSE event");
+            assert_eq!(events.len(), 2, "Should have parsed two SSE events");
+            assert!(matches!(&events[0].event, Event::Message { data, .. } if data == "line1"));
+            assert!(matches!(&events[1].event, Event::Message { data, .. } if data == "line2"));
 
             req_thread.join().expect("should be closed");
         }
@@ -1889,9 +1887,8 @@ mod http_response_compliance {
         #[traced_test]
         fn parse_stream_with_multiple_lines_with_crlf() {
             let message =
-                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\r\nevent2: 0123456789\r\n";
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\ndata: line1\r\n\r\ndata: line2\r\n";
 
-            // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
 
@@ -1908,8 +1905,6 @@ mod http_response_compliance {
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
                 .expect("should generate output");
-
-            dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingResponseParts> = vec![
                 IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
@@ -1934,7 +1929,9 @@ mod http_response_compliance {
             };
 
             let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
-            assert!(!events.is_empty(), "Should have parsed at least one SSE event");
+            assert_eq!(events.len(), 2, "Should have parsed two SSE events");
+            assert!(matches!(&events[0].event, Event::Message { data, .. } if data == "line1"));
+            assert!(matches!(&events[1].event, Event::Message { data, .. } if data == "line2"));
 
             req_thread.join().expect("should be closed");
         }
@@ -1943,9 +1940,8 @@ mod http_response_compliance {
         #[traced_test]
         fn parse_stream_with_crlf() {
             let message =
-                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\r\n";
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\ndata: hello\r\n";
 
-            // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
 
@@ -1962,8 +1958,6 @@ mod http_response_compliance {
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
                 .expect("should generate output");
-
-            dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingResponseParts> = vec![
                 IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
@@ -1988,7 +1982,8 @@ mod http_response_compliance {
             };
 
             let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
-            assert!(!events.is_empty(), "Should have parsed at least one SSE event");
+            assert_eq!(events.len(), 1, "Should have parsed one SSE event");
+            assert!(matches!(&events[0].event, Event::Message { data, .. } if data == "hello"));
 
             req_thread.join().expect("should be closed");
         }
@@ -1997,9 +1992,8 @@ mod http_response_compliance {
         #[traced_test]
         fn parse_stream_with_double_line_endings() {
             let message =
-                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\n\n";
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\ndata: hello\n\n";
 
-            // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
 
@@ -2016,8 +2010,6 @@ mod http_response_compliance {
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
                 .expect("should generate output");
-
-            dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingResponseParts> = vec![
                 IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
@@ -2042,7 +2034,85 @@ mod http_response_compliance {
             };
 
             let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
-            assert!(!events.is_empty(), "Should have parsed at least one SSE event");
+            assert_eq!(events.len(), 1, "Should have parsed one SSE event");
+            assert!(matches!(&events[0].event, Event::Message { data, .. } if data == "hello"));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        /// WHY: Verify that SSE body with only `event:` field (no `data:`) produces no events.
+        /// The SSE spec requires `data:` for message events; `event:` alone is not sufficient.
+        #[test]
+        #[traced_test]
+        fn no_events_from_event_only_fields() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: update\n\nevent: create\n\n";
+
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = http_streams::send::response_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            let body_part = request_parts.pop().expect("retrieved body");
+            let IncomingResponseParts::StreamedBody(SendSafeBody::SseStream(Some(body_iter))) =
+                body_part
+            else {
+                panic!("Not an SseStream")
+            };
+
+            let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
+            assert!(events.is_empty(), "event-only fields should produce no events without data:");
+
+            req_thread.join().expect("should be closed");
+        }
+
+        /// WHY: Verify that SSE comments (lines starting with `:`) are parsed but produce no data events.
+        #[test]
+        #[traced_test]
+        fn comments_produce_no_data_events() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\n:heartbeat\n\n:another comment\n\n";
+
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = http_streams::send::response_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            let body_part = request_parts.pop().expect("retrieved body");
+            let IncomingResponseParts::StreamedBody(SendSafeBody::SseStream(Some(body_iter))) =
+                body_part
+            else {
+                panic!("Not an SseStream")
+            };
+
+            let events: Vec<ParseResult> = body_iter.filter_map(Result::ok).collect();
+            // Comments are events but not data events - filter_map keeps only Ok results
+            // Comments are returned as Event::Comment, so we should get some results
+            assert!(events.iter().all(|e| matches!(&e.event, Event::Comment(_))));
 
             req_thread.join().expect("should be closed");
         }
@@ -2248,14 +2318,27 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_stream = http_streams::send::http_streams(reader);
 
-            let request_one = request_stream
+            let parts = request_stream
                 .next_response()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
-            dbg!(&request_one);
+            dbg!(&parts);
 
-            assert!(request_one.is_err());
+            // Headers parse OK, but body is truncated (CL:219, actual body is shorter)
+            let parts = parts.expect("headers should parse OK");
+            let mut body_error_seen = false;
+            for part in parts {
+                match part {
+                    IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body) => {
+                        let result = try_collect_bytes(body);
+                        assert!(result.is_err(), "body consumption should error due to bad content-length");
+                        body_error_seen = true;
+                    }
+                    _ => {}
+                }
+            }
+            assert!(body_error_seen, "expected a body part to be present");
 
             req_thread.join().expect("should be closed");
         }
@@ -2825,13 +2908,26 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_stream = http_streams::send::http_streams(reader);
 
-            let request_one = request_stream
+            let parts = request_stream
                 .next_response()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
-            dbg!(&request_one);
+            dbg!(&parts);
 
-            assert!(request_one.is_err());
+            // Headers parse OK, but body is truncated (CL:123, only next-response data follows)
+            let parts = parts.expect("headers should parse OK");
+            let mut body_error_seen = false;
+            for part in parts {
+                match part {
+                    IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body) => {
+                        let result = try_collect_bytes(body);
+                        assert!(result.is_err(), "body consumption should error due to truncated content-length");
+                        body_error_seen = true;
+                    }
+                    _ => {}
+                }
+            }
+            assert!(body_error_seen, "expected a body part to be present");
 
             req_thread.join().expect("should be closed");
         }
@@ -3368,7 +3464,7 @@ mod http_requests_compliance {
     mod hello_request {
 
         use foundation_core::panic_if_failed;
-        use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
+        use foundation_core::wire::simple_http::client::body_reader::{collect_bytes_from_send_safe, try_collect_bytes};
 
         use super::*;
 
@@ -6940,7 +7036,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
+        use foundation_core::wire::simple_http::client::body_reader::{collect_bytes_from_send_safe, try_collect_bytes};
 
         use super::*;
 
@@ -7655,6 +7751,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
+        use foundation_core::wire::simple_http::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -7703,13 +7800,26 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_stream = http_streams::send::http_streams(reader);
 
-            let request_one = request_stream
+            let parts = request_stream
                 .next_request()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            tracing::debug!("Finished with {:?}", request_one);
+            tracing::debug!("Finished with {:?}", parts);
 
-            assert!(request_one.is_err());
+            // Headers parse OK, but body is truncated (CL:100, 0 bytes follow)
+            let parts = parts.expect("headers should parse OK");
+            let mut body_error_seen = false;
+            for part in parts {
+                match part {
+                    IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
+                        let result = try_collect_bytes(body);
+                        assert!(result.is_err(), "body consumption should error due to truncated content-length");
+                        body_error_seen = true;
+                    }
+                    _ => {}
+                }
+            }
+            assert!(body_error_seen, "expected a body part to be present");
 
             req_thread.join().expect("should be closed");
         }
@@ -7748,6 +7858,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
+        use foundation_core::wire::simple_http::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -8027,7 +8138,8 @@ Hello world!";
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(request_one.is_err());
+            // Whitespace around Content-Length values is valid per RFC 7230
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -8162,12 +8274,26 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_stream = http_streams::send::http_streams(reader);
 
-            let request_one = request_stream
+            let parts = request_stream
                 .next_request()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            tracing::debug!("Result: {:?}", request_one);
-            assert!(request_one.is_err());
+            tracing::debug!("Result: {:?}", parts);
+
+            // Headers parse OK, but body is truncated (CL:123, only next-request data follows)
+            let parts = parts.expect("headers should parse OK");
+            let mut body_error_seen = false;
+            for part in parts {
+                match part {
+                    IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
+                        let result = try_collect_bytes(body);
+                        assert!(result.is_err(), "body consumption should error due to truncated content-length");
+                        body_error_seen = true;
+                    }
+                    _ => {}
+                }
+            }
+            assert!(body_error_seen, "expected a body part to be present");
 
             req_thread.join().expect("should be closed");
         }

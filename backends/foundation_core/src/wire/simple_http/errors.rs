@@ -412,7 +412,8 @@ pub enum HttpReaderError {
 
     #[from(ignore)]
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
-
+    DuplicateContentLength,
+    InvalidContentLengthFormat,
     ZeroBodySizeNotAllowed,
     ExpectedSizedBodyViaContentLength,
     GuardedResourceAccess,
