@@ -250,7 +250,7 @@ where
                                             )));
                                         };
 
-                                    let IncomingResponseParts::Headers(headers) = second else {
+                                    let IncomingResponseParts::Headers(mut headers) = second else {
                                         self.0.take();
 
                                         return Some(TaskStatus::Ready(RequestIntro::Failed(
@@ -268,15 +268,13 @@ where
                                         (&intro.0, &intro.1, &intro.2)
                                     );
 
-                                        let mut current_loop: usize = 0;
-
                                         // loop and collect the next until you see another intro
                                         // and if its not a Status::Processing, then stop.
                                         for next_state in &mut reader {
                                             tracing::trace!(
-                                            "[PROCESSING CHECK] Got next state of request: {:?}",
-                                            &next_state
-                                        );
+                                                "[PROCESSING CHECK] Got next state of request: {:?}",
+                                                &next_state
+                                            );
 
                                             let next_item = match next_state {
                                                 Ok(item) => item,
@@ -294,30 +292,6 @@ where
                                             };
 
                                             match next_item {
-                                                IncomingResponseParts::Intro(
-                                                    next_status,
-                                                    next_proto,
-                                                    next_text,
-                                                ) => {
-                                                    tracing::info!(
-                                                    "[PROCESSING CHECK, new-intro] Received next intro for status: {:?}",
-                                                    (&next_status, &next_proto, &next_text)
-                                                );
-
-                                                    // if Processing and loop is less than max, skipp it again
-                                                    if next_status == Status::Processing
-                                                        && current_loop < self.4
-                                                    {
-                                                        current_loop += 1;
-                                                        continue;
-                                                    }
-
-                                                    // if we've reached max or not Status::Processing then stop
-                                                    intro.0 = next_status;
-                                                    intro.1 = next_proto;
-                                                    intro.2 = next_text;
-                                                    break;
-                                                }
                                                 IncomingResponseParts::StreamedBody(stream) => {
                                                     tracing::info!(
                                                     "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
@@ -346,6 +320,68 @@ where
                                                 }
                                             }
                                         }
+
+                                        tracing::trace!("[PROCESSING CHECK] branching reader");
+
+                                        reader = reader.branch_reader();
+
+                                        tracing::trace!("[PROCESSING CHECK] read new intro from branched reader");
+                                        match reader.next()? {
+                                            Ok(IncomingResponseParts::Intro(
+                                                next_status,
+                                                next_proto,
+                                                next_text,
+                                            )) => {
+                                                tracing::info!(
+                                                    "Get intro from stream - got: {:?}",
+                                                    (&next_status, &next_proto, &next_text),
+                                                );
+                                                // if we've reached max or not Status::Processing then stop
+                                                intro.0 = next_status;
+                                                intro.1 = next_proto;
+                                                intro.2 = next_text;
+                                            }
+                                            Ok(_) => {
+                                                return Some(TaskStatus::Ready(
+                                                    RequestIntro::Failed(
+                                                        HttpClientError::ReadError,
+                                                    ),
+                                                ));
+                                            }
+                                            Err(err) => {
+                                                tracing::error!(
+                                                    "Get intro from stream - error: {:?}",
+                                                    err
+                                                );
+                                                return Some(TaskStatus::Ready(err.into()));
+                                            }
+                                        };
+
+                                        tracing::trace!("[PROCESSING CHECK] read new header from branched reader");
+                                        match reader.next()? {
+                                            Ok(IncomingResponseParts::Headers(next_headers)) => {
+                                                tracing::info!(
+                                                    "Get headers from stream - got: {:?}",
+                                                    &next_headers,
+                                                );
+                                                // if we've reached max or not Status::Processing then stop
+                                                headers = next_headers;
+                                            }
+                                            Ok(_) => {
+                                                return Some(TaskStatus::Ready(
+                                                    RequestIntro::Failed(
+                                                        HttpClientError::ReadError,
+                                                    ),
+                                                ));
+                                            }
+                                            Err(err) => {
+                                                tracing::error!(
+                                                    "Get intro from stream - error: {:?}",
+                                                    err
+                                                );
+                                                return Some(TaskStatus::Ready(err.into()));
+                                            }
+                                        };
 
                                         tracing::trace!(
                                             "[PROCESSING CHECK] Finished Status::Processing"

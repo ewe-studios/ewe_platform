@@ -23,7 +23,7 @@ use crate::wire::simple_http::client::{
 };
 use crate::wire::simple_http::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
-    RequestDescriptor, SimpleHeader, SimpleHttpBody, SimpleIncomingRequest, Status,
+    RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -183,12 +183,14 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     };
 
-                    tracing::debug!("Adding EXPECT: 100-continue header");
-
-                    // add Expect header for 100-continue
-                    descriptor
-                        .headers
-                        .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+                    // Only send Expect: 100-continue when the request has a body.
+                    let has_body = Self::request_has_body(&descriptor.headers);
+                    if has_body {
+                        tracing::debug!("Adding EXPECT: 100-continue header for request with body");
+                        descriptor
+                            .headers
+                            .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+                    }
 
                     // 2. Render and send request
                     let Ok(request_string) =
@@ -242,6 +244,15 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         connection.clone_stream(),
                         simple_http_body,
                     );
+
+                    // if no body was there, we wont send the EXPECT header, so just go to write body.
+                    if !has_body {
+                        tracing::trace!("No expect header added due to no body, moving to write body");
+                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                            None, data, pool, connection, reader,
+                        )))));
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
 
                     // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
                     tracing::trace!("[100-Continue] Waitiing for server response for 100-continue expect header with timeout: {:?}", read_timeout);
@@ -477,5 +488,30 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                 HttpRequestRedirectState::Done => None,
             }
         })
+    }
+}
+
+impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
+    /// Check whether the request has a body based on Content-Length or Transfer-Encoding.
+    /// Only adds Expect: 100-continue when there is an actual body to send.
+    fn request_has_body(headers: &SimpleHeaders) -> bool {
+        if let Some(values) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
+            if values
+                .iter()
+                .any(|v| v.trim().parse::<u64>().is_ok_and(|n| n > 0))
+            {
+                return true;
+            }
+        }
+        if let Some(values) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
+            if values.iter().any(|v| {
+                v.to_lowercase()
+                    .split(',')
+                    .any(|part| part.trim() == "chunked")
+            }) {
+                return true;
+            }
+        }
+        false
     }
 }

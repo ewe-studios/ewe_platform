@@ -3,16 +3,16 @@
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
-use crate::io::readers::{BatchReader, Data, DataBytesIterator};
 use crate::io::readers::EOFStreamReader;
 use crate::io::readers::LimitedBatchStreamReader;
 use crate::io::readers::LimitedEOFStreamReader;
-use crate::wire::simple_http::client::body_reader::ContentLengthEnforcingIterator;
+use crate::io::readers::{BatchReader, Data, DataBytesIterator};
 use crate::io::ubytes;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
+use crate::wire::simple_http::client::body_reader::ContentLengthEnforcingIterator;
 use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
@@ -316,7 +316,9 @@ pub enum SendSafeBody {
     ///
     /// NOTE: The iterator wraps an `SseParser` that reads lines and yields parsed SSE events.
     /// This allows the HTTP layer to return a complete SSE body handler to the caller.
-    SseStream(Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, SendableBoxedError>>),
+    SseStream(
+        Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+    ),
 }
 
 impl Eq for SendSafeBody {}
@@ -3507,8 +3509,7 @@ where
                         return Some(Err(HttpReaderError::DuplicateContentLength));
                     }
 
-                    let content_size_str = content_size_headers.first()
-                        .expect("get content size");
+                    let content_size_str = content_size_headers.first().expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {
                             if let Some(max_value) = self.max_body_length {
@@ -3615,6 +3616,18 @@ where
     }
 }
 
+impl<F, T> HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    /// [`branch`] will create a new HttpSendResponseReader
+    /// with state reset which will allow you to continue reading a response from the reader.
+    pub fn branch_reader(self) -> Self {
+        Self(self.0.branch_reader())
+    }
+}
+
 impl<F, T> Iterator for HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
@@ -3646,6 +3659,18 @@ where
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl<F, T> HttpResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + 'static,
+{
+    /// [`branch`] will create a new HttpSendResponseReader
+    /// with state reset which will allow you to continue reading a response from the reader.
+    pub fn branch_reader(self) -> Self {
+        Self::new(self.reader, self.bodies)
     }
 }
 
@@ -4000,8 +4025,7 @@ where
                         return Some(Err(HttpReaderError::DuplicateContentLength));
                     }
 
-                    let content_size_str = content_size_headers.first()
-                        .expect("get content size");
+                    let content_size_str = content_size_headers.first().expect("get content size");
                     match content_size_str.parse::<u64>() {
                         Ok(value) => {
                             if let Some(max_value) = self.max_body_length {
@@ -5239,7 +5263,11 @@ impl BodyExtractor for SimpleHttpBody {
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {
-                tracing::trace!("FullBody: streaming body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
+                tracing::trace!(
+                    "FullBody: streaming body with potential max body size: {:?}, headers={:?}",
+                    &optional_max_body_size,
+                    headers
+                );
 
                 #[allow(clippy::cast_possible_truncation)]
                 let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
@@ -5297,9 +5325,9 @@ impl BodyExtractor for SimpleHttpBody {
                 #[allow(clippy::cast_possible_truncation)]
                 let limited = LimitedBatchStreamReader::new(batch, content_length as usize);
                 // Enforce that the promised Content-Length is actually delivered
-                let enforcing = ContentLengthEnforcingIterator::new(limited, content_length as usize);
-                let stream_reader: BoxedSendableDataIterator<BoxedError> =
-                    Box::new(enforcing);
+                let enforcing =
+                    ContentLengthEnforcingIterator::new(limited, content_length as usize);
+                let stream_reader: BoxedSendableDataIterator<BoxedError> = Box::new(enforcing);
 
                 Ok(SendSafeBody::Stream(Some(stream_reader)))
             }

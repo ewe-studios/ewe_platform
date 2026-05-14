@@ -156,25 +156,31 @@ impl TaskIterator for GetRequestIntroTask {
                         )));
                     };
 
-                    tracing::info!("Received intro for request: {:?}", (&status, &proto, &text));
+                    tracing::info!(
+                        "[PROCESSING CHECK] Received intro for request: {:?}",
+                        (&status, &proto, &text)
+                    );
 
                     // if we see Processing then, lets pull the body then re-run the pull step
                     if status == Status::Processing {
                         tracing::info!(
-                            "Entering state of Status::Processing: {:?}",
+                            "[PROCESSING CHECK] Entering state of Status::Processing: {:?}",
                             (&status, &proto, &text)
                         );
-
-                        let mut current_loop: usize = 0;
 
                         // loop and collect the next until you see another intro
                         // and if its not a Status::Processing, then stop.
                         for next_state in &mut reader {
+                            tracing::trace!(
+                                "[PROCESSING CHECK] Got next state of request: {:?}",
+                                &next_state
+                            );
+
                             let next_item = match next_state {
                                 Ok(item) => item,
                                 Err(err) => {
                                     tracing::error!(
-                                        "Failed to read next body from 102 status due to: {:?}",
+                                        "[PROCESSING CHECK] Failed to read next body from 102 status due to: {:?}",
                                         err
                                     );
                                     return Some(TaskStatus::Ready(RequestIntro::Failed(
@@ -184,37 +190,15 @@ impl TaskIterator for GetRequestIntroTask {
                             };
 
                             match next_item {
-                                IncomingResponseParts::Intro(
-                                    next_status,
-                                    next_proto,
-                                    next_text,
-                                ) => {
-                                    tracing::info!(
-                                        "Received next intro for request: {:?}",
-                                        (&next_status, &next_proto, &next_text)
-                                    );
-
-                                    // if Processing and loop is less than max, skipp it again
-                                    if next_status == Status::Processing && current_loop < self.2 {
-                                        current_loop += 1;
-                                        continue;
-                                    }
-
-                                    // if we've reached max or not Status::Processing then stop
-                                    status = next_status;
-                                    proto = next_proto;
-                                    text = next_text;
-                                    break;
-                                }
                                 IncomingResponseParts::StreamedBody(stream) => {
                                     tracing::info!(
-                                        "Saw next body under Status::Processing state: {:?}",
+                                        "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
                                         &stream,
                                     );
 
                                     if let Err(err) = drain_stream_iterator_from_send_safe(stream) {
                                         tracing::error!(
-                                            "Failed to drain body from 102 status due to: {:?}",
+                                            "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
                                             err
                                         );
                                         return Some(TaskStatus::Ready(RequestIntro::Failed(
@@ -224,12 +208,45 @@ impl TaskIterator for GetRequestIntroTask {
                                 }
                                 _ => {
                                     tracing::trace!(
-                                        "Skipping body state from request under Status::Processing"
+                                        "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
                                     );
                                     continue;
                                 }
                             }
                         }
+
+                        tracing::trace!("[PROCESSING CHECK] branching reader");
+
+                        reader = reader.branch_reader();
+
+                        tracing::trace!("[PROCESSING CHECK] read new intro from branched reader");
+                        match reader.next()? {
+                            Ok(IncomingResponseParts::Intro(
+                                next_status,
+                                next_proto,
+                                next_text,
+                            )) => {
+                                tracing::info!(
+                                    "Get intro from stream - got: {:?}",
+                                    (&next_status, &next_proto, &next_text),
+                                );
+                                // if we've reached max or not Status::Processing then stop
+                                status = next_status;
+                                proto = next_proto;
+                                text = next_text;
+                            }
+                            Ok(_) => {
+                                return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                    HttpClientError::ReadError,
+                                )));
+                            }
+                            Err(err) => {
+                                tracing::error!("Get intro from stream - error: {:?}", err);
+                                return Some(TaskStatus::Ready(err.into()));
+                            }
+                        };
+
+                        tracing::trace!("[PROCESSING CHECK] Finished Status::Processing");
                     }
 
                     let _ = self
