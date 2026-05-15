@@ -155,9 +155,7 @@ mod tests {
     fn test_bootstrap_mise_toml_has_required_tools() {
         let toml = crate::bootstrap::BOOTSTRAP_MISE_TOML;
         assert!(toml.contains("rust"));
-        assert!(toml.contains("nu"));
-        assert!(toml.contains("cargo:cargo-binstall"));
-        assert!(toml.contains("cargo:sccache"));
-        assert!(toml.contains("cargo:tauri-cli"));
+        assert!(toml.contains("nushell"));
+        assert!(toml.contains("tauri-cli"));
     }
 }

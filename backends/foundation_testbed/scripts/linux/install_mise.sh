@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+# Idempotent check: skip if mise is already installed
+if [ -f "/home/vagrant/.local/bin/mise" ]; then
+    echo "mise already installed: $(/home/vagrant/.local/bin/mise --version)"
+    exit 0
+fi
+
 echo "Starting mise install..." >&2
 
 # Check prerequisites
@@ -18,25 +24,25 @@ fi
 
 # Verify mise was installed
 echo "Verifying mise installation..." >&2
-if [ ! -f "$HOME/.local/bin/mise" ]; then
-    echo "ERROR: mise binary not found at ~/.local/bin/mise after install" >&2
+if [ ! -f "/home/vagrant/.local/bin/mise" ]; then
+    echo "ERROR: mise binary not found at /home/vagrant/.local/bin/mise after install" >&2
     # Check if it was installed somewhere else
     echo "Searching for mise binary..." >&2
-    find ~ -name "mise" -type f 2>/dev/null | head -5 || true
+    find /home/vagrant -name "mise" -type f 2>/dev/null | head -5 || true
     exit 1
 fi
 
 # Make sure it's executable
-chmod +x "$HOME/.local/bin/mise"
+chmod +x "/home/vagrant/.local/bin/mise"
 
 # Verify it works
 echo "Testing mise binary..." >&2
-if ! "$HOME/.local/bin/mise" --version >/dev/null 2>&1; then
+if ! "/home/vagrant/.local/bin/mise" --version >/dev/null 2>&1; then
     echo "ERROR: mise binary installed but cannot execute" >&2
     # Try to see what the file is
-    file "$HOME/.local/bin/mise" >&2 || true
-    ls -la "$HOME/.local/bin/mise" >&2 || true
+    file "/home/vagrant/.local/bin/mise" >&2 || true
+    ls -la "/home/vagrant/.local/bin/mise" >&2 || true
     exit 1
 fi
 
-echo "mise installed successfully: $("$HOME/.local/bin/mise" --version)" >&2
+echo "mise installed successfully: $("/home/vagrant/.local/bin/mise" --version)" >&2

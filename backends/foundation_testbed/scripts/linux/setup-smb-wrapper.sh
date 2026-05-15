@@ -62,6 +62,6 @@ echo ""
 echo '  PATH="'"$WRAPPER_DIR"':$PATH" qemu-system-x86_64 -netdev "user,id=net,smb=/path/to/share" ...'
 echo ""
 echo "=== Permanent Setup ==="
-echo "Add this to your ~/.bashrc or ~/.zshrc:"
+echo "Add this to your /home/vagrant/.bashrc or /home/vagrant/.zshrc:"
 echo '  export PATH="'"$WRAPPER_DIR"':$PATH"'
 

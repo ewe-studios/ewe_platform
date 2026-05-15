@@ -20,89 +20,10 @@ const INSTALL_GNOME_SH: &str = include_str!("../../scripts/linux/install_gnome.s
 const START_DISPLAY_MANAGER_SH: &str = include_str!("../../scripts/linux/start_display_manager.sh");
 const START_GNOME_DM_SH: &str = include_str!("../../scripts/linux/start_gnome_dm.sh");
 
-/// Detect Linux distro and return package manager type
-fn detect_distro(session: &mut VmSession) -> Result<String> {
-    let os_release = crate::ssh::exec(session, "cat /etc/os-release 2>/dev/null || echo 'ID=unknown'")?;
-
-    if os_release.contains("ID=ubuntu") || os_release.contains("ID=debian") || os_release.contains("ID_LIKE=debian") {
-        Ok("debian".to_string())
-    } else if os_release.contains("ID=arch") || os_release.contains("ID_LIKE=arch") || os_release.contains("ID=manjaro") {
-        Ok("arch".to_string())
-    } else if crate::ssh::exec(session, "command -v apt-get >/dev/null 2>&1 && echo yes").unwrap_or_default().contains("yes") {
-        Ok("debian".to_string())
-    } else if crate::ssh::exec(session, "command -v pacman >/dev/null 2>&1 && echo yes").unwrap_or_default().contains("yes") {
-        Ok("arch".to_string())
-    } else {
-        Ok("unknown".to_string())
-    }
-}
-
-/// Tauri system dependencies on Debian/Ubuntu that mise cannot install.
-const TAURI_SYSTEM_DEPS_DEBIAN: &[&str] = &[
-    "build-essential", "curl", "git", "pkg-config", "clang", "lld",
-    "libwebkit2gtk-4.1-dev", "libgtk-3-dev", "libayatana-appindicator3-dev",
-    "librsvg2-dev", "libssl-dev", "libxdo-dev", "libsoup-3.0-dev",
-    "libjavascriptcoregtk-4.1-dev", "xvfb", "scrot", "openbox",
-];
-
-/// Tauri system dependencies on Arch Linux.
-const TAURI_SYSTEM_DEPS_ARCH: &[&str] = &[
-    "base-devel", "curl", "git", "pkg-config", "clang", "lld",
-    "webkit2gtk", "gtk3", "libayatana-appindicator",
-    "librsvg", "openssl", "libxdo",
-    "libsoup3", "webkit2gtk-4.1",
-    "xorg-server-xvfb", "scrot", "openbox",
-];
-
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
-    // Detect distro type
-    let distro = detect_distro(session)?;
-    logger.message(&format!("Detected distro: {}", distro));
 
     logger::step(logger, "install system deps", || {
-        // Check if all critical deps are present, not just Xvfb
-        let xvfb_check = crate::ssh::exec(
-            session,
-            "command -v Xvfb >/dev/null 2>&1 && echo present || echo missing",
-        );
-        let clang_check = crate::ssh::exec(
-            session,
-            "command -v clang >/dev/null 2>&1 && echo present || echo missing",
-        );
-        let xvfb_present = xvfb_check.unwrap_or_default();
-        let clang_present = clang_check.unwrap_or_default();
-        logger.message(&format!("  Xvfb check: {:?}", xvfb_present.trim()));
-        logger.message(&format!("  Clang check: {:?}", clang_present.trim()));
-        if !xvfb_present.contains("present") || !clang_present.contains("present") {
-            match distro.as_str() {
-                "debian" => {
-                    let deps = TAURI_SYSTEM_DEPS_DEBIAN.join(" ");
-                    logger.message(&format!("  Installing deps (Debian/Ubuntu): {}", deps));
-                    let update_output = crate::ssh::exec(session, "sudo apt-get update -qq 2>&1")?;
-                    logger.message(&format!("  apt-get update output: {}", update_output));
-                    let install_cmd = format!("DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {}", deps);
-                    let install_output = crate::ssh::exec(session, &install_cmd)?;
-                    logger.message(&format!("  apt-get install output: {}", install_output));
-                }
-                "arch" => {
-                    let deps = TAURI_SYSTEM_DEPS_ARCH.join(" ");
-                    logger.message(&format!("  Installing deps (Arch): {}", deps));
-                    let update_output = crate::ssh::exec(session, "sudo pacman -Sy --noconfirm 2>&1")?;
-                    logger.message(&format!("  pacman update output: {}", update_output));
-                    let install_cmd = format!("sudo pacman -S --noconfirm {}", deps);
-                    let install_output = crate::ssh::exec(session, &install_cmd)?;
-                    logger.message(&format!("  pacman install output: {}", install_output));
-                }
-                _ => {
-                    return Err(crate::config::TestbedError::BootstrapFailed {
-                        step: "install system deps".to_string(),
-                        message: format!("Unsupported distro: {}. Please install deps manually.", distro),
-                    });
-                }
-            }
-        } else {
-            logger.message("  Skipping system deps install (all present)");
-        }
+        crate::ssh::exec(session, INSTALL_SYSTEM_DEPS_SH)?;
         Ok(())
     })?;
 
@@ -129,26 +50,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     })?;
 
     logger::step(logger, "install mise", || {
-        let mise = crate::ssh::exec(session, "~/.local/bin/mise --version 2>/dev/null || echo missing")
-            .unwrap_or_default();
-        if !mise.contains("missing") && !mise.is_empty() {
-            return Ok(());
-        }
-        // Run mise install directly
-        let install_cmd = r#"curl -fsSL https://mise.run | sh && [ -f ~/.local/bin/mise ] && ~/.local/bin/mise --version"#;
-        let install_output = crate::ssh::exec(session, install_cmd)?;
-        logger.message(&format!("mise install output: {}", install_output));
-        // Verify mise was actually installed
-        let verify = crate::ssh::exec(
-            session,
-            "[ -f ~/.local/bin/mise ] && ~/.local/bin/mise --version || (echo 'mise install verification failed' && exit 1)",
-        )?;
-        if verify.contains("verification failed") {
-            return Err(crate::config::TestbedError::BootstrapFailed {
-                step: "install mise".to_string(),
-                message: format!("mise binary not found after install. Output: {}", install_output),
-            });
-        }
+        crate::ssh::exec(session, INSTALL_MISE_SH)?;
         Ok(())
     })?;
 
@@ -344,23 +246,11 @@ fn setup_project_mount(session: &mut VmSession) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn test_tauri_deps_not_empty() {
-        assert!(!TAURI_SYSTEM_DEPS_DEBIAN.is_empty());
-        assert!(TAURI_SYSTEM_DEPS_DEBIAN.len() > 10);
-        assert!(!TAURI_SYSTEM_DEPS_ARCH.is_empty());
-        assert!(TAURI_SYSTEM_DEPS_ARCH.len() > 10);
-    }
-
     #[test]
     fn test_bootstrap_mise_toml_has_required_tools() {
         let toml = crate::bootstrap::BOOTSTRAP_MISE_TOML;
         assert!(toml.contains("rust"));
-        assert!(toml.contains("nu"));
-        assert!(toml.contains("cargo:cargo-binstall"));
-        assert!(toml.contains("cargo:sccache"));
-        assert!(toml.contains("cargo:tauri-cli"));
+        assert!(toml.contains("nushell"));
+        assert!(toml.contains("tauri-cli"));
     }
 }

@@ -288,7 +288,7 @@ fn test_tauri_build_linux() -> Result<()> {
     let build_cmd = format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
          export DISPLAY=:99 && \
-         ~/.local/bin/mise exec -- cargo tauri build 2>&1 | tail -20"
+         bash -l -c 'cargo tauri build' 2>&1 | tail -20"
     );
     let output = vm.ssh_exec(&build_cmd)?;
     println!("  Build output:\n{}", output);
@@ -369,7 +369,7 @@ fn test_headless_app_linux() -> Result<()> {
     let build_output = vm.ssh_exec(&format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
          export DISPLAY=:99 && \
-         ~/.local/bin/mise exec -- cargo tauri build 2>&1 | tail -5"
+         bash -l -c 'cargo tauri build' 2>&1 | tail -5"
     ))?;
     println!("  Build output:\n{}", build_output);
 
@@ -605,7 +605,7 @@ fn test_full_e2e_linux() -> Result<()> {
 
     println!("[e2e/linux] Building Tauri app...");
     let build_output = vm.ssh_exec(&format!(
-        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && cargo tauri build 2>&1 | tail -10"
+        "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && bash -l -c 'cargo tauri build' 2>&1 | tail -10"
     ))?;
     println!("  Build output:\n{}", build_output);
 
