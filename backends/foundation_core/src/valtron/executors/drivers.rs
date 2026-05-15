@@ -215,32 +215,6 @@ where
         }
     }
 
-    // #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-    // {
-    //     let initial_empty_count = stream.len();
-    //     let is_closed = stream.is_closed();
-    //     tracing::debug!(
-    //         "multi-threaded wait - initial queue len={}, closed={}, using notification-based wait",
-    //         initial_empty_count,
-    //         is_closed
-    //     );
-    //
-    //     // // Use notification-based waiting instead of spin-sleep
-    //     // // The NotifyQueueStreamIterator already uses wait_for_item internally
-    //     // // We just need to check if we should wait at all
-    //     // if stream.is_empty() && !stream.is_closed() {
-    //     //     // Use a short wait to allow notification to arrive
-    //     //     // This replaces the spin-sleep loop
-    //     //     std::thread::park_timeout(Duration::from_micros(100));
-    //     // }
-    //
-    //     tracing::debug!(
-    //         "multi-threaded wait finished - final queue_len={}, closed={}",
-    //         stream.len(),
-    //         stream.is_closed()
-    //     );
-    // }
-
     stream
 }
 
