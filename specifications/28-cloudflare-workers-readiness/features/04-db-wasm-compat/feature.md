@@ -1,6 +1,6 @@
 ---
 feature: "Database Wasm Compatibility"
-description: "Enable turso, D1, R2 backends for wasm32 — turso compiles to wasm, D1/R2 via CF JS bindings"
+description: "Verify turso and D1/R2 backends compile on wasm32 — no gating needed, turso works on wasm"
 status: "pending"
 priority: "high"
 depends_on: ["01-core-wasm-compat"]

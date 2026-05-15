@@ -1,10 +1,38 @@
 $cfg = "$env:USERPROFILE\AppData\Roaming\mise\config.toml"
 $dir = Split-Path $cfg
 if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-if (-not (Test-Path $cfg)) {
-    Set-Content $cfg "[settings]`ncargo_binstall = true`n" -Encoding UTF8
-} elseif ((Get-Content $cfg -Raw) -notmatch 'cargo_binstall') {
-    Add-Content $cfg "`n[settings]`ncargo_binstall = true`n" -Encoding UTF8
+
+# Read existing config or create new
+if (Test-Path $cfg) {
+    $content = Get-Content $cfg -Raw
+} else {
+    $content = ""
+}
+
+# Ensure [tools] section exists with required tools
+$toolsSection = @"
+[tools]
+rust = "stable"
+"aqua:nushell/nushell" = "latest"
+cargo-binstall = "latest"
+sccache = "latest"
+"cargo:tauri-cli" = "2"
+"@
+
+if ($content -notmatch '\[tools\]') {
+    $content = $toolsSection + "`n" + $content
+    Set-Content $cfg $content -Encoding UTF8
+}
+
+# Ensure [settings] section exists
+if ($content -notmatch 'cargo\.binstall') {
+    if ($content -notmatch '\[settings\]') {
+        Add-Content $cfg "`n[settings]`ncargo.binstall = true`n" -Encoding UTF8
+    } else {
+        # Add under existing [settings]
+        $content = $content -replace '(\[settings\][^\[]*)', "`$1`ncargo.binstall = true`n"
+        Set-Content $cfg $content -Encoding UTF8
+    }
 }
 
 # Ensure mise shims are in PATH for cargo tools (cargo-binstall, sccache, tauri-cli)

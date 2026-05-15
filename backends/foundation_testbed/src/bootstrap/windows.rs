@@ -370,7 +370,7 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
 
 /// Install mise on Windows — downloads binary on host, SCPs to VM.
 fn install_mise(session: &mut VmSession) -> Result<()> {
-    let check = crate::ssh::exec(session, "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name")?;
+    let (check, _) = crate::ssh::exec_ps_windows(session, "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name")?;
     if !check.trim().is_empty() {
         return Ok(());
     }
@@ -383,7 +383,7 @@ fn install_mise(session: &mut VmSession) -> Result<()> {
     debug!("scp'ing mise to VM...");
     crate::ssh::upload(session, &mise_zip, "C:/mise.zip")?;
 
-    crate::ssh::exec(session, INSTALL_MISE_PS1)?;
+    crate::ssh::exec_ps_windows(session, INSTALL_MISE_PS1)?;
     Ok(())
 }
 
@@ -449,7 +449,7 @@ fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
 
 /// Persist mise's cargo_binstall = true setting.
 fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(session, CONFIGURE_MISE_CARGO_BINSTALL_PS1)?;
+    crate::ssh::exec_ps_windows(session, CONFIGURE_MISE_CARGO_BINSTALL_PS1)?;
     Ok(())
 }
 
@@ -710,26 +710,26 @@ fn install_virtio_drivers(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
 
 /// Configure rustup default-host to x86_64 on ARM64 Windows hosts.
 fn configure_rustup_arm64(session: &mut VmSession) -> Result<()> {
-    let arch = crate::ssh::exec(session, "$env:PROCESSOR_ARCHITECTURE")?;
+    let (arch, _) = crate::ssh::exec_ps_windows(session, "$env:PROCESSOR_ARCHITECTURE")?;
     if !arch.contains("ARM64") {
         return Ok(());
     }
 
-    crate::ssh::exec(session, CONFIGURE_RUSTUP_ARM64_PS1)?;
+    crate::ssh::exec_ps_windows(session, CONFIGURE_RUSTUP_ARM64_PS1)?;
     Ok(())
 }
 
 /// Install development tools via bootstrap mise.toml.
 fn install_tools(session: &mut VmSession) -> Result<()> {
     let script = INSTALL_TOOLS_MISE_PS1.replace("{{MISE_TOML}}", BOOTSTRAP_MISE_TOML);
-    crate::ssh::exec(session, &script)?;
+    crate::ssh::exec_ps_windows(session, &script)?;
     crate::ssh::exec(session, "mise exec -- rustc --version")?;
     Ok(())
 }
 
 /// Set nushell as the default interactive shell on Windows.
 fn set_nushell_default_shell(session: &mut VmSession) -> Result<()> {
-    crate::ssh::exec(session, SET_NUSHELL_DEFAULT_SHELL_PS1)?;
+    crate::ssh::exec_ps_windows(session, SET_NUSHELL_DEFAULT_SHELL_PS1)?;
     Ok(())
 }
 
@@ -799,7 +799,7 @@ pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::
     crate::ssh::download(session, "C:\\Users\\vagrant\\.testbed-screenshot.png", output)?;
 
     // Clean up on VM
-    crate::ssh::exec(session, "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue")?;
+    crate::ssh::exec_ps_windows(session, "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue")?;
 
     Ok(())
 }
