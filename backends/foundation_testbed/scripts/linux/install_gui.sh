@@ -57,6 +57,9 @@ case "$DISTRO" in
             mousepad
             xfce4-terminal
             thunar
+            # Window management tools for Tauri apps
+            xdotool
+            wmctrl
             feh
             nitrogen
             compton
@@ -123,10 +126,15 @@ EOF
             pcmanfm-gtk3
             lxterminal
             mousepad
+            xfce4-terminal
+            thunar
             feh
             nitrogen
             picom
             dunst
+            # Window management tools for Tauri apps
+            xdotool
+            wmctrl
             # System services
             dbus
             polkit
@@ -249,6 +257,12 @@ sudo tee "$USER_HOME/.config/openbox/menu.xml" > /dev/null << 'MENU'
             </action>
         </item>
         <separator />
+        <item label="Tauri E2E Test">
+            <action name="Execute">
+                <execute>/home/vagrant/.local/bin/launch-tauri-app.sh</execute>
+            </action>
+        </item>
+        <separator />
         <item label="Reconfigure">
             <action name="Reconfigure" />
         </item>
@@ -276,6 +290,67 @@ sudo chown "$VM_USER:$VM_USER" "$USER_HOME/.xsession"
 # Ensure user is in video group (needed for some display features)
 sudo usermod -a -G video "$VM_USER" 2>/dev/null || true
 
+# Install Tauri app launcher script
+sudo mkdir -p "$USER_HOME/.local/bin"
+cat | sudo tee "$USER_HOME/.local/bin/launch-tauri-app.sh" > /dev/null << 'LAUNCHER'
+#!/bin/bash
+# Launch Tauri app with proper display settings for VNC/GUI environments
+
+set -e
+
+APP_PATH="${1:-/mnt/project/examples/testbed/tauri-app/target/release/tauri-e2e-test}"
+DISPLAY_NUM="${DISPLAY:-:0}"
+
+# Check if app exists
+if [ ! -f "$APP_PATH" ]; then
+    echo "ERROR: App not found at $APP_PATH"
+    echo "Usage: $0 [path/to/app]"
+    exit 1
+fi
+
+# Ensure DISPLAY is set
+export DISPLAY="$DISPLAY_NUM"
+
+# Check if display is available
+if ! xset q >/dev/null 2>&1; then
+    echo "ERROR: No X11 display available at $DISPLAY"
+    echo "Make sure Xvfb or a display server is running"
+    exit 1
+fi
+
+# Kill any existing instance of the app
+APP_NAME=$(basename "$APP_PATH")
+pkill -9 "$APP_NAME" 2>/dev/null || true
+sleep 0.5
+
+# Launch the app
+echo "Launching $APP_NAME on DISPLAY=$DISPLAY..."
+"$APP_PATH" &
+APP_PID=$!
+sleep 2
+
+# Check if window appeared
+if command -v xdotool >/dev/null 2>&1; then
+    WINDOW_ID=$(xdotool search --name "Tauri" 2>/dev/null | head -1)
+    if [ -n "$WINDOW_ID" ]; then
+        echo "Window found: $WINDOW_ID"
+        # Ensure window is mapped and raised
+        xdotool windowmap "$WINDOW_ID" 2>/dev/null || true
+        xdotool windowraise "$WINDOW_ID" 2>/dev/null || true
+        # Center window on screen
+        xdotool windowmove "$WINDOW_ID" 200 100 2>/dev/null || true
+    fi
+    # Bring to front using wmctrl as well
+    wmctrl -r "Tauri" -b add,above 2>/dev/null || true
+fi
+
+echo "Tauri app is running. PID: $APP_PID"
+echo "To stop: kill $APP_PID"
+LAUNCHER
+
+sudo chmod +x "$USER_HOME/.local/bin/launch-tauri-app.sh"
+sudo chown "$VM_USER:$VM_USER" "$USER_HOME/.local/bin/launch-tauri-app.sh"
+
 echo "GUI environment installed successfully!"
 echo ""
 echo "LightDM display manager is configured with auto-login."
@@ -284,3 +359,6 @@ echo "  sudo systemctl start lightdm"
 echo ""
 echo "Or if running manually (e.g., in VNC):"
 echo "  startx /usr/bin/openbox-session"
+echo ""
+echo "To launch the Tauri E2E test app:"
+echo "  ~/.local/bin/launch-tauri-app.sh"

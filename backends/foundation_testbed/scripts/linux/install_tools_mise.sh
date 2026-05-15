@@ -38,6 +38,10 @@ echo "Installing tools from config..."
 echo "Running mise install..."
 "$MISE_EXE" install
 
+# Set nushell as global shell (makes 'nu' available everywhere)
+echo "Setting nushell as global default..."
+"$MISE_EXE" use --global "aqua:nushell/nushell@latest" 2>/dev/null || echo "Note: nushell global set may require manual configuration"
+
 # Verify installations
 echo ""
 echo "=== Verifying installations ==="
