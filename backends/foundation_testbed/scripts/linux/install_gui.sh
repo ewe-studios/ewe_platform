@@ -55,6 +55,8 @@ case "$DISTRO" in
             pcmanfm
             lxterminal
             mousepad
+            xfce4-terminal
+            thunar
             feh
             nitrogen
             compton
@@ -221,12 +223,22 @@ sudo tee "$USER_HOME/.config/openbox/menu.xml" > /dev/null << 'MENU'
         xsi:schemaLocation="http://openbox.org/
                 file:///usr/share/openbox/menu.xsd">
     <menu id="root-menu" label="Openbox 3">
-        <item label="Terminal">
+        <item label="Terminal (Xfce)">
+            <action name="Execute">
+                <execute>xfce4-terminal</execute>
+            </action>
+        </item>
+        <item label="Terminal (Lite)">
             <action name="Execute">
                 <execute>lxterminal</execute>
             </action>
         </item>
-        <item label="File Manager">
+        <item label="File Manager (Thunar)">
+            <action name="Execute">
+                <execute>thunar</execute>
+            </action>
+        </item>
+        <item label="File Manager (PCManFM)">
             <action name="Execute">
                 <execute>pcmanfm</execute>
             </action>
