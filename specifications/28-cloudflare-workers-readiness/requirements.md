@@ -101,12 +101,12 @@ Each crate follows a three-tier approach:
 
 ### Turso in wasm
 
-Turso's libSQL engine is SQLite-compatible and supports WASM. The embedded SQLite engine can run in WASI environments. For Cloudflare Workers specifically:
-- Workers has **no filesystem** and **no WASI** — embedded SQLite won't work directly
-- Turso's **remote/libSQL over HTTP** mode works on wasm (uses HTTP, not filesystem)
-- Turso's JavaScript bindings (`@tursodatabase/api`) can be accessed via wasm-bindgen
+Turso provides first-class wasm support via `@tursodatabase/database-wasm` — a full embedded SQLite-compatible database compiled to `wasm32-wasip1-threads` using napi-rs. The JavaScript package (`@tursodatabase/database-wasm`) bundles the `.wasm` binary inline and provides a browser-ready API with full SQLite query support, prepared statements, and async operations. The Rust side is the `turso` crate (`turso_core`), which compiles to wasm targets.
 
-**Decision:** For wasm32-unknown-unknown, use Turso's HTTP remote mode or JavaScript bindings via wasm-bindgen. The embedded local mode requires WASI and is not available on Cloudflare Workers.
+For the foundation_db integration:
+- **Wasm path**: Use turso's Rust crate (`turso`) compiled to wasm32 — same API, no filesystem dependency needed when using in-memory or JS-virtualized storage
+- **Native path**: Use turso with embedded/local SQLite as today
+- **Both paths**: Same `turso` Rust crate, just different Cargo features/targets
 
 ## Known Issues
 
@@ -124,7 +124,7 @@ Turso's libSQL engine is SQLite-compatible and supports WASM. The embedded SQLit
 1. **[core-wasm-compat](./features/01-core-wasm-compat/feature.md)** — Remove dead ctrlc dep, add wasm feature flags, SSL backend switching
 2. **[auth-wasm-compat](./features/02-auth-wasm-compat/feature.md)** — Fix uuid/chrono wasm features, verify auth logic compiles
 3. **[http-wasm-compat](./features/03-http-wasm-compat/feature.md)** — Gate TCP-dependent code, make Serve trait usable on wasm
-4. **[db-wasm-compat](./features/04-db-wasm-compat/feature.md)** — Gate turso/libsql embedded, enable D1/R2 wasm bindings
+4. **[db-wasm-compat](./features/04-db-wasm-compat/feature.md)** — Enable turso on wasm, D1/R2 via CF JS bindings
 5. **[wasm-bindings](./features/05-wasm-bindings/feature.md)** — wasm-bindgen layer for CF Workers (Request/Response/D1/R2)
 6. **[example-app](./features/06-example-app/feature.md)** — Working login app deployable to Cloudflare Workers
 7. **[ci-wasm-checks](./features/07-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
