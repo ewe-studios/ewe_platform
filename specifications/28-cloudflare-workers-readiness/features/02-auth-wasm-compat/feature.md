@@ -10,8 +10,8 @@ last_updated: 2026-05-15
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 4
-  total: 4
+  uncompleted: 3
+  total: 3
   completion_percentage: 0%
 ---
 
@@ -19,41 +19,48 @@ tasks:
 
 ## Overview
 
-Make `foundation_auth` compile on `wasm32-unknown-unknown`. The core auth logic (JwtManager, SessionManager, AuthToken, middleware guards) is already pure Rust — only dependency features need adjustment.
+Make `foundation_auth` compile on `wasm32-unknown-unknown`. The core auth logic (JwtManager, SessionManager, AuthToken, middleware guards) is already pure Rust — only dependency features need adjustment via a unified `wasm` feature flag.
 
 ## Requirements
 
-### 1. Fix `uuid` Feature
+### Single `wasm` Feature Flag
 
-**Problem:** `uuid = { version = "1.0", features = ["v4"] }` triggers `compile_error!` on wasm32 without a randomness source.
+All wasm-specific features are consolidated behind one flag. The base `[dependencies]` section stays clean with no wasm-specific features:
 
-**Action:** Add `js` feature for wasm target:
 ```toml
-uuid = { version = "1.0", features = ["v4", "js"] }
+[dependencies]
+uuid = { version = "1.0", features = ["v4"] }
+chrono = "0.4"
+rand = "0.8"
+getrandom = { version = "0.2", optional = true }
+
+[features]
+wasm = ["uuid/js", "chrono/wasmbind", "getrandom/js"]
 ```
-The `js` feature uses browser crypto APIs via `getrandom`'s `js` backend on wasm32. On native targets, `js` is a no-op.
 
-### 2. Fix `chrono` Feature
+**Why not target-conditional (`[target.'cfg(target_arch = "wasm32")'.dependencies]`)?**
+- `uuid/js` pulls in `wasm-bindgen` which fails to compile on native targets
+- `chrono/wasmbind` brings in web-sys dependencies
+- A feature flag is cleaner — only `wasm` target users pass `--features wasm`
 
-**Problem:** `chrono::Utc::now()` uses `std::time::SystemTime` which is unavailable on wasm32-unknown-unknown.
+Build commands:
+```bash
+# Native — normal build
+cargo build -p foundation_auth
 
-**Action:** Add `wasmbind` feature:
-```toml
-chrono = { version = "0.4", features = ["wasmbind"] }
+# Wasm — explicitly enable wasm features
+cargo build -p foundation_auth --target wasm32-unknown-unknown --features wasm
 ```
-This enables JavaScript `Date`-based time for wasm32 targets.
 
-### 3. Fix `rand` Feature
+### What Each Feature Does
 
-**Problem:** `rand = "0.8"` uses `thread_rng()` which requires OS entropy on wasm32.
+| Feature | Effect |
+|---------|--------|
+| `uuid/js` | Uses browser crypto APIs via getrandom's js backend for V4 UUID generation |
+| `chrono/wasmbind` | Uses JavaScript `Date`-based time for `Utc::now()` |
+| `getrandom/js` | Uses browser crypto APIs for randomness in `rand` |
 
-**Action:** Add `getrandom` with `js` feature:
-```toml
-getrandom = { version = "0.2", features = ["js"] }
-```
-This makes `rand` use browser crypto APIs for randomness on wasm32.
-
-### 4. Verify Compilation
+### Verification
 
 The auth crate's pure logic components should compile without changes:
 - `JwtManager`, `Claims`, `JwtToken` — pure data types
@@ -62,21 +69,18 @@ The auth crate's pure logic components should compile without changes:
 - `extract_bearer_token`, `extract_session_token` — pure string parsing
 - `CredentialStore`, `AuthToken` — pure data types
 
-The only changes needed are in `Cargo.toml` feature flags.
-
 ## Tasks
 
-1. [ ] Add `js` feature to `uuid` in `foundation_auth/Cargo.toml`
-2. [ ] Add `wasmbind` feature to `chrono` in `foundation_auth/Cargo.toml`
-3. [ ] Add `getrandom = { version = "0.2", features = ["js"] }` to `foundation_auth/Cargo.toml`
-4. [ ] Verify `foundation_auth` compiles on wasm32 with compatible foundation_core
+1. [ ] Add `wasm` feature to `foundation_auth/Cargo.toml` with `uuid/js`, `chrono/wasmbind`, `getrandom/js`
+2. [ ] Add `getrandom = { version = "0.2", optional = true }` to dependencies
+3. [ ] Verify `foundation_auth` compiles on wasm32 with `--features wasm`
 
 ## Verification
 
 ```bash
 # Wasm compilation (requires foundation_core built with wasm features first)
 cargo build -p foundation_auth --target wasm32-unknown-unknown \
-  --no-default-features --features foundation_core/ssl-rustls-awsrc,foundation_core/std \
+  --features wasm,foundation_core/ssl-rustls-awsrc,foundation_core/std \
   2>&1 | tee /tmp/wasm-auth.log
 ```
 
