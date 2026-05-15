@@ -20,10 +20,25 @@ const INSTALL_GNOME_SH: &str = include_str!("../../scripts/linux/install_gnome.s
 const START_DISPLAY_MANAGER_SH: &str = include_str!("../../scripts/linux/start_display_manager.sh");
 const START_GNOME_DM_SH: &str = include_str!("../../scripts/linux/start_gnome_dm.sh");
 
+/// Detect the home directory of the current user on the VM.
+fn detect_home_dir(session: &mut VmSession) -> Result<String> {
+    let home = crate::ssh::exec(session, "echo $HOME")?;
+    Ok(home.trim().to_string())
+}
+
+/// Replace hardcoded /home/vagrant paths with the detected home directory.
+fn adapt_script(script: &str, home_dir: &str) -> String {
+    script.replace("/home/vagrant/", &format!("{}/", home_dir))
+}
+
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
+    // Detect home directory first
+    let home_dir = detect_home_dir(session)?;
+    logger.message(&format!("Detected home directory: {}", home_dir));
 
     logger::step(logger, "install system deps", || {
-        crate::ssh::exec(session, INSTALL_SYSTEM_DEPS_SH)?;
+        let script = adapt_script(INSTALL_SYSTEM_DEPS_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
@@ -41,7 +56,8 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
 
         if !has_llvm.contains("present") || !has_arm_gcc.contains("present") {
             logger.message("  Installing dev deps (LLVM, GCC, ARM cross-compile, Tauri deps)...");
-            crate::ssh::exec(session, INSTALL_DEV_DEPS_SH)?;
+            let script = adapt_script(INSTALL_DEV_DEPS_SH, &home_dir);
+            crate::ssh::exec(session, &script)?;
             logger.message("  Dev dependencies installed");
         } else {
             logger.message("  Skipping dev deps install (already present)");
@@ -50,12 +66,14 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     })?;
 
     logger::step(logger, "install mise", || {
-        crate::ssh::exec(session, INSTALL_MISE_SH)?;
+        let script = adapt_script(INSTALL_MISE_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
     logger::step(logger, "activate mise in .bashrc", || {
-        crate::ssh::exec(session, ACTIVATE_MISE_BASHRC_SH)?;
+        let script = adapt_script(ACTIVATE_MISE_BASHRC_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
@@ -70,25 +88,27 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         }
         let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
         let target = if arch.trim() == "aarch64" { "aarch64-unknown-linux-musl" } else { "x86_64-unknown-linux-musl" };
-        let script = INSTALL_CARGO_BINSTALL_SH.replace("{{TARGET}}", &target);
+        let script = adapt_script(INSTALL_CARGO_BINSTALL_SH, &home_dir).replace("{{TARGET}}", &target);
         crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
     logger::step(logger, "configure mise cargo_binstall", || {
-        crate::ssh::exec(session, CONFIGURE_MISE_CARGO_BINSTALL_SH)?;
+        let script = adapt_script(CONFIGURE_MISE_CARGO_BINSTALL_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
     logger::step(logger, "install tools via mise", || {
-        let script = INSTALL_TOOLS_MISE_SH.replace("{{MISE_TOML}}", BOOTSTRAP_MISE_TOML);
+        let script = adapt_script(INSTALL_TOOLS_MISE_SH, &home_dir).replace("{{MISE_TOML}}", BOOTSTRAP_MISE_TOML);
         crate::ssh::exec(session, &script)?;
         crate::ssh::exec(session, "$HOME/.local/bin/mise exec -- rustc --version")?;
         Ok(())
     })?;
 
     logger::step(logger, "set nushell as default shell", || {
-        crate::ssh::exec(session, SET_NUSHELL_DEFAULT_SHELL_SH)?;
+        let script = adapt_script(SET_NUSHELL_DEFAULT_SHELL_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
 
@@ -104,14 +124,16 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             }
         }
         if !pub_key.is_empty() {
-            let script = SETUP_SSH_KEYS_SH.replace("{{KEY}}", &pub_key);
+            let script = adapt_script(SETUP_SSH_KEYS_SH, &home_dir).replace("{{KEY}}", &pub_key);
             crate::ssh::exec(session, &script)?;
         }
         Ok(())
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session)
+        let script = adapt_script(SETUP_PROJECT_MOUNT_SH, &home_dir);
+        crate::ssh::exec(session, &script)?;
+        Ok(())
     })?;
 
     // Optional: Install GUI packages (not enabled by default)
@@ -121,7 +143,8 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             logger.message("  Installing GNOME desktop environment (this may take 5-10 minutes)...");
             // Write script locally and upload via SCP (now with key auth)
             let temp_path = std::env::temp_dir().join("install_gnome.sh");
-            std::fs::write(&temp_path, INSTALL_GNOME_SH)
+            let script = adapt_script(INSTALL_GNOME_SH, &home_dir);
+            std::fs::write(&temp_path, script)
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "write gnome install script".to_string(),
                     message: e.to_string(),
@@ -147,7 +170,8 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             logger.message("  Installing GUI environment (this may take a few minutes)...");
             // Write script locally and upload via SCP (now with key auth)
             let temp_path = std::env::temp_dir().join("install_gui.sh");
-            std::fs::write(&temp_path, INSTALL_GUI_SH)
+            let script = adapt_script(INSTALL_GUI_SH, &home_dir);
+            std::fs::write(&temp_path, script)
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "write gui install script".to_string(),
                     message: e.to_string(),
@@ -188,7 +212,8 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             logger.message(&format!("  Starting display manager ({})...", dm_name));
             // Write script locally and upload via SCP (now with key auth)
             let temp_path = std::env::temp_dir().join(script_name);
-            std::fs::write(&temp_path, script_content)
+            let script = adapt_script(script_content, &home_dir);
+            std::fs::write(&temp_path, script)
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "write display manager script".to_string(),
                     message: e.to_string(),
@@ -225,22 +250,6 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         Ok(())
     })?;
 
-    Ok(())
-}
-
-fn setup_project_mount(session: &mut VmSession) -> Result<()> {
-    // Check if already mounted
-    let check = crate::ssh::exec(
-        session,
-        "mount | grep -q '9p' && echo 'mounted' || echo 'not mounted'",
-    )?;
-    if check.contains("mounted") {
-        return Ok(());
-    }
-
-    // Create mount point and mount
-    let script = SETUP_PROJECT_MOUNT_SH;
-    crate::ssh::exec(session, script)?;
     Ok(())
 }
 

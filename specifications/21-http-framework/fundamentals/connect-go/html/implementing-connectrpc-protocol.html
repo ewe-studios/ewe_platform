@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Implementing the ConnectRPC Protocol -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="09-handler-lifecycle.html" class="nav-breadcrumb">connect-go — Handler Lifecycle</a><a href="10-client-lifecycle.html" class="nav-breadcrumb">connect-go — Client Lifecycle</a><a href="README.html" class="nav-breadcrumb">connect-go — Documentation Index</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="README.html" class="nav-btn" title="Previous: connect-go — Documentation Index">← prev</a>
+      <a href="implementing-grpc-protocol.html" class="nav-btn nav-btn-next" title="Next: Implementing the gRPC Protocol (Native, Over HTTP/2)">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Implementing the ConnectRPC Protocol</h1>
+<p><strong>Reference:</strong> <code>connect-go/protocol_connect.go</code> (~1450 LOC), <code>connect-go/envelope.go</code> (388 LOC), <code>connect-go/codec.go</code> (260 LOC), <code>connect-go/error.go</code> (472 LOC). This document provides a complete blueprint for implementing the Connect protocol from scratch, based on the Go reference implementation.</p>
+<h2>Protocol Philosophy</h2>
+<p>The Connect protocol is connectrpc's own design — simpler than gRPC, more debuggable than gRPC-Web, and usable directly from browsers and <code>curl</code> without any translation proxies. It uses standard HTTP methods (GET for idempotent reads, POST for everything else), JSON for error bodies, and envelope-based framing for streaming.</p>
+<h2>Content-Type Routing</h2>
+<pre><code class="language-">Unary:       application/{codec}        e.g., application/proto, application/json
+Streaming:   application/connect+{codec} e.g., application/connect+proto, application/connect+json
+</code></pre>
+<p>The server derives the codec name from the content type:</p>
+<ul><li>Unary: <code>strings.TrimPrefix(contentType, "application/")</code></li><li>Streaming: <code>strings.TrimPrefix(contentType, "application/connect+")</code></li></ul>
+<p><strong>Validation:</strong> The server must validate that the response content-type matches the request codec. For JSON, both <code>json</code> and <code>json; charset=utf-8</code> are treated as equivalent (<code>03-codec-system.md</code>).</p>
+<h2>HTTP Methods</h2>
+<table><tr><th>RPC Kind</th><th>Methods Allowed</th><th>Condition</th></tr><tr><td>Unary</td><td>POST</td><td>Always</td></tr><tr><td>Unary</td><td>GET</td><td>`IdempotencyLevel == IdempotencyNoSideEffects` AND `EnableGet == true`</td></tr><tr><td>Client Stream</td><td>POST</td><td>Always</td></tr><tr><td>Server Stream</td><td>POST</td><td>Always</td></tr><tr><td>Bidi Stream</td><td>POST</td><td>Always (requires HTTP/2)</td></tr></table>
+<p><strong>Key consideration:</strong> GET support is optional. The server must not enable GET unless the procedure is declared idempotent. The <code>Connect-Protocol-Version</code> header requirement is also optional (controlled by <code>WithRequireConnectProtocolHeader()</code>), but recommended for production to help HTTP proxies identify Connect requests.</p>
+<h2>Required Headers</h2>
+<h3>Client → Server (Unary POST)</h3>
+<table><tr><th>Header</th><th>Value</th><th>Source</th></tr><tr><td>`Content-Type`</td><td>`application/{codec}`</td><td>Derived from codec name</td></tr><tr><td>`User-Agent`</td><td>`connect-go/{version} ({goVersion})`</td><td>`protocol_connect.go:65`</td></tr><tr><td>`Connect-Protocol-Version`</td><td>`1`</td><td>`protocol_connect.go:45`</td></tr><tr><td>`Connect-Timeout-Ms`</td><td>`<milliseconds>`</td><td>Optional, max 10 digits</td></tr><tr><td>`Accept-Encoding`</td><td>Comma-separated compression names</td><td>From registered pools</td></tr><tr><td>`Content-Encoding`</td><td>Compression name</td><td>Only if request is compressed</td></tr></table>
+<h3>Client → Server (Unary GET)</h3>
+<table><tr><th>Query Param</th><th>Value</th></tr><tr><td>`connect`</td><td>`v1`</td></tr><tr><td>`encoding`</td><td>Codec name (`proto` or `json`)</td></tr><tr><td>`message`</td><td>Serialized message (base64 or plain text)</td></tr><tr><td>`base64`</td><td>`1` (present only if message is base64-encoded)</td></tr><tr><td>`compression`</td><td>Compression name (only if compressed)</td></tr></table>
+<p>GET requests must NOT have a <code>Content-Type</code> header or a request body. The protocol version is in the query string (<code>connect=v1</code>), not a header.</p>
+<h3>Server → Client (Unary)</h3>
+<table><tr><th>Header</th><th>Value</th><th>Condition</th></tr><tr><td>`Content-Type`</td><td>`application/{codec}` on success, `application/json` on error</td><td>Always</td></tr><tr><td>`Content-Encoding`</td><td>Compression name</td><td>Only if response compressed</td></tr><tr><td>`Accept-Encoding`</td><td>Comma-separated names</td><td>Always</td></tr><tr><td>`Trailer-{name}`</td><td>Trailer value</td><td>For each trailer header</td></tr><tr><td>`Vary`</td><td>`Accept-Encoding`</td><td>Only for GET requests</td></tr></table>
+<h3>Client → Server (Streaming)</h3>
+<table><tr><th>Header</th><th>Value</th></tr><tr><td>`Content-Type`</td><td>`application/connect+{codec}`</td></tr><tr><td>`User-Agent`</td><td>`connect-go/{version} ({goVersion})`</td></tr><tr><td>`Connect-Protocol-Version`</td><td>`1`</td></tr><tr><td>`Connect-Timeout-Ms`</td><td>`<milliseconds>`</td></tr><tr><td>`Connect-Content-Encoding`</td><td>Compression name</td></tr><tr><td>`Connect-Accept-Encoding`</td><td>Comma-separated names</td></tr></table>
+<p><strong>Aha:</strong> Streaming uses different header names from unary. Unary uses <code>Content-Encoding</code>/<code>Accept-Encoding</code> (standard HTTP), while streaming uses <code>Connect-Content-Encoding</code>/<code>Connect-Accept-Encoding</code>. This prevents HTTP intermediaries from confusing per-message compression with whole-body compression. Streaming also requires <code>Connect-Protocol-Version: 1</code> on all requests, not just when <code>RequireConnectProtocolHeader</code> is set.</p>
+<h2>Timeout Encoding</h2>
+<pre><code class="language-">Connect-Timeout-Ms: &lt;integer&gt;  // milliseconds, max 10 digits
+</code></pre>
+
+<pre><code class="language-go">// protocol_connect.go:117
+func (*connectHandler) SetTimeout(request *http.Request) (context.Context, context.CancelFunc, error) {
+    timeout := getHeaderCanonical(request.Header, connectHeaderTimeout)
+    if timeout == &quot;&quot; { return request.Context(), nil, nil }
+    if len(timeout) &gt; 10 {
+        return nil, nil, errorf(CodeInvalidArgument, &quot;parse timeout: %q has &gt;10 digits&quot;, timeout)
+    }
+    millis, err := strconv.ParseInt(timeout, 10 /* base */, 64 /* bitsize */)
+    ctx, cancel := context.WithTimeout(request.Context(), time.Duration(millis)*time.Millisecond)
+    return ctx, cancel, nil
+}
+</code></pre>
+<p><strong>Key considerations:</strong></p>
+<ul><li>Timeout is always in milliseconds — no unit suffix needed.</li><li>Maximum 10 digits (9,999,999,999 ms ≈ 115 days).</li><li>Invalid timeout (non-numeric, >10 digits) → <code>CodeInvalidArgument</code>.</li><li>Missing timeout → no timeout applied.</li></ul>
+<h2>Unary Request/Response Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C-&gt;&gt;S: POST /service/Method HTTP/1.1
+    Note over C,S: Content-Type: application/proto
+    Note over C,S: Connect-Timeout-Ms: 5000
+    Note over C,S: [body: 5-byte envelope + message]
+
+    S-&gt;&gt;S: Parse timeout → context.WithTimeout
+    S-&gt;&gt;S: Decompress if Content-Encoding present
+    S-&gt;&gt;S: Unmarshal request via codec
+
+    S-&gt;&gt;S: Execute handler logic
+
+    alt Success
+        S-&gt;&gt;C: HTTP 200 OK
+        Note over S,C: Content-Type: application/proto
+        Note over S,C: Trailer-X-Custom: value
+        Note over S,C: [body: message]
+    else Error
+        S-&gt;&gt;C: HTTP {code} (from connectCodeToHTTP)
+        Note over S,C: Content-Type: application/json
+        Note over S,C: [body: {&quot;code&quot;:&quot;not_found&quot;,&quot;message&quot;:&quot;...&quot;,&quot;details&quot;:[]}]
+    end
+
+</div>
+<h2>Envelope Framing for Streaming</h2>
+<p>Every streaming message uses the 5-byte envelope format:</p>
+<pre><code class="language-">+--------+--------+--------+--------+--------+
+| Flags  |         Length (uint32, BE)       |
+| 1 byte |           4 bytes                 |
++--------+--------+--------+--------+--------+
+|              Payload (Length bytes)         |
++---------------------------------------------+
+</code></pre>
+<h3>Flags</h3>
+<table><tr><th>Flag</th><th>Value</th><th>Meaning</th></tr><tr><td>Compressed</td><td>`0x01`</td><td>Payload is compressed</td></tr><tr><td>EndStream</td><td>`0x02`</td><td>Final message containing error + trailers</td></tr></table>
+<p>The stream ends with a special envelope flagged <code>0x02</code>. Its payload is a JSON object:</p>
+<pre><code class="language-json">{
+  &quot;error&quot;: {
+    &quot;code&quot;: &quot;not_found&quot;,
+    &quot;message&quot;: &quot;user not found&quot;,
+    &quot;details&quot;: [
+      {
+        &quot;type&quot;: &quot;google.rpc.BadRequest&quot;,
+        &quot;value&quot;: &quot;&lt;base64-encoded protobuf Any&gt;&quot;,
+        &quot;debug&quot;: {&quot;fieldViolations&quot;: [...]}
+      }
+    ]
+  },
+  &quot;metadata&quot;: {
+    &quot;X-Custom-Trailer&quot;: [&quot;value&quot;]
+  }
+}
+</code></pre>
+<p><strong>Aha:</strong> The end-stream envelope carries BOTH the error (if any) AND the trailers in a single JSON object. This is fundamentally different from gRPC, where trailers and errors are separate. The <code>metadata</code> field contains canonicalized HTTP header keys — the server must canonicalize keys before writing (<code>http.CanonicalHeaderKey</code>).</p>
+<h3>Streaming Server → Client Flow</h3>
+<div class="mermaid">
+flowchart TD
+    H1[&quot;Handler calls Send(msg)&quot;]
+    H2[&quot;Marshal msg → bytes&quot;]
+    H3[&quot;Compress if &gt; compressMinBytes&quot;]
+    H4[&quot;Write 5-byte prefix + payload&quot;]
+    H5[&quot;Flush (http.Flusher required)&quot;]
+
+    E1[&quot;Handler returns (or errors)&quot;]
+    E2[&quot;Build end-stream JSON&quot;]
+    E3[&quot;Marshal with 0x02 flag&quot;]
+    E4[&quot;Write to body&quot;]
+    E5[&quot;Flush and close&quot;]
+
+    H1 --&gt; H2 --&gt; H3 --&gt; H4 --&gt; H5
+    E1 --&gt; E2 --&gt; E3 --&gt; E4 --&gt; E5
+
+</div>
+<p><strong>Critical:</strong> After each <code>Send()</code>, the server MUST flush the response writer. The Go implementation checks <code>http.Flusher</code> is implemented (<code>protocol.go:347</code>):</p>
+<pre><code class="language-go">// protocol.go:347
+func checkServerStreamsCanFlush(spec Spec, responseWriter http.ResponseWriter) *Error {
+    requiresFlusher := (spec.StreamType &amp; StreamTypeServer) == StreamTypeServer
+    if _, flushable := responseWriter.(http.Flusher); requiresFlusher &amp;&amp; !flushable {
+        return NewError(CodeInternal, fmt.Errorf(&quot;%T does not implement http.Flusher&quot;, responseWriter))
+    }
+}
+</code></pre>
+<h2>Unary Error Response Format</h2>
+<p>On error, the server returns:</p>
+<ol><li>HTTP status code from <code>connectCodeToHTTP()</code> (<code>protocol_connect.go:1269</code>)</li><li><code>Content-Type: application/json</code></li><li>JSON body with the wire error structure</li></ol>
+<h3>Code → HTTP Mapping</h3>
+<table><tr><th>RPC Code</th><th>HTTP Status</th><th>Rationale</th></tr><tr><td>`CodeCanceled` (1)</td><td>499</td><td>Client closed request</td></tr><tr><td>`CodeUnknown` (2)</td><td>500</td><td>Server error</td></tr><tr><td>`CodeInvalidArgument` (3)</td><td>400</td><td>Bad request</td></tr><tr><td>`CodeDeadlineExceeded` (4)</td><td>504</td><td>Gateway timeout</td></tr><tr><td>`CodeNotFound` (5)</td><td>404</td><td>Not found</td></tr><tr><td>`CodeAlreadyExists` (6)</td><td>409</td><td>Conflict</td></tr><tr><td>`CodePermissionDenied` (7)</td><td>403</td><td>Forbidden</td></tr><tr><td>`CodeResourceExhausted` (8)</td><td>429</td><td>Rate limited</td></tr><tr><td>`CodeFailedPrecondition` (9)</td><td>400</td><td>Bad request</td></tr><tr><td>`CodeAborted` (10)</td><td>409</td><td>Conflict</td></tr><tr><td>`CodeOutOfRange` (11)</td><td>400</td><td>Bad request</td></tr><tr><td>`CodeUnimplemented` (12)</td><td>501</td><td>Not implemented</td></tr><tr><td>`CodeInternal` (13)</td><td>500</td><td>Server error</td></tr><tr><td>`CodeUnavailable` (14)</td><td>503</td><td>Service unavailable</td></tr><tr><td>`CodeDataLoss` (15)</td><td>500</td><td>Server error</td></tr><tr><td>`CodeUnauthenticated` (16)</td><td>401</td><td>Unauthorized</td></tr></table>
+<p><strong>Validation:</strong> When the client receives a non-200 response, it must:</p>
+<ol><li>Verify content-type is <code>application/json</code> or <code>application/json; charset=utf-8</code>.</li><li>Parse the JSON error body.</li><li>If the JSON <code>code</code> field is 0, use <code>httpToCode(httpStatusCode)</code> as fallback.</li></ol>
+<h2>GET Request Implementation Details</h2>
+<h3>Server-Side GET Handling</h3>
+<pre><code class="language-go">// handler.go:297
+if request.Method == http.MethodGet {
+    // Body must not be present
+    hasBody := request.ContentLength &gt; 0
+    if request.ContentLength &lt; 0 {
+        // No content-length header — test if body is empty
+        var b [1]byte
+        n, _ := request.Body.Read(b[:])
+        hasBody = n &gt; 0
+    }
+    if hasBody {
+        responseWriter.WriteHeader(http.StatusUnsupportedMediaType)
+        return
+    }
+}
+</code></pre>
+<p>The server reads the message from query parameters:</p>
+<pre><code class="language-go">// protocol_connect.go:190
+msg := query.Get(connectUnaryMessageQueryParameter)
+msgReader := queryValueReader(msg, query.Get(connectUnaryBase64QueryParameter) == &quot;1&quot;)
+requestBody = io.NopCloser(msgReader)
+</code></pre>
+<p><strong>Key consideration:</strong> The <code>queryValueReader</code> (<code>protocol_connect.go:1343</code>) handles both padded and unpadded base64:</p>
+<pre><code class="language-go">func binaryQueryValueReader(data string) io.Reader {
+    if len(data)%4 != 0 {
+        // Unpadded — use RawURLEncoding
+        return base64.NewDecoder(base64.RawURLEncoding, strings.NewReader(data))
+    }
+    // Padded or no padding needed
+    return base64.NewDecoder(base64.URLEncoding, strings.NewReader(data))
+}
+</code></pre>
+<h3>304 Not Modified</h3>
+<pre><code class="language-go">// error.go:184
+func NewNotModifiedError(headers http.Header) *Error {
+    err := NewError(CodeUnknown, errNotModified)
+    err.meta = headers
+    return err
+}
+</code></pre>
+<p>When a handler returns <code>NewNotModifiedError(headers)</code>, the Connect server responds with HTTP 304. This is ONLY valid for GET requests. For all other cases, it's treated as <code>CodeUnknown</code>.</p>
+<h2>Compression Negotiation</h2>
+<p>The server performs compression negotiation (<code>protocol.go:302</code>):</p>
+<pre><code class="language-go">func negotiateCompression(availableCompressors, sent, accept string) (reqComp, respComp string, err *Error) {
+    // Request compression: use what the client sent (if supported)
+    requestCompression = sent  // or identity if not supported → error
+    
+    // Response compression: prefer same as request (asymmetric support)
+    responseCompression = requestCompression
+    if responseCompression == identity &amp;&amp; accept != &quot;&quot; {
+        // Find first mutually supported algorithm from client&#x27;s Accept-Encoding
+        for _, name := range strings.FieldsFunc(accept, isCommaOrSpace) {
+            if availableCompressors.Contains(name) {
+                responseCompression = name
+                break
+            }
+        }
+    }
+}
+</code></pre>
+<p><strong>Aha:</strong> Compression is asymmetric by design. The client may send compressed requests even if it doesn't accept compressed responses, and vice versa. The server defaults response compression to match the request compression (if the client compressed its request, the server compresses its response with the same algorithm). If the client didn't compress but listed accepted algorithms, the server picks the first mutually supported one.</p>
+<h2>Protocol Version Validation</h2>
+<pre><code class="language-go">// protocol_connect.go:1429
+func connectCheckProtocolVersion(request *http.Request, required bool) *Error {
+    switch request.Method {
+    case http.MethodGet:
+        version := request.URL.Query().Get(&quot;connect&quot;)
+        if version == &quot;&quot; &amp;&amp; required {
+            return errorf(CodeInvalidArgument, &quot;missing required query parameter: set connect to \&quot;v1\&quot;&quot;)
+        } else if version != &quot;&quot; &amp;&amp; version != &quot;v1&quot; {
+            return errorf(CodeInvalidArgument, &quot;connect must be \&quot;v1\&quot;: got %q&quot;, version)
+        }
+    case http.MethodPost:
+        version := getHeaderCanonical(request.Header, &quot;Connect-Protocol-Version&quot;)
+        if version == &quot;&quot; &amp;&amp; required {
+            return errorf(CodeInvalidArgument, &quot;missing required header: set Connect-Protocol-Version to \&quot;1\&quot;&quot;)
+        } else if version != &quot;&quot; &amp;&amp; version != &quot;1&quot; {
+            return errorf(CodeInvalidArgument, &quot;Connect-Protocol-Version must be \&quot;1\&quot;: got %q&quot;, version)
+        }
+    }
+}
+</code></pre>
+<p><strong>Key consideration:</strong> When <code>RequireConnectProtocolHeader</code> is <code>false</code> (default), the server accepts requests without the version header/query param. When <code>true</code>, it rejects them with <code>CodeInvalidArgument</code>. Streaming requests always require the version header regardless of this setting.</p>
+<h2>Trailer Handling</h2>
+<p>Connect transmits trailers via <code>Trailer-</code> prefixed HTTP headers:</p>
+<pre><code class="language-go">// protocol_connect.go:773
+for k, v := range hc.responseTrailer {
+    header[&quot;Trailer-&quot;+k] = v
+}
+</code></pre>
+<p>Client-side, the client strips the prefix to extract trailers:</p>
+<pre><code class="language-go">// protocol_connect.go:507
+for k, v := range response.Header {
+    if !strings.HasPrefix(k, &quot;Trailer-&quot;) {
+        cc.responseHeader[k] = v
+        continue
+    }
+    cc.responseTrailer[k[len(&quot;Trailer-&quot;):]] = v
+}
+</code></pre>
+<p><strong>Key consideration:</strong> Trailers are sent as regular HTTP headers (not HTTP trailers). This means they must fit within the HTTP response header block — no trailers can be added after the response body starts being written. This is a fundamental difference from gRPC.</p>
+<h2>Error Details Serialization</h2>
+<p>The Connect wire error format (<code>protocol_connect.go:1142-1262</code>):</p>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;invalid_argument&quot;,
+  &quot;message&quot;: &quot;field &#x27;email&#x27; is required&quot;,
+  &quot;details&quot;: [
+    {
+      &quot;type&quot;: &quot;google.rpc.BadRequest.FieldViolation&quot;,
+      &quot;value&quot;: &quot;&lt;base64-raw-std-encoded protobuf Any&gt;&quot;,
+      &quot;debug&quot;: {&quot;field&quot;: &quot;email&quot;, &quot;description&quot;: &quot;is required&quot;}
+    }
+  ]
+}
+</code></pre>
+<p><strong>Key details:</strong></p>
+<ul><li><code>code</code> is the string representation (e.g., <code>"invalid_argument"</code>, not <code>3</code>).</li><li><code>value</code> is base64-raw-std encoded (no padding).</li><li><code>debug</code> is optional — human-readable JSON representation, only present when the server has protobuf descriptors.</li><li>When a proxy without descriptors forwards the error, it preserves the original <code>wireJSON</code> string.</li></ul>
+<h2>Compatibility Validation Checklist</h2>
+<ol><li><strong>Content-Type</strong>: Server must return <code>application/{codec}</code> on success, <code>application/json</code> on error.</li><li><strong>HTTP Status Code</strong>: Error responses must use the correct <code>connectCodeToHTTP()</code> mapping.</li><li><strong>Connect-Protocol-Version</strong>: Must be <code>1</code> if required. GET uses query param, POST uses header.</li><li><strong>Timeout Parsing</strong>: Must reject >10 digit values with <code>CodeInvalidArgument</code>.</li><li><strong>GET Body Rejection</strong>: GET requests with bodies must return 415 Unsupported Media Type.</li><li><strong>Trailers</strong>: Must use <code>Trailer-</code> prefix on HTTP headers.</li><li><strong>End-Stream Envelope</strong>: Streaming must end with flag <code>0x02</code> containing JSON error + metadata.</li><li><strong>Compression</strong>: Unknown compression → <code>CodeUnimplemented</code> with acceptable encodings in response.</li><li><strong>Cardinality</strong>: Unary RPCs must return <code>CodeUnimplemented</code> if zero or multiple messages in stream.</li><li><strong>Flush</strong>: Server must flush after each streaming message (<code>http.Flusher</code>).</li></ol>
+<h2>Conformance Testing</h2>
+<p>The Go implementation includes a conformance test harness (<code>conformance/</code> directory) that exercises:</p>
+<ul><li>All three protocols (Connect, gRPC, gRPC-Web)</li><li>All four RPC kinds (unary, client stream, server stream, bidi)</li><li>All error codes</li><li>Compression (gzip)</li><li>Timeout/deadline semantics</li><li>Cancellation</li><li>GET requests for idempotent unary</li></ul>
+<p>An implementation should pass the connectrpc/conformance test suite to claim compatibility.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

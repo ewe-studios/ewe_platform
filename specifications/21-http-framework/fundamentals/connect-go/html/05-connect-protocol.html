@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>connect-go — Connect Protocol -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="02-envelope-framing.html" class="nav-breadcrumb">connect-go — Envelope Framing</a><a href="03-codec-system.html" class="nav-breadcrumb">connect-go — Codec System</a><a href="04-error-handling.html" class="nav-breadcrumb">connect-go — Error Handling</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="04-error-handling.html" class="nav-btn" title="Previous: connect-go — Error Handling">← prev</a>
+      <a href="06-grpc-protocols.html" class="nav-btn nav-btn-next" title="Next: connect-go — gRPC and gRPC-Web Protocols">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>connect-go — Connect Protocol</h1>
+<p><strong>Source:</strong> <code>protocol_connect.go</code> (~1450 LOC). The Connect protocol is connectrpc's own protocol — designed to be simple, debuggable, and browser-friendly. It uses standard HTTP methods (GET for idempotent reads, POST for everything else), JSON for error bodies, and envelope-based framing for streaming.</p>
+<h2>Connect Protocol Constants</h2>
+<pre><code class="language-go">// protocol_connect.go:37
+const (
+    // Unary headers
+    connectUnaryHeaderCompression       = &quot;Content-Encoding&quot;
+    connectUnaryHeaderAcceptCompression = &quot;Accept-Encoding&quot;
+    connectUnaryTrailerPrefix           = &quot;Trailer-&quot;
+    // Streaming headers
+    connectStreamingHeaderCompression       = &quot;Connect-Content-Encoding&quot;
+    connectStreamingHeaderAcceptCompression = &quot;Connect-Accept-Encoding&quot;
+    // Control
+    connectHeaderTimeout         = &quot;Connect-Timeout-Ms&quot;
+    connectHeaderProtocolVersion = &quot;Connect-Protocol-Version&quot;
+    connectProtocolVersion       = &quot;1&quot;
+    // End-stream flag
+    connectFlagEnvelopeEndStream = 0b00000010
+    // Content-Type prefixes
+    connectUnaryContentTypePrefix     = &quot;application/&quot;
+    connectStreamingContentTypePrefix = &quot;application/connect+&quot;
+    // GET query parameters
+    connectUnaryEncodingQueryParameter    = &quot;encoding&quot;
+    connectUnaryMessageQueryParameter     = &quot;message&quot;
+    connectUnaryBase64QueryParameter      = &quot;base64&quot;
+    connectUnaryCompressionQueryParameter = &quot;compression&quot;
+    connectUnaryConnectQueryParameter     = &quot;connect&quot;
+    connectUnaryConnectQueryValue         = &quot;v1&quot;
+)
+</code></pre>
+<h2>Content-Type Matrix</h2>
+<table><tr><th>StreamType</th><th>Codec</th><th>Content-Type</th></tr><tr><td>Unary</td><td>proto</td><td>`application/proto`</td></tr><tr><td>Unary</td><td>json</td><td>`application/json`</td></tr><tr><td>Streaming</td><td>proto</td><td>`application/connect+proto`</td></tr><tr><td>Streaming</td><td>json</td><td>`application/connect+json`</td></tr></table>
+<h2>Supported HTTP Methods</h2>
+<pre><code class="language-go">// protocol_connect.go:71
+methods := make(map[string]struct{})
+methods[http.MethodPost] = struct{}{}
+
+// GET only for idempotent unary RPCs
+if params.Spec.StreamType == StreamTypeUnary &amp;&amp; params.IdempotencyLevel == IdempotencyNoSideEffects {
+    methods[http.MethodGet] = struct{}{}
+}
+</code></pre>
+<p>The Connect protocol supports both GET and POST for unary RPCs, but GET is only enabled when <code>IdempotencyLevel</code> is set to <code>IdempotencyNoSideEffects</code>.</p>
+<h2>Timeout Parsing</h2>
+<pre><code class="language-go">// protocol_connect.go:117
+func (*connectHandler) SetTimeout(request *http.Request) (context.Context, context.CancelFunc, error) {
+    timeout := getHeaderCanonical(request.Header, connectHeaderTimeout)
+    if timeout == &quot;&quot; { return request.Context(), nil, nil }
+    if len(timeout) &gt; 10 {
+        return nil, nil, errorf(CodeInvalidArgument, &quot;parse timeout: %q has &gt;10 digits&quot;, timeout)
+    }
+    millis, err := strconv.ParseInt(timeout, 10, 64)
+    ctx, cancel := context.WithTimeout(request.Context(), time.Duration(millis)*time.Millisecond)
+    return ctx, cancel, nil
+}
+</code></pre>
+<p>The Connect timeout is a plain integer representing milliseconds, with a maximum of 10 digits. This contrasts with gRPC's <code><digits><unit></code> format (max 8 digits).</p>
+<h2>Unary Connection Types</h2>
+<h3>Handler Side: <code>connectUnaryHandlerConn</code></h3>
+<pre><code class="language-go">// protocol_connect.go:683
+type connectUnaryHandlerConn struct {
+    spec            Spec
+    peer            Peer
+    request         *http.Request
+    responseWriter  http.ResponseWriter
+    marshaler       connectUnaryMarshaler
+    unmarshaler     connectUnaryUnmarshaler
+    responseTrailer http.Header
+}
+</code></pre>
+<p><strong>Send()</strong> (<code>protocol_connect.go:712</code>): Merges response headers (including <code>Trailer-</code>-prefixed trailers), then marshals the response message.</p>
+<p><strong>Close()</strong> (<code>protocol_connect.go:728</code>):</p>
+<ol><li>If no header written yet and error is <code>NotModified</code>, returns HTTP 304.</li><li>On error: sets <code>Content-Type: application/json</code>, writes HTTP status code via <code>connectCodeToHTTP()</code>, writes JSON error body.</li><li>On success: just closes the request body.</li></ol>
+<h3>Client Side: <code>connectUnaryClientConn</code></h3>
+<pre><code class="language-go">// protocol_connect.go:443
+type connectUnaryClientConn struct {
+    spec             Spec
+    peer             Peer
+    duplexCall       *duplexHTTPCall
+    marshaler        connectUnaryRequestMarshaler  // extends with GET support
+    unmarshaler      connectUnaryUnmarshaler
+    responseHeader   http.Header
+    responseTrailer  http.Header
+}
+</code></pre>
+<p><strong>validateResponse()</strong> (<code>protocol_connect.go:506</code>):</p>
+<ol><li>Extracts trailers by stripping <code>Trailer-</code> prefix from headers.</li><li>Validates content-type matches the request codec.</li><li>On non-200: JSON-decodes the error body into <code>connectWireError</code>.</li><li>On 304 (GET): returns <code>errNotModifiedClient</code>.</li></ol>
+<h2>GET Request Support</h2>
+<p><strong>Aha:</strong> The Connect protocol's most distinctive feature is GET support for idempotent unary RPCs. The request message is serialized into URL query parameters, enabling CDN caching, browser bookmarking, and firewall friendliness for read-only operations.</p>
+<pre><code class="language-go">// protocol_connect.go:987
+func (m *connectUnaryRequestMarshaler) Marshal(message any) *Error {
+    if m.enableGet {
+        if m.stableCodec == nil &amp;&amp; !m.getUseFallback {
+            return errorf(CodeInternal, &quot;codec %s doesn&#x27;t support stable marshal; can&#x27;t use get&quot;, m.codec.Name())
+        }
+        if m.stableCodec != nil {
+            return m.marshalWithGet(message)
+        }
+    }
+    return m.connectUnaryMarshaler.Marshal(message)  // fall back to POST
+}
+</code></pre>
+<h3>GET URL Construction</h3>
+<pre><code class="language-go">// protocol_connect.go:1058
+func (m *connectUnaryRequestMarshaler) buildGetURL(data []byte, compressed bool) *url.URL {
+    url := *m.duplexCall.URL()
+    query := url.Query()
+    query.Set(&quot;connect&quot;, &quot;v1&quot;)
+    query.Set(&quot;encoding&quot;, m.codec.Name())
+    if m.stableCodec.IsBinary() || compressed {
+        query.Set(&quot;message&quot;, base64.RawURLEncoding.EncodeToString(data))
+        query.Set(&quot;base64&quot;, &quot;1&quot;)
+    } else {
+        query.Set(&quot;message&quot;, string(data))  // JSON goes as plain text
+    }
+    if compressed {
+        query.Set(&quot;compression&quot;, m.compressionName)
+    }
+    url.RawQuery = query.Encode()
+    return &amp;url
+}
+</code></pre>
+<p>Query parameters:</p>
+<ul><li><code>connect=v1</code> — protocol version</li><li><code>encoding=proto</code> or <code>encoding=json</code> — codec name</li><li><code>message=<base64-or-text></code> — serialized request message</li><li><code>base64=1</code> — present when message is base64-encoded</li><li><code>compression=gzip</code> — present when compressed</li></ul>
+<h3>GET Fallback Logic</h3>
+<p>The <code>marshalWithGet()</code> method (<code>protocol_connect.go:999</code>) follows this decision tree:</p>
+<ol><li>Marshal via <code>stableCodec.MarshalStable()</code>.</li><li>If message fits in <code>getURLMaxBytes</code>, build GET URL and switch method to GET.</li><li>If too large but compression is available, compress and retry building URL.</li><li>If still too large and <code>getUseFallback</code> is true, fall back to POST.</li><li>Otherwise return <code>CodeResourceExhausted</code>.</li></ol>
+<h2>Streaming: End-Stream Envelope</h2>
+<pre><code class="language-go">// protocol_connect.go:850
+func (m *connectStreamingMarshaler) MarshalEndStream(err error, trailer http.Header) *Error {
+    end := &amp;connectEndStreamMessage{Trailer: trailer}
+    if err != nil {
+        end.Error = newConnectWireError(err)
+    }
+    data, _ := json.Marshal(end)
+    raw := bytes.NewBuffer(data)
+    return m.Write(&amp;envelope{
+        Data:  raw,
+        Flags: connectFlagEnvelopeEndStream,  // 0x02
+    })
+}
+</code></pre>
+<p>The Connect streaming protocol ends with a special envelope flagged with <code>0x02</code>. The payload is a JSON object:</p>
+<pre><code class="language-json">{
+  &quot;error&quot;: {
+    &quot;code&quot;: &quot;not_found&quot;,
+    &quot;message&quot;: &quot;user not found&quot;,
+    &quot;details&quot;: [...]
+  },
+  &quot;metadata&quot;: {
+    &quot;X-Custom-Header&quot;: [&quot;value&quot;]
+  }
+}
+</code></pre>
+<h3>Parsing End-Stream on Client Side</h3>
+<pre><code class="language-go">// protocol_connect.go:877
+func (u *connectStreamingUnmarshaler) Unmarshal(message any) *Error {
+    err := u.envelopeReader.Unmarshal(message)
+    if !errors.Is(err, errSpecialEnvelope) { return err }
+    if !env.IsSet(connectFlagEnvelopeEndStream) {
+        return errorf(CodeInternal, &quot;protocol error: invalid envelope flags %d&quot;, env.Flags)
+    }
+    var end connectEndStreamMessage
+    json.Unmarshal(data.Bytes(), &amp;end)
+    // Canonicalize trailer header keys
+    for name, value := range end.Trailer {
+        canonical := http.CanonicalHeaderKey(name)
+        if name != canonical {
+            delHeaderCanonical(end.Trailer, name)
+            end.Trailer[canonical] = append(end.Trailer[canonical], value...)
+        }
+    }
+    u.trailer = end.Trailer
+    u.endStreamErr = end.Error.asError()
+    return errSpecialEnvelope
+}
+</code></pre>
+<h2>Connect Wire Error Format</h2>
+<pre><code class="language-go">// protocol_connect.go:1203
+type connectWireError struct {
+    Code    Code                 `json:&quot;code&quot;`
+    Message string               `json:&quot;message,omitempty&quot;`
+    Details []*connectWireDetail `json:&quot;details,omitempty&quot;`
+}
+
+type connectWireDetail struct {
+    Type  string          `json:&quot;type&quot;`
+    Value string          `json:&quot;value&quot;`    // base64-encoded protobuf Any
+    Debug json.RawMessage `json:&quot;debug,omitempty&quot;`  // human-readable JSON
+}
+</code></pre>
+<p>Error details include a <code>debug</code> field — a human-readable JSON representation of the protobuf message, produced via <code>protoJSONCodec.Marshal()</code>. This allows debugging without protobuf descriptors.</p>
+<h2>Connect-to-HTTP Code Mapping</h2>
+<pre><code class="language-go">// protocol_connect.go:1269
+func connectCodeToHTTP(code Code) int {
+    switch code {
+    case CodeCanceled:         return 499  // Client closed request
+    case CodeUnknown:          return 500
+    case CodeInvalidArgument:  return 400
+    case CodeDeadlineExceeded: return 504  // Gateway timeout
+    case CodeNotFound:         return 404
+    case CodeAlreadyExists:    return 409
+    case CodePermissionDenied: return 403
+    case CodeResourceExhausted:return 429  // Too many requests
+    case CodeFailedPrecondition: return 400
+    case CodeAborted:          return 409
+    case CodeOutOfRange:       return 400
+    case CodeUnimplemented:    return 501
+    case CodeInternal:         return 500
+    case CodeUnavailable:      return 503
+    case CodeDataLoss:         return 500
+    case CodeUnauthenticated:  return 401
+    default:                   return 500
+    }
+}
+</code></pre>
+<p><strong>Aha:</strong> <code>CodeCanceled</code> maps to HTTP 499 (nginx's "Client Closed Request"), not a standard IANA code. <code>CodeResourceExhausted</code> maps to 429 (Too Many Requests), not 503. These mappings are intentional — they communicate whether the failure originated from the client (499) or the server (429 rate limit).</p>
+<h2>Response Content-Type Validation</h2>
+<pre><code class="language-go">// protocol_connect.go:1350
+func connectValidateUnaryResponseContentType(requestCodecName, httpMethod string,
+    statusCode int, statusMsg string, responseContentType string) *Error {
+    // Error responses must be JSON-encoded
+    if statusCode != http.StatusOK {
+        if statusCode == http.StatusNotModified &amp;&amp; httpMethod == http.MethodGet {
+            return NewWireError(CodeUnknown, errNotModifiedClient)
+        }
+        // Accept application/json or application/json; charset=utf-8
+        return nil
+    }
+    // Normal responses must match request codec
+    responseCodecName := connectCodecForContentType(StreamTypeUnary, responseContentType)
+    if responseCodecName != requestCodecName {
+        // Special case: json vs json; charset=utf-8 are equivalent
+        if (responseCodecName == codecNameJSON &amp;&amp; requestCodecName == codecNameJSONCharsetUTF8) ||
+           (responseCodecName == codecNameJSONCharsetUTF8 &amp;&amp; requestCodecName == codecNameJSON) {
+            return nil
+        }
+        return errorf(CodeInternal, &quot;invalid content-type: %q; expecting %q&quot;, ...)
+    }
+}
+</code></pre>
+<h2>Next</h2>
+<p><a href="06-grpc-protocols.md">06-grpc-protocols.md</a> — gRPC over HTTP/2 and gRPC-Web over HTTP/1.1, including trailer handling, timeout encoding, and percent encoding.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

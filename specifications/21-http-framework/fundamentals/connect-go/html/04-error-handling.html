@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>connect-go — Error Handling -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="01-protocol-abstraction.html" class="nav-breadcrumb">connect-go — Protocol Abstraction and Dispatch</a><a href="02-envelope-framing.html" class="nav-breadcrumb">connect-go — Envelope Framing</a><a href="03-codec-system.html" class="nav-breadcrumb">connect-go — Codec System</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="03-codec-system.html" class="nav-btn" title="Previous: connect-go — Codec System">← prev</a>
+      <a href="05-connect-protocol.html" class="nav-btn nav-btn-next" title="Next: connect-go — Connect Protocol">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>connect-go — Error Handling</h1>
+<p><strong>Source:</strong> <code>error.go</code> (472 LOC), <code>code.go</code> (227 LOC). ConnectRPC uses a single <code>*Error</code> type that carries an RPC status code, an underlying Go error, metadata headers, and optional protobuf error details. The error system has a sophisticated wrapping chain that maps Go context errors, HTTP/2 RST_STREAM codes, and <code>http.MaxBytesError</code> into the correct RPC codes.</p>
+<h2>Error Structure</h2>
+<pre><code class="language-go">// error.go:124
+type Error struct {
+    code    Code            // RPC status code (1-16)
+    err     error           // Underlying Go error
+    details []*ErrorDetail  // Protobuf error details
+    meta    http.Header     // Additional HTTP headers/trailers
+    wireErr bool            // Was this error sent by the server?
+}
+</code></pre>
+
+<pre><code class="language-go">// error.go:52
+type ErrorDetail struct {
+    pbAny    *anypb.Any      // Protobuf Any wrapper
+    pbInner  proto.Message   // Pre-unmarshaled inner message (if available)
+    wireJSON string          // Preserved human-readable JSON from wire
+}
+</code></pre>
+<p><strong>Aha:</strong> The <code>ErrorDetail</code> stores both the raw protobuf <code>Any</code> and the pre-unmarshaled inner message (<code>pbInner</code>). When the server has the descriptor for the detail type, it can return a strongly-typed <code>proto.Message</code> via <code>Value()</code>. When it doesn't (e.g., a proxy without descriptors), it falls back to <code>pbAny.UnmarshalNew()</code>. The <code>wireJSON</code> field preserves the original JSON representation so proxies can forward human-readable details without protobuf descriptors.</p>
+<h2>Error Creation</h2>
+<pre><code class="language-go">// error.go:133 — standard error
+func NewError(c Code, underlying error) *Error
+
+// error.go:150 — wire error (came from server)
+func NewWireError(c Code, underlying error) *Error
+
+// error.go:184 — 304 Not Modified for GET requests
+func NewNotModifiedError(headers http.Header) *Error
+
+// error.go:264 — convenient format
+func errorf(c Code, template string, args ...any) *Error
+</code></pre>
+<p><code>NewWireError()</code> marks the error with <code>wireErr = true</code>, distinguishing server-sent errors from client-synthesized ones. This matters because:</p>
+<ul><li>Handlers strip <code>Meta</code> headers from wire errors to avoid leaking response headers.</li><li>An RPC-to-HTTP proxy might expose a server-sent <code>CodeUnknown</code> as HTTP 500 but a client-synthesized one as 503.</li></ul>
+<h2>The Error Wrapping Chain</h2>
+<div class="mermaid">
+flowchart TD
+    ERR[&quot;Any Go error&quot;]
+
+    subgraph &quot;wrapIfContextError&quot;
+        C1[&quot;context.Canceled → CodeCanceled&quot;]
+        C2[&quot;context.DeadlineExceeded → CodeDeadlineExceeded&quot;]
+        C3[&quot;os.ErrDeadlineExceeded → CodeDeadlineExceeded&quot;]
+    end
+
+    subgraph &quot;wrapIfContextDone&quot;
+        D1[&quot;Checks ctx.Err() after operation&quot;]
+        D2[&quot;Same mappings as above&quot;]
+    end
+
+    subgraph &quot;wrapIfRSTError&quot;
+        R1[&quot;NO_ERROR/PROTOCOL_ERROR → CodeInternal&quot;]
+        R2[&quot;REFUSED_STREAM → CodeUnavailable&quot;]
+        R3[&quot;CANCEL → CodeCanceled or CodeDeadlineExceeded&quot;]
+        R4[&quot;ENHANCE_YOUR_CALM → CodeResourceExhausted&quot;]
+        R5[&quot;INADEQUATE_SECURITY → CodePermissionDenied&quot;]
+    end
+
+    subgraph &quot;wrapIfUncoded&quot;
+        U[&quot;Everything else → CodeUnknown&quot;]
+    end
+
+    subgraph &quot;wrapIfMaxBytesError&quot;
+        M[&quot;http.MaxBytesError → CodeResourceExhausted&quot;]
+    end
+
+    ERR --&gt; C1
+    ERR --&gt; C2
+    ERR --&gt; C3
+    ERR --&gt; D1
+    ERR --&gt; R1
+    ERR --&gt; R2
+    ERR --&gt; R3
+    ERR --&gt; R4
+    ERR --&gt; R5
+    ERR --&gt; U
+    ERR --&gt; M
+
+</div>
+<h2>Context Error Mapping</h2>
+<pre><code class="language-go">// error.go:293
+func wrapIfContextError(err error) error {
+    if _, ok := asError(err); ok { return err }  // already coded
+    if errors.Is(err, context.Canceled) {
+        return NewError(CodeCanceled, err)
+    }
+    if errors.Is(err, context.DeadlineExceeded) {
+        return NewError(CodeDeadlineExceeded, err)
+    }
+    // Go bug: some dial errors return os.ErrDeadlineExceeded
+    // https://github.com/golang/go/issues/64449
+    if errors.Is(err, os.ErrDeadlineExceeded) {
+        return NewError(CodeDeadlineExceeded, err)
+    }
+    return err  // not a context error
+}
+</code></pre>
+<p>The chain first checks if the error is already a <code>*Error</code> (already coded). If not, it checks for the three context-related Go errors. The <code>os.ErrDeadlineExceeded</code> case is a workaround for a known Go bug.</p>
+<h2>wrapIfContextDone — Post-Operation Check</h2>
+<pre><code class="language-go">// error.go:317
+func wrapIfContextDone(ctx context.Context, err error) error {
+    err = wrapIfContextError(err)
+    if _, ok := asError(err); ok { return err }  // already coded
+    ctxErr := ctx.Err()
+    if errors.Is(ctxErr, context.Canceled) {
+        return NewError(CodeCanceled, err)
+    }
+    if errors.Is(ctxErr, context.DeadlineExceeded) {
+        return NewError(CodeDeadlineExceeded, err)
+    }
+    return err
+}
+</code></pre>
+<p>Used after I/O operations. Even if the I/O error itself isn't a context error (e.g., a connection reset), if the context is already canceled, the error gets the appropriate code. This handles the case where a timeout fires concurrently with an I/O operation.</p>
+<h2>HTTP/2 RST_STREAM Mapping</h2>
+<pre><code class="language-go">// error.go:393
+func wrapIfRSTError(ctx context.Context, err error) error {
+    // Parse HTTP/2 stream error from string (net/http hides the types)
+    // Format: &quot;stream error: ... ; CODE received from peer&quot;
+    switch msg {
+    case &quot;NO_ERROR&quot;, &quot;PROTOCOL_ERROR&quot;, &quot;INTERNAL_ERROR&quot;, &quot;FLOW_CONTROL_ERROR&quot;,
+         &quot;SETTINGS_TIMEOUT&quot;, &quot;FRAME_SIZE_ERROR&quot;, &quot;COMPRESSION_ERROR&quot;, &quot;CONNECT_ERROR&quot;:
+        return NewError(CodeInternal, err)
+    case &quot;REFUSED_STREAM&quot;:
+        return NewError(CodeUnavailable, err)
+    case &quot;CANCEL&quot;:
+        if deadline, ok := ctx.Deadline(); ok &amp;&amp; time.Now().After(deadline) {
+            return NewError(CodeDeadlineExceeded, err)
+        }
+        return NewError(CodeCanceled, err)
+    case &quot;ENHANCE_YOUR_CALM&quot;:
+        return NewError(CodeResourceExhausted, fmt.Errorf(&quot;bandwidth exhausted: %w&quot;, err))
+    case &quot;INADEQUATE_SECURITY&quot;:
+        return NewError(CodePermissionDenied, fmt.Errorf(&quot;transport protocol insecure: %w&quot;, err))
+    }
+}
+</code></pre>
+<p><strong>Aha:</strong> Because <code>net/http</code> vends all HTTP/2 error types as unexported, Connect parses the error string to extract the RST_STREAM code. The <code>CANCEL</code> case is special: it checks <code>time.Now().After(deadline)</code> to distinguish between a client-initiated cancel (<code>CodeCanceled</code>) and a server-initiated timeout cancellation (<code>CodeDeadlineExceeded</code>). This race-safety check avoids depending on <code>ctx.Err()</code> which might not have been set yet by the timer goroutine.</p>
+<h2>HTTP Status → RPC Code Mapping</h2>
+<pre><code class="language-go">// protocol.go:401
+func httpToCode(httpCode int) Code {
+    switch httpCode {
+    case 400: return CodeInternal        // Malformed request
+    case 401: return CodeUnauthenticated  // No auth
+    case 403: return CodePermissionDenied // Forbidden
+    case 404: return CodeUnimplemented    // Unknown endpoint
+    case 429: return CodeUnavailable      // Rate limited
+    case 502, 503, 504: return CodeUnavailable  // Server issues
+    default: return CodeUnknown
+    }
+}
+</code></pre>
+<p><strong>Important:</strong> Per the gRPC HTTP status mapping specification, HTTP 400 maps to <code>CodeInternal</code>, not <code>CodeInvalidArgument</code>. This is because a 400 from an HTTP intermediary (not the gRPC server) indicates a proxy issue, not a client error.</p>
+<h2>wrapIfMaxBytesError</h2>
+<pre><code class="language-go">// error.go:454
+func wrapIfMaxBytesError(err error, tmpl string, args ...any) error {
+    var maxBytesErr *http.MaxBytesError
+    if ok := errors.As(err, &amp;maxBytesErr); !ok {
+        return err
+    }
+    return errorf(CodeResourceExhausted, &quot;%s: exceeded %d byte http.MaxBytesReader limit&quot;, tmpl, maxBytesErr.Limit)
+}
+</code></pre>
+<p>Wraps <code>http.MaxBytesError</code> from <code>http.MaxBytesHandler</code> as <code>CodeResourceExhausted</code>.</p>
+<h2>AsError and CodeOf</h2>
+<pre><code class="language-go">// error.go:269
+func asError(err error) (*Error, bool) {
+    var connectErr *Error
+    ok := errors.As(err, &amp;connectErr)
+    return connectErr, ok
+}
+
+// code.go:221
+func CodeOf(err error) Code {
+    if connectErr, ok := asError(err); ok {
+        return connectErr.Code()
+    }
+    return CodeUnknown
+}
+</code></pre>
+<p><code>asError()</code> is the internal helper used throughout the error wrapping chain. <code>CodeOf()</code> is the public API for extracting the code from any error.</p>
+<h2>Error Details via Protobuf Any</h2>
+<pre><code class="language-go">// error.go:61
+func NewErrorDetail(msg proto.Message) (*ErrorDetail, error) {
+    if pb, ok := msg.(*anypb.Any); ok {
+        return &amp;ErrorDetail{pbAny: pb}, nil  // already wrapped
+    }
+    pb, err := anypb.New(msg)
+    return &amp;ErrorDetail{pbAny: pb, pbInner: msg}, err
+}
+
+// error.go:97
+func (d *ErrorDetail) Value() (proto.Message, error) {
+    if d.pbInner != nil {
+        return proto.Clone(d.pbInner), nil  // clone to prevent mutation
+    }
+    return d.pbAny.UnmarshalNew()  // dynamic unmarshal
+}
+</code></pre>
+<p>Error details are serialized as <code>google.protobuf.Any</code> messages. The <code>Type()</code> method extracts the type name by trimming the <code>type.googleapis.com/</code> prefix from the <code>type_url</code> field.</p>
+<h2>Next</h2>
+<p><a href="05-connect-protocol.md">05-connect-protocol.md</a> — The Connect protocol: unary GET support, end-stream envelopes, and JSON error bodies.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

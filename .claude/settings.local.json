@@ -64,7 +64,12 @@
       "Bash(rm -rf /home/darkvoid/Boxxed/@dev/ewe_platform/.testbed/linux-build/*)",
       "Bash(rm -rf /home/darkvoid/Boxxed/@dev/ewe_platform/.testbed/linux-build/state/*)",
       "Bash(/home/darkvoid/Boxxed/@dev/ewe_platform/target/debug/testbed bootstrap *)",
-      "Bash(kill -9 2544977)"
+      "Bash(kill -9 2544977)",
+      "Bash(tee /tmp/test_e2e_run2.log)",
+      "Bash(/home/darkvoid/Boxxed/@dev/ewe_platform/target/debug/testbed exec *)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs -r kill -9)",
+      "Bash(kill -9 3829840)"
     ]
   }
 }

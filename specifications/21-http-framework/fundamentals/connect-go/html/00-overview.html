@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>connect-go — ConnectRPC Go Reference Implementation -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      
+      <a href="01-protocol-abstraction.html" class="nav-btn nav-btn-next" title="Next: connect-go — Protocol Abstraction and Dispatch">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>connect-go — ConnectRPC Go Reference Implementation</h1>
+<h2>Source</h2>
+<ul><li><strong>Package:</strong> <code>connect</code> (connectrpc.com/connect)</li><li><strong>Language:</strong> Go</li><li><strong>License:</strong> Apache 2.0</li><li><strong>20 core <code>.go</code> source files</strong></li></ul>
+<h2>What It Is</h2>
+<p>The reference Go implementation of ConnectRPC — a protocol-agnostic RPC framework supporting three wire protocols (Connect, gRPC, gRPC-Web) over HTTP/1.1 and HTTP/2. It provides typed generic server handlers and clients, envelope-based message streaming, an interceptor middleware architecture, and compression support — all built on top of Go's standard <code>net/http</code>.</p>
+<h2>Architecture at a Glance</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph &quot;Handler (Server)&quot;
+        HANDLER[&quot;Handler\nhandler.go&quot;]
+        PROTO_H[&quot;protocolHandler\nper-protocol&quot;]
+        IMPL[&quot;StreamingHandlerFunc\nuser implementation&quot;]
+    end
+
+    subgraph &quot;Client&quot;
+        CLIENT[&quot;Client[Req, Res]\nclient.go&quot;]
+        PROTO_C[&quot;protocolClient\nper-protocol&quot;]
+        DUPLEX[&quot;duplexHTTPCall\ntransport&quot;]
+    end
+
+    subgraph &quot;Protocol Layer&quot;
+        CONNECT[&quot;protocolConnect\nprotocol_connect.go&quot;]
+        GRPC[&quot;protocolGRPC\nprotocol_grpc.go&quot;]
+    end
+
+    subgraph &quot;Shared Infrastructure&quot;
+        ENVELOPE[&quot;envelope.go\n5-byte framing&quot;]
+        CODEC[&quot;codec.go\nproto / json&quot;]
+        ERROR[&quot;error.go\n16 RPC codes&quot;]
+        INTERCEPT[&quot;interceptor.go\nmiddleware chain&quot;]
+        COMPRESS[&quot;compression.go\ngzip pools&quot;]
+        BUFFER[&quot;buffer_pool.go\nsync.Pool&quot;]
+    end
+
+    HANDLER --&gt; PROTO_H
+    PROTO_H --&gt; CONNECT
+    PROTO_H --&gt; GRPC
+    PROTO_H --&gt; ENVELOPE
+    PROTO_H --&gt; CODEC
+    PROTO_H --&gt; COMPRESS
+    PROTO_H --&gt; BUFFER
+    PROTO_H --&gt; IMPL
+
+    CLIENT --&gt; PROTO_C
+    PROTO_C --&gt; CONNECT
+    PROTO_C --&gt; GRPC
+    PROTO_C --&gt; DUPLEX
+    PROTO_C --&gt; ENVELOPE
+    PROTO_C --&gt; CODEC
+    PROTO_C --&gt; COMPRESS
+    PROTO_C --&gt; BUFFER
+    CLIENT --&gt; INTERCEPT
+    HANDLER --&gt; INTERCEPT
+    HANDLER --&gt; ERROR
+    CLIENT --&gt; ERROR
+
+</div>
+<h2>Three Protocols, One Interface</h2>
+<p>The entire framework hinges on a single <code>protocol</code> interface (<code>protocol.go:66</code>):</p>
+<pre><code class="language-go">// protocol.go:66
+type protocol interface {
+    NewHandler(*protocolHandlerParams) protocolHandler
+    NewClient(*protocolClientParams) (protocolClient, error)
+}
+</code></pre>
+<p>Each protocol — Connect, gRPC, gRPC-Web — is a separate struct implementing this interface. This means adding a new protocol requires implementing just two methods. The server-side <code>Handler</code> (<code>handler.go:28</code>) holds a <code>map[string][]protocolHandler</code> indexed by HTTP method, dispatching incoming requests to the first handler whose <code>CanHandlePayload()</code> matches the request's content type.</p>
+<p><strong>Aha:</strong> The protocol abstraction is the key design decision — instead of a monolithic service that switches on protocol type, each protocol is a self-contained type (<code>protocolConnect</code>, <code>protocolGRPC{web: true/false}</code>) that owns its own content-type negotiation, timeout parsing, message framing, and error serialization. This makes the codebase extensible: adding a fourth protocol means writing one new file, not modifying existing ones.</p>
+<h2>Protocol Comparison</h2>
+<table><tr><th>Feature</th><th>Connect</th><th>gRPC (HTTP/2)</th><th>gRPC-Web (HTTP/1.1)</th></tr><tr><td>**Transport**</td><td>HTTP/1.1 + HTTP/2</td><td>HTTP/2 only</td><td>HTTP/1.1 + HTTP/2</td></tr><tr><td>**Unary Content-Type**</td><td>`application/proto` or `application/json`</td><td>`application/grpc` or `application/grpc+proto`</td><td>`application/grpc-web` or `application/grpc-web+proto`</td></tr><tr><td>**Streaming Content-Type**</td><td>`application/connect+proto` or `application/connect+json`</td><td>Same as unary</td><td>Same as unary</td></tr><tr><td>**Timeout Header**</td><td>`Connect-Timeout-Ms` (milliseconds)</td><td>`Grpc-Timeout` (digits + unit: H/M/S/m/u/n)</td><td>Same as gRPC</td></tr><tr><td>**Error Format (unary)**</td><td>JSON body with HTTP status code</td><td>gRPC trailers (HTTP/2 trailers)</td><td>gRPC trailers (body envelope with 0x80 flag)</td></tr><tr><td>**Error Format (streaming)**</td><td>End-stream envelope (flag 0x02) with JSON</td><td>gRPC trailers</td><td>Same as gRPC-Web</td></tr><tr><td>**Trailers**</td><td>`Trailer-` prefixed HTTP headers</td><td>HTTP/2 trailers</td><td>Body envelope (flag 0x80)</td></tr><tr><td>**GET Support**</td><td>Yes (idempotent unary, base64-encoded query params)</td><td>No</td><td>No</td></tr><tr><td>**Protocol Version Header**</td><td>`Connect-Protocol-Version: 1`</td><td>None</td><td>None</td></tr><tr><td>**User-Agent**</td><td>`connect-go/{version} ({goVersion})`</td><td>`grpc-go-connect/{version} ({goVersion})`</td><td>Same as gRPC + `X-User-Agent`</td></tr></table>
+<h2>Four RPC Kinds</h2>
+<p>The <code>Spec.StreamType</code> field determines the RPC pattern:</p>
+<table><tr><th>StreamType</th><th>Pattern</th><th>Messages Flow</th></tr><tr><td>`StreamTypeUnary`</td><td>Request → Response</td><td>1 request, 1 response</td></tr><tr><td>`StreamTypeClient`</td><td>Stream → Response</td><td>N requests, 1 response</td></tr><tr><td>`StreamTypeServer`</td><td>Request → Stream</td><td>1 request, N responses</td></tr><tr><td>`StreamTypeBidi`</td><td>Stream ↔ Stream</td><td>N requests, N responses (interleaved)</td></tr></table>
+<h2>Error Codes</h2>
+<p>The framework uses 16 RPC status codes (<code>code.go:34-108</code>), matching gRPC:</p>
+<table><tr><th>Code</th><th>Value</th><th>Meaning</th></tr><tr><td>`CodeCanceled`</td><td>1</td><td>Operation canceled</td></tr><tr><td>`CodeUnknown`</td><td>2</td><td>Unknown error</td></tr><tr><td>`CodeInvalidArgument`</td><td>3</td><td>Invalid client argument</td></tr><tr><td>`CodeDeadlineExceeded`</td><td>4</td><td>Timeout</td></tr><tr><td>`CodeNotFound`</td><td>5</td><td>Entity not found</td></tr><tr><td>`CodeAlreadyExists`</td><td>6</td><td>Entity already exists</td></tr><tr><td>`CodePermissionDenied`</td><td>7</td><td>Insufficient permissions</td></tr><tr><td>`CodeResourceExhausted`</td><td>8</td><td>Resource quota exceeded</td></tr><tr><td>`CodeFailedPrecondition`</td><td>9</td><td>System not in required state</td></tr><tr><td>`CodeAborted`</td><td>10</td><td>Operation aborted (concurrency)</td></tr><tr><td>`CodeOutOfRange`</td><td>11</td><td>Attempted past valid range</td></tr><tr><td>`CodeUnimplemented`</td><td>12</td><td>Not implemented/supported</td></tr><tr><td>`CodeInternal`</td><td>13</td><td>Internal invariant broken</td></tr><tr><td>`CodeUnavailable`</td><td>14</td><td>Service temporarily unavailable</td></tr><tr><td>`CodeDataLoss`</td><td>15</td><td>Unrecoverable data loss</td></tr><tr><td>`CodeUnauthenticated`</td><td>16</td><td>Missing/invalid authentication</td></tr></table>
+<h2>Key Files</h2>
+<table><tr><th>File</th><th>Purpose</th></tr><tr><td>`handler.go`</td><td>Server-side `Handler` type, 4 RPC kind constructors, `ServeHTTP` dispatch</td></tr><tr><td>`client.go`</td><td>Generic `Client[Req, Res]` with 5 call methods</td></tr><tr><td>`protocol.go`</td><td>`protocol` interface, handler/client params, compression negotiation</td></tr><tr><td>`protocol_connect.go`</td><td>Connect protocol implementation (~1450 lines)</td></tr><tr><td>`protocol_grpc.go`</td><td>gRPC/gRPC-Web protocol implementation (~1010 lines)</td></tr><tr><td>`envelope.go`</td><td>5-byte envelope framing, `envelopeWriter`, `envelopeReader`</td></tr><tr><td>`codec.go`</td><td>`Codec` interface, `protoBinaryCodec`, `protoJSONCodec`</td></tr><tr><td>`error.go`</td><td>`Error` struct, error wrapping chain, RST_STREAM mapping</td></tr><tr><td>`interceptor.go`</td><td>`Interceptor` interface, `chain` composition, sentinel checks</td></tr><tr><td>`compression.go`</td><td>`compressionPool`, `Decompressor`/`Compressor` interfaces</td></tr><tr><td>`buffer_pool.go`</td><td>`sync.Pool`-based `bytes.Buffer` reuse</td></tr><tr><td>`duplex_http_call.go`</td><td>Full-duplex HTTP request/response transport</td></tr><tr><td>`code.go`</td><td>16 RPC codes, string/text marshaling</td></tr><tr><td>`header.go`</td><td>Binary header encoding, header merging utilities</td></tr></table>
+<h2>Next</h2>
+<p><a href="01-protocol-abstraction.md">01-protocol-abstraction.md</a> — Deep dive into the <code>protocol</code> interface and the handler/client dispatch pattern.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

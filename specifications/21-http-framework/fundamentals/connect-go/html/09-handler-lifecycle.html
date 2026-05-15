@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>connect-go — Handler Lifecycle -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="06-grpc-protocols.html" class="nav-breadcrumb">connect-go — gRPC and gRPC-Web Protocols</a><a href="07-interceptor-architecture.html" class="nav-breadcrumb">connect-go — Interceptor Architecture</a><a href="08-compression-buffers.html" class="nav-breadcrumb">connect-go — Compression and Buffer Pools</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="08-compression-buffers.html" class="nav-btn" title="Previous: connect-go — Compression and Buffer Pools">← prev</a>
+      <a href="10-client-lifecycle.html" class="nav-btn nav-btn-next" title="Next: connect-go — Client Lifecycle">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>connect-go — Handler Lifecycle</h1>
+<p><strong>Source:</strong> <code>handler.go</code> (428 LOC), <code>protocol.go</code> (400 LOC), <code>connect.go</code> (500 LOC). The <code>Handler</code> struct is the server-side implementation of a single RPC. It implements <code>http.Handler</code>, dispatches requests to protocol-specific handlers, and wraps the user's implementation with interceptors and error handling.</p>
+<h2>Handler Structure</h2>
+<pre><code class="language-go">// handler.go:28
+type Handler struct {
+    spec             Spec
+    implementation   StreamingHandlerFunc
+    protocolHandlers map[string][]protocolHandler  // HTTP method → handlers
+    allowMethod      string                        // Allow header value
+    acceptPost       string                        // Accept-Post header value
+}
+</code></pre>
+<p>The <code>protocolHandlers</code> map is keyed by HTTP method (<code>"POST"</code>, <code>"GET"</code>). Each value is a slice of <code>protocolHandler</code> — one per protocol (Connect, gRPC, gRPC-Web). This allows a single <code>Handler</code> to serve all three protocols on the same endpoint.</p>
+<h2>Handler Constructors</h2>
+<h3>Unary Handler</h3>
+<pre><code class="language-go">// handler.go:37
+func NewUnaryHandler[Req, Res any](
+    procedure string,
+    unary func(context.Context, *Request[Req]) (*Response[Res], error),
+    options ...HandlerOption,
+) *Handler
+</code></pre>
+<p>Wraps the typed unary function in a <code>UnaryFunc</code> thunk that:</p>
+<ol><li>Checks context error before execution.</li><li>Validates request type matches expected type.</li><li>Panics with procedure name if both response and error are nil.</li><li>Avoids returning typed nil <code>(*Response[Res])</code> as <code>AnyResponse</code> interface.</li></ol>
+<p>The implementation (<code>handler.go:68</code>) creates a <code>StreamingHandlerConn</code> wrapper:</p>
+<pre><code class="language-go">implementation := func(ctx context.Context, conn StreamingHandlerConn) error {
+    request, err := receiveUnaryRequest[Req](conn, config.Initializer)
+    if err != nil { return err }
+
+    info := &amp;handlerCallInfo{
+        peer:          request.Peer(),
+        spec:          request.Spec(),
+        method:        request.HTTPMethod(),
+        requestHeader: request.Header(),
+    }
+    ctx = newHandlerContext(ctx, info)
+    response, err := untyped(ctx, request)
+
+    // Merge response headers/trailers from context callInfo
+    if info.responseHeader != nil {
+        mergeNonProtocolHeaders(conn.ResponseHeader(), info.responseHeader)
+    }
+    if info.responseTrailer != nil {
+        mergeNonProtocolHeaders(conn.ResponseTrailer(), info.responseTrailer)
+    }
+    // Merge response headers/trailers from response wrapper
+    if len(response.Header()) != 0 {
+        mergeNonProtocolHeaders(conn.ResponseHeader(), response.Header())
+    }
+    if len(response.Trailer()) != 0 {
+        mergeNonProtocolHeaders(conn.ResponseTrailer(), response.Trailer())
+    }
+    return conn.Send(response.Any())
+}
+</code></pre>
+<h3>Unary Handler (Simple)</h3>
+<pre><code class="language-go">// handler.go:119
+func NewUnaryHandlerSimple[Req, Res any](
+    procedure string,
+    unary func(context.Context, *Req) (*Res, error),
+    options ...HandlerOption,
+) *Handler
+</code></pre>
+<p>Eliminates <code>Request</code> and <code>Response</code> wrappers. The handler receives a raw <code><em>Req</code> and returns a raw <code></em>Res</code>. Headers are propagated via <code>context.Context</code> using <code>CallInfo</code>. This is the "simple" generation option for code generators.</p>
+<h3>Client Stream Handler</h3>
+<pre><code class="language-go">// handler.go:138
+func NewClientStreamHandler[Req, Res any](
+    procedure string,
+    implementation func(context.Context, *ClientStream[Req]) (*Response[Res], error),
+    options ...HandlerOption,
+) *Handler
+</code></pre>
+<p>The handler receives a <code>ClientStream[Req]</code> that wraps <code>StreamingHandlerConn</code>. The handler reads all messages from the stream, then returns a single response. Panics if both response and error are nil.</p>
+<h3>Server Stream Handler</h3>
+<pre><code class="language-go">// handler.go:194
+func NewServerStreamHandler[Req, Res any](
+    procedure string,
+    implementation func(context.Context, *Request[Req], *ServerStream[Res]) error,
+    options ...HandlerOption,
+) *Handler
+</code></pre>
+<p>Receives a single unary request, then sends multiple response messages via <code>ServerStream[Res]</code>. The implementation calls <code>receiveUnaryRequest[Req]</code> to extract the first message.</p>
+<h3>Bidi Stream Handler</h3>
+<pre><code class="language-go">// handler.go:235
+func NewBidiStreamHandler[Req, Res any](
+    procedure string,
+    implementation func(context.Context, *BidiStream[Req, Res]) error,
+    options ...HandlerOption,
+) *Handler
+</code></pre>
+<p>Receives a <code>BidiStream[Req, Res]</code> that wraps <code>StreamingHandlerConn</code> with bidirectional send/receive. No unary request is pre-read — the handler controls the full stream.</p>
+<h2>ServeHTTP Dispatch Flow</h2>
+<div class="mermaid">
+flowchart TD
+    S1[&quot;ServeHTTP(responseWriter, request)&quot;]
+    S2[&quot;Check bidi → HTTP/2 requirement&quot;]
+    S2 --&gt;|HTTP/1.x + bidi| S3[&quot;Set Connection: close\nWrite 505 HTTP Version Not Supported&quot;]
+    S2 --&gt;|OK| S4[&quot;Lookup protocolHandlers[request.Method]&quot;]
+    S4 --&gt;|No handlers for method| S5[&quot;Write Allow header\nWrite 405 Method Not Allowed&quot;]
+    S4 --&gt;|Found| S6[&quot;Get Content-Type from request&quot;]
+    S6 --&gt; S7[&quot;Find matching protocolHandler via CanHandlePayload&quot;]
+    S7 --&gt;|No match| S8[&quot;Write Accept-Post header\nWrite 415 Unsupported Media Type&quot;]
+    S7 --&gt;|Found| S9[&quot;For GET: validate no body present&quot;]
+    S9 --&gt;|Has body| S10[&quot;Write 415 Unsupported Media Type&quot;]
+    S9 --&gt;|OK| S11[&quot;Canonicalize Content-Type headers&quot;]
+    S11 --&gt; S12[&quot;Parse timeout → context.WithTimeout&quot;]
+    S12 --&gt; S13[&quot;protocolHandler.NewConn(responseWriter, request)&quot;]
+    S13 --&gt;|Failed| S14[&quot;Return (unknown compression)&quot;]
+    S13 --&gt;|OK| S15[&quot;h.implementation(ctx, connCloser)&quot;]
+    S15 --&gt; S16[&quot;connCloser.Close(result)&quot;]
+
+    S3 --&gt; END
+    S5 --&gt; END
+    S8 --&gt; END
+    S10 --&gt; END
+    S14 --&gt; END
+    S16 --&gt; END
+
+</div>
+<h3>Key Dispatch Steps</h3>
+<p><strong>1. HTTP/2 Check for Bidi</strong> (<code>handler.go:264</code>):</p>
+<pre><code class="language-go">isBidi := (h.spec.StreamType &amp; StreamTypeBidi) == StreamTypeBidi
+if isBidi &amp;&amp; request.ProtoMajor &lt; 2 {
+    responseWriter.Header().Set(&quot;Connection&quot;, &quot;close&quot;)
+    responseWriter.WriteHeader(http.StatusHTTPVersionNotSupported)
+    return
+}
+</code></pre>
+<p><strong>2. Method Lookup</strong> (<code>handler.go:274</code>):</p>
+<pre><code class="language-go">protocolHandlers := h.protocolHandlers[request.Method]
+if len(protocolHandlers) == 0 {
+    responseWriter.Header().Set(&quot;Allow&quot;, h.allowMethod)
+    responseWriter.WriteHeader(http.StatusMethodNotAllowed)
+    return
+}
+</code></pre>
+<p><strong>3. Protocol Content-Type Match</strong> (<code>handler.go:281-295</code>):</p>
+<pre><code class="language-go">contentType := canonicalizeContentType(getHeaderCanonical(request.Header, headerContentType))
+var protocolHandler protocolHandler
+for _, handler := range protocolHandlers {
+    if handler.CanHandlePayload(request, contentType) {
+        protocolHandler = handler
+        break
+    }
+}
+if protocolHandler == nil {
+    responseWriter.Header().Set(&quot;Accept-Post&quot;, h.acceptPost)
+    responseWriter.WriteHeader(http.StatusUnsupportedMediaType)
+    return
+}
+</code></pre>
+<p>The order matters: Connect handlers are registered first (default), then gRPC, then gRPC-Web. The first matching content-type wins.</p>
+<p><strong>4. GET Body Validation</strong> (<code>handler.go:297</code>):</p>
+<pre><code class="language-go">if request.Method == http.MethodGet {
+    hasBody := request.ContentLength &gt; 0
+    if request.ContentLength &lt; 0 {
+        var b [1]byte
+        n, _ := request.Body.Read(b[:])
+        hasBody = n &gt; 0
+    }
+    if hasBody {
+        responseWriter.WriteHeader(http.StatusUnsupportedMediaType)
+        return
+    }
+    _ = request.Body.Close()
+}
+</code></pre>
+<p><strong>5. Timeout Parsing</strong> (<code>handler.go:317</code>):</p>
+<pre><code class="language-go">ctx, cancel, timeoutErr := protocolHandler.SetTimeout(request)
+if timeoutErr != nil {
+    ctx = request.Context()  // fallback to original context
+}
+if cancel != nil {
+    defer cancel()
+}
+</code></pre>
+<p>If timeout parsing fails, the handler falls back to the original request context. The <code>timeoutErr</code> is later passed to <code>connCloser.Close(timeoutErr)</code> to send the error to the client.</p>
+<p><strong>6. Connection Creation</strong> (<code>handler.go:324</code>):</p>
+<pre><code class="language-go">connCloser, ok := protocolHandler.NewConn(responseWriter, request.WithContext(ctx))
+if !ok {
+    return  // unknown compression, error already written
+}
+</code></pre>
+<p>If <code>NewConn</code> returns <code>ok = false</code>, the error has already been written to the response (e.g., unknown compression algorithm). No further action needed.</p>
+<p><strong>7. Handler Execution</strong> (<code>handler.go:337</code>):</p>
+<pre><code class="language-go">_ = connCloser.Close(h.implementation(ctx, connCloser))
+</code></pre>
+<p>The implementation (user's handler logic wrapped with interceptors) is executed, and its result is passed to <code>Close()</code> which handles cleanup and response finalization.</p>
+<h2>Protocol Handler Registration</h2>
+<pre><code class="language-go">// handler.go:384
+func (c *handlerConfig) newProtocolHandlers() []protocolHandler {
+    protocols := []protocol{
+        &amp;protocolConnect{},
+        &amp;protocolGRPC{web: false},
+        &amp;protocolGRPC{web: true},
+    }
+    handlers := make([]protocolHandler, 0, len(protocols))
+    codecs := newReadOnlyCodecs(c.Codecs)
+    compressors := newReadOnlyCompressionPools(c.CompressionPools, c.CompressionNames)
+    for _, protocol := range protocols {
+        handlers = append(handlers, protocol.NewHandler(&amp;protocolHandlerParams{
+            Spec:             c.newSpec(),
+            Codecs:           codecs,
+            CompressionPools: compressors,
+            CompressMinBytes: c.CompressMinBytes,
+            BufferPool:       c.BufferPool,
+            ReadMaxBytes:     c.ReadMaxBytes,
+            SendMaxBytes:     c.SendMaxBytes,
+            RequireConnectProtocolHeader: c.RequireConnectProtocolHeader,
+            IdempotencyLevel: c.IdempotencyLevel,
+        }))
+    }
+    return handlers
+}
+</code></pre>
+<p>Every handler supports all three protocols by default. The protocols are instantiated in order: Connect, gRPC, gRPC-Web. This order determines content-type priority when multiple protocols could match.</p>
+<h2>Handler Configuration</h2>
+<pre><code class="language-go">// handler.go:340
+type handlerConfig struct {
+    CompressionPools             map[string]*compressionPool
+    CompressionNames             []string
+    Codecs                       map[string]Codec
+    CompressMinBytes             int
+    Interceptor                  Interceptor
+    Procedure                    string
+    Schema                       any
+    Initializer                  maybeInitializer
+    RequireConnectProtocolHeader bool
+    IdempotencyLevel             IdempotencyLevel
+    BufferPool                   *bufferPool
+    ReadMaxBytes                 int
+    SendMaxBytes                 int
+    StreamType                   StreamType
+}
+</code></pre>
+<p>Default configuration (<code>handler.go:357</code>):</p>
+<ul><li>Proto binary codec registered</li><li>Proto JSON codec registered (both <code>"json"</code> and <code>"json; charset=utf-8"</code>)</li><li>Gzip compression registered</li><li>Buffer pool created with 512-byte initial, 8MiB max recycle</li></ul>
+<h2>Response Header and Trailer Merging</h2>
+<p>The handler implementation supports two mechanisms for setting response headers and trailers:</p>
+<ol><li><strong>Via <code>Request</code>/<code>Response</code> wrappers</strong>: Headers set on the <code>Response</code> object are merged into the connection's response headers/trailers.</li></ol>
+<ol><li><strong>Via <code>CallInfo</code> in context</strong>: For "simple" handlers that don't use <code>Response</code> wrappers, headers can be set via <code>CallInfo</code> stored in context:</li></ol>
+<p>   ``<code>go    ctx = newHandlerContext(ctx, &handlerCallInfo{...})    // Later, handler sets response headers via the callInfo    info.responseHeader.Set("X-Custom", "value")    </code>``</p>
+<p><strong>Aha:</strong> The handler merges headers from BOTH sources — the context <code>CallInfo</code> and the response wrapper. This allows interceptors to set headers via context even when the user's handler returns a simple response. The <code>mergeNonProtocolHeaders</code> function strips protocol-specific headers (like <code>Content-Type</code>, <code>Grpc-Status</code>) to prevent user code from accidentally overwriting protocol headers.</p>
+<h2>Handler Spec</h2>
+<pre><code class="language-go">// handler.go:375
+func (c *handlerConfig) newSpec() Spec {
+    return Spec{
+        Procedure:        c.Procedure,
+        Schema:           c.Schema,
+        StreamType:       c.StreamType,
+        IdempotencyLevel: c.IdempotencyLevel,
+    }
+}
+</code></pre>
+<p>The handler <code>Spec</code> does NOT have <code>IsClient: true</code> — only the client spec does. This distinction allows interceptors to determine whether they're running on the client or server side.</p>
+<h2>Next</h2>
+<p><a href="10-client-lifecycle.md">10-client-lifecycle.md</a> — The <code>Client</code> generic, <code>NewClient</code> initialization, unary/stream call methods, and <code>duplexHTTPCall</code> transport.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

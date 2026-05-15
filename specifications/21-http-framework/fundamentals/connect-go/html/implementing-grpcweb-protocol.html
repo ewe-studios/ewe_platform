@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Implementing the gRPC-Web Protocol (Native, Over HTTP/1.1) -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="README.html" class="nav-breadcrumb">connect-go — Documentation Index</a><a href="implementing-connectrpc-protocol.html" class="nav-breadcrumb">Implementing the ConnectRPC Protocol</a><a href="implementing-grpc-protocol.html" class="nav-breadcrumb">Implementing the gRPC Protocol (Native, Over HTTP/2)</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="implementing-grpc-protocol.html" class="nav-btn" title="Previous: Implementing the gRPC Protocol (Native, Over HTTP/2)">← prev</a>
+      
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Implementing the gRPC-Web Protocol (Native, Over HTTP/1.1)</h1>
+<p><strong>Reference:</strong> <code>connect-go/protocol_grpc.go</code> (~1010 LOC), <code>connect-go/envelope.go</code> (388 LOC), <code>connect-go/codec.go</code> (260 LOC), <code>connect-go/error.go</code> (472 LOC). This document provides a complete blueprint for implementing gRPC-Web natively — not via a proxy or Envoy translation layer — following the connect-go reference implementation's approach. The key insight: gRPC-Web encodes trailers as the final envelope in the response body because HTTP/1.1 lacks native trailer support.</p>
+<h2>Protocol Philosophy</h2>
+<p>gRPC-Web was designed to bring gRPC to browsers and HTTP/1.1 environments. Since HTTP/1.1 doesn't support native trailers, gRPC-Web encodes trailers as the final message envelope in the response body — flagged with <code>0x80</code> and containing an HTTP/1-style header block. All messages (including data and trailers) use the same 5-byte envelope framing. This makes gRPC-Web compatible with any HTTP/1.1 proxy, CDN, or load balancer, at the cost of requiring the client to parse the full response body before accessing trailers.</p>
+<h2>Content-Type Routing</h2>
+<pre><code class="language-">gRPC-Web proto:  application/grpc-web
+gRPC-Web codec:  application/grpc-web+{codec}   e.g., application/grpc-web+proto, application/grpc-web+json
+gRPC-Web text:   application/grpc-web-text       (base64-encoded entire body)
+</code></pre>
+<p>The server derives the codec name from the content type:</p>
+<ul><li>If content-type is exactly <code>application/grpc-web</code> → codec is <code>"proto"</code> (implicit bare mapping)</li><li>If content-type starts with <code>application/grpc-web+</code> → codec is <code>strings.TrimPrefix(contentType, "application/grpc-web+")</code></li><li>If content-type is <code>application/grpc-web-text</code> → codec is <code>"proto"</code>, body is base64-encoded</li></ul>
+<p><strong>Aha:</strong> The <code>application/grpc-web-text</code> content type is unique to gRPC-Web. It base64-encodes the entire response body (including the trailer envelope), enabling gRPC-Web to work with HTTP/1.1 intermediaries that might corrupt binary data. The client must base64-decode the entire body before parsing envelopes.</p>
+<h2>HTTP Method and Version</h2>
+<table><tr><th>RPC Kind</th><th>Method</th><th>HTTP Version</th></tr><tr><td>Unary</td><td>POST</td><td>HTTP/1.1 or HTTP/2</td></tr><tr><td>Client Stream</td><td>POST</td><td>HTTP/1.1 or HTTP/2</td></tr><tr><td>Server Stream</td><td>POST</td><td>HTTP/1.1 or HTTP/2 (requires chunked transfer or streaming)</td></tr><tr><td>Bidi Stream</td><td>POST</td><td>HTTP/2 recommended (HTTP/1.1 half-duplex limits true bidi)</td></tr></table>
+<p><strong>Key advantage over gRPC:</strong> gRPC-Web works over HTTP/1.1, making it compatible with browsers, older proxies, and CDNs that don't support HTTP/2. However, true bidirectional streaming is limited on HTTP/1.1 due to half-duplex constraints.</p>
+<h2>Required Headers</h2>
+<h3>Client → Server</h3>
+<table><tr><th>Header</th><th>Value</th><th>Source</th></tr><tr><td>`Content-Type`</td><td>`application/grpc-web` or `application/grpc-web+{codec}`</td><td>Derived from codec name</td></tr><tr><td>`User-Agent`</td><td>`connect-go/{version} ({goVersion})` or custom</td><td>`protocol_grpc.go:237`</td></tr><tr><td>`X-User-Agent`</td><td>Same as User-Agent</td><td>Only for gRPC-Web (`protocol_grpc.go:300`)</td></tr><tr><td>`Grpc-Timeout`</td><td>`<digits><unit>`</td><td>Optional — same format as gRPC</td></tr><tr><td>`Grpc-Encoding`</td><td>Compression name</td><td>Only if request is compressed</td></tr><tr><td>`Grpc-Accept-Encoding`</td><td>Comma-separated compression names</td><td>From registered pools</td></tr></table>
+<p><strong>Aha:</strong> gRPC-Web sets both <code>User-Agent</code> and <code>X-User-Agent</code> headers. The <code>X-User-Agent</code> is a legacy requirement from the original gRPC-Web spec — some gRPC-Web proxies (like Envoy) inspect this header. Even when implementing natively without a proxy, setting both headers ensures compatibility with the broader gRPC-Web ecosystem.</p>
+<h3>Server → Client</h3>
+<table><tr><th>Header</th><th>Value</th><th>Condition</th></tr><tr><td>`Content-Type`</td><td>`application/grpc-web` or `application/grpc-web+{codec}`</td><td>Always</td></tr><tr><td>`Grpc-Encoding`</td><td>Compression name</td><td>Only if response compressed</td></tr><tr><td>`Grpc-Accept-Encoding`</td><td>Comma-separated names</td><td>Always</td></tr></table>
+<p>Unlike gRPC over HTTP/2, gRPC-Web does NOT send trailers as HTTP headers. All trailers go in the response body.</p>
+<h2>Envelope Framing</h2>
+<p>Every gRPC-Web message (data and trailers) uses the 5-byte envelope format:</p>
+<pre><code class="language-">+--------+--------+--------+--------+--------+
+| Flags  |         Length (uint32, BE)       |
+| 1 byte |           4 bytes                 |
++--------+--------+--------+--------+--------+
+|              Payload (Length bytes)         |
++---------------------------------------------+
+</code></pre>
+<h3>Flags</h3>
+<table><tr><th>Flag</th><th>Value</th><th>Meaning</th></tr><tr><td>Compressed</td><td>`0x01`</td><td>Payload is compressed</td></tr><tr><td>Trailer</td><td>`0x80`</td><td>Final message containing trailers (gRPC-Web specific)</td></tr></table>
+<p><strong>Aha:</strong> The gRPC-Web trailer flag (<code>0x80</code>) is completely different from Connect's end-stream flag (<code>0x02</code>). Connect's <code>0x02</code> envelope carries a JSON object with both error and metadata. gRPC-Web's <code>0x80</code> envelope carries a raw HTTP/1-style header block (key: value lines) that must be parsed with a MIME header reader. This is the single most important difference between the two protocols.</p>
+<h2>Streaming Server → Client Flow</h2>
+<div class="mermaid">
+flowchart TD
+    H1[&quot;Handler calls Send(msg)&quot;]
+    H2[&quot;Marshal msg → bytes&quot;]
+    H3[&quot;Compress if &gt; compressMinBytes&quot;]
+    H4[&quot;Write 5-byte prefix (flag 0x00 or 0x01) + payload&quot;]
+    H5[&quot;Flush (http.Flusher required)&quot;]
+
+    E1[&quot;Handler returns (or errors)&quot;]
+    E2[&quot;Build trailer headers: grpc-status, grpc-message, grpc-status-details-bin&quot;]
+    E3[&quot;Format as HTTP/1 header block (key: value\\n)&quot;]
+    E4[&quot;Write envelope with flag 0x80&quot;]
+    E5[&quot;Flush and close&quot;]
+
+    H1 --&gt; H2 --&gt; H3 --&gt; H4 --&gt; H5
+    E1 --&gt; E2 --&gt; E3 --&gt; E4 --&gt; E5
+
+</div>
+<h2>Trailer Handling: Body-Encoded</h2>
+<p>gRPC-Web encodes trailers as the final envelope in the response body:</p>
+<pre><code class="language-go">// protocol_grpc.go:579
+func (m *grpcMarshaler) MarshalWebTrailers(trailer http.Header) *Error {
+    // Lowercase all header keys (gRPC-Web spec requires lowercase keys)
+    for key, values := range trailer {
+        lower := strings.ToLower(key)
+        if key != lower {
+            delete(trailer, key)
+            trailer[lower] = values
+        }
+    }
+    // Write as HTTP/1 headers block (without terminating newline)
+    trailer.Write(raw)
+    return m.Write(&amp;envelope{
+        Data:  raw,
+        Flags: grpcFlagEnvelopeTrailer,  // 0x80
+    })
+}
+</code></pre>
+<p><strong>Key considerations:</strong></p>
+<ol><li>All trailer header keys must be lowercased. This differs from gRPC over HTTP/2 which preserves canonical case.</li><li>The header block is written without a terminating newline (per the gRPC-Web spec).</li><li>The header block format is <code>key: value\r\n</code> per line, like HTTP/1 headers.</li></ol>
+<h3>Client-Side Parsing</h3>
+<pre><code class="language-go">// protocol_grpc.go:609
+func (u *grpcUnmarshaler) Unmarshal(message any) *Error {
+    if !u.web || !env.IsSet(grpcFlagEnvelopeTrailer) {
+        return errorf(CodeInternal, &quot;protocol error: invalid envelope flags %d&quot;, env.Flags)
+    }
+    // Add newline to make it parseable by textproto
+    data.WriteByte(&#x27;\n&#x27;)
+    mimeHeader, _ := textproto.NewReader(bufio.NewReader(data)).ReadMIMEHeader()
+    u.webTrailer = http.Header(mimeHeader)
+}
+</code></pre>
+<p><strong>Aha:</strong> The gRPC-Web trailer encoding adds a <code>'\n'</code> byte because <code>textproto.Reader.ReadMIMEHeader()</code> expects a blank line terminating the header block. The original trailer data doesn't include the terminating newline (per the gRPC-Web spec), so the reader must add it. Without this newline, the MIME header parser hangs waiting for the terminator.</p>
+<h2>Trailers-Only Optimization</h2>
+<pre><code class="language-go">// protocol_grpc.go:537
+if hc.web &amp;&amp; !hc.wroteToBody &amp;&amp; len(hc.responseHeader) == 0 {
+    // gRPC-Web: send trailers as HTTP headers instead of body
+    mergeHeaders(hc.responseWriter.Header(), mergedTrailers)
+    return nil
+}
+</code></pre>
+<p>For gRPC-Web, if no body has been written and there are no custom response headers, trailers are sent as regular HTTP headers instead of a body envelope. This is the "trailers-only" response — useful for unary RPCs that return an error without any response body.</p>
+<p><strong>Aha:</strong> This optimization means a client must check both HTTP headers (for trailers-only) AND the response body (for body-encoded trailers) to find the <code>grpc-status</code>. A robust client implementation checks headers first, then falls back to parsing the body envelope if no status header is found.</p>
+<h2>Error Serialization in Trailers</h2>
+<pre><code class="language-go">// protocol_grpc.go:841
+func grpcErrorToTrailer(trailer http.Header, protobuf Codec, err error) {
+    if err == nil {
+        setHeaderCanonical(trailer, grpcHeaderStatus, &quot;0&quot;)  // OK
+        return
+    }
+    // Merge custom metadata (unless wire error)
+    if connectErr, ok := asError(err); ok &amp;&amp; !connectErr.wireErr {
+        mergeNonProtocolHeaders(trailer, connectErr.meta)
+    }
+    status := grpcStatusForError(err)
+    code := status.GetCode()
+    message := status.GetMessage()
+
+    // Serialize details as protobuf Status
+    if len(status.Details) &gt; 0 {
+        bin, _ := protobuf.Marshal(status)
+        setHeaderCanonical(trailer, grpcHeaderDetails, EncodeBinaryHeader(bin))
+    }
+    setHeaderCanonical(trailer, grpcHeaderStatus, strconv.Itoa(int(code)))
+    setHeaderCanonical(trailer, grpcHeaderMessage, grpcPercentEncode(message))
+}
+</code></pre>
+<p>The error serialization is identical to gRPC over HTTP/2 — the same <code>grpc-status</code>, <code>grpc-message</code>, and <code>grpc-status-details-bin</code> headers are built, then encoded into the body envelope via <code>MarshalWebTrailers</code>.</p>
+<h2>Error Parsing from Trailers (Client Side)</h2>
+<pre><code class="language-go">// protocol_grpc.go:692
+func grpcErrorForTrailer(protobuf Codec, trailer http.Header) *Error {
+    codeHeader := getHeaderCanonical(trailer, grpcHeaderStatus)
+    if codeHeader == &quot;&quot; {
+        code := CodeInternal
+        if len(trailer) == 0 { code = CodeUnknown }
+        return NewError(code, errTrailersWithoutGRPCStatus)
+    }
+    if codeHeader == &quot;0&quot; { return nil }  // OK
+
+    code, _ := strconv.ParseUint(codeHeader, 10, 32)
+    message, _ := grpcPercentDecode(getHeaderCanonical(trailer, grpcHeaderMessage))
+    retErr := NewWireError(Code(code), errors.New(message))
+
+    // Parse protobuf error details from grpc-status-details-bin
+    detailsBinaryEncoded := getHeaderCanonical(trailer, grpcHeaderDetails)
+    if len(detailsBinaryEncoded) &gt; 0 {
+        detailsBinary, _ := DecodeBinaryHeader(detailsBinaryEncoded)
+        var status statusv1.Status
+        protobuf.Unmarshal(detailsBinary, &amp;status)
+        for _, d := range status.GetDetails() {
+            retErr.details = append(retErr.details, &amp;ErrorDetail{pbAny: d})
+        }
+        // Prefer protobuf data over header values
+        retErr.code = Code(status.GetCode())
+        retErr.err = errors.New(status.GetMessage())
+    }
+    return retErr
+}
+</code></pre>
+<h2>Percent Encoding for Grpc-Message</h2>
+<pre><code class="language-go">// protocol_grpc.go:895
+func grpcPercentEncode(msg string) string {
+    // Characters that need escaping: control chars (&lt; &#x27; &#x27; or &gt; &#x27;~&#x27;) and &#x27;%&#x27;
+    func grpcShouldEscape(char byte) bool {
+        return char &lt; &#x27; &#x27; || char &gt; &#x27;~&#x27; || char == &#x27;%&#x27;
+    }
+    // Two-pass: count escapes first, then encode with uppercase hex
+    for i := range len(msg) {
+        if grpcShouldEscape(msg[i]) { hexCount++ }
+    }
+    // Encode with uppercase hex (A-F, not a-f)
+    out.WriteByte(&#x27;%&#x27;)
+    out.WriteByte(upperhex[char&gt;&gt;4])  // &quot;0123456789ABCDEF&quot;
+    out.WriteByte(upperhex[char&amp;15])
+}
+</code></pre>
+<p><strong>Aha:</strong> gRPC-Web uses the same custom percent-encoding as gRPC over HTTP/2. Only control characters (ASCII < 32 or > 126) and <code>%</code> itself are escaped. Hex digits use uppercase. This is shared code between the two protocols — implementing one means you already have the encoding for the other.</p>
+<h2>Timeout Encoding</h2>
+<p>gRPC-Web uses the same timeout format as gRPC:</p>
+<pre><code class="language-">Grpc-Timeout: &lt;digits&gt;&lt;unit&gt;  // max 8 digits, units: H/M/S/m/u/n
+</code></pre>
+<p>See the gRPC protocol implementation guide for the full parsing and encoding logic. The key difference from Connect: gRPC-Web uses the unit-suffixed format (max 8 digits), not plain milliseconds (max 10 digits).</p>
+<h2>Compression Negotiation</h2>
+<p>gRPC-Web uses the same compression negotiation as gRPC over HTTP/2:</p>
+<pre><code class="language-go">func negotiateCompression(availableCompressors, sent, accept string) (reqComp, respComp string, err *Error) {
+    requestCompression = sent
+    responseCompression = requestCompression
+    if responseCompression == identity &amp;&amp; accept != &quot;&quot; {
+        for _, name := range strings.FieldsFunc(accept, isCommaOrSpace) {
+            if availableCompressors.Contains(name) {
+                responseCompression = name
+                break
+            }
+        }
+    }
+}
+</code></pre>
+<p>Both gRPC and gRPC-Web use <code>Grpc-Encoding</code> and <code>Grpc-Accept-Encoding</code> headers — not the standard HTTP <code>Content-Encoding</code>/<code>Accept-Encoding</code>.</p>
+<h2>Response Validation</h2>
+<pre><code class="language-go">// protocol_grpc.go:649
+func grpcValidateResponse(response *http.Response, header http.Header,
+    availableCompressors readOnlyCompressionPools, web bool, codecName string) *Error {
+    if response.StatusCode != http.StatusOK {
+        return errorf(httpToCode(response.StatusCode), &quot;HTTP status %v&quot;, response.Status)
+    }
+    // Validate content-type matches request codec
+    if err := grpcValidateResponseContentType(web, codecName, contentType); err != nil {
+        return err
+    }
+    // Validate compression
+    if compression != &quot;&quot; &amp;&amp; compression != compressionIdentity &amp;&amp;
+        !availableCompressors.Contains(compression) {
+        return errorf(CodeInternal, &quot;unknown encoding %q: accepted encodings are %v&quot;, compression, ...)
+    }
+}
+</code></pre>
+<p>gRPC-Web expects HTTP 200 for all responses, just like gRPC over HTTP/2. Non-200 indicates a transport-level failure.</p>
+<h2>Text Protocol Mode (base64 Body)</h2>
+<p>When the client requests <code>application/grpc-web-text</code>, the entire response body is base64-encoded:</p>
+<pre><code class="language-go">// Server side: encode the entire body (all envelopes) as base64
+// Client side: decode the body before parsing envelopes
+</code></pre>
+<p>This mode exists because some HTTP/1.1 intermediaries corrupt binary data. Base64 encoding ensures the envelope framing bytes survive intact through any HTTP/1.1 proxy. The tradeoff is a 33% size increase.</p>
+<p><strong>Key consideration:</strong> The base64 encoding applies to the ENTIRE response body — all data envelopes plus the final trailer envelope. The client must decode the full body, then parse envelopes normally.</p>
+<h2>Client Request Flow (Browser Compatible)</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant B as Browser
+    participant S as Server
+
+    B-&gt;&gt;S: POST /service/Method HTTP/1.1
+    Note over B,S: Content-Type: application/grpc-web+proto
+    Note over B,S: X-User-Agent: grpc-web-javascript/0.1
+    Note over B,S: Grpc-Timeout: 500m
+    Note over B,S: [body: 5-byte envelope + message]
+
+    S-&gt;&gt;S: Parse timeout → context.WithTimeout
+    S-&gt;&gt;S: Decompress if Grpc-Encoding present
+    S-&gt;&gt;S: Unmarshal request via codec
+
+    S-&gt;&gt;S: Execute handler logic
+
+    alt Success (streaming)
+        S-&gt;&gt;B: HTTP 200 OK
+        Note over S,B: Content-Type: application/grpc-web+proto
+        Note over S,B: [body: 5-byte envelope + message]
+        Note over S,B: [body: 5-byte envelope + message]
+        Note over S,B: [body: 5-byte envelope (flag 0x80) + trailer block]
+    else Error (trailers-only)
+        S-&gt;&gt;B: HTTP 200 OK
+        Note over S,B: Content-Type: application/grpc-web+proto
+        Note over S,B: [HTTP headers]
+        Note over S,B: grpc-status: 5
+        Note over S,B: grpc-message: user%20not%20found
+        Note over S,B: [body: empty]
+    end
+
+</div>
+<h2>Compatibility Validation Checklist</h2>
+<ol><li><strong>Content-Type</strong>: Server must return <code>application/grpc-web</code> or <code>application/grpc-web+{codec}</code> matching the request codec. Bare <code>application/grpc-web</code> maps to proto.</li><li><strong>HTTP Status</strong>: All responses must be HTTP 200. Non-200 indicates transport-level failure.</li><li><strong>Trailers in body</strong>: Response must end with an envelope flagged <code>0x80</code> containing the trailer header block. Exception: trailers-only responses send trailers as HTTP headers.</li><li><strong>Trailer header keys</strong>: Must be lowercased in the body envelope (gRPC-Web spec requirement).</li><li><strong>Trailer parsing</strong>: Client must add <code>'\n'</code> before parsing with <code>textproto.Reader.ReadMIMEHeader()</code>.</li><li><strong>grpc-status</strong>: Must always be present (either in HTTP headers for trailers-only, or in body envelope). Missing → <code>CodeInternal</code>.</li><li><strong>grpc-message encoding</strong>: Must use custom percent-encoding (control chars + <code>%</code>, uppercase hex).</li><li><strong>grpc-status-details-bin</strong>: Must be base64-encoded protobuf <code>google.rpc.Status</code> message.</li><li><strong>X-User-Agent</strong>: Client should set both <code>User-Agent</code> and <code>X-User-Agent</code> for ecosystem compatibility.</li><li><strong>Timeout format</strong>: Must be <code><digits><unit></code> with max 8 digits. Units: H/M/S/m/u/n.</li><li><strong>Compression headers</strong>: Must use <code>Grpc-Encoding</code>/<code>Grpc-Accept-Encoding</code>, not standard HTTP headers.</li><li><strong>Flush</strong>: Server must flush after each streaming message (<code>http.Flusher</code>).</li><li><strong>Text mode</strong>: When content-type is <code>application/grpc-web-text</code>, the entire body must be base64-encoded.</li><li><strong>HTTP/1.1 compatibility</strong>: Must work without HTTP/2 features (no native trailers, no multiplexing).</li></ol>
+<h2>Conformance Testing</h2>
+<p>The Go implementation includes a conformance test harness (<code>conformance/</code> directory) that exercises:</p>
+<ul><li>All three protocols (Connect, gRPC, gRPC-Web)</li><li>All four RPC kinds (unary, client stream, server stream, bidi)</li><li>All error codes</li><li>Compression (gzip)</li><li>Timeout/deadline semantics</li><li>Cancellation</li></ul>
+<p>An implementation should pass the connectrpc/conformance test suite to claim compatibility.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>

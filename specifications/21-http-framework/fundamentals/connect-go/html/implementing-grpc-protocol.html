@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Implementing the gRPC Protocol (Native, Over HTTP/2) -- connect-go</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script>
+    (function() {
+      var s = localStorage.getItem('theme');
+      var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || p);
+    })();
+  </script>
+  <script type="module">
+    (async function() {
+      var blocks = document.querySelectorAll('.mermaid');
+      if (blocks.length === 0) return;
+      var { default: m } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      function cfg() {
+        var d = document.documentElement;
+        var dark = d.getAttribute('data-theme') === 'dark';
+        var s = getComputedStyle(d);
+        var bg = s.getPropertyValue(dark ? '--bg-strong' : '--bg-strong').trim();
+        var fg = s.getPropertyValue('--fg').trim();
+        var line = s.getPropertyValue('--line-strong').trim();
+        var muted = s.getPropertyValue('--bg-muted').trim();
+        return { startOnLoad: false, securityLevel: 'strict', htmlLabels: false, theme: 'base', flowchart: { curve: 'linear' }, themeVariables: {
+          primaryColor: bg, primaryTextColor: fg, primaryBorderColor: line,
+          lineColor: line, secondaryColor: muted, tertiaryColor: s.getPropertyValue('--bg').trim(),
+          fontFamily: "'JetBrains Mono', monospace" } };
+      }
+      blocks.forEach(function(b) { b.setAttribute('data-src', b.textContent); });
+      async function render() {
+        m.initialize(cfg());
+        blocks.forEach(function(b) { b.removeAttribute('data-processed'); b.innerHTML = b.getAttribute('data-src'); });
+        await m.run({ nodes: blocks });
+      }
+      await render();
+      new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      // ── Diagram zoom/pan modal ──────────────────────────────
+      var overlay = null, container = null, svg = null;
+      var scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+      function openModal(src) {
+        if (overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'diagram-modal-overlay';
+        overlay.setAttribute('role', 'dialog');
+        container = document.createElement('div');
+        container.className = 'diagram-modal-container';
+        svg = src.cloneNode(true);
+        container.appendChild(svg);
+        var toolbar = document.createElement('div');
+        toolbar.className = 'diagram-modal-toolbar';
+        var btnIn = mkBtn('+', function(e) { e.stopPropagation(); zoom(1.3); });
+        var btnOut = mkBtn('−', function(e) { e.stopPropagation(); zoom(0.7); });
+        var btnReset = mkBtn('fit', function(e) { e.stopPropagation(); resetZoom(); });
+        var btnClose = mkBtn('✕', function(e) { e.stopPropagation(); closeModal(); });
+        toolbar.appendChild(btnIn); toolbar.appendChild(btnOut);
+        toolbar.appendChild(btnReset); toolbar.appendChild(btnClose);
+        container.appendChild(toolbar);
+        var hint = document.createElement('div');
+        hint.className = 'diagram-modal-hint';
+        hint.textContent = 'Scroll to zoom · Drag to pan · Esc to close';
+        document.body.appendChild(overlay);
+        overlay.appendChild(container);
+        document.body.appendChild(hint);
+        scale = 1; panX = 0; panY = 0;
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('wheel', onWheel, { passive: false });
+        overlay.addEventListener('mousedown', onOverlayClick);
+        document.addEventListener('keydown', onKey);
+        setTimeout(function() {
+          var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+          scale = fit; applyTransform();
+        }, 50);
+      }
+      function mkBtn(label, handler) {
+        var b = document.createElement('button');
+        b.className = 'diagram-modal-btn'; b.textContent = label;
+        b.addEventListener('click', handler); return b;
+      }
+      function zoom(f) { scale *= f; applyTransform(); }
+      function resetZoom() {
+        var fit = Math.min(window.innerWidth * 0.9 / svg.clientWidth, window.innerHeight * 0.85 / svg.clientHeight, 1);
+        scale = fit; panX = 0; panY = 0; applyTransform();
+      }
+      function applyTransform() { svg.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')'; }
+      function onWheel(e) { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }
+      function onDragStart(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+        container.classList.add('dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onDragMove(e) { panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); }
+      function onDragEnd() { dragging = false; container.classList.remove('dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      function onOverlayClick(e) { if (e.target === overlay) closeModal(); }
+      function onKey(e) { if (e.key === 'Escape') closeModal(); }
+      function closeModal() {
+        if (!overlay) return;
+        overlay.remove(); overlay = null; container = null; svg = null;
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          el.addEventListener('click', function() {
+            var rendered = el.querySelector('svg');
+            if (rendered) openModal(rendered);
+          });
+        });
+      }, 500);
+    })();
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">~/connect-go/docs</span>
+    <div class="nav-actions">
+      <a href="10-client-lifecycle.html" class="nav-breadcrumb">connect-go — Client Lifecycle</a><a href="README.html" class="nav-breadcrumb">connect-go — Documentation Index</a><a href="implementing-connectrpc-protocol.html" class="nav-breadcrumb">Implementing the ConnectRPC Protocol</a>
+      <a href="index.html" class="nav-btn" title="Back to index">index</a>
+      <a href="implementing-connectrpc-protocol.html" class="nav-btn" title="Previous: Implementing the ConnectRPC Protocol">← prev</a>
+      <a href="implementing-grpcweb-protocol.html" class="nav-btn nav-btn-next" title="Next: Implementing the gRPC-Web Protocol (Native, Over HTTP/1.1)">next →</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">theme</button>
+    </div>
+  </nav>
+  <article class="prose">
+<h1>Implementing the gRPC Protocol (Native, Over HTTP/2)</h1>
+<p><strong>Reference:</strong> <code>connect-go/protocol_grpc.go</code> (~1010 LOC), <code>connect-go/envelope.go</code> (388 LOC), <code>connect-go/codec.go</code> (260 LOC), <code>connect-go/error.go</code> (472 LOC). This document provides a complete blueprint for implementing gRPC over HTTP/2 natively — not via a proxy or translation layer — following the connect-go reference implementation's approach.</p>
+<h2>Protocol Philosophy</h2>
+<p>gRPC over HTTP/2 is the original RPC protocol that Connect was designed to improve upon. It leverages HTTP/2's multiplexing, header compression (HPACK), and native trailer support. The protocol uses HTTP/2 frames directly — trailers are sent as proper HTTP/2 trailer headers, errors are encoded in <code>grpc-status</code>/<code>grpc-message</code> headers, and timeouts use a compact <code><digits><unit></code> format. Unlike Connect, gRPC always returns HTTP 200 for successful and failed RPCs alike — the actual status lives in trailers.</p>
+<h2>Content-Type Routing</h2>
+<pre><code class="language-">Bare proto:  application/grpc
+Named codec: application/grpc+{codec}   e.g., application/grpc+proto, application/grpc+json
+</code></pre>
+<p>The server derives the codec name from the content type:</p>
+<ul><li>If content-type is exactly <code>application/grpc</code> → codec is <code>"proto"</code> (implicit bare mapping)</li><li>If content-type starts with <code>application/grpc+</code> → codec is <code>strings.TrimPrefix(contentType, "application/grpc+")</code></li></ul>
+<p><strong>Aha:</strong> gRPC's "bare" content type for proto is unique among the three protocols. <code>application/grpc</code> without a subtype means proto. This is a historical artifact — the gRPC spec was written before the <code>application/vnd.+codec</code> convention was widely adopted. Implementations must treat <code>application/grpc</code> and <code>application/grpc+proto</code> as equivalent.</p>
+<h2>HTTP Method and Version Requirements</h2>
+<table><tr><th>RPC Kind</th><th>Method</th><th>HTTP Version</th></tr><tr><td>Unary</td><td>POST</td><td>HTTP/2 (HTTP/1.1 fallback possible but non-standard)</td></tr><tr><td>Client Stream</td><td>POST</td><td>HTTP/2</td></tr><tr><td>Server Stream</td><td>POST</td><td>HTTP/2</td></tr><tr><td>Bidi Stream</td><td>POST</td><td>HTTP/2 (required for true bidirectional streaming)</td></tr></table>
+<p><strong>Key requirement:</strong> gRPC requires HTTP/2. All four RPC kinds work over HTTP/2 POST requests. While some implementations accept HTTP/1.1, this is non-standard and loses HTTP/2 multiplexing and trailer support.</p>
+<h2>Required Headers</h2>
+<h3>Client → Server</h3>
+<table><tr><th>Header</th><th>Value</th><th>Source</th></tr><tr><td>`Content-Type`</td><td>`application/grpc` or `application/grpc+{codec}`</td><td>Derived from codec name</td></tr><tr><td>`User-Agent`</td><td>`connect-go/{version} ({goVersion})` or custom</td><td>`protocol_grpc.go:237`</td></tr><tr><td>`Grpc-Timeout`</td><td>`<digits><unit>`</td><td>Optional — e.g., `500m`, `30S`, `1H`</td></tr><tr><td>`Grpc-Encoding`</td><td>Compression name</td><td>Only if request is compressed</td></tr><tr><td>`Grpc-Accept-Encoding`</td><td>Comma-separated compression names</td><td>From registered pools</td></tr><tr><td>`TE`</td><td>`trailers`</td><td>Required for standard gRPC (not gRPC-Web)</td></tr></table>
+<p><strong>Aha:</strong> The <code>TE: trailers</code> header is mandatory for gRPC over HTTP/2. It tells the server that the client supports HTTP trailers. Without it, some gRPC servers won't send trailers, breaking error handling since gRPC communicates errors via trailers, not HTTP status codes. This is a common source of interoperability bugs.</p>
+<h3>Server → Client</h3>
+<table><tr><th>Header</th><th>Value</th><th>Condition</th></tr><tr><td>`Content-Type`</td><td>`application/grpc` or `application/grpc+{codec}`</td><td>Always</td></tr><tr><td>`Grpc-Status`</td><td>`"0"` on success, error code string on failure</td><td>Always (in trailers)</td></tr><tr><td>`Grpc-Message`</td><td>Human-readable error message</td><td>Only on error</td></tr><tr><td>`Grpc-Status-Details-Bin`</td><td>Base64-encoded protobuf `Status` message</td><td>Only if error has details</td></tr><tr><td>`Grpc-Encoding`</td><td>Compression name</td><td>Only if response compressed</td></tr><tr><td>`Grpc-Accept-Encoding`</td><td>Comma-separated names</td><td>Always</td></tr></table>
+<h2>Timeout Encoding: gRPC Format</h2>
+<pre><code class="language-">Grpc-Timeout: &lt;digits&gt;&lt;unit&gt;  // max 8 digits, units: H/M/S/m/u/n
+</code></pre>
+<h3>Parsing</h3>
+<pre><code class="language-go">// protocol_grpc.go:739
+func grpcParseTimeout(timeout string) (time.Duration, error) {
+    if timeout == &quot;&quot; { return 0, errNoTimeout }
+    unit, err := grpcTimeoutUnitLookup(timeout[len(timeout)-1])
+    if err != nil { return 0, err }
+    num, err := strconv.ParseInt(timeout[:len(timeout)-1], 10, 64)
+    if err != nil || num &lt; 0 { return 0, fmt.Errorf(&quot;protocol error: invalid timeout %q&quot;, timeout) }
+    if num &gt; 99999999 { // max 8 digits
+        return 0, fmt.Errorf(&quot;protocol error: timeout %q is too long&quot;, timeout)
+    }
+    return time.Duration(num) * unit, nil
+}
+</code></pre>
+<h3>Timeout Unit Lookup</h3>
+<table><tr><th>Character</th><th>Unit</th></tr><tr><td>`H`</td><td>hours</td></tr><tr><td>`M`</td><td>minutes</td></tr><tr><td>`S`</td><td>seconds</td></tr><tr><td>`m`</td><td>milliseconds</td></tr><tr><td>`u`</td><td>microseconds</td></tr><tr><td>`n`</td><td>nanoseconds</td></tr></table>
+<h3>Encoding (Largest-Unit-Fits Algorithm)</h3>
+<pre><code class="language-go">// protocol_grpc.go:763
+func grpcEncodeTimeout(timeout time.Duration) string {
+    if timeout &lt;= 0 { return &quot;0n&quot; }
+    const grpcTimeoutMaxValue = 1e8  // 8 digits max
+    switch {
+    case timeout &lt; time.Nanosecond*grpcTimeoutMaxValue:
+        size, unit = time.Nanosecond, &#x27;n&#x27;
+    case timeout &lt; time.Microsecond*grpcTimeoutMaxValue:
+        size, unit = time.Microsecond, &#x27;u&#x27;
+    case timeout &lt; time.Millisecond*grpcTimeoutMaxValue:
+        size, unit = time.Millisecond, &#x27;m&#x27;
+    case timeout &lt; time.Second*grpcTimeoutMaxValue:
+        size, unit = time.Second, &#x27;S&#x27;
+    case timeout &lt; time.Minute*grpcTimeoutMaxValue:
+        size, unit = time.Minute, &#x27;M&#x27;
+    default:
+        size, unit = time.Hour, &#x27;H&#x27;
+    }
+    buf := strconv.AppendInt(buf, int64(timeout/size), 10)
+    buf = append(buf, unit)
+    return string(buf)
+}
+</code></pre>
+<p><strong>Aha:</strong> gRPC timeout encoding finds the <strong>largest unit</strong> that fits the value within 8 digits. A 90-second timeout becomes <code>"90S"</code> (not <code>"90000m"</code> or <code>"90000000000n"</code>). This minimizes precision loss while respecting the digit limit. The algorithm cascades from smallest to largest unit, picking the first one where <code>value < 1e8</code>. This is fundamentally different from Connect's plain millisecond format.</p>
+<h2>Unary Request/Response Flow</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C-&gt;&gt;S: POST /service/Method HTTP/2
+    Note over C,S: Content-Type: application/grpc+proto
+    Note over C,S: Grpc-Timeout: 500m
+    Note over C,S: TE: trailers
+    Note over C,S: [body: message bytes (no envelope for unary)]
+
+    S-&gt;&gt;S: Parse timeout → context.WithTimeout
+    S-&gt;&gt;S: Decompress if Grpc-Encoding present
+    S-&gt;&gt;S: Unmarshal request via codec
+
+    S-&gt;&gt;S: Execute handler logic
+
+    alt Success
+        S-&gt;&gt;C: HTTP 200 OK
+        Note over S,C: Content-Type: application/grpc+proto
+        Note over S,C: [Trailers]
+        Note over S,C: grpc-status: 0
+        Note over S,C: [body: message bytes]
+    else Error
+        S-&gt;&gt;C: HTTP 200 OK  (yes, still 200)
+        Note over S,C: Content-Type: application/grpc+proto
+        Note over S,C: [Trailers]
+        Note over S,C: grpc-status: 5
+        Note over S,C: grpc-message: user not found
+        Note over S,C: grpc-status-details-bin: &lt;base64 proto Status&gt;
+        Note over S,C: [body: may be empty]
+    end
+
+</div>
+<p><strong>Critical difference from Connect:</strong> gRPC always returns HTTP 200, even on errors. The actual RPC status code lives in the <code>grpc-status</code> trailer. This means HTTP-level retries, load balancers, and proxies cannot distinguish success from failure without parsing gRPC trailers.</p>
+<h2>Streaming: Envelope Framing</h2>
+<p>Streaming RPCs (client stream, server stream, bidi stream) use the same 5-byte envelope format as Connect:</p>
+<pre><code class="language-">+--------+--------+--------+--------+--------+
+| Flags  |         Length (uint32, BE)       |
+| 1 byte |           4 bytes                 |
++--------+--------+--------+--------+--------+
+|              Payload (Length bytes)         |
++---------------------------------------------+
+</code></pre>
+<h3>Flags</h3>
+<table><tr><th>Flag</th><th>Value</th><th>Meaning</th></tr><tr><td>Compressed</td><td>`0x01`</td><td>Payload is compressed</td></tr></table>
+<p>Unlike Connect, gRPC does NOT use an end-stream envelope flag. Instead, the stream ends naturally when the handler returns, and trailers are sent as separate HTTP/2 trailer headers.</p>
+<h3>Streaming Server → Client Flow</h3>
+<div class="mermaid">
+flowchart TD
+    H1[&quot;Handler calls Send(msg)&quot;]
+    H2[&quot;Marshal msg → bytes&quot;]
+    H3[&quot;Compress if &gt; compressMinBytes&quot;]
+    H4[&quot;Write 5-byte prefix + payload&quot;]
+    H5[&quot;Flush (http.Flusher required)&quot;]
+
+    E1[&quot;Handler returns (or errors)&quot;]
+    E2[&quot;Build trailers: grpc-status, grpc-message, grpc-status-details-bin&quot;]
+    E3[&quot;Merge custom trailers&quot;]
+    E4[&quot;Write as HTTP/2 trailers via http.TrailerPrefix&quot;]
+    E5[&quot;Flush and close&quot;]
+
+    H1 --&gt; H2 --&gt; H3 --&gt; H4 --&gt; H5
+    E1 --&gt; E2 --&gt; E3 --&gt; E4 --&gt; E5
+
+</div>
+<h2>Trailer Handling: HTTP/2 Native</h2>
+<p>gRPC uses HTTP/2 trailers — a native HTTP/2 feature that sends headers after the response body. In Go's <code>net/http</code>, this is exposed via the <code>http.TrailerPrefix</code> mechanism:</p>
+<pre><code class="language-go">// protocol_grpc.go:565
+for key, values := range mergedTrailers {
+    for _, value := range values {
+        hc.responseWriter.Header().Add(http.TrailerPrefix+key, value)
+    }
+}
+</code></pre>
+<p>The <code>http.TrailerPrefix</code> is the string <code>"Trailer:"</code> — setting headers with this prefix signals to <code>net/http</code> that they should be sent as HTTP trailers. This is fundamentally different from Connect, which sends trailers as <code>Trailer-</code>-prefixed regular headers.</p>
+<h3>Server-Side Trailer Declaration</h3>
+<p>The server must pre-declare trailer keys before writing the response body:</p>
+<pre><code class="language-go">// Declare trailer keys upfront (Go net/http requirement)
+responseWriter.Header()[&quot;Trailer&quot;] = []string{&quot;Grpc-Status&quot;, &quot;Grpc-Message&quot;, &quot;Grpc-Status-Details-Bin&quot;}
+</code></pre>
+<p>Without pre-declaration, HTTP/2 trailers may be dropped or sent as regular headers, breaking client parsing.</p>
+<h2>Error Serialization in Trailers</h2>
+<pre><code class="language-go">// protocol_grpc.go:841
+func grpcErrorToTrailer(trailer http.Header, protobuf Codec, err error) {
+    if err == nil {
+        setHeaderCanonical(trailer, grpcHeaderStatus, &quot;0&quot;)  // OK
+        return
+    }
+    // Merge custom metadata (unless wire error)
+    if connectErr, ok := asError(err); ok &amp;&amp; !connectErr.wireErr {
+        mergeNonProtocolHeaders(trailer, connectErr.meta)
+    }
+    status := grpcStatusForError(err)
+    code := status.GetCode()
+    message := status.GetMessage()
+
+    // Serialize details as protobuf Status
+    if len(status.Details) &gt; 0 {
+        bin, _ := protobuf.Marshal(status)
+        setHeaderCanonical(trailer, grpcHeaderDetails, EncodeBinaryHeader(bin))
+    }
+    setHeaderCanonical(trailer, grpcHeaderStatus, strconv.Itoa(int(code)))
+    setHeaderCanonical(trailer, grpcHeaderMessage, grpcPercentEncode(message))
+}
+</code></pre>
+<h3>Protobuf Status Message</h3>
+<p>Error details are serialized as a <code>google.rpc.Status</code> protobuf message:</p>
+<pre><code class="language-go">// protocol_grpc.go:870
+func grpcStatusForError(err error) *statusv1.Status {
+    status := &amp;statusv1.Status{Code: int32(CodeUnknown), Message: err.Error()}
+    if connectErr, ok := asError(err); ok {
+        status.Code = int32(connectErr.Code())
+        status.Message = connectErr.Message()
+        status.Details = connectErr.detailsAsAny()
+    }
+    return status
+}
+</code></pre>
+<p>The <code>grpc-status-details-bin</code> header contains a base64-encoded protobuf <code>Status</code> message with <code>code</code>, <code>message</code>, and <code>details</code> fields.</p>
+<h2>Error Parsing from Trailers (Client Side)</h2>
+<pre><code class="language-go">// protocol_grpc.go:692
+func grpcErrorForTrailer(protobuf Codec, trailer http.Header) *Error {
+    codeHeader := getHeaderCanonical(trailer, grpcHeaderStatus)
+    if codeHeader == &quot;&quot; {
+        code := CodeInternal
+        if len(trailer) == 0 { code = CodeUnknown }
+        return NewError(code, errTrailersWithoutGRPCStatus)
+    }
+    if codeHeader == &quot;0&quot; { return nil }  // OK
+
+    code, _ := strconv.ParseUint(codeHeader, 10, 32)
+    message, _ := grpcPercentDecode(getHeaderCanonical(trailer, grpcHeaderMessage))
+    retErr := NewWireError(Code(code), errors.New(message))
+
+    // Parse protobuf error details from grpc-status-details-bin
+    detailsBinaryEncoded := getHeaderCanonical(trailer, grpcHeaderDetails)
+    if len(detailsBinaryEncoded) &gt; 0 {
+        detailsBinary, _ := DecodeBinaryHeader(detailsBinaryEncoded)
+        var status statusv1.Status
+        protobuf.Unmarshal(detailsBinary, &amp;status)
+        for _, d := range status.GetDetails() {
+            retErr.details = append(retErr.details, &amp;ErrorDetail{pbAny: d})
+        }
+        // Prefer protobuf data over header values
+        retErr.code = Code(status.GetCode())
+        retErr.err = errors.New(status.GetMessage())
+    }
+    return retErr
+}
+</code></pre>
+<p><strong>Key considerations:</strong></p>
+<ul><li>Missing <code>grpc-status</code> → <code>CodeInternal</code> (malformed response) or <code>CodeUnknown</code> (empty trailers).</li><li><code>grpc-status: "0"</code> → no error (OK).</li><li>When <code>grpc-status-details-bin</code> is present, it overrides <code>grpc-status</code> and <code>grpc-message</code> header values.</li><li>Error details are stored as <code>ErrorDetail{pbAny: d}</code> — the inner message is lazily unmarshaled on demand.</li></ul>
+<h2>Percent Encoding for Grpc-Message</h2>
+<pre><code class="language-go">// protocol_grpc.go:895
+func grpcPercentEncode(msg string) string {
+    // Characters that need escaping: control chars (&lt; &#x27; &#x27; or &gt; &#x27;~&#x27;) and &#x27;%&#x27;
+    func grpcShouldEscape(char byte) bool {
+        return char &lt; &#x27; &#x27; || char &gt; &#x27;~&#x27; || char == &#x27;%&#x27;
+    }
+    // Two-pass: count escapes first, then encode with uppercase hex
+    for i := range len(msg) {
+        if grpcShouldEscape(msg[i]) { hexCount++ }
+    }
+    // Encode with uppercase hex (A-F, not a-f)
+    out.WriteByte(&#x27;%&#x27;)
+    out.WriteByte(upperhex[char&gt;&gt;4])  // &quot;0123456789ABCDEF&quot;
+    out.WriteByte(upperhex[char&amp;15])
+}
+</code></pre>
+<p><strong>Aha:</strong> gRPC uses a <strong>custom percent-encoding</strong> that differs from standard URL encoding. Only control characters (ASCII < 32 or > 126) and <code>%</code> itself are escaped. Letters, digits, spaces, and punctuation pass through unchanged. This maximizes human readability of error messages on the wire. Hex digits use <strong>uppercase</strong> (<code>%2F</code> not <code>%2f</code>). This is critical for compatibility — a client expecting standard URL encoding will misdecode gRPC messages.</p>
+<h2>Compression Negotiation</h2>
+<p>The server performs compression negotiation (<code>protocol.go:302</code>):</p>
+<pre><code class="language-go">func negotiateCompression(availableCompressors, sent, accept string) (reqComp, respComp string, err *Error) {
+    // Request compression: use what the client sent (if supported)
+    requestCompression = sent  // or identity if not supported → error
+
+    // Response compression: prefer same as request (asymmetric support)
+    responseCompression = requestCompression
+    if responseCompression == identity &amp;&amp; accept != &quot;&quot; {
+        // Find first mutually supported algorithm from client&#x27;s Accept-Encoding
+        for _, name := range strings.FieldsFunc(accept, isCommaOrSpace) {
+            if availableCompressors.Contains(name) {
+                responseCompression = name
+                break
+            }
+        }
+    }
+}
+</code></pre>
+<p>gRPC uses <code>Grpc-Encoding</code> and <code>Grpc-Accept-Encoding</code> headers — not the standard HTTP <code>Content-Encoding</code>/<code>Accept-Encoding</code>. This avoids confusion with HTTP-level compression.</p>
+<h2>Response Validation</h2>
+<pre><code class="language-go">// protocol_grpc.go:649
+func grpcValidateResponse(response *http.Response, header http.Header,
+    availableCompressors readOnlyCompressionPools, web bool, codecName string) *Error {
+    if response.StatusCode != http.StatusOK {
+        return errorf(httpToCode(response.StatusCode), &quot;HTTP status %v&quot;, response.Status)
+    }
+    // Validate content-type matches request codec
+    if err := grpcValidateResponseContentType(web, codecName, contentType); err != nil {
+        return err
+    }
+    // Validate compression
+    if compression != &quot;&quot; &amp;&amp; compression != compressionIdentity &amp;&amp;
+        !availableCompressors.Contains(compression) {
+        return errorf(CodeInternal, &quot;unknown encoding %q: accepted encodings are %v&quot;, compression, ...)
+    }
+}
+</code></pre>
+<p>gRPC expects HTTP 200 for all responses. Errors are communicated via <code>grpc-status</code> trailers, not HTTP status codes. If a non-200 HTTP status is received, it indicates a transport-level failure (proxy error, authentication failure, etc.), not an RPC-level error.</p>
+<h2>HTTP Status → RPC Code Fallback Mapping</h2>
+<p>When the HTTP status is non-200 (transport-level error):</p>
+<pre><code class="language-go">// protocol.go:401
+func httpToCode(httpCode int) Code {
+    switch httpCode {
+    case 400: return CodeInternal        // Malformed request
+    case 401: return CodeUnauthenticated  // No auth
+    case 403: return CodePermissionDenied // Forbidden
+    case 404: return CodeUnimplemented    // Unknown endpoint
+    case 429: return CodeUnavailable      // Rate limited
+    case 502, 503, 504: return CodeUnavailable  // Server issues
+    default: return CodeUnknown
+    }
+}
+</code></pre>
+<p><strong>Important:</strong> Per the gRPC HTTP status mapping specification, HTTP 400 maps to <code>CodeInternal</code>, not <code>CodeInvalidArgument</code>. This is because a 400 from an HTTP intermediary (not the gRPC server) indicates a proxy issue, not a client error.</p>
+<h2>Compatibility Validation Checklist</h2>
+<ol><li><strong>Content-Type</strong>: Server must return <code>application/grpc</code> or <code>application/grpc+{codec}</code> matching the request codec. Bare <code>application/grpc</code> maps to proto.</li><li><strong>HTTP Status</strong>: All responses must be HTTP 200. Non-200 indicates transport-level failure.</li><li><strong>Trailers</strong>: <code>grpc-status</code> must always be present in trailers. Missing → <code>CodeInternal</code>.</li><li><strong>grpc-status format</strong>: Must be a decimal string (<code>"0"</code>, <code>"5"</code>, <code>"14"</code>), not hex.</li><li><strong>grpc-message encoding</strong>: Must use custom percent-encoding (control chars + <code>%</code>, uppercase hex).</li><li><strong>grpc-status-details-bin</strong>: Must be base64-encoded protobuf <code>google.rpc.Status</code> message.</li><li><strong>TE: trailers</strong>: Client must send <code>TE: trailers</code> header for HTTP/2 trailer support.</li><li><strong>Timeout format</strong>: Must be <code><digits><unit></code> with max 8 digits. Units: H/M/S/m/u/n.</li><li><strong>Compression headers</strong>: Must use <code>Grpc-Encoding</code>/<code>Grpc-Accept-Encoding</code>, not standard HTTP headers.</li><li><strong>Flush</strong>: Server must flush after each streaming message (<code>http.Flusher</code>).</li><li><strong>HTTP/2 required</strong>: HTTP/1.1 responses are non-standard — clients may reject them.</li><li><strong>Trailer pre-declaration</strong>: Server must pre-declare trailer keys before writing body.</li></ol>
+<h2>Conformance Testing</h2>
+<p>The Go implementation includes a conformance test harness (<code>conformance/</code> directory) that exercises:</p>
+<ul><li>All three protocols (Connect, gRPC, gRPC-Web)</li><li>All four RPC kinds (unary, client stream, server stream, bidi)</li><li>All error codes</li><li>Compression (gzip)</li><li>Timeout/deadline semantics</li><li>Cancellation</li><li>GET requests for idempotent unary (Connect only)</li></ul>
+<p>An implementation should pass the connectrpc/conformance test suite to claim compatibility.</p>
+  </article>
+  <script>function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}</script>
+</body>
+</html>
