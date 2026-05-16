@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/28-cloudflare-workers-readiness"
-feature_directory: "specifications/28-cloudflare-workers-readiness/features/07-ci-wasm-checks"
-this_file: "specifications/28-cloudflare-workers-readiness/features/07-ci-wasm-checks/start.md"
+feature_directory: "specifications/28-cloudflare-workers-readiness/features/05-example-app"
+this_file: "specifications/28-cloudflare-workers-readiness/features/05-example-app/start.md"
 created: 2026-05-15
 ---
 
-# Start: CI Wasm Checks Feature
+# Start: Example Login App Feature
 
 ## Agent Workflow
 

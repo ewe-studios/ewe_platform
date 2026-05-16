@@ -30,8 +30,8 @@ related_specs:
   - "specifications/21-http-framework"
 features:
   completed: 0
-  uncompleted: 7
-  total: 7
+  uncompleted: 6
+  total: 6
   completion_percentage: 0%
 ---
 
@@ -53,34 +53,52 @@ This specification makes the foundation crates compile and run on `wasm32-unknow
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│              Cloudflare Worker (V8 isolate)             │
-│                                                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  wasm-bindgen entry point (lib.rs)                │  │
-│  │  ┌─────────────────────────────────────────────┐  │  │
-│  │  │  foundation_auth logic (pure Rust)          │  │  │
-│  │  │  - JwtManager, SessionManager               │  │  │
-│  │  │  - Auth guards (require_auth, has_scope)    │  │  │
-│  │  └─────────────────────────────────────────────┘  │  │
-│  │  ┌─────────────────────────────────────────────┐  │  │
-│  │  │  foundation_db via Cloudflare bindings      │  │  │
-│  │  │  - D1 via JS env.DB binding (wasm-bindgen)  │  │  │
-│  │  │  - R2 via JS env.BUCKET binding             │  │  │
-│  │  │  - Turso via libSQL WASI runtime (optional) │  │  │
-│  │  └─────────────────────────────────────────────┘  │  │
-│  │  ┌─────────────────────────────────────────────┐  │  │
-│  │  │  foundation_http handler logic (Serve impl) │  │  │
-│  │  │  - Request parsing from CF FetchEvent       │  │  │
-│  │  │  - Response building → JS Response object   │  │  │
-│  │  └─────────────────────────────────────────────┘  │  │
-│  └─────────────────────────────────────────────────┘  │
-│                                                         │
-│  Bindings layer (wasm-bindgen glue):                   │
-│  - Request/Response ↔ SimpleIncoming/SimpleOutgoing    │
-│  - env.DB → D1 prepared statements                     │
-│  - env.BUCKET → R2 get/put                             │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                    Cloudflare Worker (V8 isolate)                    │
+│                                                                      │
+│  foundation_http/wasm/bridge/cf.rs                                   │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  handleRequest(req, env) → JS Request → SimpleIncomingRequest  │  │
+│  │                           → foundation_http/wasm/server/dispatch│  │
+│  │                           → response bytes → JS Response       │  │
+│  └────────────────────────────────────────────────────────────────┘  │
+│                                    │                                 │
+│  foundation_http/wasm/ (core/)     │                                 │
+│  ┌─────────────────────────────────┼────────────────────────────┐    │
+│  │  HttpApp + Router + Server enum │                            │    │
+│  │  Middleware chain (Auth, Cors,  │                            │    │
+│  │  Logger, Compression, BodyLimit)│                            │    │
+│  └────────────────┬────────────────┼────────────────────────────┘    │
+│                   │             │                                    │
+│  foundation_auth  │             │                                    │
+│  ┌────────────────┼─────────────┼──────────────────────────────┐    │
+│  │  JwtManager, SessionManager,  │                              │    │
+│  │  Auth guards (require_auth,   │                              │    │
+│  │  has_scope), CredentialStore  │                              │    │
+│  └───────────────────────────────┼──────────────────────────────┘    │
+│                                │                                     │
+│  foundation_db/wasm/cf/        │                                     │
+│  ┌─────────────────────────────┼────────────────────────────────┐    │
+│  │  D1Database::from_env(env) ─┤→ ContextBag                     │    │
+│  │  R2Bucket::from_env(env) ───┤→ ContextBag                     │    │
+│  │  KVNamespace::from_env(env)─┤→ ContextBag                     │    │
+│  └─────────────────────────────┼────────────────────────────────┘    │
+│                                │                                     │
+│  foundation_db/core/           │                                     │
+│  ┌─────────────────────────────┼────────────────────────────────┐    │
+│  │  KeyValueStore, QueryStore, │                                │    │
+│  │  BlobStore traits           │                                │    │
+│  │  Memory backends            │                                │    │
+│  └─────────────────────────────┼────────────────────────────────┘    │
+│                                │                                     │
+│  foundation_core/              │                                     │
+│  ┌─────────────────────────────┼────────────────────────────────┐    │
+│  │  ContextBag, valtron,       │                                │    │
+│  │  SimpleHttpClient, wire     │                                │    │
+│  └─────────────────────────────┴────────────────────────────────┘    │
+│                                                                      │
+│  CF env bindings: env.DB, env.BUCKET, env.KV, env.SECRETS            │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Wasm Compatibility Strategy
@@ -119,15 +137,14 @@ For the foundation_db integration:
 
 ## Feature Index
 
-### Pending Features (0/7 completed)
+### Pending Features (0/6 completed)
 
 1. **[core-wasm-compat](./features/01-core-wasm-compat/feature.md)** — Remove dead ctrlc dep, add wasm feature flags, SSL backend switching
 2. **[auth-wasm-compat](./features/02-auth-wasm-compat/feature.md)** — Fix uuid/chrono wasm features, verify auth logic compiles
-3. **[http-wasm-compat](./features/03-http-wasm-compat/feature.md)** — Gate TCP-dependent code, make Serve trait usable on wasm
-4. **[db-wasm-compat](./features/04-db-wasm-compat/feature.md)** — Enable turso on wasm, D1/R2 via CF JS bindings
-5. **[wasm-bindings](./features/05-wasm-bindings/feature.md)** — wasm-bindgen layer for CF Workers (Request/Response/D1/R2)
-6. **[example-app](./features/06-example-app/feature.md)** — Working login app deployable to Cloudflare Workers
-7. **[ci-wasm-checks](./features/07-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
+3. **[http-wasm-compat](./features/03-http-wasm-compat/feature.md)** — Restructure into core/native/wasm, ServeWriter, Server enum, bridge/web+cf
+4. **[db-wasm-compat](./features/04-db-wasm-compat/feature.md)** — Restructure into core/native/wasm, CF D1/R2/KV wasm-bindgen bridge
+5. **[example-app](./features/05-example-app/feature.md)** — Working login app deployable to Cloudflare Workers
+6. **[ci-wasm-checks](./features/06-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
 
 ---
 
@@ -136,21 +153,18 @@ For the foundation_db integration:
 ```
 01-core-wasm-compat (base)
     |
-    +----+----+----+
-    |    |    |    |
-    v    v    v    v
-02-auth 03-http 04-db  (parallel)
-    |    |    |
-    +----+----+
+    +----+--------+
+    |    |        |
+    v    v        v
+02-auth 03-http  04-db  (parallel)
+    |    |        |
+    +----+--------+
          |
          v
-    05-wasm-bindings
+    05-example-app
          |
          v
-    06-example-app
-         |
-         v
-    07-ci-wasm-checks
+    06-ci-wasm-checks
 ```
 
 ---

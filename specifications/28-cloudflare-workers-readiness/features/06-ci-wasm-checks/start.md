@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/28-cloudflare-workers-readiness"
-feature_directory: "specifications/28-cloudflare-workers-readiness/features/05-wasm-bindings"
-this_file: "specifications/28-cloudflare-workers-readiness/features/05-wasm-bindings/start.md"
+feature_directory: "specifications/28-cloudflare-workers-readiness/features/06-ci-wasm-checks"
+this_file: "specifications/28-cloudflare-workers-readiness/features/06-ci-wasm-checks/start.md"
 created: 2026-05-15
 ---
 
-# Start: Wasm Bindings Layer Feature
+# Start: CI Wasm Checks Feature
 
 ## Agent Workflow
 
