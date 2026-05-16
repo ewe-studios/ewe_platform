@@ -1,3 +1,2 @@
-#![cfg(test)]
-
+mod benchmarks;
 mod wasm_tests;

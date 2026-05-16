@@ -2699,6 +2699,13 @@ dependencies = [
 [[package]]
 name = "foundation_nostd"
 version = "0.0.4"
+dependencies = [
+ "foundation_testing",
+ "ntest",
+ "serial_test",
+ "tracing-subscriber",
+ "tracing-test",
+]
 
 [[package]]
 name = "foundation_openapi"

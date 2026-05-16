@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 pub mod barrier_debug;
 pub mod integration_tests;
 
