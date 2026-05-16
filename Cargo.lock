@@ -2495,6 +2495,7 @@ dependencies = [
  "derive_more",
  "foundation_core",
  "foundation_db",
+ "getrandom 0.2.16",
  "hmac",
  "jwt-simple",
  "rand 0.8.5",

@@ -1,7 +1,7 @@
 ---
 feature: "Wire Module Restructure — Deep Client Split"
 description: "Split all foundation_core::wire modules into shared (wasm-compatible) and native (socket/TLS-dependent) submodules with deep client split"
-status: "planned"
+status: "implemented"
 priority: "high"
 depends_on: ["01-core-wasm-compat"]
 estimated_effort: "large"
