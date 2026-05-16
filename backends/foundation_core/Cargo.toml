@@ -106,7 +106,12 @@ gzip = ["flate2"]
 deflate = ["flate2"]
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std", "ssl", "compression"]
+default = ["standard", "std", "ssl", "compression", "wire-native"]
+
+# Wire module features
+# wire-native: includes socket/TLS-dependent wire modules (simple_http client, websocket, event_source, http_stream)
+# On non-wasm32 targets this is enabled by default via std. On wasm32, opt in if you have alternative netcap bindings.
+wire-native = ["std"]
 
 # Valtron utilities features
 std = ["futures-core/std", "foundation_nostd/std"]

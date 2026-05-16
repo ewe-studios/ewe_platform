@@ -19,7 +19,7 @@ use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
-use crate::wire::simple_http::client::body_reader::drain_stream_iterator_from_send_safe;
+use crate::wire::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
 use crate::wire::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };

@@ -12,8 +12,7 @@ use crate::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
-use crate::wire::simple_http::client::body_reader::ContentLengthEnforcingIterator;
-use crate::wire::simple_http::client::Extensions as ClientExtensions;
+use crate::wire::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,

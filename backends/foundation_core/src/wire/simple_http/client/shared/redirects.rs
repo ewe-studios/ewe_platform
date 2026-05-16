@@ -1,8 +1,10 @@
+use crate::url::Uri;
 use crate::wire::simple_http::{
-    client::{Extensions, PreparedRequest, Uri},
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
+use crate::wire::simple_http::shared::Extensions;
+use super::request::PreparedRequest;
 
 /// Resolve a `Location` header value against a base `Uri` (Uri).
 ///

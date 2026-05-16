@@ -1,45 +1,32 @@
 // HTTP 1.1 Client Module
-//
-// This module provides an HTTP 1.1 client implementation using iterator-based
-// patterns and pluggable DNS resolution.
 
-mod api;
-pub mod body_reader;
-#[allow(clippy::module_inception)]
-mod client;
-mod compression;
-mod connection;
-mod control;
-mod cookie;
-mod dns;
-mod extensions;
-mod intro;
-mod middleware;
-mod pool;
-mod proxy;
-mod redirects;
-mod request;
-mod tasks;
-mod tls_task;
+// Shared types — always compiled, including on wasm32
+pub mod shared;
+pub use shared::*;
 
-pub use api::*;
-pub use body_reader::*;
-pub use client::*;
-pub use compression::*;
-pub use connection::*;
-pub use control::*;
-pub use cookie::*;
-pub use dns::*;
-pub use extensions::*;
-pub use intro::*;
-pub use middleware::*;
-pub use pool::*;
-pub use proxy::*;
-pub use redirects::*;
-pub use request::*;
-pub use tasks::*;
+// Native types — gated behind not(target_arch = "wasm32")
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native;
 
-// Re-export ExecutionAction from valtron so tests and helpers can reference it
+#[cfg(not(target_arch = "wasm32"))]
+pub use native::*;
+
+// Re-export submodules for backward compatibility: client::body_reader, client::redirects, etc.
+// These were previously top-level modules of client/ and are now in shared/.
+pub use shared::body_reader;
+pub use shared::redirects;
+pub use shared::dns;
+pub use shared::cookie;
+pub use shared::control;
+pub use shared::compression;
+pub use shared::intro;
+pub use shared::middleware;
+pub use shared::proxy;
+pub use shared::config;
+pub use shared::request as request_module;
+
+// Re-export Extensions from simple_http::shared
+pub use crate::wire::simple_http::shared::Extensions;
+
+// Re-export ExecutionAction from valtron
 pub use crate::valtron::ExecutionAction;
-
-pub use tls_task::*;

@@ -374,7 +374,7 @@ pub fn drain_stream_iterator(
                 | IncomingResponseParts::NoBody
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => return Ok(()),
+            ) => continue,
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
     }
@@ -1483,70 +1483,13 @@ where
     }
 }
 
+// Re-export from shared so the import path `client::body_reader::ContentLengthEnforcingIterator`
+// continues to work for existing callers
+pub use crate::wire::simple_http::shared::ContentLengthEnforcingIterator;
+
 // ============================================================================
-// Content-Length Enforcement Wrapper
+// LineFeed Content-Length Enforcement (body_reader-internal)
 // ============================================================================
-
-/// WHY: When `Content-Length` is declared, the body must match the promised size.
-/// If the stream ends early (e.g., connection dropped, pipelined response starts),
-/// callers should get an error rather than silently receiving a truncated body.
-///
-/// WHAT: Iterator wrapper that tracks total bytes read and validates against
-/// expected `Content-Length` when the inner iterator reaches EOF.
-///
-/// HOW: Accumulates byte counts from `Data::Bytes` items. On inner `None`,
-/// compares `bytes_read` against `expected`. Returns error on mismatch.
-pub struct ContentLengthEnforcingIterator<I> {
-    inner: Option<I>,
-    expected: usize,
-    bytes_read: usize,
-}
-
-impl<I> ContentLengthEnforcingIterator<I> {
-    pub fn new(inner: I, expected: usize) -> Self {
-        Self {
-            inner: Some(inner),
-            expected,
-            bytes_read: 0,
-        }
-    }
-}
-
-impl<I> Iterator for ContentLengthEnforcingIterator<I>
-where
-    I: Iterator<Item = Result<Data, BoxedError>>,
-{
-    type Item = Result<Data, BoxedError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut inner = self.inner.take()?;
-
-        match inner.next() {
-            Some(Ok(Data::Bytes(bytes))) => {
-                self.bytes_read += bytes.len();
-                self.inner = Some(inner);
-                Some(Ok(Data::Bytes(bytes)))
-            }
-            Some(other) => {
-                self.inner = Some(inner);
-                Some(other)
-            }
-            None => {
-                if self.bytes_read != self.expected {
-                    Some(Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::UnexpectedEof,
-                        format!(
-                            "body truncated: expected {} bytes per Content-Length, got {}",
-                            self.expected, self.bytes_read
-                        ),
-                    ))))
-                } else {
-                    None
-                }
-            }
-        }
-    }
-}
 /// WHY: Same as `ContentLengthEnforcingIterator` but for `LineFeed` streams.
 /// WHAT: Tracks byte count from `LineFeed::Line` items and validates at EOF.
 #[allow(unused)]

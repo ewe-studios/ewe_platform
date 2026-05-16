@@ -19,7 +19,7 @@ use derive_more::From;
 
 use crate::netcap::RawStream;
 use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::body_reader::drain_stream_iterator_from_send_safe;
+use crate::wire::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
 use crate::wire::simple_http::client::{HttpClientConnection, ResponseIntro};
 use crate::wire::simple_http::IncomingResponseParts;
 use crate::wire::simple_http::{

@@ -10,7 +10,7 @@
 /// # Panics
 ///
 /// Never panics.
-use crate::wire::simple_http::client::PreparedRequest;
+use super::request::PreparedRequest;
 use crate::wire::simple_http::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleResponse,
 };

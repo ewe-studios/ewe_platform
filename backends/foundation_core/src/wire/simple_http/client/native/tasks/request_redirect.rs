@@ -18,9 +18,8 @@
 use crate::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::{
-    redirects, DnsResolver, HttpClientConnection, HttpConnectionPool,
-};
+use crate::wire::simple_http::client::redirects;
+use crate::wire::simple_http::client::{DnsResolver, HttpClientConnection, HttpConnectionPool};
 use crate::wire::simple_http::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
     RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,

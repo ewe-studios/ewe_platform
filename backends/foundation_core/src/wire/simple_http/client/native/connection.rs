@@ -2,7 +2,7 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::wire::simple_http::client::pool::ConnectionPool;
+use crate::wire::simple_http::client::native::pool::ConnectionPool;
 use crate::wire::simple_http::client::SystemDnsResolver;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::{Connection, RawStream};
-use crate::wire::simple_http::client::dns::DnsResolver;
+use crate::wire::simple_http::client::shared::dns::DnsResolver;
 use crate::wire::simple_http::HttpClientError;
 use std::time::Duration;
 
