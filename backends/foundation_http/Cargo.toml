@@ -22,6 +22,7 @@ sha1 = "0.10"
 base64 = "0.22"
 tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
+getrandom = { version = "0.2", optional = true }
 
 [dev-dependencies]
 foundation_testing = { workspace=true }
@@ -40,6 +41,8 @@ ssl-rustls-ring = ["foundation_core/ssl-rustls-ring"]
 ssl-rustls-awsrc = ["foundation_core/ssl-rustls-awsrc"]
 ssl-openssl = ["foundation_core/ssl-openssl"]
 ssl-native-tls = ["foundation_core/ssl-native-tls"]
+# Wasm compatibility — uses browser crypto for UUID generation
+wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
 
 [lints]
 workspace = true

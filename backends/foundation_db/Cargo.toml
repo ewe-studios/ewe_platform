@@ -28,6 +28,7 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 # Security
 zeroize = { version = "1.8", features = ["derive"] }
 chacha20poly1305 = "0.10"
+getrandom = { version = "0.2", optional = true }
 rand = "0.8"
 hex = "0.4"
 base64 = "0.22"
@@ -54,6 +55,9 @@ r2 = []
 
 # Multi-threaded support - enables foundation_core's multi feature
 multi = ["foundation_core/multi"]
+
+# Wasm compatibility — browser crypto and JS time APIs
+wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 
 [lints]
 workspace = true
