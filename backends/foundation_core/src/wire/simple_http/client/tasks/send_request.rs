@@ -23,7 +23,7 @@ use crate::wire::simple_http::client::body_reader::drain_stream_iterator_from_se
 use crate::wire::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
-use crate::wire::simple_http::url::Uri;
+use crate::url::Uri;
 use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,

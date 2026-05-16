@@ -18,7 +18,7 @@ use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::client::HttpClientConnection;
 use crate::wire::simple_http::client::HttpConnectionPool;
-use crate::wire::simple_http::url::Uri;
+use crate::url::Uri;
 use crate::wire::simple_http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };

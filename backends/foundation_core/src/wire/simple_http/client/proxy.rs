@@ -1,4 +1,4 @@
-use crate::wire::simple_http::url::Scheme;
+use crate::url::Scheme;
 /// Proxy support for HTTP client.
 ///
 /// WHY: HTTP clients often need to route requests through proxy servers for

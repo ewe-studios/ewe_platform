@@ -1,4 +1,3 @@
-extern crate url;
 
 mod consumer;
 mod core;

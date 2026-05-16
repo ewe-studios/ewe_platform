@@ -2,6 +2,7 @@
 //! Abstractions of Tcp and Unix socket types
 
 use crate::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
+use crate::url::{InvalidUri, Uri};
 #[cfg(unix)]
 use std::os::unix::net as unix_net;
 use std::{
@@ -26,7 +27,7 @@ pub enum SocketAddr {
 
 #[derive(From, Debug)]
 pub enum EndpointError {
-    ParseUrlFailed(url::ParseError),
+    ParseUrlFailed(InvalidUri),
 }
 
 impl std::error::Error for EndpointError {}
@@ -39,18 +40,18 @@ impl core::fmt::Display for EndpointError {
 
 #[derive(Clone, Debug)]
 pub enum EndpointConfig {
-    NoTimeout(url::Url),
-    WithTimeout(url::Url, Duration),
+    NoTimeout(Uri),
+    WithTimeout(Uri, Duration),
 }
 
 #[allow(unused)]
 impl EndpointConfig {
-    /// Returns a copy of the url of the target endpoint.
+    /// Returns a reference to the URI of the target endpoint.
     #[inline]
     #[must_use]
-    pub fn url(&self) -> url::Url {
+    pub fn url(&self) -> &Uri {
         match self {
-            Self::NoTimeout(inner) | Self::WithTimeout(inner, _) => inner.clone(),
+            Self::NoTimeout(inner) | Self::WithTimeout(inner, _) => inner,
         }
     }
 }
@@ -67,24 +68,24 @@ pub enum Endpoint<I: Clone> {
 impl Endpoint<()> {
     #[inline]
     #[must_use]
-    pub fn with_default(target: url::Url) -> Self {
+    pub fn with_default(target: Uri) -> Self {
         Endpoint::WithDefault(EndpointConfig::NoTimeout(target))
     }
 
     #[inline]
     #[must_use]
-    pub fn with_timeout(target: url::Url, timeout: Duration) -> Self {
+    pub fn with_timeout(target: Uri, timeout: Duration) -> Self {
         Endpoint::WithDefault(EndpointConfig::WithTimeout(target, timeout))
     }
 
     /// Create an endpoint from a string.
     ///
     /// # Errors
-    /// Returns an error if the URL parsing fails.
+    /// Returns an error if the URI parsing fails.
     #[inline]
     pub fn with_string<S: Into<String>>(target: S) -> std::result::Result<Self, EndpointError> {
-        match url::Url::parse(&target.into()) {
-            Ok(url) => Ok(Endpoint::WithDefault(EndpointConfig::NoTimeout(url))),
+        match Uri::parse(&target.into()) {
+            Ok(uri) => Ok(Endpoint::WithDefault(EndpointConfig::NoTimeout(uri))),
             Err(err) => Err(EndpointError::ParseUrlFailed(err)),
         }
     }
@@ -92,15 +93,15 @@ impl Endpoint<()> {
     /// Create an endpoint from a string with a timeout.
     ///
     /// # Errors
-    /// Returns an error if the URL parsing fails.
+    /// Returns an error if the URI parsing fails.
     #[inline]
     pub fn with_string_timeout<S: Into<String>>(
         target: S,
         timeout: Duration,
     ) -> std::result::Result<Self, EndpointError> {
-        match url::Url::parse(&target.into()) {
-            Ok(url) => Ok(Endpoint::WithDefault(EndpointConfig::WithTimeout(
-                url, timeout,
+        match Uri::parse(&target.into()) {
+            Ok(uri) => Ok(Endpoint::WithDefault(EndpointConfig::WithTimeout(
+                uri, timeout,
             ))),
             Err(err) => Err(EndpointError::ParseUrlFailed(err)),
         }
@@ -110,12 +111,12 @@ impl Endpoint<()> {
 #[allow(unused)]
 impl<T: Clone> Endpoint<T> {
     #[inline]
-    pub fn with_identity(target: url::Url, identity: T) -> Self {
+    pub fn with_identity(target: Uri, identity: T) -> Self {
         Endpoint::WithIdentity(EndpointConfig::NoTimeout(target), identity)
     }
 
     #[inline]
-    pub fn with_identity_timeout(target: url::Url, timeout: Duration, identity: T) -> Self {
+    pub fn with_identity_timeout(target: Uri, timeout: Duration, identity: T) -> Self {
         Endpoint::WithIdentity(EndpointConfig::WithTimeout(target, timeout), identity)
     }
 }
@@ -124,10 +125,10 @@ impl<T: Clone> Endpoint<T> {
 
 #[allow(unused)]
 impl<T: Clone> Endpoint<T> {
-    /// Returns a copy of the url of the target endpoint.
+    /// Returns a reference to the URI of the target endpoint.
     #[inline]
     #[allow(clippy::match_same_arms)]
-    pub fn url(&self) -> url::Url {
+    pub fn url(&self) -> &Uri {
         match self {
             Self::WithDefault(inner) => inner.url(),
             Self::WithIdentity(inner, _) => inner.url(),
@@ -136,51 +137,44 @@ impl<T: Clone> Endpoint<T> {
 
     #[inline]
     pub fn host(&self) -> String {
-        self.get_host_from(&self.url())
+        self.get_host_from(self.url())
     }
 
     #[inline]
-    pub fn get_host_from(&self, endpoint_url: &url::Url) -> String {
+    pub fn get_host_from(&self, endpoint_url: &Uri) -> String {
         let mut host = match endpoint_url.host_str() {
-            Some(h) => String::from(h),
+            Some(h) => h,
             None => String::from("localhost"),
         };
 
-        if let Some(port) = endpoint_url.port_or_known_default() {
-            host = format!("{host}:{port}");
-        }
+        let port = endpoint_url.port_or_default();
+        host = format!("{host}:{port}");
 
         host
     }
 
     #[inline]
-    pub fn scheme(&self) -> String {
-        let url = self.url();
-        url.scheme().to_owned()
+    pub fn scheme(&self) -> &str {
+        self.url().scheme().as_str()
     }
 
     #[inline]
-    pub fn query(&self) -> Option<String> {
-        self.get_query_params(&self.url())
-    }
-
-    #[inline]
-    pub fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
-        endpoint_url.query().map(String::from)
+    pub fn query(&self) -> Option<&str> {
+        self.url().query()
     }
 
     #[inline]
     pub fn path_and_query(&self) -> String {
-        self.get_path_with_query_params(&self.url())
+        self.get_path_with_query_params(self.url())
     }
 
     #[inline]
-    pub fn path(&self) -> String {
-        String::from(self.url())
+    pub fn path(&self) -> &str {
+        self.url().path()
     }
 
     #[inline]
-    pub fn get_path_with_query_params(&self, endpoint_url: &url::Url) -> String {
+    pub fn get_path_with_query_params(&self, endpoint_url: &Uri) -> String {
         match endpoint_url.query() {
             Some(query) => format!("{}?{}", endpoint_url.path(), query),
             None => endpoint_url.path().to_owned(),

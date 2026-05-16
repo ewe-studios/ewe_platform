@@ -27,7 +27,7 @@ use core::cell::{Cell, UnsafeCell};
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 
-use crate::primitives::{TryLockError, TryLockResult};
+use crate::primitives::{LockResult, TryLockError, TryLockResult};
 
 /// A no-op mutex for single-threaded WASM environments.
 ///
@@ -107,6 +107,11 @@ impl<T: ?Sized> NoopMutex<T> {
     ///
     /// Panics if the lock is already held (recursive lock attempt).
     ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the lock was poisoned. In practice, this never occurs
+    /// for `NoopMutex` since it panics rather than poisoning on invalid state.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -117,13 +122,13 @@ impl<T: ?Sized> NoopMutex<T> {
     /// *guard += 1;
     /// ```ignore
     #[inline]
-    pub fn lock(&self) -> NoopMutexGuard<'_, T> {
+    pub fn lock(&self) -> LockResult<NoopMutexGuard<'_, T>> {
         assert!(
             !self.locked.get(),
             "NoopMutex: recursive lock attempt in single-threaded context"
         );
         self.locked.set(true);
-        NoopMutexGuard { mutex: self }
+        Ok(NoopMutexGuard { mutex: self })
     }
 
     /// Attempts to acquire the lock.
@@ -196,6 +201,11 @@ impl<T> From<T> for NoopMutex<T> {
         Self::new(data)
     }
 }
+
+// SAFETY: NoopMutex is only used on single-threaded wasm32 where sharing across threads
+// is not possible. Cell and UnsafeCell are !Sync, but we need Sync for static usage.
+unsafe impl<T: Send> Sync for NoopMutex<T> {}
+unsafe impl<T: Send> Send for NoopMutex<T> {}
 
 impl<T: ?Sized> Deref for NoopMutexGuard<'_, T> {
     type Target = T;
@@ -322,6 +332,11 @@ impl<T: ?Sized> NoopRwLock<T> {
     ///
     /// Panics if a write lock is currently held.
     ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the lock was poisoned. In practice, this never occurs
+    /// for `NoopRwLock` since it panics rather than poisoning on invalid state.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -333,7 +348,7 @@ impl<T: ?Sized> NoopRwLock<T> {
     /// assert_eq!(*r1, 42);
     /// ```ignore
     #[inline]
-    pub fn read(&self) -> NoopReadGuard<'_, T> {
+    pub fn read(&self) -> LockResult<NoopReadGuard<'_, T>> {
         match self.locked.get() {
             LockState::Unlocked => {
                 self.locked.set(LockState::Reading(1));
@@ -345,7 +360,7 @@ impl<T: ?Sized> NoopRwLock<T> {
                 panic!("NoopRwLock: cannot read while write lock is held");
             }
         }
-        NoopReadGuard { lock: self }
+        Ok(NoopReadGuard { lock: self })
     }
 
     /// Attempts to acquire a read lock.
@@ -388,6 +403,11 @@ impl<T: ?Sized> NoopRwLock<T> {
     ///
     /// Panics if any lock (read or write) is currently held.
     ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the lock was poisoned. In practice, this never occurs
+    /// for `NoopRwLock` since it panics rather than poisoning on invalid state.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -398,11 +418,11 @@ impl<T: ?Sized> NoopRwLock<T> {
     /// *w += 1;
     /// ```ignore
     #[inline]
-    pub fn write(&self) -> NoopWriteGuard<'_, T> {
+    pub fn write(&self) -> LockResult<NoopWriteGuard<'_, T>> {
         match self.locked.get() {
             LockState::Unlocked => {
                 self.locked.set(LockState::Writing);
-                NoopWriteGuard { lock: self }
+                Ok(NoopWriteGuard { lock: self })
             }
             _ => {
                 panic!("NoopRwLock: cannot write while lock is held");
@@ -467,6 +487,11 @@ impl<T> From<T> for NoopRwLock<T> {
         Self::new(data)
     }
 }
+
+// SAFETY: NoopRwLock is only used on single-threaded wasm32 where sharing across threads
+// is not possible. Cell and UnsafeCell are !Sync, but we need Sync for static usage.
+unsafe impl<T: Send> Sync for NoopRwLock<T> {}
+unsafe impl<T: Send> Send for NoopRwLock<T> {}
 
 impl<T: ?Sized> Deref for NoopReadGuard<'_, T> {
     type Target = T;
@@ -640,11 +665,11 @@ mod tests {
     fn test_mutex_lock() {
         let mutex = NoopMutex::new(0);
         {
-            let mut guard = mutex.lock();
+            let mut guard = mutex.lock().unwrap();
             *guard += 1;
             assert_eq!(*guard, 1);
         }
-        let guard = mutex.lock();
+        let guard = mutex.lock().unwrap();
         assert_eq!(*guard, 1);
     }
 
@@ -659,7 +684,7 @@ mod tests {
     #[test]
     fn test_mutex_try_lock_would_block() {
         let mutex = NoopMutex::new(42);
-        let _guard1 = mutex.lock();
+        let _guard1 = mutex.lock().unwrap();
         let result = mutex.try_lock();
         assert!(matches!(result, Err(TryLockError::WouldBlock)));
     }
@@ -668,7 +693,7 @@ mod tests {
     fn test_mutex_is_locked() {
         let mutex = NoopMutex::new(0);
         assert!(!mutex.is_locked());
-        let _guard = mutex.lock();
+        let _guard = mutex.lock().unwrap();
         assert!(mutex.is_locked());
     }
 
@@ -676,7 +701,7 @@ mod tests {
     fn test_mutex_get_mut() {
         let mut mutex = NoopMutex::new(0);
         *mutex.get_mut() = 42;
-        assert_eq!(*mutex.lock(), 42);
+        assert_eq!(*mutex.lock().unwrap(), 42);
     }
 
     // NoopRwLock tests
@@ -689,16 +714,16 @@ mod tests {
     #[test]
     fn test_rwlock_read() {
         let lock = NoopRwLock::new(42);
-        let r = lock.read();
+        let r = lock.read().unwrap();
         assert_eq!(*r, 42);
     }
 
     #[test]
     fn test_rwlock_multiple_readers() {
         let lock = NoopRwLock::new(42);
-        let r1 = lock.read();
-        let r2 = lock.read();
-        let r3 = lock.read();
+        let r1 = lock.read().unwrap();
+        let r2 = lock.read().unwrap();
+        let r3 = lock.read().unwrap();
         assert_eq!(*r1, 42);
         assert_eq!(*r2, 42);
         assert_eq!(*r3, 42);
@@ -708,11 +733,11 @@ mod tests {
     fn test_rwlock_write() {
         let lock = NoopRwLock::new(0);
         {
-            let mut w = lock.write();
+            let mut w = lock.write().unwrap();
             *w += 1;
             assert_eq!(*w, 1);
         }
-        let r = lock.read();
+        let r = lock.read().unwrap();
         assert_eq!(*r, 1);
     }
 
@@ -735,7 +760,7 @@ mod tests {
     fn test_rwlock_get_mut() {
         let mut lock = NoopRwLock::new(0);
         *lock.get_mut() = 42;
-        assert_eq!(*lock.read(), 42);
+        assert_eq!(*lock.read().unwrap(), 42);
     }
 
     // NoopOnce tests

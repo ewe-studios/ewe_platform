@@ -106,7 +106,7 @@ where
         info!(url = %url_str, "Creating reconnecting WebSocket client");
 
         // Validate URL upfront (same as WebSocketTask)
-        let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
+        let uri = crate::url::Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
             WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;

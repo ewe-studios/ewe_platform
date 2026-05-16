@@ -3,7 +3,7 @@
 use std::fmt;
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use crate::wire::simple_http::InvalidUri;
+use crate::url::errors::InvalidUri;
 
 /// URI authority component.
 ///

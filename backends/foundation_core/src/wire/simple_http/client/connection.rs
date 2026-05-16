@@ -16,7 +16,7 @@ use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
 
-pub use crate::wire::simple_http::url::{Scheme, Uri};
+pub use crate::url::{Scheme, Uri};
 
 /// HTTP client connection wrapping `netcap::RawStream`.
 ///

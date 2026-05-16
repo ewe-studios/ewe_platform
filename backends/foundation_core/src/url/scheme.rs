@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::wire::simple_http::InvalidUri;
+use crate::url::errors::InvalidUri;
 
 /// URI scheme (http, https, etc.).
 ///
@@ -138,7 +138,7 @@ impl Scheme {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Scheme;
+    /// use foundation_core::url::Scheme;
     ///
     /// assert_eq!(Scheme::HTTP.default_port(), 80);
     /// assert_eq!(Scheme::HTTPS.default_port(), 443);

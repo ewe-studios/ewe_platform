@@ -513,9 +513,9 @@ mod tests {
     #[test]
     fn test_rustls_connector_create_from_endpoint() {
         let custom_config = default_client_config();
-        let url = url::Url::parse("https://example.com:443").unwrap();
+        let uri = crate::url::Uri::parse("https://example.com:443").unwrap();
         let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), custom_config.clone());
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(uri), custom_config.clone());
 
         let _ = RustlsConnector::create(&endpoint);
 

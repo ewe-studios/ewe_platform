@@ -18,8 +18,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::double_must_use)]
 
-extern crate url;
-
 #[cfg(all(feature = "ssl-native-tls", not(target_arch = "wasm32")))]
 extern crate native_tls;
 
@@ -31,5 +29,6 @@ pub mod netcap;
 pub mod retries;
 pub mod synca;
 pub mod trace;
+pub mod url;
 pub mod valtron;
 pub mod wire;

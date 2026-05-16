@@ -15,18 +15,18 @@
 //! and proper validation at each component level.
 
 mod authority;
+mod errors;
 mod path;
 mod query;
 mod scheme;
 
 pub use authority::*;
+pub use errors::*;
 pub use path::*;
 pub use query::*;
 pub use scheme::*;
 
 use std::fmt;
-
-use crate::wire::simple_http::InvalidUri;
 
 /// A parsed URI with all components.
 ///
@@ -43,7 +43,7 @@ use crate::wire::simple_http::InvalidUri;
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::url::Uri;
+/// use foundation_core::url::Uri;
 ///
 /// // Parse from string
 /// let uri = Uri::parse("https://user:pass@example.com:8080/path?key=value#section").unwrap();
@@ -143,7 +143,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("https://example.com").unwrap();
     /// assert_eq!(uri.scheme().as_str(), "https");
@@ -163,7 +163,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com").unwrap();
     /// assert_eq!(uri.host_str(), Some("example.com".to_string()));
@@ -204,7 +204,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com:8080").unwrap();
     /// assert_eq!(uri.port(), Some(8080));
@@ -219,7 +219,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com").unwrap();
     /// assert_eq!(uri.port_or_default(), 80);
@@ -237,7 +237,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com/path").unwrap();
     /// assert_eq!(uri.path(), "/path");
@@ -252,7 +252,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com?key=value").unwrap();
     /// assert_eq!(uri.query().unwrap(), "key=value");
@@ -267,7 +267,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
+    /// use foundation_core::url::Uri;
     ///
     /// let uri = Uri::parse("http://example.com#section").unwrap();
     /// assert_eq!(uri.fragment().unwrap(), "section");

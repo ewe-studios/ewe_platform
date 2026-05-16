@@ -23,7 +23,7 @@ use std::fmt;
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::url::Query;
+/// use foundation_core::url::Query;
 ///
 /// // Parse a query string
 /// let query = Query::parse("key=value&foo=bar").unwrap();
@@ -48,7 +48,7 @@ impl Query {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Query;
+    /// use foundation_core::url::Query;
     ///
     /// let query = Query::new();
     /// assert!(query.is_empty());
@@ -84,7 +84,7 @@ impl Query {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Query;
+    /// use foundation_core::url::Query;
     ///
     /// let query = Query::parse("key=value&foo=bar").unwrap();
     /// assert_eq!(query.get("key"), Some("value"));
@@ -125,7 +125,7 @@ impl Query {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Query;
+    /// use foundation_core::url::Query;
     ///
     /// let mut query = Query::new();
     /// query.append("key", "value");
@@ -140,7 +140,7 @@ impl Query {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Query;
+    /// use foundation_core::url::Query;
     ///
     /// let query = Query::parse("key=value&key=other").unwrap();
     /// assert_eq!(query.get("key"), Some("value"));
@@ -158,7 +158,7 @@ impl Query {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::Query;
+    /// use foundation_core::url::Query;
     ///
     /// let query = Query::parse("key=value1&key=value2").unwrap();
     /// let values: Vec<&str> = query.get_all("key");

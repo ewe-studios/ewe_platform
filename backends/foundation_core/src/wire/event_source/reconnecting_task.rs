@@ -109,7 +109,7 @@ where
         info!(url = %url_str, "Creating reconnecting SSE client");
 
         // Validate URL upfront (same as EventSourceTask)
-        let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
+        let uri = crate::url::Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
             crate::wire::event_source::EventSourceError::InvalidUrl(format!(
                 "Failed to parse URL: {url_str} - {e:?}"

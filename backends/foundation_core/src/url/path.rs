@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::wire::simple_http::InvalidUri;
+use crate::url::errors::InvalidUri;
 
 /// Path and query component of a URI.
 ///

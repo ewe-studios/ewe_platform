@@ -35,9 +35,7 @@ memchr = "2.7.4"
 tracing = { version = "0.1.41" }
 thiserror = { version = "2.0" }
 
-url = "2.5"
 regex = "1.12.2"
-ctrlc = { version = "3.4" }
 base64 = "0.22"
 sha1 = "0.10"
 bytes = "1.5"
@@ -58,6 +56,10 @@ native-tls = { version = "0.2", optional = true }
 # Compression dependencies
 flate2 = { version = "1.0", optional = true }
 brotli = { version = "6.0", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 serial_test = { workspace = true }
