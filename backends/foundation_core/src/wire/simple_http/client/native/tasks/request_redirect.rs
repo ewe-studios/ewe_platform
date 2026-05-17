@@ -113,7 +113,9 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                         // create the request descriptor
                         let request_descriptor = data.descriptor();
-                        tracing::info!("Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, &request_descriptor.headers);
+                        tracing::info!("HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, &request_descriptor.headers);
+
+                        tracing::info!("HttpRequestRedirectState::Init -> Going to Trying state with max redirects: {}", &remaining_redirects);
 
                         self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                             data,
@@ -244,11 +246,116 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         simple_http_body,
                     );
 
-                    // if no body was there, we wont send the EXPECT header, so just go to write body.
+                    // For requests without a body, skip the 100-continue probe but still
+                    // read intro/headers to check for redirects before going to WriteBody.
                     if !has_body {
-                        tracing::trace!("No expect header added due to no body, moving to write body");
+                        tracing::trace!("No body — skipping 100-continue probe, reading response directly");
+                        let intro_result = reader.next();
+                        if !matches!(
+                            &intro_result,
+                            Some(Ok(IncomingResponseParts::Intro(_, _, _)))
+                        ) {
+                            tracing::trace!("No intro response received with timeout");
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::Timeout,
+                            )));
+                        }
+
+                        let headers_result = reader.next();
+                        if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
+                            tracing::error!("Headers not received");
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::Timeout,
+                            )));
+                        }
+
+                        // Redirect check for no-body requests
+                        let (status, _proto, _text) = match &intro_result {
+                            Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
+                                (status, proto, text)
+                            }
+                            _ => unreachable!(),
+                        };
+                        let headers = match &headers_result {
+                            Some(Ok(IncomingResponseParts::Headers(ref h))) => h,
+                            _ => unreachable!(),
+                        };
+
+                        let is_redirect = (300..400).contains(&status.clone().into_usize());
+                        let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
+
+                        if is_redirect && location_header.is_some() {
+                            if remaining_redirects == 0 {
+                                tracing::error!("Redirect limit exceeded ({} redirects)", remaining_redirects);
+                                self.0 = Some(HttpRequestRedirectState::Done);
+                                return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                    HttpClientError::TooManyRedirects,
+                                )));
+                            }
+                            let Some(location) = location_header else {
+                                self.0 = Some(HttpRequestRedirectState::Done);
+                                return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                    HttpClientError::FailedWith("Location header missing in redirect".into())
+                                )));
+                            };
+                            let new_url =
+                                match redirects::resolve_location(&descriptor.request_uri, location) {
+                                    Ok(url) => url,
+                                    Err(e) => {
+                                        tracing::error!("Failed to resolve redirect location: {}", e);
+                                        self.0 = Some(HttpRequestRedirectState::Done);
+                                        return Some(TaskStatus::Ready(
+                                            HttpRequestRedirectResponse::Error(
+                                                HttpClientError::InvalidLocation(location.clone()),
+                                            ),
+                                        ));
+                                    }
+                                };
+
+                            let new_descriptor =
+                                match redirects::build_followup_request_from_request_descriptor(
+                                    &descriptor,
+                                    new_url.clone(),
+                                    config.preserve_auth_on_redirect,
+                                    config.preserve_cookies_on_redirect,
+                                ) {
+                                    Ok(desc) => {
+                                        tracing::info!("Redirected to new location: {:?}", &desc);
+                                        desc
+                                    }
+                                    Err(e) => {
+                                        tracing::error!("Failed to build follow-up request descriptor: {}", e);
+                                        self.0 = Some(HttpRequestRedirectState::Done);
+                                        return Some(TaskStatus::Ready(
+                                            HttpRequestRedirectResponse::Error(
+                                                HttpClientError::InvalidState,
+                                            ),
+                                        ));
+                                    }
+                                };
+
+                            tracing::debug!("Following redirect to new URL: {}", new_url);
+                            self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
+                                data,
+                                pool,
+                                config,
+                                new_descriptor,
+                                remaining_redirects - 1,
+                            )))));
+                            return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                        }
+
+                        tracing::debug!("No redirect detected for no-body request");
+                        let intro = intro_result.and_then(std::result::Result::ok).expect("intro checked above");
+                        let headers = headers_result.and_then(std::result::Result::ok).expect("headers checked above");
                         self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                            None, data, pool, connection, reader,
+                            Some([intro, headers]),
+                            data,
+                            pool,
+                            connection,
+                            reader,
                         )))));
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                     }
@@ -344,6 +451,10 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
                     tracing::debug!("Location header: {:?}", location_header);
 
+                    tracing::error!(
+                        "Redirect limit at ({} redirects)",
+                        remaining_redirects
+                    );
                     if is_redirect && location_header.is_some() {
                         if remaining_redirects == 0 {
                             tracing::error!(

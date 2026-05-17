@@ -70,6 +70,24 @@ pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
     Option<HttpClientConnection>,
 );
 
+impl<T, R: DnsResolver + 'static> core::fmt::Display for FinalizedResponse<T, R> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match &self.0 {
+            Some(resp) => core::fmt::Display::fmt(resp, f),
+            None => f.write_str("FinalizedResponse(taken)"),
+        }
+    }
+}
+
+impl<T, R: DnsResolver + 'static> core::fmt::Debug for FinalizedResponse<T, R> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match &self.0 {
+            Some(resp) => core::fmt::Display::fmt(resp, f),
+            None => f.write_str("FinalizedResponse(taken)"),
+        }
+    }
+}
+
 impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     pub fn new(
         response: SimpleResponse<T>,

@@ -658,8 +658,34 @@ impl TestHttpServer {
             }
         };
 
+        // Call handler once to get interim + final response BEFORE reading body.
+        // WHY: Clients sending Expect: 100-continue wait for the server to
+        // respond before sending the body. If we read body first, we deadlock.
+        // We cache the final response so it's sent after body is consumed.
+        let (interim_response, final_response) = {
+            let request_for_handler = HttpRequest {
+                path: url.clone(),
+                method: method.clone(),
+                proto: proto.clone(),
+                headers: headers.clone(),
+                body: SendSafeBody::None,
+            };
+            let handler_guard = handler.lock().unwrap();
+            handler_guard(&request_for_handler)
+        };
+
+        // Send interim response if present to unblock Expect: 100-continue
+        if let Some(interim) = interim_response {
+            tracing::info!("render interim response");
+            let rendered = interim.render();
+            stream.write_all(&rendered)?;
+            stream.flush()?;
+            tracing::info!("flush interim response");
+        }
+
+        // NOW read the body (client will send it after receiving 100 Continue)
         tracing::trace!("[HTTP TEST SERVER] Read the body of request");
-        let body = collect_bytes_from_send_safe(body_part);
+        let _body = collect_bytes_from_send_safe(body_part);
 
         tracing::info!(
             "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
@@ -668,31 +694,7 @@ impl TestHttpServer {
             proto,
         );
 
-        tracing::info!("Got request");
-        let request = HttpRequest {
-            path: url,
-            method,
-            proto,
-            headers,
-            body: SendSafeBody::Bytes(body),
-        };
-
-        // Call user's handler to get interim + final response
-        let (interim, final_response) = {
-            let handler_guard = handler.lock().unwrap();
-            handler_guard(&request)
-        };
-
-        // Send interim response if present
-        if let Some(interim) = interim {
-            tracing::info!("render interim response");
-            let rendered = interim.render();
-            stream.write_all(&rendered)?;
-            stream.flush()?;
-            tracing::info!("flush interim response");
-        }
-
-        // Send final response
+        // Send the cached final response (determined before body was read)
         tracing::info!("render final response");
         let rendered = final_response.render();
         stream.write_all(&rendered)?;

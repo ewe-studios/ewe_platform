@@ -191,6 +191,7 @@ fn test_too_many_redirects_as_final_response() {
         .unwrap()
         .send();
 
+    dbg!("Result is: ", &result);
     assert!(
         matches!(result, Err(HttpClientError::TooManyRedirects)),
         "Should fail with TooManyRedirects after 3 redirects"
@@ -249,8 +250,9 @@ fn test_redirect_after_100_continue() {
     let url = server.url("/redirect");
 
     let response = client
-        .get(url.as_str())
+        .post(url.as_str())
         .unwrap()
+        .body_text("test body")
         .build_client()
         .unwrap()
         .send()

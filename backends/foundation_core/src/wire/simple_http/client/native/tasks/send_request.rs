@@ -15,6 +15,7 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
+use crate::url::Uri;
 use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
@@ -23,7 +24,6 @@ use crate::wire::simple_http::client::shared::body_reader::drain_stream_iterator
 use crate::wire::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
-use crate::url::Uri;
 use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
@@ -96,13 +96,13 @@ where
             config,
             pool,
             parsed_uri,
-            5,
+            max_redirects as usize,
         )
     }
 
     #[must_use]
-    pub fn with_max_loop(mut self, max_loop: usize) -> Self {
-        self.4 = max_loop;
+    pub fn with_max_redirects_limit(mut self, max_redirects: usize) -> Self {
+        self.4 = max_redirects;
         self
     }
 }
@@ -127,6 +127,7 @@ where
         match self.0.take()? {
             SendRequestState::Init(mut inner) => match inner.take() {
                 Some(boxed_req) => {
+                    tracing::info!("SendRequestTask: init");
                     let send_request = *boxed_req;
                     if send_request.request.is_none() {
                         tracing::warn!("Request is missing");
@@ -167,6 +168,7 @@ where
                         )));
                     };
 
+                    tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask task for sendrequest.");
                     let (get_stream_action, get_stream_receiver) = inlined_task(
                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                         Vec::new(),
@@ -182,7 +184,7 @@ where
                     self.0 = Some(SendRequestState::Connecting(get_stream_receiver));
 
                     tracing::debug!(
-                        "HttpRequestTaskState::Init: Spawned task to get HTTP request stream"
+                        "SendRequestTask::Init: Spawned task to get HTTP request stream"
                     );
                     Some(TaskStatus::Spawn(
                         get_stream_action.into_box_send_execution_action(),
@@ -198,7 +200,7 @@ where
                 if next_value.is_none() {
                     self.0.take();
 
-                    tracing::debug!("HttpRequestTaskState::Connecting: failed execution");
+                    tracing::debug!("SendRequestTask::Connecting: failed execution");
                     return Some(TaskStatus::Ready(RequestIntro::Failed(
                         HttpClientError::ReadError,
                     )));
@@ -283,6 +285,7 @@ where
                                                     "[PROCESSING CHECK] Failed to read next body from 102 status due to: {:?}",
                                                     err
                                                 );
+                                                    self.0.take();
                                                     return Some(TaskStatus::Ready(
                                                         RequestIntro::Failed(
                                                             HttpClientError::ReadError,
@@ -305,6 +308,7 @@ where
                                                         "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
                                                         err
                                                     );
+                                                        self.0.take();
                                                         return Some(TaskStatus::Ready(
                                                             RequestIntro::Failed(
                                                                 HttpClientError::ReadError,
@@ -342,6 +346,7 @@ where
                                                 intro.2 = next_text;
                                             }
                                             Ok(_) => {
+                                                self.0.take();
                                                 return Some(TaskStatus::Ready(
                                                     RequestIntro::Failed(
                                                         HttpClientError::ReadError,
@@ -368,6 +373,7 @@ where
                                                 headers = next_headers;
                                             }
                                             Ok(_) => {
+                                                self.0.take();
                                                 return Some(TaskStatus::Ready(
                                                     RequestIntro::Failed(
                                                         HttpClientError::ReadError,
@@ -405,6 +411,7 @@ where
                                 }
 
                                 tracing::trace!("Setting state to Reading for request");
+                                tracing::info!("SendRequestTask: Creating GetRequestIntroTask task for sendrequest.");
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
@@ -474,7 +481,7 @@ where
                 let next_value = intro_recv.next();
 
                 tracing::debug!(
-                    "HttpRequestTaskState::Reading: Gotten next state from iterator, is_some={}",
+                    "SendRequestTask::Reading: Gotten next state from iterator, is_some={}",
                     next_value.is_some()
                 );
                 self.0 = Some(SendRequestState::Reading(intro_recv));
@@ -525,7 +532,7 @@ where
                         let is_redirect = (Status::MovedPermanently..=Status::PermanentRedirect)
                             .contains(&intro.0);
                         tracing::debug!(
-                            "HttpRequestTaskState::CheckRedirect: intro={:?}, is_redirect={:?}, location= {:?}, headers = {:?}",
+                            "SendRequestTask::CheckRedirect: intro={:?}, is_redirect={:?}, location= {:?}, headers = {:?}",
                             &intro,
                             is_redirect,
                             headers.get(&SimpleHeader::LOCATION),
@@ -543,6 +550,23 @@ where
                             self.0 = Some(SendRequestState::Done);
                             return Some(TaskStatus::Ready(inner));
                         }
+
+                        // Check redirect limit
+                        if self.4 == 0 {
+                            tracing::error!(
+                                "CheckRedirect: redirect limit exceeded ({} redirects)",
+                                self.1.max_redirects
+                            );
+                            self.0 = Some(SendRequestState::Done);
+                            return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                HttpClientError::TooManyRedirects,
+                            )));
+                        }
+                        self.4 -= 1;
+                        tracing::info!(
+                            "CheckRedirect: following redirect, {} remaining",
+                            self.4
+                        );
 
                         // drain connection
                         conn.drain_stream();
@@ -636,6 +660,7 @@ where
                                             Ok(newly_built_request) => {
                                                 tracing::debug!("CheckRedirect: creating new request task for: {:?} with new request: {:?}", &parsed_uri_string, &newly_built_request);
 
+                                                tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                                         Vec::new(),
@@ -643,7 +668,7 @@ where
                                                             newly_built_request,
                                                             self.2.clone(),
                                                             self.1.clone(),
-                                                            self.1.max_redirects,
+                                                            self.4 as u8,
                                                         ),
                                                         self.1.inline_processing_timeout,
                                                     );
