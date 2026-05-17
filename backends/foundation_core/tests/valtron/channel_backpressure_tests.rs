@@ -159,8 +159,7 @@ fn test_bounded_queue_producer_consumer_coordination() {
     for c in &consumed {
         assert!(
             produced.contains(c) || pending == Some(*c),
-            "Consumed value {} should be in produced or pending",
-            c
+            "Consumed value {c:} should be in produced or pending",
         );
     }
 }
@@ -277,7 +276,7 @@ fn test_executor_ready_iter_no_message_loss() {
         .expect("should schedule");
 
     // Run until no more work - predicate just checks state, doesn't hold locks
-    executor.run_until({ move |state| state == ProgressIndicator::NoWork });
+    executor.run_until(move |state| state == ProgressIndicator::NoWork);
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();

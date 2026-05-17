@@ -1272,8 +1272,6 @@ mod tests {
     /// consume all 11. With the hint, it requests `remaining` each time.
     #[test]
     fn limited_batch_stream_reader_hint_prevents_overshoot() {
-        use crate::io::readers::HintReadterator;
-
         let data = b"hello world";
         let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
         let mut limited = LimitedBatchStreamReader::new(batch, 7);

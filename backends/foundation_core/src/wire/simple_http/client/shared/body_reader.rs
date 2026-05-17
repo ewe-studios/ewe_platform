@@ -27,6 +27,7 @@
 
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::io::readers::{Data, DataBytesIterator};
+use crate::wire::event_source::shared::ParseResult;
 use crate::wire::event_source::Event;
 use crate::wire::simple_http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
@@ -757,7 +758,7 @@ where
 /// Used internally by collect_bytes_from_send_safe for SseStream variant.
 fn collect_from_sse_stream<I>(iter: I) -> Vec<u8>
 where
-    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+    I: Iterator<Item = Result<ParseResult, SendableBoxedError>>,
 {
     let mut bytes = Vec::new();
     for result in iter {

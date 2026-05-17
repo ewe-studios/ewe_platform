@@ -375,7 +375,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
         .expect("should schedule");
 
     // Run until task completes - predicate just checks state, doesn't hold locks
-    executor.run_until({ move |state| state == ProgressIndicator::NoWork });
+    executor.run_until(move |state| state == ProgressIndicator::NoWork);
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
