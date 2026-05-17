@@ -1,37 +1,36 @@
 ---
-description: "Implement a WASM-native HTTP client in foundation_wasm that provides reqwest-like functionality (Client, RequestBuilder, Response, Body) by leveraging wasm-bindgen + web_sys + js_sys as an optional feature layer. Bridges the browser's Fetch API into Rust, enabling foundation_wasm modules to make HTTP requests without needing a native TCP stack."
+description: "Implement a WASM-native HTTP client in foundation_wasm that provides reqwest-like functionality (Client, RequestBuilder, Response, Body, streaming, multipart) entirely through foundation_wasm's existing binary ABI and megatron.js JS runtime, with no wasm-bindgen dependency. Also adds a native-only asset module for megatron.js access."
 status: "pending"
 priority: "high"
 created: 2026-05-18
 author: "Main Agent"
 metadata:
-  version: "1.0"
-  last_updated: 2026-05-18
+  version: "2.0"
   estimated_effort: "large"
   tags:
     - wasm
     - http-client
-    - fetch-api
-    - wasm-bindgen
-    - web-sys
+    - fetch
     - foundation_wasm
+    - megatron.js
+    - binary-abi
+    - external-reference
+    - asset-module
   skills:
     - rust-clean-code
   tools:
     - Rust
     - cargo
-    - wasm-pack
 has_features: true
 has_fundamentals: false
 builds_on: "specifications/28-cloudflare-workers-readiness"
 related_specs:
   - "specifications/02-build-http-client"
   - "specifications/28-cloudflare-workers-readiness"
-  - "specifications/21-http-framework"
 features:
   completed: 0
-  uncompleted: 9
-  total: 9
+  uncompleted: 10
+  total: 10
   completion_percentage: 0%
 ---
 
@@ -39,213 +38,296 @@ features:
 
 ## Overview
 
-This specification adds a WASM-native HTTP client to `foundation_wasm` at `backends/foundation_wasm/src/fetch/`. It provides a reqwest-like public API (`Client`, `ClientBuilder`, `RequestBuilder`, `Request`, `Response`, `Body`) by wrapping the browser's `fetch()` API through `wasm-bindgen` + `web_sys` + `js_sys`.
+This specification defines the implementation of an HTTP client inside `foundation_wasm` that provides a reqwest-like API surface (`Client`, `ClientBuilder`, `RequestBuilder`, `Response`, `Body`, multipart, streaming) while running entirely through foundation_wasm's existing binary ABI — no wasm-bindgen, no web_sys, no js_sys.
 
-**Why this is needed:** foundation_wasm's existing custom FFI ABI (`#[link(wasm_import_module = "abi")]`) provides a binary protocol for encoding/decoding values, memory management, batch instructions, callback registries, and host function invocation. It has ZERO HTTP/fetch functionality. The ABI cannot handle streaming responses, `FormData` construction, or direct browser API access. A separate layer on top of wasm-bindgen is required to bridge the browser's Fetch API into idiomatic Rust.
+The HTTP client bridges Rust → browser fetch() by:
 
-**Scope:** WASM32-only implementation. All code is `#[cfg(target_arch = "wasm32")]` gated with non-wasm stub modules. Gated behind an `http` Cargo feature flag.
+1. **Megatron.js** executing JS fetch logic that reads request params from shared memory and writes responses back
+2. **`ExternalPointer`** (type ID 16) holding live JS object references (`Response`, `AbortController`, `FormData`) — the same mechanism already used for `DOM_WINDOW`, `DOM_DOCUMENT`, `DOM_BODY`
+3. **`MemoryId`** transfers for request/response bodies through shared memory allocations
+4. **Async callbacks** (`host_invoke_async_function` → `invoke_callback`) for response delivery and streaming chunk delivery
+5. **Enhanced FFI surface** — new parameter/return types in megatron.js and new Rust-side host function wrappers to support the data flows needed
 
-**Out of scope:** Native (non-wasm) HTTP (already in foundation_core), proxy/TLS/connection pooling (browser handles all of that), WebSocket, SSE (separate specs).
+Additionally, this spec adds a native-only `asset.rs` module (gated `#[cfg(not(target_arch = "wasm32"))]`) that exposes `megatron.js` via `include_str!` for build-time access, and updates `Cargo.toml` to package the JS runtime as a published asset.
 
 ## Architecture
 
+### High-Level Layering
+
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Browser Environment                              │
-│                                                                         │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │  foundation_wasm/src/fetch/ (#[cfg(target_arch = "wasm32")])      │  │
-│  │                                                                   │  │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐  │  │
-│  │  │   Client     │─▶│ClientBuilder │  │  Config (Arc)           │  │  │
-│  │  │  (public)   │  │              │  │  default_headers        │  │  │
-│  │  │             │  │              │  │  error (deferred)       │  │  │
-│  │  └──────┬──────┘  └──────────────┘  └─────────────────────────┘  │  │
-│  │         │                                                         │  │
-│  │         ▼                                                         │  │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐  │  │
-│  │  │RequestBuilder│─▶│   Request    │  │  method, url, headers   │  │  │
-│  │  │ (deferred)  │  │              │  │  body, timeout, cors    │  │  │
-│  │  └──────┬──────┘  └──────┬───────┘  │  credentials, cache     │  │  │
-│  │         │                │           └─────────────────────────┘  │  │
-│  │         │                ▼                                        │  │
-│  │         │         ┌──────────────┐                                │  │
-│  │         │         │  fetch()     │  Core bridge function          │  │
-│  │         │         │  bridge      │  Request → web_sys::RequestInit│  │
-│  │         │         │              │  → browser fetch() → Response  │  │
-│  │         │         └──────┬───────┘                                │  │
-│  │         │                │                                        │  │
-│  │         ▼                ▼                                        │  │
-│  │  ┌─────────────────────────────┐  ┌────────────────────────────┐  │  │
-│  │  │        Response             │  │        AbortGuard           │  │  │
-│  │  │  http::Response<web_sys>   │  │  AbortController + setTimeout│  │  │
-│  │  │  text(), bytes(), json()   │  │  RAII: aborts on drop       │  │  │
-│  │  │  error_for_status()        │  │  per-request timeout support │  │  │
-│  │  └─────────────────────────────┘  └────────────────────────────┘  │  │
-│  │                                                                   │  │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐  │  │
-│  │  │    Body     │  │   multipart  │  │     (streaming)         │  │  │
-│  │  │ Bytes/Text  │  │ Form + Part  │  │  wasm_streams           │  │  │
-│  │  │ JsValue conv│  │ FormData     │  │  ReadableStream→Stream  │  │  │
-│  │  └─────────────┘  └──────────────┘  └─────────────────────────┘  │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                            │                                            │
-│                            ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │  wasm-bindgen / web_sys / js_sys / wasm-bindgen-futures           │  │
-│  │  (optional deps, gated behind `http` feature)                     │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                            │                                            │
-│                            ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │  Browser Fetch API / AbortController / setTimeout / FormData      │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
-
-Non-wasm stubs (#[cfg(not(target_arch = "wasm32"))]):
-  - Empty module re-exports with compile_error! or no-op types
-  - Allows native code to compile without pulling in wasm deps
+┌─────────────────────────────────────────────────────────────────┐
+│                        Rust WASM Binary                         │
+│                                                                 │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────────┐  │
+│  │   Client     │  │ ClientBuilder│  │     Config (defaults) │  │
+│  │  execute()   │→ │  Request     │  │     User-Agent        │  │
+│  │  send()      │  │  Builder     │  │     Default Headers   │  │
+│  └──────┬───────┘  └──────┬───────┘  └───────────────────────┘  │
+│         │                 │                                     │
+│  ┌──────▼─────────────────▼───────────────────────────────┐     │
+│  │                  Fetch Bridge (mod.rs)                   │     │
+│  │  - AbortGuard (RAII: AbortController ExternalPointer)   │     │
+│  │  - setTimeout/clearTimeout scheduling via ABI           │     │
+│  │  - promise<T> helper for async callback resolution       │     │
+│  │  - ServiceWorkerGlobalScope detection                    │     │
+│  └──────────────────────┬──────────────────────────────────┘     │
+│                         │                                        │
+│  ┌──────────────────────▼──────────────────────────────────┐    │
+│  │                   Request Layer                          │    │
+│  │  Request: method, url, headers, body, timeout, cors,     │    │
+│  │            credentials, cache                            │    │
+│  │  RequestBuilder: deferred errors, query/form/json/builder │    │
+│  └──────────────────────┬──────────────────────────────────┘    │
+│                         │                                        │
+│  ┌──────────────────────▼──────────────────────────────────┐    │
+│  │                   Body Types                             │    │
+│  │  Body → Inner::Single(Bytes | Text) | MultipartForm      │    │
+│  │  JS value conversion: Uint8Array, JsString, FormData     │    │
+│  └──────────────────────┬──────────────────────────────────┘    │
+│                         │                                        │
+├─────────────────────────┼────────────────────────────────────────┤
+│              ABI BOUNDARY (shared memory + ExternalPointer)      │
+├─────────────────────────┼────────────────────────────────────────┤
+│                         │                                        │
+│  ┌──────────────────────▼──────────────────────────────────┐    │
+│  │              megatron.js (JS Runtime)                    │    │
+│  │                                                          │    │
+│  │  ┌────────────────────────────────────────────────────┐  │    │
+│  │  │  Fetch Executor (NEW)                               │  │    │
+│  │  │  1. Read params from shared memory (MemoryId)       │  │    │
+│  │  │  2. Construct RequestInit (method, headers, body)   │  │    │
+│  │  │  3. Create AbortController, wire timeout            │  │    │
+│  │  │  4. Call browser fetch(url, init)                   │  │    │
+│  │  │  5. On response: write body to shared memory        │  │    │
+│  │  │  6. Store Response as ExternalPointer               │  │    │
+│  │  │  7. Invoke Rust callback with result MemoryId       │  │    │
+│  │  └────────────────────────────────────────────────────┘  │    │
+│  │                                                          │    │
+│  │  ┌────────────────────────────────────────────────────┐  │    │
+│  │  │  Response Helpers (NEW)                             │  │    │
+│  │  │  - readResponseBody(response_uid) → MemoryId        │  │    │
+│  │  │  - getResponseHeaders(response_uid) → JSON string   │  │    │
+│  │  │  - getResponseStatus(response_uid) → u16            │  │    │
+│  │  │  - getResponseUrl(response_uid) → string            │  │    │
+│  │  │  - abortResponse(response_uid)                      │  │    │
+│  │  └────────────────────────────────────────────────────┘  │    │
+│  │                                                          │    │
+│  │  ┌────────────────────────────────────────────────────┐  │    │
+│  │  │  Multipart Helpers (NEW)                            │  │    │
+│  │  │  - createFormData() → ExternalPointer               │  │    │
+│  │  │  - appendToFormData(fd_uid, name, body_memory)      │  │    │
+│  │  │  │    optional: filename, mime                      │  │    │
+│  │  │  - formDataToBody(fd_uid) → JS Body for fetch       │  │    │
+│  │  └────────────────────────────────────────────────────┘  │    │
+│  │                                                          │    │
+│  │  ┌────────────────────────────────────────────────────┐  │    │
+│  │  │  Streaming (NEW)                                    │  │    │
+│  │  │  - streamResponseBody(response_uid, callback_ptr)   │  │    │
+│  │  │    reads ReadableStream, writes chunks to mem,       │  │    │
+│  │  │    invokes callback per chunk with MemoryId          │  │    │
+│  │  └────────────────────────────────────────────────────┘  │    │
+│  │                                                          │    │
+│  │  Existing: function_heap, MemoryAllocations,             │    │
+│  │            AsyncTaskCollector, ExternalReference mgmt    │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-### Layer Breakdown
+### ABI Data Flow for a Single Request
 
-| Layer | Module | Purpose |
-|-------|--------|---------|
-| Public API | `mod.rs` | Re-exports Client, RequestBuilder, Response, Body |
-| Client | `client.rs` | Client, ClientBuilder, Config, convenience methods |
-| Request | `request.rs` | Request struct, RequestBuilder with deferred errors |
-| Fetch Bridge | `client.rs` (internal) | fetch() function, RequestInit construction, AbortGuard |
-| Response | `response.rs` | Response wrapping http::Response<web_sys::Response> |
-| Body | `body.rs` | Body type with Bytes/Text, From impls, JS conversion |
-| Multipart | `multipart.rs` | Form, Part, FormData conversion (feature-gated) |
-| Streaming | `response.rs` | bytes_stream() via wasm_streams (feature-gated) |
-| Errors | `error.rs` | wasm, builder, request, decode, TimedOut error variants |
+```
+Rust                                          JS (megatron.js)
+ │                                                   │
+ │ 1. Build Request                                  │
+ │    (method, url, headers, body)                   │
+ │                                                   │
+ │ 2. Write body bytes to shared memory              │
+ │    → get MemoryId                                 │
+ │                                                   │
+ │ 3. Encode params into ops buffer                  │
+ │    [url(str), method(str), headers(json),         │
+ │     body(MemoryId), timeout(u64), cors(bool)]     │
+ │                                                   │
+ │─── host_invoke_async_function ───────────────────►│
+ │    (fetch_handler, callback_ptr, ops, ops_size)   │
+ │                                       4. Parse params from ops
+ │                                       5. Read body from MemoryId
+ │                                       6. Create AbortController
+ │                                       7. Set setTimeout if timeout > 0
+ │                                       8. Call fetch(url, init)
+ │                                                  │
+ │                    9. await response              │
+ │                    10. response.arrayBuffer()     │
+ │                    11. Write body to shared mem   │
+ │                    12. Store Response as ExtRef   │
+ │                    13. Write result header:       │
+ │                        [status, headers_json,    │
+ │                         body_MemoryId, url,      │
+ │                         response_uid(ExtRef)]     │
+ │                                                   │
+ │◄── invoke_callback(callback_ptr, result_mem) ────│
+ │                                       14. Parse result
+ │                                       15. Build Response struct
+ │                                       16. Return to caller
+ │
+ │ 17. Response.text() / .bytes() / .json()
+ │     → already consumed, data in MemoryId
+ │     (or for streaming: repeated callbacks)
+```
 
-### Key Design Decisions
+### ABI Data Flow for Streaming Response
 
-1. **Module location:** `backends/foundation_wasm/src/fetch/` (not `http/` to avoid confusion with `http` crate and foundation_http). The public re-export path is `foundation_wasm::fetch`.
+```
+Rust                                          JS (megatron.js)
+ │                                                   │
+ │ 1. Response.bytes_stream()                        │
+ │    → register async chunk callback                │
+ │    → get InternalPointer                          │
+ │                                                   │
+ │─── host_invoke_async_function ───────────────────►│
+ │    (stream_reader, chunk_callback, response_uid)  │
+ │                                       2. Get ReadableStream
+ │                                          from response
+ │                                       3. reader = stream.getReader()
+ │                                       4. loop:                      │
+ │                                          chunk = reader.read()     │
+ │                                          if done: break             │
+ │                                          write chunk to shared mem  │
+ │                                          get MemoryId               │
+ │─── invoke_callback(chunk_cb, [MemoryId, done]) ──│                 │
+ │◄─────────────────────────────────────────────────│                 │
+ │ 5. Process chunk, yield Bytes                    │                 │
+ │ 6. Return to stream consumer                     │                 │
+ │    (repeat until done=true)                      │                 │
+ │                                       7. release() reader         │
+ │─── invoke_callback(chunk_cb, [done=true]) ───────│                 │
+ │                                                   │
+```
 
-2. **No `std` dependency:** foundation_wasm is `#![no_std]`. The fetch module uses `alloc` crate only. `wasm-bindgen` and its ecosystem provide the necessary runtime support without `std`.
+### Why Not wasm-bindgen?
 
-3. **Error integration:** New `FetchError` type in the existing error.rs (or separate error module) that adds to `WASMErrors` enum, keeping compatibility with the existing error hierarchy.
+foundation_wasm is intentionally dependency-free. The existing ABI + megatron.js already provides:
 
-4. **`http` crate dependency:** Uses `http` crate for `Method`, `StatusCode`, `HeaderMap`, `HeaderName`, `HeaderValue`. foundation_core does not currently depend on `http`, so this is a new direct dependency for foundation_wasm (gated behind `http` feature).
+- **Live JS object references** via `ExternalPointer` / `ExternalReference` (type ID 16) — already used for `DOM_WINDOW`, `DOM_DOCUMENT`, `DOM_BODY`
+- **Binary data transfer** via `MemoryId` + shared memory (`TypedSlice`, `Uint8ArrayBuffer` — type IDs 18-27)
+- **Async invocation** via `host_invoke_async_function` → `AsyncTaskCollector`
+- **Typed returns** via `ReturnTypeId` (32 types including `Object`, `DOMObject`, `ExternalReference`)
+- **Function registration** via `register_function` / `host_invoke_function`
 
-5. **Promise bridging:** Replicates reqwest's `promise<T>` helper using `wasm_bindgen_futures::JsFuture` to convert JS Promises into Rust async futures.
+Adding wasm-bindgen would duplicate the FFI surface and pull in 4+ dependencies (wasm-bindgen, js-sys, web-sys, wasm-bindgen-futures). The megatron.js runtime already has the plumbing — we just need to add the fetch executor logic and extend the ABI where the current type system needs enrichment.
 
-6. **No async runtime needed:** `JsFuture` bridges JS Promises directly. Works in any async context that supports wasm-bindgen-futures (browser event loop).
+### Existing ABI Capabilities Used
 
-## Known Issues/Limitations
+| Requirement | ABI Mechanism | Existing? |
+|---|---|---|
+| Hold live JS objects (AbortController, Response) | `ExternalPointer` / `ExternalReference` (type ID 16) | Yes |
+| Transfer request body bytes | `MemoryId` + `TypedSlice` / `Uint8ArrayBuffer` | Yes |
+| Transfer response body bytes | `MemoryId` + `Uint8ArrayBuffer` (type ID 18) | Yes |
+| Async response delivery | `host_invoke_async_function` + `invoke_callback` | Yes |
+| Per-request timeout | `schedule_timeout` / `unschedule_timeout` | Yes |
+| Function registration | `host_register_function` + `host_invoke_function` | Yes |
+| String transfer (URLs, headers) | `Text8` / `StrLocation` / `CachedText` | Yes |
+| Error codes | `ErrorCode` (type ID 31) | Yes |
+| JS object type detection | `ExternalReference` with heap inspection | Yes |
 
-1. **Browser-only:** This implementation only works when compiled for `wasm32-unknown-unknown` and running in a browser or ServiceWorker. Node.js WASM would need different bindings.
+### Known Issues / Limitations
 
-2. **No connection pooling:** The browser manages connections. No control over keep-alive, pooling, or connection reuse from Rust side.
-
-3. **No custom TLS/proxy:** Browser handles all SSL/TLS. Proxy configuration is not available through fetch API.
-
-4. **No streaming request body:** Fetch API does not support streaming uploads. Request body must be fully materialized (Bytes, Text, or FormData).
-
-5. **Timeout via setTimeout:** Per-request timeout uses JS `setTimeout` calling `AbortController.abort()`. This is approximate (JS timer granularity) and fires on the event loop, not at exact wall-clock time.
-
-6. **No redirect control:** Fetch API's redirect behavior is limited to "follow", "error", "manual". Cannot implement custom redirect logic or redirect counting.
-
-7. **Response body consumed once:** Like reqwest, Response body can only be consumed once (text, bytes, json, or bytes_stream — pick one).
+1. **No direct `web_sys` access** — Response methods (`text()`, `json()`, `arrayBuffer()`) must be called via megatron.js, not typed Rust bindings. Return data comes through shared memory.
+2. **Streaming overhead** — Each chunk requires a memory write + callback invocation across the ABI boundary. Acceptable for typical HTTP responses but higher overhead than reqwest's direct `wasm_streams` integration.
+3. **Multipart FormData** — Must be constructed in JS via megatron.js helper functions; cannot use `web_sys::FormData` directly.
+4. **No HTTP/2 in browser fetch** — Browser `fetch()` handles protocol negotiation; we don't control ALPN.
+5. **No connection pooling** — Browser manages connections; we cannot pool or reuse.
+6. **No proxy/TLS config** — Browser handles all transport-level concerns.
+7. **Binary ABI extension needed** — Current `ReturnTypeId` has no dedicated `JsObject` type beyond `ExternalReference`. We may want to add a typed `JsObject` return variant or extend `ExternalReference` with a type tag to distinguish function references from data objects.
 
 ## Feature Index
 
-### Pending Features (0/9 completed)
+### Pending Features (0/10 completed)
 
-1. **[dependency-foundation](./features/01-dependency-foundation/feature.md)** — Cargo.toml setup, `http` feature flag, wasm-bindgen/js-sys/web-sys/wasm-bindgen-futures optional deps, non-wasm stub module, `http` crate dependency.
-
-2. **[core-types](./features/02-core-types/feature.md)** — Body type (Single enum: Bytes/Text), JS value conversion (Uint8Array, JsString), From impls for common types, error types (FetchError with wasm/builder/request/decode/TimedOut variants).
-
-3. **[request-layer](./features/03-request-layer/feature.md)** — Request struct (method, url, headers, body, timeout, cors, credentials, cache), RequestBuilder with deferred errors, header management, auth helpers (basic_auth, bearer_auth), fetch mode/credentials/cache configuration.
-
-4. **[fetch-bridge](./features/04-fetch-bridge/feature.md)** — Core fetch() function: RequestInit construction, header conversion, AbortGuard (RAII AbortController + setTimeout), ServiceWorkerGlobalScope detection, promise resolution, Response wrapping, timeout detection, error mapping.
-
-5. **[response-layer](./features/05-response-layer/feature.md)** — Response struct wrapping http::Response<web_sys::Response>, body consumption (text, bytes, json), error_for_status, content_length, url access, Debug impl.
-
-6. **[streaming](./features/06-streaming/feature.md)** — Response body streaming via wasm_streams ReadableStream, bytes_stream() returning impl Stream<Item = Result<Bytes>>, AbortGuard kept alive via stream lifetime. (Feature-gated: `stream`)
-
-7. **[multipart](./features/07-multipart/feature.md)** — Form, Part, FormParts, PartMetadata, conversion to web_sys::FormData, Blob creation, file name support, MIME type handling. (Feature-gated: `multipart`)
-
-8. **[client-layer](./features/08-client-layer/feature.md)** — Client with Arc<Config>, ClientBuilder, default headers, user_agent, convenience methods (get/post/put/patch/delete/head), execute/send, header merge logic.
-
-9. **[integration-testing](./features/09-integration-testing/feature.md)** — wasm32-unknown-unknown compilation verification, wasm-bindgen-test integration tests, examples demonstrating usage, integration with foundation_wasm's existing async callback system.
-
----
+1. **[abi-http-bridge](./features/01-abi-http-bridge/feature.md)** — Core fetch executor in megatron.js, Rust-side bridge module (`src/http/mod.rs`), AbortGuard via ExternalPointer, promise helper, ServiceWorkerGlobalScope detection
+2. **[js-fetch-runtime](./features/02-js-fetch-runtime/feature.md)** — megatron.js fetch executor: request construction, header parsing, response delivery, abort handling, timeout, response helpers
+3. **[error-types](./features/03-error-types/feature.md)** — HTTP-specific error types (HttpError, TimedOut, DecodeError, BuilderError) extending WASMErrors
+4. **[body-types](./features/04-body-types/feature.md)** — Body type with Single (Bytes/Text) enum, JS value conversion via MemoryId, From impls for common types
+5. **[request-layer](./features/05-request-layer/feature.md)** — Request struct, RequestBuilder with deferred errors, auth helpers, fetch mode/credentials/cache configuration
+6. **[response-layer](./features/06-response-layer/feature.md)** — Response struct, body consumption (text/bytes/json) via MemoryId, error_for_status, header access, URL tracking
+7. **[streaming](./features/07-streaming/feature.md)** — Response body streaming via repeated async callbacks with chunk MemoryIds, Stream iterator pattern
+8. **[multipart](./features/08-multipart/feature.md)** — Form/Part types, FormData construction in JS, Blob creation, filename/mime support
+9. **[client-layer](./features/09-client-layer/feature.md)** — Client with Arc<Config>, ClientBuilder, default headers, convenience methods (get/post/put/patch/delete/head), execute
+10. **[asset-module](./features/10-asset-module/feature.md)** — Native-only `asset.rs` with `include_str!(megatron.js)`, Cargo.toml include for publishing, `#[cfg(not(target_arch = "wasm32"))]` gating
 
 ## Feature Dependencies
 
 ```
-01-dependency-foundation (base)
+10-asset-module (independent)
     |
-    v
-02-core-types
+03-error-types (independent)
     |
-    +---------+---------+---------+
-    |         |         |         |
-    v         v         v         v
-03-request  04-fetch   05-response 07-multipart
-    |       (needs 02)  (needs 04) (needs 02)
-    |         |         |         |
-    +----+----+         |         |
-         |              |         |
-         v              v         v
-      08-client ────────┼─────────┤
-                        |         |
-                        v         |
-                     06-streaming │
-                        |        |
-                        +----+---+
-                             |
-                             v
-                     09-integration-testing
+04-body-types ────────────────────────┐
+    |                                  │
+02-js-fetch-runtime ◄── 01-abi-http-bridge
+    |                                  │
+    +──────────┬───────────┬───────────┤
+               │           │           │
+               v           v           v
+         05-request   06-response   08-multipart
+               │           │           │
+               v           v           │
+            07-streaming ◄─┘           │
+               │                       │
+               └───────────┬───────────┘
+                           │
+                           v
+                    09-client-layer
 ```
-
-Dependency chain: 01 → 02 → {03, 04, 05, 07} → 08 → {06, 09}
-- 03 (request) and 04 (fetch-bridge) can be built in parallel after 02
-- 05 (response) depends on 04 (fetch-bridge) for AbortGuard
-- 08 (client) depends on 03 (request) and 04 (fetch-bridge)
-- 06 (streaming) and 07 (multipart) are optional feature-gated additions
-- 09 (integration) depends on everything being functional
-
----
 
 ## Success Criteria (Spec-Wide)
 
 ### Compilation
 - [ ] `cargo build --target wasm32-unknown-unknown --features http` succeeds for foundation_wasm
-- [ ] `cargo build --target wasm32-unknown-unknown --features http,streaming,multipart` succeeds
-- [ ] `cargo build` (native target) succeeds without wasm deps
-- [ ] `cargo clippy --target wasm32-unknown-unknown --features http -- -D warnings` passes
+- [ ] `cargo build --target wasm32-unknown-unknown --features http,http-streaming` succeeds
+- [ ] `cargo build --target wasm32-unknown-unknown --features http,http-multipart` succeeds
+- [ ] `cargo build --target wasm32-unknown-unknown --features http,http-streaming,http-multipart` succeeds
+- [ ] `cargo build` succeeds for foundation_wasm on native target (no regressions)
+- [ ] `asset.rs` is only compiled on non-wasm targets (`#[cfg(not(target_arch = "wasm32"))]`)
 
 ### Functionality
-- [ ] Client can make GET/POST/PUT/DELETE/PATCH/HEAD requests
-- [ ] Request headers, body, timeout, auth are correctly applied
-- [ ] Response status, headers, body (text/bytes/json) are correctly retrieved
-- [ ] Timeout triggers AbortController and returns TimedOut error
-- [ ] error_for_status correctly identifies client/server errors
-- [ ] Default headers from Client are merged with per-request headers
-- [ ] [streaming] bytes_stream() yields body chunks correctly
-- [ ] [multipart] Form with text/binary parts converts to FormData correctly
+- [ ] Client can execute GET/POST/PUT/PATCH/DELETE/HEAD requests
+- [ ] Request body (bytes, text, JSON, form-urlencoded) sent correctly
+- [ ] Response body consumed as text, bytes, and JSON
+- [ ] Default headers applied to all requests
+- [ ] Per-request timeout triggers abort
+- [ ] AbortGuard cancels in-flight requests on drop
+- [ ] Streaming response yields chunks via async stream
+- [ ] Multipart form with text and file parts sends correctly
+- [ ] Response status code and headers accessible
+- [ ] error_for_status returns error for 4xx/5xx
 
 ### Code Quality
-- [ ] All public types have documentation comments
-- [ ] Non-wasm stubs provide compile_error! with clear message
-- [ ] Error types implement Display + Error traits
-- [ ] No panics in normal operation (expect_throw only for invariant violations)
-- [ ] Memory: AbortGuard correctly cleans up AbortController + setTimeout
+- [ ] `cargo clippy --target wasm32-unknown-unknown --features http -- -D warnings` passes
+- [ ] `cargo clippy -- -D warnings` passes on native target
+- [ ] `cargo fmt -- --check` passes
+- [ ] No unsafe code without documented justification
+- [ ] No TODO/FIXME/stubs left in completed features
+
+### Asset Module
+- [ ] `megatron.js` accessible via `foundation_wasm::assets::MEGATRON_JS` on native
+- [ ] `megatron.js` NOT included in wasm32 binary (verified via binary size)
+- [ ] `Cargo.toml` `include` field lists `sdk/jsruntime/megatron.js` for publishing
 
 ---
 
-## Module References
+## Prerequisites
 
-- **Implementation:** `backends/foundation_wasm/src/fetch/`
-- **Cargo.toml:** `backends/foundation_wasm/Cargo.toml`
-- **Error types:** `backends/foundation_wasm/src/error.rs` (extended)
-- **Inspiration:** reqwest wasm implementation at `/home/darkvoid/Boxxed/@formulas/src.rust/src.wasm/reqwest/src/wasm/`
-- **Builds on:** spec 28 (wasm-bindgen additions to foundation_wasm Cargo.toml)
+- foundation_wasm binary ABI understanding (base.rs, ops.rs, jsapi.rs)
+- megatron.js runtime understanding (sdk/jsruntime/megatron.js)
+- `http` crate for Method, StatusCode, HeaderMap (add as optional dependency)
+
+## Language Stack
+
+| Language | Purpose | Skill Location |
+|----------|---------|----------------|
+| Rust | HTTP client implementation, ABI integration | `.agents/skills/rust-clean-code/skill.md` |
+| JavaScript | megatron.js fetch executor, response helpers | No specific skill — follow existing megatron.js patterns |
 
 ---
 
