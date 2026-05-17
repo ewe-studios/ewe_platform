@@ -29,10 +29,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, instrument, trace, warn};
 
-use super::error::WebSocketError;
-use super::frame::{generate_mask, Opcode, WebSocketFrame};
-use super::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
-use super::message::WebSocketMessage;
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
+use crate::wire::websocket::shared::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
+use crate::wire::websocket::shared::message::WebSocketMessage;
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -62,7 +62,7 @@ pub struct WebSocketOpenState {
     pub stream: crate::io::ioutils::SharedByteBufferStream<RawStream>,
     pub delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
-    pub assembler: super::assembler::MessageAssembler,
+    pub assembler: crate::wire::websocket::shared::assembler::MessageAssembler,
     /// Buffer pool for zero-copy frame reading
     pub buffer_pool: Arc<crate::io::buffer_pool::BytesPool>,
     /// Reusable buffer for frame payload reading
@@ -619,7 +619,7 @@ where
                                         stream,
                                         delivery_queue: queue,
                                         timeout_calculator: state.timeout_calculator,
-                                        assembler: super::assembler::MessageAssembler::default(),
+                                        assembler: crate::wire::websocket::shared::assembler::MessageAssembler::default(),
                                         buffer_pool,
                                         frame_buffer: bytes::BytesMut::new(),
                                     },

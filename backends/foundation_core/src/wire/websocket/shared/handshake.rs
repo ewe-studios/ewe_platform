@@ -10,7 +10,7 @@
 use base64::Engine;
 use sha1::{Digest, Sha1};
 
-use super::error::WebSocketError;
+use crate::wire::websocket::shared::error::WebSocketError;
 use crate::wire::simple_http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleIncomingRequestBuilder, SimpleMethod,
     Status,

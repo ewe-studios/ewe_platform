@@ -17,9 +17,9 @@
 //! - Section 4.8: Maximum message size enforcement
 //! - Section 5.6: UTF-8 validation for text messages
 
-use super::error::WebSocketError;
-use super::frame::{Opcode, WebSocketFrame};
-use super::message::WebSocketMessage;
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::wire::websocket::shared::message::WebSocketMessage;
 
 /// Default maximum message size (64 MiB).
 ///

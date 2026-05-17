@@ -13,11 +13,11 @@ use crate::wire::simple_http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
-use super::batch_writer::BatchFrameWriter;
-use super::error::WebSocketError;
-use super::frame::{Opcode, WebSocketFrame};
-use super::handshake::compute_accept_key;
-use super::message::WebSocketMessage;
+use crate::wire::websocket::shared::batch_writer::BatchFrameWriter;
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::wire::websocket::shared::handshake::compute_accept_key;
+use crate::wire::websocket::shared::message::WebSocketMessage;
 
 /// WHY: Servers need to detect incoming WebSocket upgrade requests.
 ///

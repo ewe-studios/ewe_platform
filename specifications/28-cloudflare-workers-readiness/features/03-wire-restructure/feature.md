@@ -185,27 +185,35 @@ wire/
 │               ├── send_request.rs
 │               └── state.rs
 ├── event_source/
-│   ├── mod.rs                  # shared + gated native
-│   ├── core.rs                 # always compiled
-│   ├── parser.rs               # always compiled
-│   ├── error.rs                # always compiled
-│   ├── response.rs             # always compiled
-│   ├── writer.rs               # always compiled
-│   ├── consumer.rs             #[cfg(not(wasm32))]
-│   ├── task.rs                 #[cfg(not(wasm32))]
-│   └── reconnecting_task.rs    #[cfg(not(wasm32))]
+│   ├── mod.rs                  # declares shared + gated native
+│   ├── shared/
+│   │   ├── mod.rs              # re-exports all shared event_source types
+│   │   ├── core.rs             # Event, SseEvent, SseEventBuilder
+│   │   ├── parser.rs           # SseParser
+│   │   ├── error.rs            # EventSourceError, SseParseError
+│   │   ├── response.rs         # SseResponse
+│   │   └── writer.rs           # EventWriter
+│   └── native/                 #[cfg(not(wasm32))]
+│       ├── mod.rs              # re-exports all native event_source types
+│       ├── consumer.rs         # EventSourceConsumer
+│       ├── task.rs             # EventSourceTask
+│       └── reconnecting_task.rs # ReconnectingEventSourceTask
 ├── websocket/
-│   ├── mod.rs                  # shared + gated native
-│   ├── assembler.rs            # always compiled
-│   ├── batch_writer.rs         # always compiled
-│   ├── error.rs                # always compiled
-│   ├── frame.rs                # always compiled
-│   ├── handshake.rs            # always compiled
-│   ├── message.rs              # always compiled
-│   ├── connection.rs           #[cfg(not(wasm32))]
-│   ├── task.rs                 #[cfg(not(wasm32))]
-│   ├── reconnecting_task.rs    #[cfg(not(wasm32))]
-│   └── server.rs               #[cfg(not(wasm32))]
+│   ├── mod.rs                  # declares shared + gated native
+│   ├── shared/
+│   │   ├── mod.rs              # re-exports all shared websocket types
+│   │   ├── assembler.rs        # MessageAssembler
+│   │   ├── batch_writer.rs     # BatchFrameWriter
+│   │   ├── error.rs            # WebSocketError
+│   │   ├── frame.rs            # WebSocketFrame, Opcode
+│   │   ├── handshake.rs        # build_upgrade_request, compute_accept_key
+│   │   └── message.rs          # WebSocketMessage
+│   └── native/                 #[cfg(not(wasm32))]
+│       ├── mod.rs              # re-exports all native websocket types
+│       ├── connection.rs       # WebSocketConnection
+│       ├── task.rs             # WebSocketTask
+│       ├── reconnecting_task.rs # ReconnectingWebSocketTask
+│       └── server.rs           # Server-side WebSocket
 └── http_stream/
     └── mod.rs                  #[cfg(not(wasm32))] — entirely native
 ```

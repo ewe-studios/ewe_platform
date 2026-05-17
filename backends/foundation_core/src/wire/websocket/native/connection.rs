@@ -20,11 +20,11 @@ use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 use std::time::Duration;
 
-use super::batch_writer::BatchFrameWriter;
-use super::error::WebSocketError;
-use super::frame::{Opcode, WebSocketFrame};
-use super::message::WebSocketMessage;
-use super::task::WebSocketTask;
+use crate::wire::websocket::shared::batch_writer::BatchFrameWriter;
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::wire::websocket::shared::message::WebSocketMessage;
+use crate::wire::websocket::native::task::WebSocketTask;
 
 /// WHY: Users need a simple blocking API for WebSocket communication.
 ///

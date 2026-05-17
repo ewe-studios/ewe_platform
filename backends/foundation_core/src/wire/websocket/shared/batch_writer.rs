@@ -13,8 +13,8 @@
 //! - Flush ordering preserves frame order
 //! - Control frames can be prioritized for immediate flush
 
-use super::error::WebSocketError;
-use super::frame::WebSocketFrame;
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::frame::WebSocketFrame;
 use std::io::Write;
 use std::time::{Duration, Instant};
 

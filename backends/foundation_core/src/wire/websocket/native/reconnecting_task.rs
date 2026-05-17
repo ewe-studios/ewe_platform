@@ -22,9 +22,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace};
 
-use super::error::WebSocketError;
-use super::message::WebSocketMessage;
-use super::task::{WebSocketProgress, WebSocketTask};
+use crate::wire::websocket::shared::error::WebSocketError;
+use crate::wire::websocket::shared::message::WebSocketMessage;
+use crate::wire::websocket::native::task::{WebSocketProgress, WebSocketTask};
 
 /// Configuration for reconnecting WebSocket client.
 pub struct ReconnectingConfig {
