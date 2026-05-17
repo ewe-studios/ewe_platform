@@ -29,7 +29,6 @@ jwt-simple = "0.12"       # JWT support
 
 # Encoding
 base64 = "0.22"
-url = "2.5"
 urlencoding = "2.1"
 
 # Serialization

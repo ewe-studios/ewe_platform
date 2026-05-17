@@ -56,13 +56,13 @@ use std::fmt;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Uri {
     /// URI scheme (http, https, etc.)
-    scheme: Scheme,
+    pub scheme: Scheme,
     /// Optional authority (userinfo@host:port)
-    authority: Option<Authority>,
+    pub authority: Option<Authority>,
     /// Path and query components
-    path_and_query: PathAndQuery,
+    pub path_and_query: PathAndQuery,
     /// Optional fragment (after #)
-    fragment: Option<String>,
+    pub fragment: Option<String>,
 }
 
 impl Uri {
@@ -287,6 +287,189 @@ impl Uri {
     #[must_use]
     pub fn path_and_query(&self) -> &PathAndQuery {
         &self.path_and_query
+    }
+
+    // ── Builder methods ─────────────────────────────────────────────
+
+    /// Returns a new `Uri` with the given query string (without leading '?').
+    #[must_use]
+    pub fn with_query(&self, query: impl Into<String>) -> Self {
+        let query_str = query.into();
+        let path_and_query = PathAndQuery {
+            path: self.path_and_query.path().to_string(),
+            query: if query_str.is_empty() {
+                None
+            } else {
+                Some(query_str)
+            },
+        };
+        Uri {
+            scheme: self.scheme.clone(),
+            authority: self.authority.clone(),
+            path_and_query,
+            fragment: self.fragment.clone(),
+        }
+    }
+
+    /// Returns a new `Uri` with the given path.
+    #[must_use]
+    pub fn with_path(&self, path: impl Into<String>) -> Self {
+        let new_path = path.into();
+        let path_and_query = PathAndQuery {
+            path: if new_path.starts_with('/') {
+                new_path
+            } else {
+                format!("/{new_path}")
+            },
+            query: self.path_and_query.query().map(|s| s.to_string()),
+        };
+        Uri {
+            scheme: self.scheme.clone(),
+            authority: self.authority.clone(),
+            path_and_query,
+            fragment: self.fragment.clone(),
+        }
+    }
+
+    /// Returns a new `Uri` with the given authority.
+    #[must_use]
+    pub fn with_authority(&self, authority: impl Into<Option<Authority>>) -> Self {
+        Uri {
+            scheme: self.scheme.clone(),
+            authority: authority.into(),
+            path_and_query: self.path_and_query.clone(),
+            fragment: self.fragment.clone(),
+        }
+    }
+
+    /// Returns a new `Uri` with the given scheme.
+    #[must_use]
+    pub fn with_scheme(&self, scheme: Scheme) -> Self {
+        Uri {
+            scheme,
+            authority: self.authority.clone(),
+            path_and_query: self.path_and_query.clone(),
+            fragment: self.fragment.clone(),
+        }
+    }
+}
+
+/// Builder for constructing URIs from scratch.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::url::{UriBuilder, Scheme, Query};
+///
+/// let uri = UriBuilder::new()
+///     .scheme(Scheme::HTTPS)
+///     .authority_str("auth.example.com")
+///     .path("/oauth/authorize")
+///     .query_str("response_type=code&client_id=abc")
+///     .build();
+///
+/// assert!(uri.to_string().contains("https://auth.example.com"));
+/// assert!(uri.to_string().contains("response_type=code"));
+/// ```
+#[derive(Clone, Debug, Default)]
+pub struct UriBuilder {
+    scheme: Option<Scheme>,
+    authority: Option<Authority>,
+    path: String,
+    query: Option<String>,
+    fragment: Option<String>,
+}
+
+impl UriBuilder {
+    /// Creates a new empty builder.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the scheme.
+    #[must_use]
+    pub fn scheme(mut self, scheme: Scheme) -> Self {
+        self.scheme = Some(scheme);
+        self
+    }
+
+    /// Sets the authority from an [`Authority`] value.
+    #[must_use]
+    pub fn authority(mut self, authority: Authority) -> Self {
+        self.authority = Some(authority);
+        self
+    }
+
+    /// Parses and sets the authority from a string (e.g. "example.com:8080").
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the authority cannot be parsed.
+    pub fn authority_str(mut self, s: impl Into<String>) -> Result<Self, String> {
+        let s = s.into();
+        let authority = Authority::parse(&s).map_err(|e| e.to_string())?;
+        self.authority = Some(authority);
+        Ok(self)
+    }
+
+    /// Sets the path. Ensures it starts with '/'.
+    #[must_use]
+    pub fn path(mut self, path: impl Into<String>) -> Self {
+        let p = path.into();
+        self.path = if p.starts_with('/') { p } else { format!("/{p}") };
+        self
+    }
+
+    /// Sets the query string (without leading '?').
+    #[must_use]
+    pub fn query_str(mut self, query: impl Into<String>) -> Self {
+        let q = query.into();
+        self.query = if q.is_empty() { None } else { Some(q) };
+        self
+    }
+
+    /// Sets the query from a [`Query`] builder.
+    #[must_use]
+    pub fn query(mut self, query: Query) -> Self {
+        let q = query.to_string();
+        self.query = if q.is_empty() { None } else { Some(q) };
+        self
+    }
+
+    /// Sets the fragment (without leading '#').
+    #[must_use]
+    pub fn fragment(mut self, fragment: impl Into<String>) -> Self {
+        let f = fragment.into();
+        self.fragment = if f.is_empty() { None } else { Some(f) };
+        self
+    }
+
+    /// Builds the final [`Uri`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no scheme was set (scheme is required).
+    pub fn build(self) -> Result<Uri, InvalidUri> {
+        let scheme = self.scheme.ok_or_else(|| {
+            InvalidUri::new("cannot build Uri without a scheme — call .scheme() first")
+        })?;
+        let path_and_query = PathAndQuery {
+            path: if self.path.is_empty() {
+                "/".to_string()
+            } else if self.path.starts_with('/') {
+                self.path
+            } else {
+                format!("/{}", self.path)
+            },
+            query: self.query,
+        };
+        Ok(Uri {
+            scheme,
+            authority: self.authority,
+            path_and_query,
+            fragment: self.fragment,
+        })
     }
 }
 

@@ -137,13 +137,10 @@ pub enum AuthenticationErrors {
     /// Two-factor authentication error.
     TwoFactor(super::two_factor::TwoFactorError),
     /// Session management error.
-    #[cfg(not(target_arch = "wasm32"))]
     Session(#[from] SessionError),
     /// Auth state machine error.
-    #[cfg(not(target_arch = "wasm32"))]
     AuthState(#[from] AuthStateError),
     /// OAuth error.
-    #[cfg(not(target_arch = "wasm32"))]
     OAuth(#[from] OAuthError),
     /// JWT error.
     Jwt(#[from] JwtError),
@@ -172,11 +169,8 @@ impl core::fmt::Display for AuthenticationErrors {
             AuthenticationErrors::SessionNotFound => write!(f, "Session not found"),
             AuthenticationErrors::AccountLocked => write!(f, "Account locked"),
             AuthenticationErrors::TwoFactor(e) => write!(f, "Two-factor auth error: {e}"),
-            #[cfg(not(target_arch = "wasm32"))]
             AuthenticationErrors::Session(e) => write!(f, "Session error: {e}"),
-            #[cfg(not(target_arch = "wasm32"))]
             AuthenticationErrors::AuthState(e) => write!(f, "Auth state error: {e}"),
-            #[cfg(not(target_arch = "wasm32"))]
             AuthenticationErrors::OAuth(e) => write!(f, "OAuth error: {e}"),
             AuthenticationErrors::Jwt(e) => write!(f, "JWT error: {e}"),
             AuthenticationErrors::CredentialStore(e) => write!(f, "Credential store error: {e}"),

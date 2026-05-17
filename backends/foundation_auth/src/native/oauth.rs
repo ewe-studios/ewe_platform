@@ -1,7 +1,7 @@
 //! OAuth 2.0 flows requiring native HTTP client access.
 
+use foundation_core::url::{Query, Uri};
 use serde::Deserialize;
-use url::Url;
 
 use crate::shared::oauth::{OAuthConfig, OAuthError, PkceChallenge};
 use crate::shared::oauth_token::OAuthToken;
@@ -48,34 +48,37 @@ impl OAuthManager {
     ) -> Result<(String, Option<PkceChallenge>), OAuthError> {
         self.config.validate()?;
 
-        let mut url = Url::parse(&self.config.authorization_url)
+        // Parse base URL to extract components
+        let base = Uri::parse(&self.config.authorization_url)
             .map_err(|_| OAuthError::InvalidUrl(self.config.authorization_url.clone()))?;
 
-        // Add required parameters
-        url.query_pairs_mut()
-            .append_pair("response_type", &self.config.response_type)
-            .append_pair("client_id", &self.config.client_id)
-            .append_pair("redirect_uri", &self.config.redirect_uri)
-            .append_pair("state", state);
+        // Build query parameters
+        let mut query = Query::new();
+        query.append("response_type", &self.config.response_type);
+        query.append("client_id", &self.config.client_id);
+        query.append("redirect_uri", &self.config.redirect_uri);
+        query.append("state", state);
 
         // Add scopes if present
         if !self.config.scopes.is_empty() {
             let scopes_joined = self.config.scopes.join(" ");
-            url.query_pairs_mut().append_pair("scope", &scopes_joined);
+            query.append("scope", &scopes_joined);
         }
 
         // Add PKCE if enabled
         let pkce = if self.config.pkce_enabled {
             let challenge = PkceChallenge::generate();
-            url.query_pairs_mut()
-                .append_pair("code_challenge", &challenge.code_challenge)
-                .append_pair("code_challenge_method", &challenge.challenge_method);
+            query.append("code_challenge", &challenge.code_challenge);
+            query.append("code_challenge_method", &challenge.challenge_method);
             Some(challenge)
         } else {
             None
         };
 
-        Ok((url.to_string(), pkce))
+        // Rebuild URL from parsed components with new query
+        let uri = base.with_query(query.to_string());
+
+        Ok((uri.to_string(), pkce))
     }
 
     /// Validate the state parameter.

@@ -16,9 +16,9 @@ use crate::url::errors::InvalidUri;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PathAndQuery {
     /// Path component (may be empty for authority-only URIs)
-    path: String,
+    pub path: String,
     /// Optional query component (without the '?')
-    query: Option<String>,
+    pub query: Option<String>,
 }
 
 impl PathAndQuery {
