@@ -43,6 +43,22 @@ chrono = "0.4"
 uuid = { version = "1.0", features = ["v4"] }
 bytes = "1.5"
 
+# Wasm-bindgen OAuth support (gated behind wasm-bindgen-oauth feature)
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = [
+  "Request",
+  "RequestInit",
+  "RequestMode",
+  "Response",
+  "Headers",
+  "AbortController",
+  "ServiceWorkerGlobalScope",
+  "Window",
+  "Crypto",
+], optional = true }
+
 [dev-dependencies]
 tempfile = "3"
 
@@ -57,19 +73,3 @@ wasm-bindgen-oauth = [
   "dep:js-sys",
   "dep:web-sys",
 ]
-
-[dependencies]
-wasm-bindgen = { version = "0.2", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", features = [
-  "Request",
-  "RequestInit",
-  "RequestMode",
-  "Response",
-  "Headers",
-  "AbortController",
-  "ServiceWorkerGlobalScope",
-  "Window",
-  "crypto",
-], optional = true }

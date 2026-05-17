@@ -8,6 +8,9 @@ pub mod shared;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native;
 
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
+pub mod wasm_bindgen;
+
 // Re-export shared items at crate root for backward compatibility.
 pub use shared::types::{
     AuthCredential, Authenticated, AuthenticationErrors, AuthenticationResult,
@@ -33,3 +36,7 @@ pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoF
 // Re-export native-only items.
 #[cfg(not(target_arch = "wasm32"))]
 pub use native::oauth::OAuthManager;
+
+// Re-export wasm-bindgen OAuthManager.
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
+pub use wasm_bindgen::oauth::OAuthManager;
