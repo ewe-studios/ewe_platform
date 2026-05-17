@@ -354,18 +354,25 @@ where
 
 /// Execute a future using the unified executor (WASM - no Send required).
 ///
-/// WHY: WASM is single-threaded, Send not needed
+/// WHY: WASM is single-threaded, Send not needed at runtime
 /// WHAT: Wraps future in FutureTask and executes via unified executor
+/// NOTE: Send bounds are required by the unified executor trait even on wasm32,
+/// but no actual cross-thread movement occurs in single-threaded wasm.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
-    F: Future + 'static,
-    F::Output: 'static,
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
 {
+    use crate::valtron::ReadyValues;
+
     use super::unified;
     let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute(task)?);
-    let values: Vec<F::Output> = values_iter.flat_map(|item| item.inner()).collect();
+    let values_iter = ReadyValues::new(unified::execute_as_task(task, None)?);
+    let values: Vec<F::Output> = values_iter
+        .filter_map(super::super::task::ReadyValue::inner)
+        .collect();
+
     Ok(values)
 }
 

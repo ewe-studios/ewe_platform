@@ -14,6 +14,5 @@ pub use errors::*;
 pub use impls::*;
 pub use sse::SseParser;
 
-// Client module — depends on netcap::RawStream, Connection, SSLConnector, HttpConnectionPool
-#[cfg(not(target_arch = "wasm32"))]
+// Client module — native parts gated, shared parts (Cookie, etc.) always available
 pub mod client;

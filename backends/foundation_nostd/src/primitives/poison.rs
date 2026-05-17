@@ -44,7 +44,9 @@ pub type TryLockResult<Guard> = Result<Guard, TryLockError<Guard>>;
 ///     }
 /// }
 /// ```ignore
-#[derive(Debug)]
+// PoisonError doesn't require T: Debug — the error message is static and the
+// guard value isn't printed. This avoids cascading Debug bounds on all callers
+// that use .unwrap() on LockResult across wasm32 (NoopMutex/NoopRwLock).
 pub struct PoisonError<T> {
     guard: T,
 }
@@ -81,6 +83,12 @@ impl<T> PoisonError<T> {
     }
 }
 
+impl<T> fmt::Debug for PoisonError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("PoisonError(..)")
+    }
+}
+
 impl<T> fmt::Display for PoisonError<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -95,7 +103,6 @@ impl<T: fmt::Debug> Error for PoisonError<T> {}
 /// An enumeration of possible errors from the `try_lock` method.
 ///
 /// This is identical to `std::sync::TryLockError`.
-#[derive(Debug)]
 pub enum TryLockError<T> {
     /// The `lock` could not be acquired because another thread is holding it.
     WouldBlock,
@@ -104,6 +111,15 @@ pub enum TryLockError<T> {
     ///
     /// The wrapped `PoisonError` contains the guard, allowing recovery.
     Poisoned(PoisonError<T>),
+}
+
+impl<T> fmt::Debug for TryLockError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::WouldBlock => f.write_str("WouldBlock"),
+            Self::Poisoned(_) => f.write_str("Poisoned(..)"),
+        }
+    }
 }
 
 impl<T> fmt::Display for TryLockError<T> {

@@ -11,6 +11,7 @@
 //! `StateStoreStream<T>` (lazy iterators). The factory selects a backend
 //! from environment variables.
 
+#[cfg(not(target_arch = "wasm32"))]
 pub mod d1;
 pub mod file;
 pub mod hash;
@@ -18,6 +19,7 @@ pub mod helpers;
 #[cfg(feature = "libsql")]
 pub mod libsql_state;
 pub mod namespaced;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod r2;
 pub mod resource_identifier;
 #[cfg(feature = "libsql")]
@@ -30,6 +32,7 @@ pub mod types;
 
 #[cfg(feature = "libsql")]
 pub use self::turso::TursoStateStore;
+#[cfg(not(target_arch = "wasm32"))]
 pub use d1::D1StateStore;
 pub use file::FileStateStore;
 pub use hash::config_hash;
@@ -37,6 +40,7 @@ pub use helpers::{collect_all, collect_first, drive_to_completion};
 #[cfg(feature = "libsql")]
 pub use libsql_state::LibSQLStateStore;
 pub use namespaced::NamespacedStore;
+#[cfg(not(target_arch = "wasm32"))]
 pub use r2::R2StateStore;
 #[cfg(feature = "libsql")]
 pub use sqlite::SqliteStateStore;
@@ -71,10 +75,12 @@ pub fn create_state_store(
     _provider: &str,
     stage: &str,
 ) -> Result<Box<dyn StateStore>, crate::errors::StorageError> {
+    #[cfg(not(target_arch = "wasm32"))]
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
         return Ok(Box::new(D1StateStore::from_env(project, stage)?));
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     if std::env::var("DEPLOYMENT_R2_BUCKET").is_ok() {
         return Ok(Box::new(R2StateStore::from_env(project, stage)?));
     }

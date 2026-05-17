@@ -35,6 +35,7 @@ pub fn initialize_pool(
 ) -> super::threads::PoolGuard {
     #[cfg(target_arch = "wasm32")]
     {
+        use super::single;
         tracing::debug!("Starting under wasm");
         single::initialize_pool(seed_for_rng);
         return super::threads::PoolGuard::dummy();

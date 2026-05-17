@@ -133,7 +133,7 @@ where
         }
 
         let task_response =
-            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
                 Ok(inner) => inner,
                 Err(panic_error) => {
                     if let Some(panic_handler) = &self.panic_handler {
@@ -383,7 +383,7 @@ where
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
         let task_response =
-            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
                 Ok(inner) => inner,
                 Err(panic_error) => {
                     if let Some(panic_handler) = &self.panic_handler {
@@ -628,7 +628,7 @@ where
         }
 
         let task_response =
-            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
                 Ok(inner) => inner,
                 Err(panic_error) => {
                     if let Some(panic_handler) = &self.panic_handler {

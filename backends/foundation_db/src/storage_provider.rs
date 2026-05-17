@@ -10,11 +10,13 @@
 
 use serde::{de::DeserializeOwned, Serialize};
 
+#[cfg(not(target_arch = "wasm32"))]
 use crate::backends::d1_kvstore::D1KeyValueStore;
 use crate::backends::json_file::JsonFileStorage;
 #[cfg(feature = "libsql")]
 use crate::backends::libsql_backend::LibsqlStorage;
 use crate::backends::memory::MemoryStorage;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::backends::r2_blobstore::R2BlobStore;
 #[cfg(feature = "turso")]
 use crate::backends::turso_backend::TursoStorage;
@@ -328,8 +330,10 @@ pub enum StorageBackend {
     #[cfg(feature = "libsql")]
     Libsql { url: String },
     /// Cloudflare D1 backend.
+    #[cfg(not(target_arch = "wasm32"))]
     D1,
     /// Cloudflare R2 backend with bucket configuration.
+    #[cfg(not(target_arch = "wasm32"))]
     R2 { bucket: String },
     /// JSON file backend with file path.
     JsonFile { path: String },
@@ -349,7 +353,9 @@ enum StorageProviderInner {
     Libsql(Box<LibsqlStorage>),
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
+    #[cfg(not(target_arch = "wasm32"))]
     D1(D1KeyValueStore),
+    #[cfg(not(target_arch = "wasm32"))]
     R2(R2BlobStore),
 }
 
@@ -378,12 +384,14 @@ impl StorageProvider {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
             }
+            #[cfg(not(target_arch = "wasm32"))]
             StorageBackend::D1 => {
                 let storage = D1KeyValueStore::from_env()?;
                 Ok(Self {
                     inner: StorageProviderInner::D1(storage),
                 })
             }
+            #[cfg(not(target_arch = "wasm32"))]
             StorageBackend::R2 { bucket } => {
                 let storage = R2BlobStore::from_env()?;
                 // Override prefix with bucket if specified
@@ -449,7 +457,9 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.get(key),
             StorageProviderInner::JsonFile(storage) => storage.get(key),
             StorageProviderInner::Memory(storage) => storage.get(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.get(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
@@ -464,7 +474,9 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.set(key, value),
             StorageProviderInner::JsonFile(storage) => storage.set(key, value),
             StorageProviderInner::Memory(storage) => storage.set(key, value),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.set(key, value),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
@@ -479,7 +491,9 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.delete(key),
             StorageProviderInner::JsonFile(storage) => storage.delete(key),
             StorageProviderInner::Memory(storage) => storage.delete(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.delete(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
@@ -494,7 +508,9 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.exists(key),
             StorageProviderInner::JsonFile(storage) => storage.exists(key),
             StorageProviderInner::Memory(storage) => storage.exists(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.exists(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
@@ -509,7 +525,9 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.list_keys(prefix),
             StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix),
             StorageProviderInner::Memory(storage) => storage.list_keys(prefix),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.list_keys(prefix),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
@@ -530,7 +548,9 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.query(sql, params),
             StorageProviderInner::JsonFile(storage) => storage.query(sql, params),
             StorageProviderInner::Memory(storage) => storage.query(sql, params),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.query(sql, params),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
@@ -549,7 +569,9 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.execute(sql, params),
             StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
             StorageProviderInner::Memory(storage) => storage.execute(sql, params),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.execute(sql, params),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
@@ -564,7 +586,9 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.execute_batch(sql),
             StorageProviderInner::JsonFile(storage) => storage.execute_batch(sql),
             StorageProviderInner::Memory(storage) => storage.execute_batch(sql),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.execute_batch(sql),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
@@ -594,9 +618,11 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Memory(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
@@ -611,7 +637,9 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.record_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.record_rate_limit(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
@@ -626,7 +654,9 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.reset_rate_limit(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
@@ -643,7 +673,9 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.put_blob(key, data),
             StorageProviderInner::JsonFile(storage) => storage.put_blob(key, data),
             StorageProviderInner::Memory(storage) => storage.put_blob(key, data),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.put_blob(key, data),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(storage) => storage.put_blob(key, data),
         }
     }
@@ -656,7 +688,9 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.get_blob(key),
             StorageProviderInner::JsonFile(storage) => storage.get_blob(key),
             StorageProviderInner::Memory(storage) => storage.get_blob(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.get_blob(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(storage) => storage.get_blob(key),
         }
     }
@@ -669,7 +703,9 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.delete_blob(key),
             StorageProviderInner::JsonFile(storage) => storage.delete_blob(key),
             StorageProviderInner::Memory(storage) => storage.delete_blob(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.delete_blob(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(storage) => storage.delete_blob(key),
         }
     }
@@ -682,7 +718,9 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.blob_exists(key),
             StorageProviderInner::JsonFile(storage) => storage.blob_exists(key),
             StorageProviderInner::Memory(storage) => storage.blob_exists(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::D1(storage) => storage.blob_exists(key),
+            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::R2(storage) => storage.blob_exists(key),
         }
     }

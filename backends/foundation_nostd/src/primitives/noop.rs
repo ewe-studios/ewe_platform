@@ -89,12 +89,12 @@ impl<T> NoopMutex<T> {
     /// use foundation_nostd::primitives::noop::NoopMutex;
     ///
     /// let mut mutex = NoopMutex::new(0);
-    /// *mutex.get_mut() = 10;
+    /// *mutex.get_mut().unwrap() = 10;
     /// assert_eq!(*mutex.lock(), 10);
     /// ```ignore
     #[inline]
-    pub fn get_mut(&mut self) -> &mut T {
-        self.data.get_mut()
+    pub fn get_mut(&mut self) -> LockResult<&mut T> {
+        Ok(unsafe { &mut *self.data.get() })
     }
 }
 
@@ -700,7 +700,7 @@ mod tests {
     #[test]
     fn test_mutex_get_mut() {
         let mut mutex = NoopMutex::new(0);
-        *mutex.get_mut() = 42;
+        *mutex.get_mut().unwrap() = 42;
         assert_eq!(*mutex.lock().unwrap(), 42);
     }
 

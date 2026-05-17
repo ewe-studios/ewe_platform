@@ -10,16 +10,16 @@ use std::sync::{Arc, Mutex};
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
-use foundation_core::wire::simple_http::client::{Cookie, SameSite};
+use foundation_core::wire::simple_http::client::shared::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::credential_store::CredentialStore;
-use crate::ConfidentialText;
-use crate::CredentialStoreError;
+use crate::shared::credential_store::CredentialStore;
+use super::types::ConfidentialText;
+use crate::shared::credential_store::CredentialStoreError;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -414,7 +414,7 @@ impl std::error::Error for SessionError {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::credential_store::CredentialStorage;
+    use crate::shared::credential_store::CredentialStorage;
 
     fn init_valtron() {
         foundation_core::valtron::single::initialize_pool(42);

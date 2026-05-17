@@ -10,7 +10,7 @@ use foundation_core::valtron::Stream;
 use foundation_db::{KeyValueStore, StorageBackend, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
-use crate::oauth::OAuthToken;
+use crate::shared::oauth_token::OAuthToken;
 
 /// Synchronous credential storage API.
 ///

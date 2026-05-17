@@ -7,7 +7,7 @@
 //! HOW: Synchronous token validation via `AuthToken`. No framework-specific
 //! middleware — provides composable guard functions instead.
 
-use crate::auth_token::AuthToken;
+use crate::shared::auth_token::AuthToken;
 
 /// Request context carrying authentication info.
 #[derive(Debug, Clone)]
@@ -150,7 +150,7 @@ pub fn has_scope(ctx: &AuthContext, required: &[&str]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ConfidentialText;
+    use super::types::ConfidentialText;
 
     #[test]
     fn test_require_auth_with_valid_token() {

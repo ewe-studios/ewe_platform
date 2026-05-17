@@ -11,6 +11,7 @@
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
+use foundation_core::wire::simple_http::shared::body_readers::collect_strings_from_send_safe;
 use foundation_core::wire::simple_http::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
@@ -51,23 +52,10 @@ fn test_send_returns_complete_response_with_body() {
     ));
 
     // Verify body
-    match response.get_body_mut() {
-        SendSafeBody::Text(text) => {
-            println!("Response body: {text:}");
-            assert_eq!(text, test_body);
-        }
-        SendSafeBody::Bytes(data) => {
-            let body_str = String::from_utf8_lossy(data);
-            println!("Response body (bytes): {body_str:}");
-            assert_eq!(body_str, test_body);
-        }
-        SendSafeBody::None => {
-            panic!("Expected body content, got None");
-        }
-        _ => {
-            panic!("Unexpected body type");
-        }
-    }
+    let (_, _, body, _) = response.into_parts();
+    let body = collect_strings_from_send_safe(body);
+    println!("Response body (bytes): {body_str:}");
+    assert_eq!(body_str, test_body);
 
     println!("✅ Test passed: send() returns complete response with body");
 }
