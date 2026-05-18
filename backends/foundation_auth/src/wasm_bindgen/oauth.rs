@@ -1,4 +1,8 @@
 //! OAuth 2.0 token exchange using browser/worker fetch API.
+//!
+//! Public methods are synchronous (matching `NativeOAuth` API) and resolve JS
+//! Promises internally via `futures_lite::block_on`. The underlying async
+//! implementations are exposed as `*_async` variants for callers that prefer them.
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -27,12 +31,50 @@ impl WasmOAuth {
         &self.inner
     }
 
+    // ========================================================================
+    // Sync API (matching NativeOAuth)
+    // ========================================================================
+
     /// Exchange authorization code for tokens.
     ///
     /// # Errors
     ///
     /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    pub async fn exchange_code(
+    pub fn exchange_code(
+        &self,
+        code: &str,
+        code_verifier: Option<&str>,
+    ) -> Result<OAuthToken, OAuthError> {
+        futures_lite::future::block_on(self.exchange_code_async(code, code_verifier))
+    }
+
+    /// Client credentials flow for service-to-service authentication.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    pub fn client_credentials(
+        &self,
+        scopes: Option<Vec<String>>,
+    ) -> Result<OAuthToken, OAuthError> {
+        futures_lite::future::block_on(self.client_credentials_async(scopes))
+    }
+
+    /// Refresh an access token using a refresh token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
+    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+        futures_lite::future::block_on(self.refresh_token_async(refresh_token))
+    }
+
+    // ========================================================================
+    // Async API (direct Promise resolution)
+    // ========================================================================
+
+    /// Async version of [`Self::exchange_code`].
+    pub async fn exchange_code_async(
         &self,
         code: &str,
         code_verifier: Option<&str>,
@@ -63,12 +105,8 @@ impl WasmOAuth {
         parse_token_response(resp).await
     }
 
-    /// Client credentials flow for service-to-service authentication.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    pub async fn client_credentials(
+    /// Async version of [`Self::client_credentials`].
+    pub async fn client_credentials_async(
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
@@ -103,12 +141,11 @@ impl WasmOAuth {
         parse_token_response(resp).await
     }
 
-    /// Refresh an access token using a refresh token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
-    pub async fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+    /// Async version of [`Self::refresh_token`].
+    pub async fn refresh_token_async(
+        &self,
+        refresh_token: &str,
+    ) -> Result<OAuthToken, OAuthError> {
         self.inner.config.validate()?;
 
         let mut body_parts = vec![
@@ -127,6 +164,10 @@ impl WasmOAuth {
         parse_refresh_response(resp, refresh_token).await
     }
 }
+
+// ============================================================================
+// Internal helpers
+// ============================================================================
 
 /// Perform a POST request with URL-encoded body via the fetch API.
 async fn fetch_post(url: &str, body: &str) -> Result<Response, OAuthError> {

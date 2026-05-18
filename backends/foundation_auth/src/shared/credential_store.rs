@@ -7,7 +7,9 @@
 //! therefore covers every backend `foundation_db` supports.
 
 use foundation_core::valtron::Stream;
-use foundation_db::{KeyValueStore, StorageBackend, StorageError, StorageProvider};
+#[cfg(feature = "turso")]
+use foundation_db::StorageBackend;
+use foundation_db::{KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::shared::oauth_token::OAuthToken;
@@ -113,6 +115,7 @@ impl CredentialStorage {
     ///
     /// Returns [`CredentialStoreError`] if the Turso backend cannot be
     /// initialized.
+    #[cfg(feature = "turso")]
     pub fn turso(url: &str) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
@@ -361,7 +364,7 @@ impl<T> StoredCredential<T> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "turso"))]
 mod tests {
     use super::*;
 
