@@ -2497,6 +2497,7 @@ dependencies = [
  "foundation_db",
  "getrandom 0.2.16",
  "hmac",
+ "js-sys",
  "jwt-simple",
  "rand 0.8.5",
  "serde",
@@ -2506,6 +2507,9 @@ dependencies = [
  "time",
  "urlencoding",
  "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "zeroize",
 ]
 
