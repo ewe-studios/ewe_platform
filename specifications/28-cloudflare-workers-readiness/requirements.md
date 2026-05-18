@@ -29,10 +29,10 @@ related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
   - "specifications/21-http-framework"
 features:
-  completed: 0
-  uncompleted: 6
-  total: 6
-  completion_percentage: 0%
+  completed: 2
+  uncompleted: 7
+  total: 9
+  completion_percentage: 22%
 ---
 
 # Cloudflare Workers Readiness Specification
@@ -137,14 +137,17 @@ For the foundation_db integration:
 
 ## Feature Index
 
-### Pending Features (0/6 completed)
+### Completed and Pending Features (2/9 completed)
 
 1. **[core-wasm-compat](./features/01-core-wasm-compat/feature.md)** — Remove dead ctrlc dep, add wasm feature flags, SSL backend switching
 2. **[auth-wasm-compat](./features/02-auth-wasm-compat/feature.md)** — Fix uuid/chrono wasm features, verify auth logic compiles
 3. **[http-wasm-compat](./features/03-http-wasm-compat/feature.md)** — Restructure into core/native/wasm, ServeWriter, Server enum, bridge/web+cf
-4. **[db-wasm-compat](./features/04-db-wasm-compat/feature.md)** — Restructure into core/native/wasm, CF D1/R2/KV wasm-bindgen bridge
-5. **[example-app](./features/05-example-app/feature.md)** — Working login app deployable to Cloudflare Workers
-6. **[ci-wasm-checks](./features/06-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
+4. **[wire-restructure](./features/04-wire-restructure/feature.md)** — Deep client split: shared/native split of all wire modules
+5. **[db-wasm-compat](./features/05-db-wasm-compat/feature.md)** — Restructure into core/native/wasm, CF D1/R2/KV wasm-bindgen bridge
+6. **[example-app](./features/06-example-app/feature.md)** — Working login app deployable to Cloudflare Workers
+7. **[ci-wasm-checks](./features/07-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
+8. **[wasm-oauth-manager](./features/08-wasm-oauth-manager/feature.md)** — wasm-bindgen OAuth manager for CF Workers
+9. **[wasm-testbed](./features/09-wasm-testbed/feature.md)** — CLI-driven test harness for wasm32 execution
 
 ---
 
@@ -156,15 +159,18 @@ For the foundation_db integration:
     +----+--------+
     |    |        |
     v    v        v
-02-auth 03-http  04-db  (parallel)
-    |    |        |
-    +----+--------+
+02-auth 03-http  05-db  (parallel)
+    |    |
+    v    v
+04-wire-restructure (split of wire modules, depends on 01-core)
+    |
+    +----+
          |
          v
-    05-example-app
+    06-example-app
          |
          v
-    06-ci-wasm-checks
+    07-ci-wasm-checks
 ```
 
 ---

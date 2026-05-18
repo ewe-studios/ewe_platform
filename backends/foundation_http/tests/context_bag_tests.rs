@@ -1,7 +1,7 @@
 //! ContextBag tests — store/get/get_cloned/remove/contains/build.
 
 use std::sync::Arc;
-use foundation_http::ContextBag;
+use foundation_http::shared::context::ContextBag;
 
 #[test]
 fn test_store_and_get() {

@@ -17,6 +17,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_core::wire::event_source::SseEvent;
 use foundation_core::wire::simple_http::client::body_reader::try_collect_bytes;
 use foundation_core::wire::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
 use foundation_core::wire::simple_http::{
@@ -25,8 +26,16 @@ use foundation_core::wire::simple_http::{
 use serial_test::serial;
 
 use foundation_http::{
-    accept_websocket, respond, ConnectionResult, ContextBag, HttpApp, HttpServer, MiddlewareResult,
-    RequestMiddleware, Serve, ServeError, ServeFactory, ServerConfig, SseEvent, SseStream,
+    native::{
+        server::{HttpServer, KeepAliveConfig, ServerConfig},
+        upgrade::{accept_websocket, SseStream},
+    },
+    shared::{
+        app::HttpApp,
+        context::ContextBag,
+        middleware::{MiddlewareResult, RequestMiddleware},
+        serve::{respond, ConnectionResult, Serve, ServeError, ServeFactory},
+    },
 };
 
 // ---------------------------------------------------------------------------

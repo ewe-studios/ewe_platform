@@ -24,6 +24,23 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 getrandom = { version = "0.2", optional = true }
 
+# Wasm-bindgen bridge dependencies (optional)
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = [
+    "console",
+    "Headers",
+    "Request",
+    "RequestInit",
+    "Response",
+    "ResponseInit",
+    "Url",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "ReadableStreamReadResult",
+], optional = true }
+
 [dev-dependencies]
 foundation_testing = { workspace=true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
@@ -43,6 +60,14 @@ ssl-openssl = ["foundation_core/ssl-openssl"]
 ssl-native-tls = ["foundation_core/ssl-native-tls"]
 # Wasm compatibility — uses browser crypto for UUID generation
 wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
+# Wasm-bindgen bridge entry points for web and Cloudflare Workers
+wasm-bindgen-http = [
+    "wasm",
+    "dep:wasm-bindgen",
+    "dep:wasm-bindgen-futures",
+    "dep:js-sys",
+    "dep:web-sys",
+]
 
 [lints]
 workspace = true

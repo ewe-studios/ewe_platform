@@ -54,7 +54,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 
 [features]
-default = ["turso"]
+default = ["turso", "d1", "r2"]
 turso = ["dep:turso"]
 libsql = ["dep:libsql"]
 d1 = []

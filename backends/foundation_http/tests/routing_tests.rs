@@ -4,7 +4,11 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_http::{
-    ContextBag, Router, ConnectionResult, Serve, ServeFactory,
+    shared::{
+        context::ContextBag,
+        router::Router,
+        serve::{ConnectionResult, Serve, ServeFactory},
+    },
     SimpleIncomingRequest, SimpleMethod, SharedByteBufferStream, RawStream,
 };
 

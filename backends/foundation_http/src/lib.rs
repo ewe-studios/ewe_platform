@@ -22,43 +22,6 @@ pub mod native;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
-// Public re-exports (shared — always available)
-pub use shared::serve::{ConnectionResult, ServeError};
-pub use shared::serve::respond;
-pub use shared::context::ContextBag;
-pub use shared::app::HttpApp;
-pub use shared::router::{Router, Server};
-pub use shared::middleware::{MiddlewareResult, RequestMiddleware};
-pub use shared::middleware::{CorsConfig, CorsMiddleware};
-pub use shared::middleware::{LoggerConfig, LoggerMiddleware, LogLevel};
-pub use shared::middleware::{AuthConfig, AuthMiddleware, AuthResult};
-pub use shared::middleware::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
-pub use shared::middleware::{BodyLimitMiddleware};
-pub use shared::client_ip::ClientIp;
-
-// Native-only re-exports
-#[cfg(not(target_arch = "wasm32"))]
-pub use shared::serve::{Serve, ServeFactory};
-#[cfg(not(target_arch = "wasm32"))]
-pub use shared::router::ArcServe;
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::server::{HttpServer, ServerConfig, KeepAliveConfig};
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::server::timeout::ExpectContinueConfig;
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::upgrade::{accept_websocket, SseStream, UpgradeError};
-
-// Wasm-only re-exports
-#[cfg(target_arch = "wasm32")]
-pub use shared::serve::{ServeWriter, ServeWriterFactory};
-#[cfg(target_arch = "wasm32")]
-pub use wasm::stream::WasmStream;
-#[cfg(target_arch = "wasm32")]
-pub use wasm::server::{handle_request, handle_request_with_bag};
-
-// Re-export SSE types from foundation_core
-pub use foundation_core::wire::event_source::{EventWriter, SseEvent};
-
 // Re-exported from foundation_core for convenience
 pub use foundation_core::wire::simple_http::{
     SimpleIncomingRequest, SimpleMethod, SimpleHeader, SimpleHeaders, SimpleUrl,

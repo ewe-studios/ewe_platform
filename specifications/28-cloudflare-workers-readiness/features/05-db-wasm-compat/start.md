@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/28-cloudflare-workers-readiness"
-feature_directory: "specifications/28-cloudflare-workers-readiness/features/06-ci-wasm-checks"
-this_file: "specifications/28-cloudflare-workers-readiness/features/06-ci-wasm-checks/start.md"
+feature_directory: "specifications/28-cloudflare-workers-readiness/features/05-db-wasm-compat"
+this_file: "specifications/28-cloudflare-workers-readiness/features/05-db-wasm-compat/start.md"
 created: 2026-05-15
 ---
 
-# Start: CI Wasm Checks Feature
+# Start: Database Wasm Compatibility Feature
 
 ## Agent Workflow
 

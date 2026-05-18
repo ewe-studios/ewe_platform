@@ -71,9 +71,9 @@ The auth crate's pure logic components should compile without changes:
 
 ## Tasks
 
-1. [ ] Add `wasm` feature to `foundation_auth/Cargo.toml` with `uuid/js`, `chrono/wasmbind`, `getrandom/js`
-2. [ ] Add `getrandom = { version = "0.2", optional = true }` to dependencies
-3. [ ] Verify `foundation_auth` compiles on wasm32 with `--features wasm`
+1. [x] Add `wasm` feature to `foundation_auth/Cargo.toml` with `uuid/js`, `chrono/wasmbind`, `getrandom/js`
+2. [x] Add `getrandom = { version = "0.2", optional = true }` to dependencies
+3. [x] Verify `foundation_auth` compiles on wasm32 with `--features wasm`
 
 ## Verification
 

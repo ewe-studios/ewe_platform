@@ -10,6 +10,7 @@ use foundation_errstacks::ErrorTrace;
 use crate::shared::serve::ServeError;
 
 /// Handle a `ConnectionResult::Close` by logging and optionally rendering an error response.
+#[allow(dead_code)]
 pub fn handle_close(
     conn: &mut impl std::io::Write,
     err: Option<ErrorTrace<ServeError>>,

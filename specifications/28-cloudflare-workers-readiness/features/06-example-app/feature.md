@@ -3,7 +3,7 @@ feature: "Example Login App"
 description: "Working login application deployable to Cloudflare Workers — login form, auth guard, D1-backed sessions, protected dashboard route"
 status: "pending"
 priority: "high"
-depends_on: ["03-http-wasm-compat", "02-auth-wasm-compat", "04-db-wasm-compat"]
+depends_on: ["03-http-wasm-compat", "02-auth-wasm-compat", "05-db-wasm-compat"]
 estimated_effort: "medium"
 created: 2026-05-15
 last_updated: 2026-05-15
