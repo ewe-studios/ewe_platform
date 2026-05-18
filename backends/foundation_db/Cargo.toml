@@ -15,7 +15,7 @@ keywords = ["database", "storage", "turso", "foundation"]
 foundation_core = { workspace = true, features = ["std"] }
 
 # Storage backends (feature-gated)
-turso = { version = "0.1", optional = true }
+turso = { version = "0.5.3", optional = true, default-features = false }
 libsql = { version = "0.6", optional = true }
 
 # Serialization
@@ -29,9 +29,11 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 zeroize = { version = "1.8", features = ["derive"] }
 chacha20poly1305 = "0.10"
 getrandom = { version = "0.2", optional = true }
+getrandom4 = { package = "getrandom", version = "0.4", optional = true }
 rand = "0.8"
 hex = "0.4"
 base64 = "0.22"
+uuid = { version = "1", optional = true }
 
 # Hashing
 sha2 = "0.10"
@@ -41,6 +43,10 @@ chrono = { workspace = true }
 tracing = "0.1"
 futures-core = "0.3"
 futures-lite = "2"
+
+# Optional wasm-bindgen dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
@@ -57,7 +63,10 @@ r2 = []
 multi = ["foundation_core/multi"]
 
 # Wasm compatibility — browser crypto and JS time APIs
-wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js"]
+wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js", "dep:getrandom4", "getrandom4/wasm_js", "dep:uuid", "uuid/js"]
+
+# Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV)
+wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [lints]
 workspace = true

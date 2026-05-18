@@ -19,9 +19,9 @@ use foundation_core::valtron::run_future_iter;
 use super::sqlite::{parse_resource_row, state_to_params, to_state_stream};
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
-use crate::backends::async_utils::{exec_future, schedule_future};
-use crate::errors::StorageError;
-use crate::rows_stream::LibsqlRowsIterator;
+use crate::core::backends::async_utils::{exec_future, schedule_future};
+use crate::core::errors::StorageError;
+use crate::native::rows_stream::LibsqlRowsIterator;
 
 /// Generate CREATE TABLE SQL for a given table name.
 fn create_table_sql(table_name: &str) -> String {

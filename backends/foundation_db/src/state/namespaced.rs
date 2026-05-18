@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 /// `StateStore` wrapper that automatically prefixes all keys with a namespace.
 ///

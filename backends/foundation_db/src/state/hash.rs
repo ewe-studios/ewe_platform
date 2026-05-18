@@ -11,7 +11,7 @@
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 /// Compute a deterministic SHA-256 hash of a serializable config value.
 ///

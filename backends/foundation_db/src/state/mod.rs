@@ -74,7 +74,7 @@ pub fn create_state_store(
     project_dir: &Path,
     _provider: &str,
     stage: &str,
-) -> Result<Box<dyn StateStore>, crate::errors::StorageError> {
+) -> Result<Box<dyn StateStore>, crate::core::errors::StorageError> {
     #[cfg(not(target_arch = "wasm32"))]
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
         return Ok(Box::new(D1StateStore::from_env(project, stage)?));

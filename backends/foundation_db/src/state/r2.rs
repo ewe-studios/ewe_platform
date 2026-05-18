@@ -15,7 +15,7 @@ use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 

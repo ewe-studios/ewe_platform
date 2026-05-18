@@ -14,7 +14,7 @@
 use foundation_core::valtron::ThreadedValue;
 
 use super::types::ResourceState;
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 /// Lazy stream of state store results.
 ///

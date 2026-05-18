@@ -12,7 +12,7 @@
 //! HOW: Uses explicit `state` enum to track progress through inner task
 //!      reception, state creation, and state store stream polling.
 
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 use crate::state::resource_identifier::ResourceIdentifier;
 use crate::state::traits::{StateStore, StateStoreStream};
 use crate::state::{config_hash, ResourceState, StateStatus};

@@ -2,58 +2,59 @@
 //!
 //! # Architecture
 //!
-//! - **`Serve` trait**: Core handler abstraction — handlers implement `create()` and `serve()`
-//! - **`ConnectionResult`**: Three outcomes — `Keep` (loop), `Take` (handler owns connection), `Close`
-//! - **`ContextBag`**: Type-erased, thread-safe dependency store
-//! - **`Router`**: Tree-based route matching (static/param/regex/wildcard) returning `ArcServe`
-//! - **`HttpApp`**: Application builder with route registration and middleware chain
-//! - **`HttpServer`**: TCP accept loop with `BackgroundJobRunner` thread pool
+//! - **`shared/`** — wasm-compatible modules (traits, router, middleware, handlers, app builder)
+//! - **`native/`** — TCP server, HTTP reader, protocol upgrades (non-wasm only)
+//! - **`wasm/`** — request dispatch with memory-backed streams (wasm32 only)
 //!
 //! # No async/await
 //!
 //! This crate uses synchronous blocking I/O on worker threads managed by
 //! `BackgroundJobRunner`. No `tokio`, no `tower`, no `async-trait`.
 
-// Core abstractions
-pub mod serve;
-pub mod context;
-pub mod reader;
+// Shared modules — always compiled
+pub mod shared;
 
-// Server
-pub mod app;
-pub mod server;
+// Native modules — TCP server, reader, upgrades
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native;
 
-// Client IP marker
-pub mod client_ip;
+// Wasm modules — dispatch, WasmStream
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
 
-// Router (migrated from ewe_routing, stripped of async/tower/axum)
-pub mod router;
+// Public re-exports (shared — always available)
+pub use shared::serve::{ConnectionResult, ServeError};
+pub use shared::serve::respond;
+pub use shared::context::ContextBag;
+pub use shared::app::HttpApp;
+pub use shared::router::{Router, Server};
+pub use shared::middleware::{MiddlewareResult, RequestMiddleware};
+pub use shared::middleware::{CorsConfig, CorsMiddleware};
+pub use shared::middleware::{LoggerConfig, LoggerMiddleware, LogLevel};
+pub use shared::middleware::{AuthConfig, AuthMiddleware, AuthResult};
+pub use shared::middleware::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
+pub use shared::middleware::{BodyLimitMiddleware};
+pub use shared::client_ip::ClientIp;
 
-// Protocol upgrades
-pub mod upgrade;
+// Native-only re-exports
+#[cfg(not(target_arch = "wasm32"))]
+pub use shared::serve::{Serve, ServeFactory};
+#[cfg(not(target_arch = "wasm32"))]
+pub use shared::router::ArcServe;
+#[cfg(not(target_arch = "wasm32"))]
+pub use native::server::{HttpServer, ServerConfig, KeepAliveConfig};
+#[cfg(not(target_arch = "wasm32"))]
+pub use native::server::timeout::ExpectContinueConfig;
+#[cfg(not(target_arch = "wasm32"))]
+pub use native::upgrade::{accept_websocket, SseStream, UpgradeError};
 
-// Middleware
-pub mod middleware;
-
-// Built-in handlers
-pub mod handlers;
-
-// Public re-exports
-pub use serve::{ConnectionResult, Serve, ServeFactory, ServeError};
-pub use serve::respond;
-pub use context::ContextBag;
-pub use app::HttpApp;
-pub use server::{HttpServer, ServerConfig, KeepAliveConfig};
-pub use server::timeout::ExpectContinueConfig;
-pub use client_ip::ClientIp;
-pub use router::{ArcServe, Router};
-pub use middleware::{MiddlewareResult, RequestMiddleware};
-pub use middleware::{CorsConfig, CorsMiddleware};
-pub use middleware::{LoggerConfig, LoggerMiddleware, LogLevel};
-pub use middleware::{AuthConfig, AuthMiddleware, AuthResult};
-pub use middleware::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
-pub use middleware::{BodyLimitMiddleware};
-pub use upgrade::{accept_websocket, SseStream, UpgradeError};
+// Wasm-only re-exports
+#[cfg(target_arch = "wasm32")]
+pub use shared::serve::{ServeWriter, ServeWriterFactory};
+#[cfg(target_arch = "wasm32")]
+pub use wasm::stream::WasmStream;
+#[cfg(target_arch = "wasm32")]
+pub use wasm::server::{handle_request, handle_request_with_bag};
 
 // Re-export SSE types from foundation_core
 pub use foundation_core::wire::event_source::{EventWriter, SseEvent};
@@ -64,5 +65,8 @@ pub use foundation_core::wire::simple_http::{
     SimpleOutgoingResponse, SendSafeBody, Proto, Status,
 };
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub use foundation_core::netcap::RawStream;
+#[cfg(not(target_arch = "wasm32"))]
 pub use foundation_core::synca::OnSignal;

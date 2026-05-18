@@ -15,7 +15,7 @@ use foundation_core::valtron::ThreadedValue;
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 /// JSON file-based state store.
 ///

@@ -19,9 +19,9 @@ use foundation_core::valtron::{run_future_iter, Stream, ThreadedValue};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};
-use crate::backends::async_utils::{exec_future, schedule_future};
-use crate::errors::StorageError;
-use crate::rows_stream::LibsqlRowsIterator;
+use crate::core::backends::async_utils::{exec_future, schedule_future};
+use crate::core::errors::StorageError;
+use crate::native::rows_stream::LibsqlRowsIterator;
 
 /// SQL schema for the resources table (table name is parameterized).
 fn create_table_sql(table_name: &str) -> String {

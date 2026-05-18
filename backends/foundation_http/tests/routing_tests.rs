@@ -1,15 +1,12 @@
 //! Routing tests — RouteSegment tree matching, priority sorting, param extraction.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::netcap::RawStream;
-use foundation_core::wire::simple_http::{SimpleIncomingRequest, SimpleMethod};
-
-use foundation_http::context::ContextBag;
-use foundation_http::router::Router;
-use foundation_http::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::{
+    ContextBag, Router, ConnectionResult, Serve, ServeFactory,
+    SimpleIncomingRequest, SimpleMethod, SharedByteBufferStream, RawStream,
+};
 
 // -----------------------------------------------------------------------
 // Test handler — records how many times it was called.
@@ -85,7 +82,7 @@ fn test_static_route_get() {
     assert!(handler.is_some());
 
     let result = handler.unwrap().serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
-    assert!(matches!(result, ConnectionResult::Keep));
+    assert!(matches!(result, Some(ConnectionResult::Keep)));
     assert_eq!(count.load(Ordering::SeqCst), 1);
 }
 

@@ -11,7 +11,7 @@
 use foundation_core::valtron::ThreadedValue;
 
 use super::traits::StateStoreStream;
-use crate::errors::StorageError;
+use crate::core::errors::StorageError;
 
 /// Extract the first successful value from a state store stream.
 ///
