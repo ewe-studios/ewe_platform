@@ -28,15 +28,15 @@ pub use shared::middleware::{
     extract_bearer_token, extract_session_token, has_scope, optional_auth, require_auth,
     AuthContext, GuardResult,
 };
-pub use shared::oauth::{OAuthConfig, OAuthError, PkceChallenge};
+pub use shared::oauth::{OAuthConfig, OAuthConfigBuilder, OAuthError, OAuthManager, PkceChallenge};
+pub use shared::oauth::TokenResponse;
 pub use shared::oauth_token::OAuthToken;
 pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
 pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoFactorError};
 
-// Re-export native-only items.
+// Re-export platform-specific OAuth wrappers.
 #[cfg(not(target_arch = "wasm32"))]
-pub use native::oauth::OAuthManager;
+pub use native::oauth::NativeOAuth;
 
-// Re-export wasm-bindgen OAuthManager.
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-pub use wasm_bindgen::oauth::OAuthManager;
+pub use wasm_bindgen::oauth::WasmOAuth;

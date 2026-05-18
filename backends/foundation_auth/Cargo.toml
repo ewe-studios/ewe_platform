@@ -68,6 +68,7 @@ workspace = true
 [features]
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 wasm-bindgen-oauth = [
+  "wasm",
   "dep:wasm-bindgen",
   "dep:wasm-bindgen-futures",
   "dep:js-sys",

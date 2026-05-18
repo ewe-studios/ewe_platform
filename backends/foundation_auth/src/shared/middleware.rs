@@ -150,7 +150,7 @@ pub fn has_scope(ctx: &AuthContext, required: &[&str]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::types::ConfidentialText;
+    use crate::shared::types::ConfidentialText;
 
     #[test]
     fn test_require_auth_with_valid_token() {

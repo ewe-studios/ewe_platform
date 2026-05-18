@@ -1,6 +1,7 @@
 //! OAuth 2.0 flows module with PKCE support.
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use foundation_core::url::Query;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -180,6 +181,86 @@ impl PkceChallenge {
     }
 }
 
+/// OAuth manager for handling OAuth flows (shared configuration and URL generation).
+///
+/// This struct contains only platform-agnostic OAuth configuration and authorization
+/// URL generation. Use [`NativeOAuth`] or [`WasmOAuth`] for token exchange methods.
+pub struct OAuthManager {
+    pub(crate) config: OAuthConfig,
+}
+
+impl OAuthManager {
+    /// Create a new OAuth manager with the given configuration.
+    #[must_use]
+    pub fn new(config: OAuthConfig) -> Self {
+        Self { config }
+    }
+
+    /// Get the OAuth configuration.
+    #[must_use]
+    pub fn config(&self) -> &OAuthConfig {
+        &self.config
+    }
+
+    /// Generate a random state parameter for CSRF protection.
+    #[must_use]
+    pub fn generate_state() -> String {
+        let mut bytes = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut bytes);
+        URL_SAFE_NO_PAD.encode(bytes)
+    }
+
+    /// Generate the authorization URL with PKCE support.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the configuration is invalid or the URL cannot be parsed.
+    pub fn get_authorization_url(
+        &self,
+        state: &str,
+    ) -> Result<(String, Option<PkceChallenge>), OAuthError> {
+        self.config.validate()?;
+
+        let mut query = Query::new();
+        query.append("response_type", &self.config.response_type);
+        query.append("client_id", &self.config.client_id);
+        query.append("redirect_uri", &self.config.redirect_uri);
+        query.append("state", state);
+
+        if !self.config.scopes.is_empty() {
+            let scopes_joined = self.config.scopes.join(" ");
+            query.append("scope", &scopes_joined);
+        }
+
+        let pkce = if self.config.pkce_enabled {
+            let challenge = PkceChallenge::generate();
+            query.append("code_challenge", &challenge.code_challenge);
+            query.append("code_challenge_method", &challenge.challenge_method);
+            Some(challenge)
+        } else {
+            None
+        };
+
+        let query_string = query.to_string();
+        let base = &self.config.authorization_url;
+        let url = if query_string.is_empty() {
+            base.clone()
+        } else if base.contains('?') {
+            format!("{base}&{query_string}")
+        } else {
+            format!("{base}?{query_string}")
+        };
+
+        Ok((url, pkce))
+    }
+
+    /// Validate the state parameter.
+    #[must_use]
+    pub fn validate_state(expected: &str, actual: &str) -> bool {
+        expected.as_bytes() == actual.as_bytes()
+    }
+}
+
 /// OAuth-related errors.
 #[derive(derive_more::From, Debug)]
 pub enum OAuthError {
@@ -208,6 +289,17 @@ pub enum OAuthError {
     TokenParseError(String),
     /// PKCE generation failed.
     PkceFailed,
+}
+
+/// Token response from OAuth server.
+#[derive(Debug, Deserialize)]
+pub struct TokenResponse {
+    pub access_token: String,
+    pub token_type: String,
+    pub expires_in: Option<u64>,
+    pub refresh_token: Option<String>,
+    pub scope: Option<String>,
+    pub id_token: Option<String>,
 }
 
 impl core::fmt::Display for OAuthError {

@@ -1,91 +1,26 @@
-//! OAuth 2.0 flows requiring native HTTP client access.
+//! OAuth 2.0 token exchange using native HTTP client.
 
-use foundation_core::url::{Query, Uri};
-use serde::Deserialize;
-
-use crate::shared::oauth::{OAuthConfig, OAuthError, PkceChallenge};
+use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
 
-/// OAuth manager for handling OAuth flows.
-pub struct OAuthManager {
-    config: OAuthConfig,
+/// Native OAuth client wrapping shared OAuth configuration with sync token exchange.
+pub struct NativeOAuth {
+    inner: OAuthManager,
 }
 
-impl OAuthManager {
-    /// Create a new OAuth manager with the given configuration.
+impl NativeOAuth {
+    /// Create a new native OAuth client.
     #[must_use]
     pub fn new(config: OAuthConfig) -> Self {
-        Self { config }
-    }
-
-    /// Get the OAuth configuration.
-    #[must_use]
-    pub fn config(&self) -> &OAuthConfig {
-        &self.config
-    }
-
-    /// Generate a random state parameter for CSRF protection.
-    #[must_use]
-    pub fn generate_state() -> String {
-        use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-        use rand::RngCore;
-        let mut bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut bytes);
-        URL_SAFE_NO_PAD.encode(bytes)
-    }
-
-    /// Generate the authorization URL with PKCE support.
-    ///
-    /// Returns the URL to redirect the user to, along with the PKCE challenge
-    /// that must be stored for the code exchange.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the configuration is invalid or the URL cannot be parsed.
-    pub fn get_authorization_url(
-        &self,
-        state: &str,
-    ) -> Result<(String, Option<PkceChallenge>), OAuthError> {
-        self.config.validate()?;
-
-        // Parse base URL to extract components
-        let base = Uri::parse(&self.config.authorization_url)
-            .map_err(|_| OAuthError::InvalidUrl(self.config.authorization_url.clone()))?;
-
-        // Build query parameters
-        let mut query = Query::new();
-        query.append("response_type", &self.config.response_type);
-        query.append("client_id", &self.config.client_id);
-        query.append("redirect_uri", &self.config.redirect_uri);
-        query.append("state", state);
-
-        // Add scopes if present
-        if !self.config.scopes.is_empty() {
-            let scopes_joined = self.config.scopes.join(" ");
-            query.append("scope", &scopes_joined);
+        Self {
+            inner: OAuthManager::new(config),
         }
-
-        // Add PKCE if enabled
-        let pkce = if self.config.pkce_enabled {
-            let challenge = PkceChallenge::generate();
-            query.append("code_challenge", &challenge.code_challenge);
-            query.append("code_challenge_method", &challenge.challenge_method);
-            Some(challenge)
-        } else {
-            None
-        };
-
-        // Rebuild URL from parsed components with new query
-        let uri = base.with_query(query.to_string());
-
-        Ok((uri.to_string(), pkce))
     }
 
-    /// Validate the state parameter.
+    /// Get the shared OAuth manager for URL generation.
     #[must_use]
-    pub fn validate_state(expected: &str, actual: &str) -> bool {
-        // Constant-time comparison to prevent timing attacks
-        expected.as_bytes() == actual.as_bytes()
+    pub fn manager(&self) -> &OAuthManager {
+        &self.inner
     }
 
     /// Exchange authorization code for tokens.
@@ -102,35 +37,31 @@ impl OAuthManager {
         code: &str,
         code_verifier: Option<&str>,
     ) -> Result<OAuthToken, OAuthError> {
-        self.config.validate()?;
+        self.inner.config.validate()?;
 
-        // Build token request body as URL-encoded form data
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("authorization_code")),
             format!("code={}", urlencoding::encode(code)),
             format!(
                 "redirect_uri={}",
-                urlencoding::encode(&self.config.redirect_uri)
+                urlencoding::encode(&self.inner.config.redirect_uri)
             ),
-            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
+            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
         ];
 
-        // Add client secret if available
-        if let Some(ref secret) = self.config.client_secret {
+        if let Some(ref secret) = self.inner.config.client_secret {
             body_parts.push(format!("client_secret={}", urlencoding::encode(secret)));
         }
 
-        // Add PKCE verifier if using PKCE
         if let Some(verifier) = code_verifier {
             body_parts.push(format!("code_verifier={}", urlencoding::encode(verifier)));
         }
 
         let body = body_parts.join("&");
 
-        // Send token request using simple_http
         let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
-            .post(&self.config.token_url)
+            .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
                 foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
@@ -156,7 +87,6 @@ impl OAuthManager {
             });
         }
 
-        // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
             foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
@@ -187,30 +117,27 @@ impl OAuthManager {
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
-        self.config.validate()?;
+        self.inner.config.validate()?;
 
-        let Some(ref client_secret) = self.config.client_secret else {
+        let Some(ref client_secret) = self.inner.config.client_secret else {
             return Err(OAuthError::MissingClientSecret);
         };
 
-        // Build scope string first to avoid borrow issues
         let scope_str;
         if let Some(ref s) = scopes {
             scope_str = s.join(" ");
-        } else if !self.config.scopes.is_empty() {
-            scope_str = self.config.scopes.join(" ");
+        } else if !self.inner.config.scopes.is_empty() {
+            scope_str = self.inner.config.scopes.join(" ");
         } else {
             scope_str = String::new();
         }
 
-        // Build request body as URL-encoded form data
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("client_credentials")),
-            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
+            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
             format!("client_secret={}", urlencoding::encode(client_secret)),
         ];
 
-        // Add requested scopes if present
         if !scope_str.is_empty() {
             body_parts.push(format!("scope={}", urlencoding::encode(&scope_str)));
         }
@@ -219,7 +146,7 @@ impl OAuthManager {
 
         let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
-            .post(&self.config.token_url)
+            .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
                 foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
@@ -245,7 +172,6 @@ impl OAuthManager {
             });
         }
 
-        // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
             foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
@@ -260,7 +186,7 @@ impl OAuthManager {
             access_token: token_response.access_token,
             token_type: token_response.token_type,
             expires_in: token_response.expires_in,
-            refresh_token: None, // Client credentials don't return refresh tokens
+            refresh_token: None,
             scope: token_response.scope,
             id_token: None,
         })
@@ -273,17 +199,15 @@ impl OAuthManager {
     /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
     #[allow(clippy::cast_possible_truncation)]
     pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
-        self.config.validate()?;
+        self.inner.config.validate()?;
 
-        // Build request body as URL-encoded form data
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("refresh_token")),
             format!("refresh_token={}", urlencoding::encode(refresh_token)),
-            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
+            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
         ];
 
-        // Add client secret if available
-        if let Some(ref secret) = self.config.client_secret {
+        if let Some(ref secret) = self.inner.config.client_secret {
             body_parts.push(format!("client_secret={}", urlencoding::encode(secret)));
         }
 
@@ -291,7 +215,7 @@ impl OAuthManager {
 
         let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
-            .post(&self.config.token_url)
+            .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
                 foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
@@ -318,7 +242,6 @@ impl OAuthManager {
             });
         }
 
-        // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
             foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
@@ -342,23 +265,11 @@ impl OAuthManager {
     }
 }
 
-/// Token response from OAuth server.
-#[derive(Debug, Deserialize)]
-struct TokenResponse {
-    access_token: String,
-    token_type: String,
-    expires_in: Option<u64>,
-    refresh_token: Option<String>,
-    scope: Option<String>,
-    id_token: Option<String>,
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::shared::oauth::{OAuthConfig, OAuthError, PkceChallenge};
+    use crate::shared::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
     use crate::shared::oauth_token::OAuthToken;
-
-    use super::*;
+    use crate::native::oauth::NativeOAuth;
 
     #[test]
     fn test_oauth_config_builder() {
@@ -397,12 +308,8 @@ mod tests {
     #[test]
     fn test_pkce_challenge_generation() {
         let challenge = PkceChallenge::generate();
-
-        // Verifier should be 43 characters (32 bytes base64)
         assert_eq!(challenge.code_verifier.len(), 43);
-        // Challenge should be 32 bytes (SHA256) = 43 base64 chars
         assert_eq!(challenge.code_challenge.len(), 43);
-        // Method should be S256
         assert_eq!(challenge.challenge_method, "S256");
     }
 
@@ -410,10 +317,7 @@ mod tests {
     fn test_state_generation() {
         let state1 = OAuthManager::generate_state();
         let state2 = OAuthManager::generate_state();
-
-        // States should be unique
         assert_ne!(state1, state2);
-        // States should be reasonably long
         assert!(state1.len() > 30);
     }
 
@@ -435,9 +339,9 @@ mod tests {
             .pkce_enabled(true)
             .build();
 
-        let manager = OAuthManager::new(config);
+        let manager = NativeOAuth::new(config);
         let state = OAuthManager::generate_state();
-        let (url, pkce) = manager.get_authorization_url(&state).unwrap();
+        let (url, pkce) = manager.manager().get_authorization_url(&state).unwrap();
 
         assert!(url.contains("response_type=code"));
         assert!(url.contains("client_id=test_client"));
