@@ -26,6 +26,10 @@ use crate::native::libsql_backend::LibsqlStorage;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::native::json_file::JsonFileStorage;
 
+// Wasm-bindgen storage backends (wasm32 only)
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+use crate::wasm::wasm_storage::{D1WasmStorage, KVWasmStorage, R2WasmStorage};
+
 use crate::core::errors::StorageResult;
 #[allow(unused_imports)] // used only in R2 match arms
 use crate::core::errors::StorageError;
@@ -55,6 +59,24 @@ pub enum StorageBackend {
     Memory,
     /// In-memory JSON backend — values as JSON strings, inspectable (both targets).
     MemoryJson,
+    /// D1 via wasm-bindgen — calls Cloudflare D1 JS API directly (wasm32 only).
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    D1Wasm {
+        db: crate::wasm::bindgen::D1Database,
+        table_prefix: String,
+    },
+    /// R2 via wasm-bindgen — calls Cloudflare R2 JS API directly (wasm32 only).
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    R2Wasm {
+        bucket: crate::wasm::bindgen::R2Bucket,
+        prefix: String,
+    },
+    /// KV via wasm-bindgen — calls Cloudflare Workers KV JS API directly (wasm32 only).
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    KVWasm {
+        kv: crate::wasm::bindgen::KVNamespace,
+        prefix: String,
+    },
 }
 
 /// Unified storage provider that wraps all backends.
@@ -75,6 +97,12 @@ enum StorageProviderInner {
     D1(D1KeyValueStore),
     #[cfg(feature = "r2")]
     R2(R2BlobStore),
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    D1Wasm(D1WasmStorage),
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    R2Wasm(R2WasmStorage),
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    KVWasm(KVWasmStorage),
 }
 
 impl StorageProvider {
@@ -144,6 +172,28 @@ impl StorageProvider {
                     inner: StorageProviderInner::MemoryJson(storage),
                 })
             }
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageBackend::D1Wasm { db, table_prefix } => {
+                let storage = D1WasmStorage::new(db, &table_prefix);
+                futures_lite::future::block_on(storage.init_schema_async())?;
+                Ok(Self {
+                    inner: StorageProviderInner::D1Wasm(storage),
+                })
+            }
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageBackend::R2Wasm { bucket, prefix } => {
+                let storage = R2WasmStorage::new(bucket, &prefix);
+                Ok(Self {
+                    inner: StorageProviderInner::R2Wasm(storage),
+                })
+            }
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageBackend::KVWasm { kv, prefix } => {
+                let storage = KVWasmStorage::new(kv, &prefix);
+                Ok(Self {
+                    inner: StorageProviderInner::KVWasm(storage),
+                })
+            }
         }
     }
 
@@ -197,6 +247,14 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.get(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.get(key),
         }
     }
 
@@ -216,6 +274,14 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.set(key, value),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.set(key, value),
         }
     }
 
@@ -235,6 +301,14 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.delete(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.delete(key),
         }
     }
 
@@ -254,6 +328,14 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.exists(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.exists(key),
         }
     }
 
@@ -273,6 +355,14 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.list_keys(prefix),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.list_keys(prefix),
         }
     }
 }
@@ -289,7 +379,6 @@ impl QueryStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.query(sql, params),
             #[cfg(not(target_arch = "wasm32"))]
-            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::JsonFile(storage) => storage.query(sql, params),
             StorageProviderInner::Memory(storage) => storage.query(sql, params),
             StorageProviderInner::MemoryJson(storage) => storage.query(sql, params),
@@ -298,6 +387,16 @@ impl QueryStore for StorageProvider {
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.query(sql, params),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
+                "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
         }
     }
@@ -312,16 +411,25 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Turso(storage) => storage.execute(sql, params),
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.execute(sql, params),
-            #[cfg(not(target_arch = "wasm32"))]
-            #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
             StorageProviderInner::Memory(storage) => storage.execute(sql, params),
             StorageProviderInner::MemoryJson(storage) => storage.execute(sql, params),
+            #[cfg(not(target_arch = "wasm32"))]
+            StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
             #[cfg(feature = "d1")]
             StorageProviderInner::D1(storage) => storage.execute(sql, params),
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.execute(sql, params),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
+                "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
         }
     }
@@ -333,7 +441,6 @@ impl QueryStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.execute_batch(sql),
             #[cfg(not(target_arch = "wasm32"))]
-            #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::JsonFile(storage) => storage.execute_batch(sql),
             StorageProviderInner::Memory(storage) => storage.execute_batch(sql),
             StorageProviderInner::MemoryJson(storage) => storage.execute_batch(sql),
@@ -342,6 +449,16 @@ impl QueryStore for StorageProvider {
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.execute_batch(sql),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
+                "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
         }
     }
@@ -381,6 +498,18 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            },
         }
     }
 
@@ -400,6 +529,14 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.record_rate_limit(key),
         }
     }
 
@@ -419,6 +556,14 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.reset_rate_limit(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.reset_rate_limit(key),
         }
     }
 }
@@ -438,6 +583,12 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::D1(storage) => storage.put_blob(key, data),
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(storage) => storage.put_blob(key, data),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.put_blob(key, data),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(storage) => storage.put_blob(key, data),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.put_blob(key, data),
         }
     }
 
@@ -455,6 +606,12 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::D1(storage) => storage.get_blob(key),
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(storage) => storage.get_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.get_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(storage) => storage.get_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.get_blob(key),
         }
     }
 
@@ -472,6 +629,12 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::D1(storage) => storage.delete_blob(key),
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(storage) => storage.delete_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.delete_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(storage) => storage.delete_blob(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.delete_blob(key),
         }
     }
 
@@ -489,6 +652,12 @@ impl BlobStore for StorageProvider {
             StorageProviderInner::D1(storage) => storage.blob_exists(key),
             #[cfg(feature = "r2")]
             StorageProviderInner::R2(storage) => storage.blob_exists(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.blob_exists(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(storage) => storage.blob_exists(key),
+            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.blob_exists(key),
         }
     }
 }

@@ -47,6 +47,7 @@ futures-lite = "2"
 # Optional wasm-bindgen dependencies
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
@@ -67,6 +68,9 @@ wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js", "dep:getrandom4", "g
 
 # Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV)
 wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys"]
+
+# Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
+wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]
 
 [lints]
 workspace = true

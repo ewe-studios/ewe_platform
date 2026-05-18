@@ -54,5 +54,13 @@ pub use core::storage_provider::{
 #[cfg(not(target_arch = "wasm32"))]
 pub use native::*;
 
+// Wasm-bindgen storage re-exports (wasm32 only)
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+pub use wasm::{D1WasmStorage, KVWasmStorage, R2WasmStorage};
+
+// Wasm-bindgen CF types re-exports (wasm32 only)
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
+
 // State re-exports
 pub use state::*;

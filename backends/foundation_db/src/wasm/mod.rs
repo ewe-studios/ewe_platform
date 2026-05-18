@@ -5,3 +5,9 @@ pub mod bindgen;
 
 #[cfg(feature = "wasm-bindgen-bindings")]
 pub use bindgen::*;
+
+#[cfg(feature = "wasm-bindgen-storage")]
+pub mod wasm_storage;
+
+#[cfg(feature = "wasm-bindgen-storage")]
+pub use wasm_storage::*;
