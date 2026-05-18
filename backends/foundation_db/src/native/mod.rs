@@ -1,7 +1,5 @@
 //! Native module — non-wasm only.
 
-pub mod storage_provider;
-
 #[cfg(feature = "turso")]
 pub mod turso_backend;
 
@@ -10,8 +8,6 @@ pub mod libsql_backend;
 
 pub mod json_file;
 pub mod rows_stream;
-
-pub use storage_provider::*;
 
 #[cfg(feature = "turso")]
 pub use turso_backend::TursoStorage;

@@ -19,6 +19,9 @@
 // Shared — always compiled
 pub mod core;
 
+// Central storage provider (wraps all backends)
+pub mod storage_provider;
+
 // Native — TCP/DB backends, rows streaming
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native;
@@ -32,11 +35,20 @@ pub mod state;
 
 // Public re-exports (shared — always available)
 pub use core::errors::*;
-pub use core::storage_provider::*;
+pub use core::storage_provider as traits;
 pub use core::cleanup::*;
 pub use core::backends::*;
 pub use core::crypto::*;
 pub use core::schema::*;
+
+// Central StorageProvider + StorageBackend (always available)
+pub use storage_provider::{StorageBackend, StorageProvider};
+
+// Re-export trait types at top level for convenience
+pub use core::storage_provider::{
+    BlobStore, DataValue, FromDataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow,
+    StorageItemStream,
+};
 
 // Native-only re-exports
 #[cfg(not(target_arch = "wasm32"))]

@@ -10,10 +10,6 @@
 
 use serde::{de::DeserializeOwned, Serialize};
 
-#[cfg(feature = "d1")]
-use crate::core::backends::d1_kvstore::D1KeyValueStore;
-#[cfg(feature = "r2")]
-use crate::core::backends::r2_blobstore::R2BlobStore;
 pub use crate::core::errors::StorageError;
 use crate::core::errors::StorageResult;
 use foundation_core::valtron::Stream;
