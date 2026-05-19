@@ -1,6 +1,6 @@
 //! Tests for wasm server dispatch — middleware chain and short-circuit behavior.
 
-use foundation_http::wasm::server::run_middleware_writer;
+use foundation_http::wasm::serve_writer::run_middleware_writer;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};

@@ -1,7 +1,7 @@
 //! Wasm modules (request dispatch, memory-backed streams).
 
 pub mod stream;
-pub mod server;
+pub mod serve_writer;
 pub mod response;
 pub mod cf_conn;
 pub mod web_conn;
