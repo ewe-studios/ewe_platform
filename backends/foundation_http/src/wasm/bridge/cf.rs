@@ -90,6 +90,13 @@ impl CfHttpApp {
         }
     }
 
+    /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
+    pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
+        Self {
+            inner: Arc::new(app),
+        }
+    }
+
     /// Dispatch a `Request` with CF `env` bindings through the app.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(

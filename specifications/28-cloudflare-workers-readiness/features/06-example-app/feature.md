@@ -10,8 +10,8 @@ last_updated: 2026-05-19
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 6
-  total: 6
+  uncompleted: 7
+  total: 7
   completion_percentage: 0%
 ---
 
@@ -20,28 +20,32 @@ tasks:
 ## Overview
 
 A complete, deployable Cloudflare Workers login app demonstrating the full pipeline:
-login page, authentication via `CfServe` handlers, D1-backed `SessionManager`,
+login page, user registration with argon2 password hashing, authentication
+via `CfServe` handlers, D1-backed `SessionManager`,
 protected dashboard route, and the `CfHttpApp` wasm-bindgen bridge.
 
 ## Architecture
 
 ```
 Route Structure:
-  GET  /login          → Login form (HTML)
-  POST /login          → Authenticate (JSON or form)
-  GET  /dashboard      → Protected route (requires auth)
-  GET  /logout         → Clear session
-  GET  /               → Redirect to /login or /dashboard
+  GET  /              → Redirect to /login or /dashboard
+  GET  /register      → Registration form (HTML)
+  POST /register      → Create user (JSON or form), hash password with argon2, insert into users table
+  GET  /login         → Login form (HTML)
+  POST /login         → Authenticate against users table (migration 002)
+  GET  /dashboard     → Protected route (requires auth)
+  GET  /logout        → Clear session
 
 Data Flow:
   1. wasm_bindgen init: extract D1 binding from CF env → ContextBag
   2. On first request: run MigrationRunner::new(MIGRATIONS) against D1WasmStorage to create tables
-  3. User visits /login → CfServe handler renders HTML form via CfConn
-  4. POST /login → validate credentials against users table (migration 002)
-  5. On success → SessionManager<D1WasmStorage> creates session, stored in kv_store table
-  6. GET /dashboard → auth middleware checks JWT cookie; short-circuits with redirect if missing
+  3. User visits /register → fills form → POST creates account with argon2-hashed password in users table
+  4. User visits /login → fills credentials → validated against users table (migration 002)
+  5. On success → SessionManager<D1CredentialStore> creates session, stored in kv_store table
+  6. GET /dashboard → session cookie validated via SessionManager.get_session()
   7. If valid → render dashboard HTML
-  8. GET /logout → revoke session, clear cookies
+  8. If invalid → redirect to /login
+  9. GET /logout → revoke session, clear cookies
 ```
 
 ## Key API Patterns
@@ -88,7 +92,8 @@ use std::sync::Arc;
 
 fn create_app() -> Arc<HttpApp<Arc<dyn CfServe>>> {
     let mut app = HttpApp::new_cf();
-    app.middleware(AuthMiddleware);
+    app.route_cf::<RegisterHandler>(SimpleMethod::GET, "/register");
+    app.route_cf::<RegisterHandler>(SimpleMethod::POST, "/register");
     app.route_cf::<LoginHandler>(SimpleMethod::GET, "/login");
     app.route_cf::<LoginHandler>(SimpleMethod::POST, "/login");
     app.route_cf::<DashboardHandler>(SimpleMethod::GET, "/dashboard");
@@ -106,10 +111,15 @@ use foundation_http::wasm::bridge::cf::CfHttpApp;
 
 #[wasm_bindgen]
 pub fn create_worker() -> CfHttpApp {
-    let mut cf_app = CfHttpApp::new();
-    // Routes are registered through cf_app.app() which returns &HttpApp<Arc<dyn CfServe>>
-    // Then handlers call .route_cf::<Handler>(...) on a mutable copy
-    cf_app
+    let mut app = HttpApp::new_cf();
+    app.route_cf::<HomeHandler>(SimpleMethod::GET, "/");
+    app.route_cf::<RegisterHandler>(SimpleMethod::GET, "/register");
+    app.route_cf::<RegisterHandler>(SimpleMethod::POST, "/register");
+    app.route_cf::<LoginHandler>(SimpleMethod::GET, "/login");
+    app.route_cf::<LoginHandler>(SimpleMethod::POST, "/login");
+    app.route_cf::<DashboardHandler>(SimpleMethod::GET, "/dashboard");
+    app.route_cf::<LogoutHandler>(SimpleMethod::GET, "/logout");
+    CfHttpApp::from_app(app)
 }
 
 // In JS/Worker:
@@ -146,54 +156,72 @@ let applied = runner.run(&d1_store)?;
 
 ### Session Manager with D1
 
+`D1WasmStorage` implements `KeyValueStore` (Valtron stream-returning), while
+`SessionManager<S>` requires `CredentialStore` (sync `Result`-returning). A
+`D1CredentialStore` wrapper drains streams to bridge the gap:
+
 ```rust
-use foundation_auth::session::SessionManager;
+use foundation_auth::{CredentialStore, SessionManager, SessionConfig};
+use foundation_db::{D1WasmStorage, KeyValueStore};
+use foundation_core::valtron::Stream;
 
-// SessionManager is generic over CredentialStore — D1WasmStorage implements it:
-let session_mgr = SessionManager::<D1WasmStorage>::new(d1_store);
+struct D1CredentialStore(D1WasmStorage);
 
-// Create session on login:
-let token = session_mgr.create_session(user_id, &bag)?;
-
-// Verify on protected route:
-let session = session_mgr.get_session(&token, &bag)?;
+impl CredentialStore for D1CredentialStore {
+    fn get<V: serde::de::DeserializeOwned + Send + 'static>(
+        &self, key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        let stream = self.0.get(key).map_err(CredentialStoreError::Storage)?;
+        for item in stream {
+            if let Stream::Next(result) = item {
+                return result.map_err(CredentialStoreError::Storage);
+            }
+        }
+        Err(CredentialStoreError::NotFound(key.to_string()))
+    }
+    // ... set, delete, exists, list_keys similarly
+}
 ```
 
-### Auth Middleware
+`D1WasmStorage` wraps a JS `D1Database` (`!Send` by default). On wasm32 there is
+only one thread, so `unsafe impl Send + Sync` is safe:
 
 ```rust
-use foundation_http::shared::middleware::{RequestMiddleware, MiddlewareResult};
-use foundation_core::wire::simple_http::SimpleIncomingRequest;
-use std::sync::Arc;
+// In foundation_db/src/wasm/wasm_storage/d1_wasm.rs:
+unsafe impl Send for D1WasmStorage {}
+unsafe impl Sync for D1WasmStorage {}
+```
 
-struct AuthMiddleware;
+Now `SessionManager<D1CredentialStore>` compiles and works:
 
-impl RequestMiddleware for AuthMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
-        // Only protect /dashboard
-        if !req.request_url.url.starts_with("/dashboard") {
-            return MiddlewareResult::Continue;
-        }
+```rust
+let session_mgr = SessionManager::new(
+    D1CredentialStore(d1_store),
+    SessionConfig::default(),
+    &signing_key,
+)?;
 
-        // Check session cookie
-        match req.headers.get(&SimpleHeader::from("Cookie".to_string())) {
-            Some(cookies) if cookies.iter().any(|c| c.contains("session=")) => {
-                MiddlewareResult::Continue
-            }
-            _ => MiddlewareResult::Response(SimpleOutgoingResponse {
-                proto: Proto::HTTP11,
-                status: Status::TemporaryRedirect,
-                headers: {
-                    let mut h = SimpleHeaders::new();
-                    h.entry(SimpleHeader::from("Location".to_string()))
-                        .or_default().push("/login".to_string());
-                    h
-                },
-                body: None,
-            }),
-        }
-    }
-}
+// Create session on login:
+let (session, cookies) = session_mgr.create_session(user_id, ip, ua)?;
+
+// Verify on protected route:
+let session = session_mgr.get_session(&token)?;
+```
+
+### Auth Guard (inline in handlers)
+
+Each protected handler checks the session cookie inline rather than using
+middleware — `extract_session_token` parses the `Cookie` header, then
+`SessionManager::get_session()` validates it:
+
+```rust
+let token = extract_session_token_from_headers(&req.headers, "session_token");
+let Some(token) = token else {
+    conn.set_status(302);
+    conn.set_header("Location", "/login");
+    return CfConnectionResult::Ok;
+};
+let session = session_mgr.get_session(&token)?;
 ```
 
 ## Schema
@@ -253,9 +281,10 @@ database_id = "<database-id>"
 1. [ ] Create `examples/cf-login-app/Cargo.toml` with foundation_* crate dependencies
 2. [ ] Implement `src/lib.rs` with `CfHttpApp` bridge entry point and route registration
 3. [ ] Wire up `MigrationRunner::new(MIGRATIONS)` against `D1WasmStorage` on first request
-4. [ ] Implement login handler (GET form + POST auth against users table)
-5. [ ] Implement dashboard handler with auth guard middleware
-6. [ ] Implement logout handler (revoke session, clear cookies)
+4. [ ] Implement registration handler (GET form + POST create user with argon2 password hash)
+5. [ ] Implement login handler (GET form + POST auth against users table)
+6. [ ] Implement dashboard handler with session validation
+7. [ ] Implement logout handler (revoke session, clear cookies)
 
 ## Verification
 
