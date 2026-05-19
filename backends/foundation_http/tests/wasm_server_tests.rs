@@ -1,9 +1,10 @@
 //! Tests for wasm server dispatch — middleware chain and short-circuit behavior.
 
-use foundation_http::wasm::server::run_middleware;
+use foundation_http::wasm::server::run_middleware_writer;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
+use foundation_http::shared::serve::ServeWriter;
 use foundation_core::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -55,35 +56,35 @@ fn make_request() -> SimpleIncomingRequest {
 
 #[test]
 fn test_run_middleware_no_chain_returns_none() {
-    let app = HttpApp::new();
+    let app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     assert!(short_circuit.is_none());
     assert_eq!(returned_req.method, SimpleMethod::from("GET".to_string()));
 }
 
 #[test]
 fn test_run_middleware_pass_through() {
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(PassThroughMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     assert!(short_circuit.is_none());
     assert_eq!(returned_req.method, SimpleMethod::from("GET".to_string()));
 }
 
 #[test]
 fn test_run_middleware_short_circuit_401() {
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (_returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.expect("should have short-circuited");
     assert_eq!(response.status, 401);
     assert_eq!(response.body, Some(b"Unauthorized".to_vec()));
@@ -92,12 +93,12 @@ fn test_run_middleware_short_circuit_401() {
 
 #[test]
 fn test_run_middleware_adds_header() {
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(AddHeaderMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     assert!(short_circuit.is_none());
     let header_key = SimpleHeader::from("X-Middleware".to_string());
     let values = returned_req.headers.get(&header_key).expect("header should exist");
@@ -106,14 +107,14 @@ fn test_run_middleware_adds_header() {
 
 #[test]
 fn test_run_middleware_multiple_continue() {
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(PassThroughMiddleware);
     app.middleware(AddHeaderMiddleware);
     app.middleware(PassThroughMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     assert!(short_circuit.is_none());
     let header_key = SimpleHeader::from("X-Middleware".to_string());
     assert!(returned_req.headers.get(&header_key).is_some());
@@ -121,13 +122,13 @@ fn test_run_middleware_multiple_continue() {
 
 #[test]
 fn test_run_middleware_first_blocks_skips_rest() {
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
     app.middleware(AddHeaderMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (_returned_req, short_circuit) = run_middleware(&app, bag, req);
+    let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.expect("should have short-circuited");
     assert_eq!(response.status, 401);
     assert!(response.headers.iter().all(|(k, _)| k != "X-Middleware"));
@@ -147,12 +148,12 @@ fn test_middleware_short_circuit_forbidden_text() {
         }
     }
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(TextMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (_, short_circuit) = run_middleware(&app, bag, req);
+    let (_, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.unwrap();
     assert_eq!(response.status, 403);
     assert_eq!(response.body, Some(b"Access denied".to_vec()));
@@ -172,12 +173,12 @@ fn test_middleware_short_circuit_bytes_body() {
         }
     }
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(BinaryMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (_, short_circuit) = run_middleware(&app, bag, req);
+    let (_, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.unwrap();
     assert_eq!(response.status, 400);
     assert_eq!(response.body, Some(vec![0x01, 0x02, 0x03]));
@@ -202,12 +203,12 @@ fn test_middleware_short_circuit_with_headers() {
         }
     }
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(HeaderMiddleware);
     let bag = Arc::new(ContextBag::new());
     let req = make_request();
 
-    let (_, short_circuit) = run_middleware(&app, bag, req);
+    let (_, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.unwrap();
     assert_eq!(response.status, 401);
     assert_eq!(response.headers.len(), 1);

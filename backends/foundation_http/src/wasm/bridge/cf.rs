@@ -12,8 +12,7 @@ use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
-use crate::wasm::response::from_wasm;
-use crate::wasm::server::handle_request_with_bag;
+use crate::wasm::serve_cf::CfServe;
 
 /// Convert a `Request` to a `SimpleIncomingRequest`.
 async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError> {
@@ -78,7 +77,7 @@ fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
 /// Cloudflare Workers `CfHttpApp` wrapper.
 #[wasm_bindgen]
 pub struct CfHttpApp {
-    inner: Arc<HttpApp>,
+    inner: Arc<HttpApp<Arc<dyn CfServe>>>,
 }
 
 #[wasm_bindgen]
@@ -87,7 +86,7 @@ impl CfHttpApp {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(HttpApp::new()),
+            inner: Arc::new(HttpApp::new_cf()),
         }
     }
 
@@ -101,14 +100,15 @@ impl CfHttpApp {
         let simple_req = request_from_cf(&req).await?;
         let bag = Arc::new(ContextBag::new());
         extract_cf_bindings(&env, &bag);
-        let wasm_resp = handle_request_with_bag(bag, &self.inner, simple_req)?;
-        from_wasm(wasm_resp)
+        Ok(self.inner.dispatch_cf(bag, simple_req).map_err(|e| {
+            JsError::new(&format!("dispatch failed: {e:?}"))
+        })?)
     }
 }
 
 impl CfHttpApp {
     /// Get the inner `HttpApp` reference for Rust-side route registration.
-    pub fn app(&self) -> &HttpApp {
+    pub fn app(&self) -> &HttpApp<Arc<dyn CfServe>> {
         &self.inner
     }
 }

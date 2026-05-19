@@ -137,7 +137,7 @@ For the foundation_db integration:
 
 ## Feature Index
 
-### Completed and Pending Features (2/9 completed)
+### Completed and Pending Features (2/10 completed)
 
 1. **[core-wasm-compat](./features/01-core-wasm-compat/feature.md)** — Remove dead ctrlc dep, add wasm feature flags, SSL backend switching
 2. **[auth-wasm-compat](./features/02-auth-wasm-compat/feature.md)** — Fix uuid/chrono wasm features, verify auth logic compiles
@@ -148,6 +148,7 @@ For the foundation_db integration:
 7. **[ci-wasm-checks](./features/07-ci-wasm-checks/feature.md)** — CI pipeline for wasm32 compilation checks
 8. **[wasm-oauth-manager](./features/08-wasm-oauth-manager/feature.md)** — wasm-bindgen OAuth manager for CF Workers
 9. **[wasm-testbed](./features/09-wasm-testbed/feature.md)** — CLI-driven test harness for wasm32 execution
+10. **[generic-serve-traits](./features/10-generic-serve-traits/feature.md)** — Replace Server enum with generic Router<S>, environment-specific CfServe/WebServe traits
 
 ---
 
@@ -171,6 +172,8 @@ For the foundation_db integration:
          |
          v
     07-ci-wasm-checks
+
+03-http + 04-wire → 10-generic-serve-traits (replaces Server enum with generic Router<S>)
 ```
 
 ---

@@ -10,8 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
-use crate::wasm::response::from_wasm;
-use crate::wasm::server::handle_request;
+use crate::wasm::serve_web::WebServe;
 
 /// Convert a `web_sys::Request` to a `SimpleIncomingRequest`.
 async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsError> {
@@ -57,7 +56,7 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
 /// JS-compatible wrapper around `HttpApp`.
 #[wasm_bindgen]
 pub struct WasmHttpApp {
-    inner: Arc<HttpApp>,
+    inner: Arc<HttpApp<Arc<dyn WebServe>>>,
 }
 
 #[wasm_bindgen]
@@ -66,7 +65,7 @@ impl WasmHttpApp {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(HttpApp::new()),
+            inner: Arc::new(HttpApp::new_web()),
         }
     }
 
@@ -74,14 +73,16 @@ impl WasmHttpApp {
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let wasm_resp = handle_request(&self.inner, simple_req)?;
-        from_wasm(wasm_resp)
+        let bag = Arc::new(crate::shared::context::ContextBag::new());
+        Ok(self.inner.dispatch_web(bag, simple_req).map_err(|e| {
+            JsError::new(&format!("dispatch failed: {e:?}"))
+        })?)
     }
 }
 
 impl WasmHttpApp {
     /// Get the inner `HttpApp` reference for Rust-side route registration.
-    pub fn app(&self) -> &HttpApp {
+    pub fn app(&self) -> &HttpApp<Arc<dyn WebServe>> {
         &self.inner
     }
 }

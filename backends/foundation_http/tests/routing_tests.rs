@@ -86,7 +86,7 @@ fn test_static_route_get() {
     assert!(handler.is_some());
 
     let result = handler.unwrap().serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
-    assert!(matches!(result, Some(ConnectionResult::Keep)));
+    assert!(matches!(result, ConnectionResult::Keep));
     assert_eq!(count.load(Ordering::SeqCst), 1);
 }
 

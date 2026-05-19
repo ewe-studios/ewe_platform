@@ -1,25 +1,51 @@
-//! `RouteMethod` — stores a `Server` handler per HTTP method.
+//! `RouteMethod<S>` — stores a handler per HTTP method.
 
 use foundation_core::wire::simple_http::SimpleMethod;
 
-use super::{Server, segments::{RouteResult, RouteOp}};
+use super::segments::{RouteResult, RouteOp};
 
 /// Stores handlers for each HTTP method at a route leaf.
-#[derive(Clone, Default)]
-pub struct RouteMethod {
-    get: Option<Server>,
-    post: Option<Server>,
-    put: Option<Server>,
-    delete: Option<Server>,
-    patch: Option<Server>,
-    head: Option<Server>,
-    options: Option<Server>,
-    connect: Option<Server>,
-    trace: Option<Server>,
-    custom: Option<(String, Server)>,
+pub struct RouteMethod<S> {
+    get: Option<S>,
+    post: Option<S>,
+    put: Option<S>,
+    delete: Option<S>,
+    patch: Option<S>,
+    head: Option<S>,
+    options: Option<S>,
+    connect: Option<S>,
+    trace: Option<S>,
+    custom: Option<(String, S)>,
 }
 
-impl RouteMethod {
+impl<S: Clone> Clone for RouteMethod<S> {
+    fn clone(&self) -> Self {
+        RouteMethod {
+            get: self.get.clone(),
+            post: self.post.clone(),
+            put: self.put.clone(),
+            delete: self.delete.clone(),
+            patch: self.patch.clone(),
+            head: self.head.clone(),
+            options: self.options.clone(),
+            connect: self.connect.clone(),
+            trace: self.trace.clone(),
+            custom: self.custom.clone(),
+        }
+    }
+}
+
+impl<S> Default for RouteMethod<S> {
+    fn default() -> Self {
+        Self {
+            get: None, post: None, put: None, delete: None, patch: None,
+            head: None, options: None, connect: None, trace: None,
+            custom: None,
+        }
+    }
+}
+
+impl<S> RouteMethod<S> {
     /// Create an empty `RouteMethod` with no handlers.
     #[must_use]
     pub fn empty() -> Self {
@@ -27,7 +53,7 @@ impl RouteMethod {
     }
 
     /// Set the handler for a specific HTTP method.
-    pub fn set_method(&mut self, method: SimpleMethod, handler: Server) {
+    pub fn set_method(&mut self, method: SimpleMethod, handler: S) {
         match method {
             SimpleMethod::GET => self.get = Some(handler),
             SimpleMethod::POST => self.post = Some(handler),
@@ -43,7 +69,10 @@ impl RouteMethod {
     }
 
     /// Get the handler for a specific HTTP method.
-    pub fn get_method(&self, method: &SimpleMethod) -> RouteResult<Server> {
+    pub fn get_method(&self, method: &SimpleMethod) -> RouteResult<S>
+    where
+        S: Clone,
+    {
         let opt = match method {
             SimpleMethod::GET => &self.get,
             SimpleMethod::POST => &self.post,

@@ -8,6 +8,7 @@
 //! per connection. Now idle connections yield via `Delayed`, freeing the
 //! thread for other work — enabling true HTTP/1.1 keep-alive multiplexing.
 
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
@@ -20,9 +21,8 @@ use foundation_core::wire::simple_http::{
 };
 use foundation_errstacks::ErrorTrace;
 
-use crate::shared::app::HttpApp;
 use crate::native::reader::read_next_request;
-use crate::shared::serve::{respond, ConnectionResult, ServeError};
+use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError};
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -55,7 +55,7 @@ enum HandlerState {
 
 /// Owns one TCP connection for its lifetime, multiplexed by the valtron executor.
 pub struct ConnectionHandler {
-    app: std::sync::Arc<HttpApp>,
+    app: std::sync::Arc<crate::shared::app::HttpApp<Arc<dyn Serve>>>,
     streams: HTTPStreams<RawStream>,
     conn: SharedByteBufferStream<RawStream>,
     client_ip: String,
@@ -74,7 +74,7 @@ pub struct ConnectionHandler {
 impl ConnectionHandler {
     /// Create a new connection handler.
     pub fn new(
-        app: std::sync::Arc<HttpApp>,
+        app: std::sync::Arc<crate::shared::app::HttpApp<Arc<dyn Serve>>>,
         streams: HTTPStreams<RawStream>,
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
@@ -571,11 +571,7 @@ impl ConnectionHandler {
         );
 
         if let Some(handler) = self.app.router().dispatch(method, path) {
-            let Some(result) = handler.serve(bag, req, self.conn.clone()) else {
-                let _ = respond::server_error(&mut self.conn, Some("handler is ServeWriter, not Serve"));
-                self.state.replace(HandlerState::Idle);
-                return Some(TaskStatus::Delayed(self.compute_delay()));
-            };
+            let result = handler.serve(bag, req, self.conn.clone());
             match result {
                 ConnectionResult::Take => {
                     tracing::trace!(client_ip = %self.client_ip, "Processing: handler took connection (e.g. WebSocket upgrade)");

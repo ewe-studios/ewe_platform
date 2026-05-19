@@ -36,7 +36,7 @@ use foundation_core::netcap::ssl::SSLAcceptor;
 use foundation_core::netcap::Connection;
 
 use crate::shared::app::HttpApp;
-use crate::shared::serve::respond;
+use crate::shared::serve::{respond, Serve};
 
 // ---------------------------------------------------------------------------
 // KeepAliveConfig
@@ -310,7 +310,7 @@ use connection::ConnectionHandler;
 
 /// Running HTTP server.
 pub struct HttpServer {
-    app: Arc<HttpApp>,
+    app: Arc<HttpApp<Arc<dyn Serve>>>,
     bind_addr: String,
     config: ServerConfig,
 }
@@ -318,13 +318,13 @@ pub struct HttpServer {
 impl HttpServer {
     /// Create a new `HttpServer` with default config.
     #[must_use]
-    pub fn new(app: HttpApp, addr: &str) -> Self {
+    pub fn new(app: HttpApp<Arc<dyn Serve>>, addr: &str) -> Self {
         Self::with_config(app, addr, ServerConfig::default())
     }
 
     /// Create a new `HttpServer` with custom config.
     #[must_use]
-    pub fn with_config(app: HttpApp, addr: &str, config: ServerConfig) -> Self {
+    pub fn with_config(app: HttpApp<Arc<dyn Serve>>, addr: &str, config: ServerConfig) -> Self {
         Self {
             app: Arc::new(app),
             bind_addr: addr.to_string(),

@@ -1,7 +1,7 @@
-//! `RouteSegment` tree — migrated from `ewe_routing` with generics removed.
+//! `RouteSegment<S>` tree — generic over handler type `S`.
 //!
-//! The matching logic is unchanged. The only difference is that `RouteMethod`
-//! now stores `ArcServe` (from method.rs) instead of a generic `Servicer`.
+//! The matching logic is unchanged. The only difference is that `RouteMethod<S>`
+//! stores handlers of type `S` directly instead of wrapping them in a `Server` enum.
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -10,7 +10,7 @@ use std::sync::LazyLock;
 use foundation_core::wire::simple_http::SimpleMethod;
 use regex::Regex;
 
-use super::{Server, method::RouteMethod};
+use super::method::RouteMethod;
 
 // ---------------------------------------------------------------------------
 // Type aliases
@@ -20,10 +20,6 @@ pub type Params = HashMap<String, String>;
 
 /// Result type for route operations.
 pub type RouteResult<T> = Result<T, RouteOp>;
-
-/// Handler type alias — kept for backward compatibility.
-#[cfg(not(target_arch = "wasm32"))]
-pub type ArcServe = std::sync::Arc<dyn crate::shared::serve::Serve>;
 
 // ---------------------------------------------------------------------------
 // RouteOp — error type
@@ -237,16 +233,26 @@ impl SegmentType {
 // ---------------------------------------------------------------------------
 // RouteSegment — the tree node
 
-#[derive(Clone)]
-pub struct RouteSegment {
+pub struct RouteSegment<S> {
     segment: SegmentType,
-    dynamic_routes: Vec<RouteSegment>,
-    static_routes: HashMap<String, RouteSegment>,
-    method: RouteMethod,
+    dynamic_routes: Vec<RouteSegment<S>>,
+    static_routes: HashMap<String, RouteSegment<S>>,
+    method: RouteMethod<S>,
+}
+
+impl<S: Clone> Clone for RouteSegment<S> {
+    fn clone(&self) -> Self {
+        Self {
+            segment: self.segment.clone(),
+            dynamic_routes: self.dynamic_routes.clone(),
+            static_routes: self.static_routes.clone(),
+            method: self.method.clone(),
+        }
+    }
 }
 
 #[allow(clippy::missing_fields_in_debug)]
-impl std::fmt::Debug for RouteSegment {
+impl<S> std::fmt::Debug for RouteSegment<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RouteSegment")
             .field("segment", &self.segment)
@@ -256,7 +262,7 @@ impl std::fmt::Debug for RouteSegment {
     }
 }
 
-fn sort_segments(left: &RouteSegment, right: &RouteSegment) -> Ordering {
+fn sort_segments<S>(left: &RouteSegment<S>, right: &RouteSegment<S>) -> Ordering {
     if left.segment.priority() > right.segment.priority() {
         return Ordering::Greater;
     }
@@ -291,7 +297,7 @@ fn parse_route_into_segments(route: &str) -> Vec<&str> {
     segments
 }
 
-impl RouteSegment {
+impl<S> RouteSegment<S> {
     #[must_use]
     pub fn root() -> Self {
         Self::with_segment(SegmentType::Root)
@@ -329,13 +335,13 @@ impl RouteSegment {
     pub fn parse_route(route: &str) -> RouteResult<Self> {
         let segments = parse_route_into_segments(route);
 
-        let route_segments: Result<Vec<RouteSegment>, RouteOp> = segments
+        let route_segments: Result<Vec<RouteSegment<S>>, RouteOp> = segments
             .iter()
             .map(|t| SegmentType::try_from(*t).map(Self::with_segment))
             .collect();
 
         let mut route_segments = route_segments?;
-        let mut last_leaf: Option<RouteSegment> = None;
+        let mut last_leaf: Option<RouteSegment<S>> = None;
 
         while !route_segments.is_empty() {
             match route_segments.pop() {
@@ -363,7 +369,7 @@ impl RouteSegment {
     ///
     /// Panics if `segment` is a `Root` segment, since root can never be
     /// added as a sub-route.
-    pub fn add_route(&mut self, segment: RouteSegment) {
+    pub fn add_route(&mut self, segment: RouteSegment<S>) {
         match &segment.segment {
             SegmentType::Root => panic!("should never add root segment as a subroute"),
             SegmentType::Index => self.method.take(segment.method),
@@ -381,7 +387,10 @@ impl RouteSegment {
     // -----------------------------------------------------------------------
     // Merge a parsed route tree into the existing tree (used by Router::add_route)
 
-    pub fn merge_route(&mut self, other: RouteSegment, method: SimpleMethod, handler: Server) {
+    pub fn merge_route(&mut self, other: RouteSegment<S>, method: SimpleMethod, handler: S)
+    where
+        S: Clone,
+    {
         // If segments match AND self is not Root, merge directly on this node
         // Root is special — its children are the first-level route segments
         if self.segment == other.segment && !matches!(&self.segment, SegmentType::Root) {
@@ -431,7 +440,10 @@ impl RouteSegment {
     }
 
     /// Set method on the innermost leaf of a parsed route tree.
-    fn set_method_on_leaf(&mut self, method: SimpleMethod, handler: Server) {
+    fn set_method_on_leaf(&mut self, method: SimpleMethod, handler: S)
+    where
+        S: Clone,
+    {
         // Descend into the first child (parsed routes are linear chains)
         if let Some((_, child)) = self.static_routes.iter_mut().next() {
             child.set_method_on_leaf(method, handler);
@@ -445,10 +457,13 @@ impl RouteSegment {
     fn merge_or_create_static(
         &mut self,
         key: String,
-        other: RouteSegment,
+        other: RouteSegment<S>,
         method: &SimpleMethod,
-        handler: &Server,
-    ) {
+        handler: &S,
+    )
+    where
+        S: Clone,
+    {
         if let Some(existing) = self.static_routes.get_mut(&key) {
             existing.merge_route(other, method.clone(), handler.clone());
         } else {
@@ -460,10 +475,13 @@ impl RouteSegment {
 
     fn merge_or_create_dynamic(
         &mut self,
-        other: RouteSegment,
+        other: RouteSegment<S>,
         method: &SimpleMethod,
-        handler: &Server,
-    ) {
+        handler: &S,
+    )
+    where
+        S: Clone,
+    {
         // Check if an equivalent dynamic route already exists
         let existing_idx = self.dynamic_routes.iter().position(|d| d.segment == other.segment);
 
@@ -480,7 +498,10 @@ impl RouteSegment {
         }
     }
 
-    pub fn merge_route_all_methods(&mut self, other: &RouteSegment, handler: &Server) {
+    pub fn merge_route_all_methods(&mut self, other: &RouteSegment<S>, handler: &S)
+    where
+        S: Clone,
+    {
         // Register for all standard HTTP methods
         for method in [
             SimpleMethod::GET,
@@ -507,7 +528,10 @@ impl RouteSegment {
     /// Returns [`RouteOp::NoMatchingRoute`] if the route does not match any
     /// registered pattern, or [`RouteOp::DidNotMatchExpected`] if a regex
     /// parameter fails to match.
-    pub fn match_route(&self, method: &SimpleMethod, route: &str) -> RouteResult<Server> {
+    pub fn match_route(&self, method: &SimpleMethod, route: &str) -> RouteResult<S>
+    where
+        S: Clone,
+    {
         let segments = parse_route_into_segments(route);
         let route_segments: Vec<SegmentType> = segments
             .iter()
@@ -522,7 +546,10 @@ impl RouteSegment {
         &self,
         mut route_patterns: Vec<SegmentType>,
         mut params: Params,
-    ) -> RouteResult<(Self, Params)> {
+    ) -> RouteResult<(Self, Params)>
+    where
+        S: Clone,
+    {
         let next_segment_type = match route_patterns.first() {
             Some(next) => next.clone(),
             None => return Err(RouteOp::PanicSegmentNotFound),
@@ -563,7 +590,7 @@ impl RouteSegment {
         &self,
         segment: &SegmentType,
         params: &mut Params,
-    ) -> RouteResult<&RouteSegment> {
+    ) -> RouteResult<&RouteSegment<S>> {
         match self.segment.match_value_from(segment)? {
             Some((key, value)) => {
                 params.entry(key).or_insert(value);
@@ -577,7 +604,7 @@ impl RouteSegment {
         &self,
         segment: &SegmentType,
         params: &mut Params,
-    ) -> RouteResult<&RouteSegment> {
+    ) -> RouteResult<&RouteSegment<S>> {
         match segment {
             SegmentType::Index => {
                 if self.segment != SegmentType::Root {
@@ -603,7 +630,7 @@ impl RouteSegment {
         &self,
         segment: &SegmentType,
         params: &mut Params,
-    ) -> RouteResult<&RouteSegment> {
+    ) -> RouteResult<&RouteSegment<S>> {
         for subroute in &self.dynamic_routes {
             if subroute.segment == SegmentType::AnyPath {
                 return Ok(subroute);
