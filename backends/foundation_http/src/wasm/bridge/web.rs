@@ -1,14 +1,4 @@
 //! Web-standard wasm-bindgen bridge: `web_sys::Request` → `SimpleIncomingRequest` → dispatch → `web_sys::Response`.
-//!
-//! # Usage
-//! ```js
-//! import { WasmHttpApp } from 'foundation_http';
-//! const app = new WasmHttpApp();
-//! // configure routes in Rust...
-//! export default {
-//!   async fetch(req) { return await app.handleRequest(req); }
-//! };
-//! ```
 
 use std::sync::Arc;
 
@@ -17,9 +7,10 @@ use foundation_core::wire::simple_http::{
 };
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, Response, ResponseInit};
+use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
+use crate::wasm::response::from_wasm;
 use crate::wasm::server::handle_request;
 
 /// Convert a `web_sys::Request` to a `SimpleIncomingRequest`.
@@ -63,53 +54,6 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
     Ok(simple_req)
 }
 
-/// Build a `web_sys::Response` from raw HTTP response bytes.
-fn response_from_bytes(bytes: Vec<u8>) -> Result<Response, JsError> {
-    let mut status_code: u16 = 200;
-    let mut header_entries: Vec<(String, String)> = Vec::new();
-
-    if let Ok(response_str) = String::from_utf8(bytes.clone()) {
-        let mut lines = response_str.split("\r\n");
-        if let Some(status_line) = lines.next() {
-            status_code = status_line
-                .split_whitespace()
-                .nth(1)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(200);
-        }
-        for line in lines {
-            if line.is_empty() {
-                break;
-            }
-            if let Some((key, val)) = line.split_once(": ") {
-                header_entries.push((key.to_string(), val.to_string()));
-            }
-        }
-    }
-
-    let body = bytes
-        .windows(4)
-        .position(|w| w == b"\r\n\r\n")
-        .map(|pos| &bytes[pos + 4..])
-        .unwrap_or(&[]);
-
-    let init = ResponseInit::new();
-    init.set_status(status_code);
-
-    let web_headers = web_sys::Headers::new().map_err(|e| {
-        JsError::new(&format!("failed to create headers: {e:?}"))
-    })?;
-    for (k, v) in header_entries {
-        let _ = web_headers.append(&k, &v);
-    }
-    init.set_headers(&web_headers);
-
-    let mut body_owned = body.to_vec();
-    Response::new_with_opt_u8_array_and_init(Some(&mut body_owned), &init).map_err(|e| {
-        JsError::new(&format!("failed to create response: {e:?}"))
-    })
-}
-
 /// JS-compatible wrapper around `HttpApp`.
 #[wasm_bindgen]
 pub struct WasmHttpApp {
@@ -130,8 +74,8 @@ impl WasmHttpApp {
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let result = handle_request(&self.inner, simple_req)?;
-        response_from_bytes(result)
+        let wasm_resp = handle_request(&self.inner, simple_req)?;
+        from_wasm(wasm_resp)
     }
 }
 

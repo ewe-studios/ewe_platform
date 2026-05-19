@@ -1,14 +1,4 @@
 //! Cloudflare Workers wasm-bindgen bridge: `Request` + `env` → dispatch → `Response`.
-//!
-//! # Usage
-//! ```js
-//! import { CfHttpApp } from 'foundation_http';
-//! const app = new CfHttpApp();
-//! // configure app in Rust...
-//! export default {
-//!   async fetch(req, env) { return await app.handleRequest(req, env); }
-//! };
-//! ```
 
 use std::sync::Arc;
 
@@ -18,10 +8,11 @@ use foundation_core::wire::simple_http::{
 use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, Response, ResponseInit};
+use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
+use crate::wasm::response::from_wasm;
 use crate::wasm::server::handle_request_with_bag;
 
 /// Convert a `Request` to a `SimpleIncomingRequest`.
@@ -65,68 +56,18 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
     Ok(simple_req)
 }
 
-/// Build a `Response` from raw HTTP response bytes.
-fn response_from_bytes(bytes: Vec<u8>) -> Result<Response, JsError> {
-    let mut status_code: u16 = 200;
-    let mut header_entries: Vec<(String, String)> = Vec::new();
-
-    if let Ok(response_str) = String::from_utf8(bytes.clone()) {
-        let mut lines = response_str.split("\r\n");
-        if let Some(status_line) = lines.next() {
-            status_code = status_line
-                .split_whitespace()
-                .nth(1)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(200);
-        }
-        for line in lines {
-            if line.is_empty() {
-                break;
-            }
-            if let Some((key, val)) = line.split_once(": ") {
-                header_entries.push((key.to_string(), val.to_string()));
-            }
-        }
-    }
-
-    let body = bytes
-        .windows(4)
-        .position(|w| w == b"\r\n\r\n")
-        .map(|pos| &bytes[pos + 4..])
-        .unwrap_or(&[]);
-
-    let init = ResponseInit::new();
-    init.set_status(status_code);
-
-    let web_headers = web_sys::Headers::new().map_err(|e| {
-        JsError::new(&format!("failed to create headers: {e:?}"))
-    })?;
-    for (k, v) in header_entries {
-        let _ = web_headers.append(&k, &v);
-    }
-    init.set_headers(&web_headers);
-
-    let mut body_owned = body.to_vec();
-    Response::new_with_opt_u8_array_and_init(Some(&mut body_owned), &init).map_err(|e| {
-        JsError::new(&format!("failed to create response: {e:?}"))
-    })
-}
-
 /// Extract common Cloudflare bindings into the context bag.
 fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
-    // env.DB — D1 database
     if let Ok(db) = js_sys::Reflect::get(env, &JsValue::from_str("DB")) {
         if !db.is_undefined() && !db.is_null() {
             bag.store(db);
         }
     }
-    // env.BUCKET — R2 bucket
     if let Ok(bucket) = js_sys::Reflect::get(env, &JsValue::from_str("BUCKET")) {
         if !bucket.is_undefined() && !bucket.is_null() {
             bag.store(bucket);
         }
     }
-    // env.KV — KV namespace
     if let Ok(kv) = js_sys::Reflect::get(env, &JsValue::from_str("KV")) {
         if !kv.is_undefined() && !kv.is_null() {
             bag.store(kv);
@@ -134,20 +75,7 @@ fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
     }
 }
 
-/// Cloudflare Workers `WasmHttpApp` wrapper.
-///
-/// Automatically extracts common CF bindings (DB, BUCKET, KV) into the
-/// context bag before dispatch.
-///
-/// # Usage
-/// ```js
-/// import { CfHttpApp } from 'foundation_http';
-/// const app = new CfHttpApp();
-/// // configure app...
-/// export default {
-///   async fetch(req, env) { return await app.handleRequest(req, env); }
-/// };
-/// ```
+/// Cloudflare Workers `CfHttpApp` wrapper.
 #[wasm_bindgen]
 pub struct CfHttpApp {
     inner: Arc<HttpApp>,
@@ -173,8 +101,8 @@ impl CfHttpApp {
         let simple_req = request_from_cf(&req).await?;
         let bag = Arc::new(ContextBag::new());
         extract_cf_bindings(&env, &bag);
-        let result = handle_request_with_bag(bag, &self.inner, simple_req)?;
-        response_from_bytes(result)
+        let wasm_resp = handle_request_with_bag(bag, &self.inner, simple_req)?;
+        from_wasm(wasm_resp)
     }
 }
 

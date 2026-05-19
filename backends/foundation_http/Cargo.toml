@@ -68,6 +68,9 @@ wasm-bindgen-http = [
     "dep:js-sys",
     "dep:web-sys",
 ]
+# Exposes wasm module types (WasmResponse, WasmStream, run_middleware) for native testing.
+# Does NOT pull in wasm-bindgen/web-sys — only pure-Rust types are available.
+wasm-test = []
 
 [lints]
 workspace = true

@@ -19,7 +19,7 @@ pub mod shared;
 pub mod native;
 
 // Wasm modules — dispatch, WasmStream
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
