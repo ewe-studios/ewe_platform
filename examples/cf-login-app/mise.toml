@@ -1,0 +1,32 @@
+[tools]
+node = "latest"
+rust = "latest"
+
+[plugins]
+cargo-binstall = "https://github.com/rust-lang/cargo-binstall"
+
+[tasks.build]
+description = "Build the wasm worker"
+run = [
+  "rustup target add wasm32-unknown-unknown",
+  "cargo binstall worker-build",
+  "npm install",
+  "worker-build --release",
+]
+
+[tasks.dev]
+description = "Start the wrangler dev server"
+run = "npx wrangler dev --port 8799"
+
+[tasks.test]
+description = "Run the miniflare test"
+run = "node test.mjs"
+
+[tasks.setup]
+description = "One-time setup: install deps, add wasm target, build"
+run = [
+  "rustup target add wasm32-unknown-unknown",
+  "cargo binstall worker-build",
+  "npm install",
+  "worker-build --release",
+]

@@ -7,8 +7,8 @@ pub use threads::*;
 use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
-    split_thread_count, task::TaskIterator, BackgroundJobRegistry,
-    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper,
+    split_thread_count, task::TaskIterator, BackgroundJobRegistry, ExecutionAction, GenericResult,
+    TaskReadyResolver, TaskStatusMapper,
 };
 
 use crate::synca::{LockSignal, OnSignal};

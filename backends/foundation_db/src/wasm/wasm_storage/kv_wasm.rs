@@ -4,7 +4,7 @@
 //! using Cloudflare Workers KV. Async `*_async` methods are the source of truth
 //! (JS Promises); sync trait methods delegate via `schedule_future`.
 
-use crate::core::backends::schedule_future;
+use crate::core::backends::{exec_future, schedule_future};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
@@ -93,7 +93,9 @@ impl KeyValueStore for KVWasmStorage {
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         let this = self.clone();
         let prefix = prefix.map(String::from);
-        let keys = futures_lite::future::block_on(this.list_keys_async(prefix.as_deref()))?;
+        let keys = exec_future(async move {
+            this.list_keys_async(prefix.as_deref()).await
+        })?;
         Ok(Self::stream_many(keys))
     }
 }
