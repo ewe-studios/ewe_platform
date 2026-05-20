@@ -889,6 +889,29 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
 
     /// Count all items (any state).
     fn count_all(self) -> SCountAll<Self>;
+
+    /// Wrap this iterator into a [`Future`] that collects all `Next` values into a `Vec`.
+    ///
+    /// Requires `std` or `alloc` feature flag.
+    #[cfg(any(feature = "std", feature = "alloc"))]
+    fn into_collect_future(self) -> crate::valtron::StreamCollectFuture<Self>
+    where
+        Self::D: Clone;
+
+    /// Wrap into a [`Future`] that resolves on the first `Next(D)` value.
+    ///
+    /// Returns `Some(value, remaining_iterator)` if a `Next` is found,
+    /// `None` if the iterator exhausts before producing one.
+    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self>;
+
+    /// Wrap into a [`Future`] that resolves on the first `Pending(P)` value.
+    ///
+    /// Returns `Some(context, remaining_iterator)` if a `Pending` is found,
+    /// `None` if the iterator exhausts before producing one.
+    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self>;
+
+    /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item as-is.
+    fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -1324,6 +1347,26 @@ where
             count: 0,
             done: false,
         }
+    }
+
+    #[cfg(any(feature = "std", feature = "alloc"))]
+    fn into_collect_future(self) -> crate::valtron::StreamCollectFuture<Self>
+    where
+        Self::D: Clone,
+    {
+        crate::valtron::StreamCollectFuture::new(self)
+    }
+
+    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self> {
+        crate::valtron::StreamReadyFuture::new(self)
+    }
+
+    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self> {
+        crate::valtron::StreamPendingFuture::new(self)
+    }
+
+    fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self> {
+        crate::valtron::StreamAsFutureStream::new(self)
     }
 }
 

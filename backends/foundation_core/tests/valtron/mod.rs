@@ -4,6 +4,7 @@ mod flatten_combinators;
 mod map_circuit;
 mod notification_based_waiting;
 mod shutdown_mechanism_tests;
+mod stream_future;
 mod stream_iterators;
 mod sync_boundary_helpers;
 mod task_iterators;

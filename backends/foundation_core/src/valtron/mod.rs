@@ -5,6 +5,7 @@ mod funcs;
 mod iterators;
 mod notifiers;
 mod streams;
+mod stream_future;
 mod task;
 mod types;
 
@@ -22,6 +23,7 @@ pub use streams::ConcurrentQueueStreamIterator;
 #[allow(deprecated)]
 pub use streams::StreamRecvIterator;
 pub use streams::*;
+pub use stream_future::*;
 pub use task::*;
 pub use task::{SplitCollectorMapContinuation, SplitCollectorMapObserver};
 pub use types::*;

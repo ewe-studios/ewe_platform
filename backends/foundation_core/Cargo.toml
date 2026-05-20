@@ -69,6 +69,8 @@ tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 foundation_testing = { path = "../foundation_testing" }
 ntest = { workspace = true }
+tokio = { version = "1", features = ["macros", "rt"] }
+smol = "2"
 
 [features]
 debug_trace = ["standard", "log_debug"]
