@@ -62,7 +62,7 @@ pub enum StorageBackend {
     /// D1 via wasm-bindgen — calls Cloudflare D1 JS API directly (wasm32 only).
     #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
     D1Wasm {
-        db: crate::wasm::bindgen::D1Database,
+        db: std::sync::Arc<crate::wasm::bindgen::D1Database>,
         table_prefix: String,
     },
     /// R2 via wasm-bindgen — calls Cloudflare R2 JS API directly (wasm32 only).

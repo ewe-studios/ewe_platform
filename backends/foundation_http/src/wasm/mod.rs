@@ -11,3 +11,7 @@ pub mod serve_web;
 // Bridge modules require wasm-bindgen — only available on wasm32 target
 #[cfg(target_arch = "wasm32")]
 pub mod bridge;
+
+// Dispatch logic for wasm-specific handler types
+#[cfg(target_arch = "wasm32")]
+pub mod dispatch;

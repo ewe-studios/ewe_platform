@@ -22,14 +22,22 @@ impl D1Database {
     }
 }
 
+/// # Safety: `Send` and `Sync` on wasm32
+/// `D1Database` wraps a JS `Object` which is `!Send` by default.
+/// On wasm32 there is only one thread and no shared memory,
+/// so it is safe to mark this type `Send + Sync`. This allows
+/// it to be stored in `ContextBag` and retrieved by type.
+unsafe impl Send for D1Database {}
+unsafe impl Sync for D1Database {}
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends = Object)]
     #[derive(Clone, Debug)]
     pub type D1PreparedStatement;
 
-    #[wasm_bindgen(method, js_name = bind)]
-    pub fn bind(this: &D1PreparedStatement, values: &Array) -> D1PreparedStatement;
+    #[wasm_bindgen(method, js_name = bind, variadic)]
+    pub fn bind(this: &D1PreparedStatement, values: Array) -> D1PreparedStatement;
 
     #[wasm_bindgen(method, js_name = first)]
     pub fn first(this: &D1PreparedStatement, col_name: Option<&str>) -> Promise;

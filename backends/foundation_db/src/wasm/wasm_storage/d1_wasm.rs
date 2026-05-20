@@ -4,6 +4,8 @@
 //! Async `*_async` methods resolve JS Promises; trait methods call them via
 //! `futures_lite::block_on`.
 
+use std::sync::Arc;
+
 use base64::{engine::general_purpose::STANDARD, Engine};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
@@ -11,7 +13,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncQueryStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::D1Database;
 use foundation_core::valtron::Stream;
@@ -21,15 +23,26 @@ use foundation_core::valtron::Stream;
 // ===========================================================================
 
 /// D1 storage backend using wasm-bindgen JS bindings.
+///
+/// # Safety: `Send` and `Sync` on wasm32
+/// `D1WasmStorage` wraps a `D1Database` (a JS type) which is `!Send` by default.
+/// On the `wasm32-unknown-unknown` target, all code runs on a single thread with
+/// no shared memory, so it is safe to mark this type `Send + Sync`. This allows
+/// it to be used with APIs that require `Send + Sync` bounds (e.g. `SessionManager`).
 pub struct D1WasmStorage {
-    db: D1Database,
+    db: Arc<D1Database>,
     table_prefix: String,
 }
+
+// Safety: wasm32-unknown-unknown is single-threaded with no shared memory.
+// All JS objects live in the same isolate and cannot race across threads.
+unsafe impl Send for D1WasmStorage {}
+unsafe impl Sync for D1WasmStorage {}
 
 impl D1WasmStorage {
     /// Create a new D1 storage instance.
     #[must_use]
-    pub fn new(db: D1Database, table_prefix: &str) -> Self {
+    pub fn new(db: Arc<D1Database>, table_prefix: &str) -> Self {
         Self {
             db,
             table_prefix: table_prefix.to_string(),
@@ -61,12 +74,19 @@ impl D1WasmStorage {
     /// Execute a raw SQL statement (no results).
     async fn execute_sql_async(&self, sql: &str, params: &[DataValue]) -> Result<(), StorageError> {
         let stmt = self.db.prepare(sql);
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(&array);
-        let promise = bound.run();
-        JsFuture::from(promise)
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
+        if params.is_empty() {
+            let promise = stmt.run();
+            JsFuture::from(promise)
+                .await
+                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
+        } else {
+            let array = data_values_to_js_array(params);
+            let bound = stmt.bind(array);
+            let promise = bound.run();
+            JsFuture::from(promise)
+                .await
+                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
+        }
         Ok(())
     }
 
@@ -77,10 +97,14 @@ impl D1WasmStorage {
         params: &[DataValue],
     ) -> Result<Option<js_sys::Object>, StorageError> {
         let stmt = self.db.prepare(sql);
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(&array);
-        let promise = bound.first(None);
-        let result = JsFuture::from(promise)
+        let first_result = if params.is_empty() {
+            stmt.first(None)
+        } else {
+            let array = data_values_to_js_array(params);
+            let bound = stmt.bind(array);
+            bound.first(None)
+        };
+        let result = JsFuture::from(first_result)
             .await
             .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
 
@@ -101,10 +125,14 @@ impl D1WasmStorage {
         params: &[DataValue],
     ) -> Result<Vec<js_sys::Object>, StorageError> {
         let stmt = self.db.prepare(sql);
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(&array);
-        let promise = bound.all();
-        let result = JsFuture::from(promise)
+        let all_result = if params.is_empty() {
+            stmt.all()
+        } else {
+            let array = data_values_to_js_array(params);
+            let bound = stmt.bind(array);
+            bound.all()
+        };
+        let result = JsFuture::from(all_result)
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
@@ -139,10 +167,14 @@ impl D1WasmStorage {
         params: &[DataValue],
     ) -> Result<u64, StorageError> {
         let stmt = self.db.prepare(sql);
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(&array);
-        let promise = bound.run();
-        let result = JsFuture::from(promise)
+        let run_result = if params.is_empty() {
+            stmt.run()
+        } else {
+            let array = data_values_to_js_array(params);
+            let bound = stmt.bind(array);
+            bound.run()
+        };
+        let result = JsFuture::from(run_result)
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 
@@ -344,6 +376,25 @@ impl D1WasmStorage {
 
     async fn execute_batch_async(&self, sql: &str) -> Result<(), StorageError> {
         self.execute_sql_async(sql, &[]).await
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncQueryStore for D1WasmStorage {
+    async fn query_async(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> StorageResult<Vec<SqlRow>> {
+        self.query_async(sql, params).await
+    }
+
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        self.execute_async(sql, params).await
+    }
+
+    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+        self.execute_batch_async(sql).await
     }
 }
 

@@ -40,6 +40,7 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
+foundation_db = { workspace = true, default-features = false, features = ["wasm", "wasm-bindgen-storage"], optional = true }
 
 [dev-dependencies]
 foundation_testing = { workspace=true }
@@ -67,6 +68,7 @@ wasm-bindgen-http = [
     "dep:wasm-bindgen-futures",
     "dep:js-sys",
     "dep:web-sys",
+    "dep:foundation_db",
 ]
 # Exposes wasm module types (WasmResponse, WasmStream, run_middleware) for native testing.
 # Does NOT pull in wasm-bindgen/web-sys — only pure-Rust types are available.

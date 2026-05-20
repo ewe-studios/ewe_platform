@@ -1,0 +1,14 @@
+{
+  "name": "cf-login-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "worker-build --release",
+    "dev": "npx wrangler dev",
+    "test": "node test.mjs"
+  },
+  "devDependencies": {
+    "miniflare": "^4.20260518.0",
+    "wrangler": "^4.93.0"
+  }
+}

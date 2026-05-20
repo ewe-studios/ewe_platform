@@ -1,0 +1,8 @@
+name = "cf-login-app"
+main = "build/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cf-login-db"
+database_id = "41b01e73-ee89-4492-88ff-4930cee92926"

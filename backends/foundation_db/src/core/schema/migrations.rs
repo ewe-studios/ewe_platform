@@ -1,9 +1,10 @@
 //! Database migrations for `foundation_db`.
 //!
 //! Migration runner uses synchronous [`QueryStore`] trait with [`DataValue`] params.
+//! For async backends (D1/wasm), use [`MigrationRunner::run_async`] with [`AsyncQueryStore`].
 
 use crate::core::errors::StorageResult;
-use crate::core::storage_provider::{DataValue, QueryStore};
+use crate::core::storage_provider::{AsyncQueryStore, DataValue, QueryStore};
 
 /// A single database migration.
 pub struct Migration {
@@ -101,6 +102,51 @@ impl<'a> MigrationRunner<'a> {
     #[must_use]
     pub fn new(migrations: &'a [Migration]) -> Self {
         Self { migrations }
+    }
+
+    /// Run all pending migrations asynchronously.
+    ///
+    /// This is the preferred method for wasm backends (D1) where the underlying
+    /// JS APIs are Promise-based.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any migration SQL statement fails.
+    pub async fn run_async(&self, store: &dyn AsyncQueryStore) -> StorageResult<usize> {
+        // Ensure the migrations tracking table exists
+        store.execute_batch_async(
+            "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"
+        ).await?;
+
+        let mut count = 0;
+
+        for migration in self.migrations {
+            // Check if migration already applied
+            let rows = store.query_async(
+                "SELECT 1 FROM _migrations WHERE id = ?",
+                &[DataValue::Text(migration.id.to_string())],
+            ).await?;
+
+            let exists = !rows.is_empty();
+
+            if !exists {
+                // Apply migration
+                store.execute_batch_async(migration.sql).await?;
+
+                // Record migration
+                store.execute_async(
+                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                    &[
+                        DataValue::Text(migration.id.to_string()),
+                        DataValue::Text(migration.name.to_string()),
+                    ],
+                ).await?;
+
+                count += 1;
+            }
+        }
+
+        Ok(count)
     }
 
     /// Run all pending migrations.

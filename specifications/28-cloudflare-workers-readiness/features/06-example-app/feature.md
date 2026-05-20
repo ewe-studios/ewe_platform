@@ -208,19 +208,57 @@ let (session, cookies) = session_mgr.create_session(user_id, ip, ua)?;
 let session = session_mgr.get_session(&token)?;
 ```
 
-### Auth Guard (inline in handlers)
+### Auth Middleware
 
-Each protected handler checks the session cookie inline rather than using
-middleware — `extract_session_token` parses the `Cookie` header, then
-`SessionManager::get_session()` validates it:
+Auth guard works as middleware on `CfServe` too — `HttpApp::new_cf()` accepts
+`.middleware()`, and `dispatch_cf()` runs it inline before routing. If middleware
+short-circuits with a response, it converts to a `CfConn` 302 redirect:
 
 ```rust
-let token = extract_session_token_from_headers(&req.headers, "session_token");
-let Some(token) = token else {
-    conn.set_status(302);
-    conn.set_header("Location", "/login");
-    return CfConnectionResult::Ok;
-};
+use foundation_http::shared::middleware::{RequestMiddleware, MiddlewareResult};
+use foundation_core::wire::simple_http::{SimpleIncomingRequest, Status, SimpleHeader,
+    SimpleHeaders, Proto, SendSafeBody};
+use foundation_http::wasm::serve_cf::CfServe;
+use std::sync::Arc;
+
+struct AuthMiddleware;
+
+impl RequestMiddleware for AuthMiddleware {
+    fn handle(
+        &self,
+        _ctx: &Arc<ContextBag>,
+        req: &mut SimpleIncomingRequest,
+    ) -> MiddlewareResult {
+        // Only protect /dashboard
+        if !req.request_url.url.starts_with("/dashboard") {
+            return MiddlewareResult::Continue;
+        }
+
+        // Check session cookie
+        let has_session = req.headers.get(&SimpleHeader::from("Cookie".to_string()))
+            .is_some_and(|cookies| cookies.iter().any(|c| c.contains("session_token=")));
+
+        if has_session {
+            MiddlewareResult::Continue
+        } else {
+            MiddlewareResult::Response(SimpleOutgoingResponse {
+                proto: Proto::HTTP11,
+                status: Status::TemporaryRedirect,
+                headers: {
+                    let mut h = SimpleHeaders::new();
+                    h.entry(SimpleHeader::from("Location".to_string()))
+                        .or_default().push("/login".to_string());
+                    h
+                },
+                body: Some(SendSafeBody::Text("Redirect to login".into())),
+            })
+        }
+    }
+}
+```
+
+Handlers can also check sessions inline for fine-grained per-route control — both
+patterns are supported.
 let session = session_mgr.get_session(&token)?;
 ```
 

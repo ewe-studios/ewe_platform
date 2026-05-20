@@ -13,6 +13,7 @@ members = [
   "examples/web/*",
   "examples/intro",
   "examples/template/*",
+  "examples/cf-login-app",
 
 ]
 
@@ -49,7 +50,7 @@ infrastructure_llama_bindings = { path = "./infrastructure/llama-bindings", vers
 infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0.1" }
 
 # --- foundation crates
-foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1" }
+foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1", default-features = false }
 foundation_db = { path = "./backends/foundation_db", version = "0.0.1", default-features = false }
 foundation_deployment = { path = "./backends/foundation_deployment", version = "0.0.1" }
 foundation_errstacks = { path = "./backends/foundation_errstacks", version = "0.0.1" }
@@ -67,31 +68,20 @@ foundation_testbed = { path = "./backends/foundation_testbed", version = "0.0.1"
 foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
 
 system_operations = { path = "./crates/system_operations", version = "0.1.0" }
-
-# -- internal packages so others can use them
-ewe_web = { path = "./crates/web", version = "0.0.1" }
 ewe_trace = { path = "./crates/trace", version = "0.0.1" }
-ewe_html = { path = "./crates/html", version = "0.0.1" }
-ewe_spawn = { path = "./crates/spawn", version = "0.0.1" }
 ewe_temple = { path = "./crates/temple", version = "0.0.2" }
-ewe_domain = { path = "./crates/domain", version = "0.0.1" }
-ewe_routing = { path = "./crates/routing", version = "0.0.1" }
-ewe_platform = { path = "./crates/platform", version = "0.0.1" }
 ewe_channels = { path = "./crates/channels", version = "0.0.1" }
 ewe_watchers = { path = "./crates/watchers", version = "0.0.1" }
 ewe_devserver = { path = "./crates/devserver", version = "0.0.2" }
 ewe_templates = { path = "./crates/templates", version = "0.0.1" }
-ewe_html_macro = { path = "./crates/html-macro", version = "0.0.1" }
 ewe_watch_utils = { path = "./crates/watch_utils", version = "0.0.1" }
 ewe_async_utils = { path = "./crates/async-utils", version = "0.0.1" }
-ewe_domain_macro = { path = "./crates/domain-macro", version = "0.0.1" }
 ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
 anyhow = { version = "1.0" }
-concurrent-queue = { version = "2.5" }
 derive_more = { version = ">=2.0", features = ["full"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
@@ -111,10 +101,8 @@ ntest = "0.9"
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
-pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
 cc = { version = "1.2.49" }
-clap = { version = "4.5.54" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }
 tracing-subscriber = { version = "0.3", features = ["json"] }

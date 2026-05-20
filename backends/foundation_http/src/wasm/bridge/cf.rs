@@ -12,7 +12,9 @@ use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
+use crate::wasm::dispatch::HttpAppCfDispatch;
 use crate::wasm::serve_cf::CfServe;
+use foundation_db::wasm::bindgen::cf::D1Database;
 
 /// Convert a `Request` to a `SimpleIncomingRequest`.
 async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError> {
@@ -55,22 +57,10 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
     Ok(simple_req)
 }
 
-/// Extract common Cloudflare bindings into the context bag.
+/// Extract typed bindings from the CF env object and store them in the context bag.
 fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
-    if let Ok(db) = js_sys::Reflect::get(env, &JsValue::from_str("DB")) {
-        if !db.is_undefined() && !db.is_null() {
-            bag.store(db);
-        }
-    }
-    if let Ok(bucket) = js_sys::Reflect::get(env, &JsValue::from_str("BUCKET")) {
-        if !bucket.is_undefined() && !bucket.is_null() {
-            bag.store(bucket);
-        }
-    }
-    if let Ok(kv) = js_sys::Reflect::get(env, &JsValue::from_str("KV")) {
-        if !kv.is_undefined() && !kv.is_null() {
-            bag.store(kv);
-        }
+    if let Ok(db) = D1Database::from_env(env, "DB") {
+        bag.store(db);
     }
 }
 
@@ -87,13 +77,6 @@ impl CfHttpApp {
     pub fn new() -> Self {
         Self {
             inner: Arc::new(HttpApp::new_cf()),
-        }
-    }
-
-    /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
-    pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
-        Self {
-            inner: Arc::new(app),
         }
     }
 
@@ -114,6 +97,22 @@ impl CfHttpApp {
 }
 
 impl CfHttpApp {
+    /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
+    pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
+        Self {
+            inner: Arc::new(app),
+        }
+    }
+
+    /// Dispatch a `SimpleIncomingRequest` through the app with the given context bag.
+    pub fn dispatch(
+        &self,
+        bag: Arc<ContextBag>,
+        req: SimpleIncomingRequest,
+    ) -> Result<Response, foundation_errstacks::ErrorTrace<crate::shared::serve::ServeError>> {
+        self.inner.dispatch_cf(bag, req)
+    }
+
     /// Get the inner `HttpApp` reference for Rust-side route registration.
     pub fn app(&self) -> &HttpApp<Arc<dyn CfServe>> {
         &self.inner

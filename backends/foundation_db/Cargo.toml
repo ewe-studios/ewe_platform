@@ -43,11 +43,15 @@ chrono = { workspace = true }
 tracing = "0.1"
 futures-core = "0.3"
 futures-lite = "2"
+async-trait = "0.1"
 
 # Optional wasm-bindgen dependencies
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
+
+# workers-rs interop
+worker = { version = "0.8.3", optional = true, default-features = false, features = ["d1"] }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
@@ -71,6 +75,9 @@ wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys"]
 
 # Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
 wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]
+
+# workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
+workers-rs = ["dep:worker"]
 
 [lints]
 workspace = true

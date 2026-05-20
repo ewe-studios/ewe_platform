@@ -99,6 +99,12 @@ pub struct SessionManager<S> {
 }
 
 impl<S: CredentialStore> SessionManager<S> {
+    /// Get the session configuration.
+    #[must_use]
+    pub fn config(&self) -> &SessionConfig {
+        &self.config
+    }
+
     /// Create a new session manager.
     ///
     /// # Errors

@@ -281,6 +281,24 @@ pub trait QueryStore: Send + Sync {
     fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 }
 
+/// Async SQL query operations — for wasm backends (D1) where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncQueryStore {
+    /// Execute a query that returns rows.
+    async fn query_async(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> StorageResult<Vec<SqlRow>>;
+
+    /// Execute a statement that returns number of rows affected.
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+
+    /// Execute a batch of SQL statements.
+    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
+}
+
 /// Rate limiting operations.
 pub trait RateLimiterStore: Send + Sync {
     /// Check if a rate limit key is allowed. Yields one `Next(bool)`.

@@ -10,6 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
+use crate::wasm::dispatch::HttpAppWebDispatch;
 use crate::wasm::serve_web::WebServe;
 
 /// Convert a `web_sys::Request` to a `SimpleIncomingRequest`.

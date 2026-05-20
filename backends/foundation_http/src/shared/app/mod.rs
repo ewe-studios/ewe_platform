@@ -10,8 +10,6 @@
 use std::sync::Arc;
 
 use foundation_core::wire::simple_http::SimpleMethod;
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
-use foundation_core::wire::simple_http::SimpleIncomingRequest;
 
 use crate::shared::context::ContextBag;
 use crate::shared::middleware::RequestMiddleware;
@@ -171,73 +169,6 @@ impl HttpApp<Arc<dyn CfServe>> {
         self.router.add_route_any_cf(path, &handler);
         self
     }
-
-    /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
-    #[cfg(target_arch = "wasm32")]
-    pub fn dispatch_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-    ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<crate::shared::serve::ServeError>> {
-        use foundation_core::wire::simple_http::SendSafeBody;
-        use crate::shared::middleware::MiddlewareResult;
-        use crate::shared::serve::ServeError;
-        use crate::wasm::cf_conn::CfConn;
-
-        let method = req.method.clone();
-        let path = req.request_url.url.clone();
-
-        // Run middleware
-        let mut req = req;
-        for mw in &self.middleware {
-            match mw.handle(&bag, &mut req) {
-                MiddlewareResult::Continue => {}
-                MiddlewareResult::Response(response) => {
-                    let status_code: usize = response.status.clone().into();
-                    let body_bytes = match &response.body {
-                        Some(SendSafeBody::Text(s)) => s.as_bytes().to_vec(),
-                        Some(SendSafeBody::Bytes(b)) => b.clone(),
-                        _ => Vec::new(),
-                    };
-                    let mut conn = CfConn::new();
-                    conn.set_status(status_code as u16);
-                    for (k, vals) in &response.headers {
-                        conn.set_header(&k.to_string(), &vals.join(", "));
-                    }
-                    conn.set_body(body_bytes);
-                    return conn.into_response().map_err(|e| {
-                        ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                    });
-                }
-                MiddlewareResult::InterimResponse(_) => {}
-            }
-        }
-
-        // Dispatch to router
-        let handler = self.router.dispatch(&method, &path)
-            .ok_or_else(|| ServeError::BadRequest {
-                status: 404,
-                reason: format!("no route for {method:?} {path}"),
-            })?;
-
-        // Execute handler
-        let mut conn = CfConn::new();
-        let result = handler.serve_cf(bag, req, &mut conn);
-
-        match result {
-            crate::wasm::cf_conn::CfConnectionResult::Ok => {
-                conn.into_response().map_err(|e| {
-                    ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                })
-            }
-            crate::wasm::cf_conn::CfConnectionResult::Close(err) => Err(err.unwrap_or_else(|| {
-                ServeError::InternalError {
-                    status: 500,
-                    reason: "handler closed connection".into(),
-                }.into()
-            })),
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -267,73 +198,6 @@ impl HttpApp<Arc<dyn WebServe>> {
         let handler: Arc<dyn WebServe> = Arc::new(H::create(&self.ctx));
         self.router.add_route_any_web(path, &handler);
         self
-    }
-
-    /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
-    #[cfg(target_arch = "wasm32")]
-    pub fn dispatch_web(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-    ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<crate::shared::serve::ServeError>> {
-        use foundation_core::wire::simple_http::SendSafeBody;
-        use crate::shared::middleware::MiddlewareResult;
-        use crate::shared::serve::ServeError;
-        use crate::wasm::web_conn::WebConn;
-
-        let method = req.method.clone();
-        let path = req.request_url.url.clone();
-
-        // Run middleware
-        let mut req = req;
-        for mw in &self.middleware {
-            match mw.handle(&bag, &mut req) {
-                MiddlewareResult::Continue => {}
-                MiddlewareResult::Response(response) => {
-                    let status_code: usize = response.status.clone().into();
-                    let body_bytes = match &response.body {
-                        Some(SendSafeBody::Text(s)) => s.as_bytes().to_vec(),
-                        Some(SendSafeBody::Bytes(b)) => b.clone(),
-                        _ => Vec::new(),
-                    };
-                    let mut conn = WebConn::new();
-                    conn.set_status(status_code as u16);
-                    for (k, vals) in &response.headers {
-                        conn.set_header(&k.to_string(), &vals.join(", "));
-                    }
-                    conn.set_body(body_bytes);
-                    return conn.into_response().map_err(|e| {
-                        ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                    });
-                }
-                MiddlewareResult::InterimResponse(_) => {}
-            }
-        }
-
-        // Dispatch to router (web)
-        let handler = self.router.dispatch(&method, &path)
-            .ok_or_else(|| ServeError::BadRequest {
-                status: 404,
-                reason: format!("no route for {method:?} {path}"),
-            })?;
-
-        // Execute handler
-        let mut conn = WebConn::new();
-        let result = handler.serve_web(bag, req, &mut conn);
-
-        match result {
-            crate::wasm::web_conn::WebConnectionResult::Ok => {
-                conn.into_response().map_err(|e| {
-                    ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                })
-            }
-            crate::wasm::web_conn::WebConnectionResult::Close(err) => Err(err.unwrap_or_else(|| {
-                ServeError::InternalError {
-                    status: 500,
-                    reason: "handler closed connection".into(),
-                }.into()
-            })),
-        }
     }
 }
 
