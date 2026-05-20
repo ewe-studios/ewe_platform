@@ -43,25 +43,25 @@ All async traits use `#[async_trait::async_trait(?Send)]` — not `Send`. This i
 
 ### 2. Single-value → `Result<T>`, multi-value → `impl Stream`
 
-This is the most important distinction. Async methods must not break the streaming model for operations that return many items:
+This is the most important distinction. Async methods return the result directly, not wrapped in streams:
 
-- **Single-value ops** (`get`, `set`, `delete`, `exists`, `put_blob`, `get_blob`, `delete_blob`, `blob_exists`, `check_rate_limit`, `record_rate_limit`, `reset_rate_limit`, `execute`, `execute_batch`) → return `Result<T, StorageError>` directly. Bridged via `.into_ready_future().await`.
+- **Single-value ops** (`get`, `set`, `delete`, `exists`, `put_blob`, `get_blob`, `delete_blob`, `blob_exists`, `check_rate_limit`, `record_rate_limit`, `reset_rate_limit`, `execute`, `execute_batch`) → return `Result<T, StorageError>` directly.
 
-- **Multi-value ops** (`list_keys`, `query`) → return `impl futures_core::Stream<Item = Result<T, StorageError>>`. Bridged via `.into_future_stream()`. The caller gets a proper `futures_core::Stream` they can iterate item-by-item with `.next().await`, compose with other stream combinators, or collect into a `Vec` if they choose. Collecting into a `Vec` inside the trait method would force a full materialization point and defeat the purpose of having a stream in the first place.
+- **Multi-value ops** (`list_keys`, `query`) → return `Result<Vec<T>, StorageError>`. The caller can collect, iterate, or wrap in `.into_future_stream()` if they need lazy consumption. The trait does not force a streaming model — the caller decides.
 
-The sync traits always return `StorageItemStream` (the valtron `StreamIterator` wrapped in `Box<dyn Iterator>`) — that's the baseline. Async traits adapt it: single values resolve to a single `.await` that yields the result; multi values yield a `Stream` that can be consumed lazily.
+The sync traits always return `StorageItemStream` (the valtron `StreamIterator` wrapped in `Box<dyn Iterator>`) — that's the baseline. Sync produces the stream by calling async methods via `schedule_future`. Async calls the same methods directly with `.await`.
 
-### 3. Wasm implementations call JS async APIs directly
+### 3. Wasm implementations: async is the source of truth
 
-Wasm backends (like `D1WasmStorage`) already have private async methods that resolve `JsFuture`. Make them public. The async trait impl calls them directly — no valtron bridge needed. The sync trait impl also calls the public async method, but since it's a sync context, wraps the `Result<T>` into a trivial single-item `StorageItemStream` (not via `block_on`).
+Wasm backends (like `D1WasmStorage`) already have private async methods that resolve `JsFuture`. Make them public — these are the source of truth. The async trait impl calls them directly with `.await`. The sync trait impl calls them via `schedule_future` + valtron bridge (no `block_on`).
 
-### 4. Native implementations use valtron bridge
+### 4. Native implementations: extract async methods
 
-For native backends (`D1KeyValueStore`), methods already produce `StorageItemStream` from inline HTTP + SQL logic. Extract that logic to public stream-producing methods. Sync trait impls call them directly (passthrough). Async trait impls call the same public method and bridge via `.into_ready_future()` / `.into_collect_future()`.
+For native backends (`D1KeyValueStore`, `R2BlobStore`), extract the SQL/HTTP/parsing logic into `pub async fn` methods. These are the source of truth. Sync trait impls call them via `schedule_future` + valtron bridge. Async trait impls call them directly with `.await`.
 
 ### 5. Sync traits remain the default
 
-Sync traits (`KeyValueStore`, `BlobStore`, etc.) remain the primary interface. Async traits are opt-in additions for async contexts. No breaking changes to existing implementations.
+Sync traits (`KeyValueStore`, `BlobStore`, etc.) remain the primary interface. Async traits are opt-in additions for async contexts. No breaking changes to existing implementations. Sync trait impls call `pub async fn` methods via `schedule_future` — the valtron bridge handles the conversion to `StorageItemStream`.
 
 ### 6. Why `#[async_trait(?Send)]` over native async traits
 
@@ -132,7 +132,7 @@ Needs `AsyncBlobStore`.
 
 Needs `AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`.
 
-**All 3 backends follow the same refactor**: Make private async methods `pub`. Sync trait impls call them and convert `Result<T>` to `StorageItemStream` directly (no `block_on`). Async trait impls call them with `.await`.
+**All 3 backends follow the same refactor**: Make private async methods `pub async`. These are the source of truth. Sync trait impls call them via `schedule_future` + valtron bridge to produce `StorageItemStream`. Async trait impls call them directly with `.await`.
 
 ### Pattern 2: HTTP-based native backends (D1KeyValueStore, R2BlobStore)
 
@@ -142,13 +142,13 @@ Sync trait methods do inline HTTP calls via `SimpleHttpClient`, SQL execution, J
 
 All methods are monolithic: `execute_sql()` HTTP call → `extract_rows()` → deserialization → `wrap_value`/`wrap_vec`. Helpers: `execute_sql`, `extract_rows`, `wrap_value`, `wrap_vec`.
 
-Refactor: Extract each method's logic into a public stream-producing method (e.g., `get_kv_stream`, `query_stream`). Sync trait becomes passthrough. Async trait bridges via `.into_ready_future()` / `.into_future_stream()`.
+Refactor: Extract each method's logic into a `pub async fn` returning `Result<T>` (or `Result<Vec<T>>` for multi-value). Sync trait impls call via `schedule_future`. Async trait impls call with `.await`.
 
 #### R2BlobStore — BlobStore only
 
 4 sync methods: `put_blob`, `get_blob`, `delete_blob`, `blob_exists`. Each does inline HTTP (PUT/GET/DELETE/HEAD) → status check → `wrap_value`. Helpers: `body_bytes`, `wrap_value`.
 
-Refactor: Same as D1KeyValueStore — extract to public stream methods, sync passthrough, async bridge.
+Refactor: Same as D1KeyValueStore — extract to public async methods, sync calls via `schedule_future`, async calls with `.await`.
 
 ### Pattern 3: valtron-native backends (TursoStorage, LibsqlStorage)
 
@@ -164,7 +164,7 @@ Refactor: Same as D1KeyValueStore — extract to public stream methods, sync pas
 1. **Sync trait impls** — call the public async method via `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` (same outer pattern, but the future body is a named method, not inline logic).
 2. **Async trait impls** — call the public async method directly with `.await`.
 
-Multi-value ops (`list_keys`, `query`) keep using `run_future_iter` in the sync path since they need lazy row iteration; the async path bridges via `.into_future_stream()`.
+Multi-value ops (`list_keys`, `query`) keep using `run_future_iter` in the sync path since they need lazy row iteration; the async path returns `Result<Vec<T>>` directly.
 
 Both implement all 4 traits (KeyValueStore, QueryStore, RateLimiterStore, BlobStore).
 
@@ -176,13 +176,15 @@ All operations are purely in-memory or file-based with no async underlying APIs.
 - **MemoryJsonStore**: `HashMap<String, String>` — implements KeyValueStore, RateLimiterStore, BlobStore, QueryStore(rejects). Has `stream_once`/`stream_many` helpers.
 - **JsonFileStorage**: `HashMap<String, Zeroizing<Vec<u8>>>` + atomic disk flush — implements KeyValueStore, BlobStore. Rejects QueryStore, RateLimiterStore.
 
-Async traits for these would bridge trivial streams. Since there's no real I/O, async methods would be immediate `Ready` — useful for API consistency but no performance benefit. Implement by wrapping existing sync logic in `std::future::ready()`.
+Async traits for these extract existing in-memory logic into `pub async fn` methods. Sync trait impls call them via `schedule_future` (stream resolves immediately since in-memory). Async trait impls call with `.await`. Useful for API consistency but no real performance benefit.
 
 ### Pattern 5: CredentialStorage (foundation_auth) — consumes streams from StorageProvider
 
 Not a storage backend itself — wraps `StorageProvider` and drains its streams. Each sync method calls `StorageProvider` (returns `StorageItemStream`), then drains via `.flat_map(...).next()` or `.collect()`.
 
-Refactor: Async trait impls call same `StorageProvider` methods and bridge via `.into_ready_future()` / `.into_future_stream()`. No extraction needed.
+Refactor: Sync trait impls unchanged (drain streams from StorageProvider). Async trait impls call same `StorageProvider` methods (return streams), bridge:
+   - Single-value ops → `.into_ready_future().await`
+   - Multi-value (`list_keys`) → `.into_future_stream()`
 
 ### Trait coverage matrix
 
@@ -203,30 +205,28 @@ Refactor: Async trait impls call same `StorageProvider` methods and bridge via `
 
 | Backend | Pattern | block_on calls | Refactor needed | Async traits needed |
 |---|---|---|---|---|
-| D1WasmStorage | 1 | 15 | pub async, remove block_on | AsyncKV + AsyncBlob + AsyncRate |
-| R2WasmStorage | 1 | 4 | pub async, remove block_on | AsyncBlob |
-| KVWasmStorage | 1 | 12 | pub async, remove block_on | AsyncKV + AsyncBlob + AsyncRate |
-| D1KeyValueStore | 2 | 0 | extract stream methods | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
-| R2BlobStore | 2 | 0 | extract stream methods | AsyncBlob |
-| TursoStorage | 3 | 0 | extract async methods from inline schedule_future | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
-| LibsqlStorage | 3 | 0 | extract async methods from inline schedule_future | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
-| MemoryStorage | 4 | 0 | wrap in ready future | AsyncKV + AsyncBlob + AsyncRate |
-| MemoryJsonStore | 4 | 0 | wrap in ready future | AsyncKV + AsyncBlob + AsyncRate |
-| JsonFileStorage | 4 | 0 | wrap in ready future | AsyncKV + AsyncBlob |
+| D1WasmStorage | 1 | 15 | pub async; sync calls via schedule_future | AsyncKV + AsyncBlob + AsyncRate |
+| R2WasmStorage | 1 | 4 | pub async; sync calls via schedule_future | AsyncBlob |
+| KVWasmStorage | 1 | 12 | pub async; sync calls via schedule_future | AsyncKV + AsyncBlob + AsyncRate |
+| D1KeyValueStore | 2 | 0 | extract pub async methods | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
+| R2BlobStore | 2 | 0 | extract pub async methods | AsyncBlob |
+| TursoStorage | 3 | 0 | extract inline async to named pub async fn | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
+| LibsqlStorage | 3 | 0 | extract inline async to named pub async fn | AsyncKV + AsyncBlob + AsyncRate + AsyncQuery |
+| MemoryStorage | 4 | 0 | wrap in pub async fn | AsyncKV + AsyncBlob + AsyncRate |
+| MemoryJsonStore | 4 | 0 | wrap in pub async fn | AsyncKV + AsyncBlob + AsyncRate |
+| JsonFileStorage | 4 | 0 | wrap in pub async fn | AsyncKV + AsyncBlob |
 
 ### Pattern A: wasm-bindgen backends (D1WasmStorage, R2WasmStorage, KVWasmStorage)
 
 1. **Make private async methods public** — `get_async`, `set_async`, etc. are already fully implemented, just change visibility.
-2. **Sync trait impls** — call the public async method and convert `Result<T>` to `StorageItemStream` via `Box::new(std::iter::once(Stream::Next(result)))`. No `block_on` needed.
+2. **Sync trait impls** — call the public async method via `schedule_future` + `map_circuit` + `map_done` to produce `StorageItemStream`. No `block_on`.
 3. **Async trait impls** — call the public async method directly with `.await`. No valtron bridge needed.
 
 ### Pattern B: HTTP-based native backends (D1KeyValueStore, R2BlobStore)
 
-1. **Public methods produce valtron streams** — extract the SQL/HTTP/parsing/deserialization logic from each sync trait method into public methods that return `StorageItemStream<D, P>`. These are the single source of truth.
-2. **Sync trait impls** call the public stream method directly — passthrough, no change in behavior.
-3. **Async trait impls** call the same public stream method and bridge:
-   - Single-value ops → `.into_ready_future().await` (resolves to `Result<T>`)
-   - Multi-value ops (`list_keys_stream`, `query_stream`) → `.into_future_stream()` (returns `impl Stream<Item = Result<T, E>>`)
+1. **Extract public async methods** — SQL/HTTP/parsing/deserialization logic becomes `pub async fn` returning `Result<T>` (or `Result<Vec<T>>` for multi-value). These are the single source of truth.
+2. **Sync trait impls** — call async methods via `schedule_future` + `map_circuit` + `map_done` to produce `StorageItemStream`.
+3. **Async trait impls** — call the public async method directly with `.await`.
 
 ### Pattern C: valtron-native backends (TursoStorage, LibsqlStorage)
 
@@ -236,9 +236,9 @@ Refactor: Async trait impls call same `StorageProvider` methods and bridge via `
 
 ### Pattern D: simple sync backends (MemoryStorage, MemoryJsonStore, JsonFileStorage)
 
-1. **No extraction needed** — methods already produce trivial streams directly.
-2. **Sync trait impls** — unchanged.
-3. **Async trait impls** — call existing sync trait method (returns `StorageItemStream`), bridge via `.into_ready_future()` / `.into_future_stream()`. Since these are in-memory, the stream resolves immediately.
+1. **Extract async methods** — wrap existing in-memory logic in `pub async fn` returning `Result<T>`.
+2. **Sync trait impls** — call async methods via `schedule_future` + `map_circuit` + `map_done` (stream resolves immediately).
+3. **Async trait impls** — call the public async method directly with `.await`.
 
 ### Pattern E: CredentialStorage — consumes streams from StorageProvider
 
@@ -250,15 +250,15 @@ Refactor: Async trait impls call same `StorageProvider` methods and bridge via `
 
 ### Pattern F: NativeOAuth — inline sync HTTP
 
-1. **Extract shared private helpers** — body builders (form-urlencoded construction), response parsers (JSON → OAuthToken), HTTP executor (SimpleHttpClient POST).
-2. **Sync methods** — call helpers directly (refactored from current inline logic).
-3. **Async methods** — wrap HTTP executor in valtron `from_future` + `execute`, bridge via `.into_ready_future()`, call parser on result.
+1. **Extract public async methods** — body builders, response parsers, HTTP executor become `pub async fn`.
+2. **Sync methods** — call async methods via `schedule_future` + valtron bridge.
+3. **Async methods** — call the public async method directly with `.await`.
 
 ### Pattern G: WasmOAuth — already follows Pattern A
 
 1. **Make private async methods public** — already implemented.
-2. **Sync trait impls** — call public async method, convert Result to stream (no `block_on`).
-3. **Async trait impls** — call public async method directly.
+2. **Sync trait impls** — call public async method via `schedule_future` + valtron bridge (no `block_on`).
+3. **Async trait impls** — call public async method directly with `.await`.
 
 ## Architecture
 
@@ -268,7 +268,7 @@ Three new traits in `foundation_db/src/core/storage_provider.rs`, mirroring thei
 
 - **AsyncKeyValueStore**:
   - Single-value → `Result<T>`: `get_async<V>`, `set_async<V>`, `delete_async`, `exists_async`
-  - Multi-value → `impl Stream<Item = Result<String, StorageError>>`: `list_keys_async`
+  - Multi-value → `impl Stream<Item = Result<String, StorageError>>`: `list_keys_async` (wraps `list_keys_async` pub async fn via `stream_many().into_future_stream()`)
 - **AsyncBlobStore** — all single-value → `Result<T>`: `put_blob_async`, `get_blob_async`, `delete_blob_async`, `blob_exists_async`
 - **AsyncRateLimiterStore** — all single-value → `Result<T>`: `check_rate_limit_async`, `record_rate_limit_async`, `reset_rate_limit_async`
 
@@ -278,7 +278,7 @@ New trait in `foundation_auth/src/shared/credential_store.rs`:
 
 - **AsyncCredentialStore**:
   - Single-value → `Result<T>`: `get_async<V>`, `set_async<V>`, `delete_async`, `exists_async`
-  - Multi-value → `impl Stream<Item = Result<String, CredentialStoreError>>`: `list_keys_async`
+  - Multi-value → `impl Stream<Item = Result<String, CredentialStoreError>>`: `list_keys_async` (wraps pub async fn via `stream_many().into_future_stream()`)
 
 ### Async HTTP Serve Traits (foundation_http)
 
@@ -311,41 +311,51 @@ No `block_on` in async methods.
 
 ### NativeOAuth Async Methods
 
-New async methods on `NativeOAuth`:
+New async methods on `NativeOAuth` — these are the source of truth for OAuth token exchange:
 
 - `exchange_code_async`
 - `client_credentials_async`
 - `refresh_token_async`
 
-These use the valtron stream-to-future bridge to run sync HTTP on the valtron thread pool and expose it as async.
+Sync methods call these via `schedule_future` + valtron bridge. The valtron thread pool handles the blocking HTTP I/O.
 
-## Refactor Principle: Public Stream Methods, Two Consumers
+## Refactor Principle: Async Methods Are the Source of Truth
 
-**Core rule: do not duplicate logic.** The actual work (SQL execution, HTTP calls, deserialization) is identical for sync and async — only how the result is collected differs.
+**Core rule: async methods contain the real logic. Sync wraps them.** The principle is:
+
+1. **Sync methods return `StorageItemStream`** (the valtron `StreamIterator` baseline).
+2. **Async methods return `Result<T>` or `Result<Vec<T>>`** directly — the `pub async fn` is the source of truth. For multi-value ops (`list_keys`, `query`), the async TRAIT wraps the `Result<Vec<T>>` via `stream_many().into_future_stream()` so the caller gets `impl Stream<Item = Result<T, E>>` for lazy consumption.
+3. **Async is the source of truth** — all business logic (SQL, HTTP, parsing, deserialization) lives in `pub async fn` methods.
+4. **Sync calls async via valtron** — `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` produces the `StorageItemStream`.
+5. **Async calls async directly** — `.await` on the same method, no valtron bridge.
+
+**Exception: multi-value ops** (`list_keys`, `query`) — the `pub async fn` returns `Result<Vec<T>>`. The async trait wraps it via `stream_many().into_future_stream()` so the caller gets `impl Stream<Item = Result<T, E>>`. The caller chooses whether to collect; the trait does not decide for them.
 
 ### Pattern A: wasm-bindgen backends (D1WasmStorage, R2WasmStorage, KVWasmStorage)
 
-1. **Make private async methods public** — `get_async`, `set_async`, etc. are already fully implemented, just change visibility.
-2. **Sync trait impls** — call the public async method and convert `Result<T>` to `StorageItemStream` via `Box::new(std::iter::once(Stream::Next(result)))`. No `block_on` needed because the async method is called from a context where the Promise is already resolved (wasm single-threaded runtime).
+1. **Make private async methods public** — `get_async`, `set_async`, etc. already resolve JS Promises via `JsFuture`. Just change visibility.
+2. **Sync trait impls** — call the public async method via `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` to produce `StorageItemStream`. No `block_on` needed.
 3. **Async trait impls** — call the public async method directly with `.await`. No valtron bridge needed.
 
 ### Pattern B: HTTP-based native backends (D1KeyValueStore, R2BlobStore)
 
-1. **Public methods produce valtron streams** — extract the SQL/HTTP/parsing/deserialization logic from each sync trait method into public methods that return `StorageItemStream<D, P>`. These are the single source of truth.
-2. **Sync trait impls** call the public stream method directly — passthrough, no change in behavior.
-3. **Async trait impls** call the same public stream method and bridge:
-   - Single-value ops → `.into_ready_future().await` (resolves to `Result<T>`)
-   - Multi-value ops (`list_keys_stream`, `query_stream`) → `.into_future_stream()` (returns `impl Stream<Item = Result<T, E>>`)
+1. **Extract public async methods** — the SQL/HTTP/parsing/deserialization logic from each sync trait method becomes a `pub async fn` returning `Result<T>` (single-value) or `Result<Vec<T>>` (multi-value). These are the single source of truth.
+2. **Sync trait impls** — call the public async method via `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` to produce `StorageItemStream`.
+3. **Async trait impls** — call the public async method directly with `.await`. Single-value → `Result<T>`, multi-value → wrap the `Vec` in `stream_many` then `.into_future_stream()` for lazy consumption.
 
 ### Pattern C: valtron-native backends (TursoStorage, LibsqlStorage)
 
-1. **No extraction needed** — these already produce `StorageItemStream` from async library APIs using `schedule_future` / `run_future_iter`.
-2. **Sync trait impls** — unchanged, already return `StorageItemStream`.
-3. **Async trait impls** — call the existing sync trait method (which returns `StorageItemStream`), bridge:
-   - Single-value ops → `.into_ready_future().await`
-   - Multi-value ops (`list_keys`, `query`) → `.into_future_stream()`
+1. **Extract `async move { ... }` blocks into named public async methods** — the business logic (SQL prep, encryption, deserialization) currently inline in `schedule_future` becomes a `pub async fn` returning `Result<T>`.
+2. **Sync trait impls** — call the public async method via `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` (same outer wrapping, named method instead of inline). Multi-value ops keep `run_future_iter` for lazy row iteration.
+3. **Async trait impls** — call the public async method directly with `.await`.
 
-### Pattern D: CredentialStorage — consumes streams from StorageProvider
+### Pattern D: simple sync backends (MemoryStorage, MemoryJsonStore, JsonFileStorage)
+
+1. **Extract async methods** — wrap existing in-memory logic in `pub async fn` returning `Result<T>`. No real async I/O, but provides API consistency.
+2. **Sync trait impls** — call the public async method via `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` (stream resolves immediately since in-memory).
+3. **Async trait impls** — call the public async method directly with `.await`.
+
+### Pattern E: CredentialStorage — consumes StorageProvider streams
 
 1. **No extraction needed** — StorageProvider already produces streams.
 2. **Sync trait impls** — drain streams via `.flat_map(...).next()` (single value) / `.collect()` (multi-value) (unchanged).
@@ -353,23 +363,17 @@ These use the valtron stream-to-future bridge to run sync HTTP on the valtron th
    - Single-value ops → `.into_ready_future().await`
    - Multi-value (`list_keys`) → `.into_future_stream()`
 
-### Pattern E: simple sync backends (MemoryStorage, MemoryJsonStore, JsonFileStorage)
-
-1. **No extraction needed** — methods already produce trivial streams directly.
-2. **Sync trait impls** — unchanged.
-3. **Async trait impls** — call existing sync trait method (returns `StorageItemStream`), bridge via `.into_ready_future()` / `.into_future_stream()`. Since these are in-memory, the stream resolves immediately.
-
 ### Pattern F: NativeOAuth — inline sync HTTP
 
-1. **Extract shared private helpers** — body builders (form-urlencoded construction), response parsers (JSON → OAuthToken), HTTP executor (SimpleHttpClient POST).
-2. **Sync methods** — call helpers directly (refactored from current inline logic).
-3. **Async methods** — wrap HTTP executor in valtron `from_future` + `execute`, bridge via `.into_ready_future()`, call parser on result.
+1. **Extract public async methods** — the HTTP executor, body builders, and response parsers become `pub async fn` methods.
+2. **Sync methods** — call the async methods via `schedule_future` + valtron bridge to produce `Result<T>`.
+3. **Async methods** — call the async methods directly with `.await`.
 
 ### Pattern G: WasmOAuth — already follows Pattern A
 
 1. **Make private async methods public** — already implemented.
-2. **Sync trait impls** — call public async method, convert Result to stream (no `block_on`).
-3. **Async trait impls** — call public async method directly.
+2. **Sync trait impls** — call public async method via `schedule_future` + valtron bridge (no `block_on`).
+3. **Async trait impls** — call public async method directly with `.await`.
 
 ## Implementation Strategy
 
@@ -380,22 +384,22 @@ These use the valtron stream-to-future bridge to run sync HTTP on the valtron th
 - `backends/foundation_db/src/wasm/wasm_storage/r2_wasm.rs` (4 methods)
 - `backends/foundation_db/src/wasm/wasm_storage/kv_wasm.rs` (12 methods)
 
-Change visibility of all private async methods to `pub`. Remove `futures_lite::block_on` from all sync trait impls. Replace with direct calls to the public async methods, converting `Result<T>` to `StorageItemStream` via `Self::stream_once()` / `Self::stream_many()`.
+Change visibility of all private async methods to `pub`. Replace `futures_lite::block_on` in all sync trait impls with `schedule_future(async { self.xxx_async(...).await })` + `map_circuit` + `map_done` to produce `StorageItemStream`. The public async methods are the source of truth; sync wraps them via valtron, async calls them directly.
 
-The key insight: on wasm32, calling an async method from a sync context doesn't require `block_on` because the async method's body is already being evaluated eagerly — the JS Promise resolution happens through the wasm-bindgen/futures runtime, not a thread pool. The `stream_once`/`stream_many` wrappers already produce the correct `StorageItemStream` shape.
-
-### Phase 2: HTTP-based native backends — Extract Public Stream Methods
+### Phase 2: HTTP-based native backends — Extract Public Async Methods
 
 **Files:**
 - `backends/foundation_db/src/core/backends/d1_kvstore.rs`
 - `backends/foundation_db/src/core/backends/r2_blobstore.rs`
 
-For each sync trait method, extract the SQL/HTTP/parsing logic into a public method returning `StorageItemStream`:
+For each sync trait method, extract the SQL/HTTP/parsing logic into a `pub async fn`:
 
-- **D1KeyValueStore**: `get_kv_stream`, `set_kv_stream`, `exists_stream`, `list_keys_stream`, `delete_stream`, `query_stream`, `execute_stream`, `execute_batch_stream`, `check_rate_limit_stream`, `record_rate_limit_stream`, `reset_rate_limit_stream`, `put_blob_stream`, `get_blob_stream`, `delete_blob_stream`, `blob_exists_stream`
-- **R2BlobStore**: `put_blob_stream`, `get_blob_stream`, `delete_blob_stream`, `blob_exists_stream`
+- **D1KeyValueStore**: `get_kv_async`, `set_kv_async`, `exists_async`, `list_keys_async`, `delete_async`, `query_rows_async`, `execute_async`, `execute_batch_async`, `check_rate_limit_async`, `record_rate_limit_async`, `reset_rate_limit_async`, `put_blob_async`, `get_blob_async`, `delete_blob_async`, `blob_exists_async`
+- **R2BlobStore**: `put_blob_async`, `get_blob_async`, `delete_blob_async`, `blob_exists_async`
 
-The existing private helpers (`execute_sql`, `extract_rows`, `wrap_value`, `wrap_vec` for D1; `body_bytes`, `wrap_value` for R2) stay unchanged.
+Single-value methods return `Result<T>`. Multi-value methods (`list_keys_async`, `query_rows_async`) return `Result<Vec<T>>`.
+
+Sync trait impls call these async methods via `schedule_future` + `map_circuit` + `map_done` to produce `StorageItemStream`.
 
 ### Phase 3: valtron-native backends — Extract Public Async Methods + Async Traits
 
@@ -411,9 +415,9 @@ Then implement `AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`, 
 
 ### Phase 3b: HTTP-based native backends — Async Trait Implementations
 
-Implement async traits for D1KeyValueStore and R2BlobStore using the public stream methods extracted in Phase 2:
+Implement async traits for D1KeyValueStore and R2BlobStore using the public async methods extracted in Phase 2:
 
-- **D1KeyValueStore** — `AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`, `AsyncQueryStore`. Each calls the corresponding `*_stream` method and bridges via `.into_ready_future()` / `.into_future_stream()`.
+- **D1KeyValueStore** — `AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`, `AsyncQueryStore`. Each calls the corresponding `pub async fn` directly with `.await`. Multi-value methods wrap the `Vec` result via `stream_many().into_future_stream()` for lazy consumption.
 - **R2BlobStore** — `AsyncBlobStore` only.
 
 ### Phase 4: Simple sync backends — Async Trait Implementations
@@ -423,7 +427,7 @@ Implement async traits for D1KeyValueStore and R2BlobStore using the public stre
 - `backends/foundation_db/src/core/backends/memory_json.rs`
 - `backends/foundation_db/src/native/json_file.rs`
 
-Implement async traits for MemoryStorage, MemoryJsonStore, JsonFileStorage. Since these are in-memory, async methods wrap existing sync logic in `std::future::ready()` — immediate resolution with no real async work needed.
+Extract existing in-memory logic into `pub async fn` methods. Sync trait impls call them via `schedule_future` (stream resolves immediately). Async trait impls call them directly with `.await`.
 
 ### Phase 5: wasm-bindgen backends — Async Trait Implementations
 
@@ -444,19 +448,19 @@ Implement `AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`, `Asyn
 
 **File:** `backends/foundation_auth/src/wasm_bindgen/oauth.rs`
 
-Make private async methods public. Remove `futures_lite::block_on` from sync methods. Async trait impl calls public async methods directly.
+Make private async methods public. Replace `futures_lite::block_on` in sync methods with `schedule_future` + valtron bridge. Async trait impl calls public async methods directly.
 
 ### Phase 8: NativeOAuth — Extract Helpers + Add Async Methods
 
 **File:** `backends/foundation_auth/src/native/oauth.rs`
 
-Factor out shared logic into private helpers:
+Extract the body builders, response parsers, and HTTP executor into `pub async fn` methods:
 
-- **Body builders** — form-urlencoded body construction for each OAuth flow.
-- **Response parsers** — token parsing and refresh token parsing.
-- **HTTP executor** — the SimpleHttpClient POST call.
+- **`exchange_token_async`** — the full OAuth token exchange (build body, POST, parse response).
+- **`refresh_token_async`** — the full token refresh flow.
+- **`client_credentials_async`** — client credentials flow.
 
-Sync methods call these helpers directly (refactored from current inline logic). Async methods wrap the HTTP executor in valtron `from_future` + `execute`, bridge via `.into_ready_future().await`, then call the parser.
+Sync methods call these async methods via `schedule_future` + valtron bridge. Async methods call them directly with `.await`.
 
 ### Phase 11: Convert CfServe and WebServe to Async Traits (foundation_http)
 
@@ -498,7 +502,7 @@ Add `_async` methods gated on `S: CredentialStore + AsyncCredentialStore + Send 
 - `test_sync_then_async_consistency` — write via sync, read via async
 - `test_parallel_async_operations` — concurrent async ops
 - Session manager: create, get, revoke via async
-- **Async HTTP serve**: register a `CfServeAsync` handler that `.await`s a storage operation, verify response contains the stored value
+- **Async HTTP serve**: register a `CfServe` handler that `.await`s a storage operation, verify response contains the stored value
 - Verify no `futures_lite::block_on` remains in wasm backends (grep test)
 
 ## Module Layout
@@ -515,65 +519,70 @@ backends/foundation_db/src/core/storage_provider.rs
   └── AsyncRateLimiterStore (NEW)
 
 backends/foundation_db/src/core/backends/d1_kvstore.rs
-  ├── Public stream methods (NEW) — extracted from current trait impls
-  ├── Sync trait impls (refactored to passthroughs)
+  ├── Public async methods (NEW — extracted from current trait impls)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   ├── impl AsyncRateLimiterStore (NEW)
   └── impl AsyncQueryStore (NEW)
 
 backends/foundation_db/src/core/backends/r2_blobstore.rs
-  ├── Public stream methods (NEW)
-  ├── Sync trait impls (refactored to passthroughs)
+  ├── Public async methods (NEW — extracted from current trait impls)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   └── impl AsyncBlobStore (NEW)
 
 backends/foundation_db/src/native/turso_backend.rs
-  ├── Sync trait impls (unchanged — already valtron-native)
+  ├── Public async methods (extracted from inline schedule_future blocks)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   ├── impl AsyncRateLimiterStore (NEW)
   └── impl AsyncQueryStore (NEW)
 
 backends/foundation_db/src/native/libsql_backend.rs
-  ├── Sync trait impls (unchanged — already valtron-native)
+  ├── Public async methods (extracted from inline schedule_future blocks)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   ├── impl AsyncRateLimiterStore (NEW)
   └── impl AsyncQueryStore (NEW)
 
 backends/foundation_db/src/core/backends/memory.rs
-  ├── Sync trait impls (unchanged)
+  ├── Public async methods (wrap in-memory logic in pub async fn)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   └── impl AsyncRateLimiterStore (NEW)
 
 backends/foundation_db/src/core/backends/memory_json.rs
-  ├── Sync trait impls (unchanged)
+  ├── Public async methods (wrap in-memory logic in pub async fn)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   └── impl AsyncRateLimiterStore (NEW)
 
 backends/foundation_db/src/native/json_file.rs
-  ├── Sync trait impls (unchanged)
+  ├── Public async methods (wrap in-memory logic in pub async fn)
+  ├── Sync trait impls (refactored: call pub async via schedule_future)
   ├── impl AsyncKeyValueStore (NEW)
   └── impl AsyncBlobStore (NEW)
 
 backends/foundation_db/src/wasm/wasm_storage/d1_wasm.rs
-  ├── Existing private async methods → make pub
-  ├── Sync trait impls (refactored: no block_on, Result→Stream conversion)
+  ├── Existing private async methods → make pub (source of truth)
+  ├── Sync trait impls (refactored: call pub async via schedule_future, no block_on)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   ├── impl AsyncRateLimiterStore (NEW)
   └── impl AsyncQueryStore (already exists)
 
 backends/foundation_db/src/wasm/wasm_storage/r2_wasm.rs
-  ├── Existing private async methods → make pub
-  ├── Sync trait impls (refactored: no block_on)
+  ├── Existing private async methods → make pub (source of truth)
+  ├── Sync trait impls (refactored: call pub async via schedule_future, no block_on)
   └── impl AsyncBlobStore (NEW)
 
 backends/foundation_db/src/wasm/wasm_storage/kv_wasm.rs
-  ├── Existing private async methods → make pub
-  ├── Sync trait impls (refactored: no block_on)
+  ├── Existing private async methods → make pub (source of truth)
+  ├── Sync trait impls (refactored: call pub async via schedule_future, no block_on)
   ├── impl AsyncKeyValueStore (NEW)
   ├── impl AsyncBlobStore (NEW)
   └── impl AsyncRateLimiterStore (NEW)
@@ -599,43 +608,28 @@ backends/foundation_auth/src/shared/session.rs
   └── SessionManager async methods (NEW, gated on S: AsyncCredentialStore)
 
 backends/foundation_auth/src/native/oauth.rs
-  ├── Shared private helpers (NEW) — body builders, parsers, HTTP executor
-  ├── NativeOAuth sync methods (refactored to use helpers)
-  └── NativeOAuth async methods (NEW)
+  ├── Public async methods (NEW — extracted from current sync methods)
+  ├── Sync methods (refactored: call pub async via schedule_future)
+  └── Async methods (call pub async directly)
 
 backends/foundation_auth/src/wasm_bindgen/oauth.rs
-  ├── Existing private async methods → make pub
-  └── Sync methods (refactored: no block_on)
+  ├── Existing private async methods → make pub (source of truth)
+  └── Sync methods (refactored: call pub async via schedule_future, no block_on)
 
 backends/foundation_http/src/wasm/serve_cf.rs
-  ├── CfServe (existing, unchanged)
-  ├── CfServeFactory (existing, unchanged)
-  ├── CfServeAsync (NEW trait, #[async_trait(?Send)])
-  └── CfServeAsyncFactory (NEW trait)
+  ├── CfServe (converted to #[async_trait(?Send)])
+  └── CfServeFactory (existing, unchanged)
 
 backends/foundation_http/src/wasm/serve_web.rs
-  ├── WebServe (existing, unchanged)
-  ├── WebServeFactory (existing, unchanged)
-  ├── WebServeAsync (NEW trait, #[async_trait(?Send)])
-  └── WebServeAsyncFactory (NEW trait)
+  ├── WebServe (converted to #[async_trait(?Send)])
+  └── WebServeFactory (existing, unchanged)
 
 backends/foundation_http/src/wasm/dispatch.rs
-  ├── HttpAppCfDispatch (existing, unchanged — sync dispatch)
-  ├── HttpAppWebDispatch (existing, unchanged — sync dispatch)
-  ├── HttpAppCfAsyncDispatch (NEW — async dispatch for CfServeAsync)
-  └── HttpAppWebAsyncDispatch (NEW — async dispatch for WebServeAsync)
+  ├── dispatch_cf (converted to async fn, handler call becomes .await)
+  └── dispatch_web (converted to async fn, handler call becomes .await)
 
 backends/foundation_http/src/wasm/bridge/cf.rs
-  ├── CfHttpApp (existing)
-  │   ├── handle_request (existing — calls sync dispatch)
-  │   └── handle_request_async (NEW — calls async dispatch)
-  └── (new CfHttpAppAsync for HttpApp<Arc<dyn CfServeAsync>>)
-
-backends/foundation_http/src/shared/app/mod.rs
-  ├── HttpApp<Arc<dyn CfServe>> route methods (unchanged)
-  ├── HttpApp<Arc<dyn WebServe>> route methods (unchanged)
-  ├── HttpApp<Arc<dyn CfServeAsync>> route_cf_async methods (NEW)
-  └── HttpApp<Arc<dyn WebServeAsync>> route_web_async methods (NEW)
+  └── CfHttpApp (handle_request calls dispatch_cf(...).await)
 ```
 
 ## Testing
@@ -685,19 +679,19 @@ When a backend has no native async capability (e.g., `SimpleHttpClient`), the va
 
 ### Refactor before duplicating
 
-Adding `_async` methods that duplicate sync logic leads to drift. Factor out shared helpers (request building, response parsing, business logic) first, then both sync and async methods call them with different execution wrappers.
+Adding `_async` methods that duplicate sync logic leads to drift. Extract the business logic into `pub async fn` methods first, then both sync and async call them — sync via `schedule_future` + valtron bridge, async directly with `.await`.
 
-### Public stream methods prevent duplication
+### Async methods as single source of truth
 
-When a sync method returns a `StorageItemStream`, that stream IS the result. The sync trait impl is a passthrough. The async impl bridges it. No logic is duplicated — the stream-producing method is the single source of truth.
+All business logic (SQL, HTTP, parsing, deserialization) lives in `pub async fn` methods. Sync trait impls call these via `schedule_future` + `map_circuit` + `map_done` to produce `StorageItemStream`. Async trait impls call them directly with `.await`. No logic is duplicated — the async method is the single source of truth.
 
-### Single-value vs multi-value bridging matters
+### Single-value vs multi-value in async traits
 
-Not all async methods should return `Result<T>`. Methods that produce multiple items (`list_keys`, `query`) must return `impl Stream<Item = Result<T, E>>` via `.into_future_stream()`. Collecting into a `Vec` inside the trait method would force a full materialization point and defeat the streaming model. The caller chooses whether to collect — the trait should not decide for them. Single-value methods (`get`, `set`, `delete`, `exists`, etc.) correctly resolve to `Result<T>` via `.into_ready_future()`.
+Single-value async methods return `Result<T>` directly. Multi-value async methods (`list_keys`, `query`) have `pub async fn` implementations that return `Result<Vec<T>>`, but the async TRAIT wraps this via `stream_many().into_future_stream()` so callers get `impl Stream<Item = Result<T, E>>`. This preserves the streaming model — the caller chooses whether to collect, the trait does not force materialization.
 
 ### block_on elimination for wasm backends
 
-On wasm32-unknown-unknown, async methods that resolve JS Promises via `JsFuture` are already "native async" — they don't need a thread pool or executor. The `futures_lite::block_on` was only needed because sync trait methods were the only public API. With public async methods, sync trait impls can call them without blocking: the Result is already computed, just wrap in a trivial stream. This is semantically correct because wasm32 is single-threaded — there's no real "blocking" of another thread.
+On wasm32-unknown-unknown, async methods that resolve JS Promises via `JsFuture` are "native async" — they don't need a thread pool. The `futures_lite::block_on` was only needed because sync trait methods were the only public API. With public async methods as the source of truth, sync trait impls call them via `schedule_future` + valtron bridge (for wasm this runs on the single-threaded event loop, no actual blocking). Async trait impls call them directly with `.await`.
 
 ### Parallel scan in get_session_async
 
