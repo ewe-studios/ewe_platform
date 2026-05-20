@@ -2,6 +2,7 @@
 #![allow(clippy::return_self_not_must_use)]
 
 use std::{
+    any::Any,
     cell,
     collections::{HashMap, VecDeque},
     rc,
@@ -30,12 +31,84 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 use crate::compati::Mutex;
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, SpawnInfo,
-    SpawnType, TaskReadyResolver, TaskStatusMapper, ThreadActivity,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction,
+    ExecutionTaskIteratorBuilder, ExecutorError, GlobalTask, ProcessController,
+    SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskStatusMapper,
 };
 
 use crate::valtron::executors::constants::DEFAULT_KILL_SIGNAL_CHECK_INTERVAL;
+
+/// Identifies a thread executor instance.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct ThreadId(Entry, String);
+
+impl ThreadId {
+    #[must_use]
+    pub fn new(entry: Entry, name: String) -> Self {
+        Self(entry, name)
+    }
+
+    pub fn get_mut(&mut self) -> &mut Entry {
+        &mut self.0
+    }
+
+    #[must_use]
+    pub fn get_ref(&self) -> &Entry {
+        &self.0
+    }
+
+    #[must_use]
+    pub fn get_cloned(&self) -> Entry {
+        self.0
+    }
+
+    #[must_use]
+    pub fn get_name(&self) -> &String {
+        &self.1
+    }
+}
+
+/// Events emitted by thread executors for activity monitoring.
+pub enum ThreadActivity {
+    Started(ThreadId),
+    Stopped(ThreadId),
+    Blocked(ThreadId),
+    Unblocked(ThreadId),
+    Parked(ThreadId),
+    Unparked(ThreadId),
+    Panicked(ThreadId, Box<dyn Any + Send>),
+    BroadcastedTask,
+}
+
+impl core::fmt::Display for ThreadActivity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ThreadActivity::Panicked(id, _) => write!(f, "ThreadActivity::Panicked({id:?})"),
+            ThreadActivity::Started(id) => write!(f, "ThreadActivity::Started({id:?})"),
+            ThreadActivity::Stopped(id) => write!(f, "ThreadActivity::Stopped({id:?})"),
+            ThreadActivity::Blocked(id) => write!(f, "ThreadActivity::Blocked({id:?})"),
+            ThreadActivity::Unblocked(id) => write!(f, "ThreadActivity::Unblocked({id:?})"),
+            ThreadActivity::Parked(id) => write!(f, "ThreadActivity::Parked({id:?})"),
+            ThreadActivity::Unparked(id) => write!(f, "ThreadActivity::Unparked({id:?})"),
+            ThreadActivity::BroadcastedTask => write!(f, "ThreadActivity::BroadcastedTask"),
+        }
+    }
+}
+
+impl core::fmt::Debug for ThreadActivity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ThreadActivity::Panicked(id, _) => write!(f, "ThreadActivity::Panicked({id:?})"),
+            ThreadActivity::Started(id) => write!(f, "ThreadActivity::Started({id:?})"),
+            ThreadActivity::Stopped(id) => write!(f, "ThreadActivity::Stopped({id:?})"),
+            ThreadActivity::Blocked(id) => write!(f, "ThreadActivity::Blocked({id:?})"),
+            ThreadActivity::Unblocked(id) => write!(f, "ThreadActivity::Unblocked({id:?})"),
+            ThreadActivity::Parked(id) => write!(f, "ThreadActivity::Parked({id:?})"),
+            ThreadActivity::Unparked(id) => write!(f, "ThreadActivity::Unparked({id:?})"),
+            ThreadActivity::BroadcastedTask => write!(f, "ThreadActivity::BroadcastedTask"),
+        }
+    }
+}
 
 /// `PriorityOrder` defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -462,7 +535,7 @@ pub struct ExecutorState {
     /// `global_tasks` are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
     /// in the order received.
-    pub global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+    pub global_tasks: SharedTaskQueue,
 
     /// indicates the current task currently being handled for
     /// safety checks.
@@ -539,7 +612,7 @@ impl ExecutorState {
 
     pub fn new(
         state_owner: String,
-        global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+        global_tasks: SharedTaskQueue,
         wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
@@ -1705,7 +1778,7 @@ impl ExecutorState {
     /// no more have control as to where it gets allocated.
     pub fn broadcast(
         &self,
-        task: BoxedSendExecutionIterator,
+        task: GlobalTask,
     ) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.global_tasks.push(task) {
             Ok(()) => Ok(SpawnInfo::new(SpawnType::Broadcasted, None, None)),
@@ -1875,7 +1948,7 @@ impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
         (**self).schedule(task)
     }
 
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
+    fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).broadcast(task)
     }
 
@@ -1913,7 +1986,7 @@ impl ExecutionEngine for Box<LocalExecutionEngine> {
         (**self).schedule(task)
     }
 
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
+    fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).broadcast(task)
     }
 
@@ -1965,7 +2038,7 @@ impl ExecutionEngine for LocalExecutionEngine {
         Ok(entry)
     }
 
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
+    fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError> {
         let info = self.inner.broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
         if let Some(sender) = &self.activities {
@@ -2314,7 +2387,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
 impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn new(
         state_owner: String,
-        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+        tasks: SharedTaskQueue,
         rng: ChaCha8Rng,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -2353,7 +2426,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn from_seed(
         seed: u64,
         state_owner: String,
-        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+        tasks: SharedTaskQueue,
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
@@ -2381,7 +2454,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// Uses the default fairness interval.
     pub fn from_rng<R: rand::Rng>(
         state_owner: String,
-        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+        tasks: SharedTaskQueue,
         rng: &mut R,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -2898,7 +2971,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
@@ -2950,7 +3023,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
@@ -2996,7 +3069,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
@@ -3042,7 +3115,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
@@ -3089,7 +3162,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_0_can_kill_local_executor_via_kill_signal() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
@@ -3143,7 +3216,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
@@ -3197,7 +3270,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_can_use_local_executor_builder_to_queue_task() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
@@ -3248,7 +3321,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
@@ -3320,7 +3393,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
@@ -3477,7 +3550,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
@@ -3772,7 +3845,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_5_task_can_spawn_task_via_actions() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
@@ -3873,7 +3946,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
@@ -3972,7 +4045,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
@@ -4045,7 +4118,7 @@ mod test_local_thread_executor {
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits(
     ) {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
@@ -4119,7 +4192,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
-        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+        let global: SharedTaskQueue =
             Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =

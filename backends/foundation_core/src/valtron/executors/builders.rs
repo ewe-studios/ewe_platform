@@ -9,8 +9,8 @@ use crate::valtron::StreamConsumingIter;
 use crate::{synca::Entry, valtron::AnyResult};
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ConsumingIter, DoNext,
-    ExecutionAction, ExecutorError, FnMutReady, FnReady, OnNext, TaskIterator, TaskReadyResolver,
+    BoxedExecutionEngine, BoxedPanicHandler, ConsumingIter, DoNext,
+    ExecutionAction, ExecutorError, FnMutReady, FnReady, GlobalTask, OnNext, TaskIterator, TaskReadyResolver,
     TaskStatus, TaskStatusMapper,
 };
 
@@ -428,7 +428,7 @@ impl<
     /// `broadcast` delivers a task to the bottom of the global execution queue.
     #[must_use]
     pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {
-        let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
+        let task: AnyResult<GlobalTask, ExecutorError> = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
                 (Some(resolver), Some(mappers)) => Ok(OnNext::new(task, resolver, mappers).into()),
                 (Some(resolver), None) => {

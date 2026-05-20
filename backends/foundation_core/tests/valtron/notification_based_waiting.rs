@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    BoxedSendExecutionIterator, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
+    SharedTaskQueue, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
     InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
@@ -332,7 +332,7 @@ fn test_notify_queue_stream_iterator_receives_values() {
 #[test]
 #[traced_test]
 fn test_single_threaded_executor_with_notification_tasks() {
-    let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+    let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
@@ -393,7 +393,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
 #[test]
 #[traced_test]
 fn test_single_threaded_executor_pends_without_blocking() {
-    let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+    let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));

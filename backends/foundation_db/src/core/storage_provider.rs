@@ -18,6 +18,11 @@ use foundation_core::valtron::Stream;
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
 /// Errors are yielded in the stream as `Stream::Next(Err(e))` - callers can use
 /// `.flatten()` to extract only successful values or collect into `Result` to propagate errors.
+#[cfg(target_arch = "wasm32")]
+pub type StorageItemStream<'a, T> =
+    Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + 'a>;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 

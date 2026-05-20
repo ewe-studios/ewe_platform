@@ -28,36 +28,38 @@ use crate::{
 ///
 /// Returns a `PoolGuard` that must be kept alive for the pool to remain functional.
 /// When the guard is dropped, all threads are shut down.
+#[cfg(not(feature = "multi"))]
 #[must_use]
 pub fn initialize_pool(
     seed_for_rng: u64,
     _user_thread_num: Option<usize>,
-) -> super::threads::PoolGuard {
+) -> super::single::PoolGuard {
     #[cfg(target_arch = "wasm32")]
     {
         use super::single;
         tracing::debug!("Starting under wasm");
         single::initialize_pool(seed_for_rng);
-        return super::threads::PoolGuard::dummy();
+        return single::PoolGuard::default();
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        #[cfg(feature = "multi")]
-        {
-            tracing::debug!("Starting under feature=multi");
-            use crate::valtron::multi;
-            multi::initialize_pool(seed_for_rng, _user_thread_num)
-        }
-
-        #[cfg(not(feature = "multi"))]
-        {
-            use super::single;
-            tracing::debug!("Starting under not(feature=multi), so single threaded");
-            single::initialize_pool(seed_for_rng);
-            super::threads::PoolGuard::dummy()
-        }
+        use super::single;
+        tracing::debug!("Starting under not(feature=multi), so single threaded");
+        single::initialize_pool(seed_for_rng);
+        single::PoolGuard::default()
     }
+}
+
+#[cfg(feature = "multi")]
+#[must_use]
+pub fn initialize_pool(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+) -> crate::valtron::multi::PoolGuard {
+    use crate::valtron::multi;
+    tracing::debug!("Starting under feature=multi");
+    multi::initialize_pool(seed_for_rng, user_thread_num)
 }
 
 // ===========================================

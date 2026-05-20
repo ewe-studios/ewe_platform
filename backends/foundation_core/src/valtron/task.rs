@@ -491,7 +491,21 @@ pub enum State {
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 pub type BoxedSendSyncStateIterator = Box<dyn Iterator<Item = State> + Send + Sync + 'static>;
+
+/// Shared task queue — `Send` when multi-threaded execution is enabled,
+/// `!Send` for single-threaded / wasm32 runtimes.
+#[cfg(feature = "multi")]
 pub type SharedTaskQueue = Arc<ConcurrentQueue<BoxedSendExecutionIterator>>;
+
+#[cfg(not(feature = "multi"))]
+pub type SharedTaskQueue = Arc<ConcurrentQueue<BoxedExecutionIterator>>;
+
+/// Task type for `broadcast` — must match `SharedTaskQueue`'s element type.
+#[cfg(feature = "multi")]
+pub type GlobalTask = BoxedSendExecutionIterator;
+
+#[cfg(not(feature = "multi"))]
+pub type GlobalTask = BoxedExecutionIterator;
 
 pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 
@@ -739,7 +753,7 @@ pub trait ExecutionEngine {
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
+    fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// `boxed_engine` returns a instance of the engine as a [`BoxedExecutionEngine`].
     fn boxed_engine(&self) -> BoxedExecutionEngine;

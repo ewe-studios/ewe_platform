@@ -1,5 +1,9 @@
 #![allow(clippy::type_complexity)]
 
+mod pool_guard;
+
+pub use pool_guard::PoolGuard;
+
 use std::cell::OnceCell;
 use std::sync::Arc;
 
@@ -8,8 +12,8 @@ use crate::valtron::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor,
-    PriorityOrder, ProcessController, ProgressIndicator, TaskIterator, TaskReadyResolver,
+    ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor, PriorityOrder,
+    ProcessController, ProgressIndicator, SharedTaskQueue, TaskIterator, TaskReadyResolver,
     TaskStatusMapper,
 };
 
@@ -72,7 +76,7 @@ thread_local! {
 pub fn initialize_pool(seed_for_rng: u64) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
-            let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            let tasks: SharedTaskQueue =
                 Arc::new(ConcurrentQueue::unbounded());
             LocalThreadExecutor::from_seed(
                 seed_for_rng,

@@ -265,14 +265,6 @@ where
     }
 }
 
-// WASM: FutureTask is Send + Sync because wasm32 is single-threaded.
-// Safety: wasm32-unknown-unknown has no threads; no actual cross-thread movement occurs.
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-unsafe impl<F: Future + 'static> Send for FutureTask<F> {}
-
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-unsafe impl<F: Future + 'static> Sync for FutureTask<F> {}
-
 // WASM: FutureTask TaskIterator impl without Send bounds — for `from_future_non_send`.
 // This impl works with !Send futures (e.g. JsFuture) on the single-threaded wasm32 target.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
@@ -302,14 +294,6 @@ where
         }
     }
 }
-
-// WASM: StreamTask is Send + Sync because wasm32 is single-threaded.
-// Safety: wasm32-unknown-unknown has no threads; no actual cross-thread movement occurs.
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-unsafe impl<S: futures_core::Stream + 'static> Send for StreamTask<S> {}
-
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-unsafe impl<S: futures_core::Stream + 'static> Sync for StreamTask<S> {}
 
 // WASM: StreamTask TaskIterator impl without Send bounds — for `from_stream_non_send`.
 // This impl works with !Send streams on the single-threaded wasm32 target.

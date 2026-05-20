@@ -12,7 +12,6 @@ mod local;
 mod on_next;
 mod state_machine;
 mod task_iters;
-mod threads;
 mod unified;
 mod wrappers;
 
@@ -30,7 +29,6 @@ pub use local::*;
 pub use on_next::*;
 pub use state_machine::*;
 pub use task_iters::*;
-pub use threads::*;
 pub use unified::*;
 pub use wrappers::*;
 
@@ -38,6 +36,13 @@ pub mod single;
 
 #[cfg(feature = "multi")]
 pub mod multi;
+
+// Re-export PoolGuard at executor level so tests can use valtron::PoolGuard
+#[cfg(not(feature = "multi"))]
+pub use single::PoolGuard;
+
+#[cfg(feature = "multi")]
+pub use multi::PoolGuard;
 
 // re-exported external libraries
 pub use rand::SeedableRng;

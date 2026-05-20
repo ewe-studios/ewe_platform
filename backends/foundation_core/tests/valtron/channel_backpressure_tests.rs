@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{BoxedSendExecutionIterator, TaskStatus, WrapTask};
+use foundation_core::valtron::{SharedTaskQueue, TaskStatus, WrapTask};
 use foundation_core::valtron::{
     ExecutionAction, InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
     PriorityOrder,
@@ -174,7 +174,7 @@ fn test_bounded_queue_producer_consumer_coordination() {
 #[test]
 #[traced_test]
 fn test_executor_fast_producer_slow_consumer_no_loss() {
-    let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+    let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
@@ -237,7 +237,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 #[traced_test]
 fn test_executor_ready_iter_no_message_loss() {
     // Use a simple test with multiple values to stress the channel
-    let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+    let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));

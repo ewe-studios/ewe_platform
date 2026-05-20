@@ -28,7 +28,7 @@ use crate::{
     retries::ExponentialBackoffDecider,
     synca::{
         mpp::{self},
-        Entry, EntryList, IdleMan, LockSignal, OnSignal, SleepyMan, WaitGroup,
+        EntryList, IdleMan, LockSignal, OnSignal, SleepyMan, WaitGroup,
     },
     valtron::{AnyResult, LocalThreadExecutor, NotifyQueue, NotifyQueueStreamIterator, NotifyRecvIterator},
 };
@@ -39,6 +39,8 @@ use crate::valtron::{
     ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
     TaskStatusMapper,
 };
+
+use crate::valtron::{ThreadId, ThreadActivity};
 
 use crate::valtron::{
     executors::constants::{
@@ -71,7 +73,7 @@ type PoolCleanupFn = Option<Box<dyn FnOnce() + Send + 'static>>;
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
     registry: Arc<ThreadRegistry>,
-    bg_registry: Option<Arc<super::BackgroundJobRegistry>>,
+    bg_registry: Option<Arc<crate::valtron::BackgroundJobRegistry>>,
     shut_down: AtomicBool,
     cleanup_fn: PoolCleanupFn,
 }
@@ -92,7 +94,7 @@ impl PoolGuard {
     #[must_use]
     pub fn with_bg_registry(
         registry: Arc<ThreadRegistry>,
-        bg_registry: Arc<super::BackgroundJobRegistry>,
+        bg_registry: Arc<crate::valtron::BackgroundJobRegistry>,
     ) -> Self {
         Self {
             registry,
@@ -106,7 +108,7 @@ impl PoolGuard {
     #[must_use]
     pub fn with_cleanup(
         registry: Arc<ThreadRegistry>,
-        bg_registry: Arc<super::BackgroundJobRegistry>,
+        bg_registry: Arc<crate::valtron::BackgroundJobRegistry>,
         cleanup_fn: impl FnOnce() + Send + 'static,
     ) -> Self {
         Self {
@@ -508,130 +510,6 @@ impl ProcessController for ThreadYielder {
     }
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct ThreadId(Entry, String);
-
-impl ThreadId {
-    #[must_use]
-    pub fn new(entry: Entry, name: String) -> Self {
-        Self(entry, name)
-    }
-
-    pub fn get_mut(&mut self) -> &mut Entry {
-        &mut self.0
-    }
-
-    #[must_use]
-    pub fn get_ref(&self) -> &Entry {
-        &self.0
-    }
-
-    #[must_use]
-    pub fn get_cloned(&self) -> Entry {
-        self.0
-    }
-
-    #[must_use]
-    pub fn get_name(&self) -> &String {
-        &self.1
-    }
-}
-
-pub enum ThreadActivity {
-    /// Indicates when a Thread with an executor has started
-    Started(ThreadId),
-
-    /// Indicates when a Thread with an executor has stopped
-    Stopped(ThreadId),
-
-    /// Indicates when a Thread with an executor has
-    /// blocked the thread with a `CondVar` waiting for
-    /// signal to become awake.
-    Blocked(ThreadId),
-
-    /// Indicates when a Thread with an executor has
-    /// bcome unblocked and now is awake to process
-    /// pending tasks.
-    Unblocked(ThreadId),
-
-    /// Parked indicates when a thread has parked
-    /// it's self for some duration.
-    Parked(ThreadId),
-
-    /// Unparked indicates when a thread has awoken
-    /// from it's parked state.
-    Unparked(ThreadId),
-
-    /// Indicates when a thread executor panics
-    /// killing the thread.
-    Panicked(ThreadId, Box<dyn Any + Send>),
-
-    /// Indicates the delivery of a task to the global queue.
-    BroadcastedTask,
-}
-
-impl core::fmt::Display for ThreadActivity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ThreadActivity::Panicked(id, _) => {
-                write!(f, "ThreadActivity::Panicked({id:?})")
-            }
-            ThreadActivity::Started(id) => {
-                write!(f, "ThreadActivity::Started({id:?})")
-            }
-            ThreadActivity::Stopped(id) => {
-                write!(f, "ThreadActivity::Stopped({id:?})")
-            }
-            ThreadActivity::Blocked(id) => {
-                write!(f, "ThreadActivity::Blocked({id:?})")
-            }
-            ThreadActivity::Unblocked(id) => {
-                write!(f, "ThreadActivity::Unblocked({id:?})")
-            }
-            ThreadActivity::Parked(id) => {
-                write!(f, "ThreadActivity::Parked({id:?})")
-            }
-            ThreadActivity::Unparked(id) => {
-                write!(f, "ThreadActivity::Unparked({id:?})")
-            }
-            ThreadActivity::BroadcastedTask => {
-                write!(f, "ThreadActivity::BroadcastedTask")
-            }
-        }
-    }
-}
-
-impl core::fmt::Debug for ThreadActivity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ThreadActivity::Panicked(id, _) => {
-                write!(f, "ThreadActivity::Panicked({id:?})")
-            }
-            ThreadActivity::Started(id) => {
-                write!(f, "ThreadActivity::Started({id:?})")
-            }
-            ThreadActivity::Stopped(id) => {
-                write!(f, "ThreadActivity::Stopped({id:?})")
-            }
-            ThreadActivity::Blocked(id) => {
-                write!(f, "ThreadActivity::Blocked({id:?})")
-            }
-            ThreadActivity::Unblocked(id) => {
-                write!(f, "ThreadActivity::Unblocked({id:?})")
-            }
-            ThreadActivity::Parked(id) => {
-                write!(f, "ThreadActivity::Parked({id:?})")
-            }
-            ThreadActivity::Unparked(id) => {
-                write!(f, "ThreadActivity::Unparked({id:?})")
-            }
-            ThreadActivity::BroadcastedTask => {
-                write!(f, "ThreadActivity::BroadcastedTask")
-            }
-        }
-    }
-}
-
 #[derive(Clone)]
 pub struct SharedThreadRegistry(sync::Arc<RwLock<ThreadPoolRegistryInner>>);
 
@@ -672,7 +550,7 @@ impl SharedThreadRegistry {
         // entry and in the same lock.
         match registry.threads.get_mut(&entry) {
             Some(mutable_thread_ref) => {
-                let thread_id = ThreadId(entry, name);
+                let thread_id = ThreadId::new(entry, name);
                 mutable_thread_ref.registry_id = Some(thread_id.clone());
                 mutable_thread_ref.process =
                     Some(ThreadYielder::new(thread_id.clone(), latch, sender));
@@ -695,7 +573,7 @@ pub struct ThreadRef {
     pub seed: u64,
 
     /// the queue for tasks
-    pub tasks: SharedTaskQueue,
+    pub tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
 
     /// the relevant key used by the thread in
     /// the core thread registry.
@@ -716,7 +594,7 @@ impl ThreadRef {
     pub fn new(
         seed: u64,
         name: String,
-        queue: SharedTaskQueue,
+        queue: Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         registry_id: Option<ThreadId>,
         register: SharedThreadRegistry,
         global_kill_signal: sync::Arc<OnSignal>,
@@ -1282,7 +1160,7 @@ mod waitgroup_tests {
 /// It holds the shared task queue, signals, activity channel, and thread handles.
 pub struct ThreadRegistry {
     // Shared work distribution
-    pub(crate) shared_tasks: SharedTaskQueue,
+    pub(crate) shared_tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
     pub(crate) latch: Arc<LockSignal>,
 
     // Kill coordination
@@ -1440,7 +1318,7 @@ impl ThreadRegistry {
 
     /// Accessor for `shared_tasks` queue.
     #[must_use]
-    pub fn shared_tasks(&self) -> SharedTaskQueue {
+    pub fn shared_tasks(&self) -> Arc<ConcurrentQueue<BoxedSendExecutionIterator>> {
         self.shared_tasks.clone()
     }
 
