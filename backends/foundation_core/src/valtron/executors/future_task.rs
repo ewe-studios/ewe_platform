@@ -136,34 +136,6 @@ where
     }
 }
 
-// WASM implementation without Send bounds
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-impl<F> TaskIterator for FutureTask<F>
-where
-    F: Future + 'static,
-    F::Output: 'static,
-{
-    type Ready = F::Output;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.completed {
-            return None;
-        }
-
-        let waker = get_noop_waker();
-        let mut cx = Context::from_waker(&waker);
-
-        match self.future.as_mut().poll(&mut cx) {
-            Poll::Ready(output) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(output))
-            }
-            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
-        }
-    }
-}
 
 // ============================================================================
 // Convenience Functions
@@ -182,15 +154,40 @@ where
     FutureTask::new(future)
 }
 
-/// Wrap a future into a TaskIterator (WASM - no Send required).
+/// Wrap a future into a `TaskIterator` (wasm32 - no Send required).
 ///
-/// WHY: WASM is single-threaded, Send not needed
-/// WHAT: Returns FutureTask wrapping the given future without Send bounds
+/// WHY: `JsFuture` and other wasm-bindgen types are `!Send`. On wasm32 there is
+/// only one thread so Send is structurally safe but the types don't implement it.
+/// WHAT: Returns `FutureTask` without Send bounds for use with `drive_non_send_iterator`.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-pub fn from_future<F>(future: F) -> FutureTask<F>
+pub fn from_future_non_send<F>(future: F) -> FutureTask<F>
 where
     F: Future + 'static,
     F::Output: 'static,
+{
+    FutureTask::new(future)
+}
+
+/// Wrap a stream into a `TaskIterator` (wasm32 - no Send required).
+///
+/// WHY: wasm-bindgen stream types are `!Send`. On wasm32 there is only one thread.
+/// WHAT: Returns `StreamTask` without Send bounds for use with `drive_non_send_iterator`.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+pub fn from_stream_non_send<S>(stream: S) -> StreamTask<S>
+where
+    S: futures_core::Stream + 'static,
+    S::Item: 'static,
+{
+    StreamTask::new(stream)
+}
+
+/// Wrap a future into a TaskIterator (WASM — Send required by unified executor trait,
+/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+pub fn from_future<F>(future: F) -> FutureTask<F>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
 {
     FutureTask::new(future)
 }
@@ -268,7 +265,54 @@ where
     }
 }
 
-// WASM implementation without Send bounds
+// WASM: FutureTask is Send + Sync because wasm32 is single-threaded.
+// Safety: wasm32-unknown-unknown has no threads; no actual cross-thread movement occurs.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+unsafe impl<F: Future + 'static> Send for FutureTask<F> {}
+
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+unsafe impl<F: Future + 'static> Sync for FutureTask<F> {}
+
+// WASM: FutureTask TaskIterator impl without Send bounds — for `from_future_non_send`.
+// This impl works with !Send futures (e.g. JsFuture) on the single-threaded wasm32 target.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+impl<F> TaskIterator for FutureTask<F>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    type Ready = F::Output;
+    type Pending = FuturePollState;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.completed {
+            return None;
+        }
+
+        let waker = get_noop_waker();
+        let mut cx = Context::from_waker(&waker);
+
+        match self.future.as_mut().poll(&mut cx) {
+            Poll::Ready(output) => {
+                self.completed = true;
+                Some(TaskStatus::Ready(output))
+            }
+            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
+        }
+    }
+}
+
+// WASM: StreamTask is Send + Sync because wasm32 is single-threaded.
+// Safety: wasm32-unknown-unknown has no threads; no actual cross-thread movement occurs.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+unsafe impl<S: futures_core::Stream + 'static> Send for StreamTask<S> {}
+
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+unsafe impl<S: futures_core::Stream + 'static> Sync for StreamTask<S> {}
+
+// WASM: StreamTask TaskIterator impl without Send bounds — for `from_stream_non_send`.
+// This impl works with !Send streams on the single-threaded wasm32 target.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 impl<S> TaskIterator for StreamTask<S>
 where
@@ -311,15 +355,13 @@ where
     StreamTask::new(stream)
 }
 
-/// Wrap a stream into a TaskIterator (WASM - no Send required).
-///
-/// WHY: WASM is single-threaded, Send not needed
-/// WHAT: Returns StreamTask wrapping the given stream without Send bounds
+/// Wrap a stream into a TaskIterator (WASM — Send required by unified executor trait,
+/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 pub fn from_stream<S>(stream: S) -> StreamTask<S>
 where
-    S: futures_core::Stream + 'static,
-    S::Item: 'static,
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
 {
     StreamTask::new(stream)
 }
@@ -344,7 +386,9 @@ where
 
     use super::unified;
     let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute_as_task(task, None)?);
+    let iter: crate::valtron::DrivenRecvIterator<FutureTask<F>> =
+        unified::execute_as_task(task, None)?;
+    let values_iter = ReadyValues::new(iter);
     let values: Vec<F::Output> = values_iter
         .filter_map(super::super::task::ReadyValue::inner)
         .collect();
@@ -352,12 +396,8 @@ where
     Ok(values)
 }
 
-/// Execute a future using the unified executor (WASM - no Send required).
-///
-/// WHY: WASM is single-threaded, Send not needed at runtime
-/// WHAT: Wraps future in FutureTask and executes via unified executor
-/// NOTE: Send bounds are required by the unified executor trait even on wasm32,
-/// but no actual cross-thread movement occurs in single-threaded wasm.
+/// Execute a future using the unified executor (WASM — Send required for trait bounds,
+/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
@@ -368,7 +408,9 @@ where
 
     use super::unified;
     let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute_as_task(task, None)?);
+    let iter: crate::valtron::DrivenRecvIterator<FutureTask<F>> =
+        unified::execute_as_task(task, None)?;
+    let values_iter = ReadyValues::new(iter);
     let values: Vec<F::Output> = values_iter
         .filter_map(super::super::task::ReadyValue::inner)
         .collect();

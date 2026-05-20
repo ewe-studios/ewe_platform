@@ -1,25 +1,27 @@
 //! KV storage via wasm-bindgen — calls Cloudflare KV JS API directly.
 //!
 //! Wraps `KVNamespace` and implements `KeyValueStore` and `RateLimiterStore`
-//! using Cloudflare Workers KV. Async `*_async` methods resolve JS Promises;
-//! trait methods call them via `futures_lite::block_on`.
+//! using Cloudflare Workers KV. Async `*_async` methods are the source of truth
+//! (JS Promises); sync trait methods delegate via `schedule_future`.
 
-use js_sys::Object;
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::JsFuture;
-
+use crate::core::backends::schedule_future;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::KVNamespace;
 use foundation_core::valtron::Stream;
+use js_sys::Object;
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
 
 // ===========================================================================
 // KVWasmStorage
 // ===========================================================================
 
 /// KV storage backend using wasm-bindgen JS bindings.
+#[derive(Clone)]
 pub struct KVWasmStorage {
     kv: KVNamespace,
     prefix: String,
@@ -57,33 +59,48 @@ impl KeyValueStore for KVWasmStorage {
         &'a self,
         key: &str,
     ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
-        let result = futures_lite::future::block_on(self.get_async(key))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.get_async::<V>(&key).await
+        })
     }
 
-    fn set<V: serde::Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
-        futures_lite::future::block_on(self.set_async(key, value))?;
-        Ok(Self::stream_once(()))
+    fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.set_async(&key, value).await
+        })
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        futures_lite::future::block_on(self.delete_async(key))?;
-        Ok(Self::stream_once(()))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.delete_async(&key).await
+        })
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
-        let result = futures_lite::future::block_on(self.exists_async(key))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.exists_async(&key).await
+        })
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let result = futures_lite::future::block_on(self.list_keys_async(prefix))?;
-        Ok(Self::stream_many(result))
+        let this = self.clone();
+        let prefix = prefix.map(String::from);
+        let keys = futures_lite::future::block_on(this.list_keys_async(prefix.as_deref()))?;
+        Ok(Self::stream_many(keys))
     }
 }
 
 impl KVWasmStorage {
-    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
+    /// Get a value by key.
+    pub async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, StorageError> {
@@ -107,7 +124,8 @@ impl KVWasmStorage {
         Ok(Some(deserialized))
     }
 
-    async fn set_async<V: serde::Serialize>(
+    /// Set a key-value pair.
+    pub async fn set_async<V: serde::Serialize>(
         &self,
         key: &str,
         value: V,
@@ -125,7 +143,8 @@ impl KVWasmStorage {
         Ok(())
     }
 
-    async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
+    /// Delete a key.
+    pub async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
         JsFuture::from(promise)
@@ -135,7 +154,8 @@ impl KVWasmStorage {
         Ok(())
     }
 
-    async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    /// Check if a key exists.
+    pub async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = JsFuture::from(promise)
@@ -145,7 +165,8 @@ impl KVWasmStorage {
         Ok(!result.is_null() && !result.is_undefined())
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
+    /// List all keys with optional prefix filter.
+    pub async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
         // KV list returns { keys: [{name: "..."}], cursor: "..." }
         let opts = Object::new();
 
@@ -186,6 +207,29 @@ impl KVWasmStorage {
         }
 
         Ok(keys)
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncKeyValueStore for KVWasmStorage {
+    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        self.get_async(key).await
+    }
+
+    async fn set_async<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+        self.set_async(key, value).await
+    }
+
+    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+        self.delete_async(key).await
+    }
+
+    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+        self.exists_async(key).await
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+        self.list_keys_async(prefix).await
     }
 }
 
@@ -232,23 +276,33 @@ impl RateLimiterStore for KVWasmStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<StorageItemStream<'_, bool>> {
-        let result = futures_lite::future::block_on(self.check_rate_limit_async(key, max_count, window_seconds))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.check_rate_limit_async(&key, max_count, window_seconds).await
+        })
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
-        let result = futures_lite::future::block_on(self.record_rate_limit_async(key))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.record_rate_limit_async(&key).await
+        })
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        futures_lite::future::block_on(self.reset_rate_limit_async(key))?;
-        Ok(Self::stream_once(()))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.reset_rate_limit_async(&key).await
+        })
     }
 }
 
 impl KVWasmStorage {
-    async fn check_rate_limit_async(
+    /// Check if a rate limit key is allowed.
+    pub async fn check_rate_limit_async(
         &self,
         key: &str,
         max_count: u32,
@@ -292,7 +346,8 @@ impl KVWasmStorage {
         Ok(allowed)
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> Result<u32, StorageError> {
+    /// Record a rate-limited action.
+    pub async fn record_rate_limit_async(&self, key: &str) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -348,7 +403,8 @@ impl KVWasmStorage {
         Ok(new_count)
     }
 
-    async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
+    /// Reset a rate limit key.
+    pub async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let promise = self.kv.delete(&self.prefixed_key(&rate_key));
         JsFuture::from(promise)
@@ -359,34 +415,68 @@ impl KVWasmStorage {
     }
 }
 
+#[async_trait::async_trait(?Send)]
+impl AsyncRateLimiterStore for KVWasmStorage {
+    async fn check_rate_limit_async(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
+        self.check_rate_limit_async(key, max_count, window_seconds).await
+    }
+
+    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+        self.record_rate_limit_async(key).await
+    }
+
+    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+        self.reset_rate_limit_async(key).await
+    }
+}
+
 // ===========================================================================
 // BlobStore (KV stores strings, so blobs are base64-encoded)
 // ===========================================================================
 
 impl BlobStore for KVWasmStorage {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
-        futures_lite::future::block_on(self.put_blob_async(key, data))?;
-        Ok(Self::stream_once(()))
+        let this = self.clone();
+        let key = key.to_string();
+        let data = data.to_vec();
+        schedule_future(async move {
+            this.put_blob_async(&key, &data).await
+        })
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
-        let result = futures_lite::future::block_on(self.get_blob_async(key))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.get_blob_async(&key).await
+        })
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        futures_lite::future::block_on(self.delete_blob_async(key))?;
-        Ok(Self::stream_once(()))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.delete_blob_async(&key).await
+        })
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
-        let result = futures_lite::future::block_on(self.blob_exists_async(key))?;
-        Ok(Self::stream_once(result))
+        let this = self.clone();
+        let key = key.to_string();
+        schedule_future(async move {
+            this.blob_exists_async(&key).await
+        })
     }
 }
 
 impl KVWasmStorage {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
+    /// Put a blob into KV storage (base64-encoded).
+    pub async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
         let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
         let prefixed = self.prefixed_key(key);
@@ -398,7 +488,8 @@ impl KVWasmStorage {
         Ok(())
     }
 
-    async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+    /// Get a blob from KV storage (base64-decoded).
+    pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = JsFuture::from(promise)
@@ -432,7 +523,8 @@ impl KVWasmStorage {
         Ok(Some(decoded))
     }
 
-    async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
+    /// Delete a blob from KV storage.
+    pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
         JsFuture::from(promise)
@@ -441,12 +533,32 @@ impl KVWasmStorage {
         Ok(())
     }
 
-    async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    /// Check if a blob exists in KV storage.
+    pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = JsFuture::from(promise)
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
         Ok(!result.is_null() && !result.is_undefined())
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for KVWasmStorage {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        self.put_blob_async(key, data).await
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        self.get_blob_async(key).await
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        self.delete_blob_async(key).await
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        self.blob_exists_async(key).await
     }
 }

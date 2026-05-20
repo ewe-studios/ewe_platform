@@ -3,34 +3,39 @@
 //! Provides two patterns for wrapping async futures using Valtron's
 //! `from_future` + `execute` pattern:
 //!
-//! - **`schedule_future`** (preferred): Schedules work and returns a stream.
+//! - **`schedule_future`** (preferred): Schedules work and returns a boxed stream.
 //!   Errors are preserved via `map_circuit` at the task level, yielding
 //!   `Stream::Next(Err(e))` so callers can handle them.
 //!
 //! - **`exec_future`** (legacy): Blocks immediately at the leaf. Use only for
 //!   one-shot initialization (DB connection, migrations), not for trait methods.
 
-use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt};
-
 use crate::core::errors::StorageError;
+use crate::core::storage_provider::StorageItemStream;
+use foundation_core::valtron::Stream;
+
+// ============================================================================
+// Native path: Send-required via unified executor
+// ============================================================================
+
+#[cfg(not(target_arch = "wasm32"))]
+use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
 
 /// WHY: Enables non-blocking, composable storage operations with error preservation.
 ///
-/// WHAT: Schedules a future for execution via Valtron, returning a stream.
-/// Errors are preserved in the stream as `Stream::Next(Err(e))` rather than
-/// logging and swallowing them. Backend errors are converted to `StorageError`.
+/// WHAT: Schedules a future for execution via Valtron unified executor,
+/// returning a boxed stream. Errors are preserved in the stream as
+/// `Stream::Next(Err(e))`.
 ///
 /// HOW: `from_future` → `execute` → `map_done(convert errors)` → `map_pending(erase)` → box.
 ///
 /// # Errors
 ///
 /// Returns a `StorageError` if Valtron scheduling fails.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn schedule_future<T, E, F>(
     future: F,
-) -> Result<
-    impl foundation_core::valtron::StreamIterator<D = Result<T, StorageError>, P = ()> + Send + 'static,
-    StorageError,
->
+) -> Result<StorageItemStream<'static, T>, StorageError>
 where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,
     T: Send + 'static,
@@ -41,27 +46,22 @@ where
     let stream = execute(task, None)
         .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
 
-    // Convert backend errors to StorageError while preserving them in the stream
-    Ok(stream
-        .map_done(|result: Result<T, E>| result.map_err(Into::into))
-        .map_pending(|_| ()))
+    Ok(Box::new(
+        stream
+            .map_done(|result: Result<T, E>| result.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
 }
 
 /// WHY: One-shot blocking bridge for initialization and migrations.
 ///
 /// WHAT: Wraps a future using Valtron's `from_future` + `execute` pattern,
-/// blocking until the result is available. **Use sparingly** — prefer
-/// `schedule_future` for trait methods to preserve composability.
-///
-/// HOW: Schedules the future, then eagerly drains the stream to extract
-/// the single result.
+/// blocking until the result is available.
 ///
 /// # Errors
 ///
-/// Returns a `StorageError` if:
-/// - Valtron execution fails
-/// - The future completes but returns an error
-/// - No result is produced by the future execution
+/// Returns a `StorageError` if scheduling fails or the future returns an error.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn exec_future<T, E, F>(future: F) -> Result<T, StorageError>
 where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,
@@ -76,6 +76,92 @@ where
     let mut result: Option<Result<T, StorageError>> = None;
     for item in stream {
         if let Stream::Next(v) = item {
+            result = Some(v.map_err(Into::into));
+            break;
+        }
+    }
+
+    match result {
+        Some(Ok(v)) => Ok(v),
+        Some(Err(e)) => Err(e),
+        None => Err(StorageError::Generic(
+            "No result from future execution".into(),
+        )),
+    }
+}
+
+// ============================================================================
+// WASM32 path: non-Send via drive_non_send_iterator
+// ============================================================================
+
+#[cfg(target_arch = "wasm32")]
+use foundation_core::valtron::{
+    drive_non_send_iterator, from_future_non_send, TaskStatus,
+};
+
+/// WHY: wasm32 futures (JsFuture etc.) are !Send. On wasm32 single-threaded target
+/// Send is structurally safe but types don't implement it.
+///
+/// WHAT: Schedules a future via `from_future_non_send` + `drive_non_send_iterator`,
+/// returning a boxed stream. Errors are preserved in the stream.
+///
+/// HOW: `from_future_non_send` → `drive_non_send_iterator` → filter_map to Stream → box.
+///
+/// # Errors
+///
+/// Returns a `StorageError` if Valtron scheduling fails.
+#[cfg(target_arch = "wasm32")]
+pub fn schedule_future<T, E, F>(
+    future: F,
+) -> Result<StorageItemStream<'static, T>, StorageError>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Into<StorageError> + 'static,
+{
+    use foundation_core::valtron::{NoAction, TaskStatus};
+
+    let task = from_future_non_send(future);
+    let driven = drive_non_send_iterator(task);
+
+    // Map TaskStatus<Result<T, E>, FuturePollState, NoAction> → Stream<Result<T, StorageError>, ()>
+    Ok(Box::new(driven.filter_map(
+        |status: TaskStatus<Result<T, E>, foundation_core::valtron::FuturePollState, NoAction>| {
+            match status {
+                TaskStatus::Ready(result) => {
+                    Some(Stream::Next(result.map_err(Into::into)))
+                }
+                TaskStatus::Pending(_) => Some(Stream::Pending(())),
+                TaskStatus::Init => Some(Stream::Init),
+                TaskStatus::Delayed(d) => Some(Stream::Delayed(d)),
+                TaskStatus::Ignore | TaskStatus::Spawn(_) => None,
+            }
+        },
+    )))
+}
+
+/// WHY: One-shot blocking bridge for initialization and migrations on wasm32.
+///
+/// WHAT: Drives a non-Send future via `drive_non_send_iterator`, blocking
+/// until the result is available.
+///
+/// # Errors
+///
+/// Returns a `StorageError` if the future returns an error.
+#[cfg(target_arch = "wasm32")]
+pub fn exec_future<T, E, F>(future: F) -> Result<T, StorageError>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+    F::Output: 'static,
+    T: 'static,
+    E: Into<StorageError> + 'static,
+{
+    let task = from_future_non_send(future);
+    let mut driven = drive_non_send_iterator(task);
+
+    let mut result: Option<Result<T, StorageError>> = None;
+    for status in driven.by_ref() {
+        if let TaskStatus::Ready(v) = status {
             result = Some(v.map_err(Into::into));
             break;
         }

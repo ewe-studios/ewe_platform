@@ -295,7 +295,7 @@ pub fn run_once() {
 // Future based iterators methods
 // ===========================================
 
-/// `from_future` creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
+/// `drive_future` creates a new [`DrivenSendTaskIterator<FutureTask<F>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
@@ -305,12 +305,12 @@ pub fn run_once() {
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-pub fn drive_future<F>(future: F) -> DrivenNonSendTaskIterator<FutureTask<F>>
+pub fn drive_future<F>(future: F) -> DrivenSendTaskIterator<FutureTask<F>>
 where
-    F: Future + 'static,
-    F::Output: 'static,
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
 {
-    drive_non_send_iterator(crate::valtron::from_future(future))
+    drive_iterator(crate::valtron::from_future(future))
 }
 
 /// `from_future` creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
@@ -349,7 +349,7 @@ where
     drive_iterator(crate::valtron::from_stream(stream))
 }
 
-/// `from_future` creates a new [`DrivenNonSendTaskIterator<FutureTask<S>>`]
+/// `drive_future_stream` creates a new [`DrivenSendTaskIterator<StreamTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
@@ -359,12 +359,12 @@ where
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-pub fn drive_future_stream<S>(stream: S) -> DrivenNonSendTaskIterator<StreamTask<S>>
+pub fn drive_future_stream<S>(stream: S) -> DrivenSendTaskIterator<StreamTask<S>>
 where
-    S: futures_core::Stream + 'static,
-    S::Item: 'static,
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
 {
-    drive_non_send_iterator(crate::valtron::from_stream(stream))
+    drive_iterator(crate::valtron::from_stream(stream))
 }
 
 // ===========================================

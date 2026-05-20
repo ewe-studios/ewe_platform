@@ -258,7 +258,7 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.set(key, value),

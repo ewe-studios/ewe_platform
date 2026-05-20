@@ -194,7 +194,7 @@ pub trait KeyValueStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if serialization or scheduling fails.
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
 
     /// Delete a key. Yields one `Next(())`.
     ///
@@ -299,6 +299,17 @@ pub trait AsyncQueryStore {
     async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
 }
 
+/// Async key-value store operations — for wasm backends where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncKeyValueStore {
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn delete_async(&self, key: &str) -> StorageResult<()>;
+    async fn exists_async(&self, key: &str) -> StorageResult<bool>;
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>>;
+}
+
 /// Rate limiting operations.
 pub trait RateLimiterStore: Send + Sync {
     /// Check if a rate limit key is allowed. Yields one `Next(bool)`.
@@ -326,4 +337,30 @@ pub trait RateLimiterStore: Send + Sync {
     ///
     /// Returns an error if the backend encounters an error.
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+}
+
+/// Async blob store operations — for wasm backends where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncBlobStore {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool>;
+}
+
+/// Async rate limiter store operations — for wasm backends where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncRateLimiterStore {
+    async fn check_rate_limit_async(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool>;
+
+    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32>;
+
+    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()>;
 }
