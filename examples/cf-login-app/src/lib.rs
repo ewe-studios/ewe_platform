@@ -345,52 +345,33 @@ fn find_user_by_email(
 }
 
 // ===========================================================================
-// HTML Templates
+// HTML Templates — embedded via include_str! and rendered with minijinja.
 // ===========================================================================
 
-const REGISTER_PAGE: &str = r#"<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Register</title>
-<style>body{font-family:system-ui;max-width:400px;margin:40px auto}input{display:block;width:100%;margin:8px 0;padding:8px}button{margin:8px 0;padding:8px 16px;cursor:pointer}</style>
-</head>
-<body>
-<h1>Create Account</h1>
-<p style="color:red"><!--ERROR--></p>
-<form method="POST" action="/register">
-<label>Email</label><input type="email" name="email" required>
-<label>Password</label><input type="password" name="password" required minlength="6">
-<button type="submit">Register</button>
-</form>
-<p>Already have an account? <a href="/login">Sign in</a></p>
-</body></html>"#;
+const REGISTER_HTML: &str = include_str!("../templates/register.html");
+const LOGIN_HTML: &str = include_str!("../templates/login.html");
+const DASHBOARD_HTML: &str = include_str!("../templates/dashboard.html");
 
-const LOGIN_PAGE: &str = r#"<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Login</title>
-<style>body{font-family:system-ui;max-width:400px;margin:40px auto}input{display:block;width:100%;margin:8px 0;padding:8px}button{margin:8px 0;padding:8px 16px;cursor:pointer}</style>
-</head>
-<body>
-<h1>Login</h1>
-<p style="color:red"><!--ERROR--></p>
-<form method="POST" action="/login">
-<label>Email</label><input type="email" name="email" required>
-<label>Password</label><input type="password" name="password" required>
-<button type="submit">Sign in</button>
-</form>
-<p>Don't have an account? <a href="/register">Register</a></p>
-</body></html>"#;
+fn render_register(error: Option<&str>) -> String {
+    let env = minijinja::Environment::new();
+    let tmpl = env.template_from_str(REGISTER_HTML).unwrap();
+    let ctx = minijinja::context! { error => error.unwrap_or("") };
+    tmpl.render(ctx).unwrap()
+}
 
-const DASHBOARD_PAGE: &str = r#"<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Dashboard</title>
-<style>body{font-family:system-ui;max-width:600px;margin:40px auto}</style>
-</head>
-<body>
-<h1>Dashboard</h1>
-<p>Welcome, <strong>{user}</strong>!</p>
-<p>You are logged in to the Cloudflare Workers demo.</p>
-<p><a href="/logout">Logout</a></p>
-</body></html>"#;
+fn render_login(error: Option<&str>) -> String {
+    let env = minijinja::Environment::new();
+    let tmpl = env.template_from_str(LOGIN_HTML).unwrap();
+    let ctx = minijinja::context! { error => error.unwrap_or("") };
+    tmpl.render(ctx).unwrap()
+}
+
+fn render_dashboard(user: &str) -> String {
+    let env = minijinja::Environment::new();
+    let tmpl = env.template_from_str(DASHBOARD_HTML).unwrap();
+    let ctx = minijinja::context! { user };
+    tmpl.render(ctx).unwrap()
+}
 
 // ===========================================================================
 // Handlers
@@ -425,7 +406,7 @@ impl CfServe for RegisterHandler {
 fn handle_get_register(conn: &mut CfConn) -> CfConnectionResult {
     conn.set_status(200);
     conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(REGISTER_PAGE.as_bytes().to_vec());
+    conn.set_body(render_register(None).as_bytes().to_vec());
     CfConnectionResult::Ok
 }
 
@@ -471,7 +452,7 @@ fn handle_post_register(
 fn send_register_error(conn: &mut CfConn, msg: &str) -> CfConnectionResult {
     conn.set_status(400);
     conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(REGISTER_PAGE.replace("<!--ERROR-->", msg).as_bytes().to_vec());
+    conn.set_body(render_register(Some(msg)).as_bytes().to_vec());
     CfConnectionResult::Ok
 }
 
@@ -506,7 +487,7 @@ impl CfServe for LoginHandler {
 fn handle_get_login(conn: &mut CfConn) -> CfConnectionResult {
     conn.set_status(200);
     conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(LOGIN_PAGE.as_bytes().to_vec());
+    conn.set_body(render_login(None).as_bytes().to_vec());
     CfConnectionResult::Ok
 }
 
@@ -559,7 +540,7 @@ fn handle_post_login(
 fn send_login_error(conn: &mut CfConn, msg: &str) -> CfConnectionResult {
     conn.set_status(401);
     conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(LOGIN_PAGE.replace("<!--ERROR-->", msg).as_bytes().to_vec());
+    conn.set_body(render_login(Some(msg)).as_bytes().to_vec());
     CfConnectionResult::Ok
 }
 
@@ -601,7 +582,7 @@ impl CfServe for DashboardHandler {
             }
         };
 
-        let html = DASHBOARD_PAGE.replace("{user}", &session.user_id);
+        let html = render_dashboard(&session.user_id);
         conn.set_status(200);
         conn.set_header("Content-Type", "text/html; charset=utf-8");
         conn.set_body(html.as_bytes().to_vec());

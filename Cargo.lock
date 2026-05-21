@@ -1132,6 +1132,7 @@ dependencies = [
  "foundation_http",
  "js-sys",
  "log",
+ "minijinja",
  "rand_core 0.6.4",
  "serde",
  "serde_json",
