@@ -56,11 +56,11 @@ pub enum StorageError {
     Hex(hex::FromHexError),
 
     /// Turso error.
-    #[cfg(feature = "turso")]
+    #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
     Turso(turso::Error),
 
     /// libsql error.
-    #[cfg(feature = "libsql")]
+    #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
     Libsql(libsql::Error),
 }
 
@@ -79,9 +79,9 @@ impl core::fmt::Display for StorageError {
             Self::Json(e) => write!(f, "JSON error: {e}"),
             Self::Base64(e) => write!(f, "Base64 error: {e}"),
             Self::Hex(e) => write!(f, "Hex error: {e}"),
-            #[cfg(feature = "turso")]
+            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             Self::Turso(e) => write!(f, "Turso error: {e}"),
-            #[cfg(feature = "libsql")]
+            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             Self::Libsql(e) => write!(f, "libsql error: {e}"),
         }
     }

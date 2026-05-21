@@ -185,8 +185,9 @@ impl MtmdContext {
 
     /// Check whether non-causal attention mask is needed before `llama_decode`.
     #[must_use]
-    pub fn decode_use_non_causal(&self) -> bool {
-        unsafe { infrastructure_llama_bindings::mtmd_decode_use_non_causal(self.context.as_ptr()) }
+    pub fn decode_use_non_causal(&self, chunk: *const infrastructure_llama_bindings::mtmd_input_chunk) -> bool {
+        // SAFETY: caller must ensure chunk is valid
+        unsafe { infrastructure_llama_bindings::mtmd_decode_use_non_causal(self.context.as_ptr(), chunk) }
     }
 
     /// Check whether the current model uses M-RoPE for `llama_decode`.

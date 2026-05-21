@@ -1,6 +1,7 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![allow(clippy::missing_errors_doc)]
 
+use std::sync::Arc;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
@@ -18,24 +19,18 @@ use super::{Endpoint, EndpointConfig};
 ))]
 use super::ssl::{ClientSSLStream, ServerSSLStream};
 
-#[cfg(all(
-    feature = "ssl-openssl",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-native-tls")
-))]
+// TLS module imports with priority resolution: rustls > openssl > native-tls.
+// When --all-features enables all backends, the primary (rustls) wins.
+#[cfg(feature = "ssl-rustls")]
+use super::ssl::rustls;
+
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
 use super::ssl::openssl;
 
 #[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
-use super::ssl::rustls;
-
-#[cfg(all(
-    feature = "ssl-native-tls",
     not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
 ))]
 use super::ssl::native_ttls;
 
@@ -162,32 +157,31 @@ impl RawStream {
     }
 }
 
+// Type alias for TLS config with priority resolution: rustls > openssl > native-tls.
+#[cfg(feature = "ssl-rustls")]
+type TlsClientConfig = rustls::ClientConfig;
+
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
+type TlsClientConfig = openssl::SslConnector;
+
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
+type TlsClientConfig = native_ttls::TlsConnector;
+
 // [`ClientEndpoint`] is a client connector that wraps and hides the complexity of
 // what type of endpoint is need to connect to a server from a client side.
 #[derive(Clone, Debug)]
 pub enum ClientEndpoint {
     Plain(Endpoint<()>),
-
-    #[cfg(all(
+    #[cfg(any(
         feature = "ssl-rustls",
-        not(feature = "ssl-openssl"),
-        not(feature = "ssl-native-tls")
-    ))]
-    Tls(Endpoint<Arc<rustls::ClientConfig>>),
-
-    #[cfg(all(
         feature = "ssl-openssl",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-native-tls")
+        feature = "ssl-native-tls"
     ))]
-    Tls(Endpoint<Arc<openssl::SslConnector>>),
-
-    #[cfg(all(
-        feature = "ssl-native-tls",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-openssl")
-    ))]
-    Tls(Endpoint<Arc<native_ttls::TlsConnector>>),
+    Tls(Endpoint<Arc<TlsClientConfig>>),
 }
 
 // --- Constructors
@@ -196,22 +190,14 @@ impl RawStream {
     pub fn from_endpoint(endpoint: &ClientEndpoint) -> super::DataStreamResult<Self> {
         match endpoint {
             ClientEndpoint::Plain(endpoint) => Self::client_from_endpoint(endpoint),
-            #[cfg(all(
-                feature = "ssl-rustls",
-                not(feature = "ssl-openssl"),
-                not(feature = "ssl-native-tls")
-            ))]
+            #[cfg(feature = "ssl-rustls")]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =
                     rustls::RustlsConnector::client_tls_from_endpoint(endpoint)?;
                 let reader = BufferedReader::new(BufferedWriter::new(connection));
                 Ok(RawStream::AsClientTls(reader, addr))
             }
-            #[cfg(all(
-                feature = "ssl-openssl",
-                not(feature = "ssl-rustls"),
-                not(feature = "ssl-native-tls")
-            ))]
+            #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =
                     openssl::OpenSslConnector::client_tls_from_endpoint(endpoint)?;
@@ -219,9 +205,9 @@ impl RawStream {
                 Ok(RawStream::AsClientTls(reader, addr))
             }
             #[cfg(all(
-                feature = "ssl-native-tls",
                 not(feature = "ssl-rustls"),
-                not(feature = "ssl-openssl")
+                not(feature = "ssl-openssl"),
+                feature = "ssl-native-tls"
             ))]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =

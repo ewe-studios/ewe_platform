@@ -17,16 +17,12 @@ use crate::shared::router::Router;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::shared::serve::ServeFactory;
 use crate::shared::serve::ServeWriterFactory;
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
-use crate::wasm::serve_cf::{CfServe, CfServeFactory};
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
-use crate::wasm::serve_web::{WebServe, WebServeFactory};
 
 /// Top-level HTTP application builder, generic over handler type `S`.
 pub struct HttpApp<S> {
-    ctx: Arc<ContextBag>,
-    router: Router<S>,
-    middleware: Vec<Box<dyn RequestMiddleware>>,
+    pub ctx: Arc<ContextBag>,
+    pub router: Router<S>,
+    pub middleware: Vec<Box<dyn RequestMiddleware>>,
 }
 
 impl<S> HttpApp<S> {
@@ -137,66 +133,6 @@ impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
     pub fn route_any_writer<H: ServeWriterFactory>(&mut self, path: &str) -> &mut Self {
         let handler: Arc<dyn crate::shared::serve::ServeWriter> = Arc::new(H::create(&self.ctx));
         self.router.add_route_any_writer(path, &handler);
-        self
-    }
-}
-
-// ---------------------------------------------------------------------------
-// CfServe handlers (wasm only)
-
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
-impl HttpApp<Arc<dyn CfServe>> {
-    /// Create a new empty `HttpApp` for CfServe handlers.
-    #[must_use]
-    pub fn new_cf() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::new()),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
-    }
-
-    /// Register a CF handler for a specific HTTP method and path.
-    pub fn route_cf<H: CfServeFactory>(&mut self, method: SimpleMethod, path: &str) -> &mut Self {
-        let handler = H::create(&self.ctx);
-        self.router.add_route_cf(method, path, Arc::new(handler));
-        self
-    }
-
-    /// Register a CF handler for all HTTP methods on a path.
-    pub fn route_any_cf<H: CfServeFactory>(&mut self, path: &str) -> &mut Self {
-        let handler: Arc<dyn CfServe> = Arc::new(H::create(&self.ctx));
-        self.router.add_route_any_cf(path, &handler);
-        self
-    }
-}
-
-// ---------------------------------------------------------------------------
-// WebServe handlers (wasm only)
-
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
-impl HttpApp<Arc<dyn WebServe>> {
-    /// Create a new empty `HttpApp` for WebServe handlers.
-    #[must_use]
-    pub fn new_web() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::new()),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
-    }
-
-    /// Register a web handler for a specific HTTP method and path.
-    pub fn route_web<H: WebServeFactory>(&mut self, method: SimpleMethod, path: &str) -> &mut Self {
-        let handler = H::create(&self.ctx);
-        self.router.add_route_web(method, path, Arc::new(handler));
-        self
-    }
-
-    /// Register a web handler for all HTTP methods on a path.
-    pub fn route_any_web<H: WebServeFactory>(&mut self, path: &str) -> &mut Self {
-        let handler: Arc<dyn WebServe> = Arc::new(H::create(&self.ctx));
-        self.router.add_route_any_web(path, &handler);
         self
     }
 }

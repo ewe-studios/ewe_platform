@@ -5,8 +5,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::wire::simple_http::SimpleIncomingRequest;
+use foundation_core::wire::simple_http::{SimpleIncomingRequest, SimpleMethod};
 
+use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
 use crate::wasm::web_conn::{WebConn, WebConnectionResult};
 
@@ -26,4 +27,34 @@ pub trait WebServe: Send + Sync + 'static {
 pub trait WebServeFactory: WebServe + Sized {
     /// Create a new instance of this handler.
     fn create(bag: &ContextBag) -> Self;
+}
+
+// ---------------------------------------------------------------------------
+// HttpApp<Arc<dyn WebServe>> convenience methods
+
+impl HttpApp<Arc<dyn WebServe>> {
+    /// Create a new empty `HttpApp` for WebServe handlers.
+    #[must_use]
+    pub fn new_web() -> Self {
+        use crate::shared::router::Router;
+        Self {
+            ctx: Arc::new(ContextBag::new()),
+            router: Router::new(),
+            middleware: Vec::new(),
+        }
+    }
+
+    /// Register a web handler for a specific HTTP method and path.
+    pub fn route_web<H: WebServeFactory>(&mut self, method: SimpleMethod, path: &str) -> &mut Self {
+        let handler = H::create(&self.ctx);
+        self.router.add_route_web(method, path, Arc::new(handler));
+        self
+    }
+
+    /// Register a web handler for all HTTP methods on a path.
+    pub fn route_any_web<H: WebServeFactory>(&mut self, path: &str) -> &mut Self {
+        let handler: Arc<dyn WebServe> = Arc::new(H::create(&self.ctx));
+        self.router.add_route_any_web(path, &handler);
+        self
+    }
 }

@@ -32,10 +32,10 @@ impl WasmResponse {
 }
 
 /// Build a `web_sys::Response` from a status code, body, and optional headers.
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm-bindgen-http")]
 pub use wasm_helpers::{build_response, from_bytes, from_wasm};
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm-bindgen-http")]
 mod wasm_helpers {
     use wasm_bindgen::prelude::*;
     use web_sys::{Response, ResponseInit};

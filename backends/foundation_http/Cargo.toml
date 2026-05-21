@@ -22,6 +22,10 @@ sha1 = "0.10"
 base64 = "0.22"
 tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
+
+# On wasm32, uuid needs a randomness source
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { version = "1.6", features = ["v4", "js"] }
 getrandom = { version = "0.2", optional = true }
 
 # Wasm-bindgen bridge dependencies (optional)

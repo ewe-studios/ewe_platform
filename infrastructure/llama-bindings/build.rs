@@ -200,6 +200,20 @@ fn is_hidden(e: &DirEntry) -> bool {
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
+    // Cranelift codegen backend doesn't work well with the CMake build of llama.cpp
+    // (can't catch foreign exceptions). Skip the build and guide the user.
+    if let Ok(rustflags) = env::var("CARGO_ENCODED_RUSTFLAGS") {
+        if rustflags.contains("codegen-backend=cranelift") {
+            println!(
+                "cargo:warning=Skipping llama.cpp build: Cranelift codegen backend is active."
+            );
+            println!(
+                "cargo:warning=Use --profile uat or set RUSTFLAGS to use the LLVM backend for this crate."
+            );
+            return;
+        }
+    }
+
     let cmake_prefix_path = env::var("CMAKE_PREFIX_PATH").unwrap_or("".into());
     let _tools_directory = std::fs::canonicalize(Path::new(
         &env::var("TOOLS_DIR").expect("get TOOLS_DIR environment"),
@@ -543,6 +557,18 @@ fn main() {
     config.define("LLAMA_BUILD_TOOLS", "OFF");
     config.define("LLAMA_CURL", "OFF");
 
+    // Ignore external/system llama.cpp installations that may have stale CMake configs.
+    // We always build from the bundled tools/llama.cpp directory.
+    // Note: even if `system-ggml` cargo feature is enabled, we force OFF here to
+    // avoid finding broken external configs. The build always uses bundled llama.cpp.
+    if let Ok(home) = env::var("HOME") {
+        let external_llama = format!("{}/apps/llama.cpp", home);
+        if std::path::Path::new(&external_llama).exists() {
+            config.define("CMAKE_IGNORE_PREFIX_PATH", &external_llama);
+            config.define("LLAMA_USE_SYSTEM_GGML", "OFF");
+        }
+    }
+
     config.define("LLAMA_BUILD_COMMON", "ON");
 
     println!(
@@ -821,9 +847,9 @@ fn main() {
         config.define("GGML_OPENMP", "OFF");
     }
 
-    if cfg!(feature = "system-ggml") {
-        config.define("LLAMA_USE_SYSTEM_GGML", "ON");
-    }
+    // system-ggml is intentionally NOT supported here. When an external llama.cpp
+    // is installed (e.g. ~/apps/llama.cpp), its CMake configs may be stale or broken.
+    // We always build from the bundled tools/llama.cpp directory.
 
     // General
     config
@@ -997,7 +1023,13 @@ fn main() {
             let dst = target_dir.join(filename);
             debug_log!("HARD LINK {} TO {}", asset.display(), dst.display());
             if !dst.exists() {
-                std::fs::hard_link(asset.clone(), dst).unwrap();
+                // hard_link can fail across filesystems or if source was rebuilt
+                // with different paths. Fall back to copy if hard_link fails.
+                std::fs::hard_link(&asset, &dst)
+                    .or_else(|_| std::fs::copy(&asset, &dst).map(|_| ()))
+                    .unwrap_or_else(|e| {
+                        debug_log!("Failed to link/copy {}: {}", dst.display(), e);
+                    });
             }
 
             // Copy DLLs to examples as well
@@ -1005,7 +1037,11 @@ fn main() {
                 let dst = target_dir.join("examples").join(filename);
                 debug_log!("HARD LINK {} TO {}", asset.display(), dst.display());
                 if !dst.exists() {
-                    std::fs::hard_link(asset.clone(), dst).unwrap();
+                    std::fs::hard_link(&asset, &dst)
+                        .or_else(|_| std::fs::copy(&asset, &dst).map(|_| ()))
+                        .unwrap_or_else(|e| {
+                            debug_log!("Failed to link/copy {}: {}", dst.display(), e);
+                        });
                 }
             }
 
@@ -1013,7 +1049,13 @@ fn main() {
             let dst = target_dir.join("deps").join(filename);
             debug_log!("HARD LINK {} TO {}", asset.display(), dst.display());
             if !dst.exists() {
-                std::fs::hard_link(asset.clone(), dst).unwrap();
+                // hard_link can fail across filesystems or if source was rebuilt
+                // with different paths. Fall back to copy if hard_link fails.
+                std::fs::hard_link(&asset, &dst)
+                    .or_else(|_| std::fs::copy(&asset, &dst).map(|_| ()))
+                    .unwrap_or_else(|e| {
+                        debug_log!("Failed to link/copy {}: {}", dst.display(), e);
+                    });
             }
         }
     }
