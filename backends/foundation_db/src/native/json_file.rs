@@ -14,6 +14,7 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
@@ -285,5 +286,90 @@ impl BlobStore for JsonFileStorage {
         Ok(Box::new(std::iter::once(Stream::Next(Ok(
             data.contains_key(key)
         )))))
+    }
+}
+
+// ===========================================================================
+// Async trait implementations — disk-backed, but async since I/O is involved.
+// ===========================================================================
+
+#[async_trait::async_trait(?Send)]
+impl AsyncKeyValueStore for JsonFileStorage {
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let result = match data.get(key) {
+            Some(bytes) => {
+                let value: V = serde_json::from_slice(bytes)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Some(value)
+            }
+            None => None,
+        };
+        Ok(result)
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+        let bytes =
+            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.insert(key.to_string(), Zeroizing::new(bytes));
+        drop(data);
+        self.flush_to_disk()
+    }
+
+    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(key);
+        drop(data);
+        self.flush_to_disk()
+    }
+
+    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.contains_key(key))
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.keys()
+            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
+            .cloned()
+            .collect())
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for JsonFileStorage {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let mut storage = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
+        drop(storage);
+        self.flush_to_disk()
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.get(key).cloned().map(|z| z.to_vec()))
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(key);
+        drop(data);
+        self.flush_to_disk()
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.contains_key(key))
     }
 }

@@ -1,8 +1,10 @@
 //! OAuth 2.0 token exchange using browser/worker fetch API.
 //!
 //! Public methods are synchronous (matching `NativeOAuth` API) and resolve JS
-//! Promises internally via `futures_lite::block_on`. The underlying async
+//! Promises internally via `exec_future`. The underlying async
 //! implementations are exposed as `*_async` variants for callers that prefer them.
+
+use foundation_db::exec_future;
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -12,6 +14,7 @@ use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse}
 use crate::shared::oauth_token::OAuthToken;
 
 /// Wasm OAuth client wrapping shared OAuth configuration with async token exchange.
+#[derive(Clone)]
 pub struct WasmOAuth {
     inner: OAuthManager,
 }
@@ -45,7 +48,14 @@ impl WasmOAuth {
         code: &str,
         code_verifier: Option<&str>,
     ) -> Result<OAuthToken, OAuthError> {
-        futures_lite::future::block_on(self.exchange_code_async(code, code_verifier))
+        let this = self.clone();
+        let code = code.to_string();
+        let code_verifier = code_verifier.map(String::from);
+        exec_future(async move {
+            this.exchange_code_async(&code, code_verifier.as_deref()).await
+                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
+        })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     /// Client credentials flow for service-to-service authentication.
@@ -57,7 +67,13 @@ impl WasmOAuth {
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
-        futures_lite::future::block_on(self.client_credentials_async(scopes))
+        let this = self.clone();
+        let scopes = scopes.clone();
+        exec_future(async move {
+            this.client_credentials_async(scopes).await
+                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
+        })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     /// Refresh an access token using a refresh token.
@@ -66,7 +82,13 @@ impl WasmOAuth {
     ///
     /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
     pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
-        futures_lite::future::block_on(self.refresh_token_async(refresh_token))
+        let this = self.clone();
+        let refresh_token = refresh_token.to_string();
+        exec_future(async move {
+            this.refresh_token_async(&refresh_token).await
+                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
+        })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     // ========================================================================

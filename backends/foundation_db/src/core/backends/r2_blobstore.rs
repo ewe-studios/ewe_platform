@@ -8,12 +8,12 @@
 //! HOW: Each blob is stored as a raw binary object in an R2 bucket, keyed by
 //! a configurable prefix + key pattern for namespacing.
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{collect_one, Stream};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{BlobStore, StorageItemStream};
+use crate::core::storage_provider::{AsyncBlobStore, BlobStore, StorageItemStream};
 
 /// Default Cloudflare API base. Tests override this via [`R2BlobStore::with_base_url`].
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
@@ -225,5 +225,32 @@ impl BlobStore for R2BlobStore {
 
         let exists = response.get_status() == Status::OK;
         Ok(Self::wrap_value(exists))
+    }
+}
+
+// ===========================================================================
+// Async trait implementations — bridge sync streams via collect helpers.
+// ===========================================================================
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for R2BlobStore {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let stream = <Self as BlobStore>::put_blob(self, key, data)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let stream = <Self as BlobStore>::get_blob(self, key)?;
+        collect_one(stream).transpose().map(Option::flatten)
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        let stream = <Self as BlobStore>::delete_blob(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        let stream = <Self as BlobStore>::blob_exists(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
     }
 }

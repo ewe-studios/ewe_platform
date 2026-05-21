@@ -6,16 +6,18 @@
 #![cfg(feature = "multi")]
 
 use serial_test::serial;
+use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tracing_test::traced_test;
 
+use foundation_core::valtron::multi::get_num_threads;
 use foundation_core::valtron::{
     multi::{initialize_pool, spawn},
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
-use tracing_test::traced_test;
 
 /// Task that returns Delayed with a specific duration
 struct DelayedTask {
@@ -164,4 +166,22 @@ fn new_work_interrupts_sleep() {
         "Test took too long: {:?}",
         elapsed
     );
+}
+
+#[test]
+#[traced_test]
+fn test_get_num_threads_when_env_is_not_set() {
+    env::remove_var("VALTRON_NUM_THREADS");
+    let thread_num = get_num_threads();
+    dbg!(&thread_num);
+    assert_ne!(thread_num, 0);
+}
+
+#[test]
+#[traced_test]
+fn test_get_num_threads_when_env_is_set() {
+    env::remove_var("VALTRON_NUM_THREADS");
+    env::set_var("VALTRON_NUM_THREADS", "2");
+    assert_eq!(get_num_threads(), 2);
+    env::remove_var("VALTRON_NUM_THREADS");
 }

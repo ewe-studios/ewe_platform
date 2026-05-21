@@ -14,10 +14,6 @@ keywords = ["database", "storage", "turso", "foundation"]
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { workspace = true, features = ["std"] }
 
-# Storage backends (feature-gated)
-turso = { version = "0.5.3", optional = true, default-features = false }
-libsql = { version = "0.6", optional = true }
-
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -52,6 +48,12 @@ wasm-bindgen-futures = { version = "0.4", optional = true }
 
 # workers-rs interop
 worker = { version = "0.8.3", optional = true, default-features = false, features = ["d1"] }
+
+# Native-only storage backends — excluded on wasm32 to avoid
+# transitive deps (e.g. tracing-appender → symlink) that don't compile.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+turso = { version = "0.5.3", optional = true, default-features = false }
+libsql = { version = "0.6", optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }

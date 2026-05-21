@@ -30,7 +30,9 @@ use crate::{
         mpp::{self},
         EntryList, IdleMan, LockSignal, OnSignal, SleepyMan, WaitGroup,
     },
-    valtron::{AnyResult, LocalThreadExecutor, NotifyQueue, NotifyQueueStreamIterator, NotifyRecvIterator},
+    valtron::{
+        AnyResult, LocalThreadExecutor, NotifyQueue, NotifyQueueStreamIterator, NotifyRecvIterator,
+    },
 };
 
 use crate::valtron::{
@@ -40,7 +42,7 @@ use crate::valtron::{
     TaskStatusMapper,
 };
 
-use crate::valtron::{ThreadId, ThreadActivity};
+use crate::valtron::{ThreadActivity, ThreadId};
 
 use crate::valtron::{
     executors::constants::{
@@ -295,33 +297,6 @@ pub fn get_num_threads() -> usize {
     tracing::debug!("Reporting Thread available for use: {}", thread_num);
 
     thread_num
-}
-
-#[cfg(test)]
-mod test_get_num_threads {
-    use std::env;
-
-    use tracing_test::traced_test;
-
-    use crate::valtron::get_num_threads;
-
-    #[test]
-    #[traced_test]
-    fn test_get_num_threads_when_env_is_not_set() {
-        env::remove_var("VALTRON_NUM_THREADS");
-        let thread_num = get_num_threads();
-        dbg!(&thread_num);
-        assert_ne!(thread_num, 0);
-    }
-
-    #[test]
-    #[traced_test]
-    fn test_get_num_threads_when_env_is_set() {
-        env::remove_var("VALTRON_NUM_THREADS");
-        env::set_var("VALTRON_NUM_THREADS", "2");
-        assert_eq!(get_num_threads(), 2);
-        env::remove_var("VALTRON_NUM_THREADS");
-    }
 }
 
 /// `ThreadYielders` manages the collection of thread yielders for interruption.

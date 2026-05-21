@@ -9,7 +9,7 @@ use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::StorageResult;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue,
+    collect_one, collect_result, run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -18,6 +18,7 @@ use turso::Builder;
 use crate::core::errors::StorageError;
 use crate::native::rows_stream::RowsIterator;
 use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
@@ -749,5 +750,89 @@ impl BlobStore for TursoStorage {
         });
 
         Ok(Box::new(circuit_stream))
+    }
+}
+
+// ===========================================================================
+// Async trait implementations — bridge sync streams via collect helpers.
+// ===========================================================================
+
+#[async_trait::async_trait(?Send)]
+impl AsyncKeyValueStore for TursoStorage {
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        collect_one(<Self as KeyValueStore>::get::<V>(self, key)?).transpose().map(Option::flatten)
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+        collect_one(<Self as KeyValueStore>::set(self, key, value)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+        collect_one(<Self as KeyValueStore>::delete(self, key)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+        collect_one(<Self as KeyValueStore>::exists(self, key)?).transpose().map(|opt| opt.unwrap_or(false))
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+        collect_result(<Self as KeyValueStore>::list_keys(self, prefix)?)
+            .into_iter().collect()
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncQueryStore for TursoStorage {
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
+        collect_result(<Self as QueryStore>::query(self, sql, params)?)
+            .into_iter().collect()
+    }
+
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        collect_one(<Self as QueryStore>::execute(self, sql, params)?).transpose().map(|opt| opt.unwrap_or(0))
+    }
+
+    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+        collect_one(<Self as QueryStore>::execute_batch(self, sql)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncRateLimiterStore for TursoStorage {
+    async fn check_rate_limit_async(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
+        collect_one(<Self as RateLimiterStore>::check_rate_limit(self, key, max_count, window_seconds)?)
+            .transpose().map(|opt| opt.unwrap_or(false))
+    }
+
+    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+        collect_one(<Self as RateLimiterStore>::record_rate_limit(self, key)?).transpose().map(|opt| opt.unwrap_or(0))
+    }
+
+    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+        collect_one(<Self as RateLimiterStore>::reset_rate_limit(self, key)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for TursoStorage {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        collect_one(<Self as BlobStore>::put_blob(self, key, data)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        collect_one(<Self as BlobStore>::get_blob(self, key)?).transpose().map(Option::flatten)
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        collect_one(<Self as BlobStore>::delete_blob(self, key)?).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        collect_one(<Self as BlobStore>::blob_exists(self, key)?).transpose().map(|opt| opt.unwrap_or(false))
     }
 }

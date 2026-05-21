@@ -9,13 +9,14 @@
 //! Values are serialized as JSON and stored in a key-value table.
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{collect_one, collect_result, Stream};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
@@ -562,5 +563,101 @@ impl BlobStore for D1KeyValueStore {
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
         Ok(Self::wrap_value(!rows.is_empty()))
+    }
+}
+
+// ===========================================================================
+// Async trait implementations — bridge sync streams via collect helpers.
+// ===========================================================================
+
+#[async_trait::async_trait(?Send)]
+impl AsyncKeyValueStore for D1KeyValueStore {
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        let stream = <Self as KeyValueStore>::get::<V>(self, key)?;
+        collect_one(stream).transpose().map(Option::flatten)
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+        let stream = <Self as KeyValueStore>::set(self, key, value)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+        let stream = <Self as KeyValueStore>::delete(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+        let stream = <Self as KeyValueStore>::exists(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+        let stream = <Self as KeyValueStore>::list_keys(self, prefix)?;
+        collect_result(stream).into_iter().collect()
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncQueryStore for D1KeyValueStore {
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
+        let stream = <Self as QueryStore>::query(self, sql, params)?;
+        collect_result(stream).into_iter().collect()
+    }
+
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        let stream = <Self as QueryStore>::execute(self, sql, params)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+    }
+
+    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+        let stream = <Self as QueryStore>::execute_batch(self, sql)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncRateLimiterStore for D1KeyValueStore {
+    async fn check_rate_limit_async(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
+        let stream = <Self as RateLimiterStore>::check_rate_limit(self, key, max_count, window_seconds)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+    }
+
+    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+        let stream = <Self as RateLimiterStore>::record_rate_limit(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+    }
+
+    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+        let stream = <Self as RateLimiterStore>::reset_rate_limit(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for D1KeyValueStore {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let stream = <Self as BlobStore>::put_blob(self, key, data)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let stream = <Self as BlobStore>::get_blob(self, key)?;
+        collect_one(stream).transpose().map(Option::flatten)
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        let stream = <Self as BlobStore>::delete_blob(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        let stream = <Self as BlobStore>::blob_exists(self, key)?;
+        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
     }
 }

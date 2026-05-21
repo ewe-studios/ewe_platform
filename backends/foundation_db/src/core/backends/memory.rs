@@ -11,6 +11,7 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
@@ -267,5 +268,152 @@ impl BlobStore for MemoryStorage {
         Ok(Box::new(std::iter::once(Stream::Next(Ok(
             data.contains_key(key)
         )))))
+    }
+}
+
+// ===========================================================================
+// Async trait implementations — in-memory ops resolve immediately.
+// ===========================================================================
+
+#[async_trait::async_trait(?Send)]
+impl AsyncKeyValueStore for MemoryStorage {
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        let bytes = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?
+            .get(key).cloned().map(|z| z.to_vec());
+        match bytes {
+            Some(bytes) => {
+                let value: V = serde_json::from_slice(&bytes)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+        let bytes =
+            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.insert(key.to_string(), Zeroizing::new(bytes));
+        Ok(())
+    }
+
+    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(key);
+        Ok(())
+    }
+
+    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.contains_key(key))
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.keys()
+            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
+            .cloned()
+            .collect())
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncBlobStore for MemoryStorage {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let mut storage = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
+        Ok(())
+    }
+
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.get(key).cloned().map(|z| z.to_vec()))
+    }
+
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(key);
+        Ok(())
+    }
+
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.contains_key(key))
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncRateLimiterStore for MemoryStorage {
+    async fn check_rate_limit_async(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let rate_key = format!("_rate_limit:{key}");
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let allowed = match data.get(&rate_key) {
+            Some(bytes) => {
+                let entry: RateLimitEntry = serde_json::from_slice(bytes)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                if entry.window_start < now - window_seconds {
+                    true
+                } else {
+                    entry.count < max_count
+                }
+            }
+            None => true,
+        };
+        Ok(allowed)
+    }
+
+    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let rate_key = format!("_rate_limit:{key}");
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let new_count = if let Some(bytes) = data.get(&rate_key) {
+            let mut entry: RateLimitEntry = serde_json::from_slice(bytes)
+                .map_err(|e| StorageError::Serialization(e.to_string()))?;
+            entry.count += 1;
+            entry.window_start = now;
+            data.insert(rate_key.clone(), Zeroizing::new(
+                serde_json::to_vec(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?,
+            ));
+            entry.count
+        } else {
+            let entry = RateLimitEntry { count: 1, window_start: now };
+            data.insert(rate_key.clone(), Zeroizing::new(
+                serde_json::to_vec(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?,
+            ));
+            1
+        };
+        Ok(new_count)
+    }
+
+    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+        let rate_key = format!("_rate_limit:{key}");
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(&rate_key);
+        Ok(())
     }
 }

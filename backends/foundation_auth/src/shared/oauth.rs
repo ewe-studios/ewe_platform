@@ -185,6 +185,7 @@ impl PkceChallenge {
 ///
 /// This struct contains only platform-agnostic OAuth configuration and authorization
 /// URL generation. Use [`NativeOAuth`] or [`WasmOAuth`] for token exchange methods.
+#[derive(Clone)]
 pub struct OAuthManager {
     pub(crate) config: OAuthConfig,
 }
