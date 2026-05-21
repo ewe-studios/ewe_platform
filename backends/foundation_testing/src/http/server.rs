@@ -13,7 +13,7 @@
 
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -160,6 +160,9 @@ pub struct TestHttpServer {
     /// Useful for testing SSE clients or HTTP/1.0-style servers.
     /// Shared via Arc<AtomicBool> so it can be set after the server thread is spawned.
     close_after_response: Arc<AtomicBool>,
+    /// When true, the read stream uses blocking I/O with the configured timeout.
+    /// Stored as milliseconds for atomic access.
+    read_timeout: Arc<AtomicU64>,
 }
 
 impl TestHttpServer {
@@ -221,6 +224,35 @@ impl TestHttpServer {
     #[must_use]
     pub fn close_after_response(self, close: bool) -> Self {
         self.close_after_response.store(close, Ordering::Relaxed);
+        self
+    }
+
+    /// Set whether the server's read stream should use blocking I/O with a timeout.
+    ///
+    /// WHY: The HTTP reader treats WouldBlock from non-blocking sockets as a fatal
+    /// error. Tests with precise client timing (e.g., connection pooling tests)
+    /// need blocking read to avoid premature connection handler exit.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - When `Some`, enables blocking read with the given timeout.
+    ///   When `None`, keeps the default non-blocking behavior.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// // Blocking read with 5s timeout
+    /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
+    ///     .blocking_read(Some(Duration::from_secs(5)));
+    ///
+    /// // Non-blocking (default)
+    /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
+    ///     .blocking_read(None);
+    /// ```
+    #[must_use]
+    pub fn blocking_read(self, timeout: Option<std::time::Duration>) -> Self {
+        let ms = timeout.map_or(0, |d| d.as_millis() as u64);
+        self.read_timeout.store(ms, Ordering::Relaxed);
         self
     }
 
@@ -293,11 +325,13 @@ impl TestHttpServer {
             Box::new(handler) as Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>
         ));
         let close_after_response = Arc::new(AtomicBool::new(false));
+        let read_timeout = Arc::new(AtomicU64::new(0));
 
         let running_clone = Arc::clone(&running);
 
         let handler_clone = Arc::clone(&handler);
         let close_clone = Arc::clone(&close_after_response);
+        let read_timeout_clone = Arc::clone(&read_timeout);
 
         let handle = thread::spawn(move || {
             // Set non-blocking so we can check running flag
@@ -312,6 +346,7 @@ impl TestHttpServer {
                         let handler = Arc::clone(&handler_clone);
                         let kill_signal = Arc::clone(&running_clone);
                         let should_close = Arc::clone(&close_clone);
+                        let read_timeout = Arc::clone(&read_timeout_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
                             if let Err(e) = Self::handle_connection(
@@ -319,6 +354,7 @@ impl TestHttpServer {
                                 &handler,
                                 kill_signal.clone(),
                                 &should_close,
+                                &read_timeout,
                             ) {
                                 tracing::info!("TestHttpServer connection error: {e}");
                             }
@@ -342,6 +378,7 @@ impl TestHttpServer {
             running,
             _handler: handler,
             close_after_response,
+            read_timeout,
         }
     }
 
@@ -379,10 +416,12 @@ impl TestHttpServer {
         let handler = Arc::new(Mutex::new(Box::new(handler)
             as Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>));
         let close_after_response = Arc::new(AtomicBool::new(false));
+        let read_timeout = Arc::new(AtomicU64::new(0));
 
         let running_clone = Arc::clone(&running);
         let handler_clone = Arc::clone(&handler);
         let close_clone = Arc::clone(&close_after_response);
+        let read_timeout_clone = Arc::clone(&read_timeout);
 
         let handle = thread::spawn(move || {
             listener
@@ -395,11 +434,13 @@ impl TestHttpServer {
                         tracing::info!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
                         let should_close = Arc::clone(&close_clone);
+                        let read_timeout = Arc::clone(&read_timeout_clone);
                         thread::spawn(move || {
                             if let Err(e) = Self::handle_connection_with_interim(
                                 stream,
                                 &handler,
                                 &should_close,
+                                &read_timeout,
                             ) {
                                 tracing::info!("TestHttpServer connection error: {e}");
                             }
@@ -422,6 +463,7 @@ impl TestHttpServer {
             running,
             _handler: Arc::new(Mutex::new(Box::new(|_| HttpResponse::ok(b"")))),
             close_after_response,
+            read_timeout,
         }
     }
 
@@ -468,6 +510,7 @@ impl TestHttpServer {
         handler: &ResponseHandler,
         running: Arc<AtomicBool>,
         close_after_response: &Arc<AtomicBool>,
+        read_timeout_ms: &Arc<AtomicU64>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Handle multiple requests per connection (HTTP keep-alive)
         // Loop until connection closes or max requests reached
@@ -476,9 +519,23 @@ impl TestHttpServer {
         // Clone the stream for reading — keep original for writing responses.
         // The reader consumes bytes; the writer needs the original socket.
         let read_stream: TcpStream = stream.try_clone().expect("should clone tcp stream");
-        read_stream
-            .set_nonblocking(true)
-            .expect("should enable non-blocking");
+
+        let timeout_ms = read_timeout_ms.load(Ordering::Relaxed);
+        if timeout_ms > 0 {
+            // Blocking read with timeout — HTTP reader treats WouldBlock as fatal,
+            // so blocking mode with a timeout prevents premature connection handler exit.
+            read_stream
+                .set_nonblocking(false)
+                .expect("should set blocking on read stream");
+            read_stream
+                .set_read_timeout(Some(std::time::Duration::from_millis(timeout_ms)))
+                .expect("should set read timeout");
+        } else {
+            // Default: non-blocking so the handler can check the running flag.
+            read_stream
+                .set_nonblocking(true)
+                .expect("should enable non-blocking");
+        }
 
         let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
         let request_streams = http_streams::send::http_streams(conn);
@@ -594,9 +651,20 @@ impl TestHttpServer {
         mut stream: TcpStream,
         handler: &InterimResponseHandler,
         close_after_response: &Arc<AtomicBool>,
+        read_timeout_ms: &Arc<AtomicU64>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let timeout_ms = read_timeout_ms.load(Ordering::Relaxed);
+        let read_stream: TcpStream = stream.try_clone().expect("should clone tcp stream");
+        if timeout_ms > 0 {
+            read_stream
+                .set_nonblocking(false)
+                .expect("should set blocking on read stream");
+            read_stream
+                .set_read_timeout(Some(std::time::Duration::from_millis(timeout_ms)))
+                .expect("should set read timeout");
+        }
         // Parse minimal HTTP request (method, path, version)
-        let conn = RawStream::from_tcp(stream.try_clone()?).expect("should wrap tcp stream");
+        let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
         let request_streams = http_streams::send::http_streams(conn);
 
         tracing::info!("Read a line on connection!");

@@ -1,9 +1,5 @@
 #![allow(clippy::type_complexity)]
 
-mod threads;
-
-pub use threads::*;
-
 use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
@@ -12,9 +8,10 @@ use crate::valtron::{
 };
 
 use crate::synca::{LockSignal, OnSignal};
+pub use crate::valtron::multi::threads::*;
 use crate::valtron::SharedTaskQueue;
 
-use super::background::DEFAULT_BG_YIELD_DURATION;
+use crate::valtron::executors::background::DEFAULT_BG_YIELD_DURATION;
 
 /// Global registry - stores the `ThreadRegistry` Arc.
 /// Uses Mutex<Option> to allow resetting between tests.

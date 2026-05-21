@@ -637,6 +637,11 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         self.pool.checkin(host.as_str(), port, stream);
     }
 
+    /// Clears all pooled connections. Useful for tests to force fresh connections.
+    pub fn clear_pool(&self) {
+        self.pool.clear();
+    }
+
     /// Establishes HTTP CONNECT tunnel through HTTP proxy.
     ///
     /// WHY: HTTP proxies use CONNECT method to tunnel HTTPS connections.

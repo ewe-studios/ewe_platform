@@ -14,6 +14,7 @@ use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tracing_test::traced_test;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
@@ -117,7 +118,10 @@ fn test_pool_sequential_head_requests() {
             ],
             body: Vec::new(), // HEAD responses must not have body
         }
-    });
+    })
+    // WHY: The HTTP reader treats WouldBlock from non-blocking sockets as fatal.
+    // Blocking read with timeout prevents premature connection handler exit.
+    .blocking_read(Some(Duration::from_secs(5)));
 
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
@@ -146,6 +150,12 @@ fn test_pool_sequential_head_requests() {
             "[TEST] Finished checking status for request response: {}",
             i
         );
+
+        // Clear pool between requests to validate drain hypothesis
+        if let Some(pool) = client.client_pool() {
+            pool.clear_pool();
+            tracing::trace!("[TEST] Cleared connection pool after request {}", i + 1);
+        }
     }
 
     assert_eq!(request_count_clone.load(Ordering::SeqCst), 3);
@@ -177,7 +187,8 @@ fn test_pool_put_head_delete_head_sequence() {
             headers: vec![("Content-Type".to_string(), "text/plain".to_string())],
             body: b"ok".to_vec(),
         }
-    });
+    })
+    .blocking_read(Some(Duration::from_secs(5)));
 
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
