@@ -20,28 +20,11 @@ pub use nossl::*;
 mod config;
 pub use config::*;
 
-// Compile-time checks to ensure only one TLS backend is enabled
-#[cfg(all(feature = "ssl-rustls", feature = "ssl-openssl"))]
-compile_error!("Cannot enable both `ssl-rustls` and `ssl-openssl`. Choose one TLS backend.");
+// TLS backend priority: ssl-rustls > ssl-openssl > ssl-native-tls.
+// When --all-features enables multiple backends, the primary (rustls) wins.
+// This avoids compile_error! conflicts while still allowing explicit single-backend selection.
 
-#[cfg(all(feature = "ssl-rustls", feature = "ssl-native-tls"))]
-compile_error!("Cannot enable both `ssl-rustls` and `ssl-native-tls`. Choose one TLS backend.");
-
-#[cfg(all(feature = "ssl-openssl", feature = "ssl-native-tls"))]
-compile_error!("Cannot enable both `ssl-openssl` and `ssl-native-tls`. Choose one TLS backend.");
-
-#[cfg(all(
-    feature = "ssl-rustls",
-    feature = "ssl-openssl",
-    feature = "ssl-native-tls"
-))]
-compile_error!("Cannot enable all three TLS backends simultaneously. Choose only one: ssl-rustls, ssl-openssl, or ssl-native-tls.");
-
-#[cfg(all(
-    feature = "ssl-openssl",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-native-tls")
-))]
+#[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
 pub mod openssl;
 
 #[cfg(all(
@@ -72,64 +55,32 @@ pub use self::openssl::SplitOpenSslStream as ServerSSLStream;
 ))]
 pub use self::openssl::SplitOpenSslStream as ClientSSLStream;
 
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+#[cfg(feature = "ssl-rustls")]
 pub mod rustls;
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+
+#[cfg(feature = "ssl-rustls")]
 pub use self::rustls::RustTlsClientStream as ClientSSLStream;
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+
+#[cfg(feature = "ssl-rustls")]
 pub use self::rustls::RustTlsServerStream as ServerSSLStream;
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+
+#[cfg(feature = "ssl-rustls")]
 pub use self::rustls::RustlsAcceptor as SSLAcceptor;
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+
+#[cfg(feature = "ssl-rustls")]
 pub use self::rustls::RustlsConnector as SSLConnector;
 
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 pub mod native_ttls;
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 pub use self::native_ttls::NativeTlsAcceptor as SSLAcceptor;
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 pub use self::native_ttls::NativeTlsConnector as SSLConnector;
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 pub use self::native_ttls::NativeTlsStream as ClientSSLStream;
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 pub use self::native_ttls::NativeTlsStream as ServerSSLStream;

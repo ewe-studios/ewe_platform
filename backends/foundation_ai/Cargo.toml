@@ -35,10 +35,18 @@ rand = { version = "0.10"}
 chrono = { version = "0.4.44"}
 
 # Candle ML framework (optional, behind feature flags)
-candle-core = { version = "0.10", optional = true }
+# Note: candle-core is NOT listed here — it's pulled in transitively by
+# candle-nn and candle-transformers. The Apple target-specific dep below
+# adds candle-core with metal feature on macOS.
 candle-nn = { version = "0.10", optional = true }
 candle-transformers = { version = "0.10", optional = true }
 tokenizers = { version = "0.22", optional = true }
+
+# Candle with Metal — Apple only. Non-optional + target-specific so
+# --all-features on Linux never pulls in objc2 (target deps are skipped
+# on non-matching targets, unlike optional deps where features activate globally).
+[target.'cfg(target_vendor = "apple")'.dependencies]
+candle-core = { version = "0.10", features = ["metal"] }
 
 # Tracing for logging
 tracing = { workspace = true }
@@ -68,9 +76,13 @@ openmp = ["infrastructure_llama_cpp/openmp"]
 mtmd = ["infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers"]
+# candle-core is a transitive dep of candle-nn/candle-transformers; the
+# metal variant is added as a non-optional target-specific dep above.
+candle = ["candle-nn", "candle-transformers", "tokenizers"]
+# candle-core is pulled in transitively by candle-nn; we enable cuda feature on it.
 candle-cuda = ["candle", "candle-core/cuda"]
-candle-metal = ["candle", "candle-core/metal"]
+# candle-metal: auto-enabled on Apple targets via target-specific dep above.
+# Code uses #[cfg(all(target_vendor = "apple", feature = "candle"))] guards.
 
 # Multi-threaded executor
 multi = ["foundation_deployment/multi", "foundation_core/multi"]

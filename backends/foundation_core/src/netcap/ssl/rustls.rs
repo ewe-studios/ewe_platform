@@ -21,7 +21,8 @@ pub use rustls::{ClientConfig, ServerConfig};
 
 #[must_use]
 pub fn initialize_tls_provider() -> Option<CryptoProvider> {
-    #[cfg(all(feature = "ssl-provider-awsrc", not(feature = "ssl-provider-ring")))]
+    // Priority: aws-lc-rs > ring. When both are enabled (--all-features), use aws-lc-rs.
+    #[cfg(feature = "ssl-provider-awsrc")]
     {
         Some(rustls::crypto::aws_lc_rs::default_provider())
     }

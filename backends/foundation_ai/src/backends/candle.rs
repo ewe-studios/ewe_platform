@@ -184,7 +184,7 @@ pub enum CandleBackend {
         cache: Rc<RefCell<HashMap<String, CandleModels>>>,
     },
     /// Apple Metal execution.
-    #[cfg(feature = "candle-metal")]
+    #[cfg(all(target_vendor = "apple", feature = "candle"))]
     Metal {
         config: CandleBackendConfig,
         device_id: usize,
@@ -207,7 +207,7 @@ impl CandleBackend {
             CandleBackend::Cpu { config, .. } => config,
             #[cfg(feature = "candle-cuda")]
             CandleBackend::Cuda { config, .. } => config,
-            #[cfg(feature = "candle-metal")]
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
             CandleBackend::Metal { config, .. } => config,
         }
     }
@@ -217,7 +217,7 @@ impl CandleBackend {
             CandleBackend::Cpu { .. } => Ok(Device::Cpu),
             #[cfg(feature = "candle-cuda")]
             CandleBackend::Cuda { device_id, .. } => Device::new_cuda(*device_id),
-            #[cfg(feature = "candle-metal")]
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
             CandleBackend::Metal { device_id, .. } => Device::new_metal(*device_id),
         }
     }
@@ -227,7 +227,7 @@ impl CandleBackend {
             CandleBackend::Cpu { cache, .. } => cache,
             #[cfg(feature = "candle-cuda")]
             CandleBackend::Cuda { cache, .. } => cache,
-            #[cfg(feature = "candle-metal")]
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
             CandleBackend::Metal { cache, .. } => cache,
         }
     }
@@ -256,7 +256,7 @@ impl ModelProvider for CandleBackend {
                 CandleBackend::Cuda { device_id, .. } => {
                     Ok(CandleBackend::Cuda { config, device_id, cache })
                 }
-                #[cfg(feature = "candle-metal")]
+                #[cfg(all(target_vendor = "apple", feature = "candle"))]
                 CandleBackend::Metal { device_id, .. } => {
                     Ok(CandleBackend::Metal { config, device_id, cache })
                 }
@@ -271,7 +271,7 @@ impl ModelProvider for CandleBackend {
             CandleBackend::Cpu { .. } => "Candle (CPU)",
             #[cfg(feature = "candle-cuda")]
             CandleBackend::Cuda { .. } => "Candle (CUDA)",
-            #[cfg(feature = "candle-metal")]
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
             CandleBackend::Metal { .. } => "Candle (Metal)",
         };
         Ok(crate::types::ModelProviderDescriptor {

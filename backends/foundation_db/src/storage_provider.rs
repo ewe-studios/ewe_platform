@@ -817,13 +817,13 @@ impl AsyncQueryStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.query_async(sql, params).await,
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => Err(StorageError::Generic(
+            StorageProviderInner::Memory(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryStorage".to_string(),
             )),
-            StorageProviderInner::MemoryJson(storage) => Err(StorageError::Generic(
+            StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(feature = "d1")]
@@ -852,13 +852,13 @@ impl AsyncQueryStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.execute_async(sql, params).await,
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => Err(StorageError::Generic(
+            StorageProviderInner::Memory(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryStorage".to_string(),
             )),
-            StorageProviderInner::MemoryJson(storage) => Err(StorageError::Generic(
+            StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(feature = "d1")]
@@ -887,13 +887,13 @@ impl AsyncQueryStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.execute_batch_async(sql).await,
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => Err(StorageError::Generic(
+            StorageProviderInner::Memory(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryStorage".to_string(),
             )),
-            StorageProviderInner::MemoryJson(storage) => Err(StorageError::Generic(
+            StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(feature = "d1")]
@@ -934,7 +934,7 @@ impl AsyncRateLimiterStore for StorageProvider {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => {
@@ -973,7 +973,7 @@ impl AsyncRateLimiterStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit_async(key).await,
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit_async(key).await,
@@ -1002,7 +1002,7 @@ impl AsyncRateLimiterStore for StorageProvider {
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit_async(key).await,
             #[cfg(not(target_arch = "wasm32"))]
-            StorageProviderInner::JsonFile(storage) => Err(StorageError::Generic(
+            StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit_async(key).await,

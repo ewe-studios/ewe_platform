@@ -18,6 +18,9 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::double_must_use)]
 
+// Unstable std library features, available when `nightly` feature is enabled.
+#![cfg_attr(feature = "nightly", feature(unix_socket_peek, tcp_linger))]
+
 #[cfg(all(feature = "ssl-native-tls", not(target_arch = "wasm32")))]
 extern crate native_tls;
 

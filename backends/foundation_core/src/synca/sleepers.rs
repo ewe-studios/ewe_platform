@@ -346,6 +346,7 @@ mod tests {
             }
         }
 
+        #[allow(dead_code)]
         fn was_woken(&self) -> bool {
             *self.woken.lock().unwrap()
         }
@@ -507,7 +508,7 @@ mod tests {
         sleepers.insert(Entry { id: 2, gen: 0 }, MockSleeper { ready: false });
         assert_eq!(sleepers.count(), 2);
 
-        sleepers.remove(&Entry { id: 1, gen: 0 });
+        let _ = sleepers.remove(&Entry { id: 1, gen: 0 });
         assert_eq!(sleepers.count(), 1);
     }
 
@@ -522,7 +523,7 @@ mod tests {
         );
         assert!(sleepers.has_pending_tasks());
 
-        sleepers.remove(&Entry { id: 1, gen: 0 });
+        let _ = sleepers.remove(&Entry { id: 1, gen: 0 });
         assert!(!sleepers.has_pending_tasks());
     }
 
@@ -558,7 +559,7 @@ mod tests {
         let cloned = sleepers.clone();
 
         assert_eq!(cloned.count(), 1);
-        cloned.remove(&entry);
+        let _ = cloned.remove(&entry);
         assert_eq!(sleepers.count(), 0); // Shared state
     }
 

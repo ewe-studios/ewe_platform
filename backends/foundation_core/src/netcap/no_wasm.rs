@@ -1,7 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![allow(clippy::missing_errors_doc)]
 
-use std::sync::Arc;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 

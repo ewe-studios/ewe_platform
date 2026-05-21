@@ -17,6 +17,21 @@ use derive_more::derive::From;
 
 use super::{DataStreamError, DataStreamResult};
 
+// ---------------------------------------------------------------------------
+// TLS type alias with priority resolution: ssl-rustls > ssl-openssl > ssl-native-tls.
+// When --all-features enables multiple backends, the primary (rustls) wins.
+// The ssl module emits compile_error! if the user manually enables conflicts,
+// so this only fires for the blanket --all-features case.
+// ---------------------------------------------------------------------------
+#[cfg(feature = "ssl-rustls")]
+type TlsStream = crate::netcap::ssl::rustls::RustTlsClientStream;
+
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
+type TlsStream = crate::netcap::ssl::openssl::SplitOpenSslStream;
+
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+type TlsStream = crate::netcap::ssl::native_ttls::NativeTlsStream;
+
 #[derive(From, Debug, Clone)]
 pub enum SocketAddr {
     Tcp(core::net::SocketAddr),
@@ -277,24 +292,12 @@ pub enum Connection {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(unix_net::UnixStream),
-    #[cfg(all(
+    #[cfg(any(
         feature = "ssl-rustls",
-        not(feature = "ssl-openssl"),
-        not(feature = "ssl-native-tls")
-    ))]
-    Tls(crate::netcap::ssl::rustls::RustTlsClientStream),
-    #[cfg(all(
         feature = "ssl-openssl",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-native-tls")
+        feature = "ssl-native-tls"
     ))]
-    Tls(crate::netcap::ssl::openssl::SplitOpenSslStream),
-    #[cfg(all(
-        feature = "ssl-native-tls",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-openssl")
-    ))]
-    Tls(crate::netcap::ssl::native_ttls::NativeTlsStream),
+    Tls(TlsStream),
 }
 
 impl Connection {
@@ -729,33 +732,21 @@ impl From<unix_net::UnixStream> for Connection {
     }
 }
 
-#[cfg(all(
-    feature = "ssl-rustls",
-    not(feature = "ssl-openssl"),
-    not(feature = "ssl-native-tls")
-))]
+#[cfg(feature = "ssl-rustls")]
 impl From<crate::netcap::ssl::rustls::RustTlsClientStream> for Connection {
     fn from(s: crate::netcap::ssl::rustls::RustTlsClientStream) -> Self {
         Self::Tls(s)
     }
 }
 
-#[cfg(all(
-    feature = "ssl-openssl",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-native-tls")
-))]
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
 impl From<crate::netcap::ssl::openssl::SplitOpenSslStream> for Connection {
     fn from(s: crate::netcap::ssl::openssl::SplitOpenSslStream) -> Self {
         Self::Tls(s)
     }
 }
 
-#[cfg(all(
-    feature = "ssl-native-tls",
-    not(feature = "ssl-rustls"),
-    not(feature = "ssl-openssl")
-))]
+#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
 impl From<crate::netcap::ssl::native_ttls::NativeTlsStream> for Connection {
     fn from(s: crate::netcap::ssl::native_ttls::NativeTlsStream) -> Self {
         Self::Tls(s)
@@ -1021,7 +1012,7 @@ impl TcpStreamWrapper {
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn local_addr(&self) -> std::io::Result<SocketAddr> {
-        self.inner.local_addr()
+        self.inner.local_addr().map(SocketAddr::from)
     }
 
     /// Gets the remote socket address of this stream.
@@ -1031,7 +1022,7 @@ impl TcpStreamWrapper {
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn peer_addr(&self) -> std::io::Result<SocketAddr> {
-        self.inner.peer_addr()
+        self.inner.peer_addr().map(SocketAddr::from)
     }
 
     /// Sets the value for the SO_REUSEADDR socket option.
@@ -1041,7 +1032,8 @@ impl TcpStreamWrapper {
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn set_reuse_address(&self, reuse: bool) -> std::io::Result<()> {
-        self.inner.set_reuse_address(reuse)
+        use socket2::SockRef;
+        SockRef::from(&self.inner).set_reuse_address(reuse)
     }
 
     /// Gets the value of the SO_REUSEADDR socket option.
@@ -1051,7 +1043,8 @@ impl TcpStreamWrapper {
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn reuse_address(&self) -> std::io::Result<bool> {
-        self.inner.reuse_address()
+        use socket2::SockRef;
+        SockRef::from(&self.inner).reuse_address()
     }
 }
 

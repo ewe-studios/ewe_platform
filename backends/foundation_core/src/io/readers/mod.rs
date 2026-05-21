@@ -901,7 +901,7 @@ mod tests {
         let batch = BatchReader::new(Cursor::new(data.to_vec()))
             .batch_size(512)
             .max_consecutive_retries(100);
-        let mut reader = EofReader::new(batch);
+        let reader = EofReader::new(batch);
 
         let collected: Vec<u8> = reader
             .filter_map(|r| r.ok())
@@ -923,7 +923,7 @@ mod tests {
         let batch = BatchReader::new(Cursor::new(data.to_vec()))
             .batch_size(512)
             .max_consecutive_retries(100);
-        let mut reader = LimitedEOFStreamReader::new(batch, 20);
+        let reader = LimitedEOFStreamReader::new(batch, 20);
 
         let collected: Vec<u8> = reader
             .filter_map(|r| {
@@ -978,7 +978,7 @@ mod tests {
         })
         .batch_size(512)
         .max_consecutive_retries(100);
-        let mut reader = EofReader::new(batch);
+        let reader = EofReader::new(batch);
 
         let collected: Vec<u8> = reader
             .filter_map(|r| r.ok())
@@ -1023,7 +1023,7 @@ mod tests {
         })
         .batch_size(512)
         .max_consecutive_retries(100);
-        let mut reader = EofReader::new(batch);
+        let reader = EofReader::new(batch);
 
         let collected: Vec<u8> = reader
             .filter_map(|r| r.ok())
@@ -1047,7 +1047,7 @@ mod tests {
         }
 
         let batch = BatchReader::new(AlwaysWouldBlock).max_consecutive_retries(3);
-        let mut reader = EofReader::new(batch);
+        let reader = EofReader::new(batch);
 
         let results: Vec<_> = reader.collect();
         assert!(results.iter().any(|r| r.is_err()));
@@ -1056,7 +1056,7 @@ mod tests {
     #[test]
     fn eof_reader_empty_source() {
         let batch = BatchReader::new(Cursor::new(Vec::<u8>::new()));
-        let mut reader = EofReader::new(batch);
+        let reader = EofReader::new(batch);
 
         let collected: Vec<u8> = reader
             .filter_map(|r| r.ok())
@@ -1192,7 +1192,7 @@ mod tests {
         let batch = BatchReader::new(Cursor::new(data.to_vec()))
             .batch_size(512)
             .eof_on_zero_read(true);
-        let mut eof_reader = EOFStreamReader::new(batch);
+        let eof_reader = EOFStreamReader::new(batch);
 
         let collected: Vec<u8> = eof_reader
             .filter_map(|r| r.ok())
@@ -1216,7 +1216,7 @@ mod tests {
         }
 
         let batch = BatchReader::new(RetryReader).eof_on_zero_read(false);
-        let mut eof_reader = EOFStreamReader::new(batch);
+        let eof_reader = EOFStreamReader::new(batch);
 
         assert!(matches!(eof_reader.next(), Some(Ok(Data::Retry))));
     }
@@ -1248,7 +1248,7 @@ mod tests {
     fn limited_eof_stream_reader_under_limit() {
         let data = b"short";
         let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
-        let mut limited = LimitedEOFStreamReader::new(batch, 100);
+        let limited = LimitedEOFStreamReader::new(batch, 100);
 
         let collected: Vec<u8> = limited
             .filter_map(|r| r.ok())

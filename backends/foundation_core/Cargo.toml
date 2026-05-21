@@ -61,6 +61,7 @@ rustls-pemfile = { version = "2.2", optional = true }
 webpki-roots = { version = "0.26", optional = true }
 native-tls = { version = "0.2", optional = true }
 openssl = { version = "0.10", optional = true }
+socket2 = { version = "0.6", optional = true }
 
 [dev-dependencies]
 serial_test = { workspace = true }
@@ -79,7 +80,7 @@ log_warnings = []
 log_errors = []
 log_debug = []
 log_info = []
-nightly = []
+nightly = ["socket2"]
 
 socks5 = []
 ssl-provider-ring = ["ring"]

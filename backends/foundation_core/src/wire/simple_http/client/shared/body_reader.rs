@@ -2516,6 +2516,7 @@ mod tests {
     // Tests for SSE stream handling in collection functions
     // ========================================================================
 
+    #[allow(dead_code)]
     fn make_sse_parse_result_vec(
         events: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
     ) -> Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>> {
