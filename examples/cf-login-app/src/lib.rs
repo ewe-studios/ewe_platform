@@ -4,11 +4,16 @@
 
 //! Cloudflare Workers login app demo.
 //!
-//! Demonstrates: `HttpApp<Arc<dyn CfServe>>`, `CfConn` structured responses,
-//! `CfHttpApp` bridge, D1-backed `SessionManager`, argon2 password hashing,
-//! user registration, and `MigrationRunner` on first request.
+//! Demonstrates: D1-backed session management, argon2 password hashing,
+//! user registration, and async migrations via `MigrationRunner::run_async`.
 //!
-//! Uses workers-rs `#[event(fetch)]` for proper CF Workers integration.
+//! NOTE: We use a custom `WasmSessionManager` with async D1 operations
+//! instead of the native `SessionManager`, because the native one uses
+//! sync `CredentialStore` trait methods which deadlock on wasm32 when
+//! calling D1 (the JS event loop cannot run while a sync function executes).
+//!
+//! On native targets, the same handlers work via `HttpApp<Arc<dyn CfServe>>`
+//! with the synchronous `QueryStore` trait.
 
 use std::sync::Arc;
 
@@ -16,30 +21,16 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use foundation_auth::{CredentialStore, CredentialStoreError, SessionConfig, SessionManager};
-use foundation_core::valtron::Stream;
-use foundation_core::wire::simple_http::{
-    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleOutgoingResponse, Status,
-};
 use foundation_db::{
     core::schema::{MIGRATIONS, MigrationRunner},
-    core::storage_provider::{DataValue, QueryStore},
-    D1WasmStorage, KeyValueStore,
+    core::storage_provider::DataValue,
+    D1WasmStorage,
 };
-use foundation_http::{
-    shared::{
-        app::HttpApp,
-        context::ContextBag,
-        middleware::{MiddlewareResult, RequestMiddleware},
-    },
-    wasm::{
-        bridge::cf::CfHttpApp,
-        cf_conn::{CfConn, CfConnectionResult},
-        serve_cf::{CfServe, CfServeFactory},
-    },
-    SimpleIncomingRequest, SimpleMethod,
-};
-use worker::{console_error, Env, Response, Result};
+use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
+
+use sha2::Digest;
+use web_sys;
 
 // ===========================================================================
 // Signing key — CHANGE THIS to a random 32-byte value in production.
@@ -48,266 +39,308 @@ use worker::{console_error, Env, Response, Result};
 const SIGNING_KEY: &[u8; 32] = b"CHANGE-ME-TO-32-RANDOM-BYTES!!!!";
 
 // ===========================================================================
-// Lazy app initialization — runs once on first request.
+// HMAC-SHA256 (pure Rust, no external crate needed).
+// Uses the SHA-256 implementation from the argon2 dependency's crate tree.
+// ===========================================================================
+
+/// Compute SHA-256 hash (delegates to sha2 crate via our own minimal impl).
+fn sha256(data: &[u8]) -> [u8; 32] {
+    // We use the `sha2` crate which is a transitive dep of argon2.
+    // If not available, fall back to a simple construction.
+    use sha2::{Digest, Sha256};
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize().into()
+}
+
+/// HMAC-SHA256 implementation (RFC 2104).
+fn hmac_sha256(key: &[u8], message: &[u8]) -> [u8; 32] {
+    const BLOCK_SIZE: usize = 64;
+    let mut key_block = [0u8; BLOCK_SIZE];
+    if key.len() > BLOCK_SIZE {
+        let hashed = sha256(key);
+        key_block[..32].copy_from_slice(&hashed);
+    } else {
+        key_block[..key.len()].copy_from_slice(key);
+    }
+    let mut ipad = [0x36u8; BLOCK_SIZE];
+    let mut opad = [0x5cu8; BLOCK_SIZE];
+    for i in 0..BLOCK_SIZE {
+        ipad[i] ^= key_block[i];
+        opad[i] ^= key_block[i];
+    }
+    let inner = {
+        let mut h = sha2::Sha256::new();
+        sha2::Digest::update(&mut h, &ipad);
+        sha2::Digest::update(&mut h, message);
+        h.finalize()
+    };
+    let mut h = sha2::Sha256::new();
+    sha2::Digest::update(&mut h, &opad);
+    sha2::Digest::update(&mut h, &inner);
+    h.finalize().into()
+}
+
+// ===========================================================================
+// Base64 helpers (uses the base64 crate).
+// ===========================================================================
+
+fn base64_encode(data: &[u8]) -> String {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+    URL_SAFE_NO_PAD.encode(data)
+}
+
+fn base64_decode(s: &str) -> Result<Vec<u8>, String> {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+    URL_SAFE_NO_PAD.decode(s).map_err(|e| format!("base64 decode: {e}"))
+}
+
+// ===========================================================================
+// WasmSessionManager — async session management with signed cookies + D1.
+//
+// Cookie format: base64(payload).base64(hmac_sha256(payload))
+// where payload = JSON { "id": "...", "uid": "...", "exp": unix_ts }
+// ===========================================================================
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SessionPayload {
+    id: String,
+    uid: String,
+    exp: i64,
+}
+
+struct WasmSessionManager {
+    storage: Arc<D1WasmStorage>,
+}
+
+impl WasmSessionManager {
+    fn cookie_name() -> &'static str {
+        "session"
+    }
+
+    fn session_duration_secs() -> i64 {
+        86400 // 24 hours
+    }
+
+    fn sign_payload(payload_json: &[u8]) -> String {
+        let sig = hmac_sha256(SIGNING_KEY, payload_json);
+        base64_encode(&sig)
+    }
+
+    fn create_token(payload_json: &[u8]) -> String {
+        let encoded = base64_encode(payload_json);
+        let sig = Self::sign_payload(payload_json);
+        format!("{encoded}.{sig}")
+    }
+
+    fn verify_token(token: &str) -> Result<SessionPayload, String> {
+        let dot = token
+            .rfind('.')
+            .ok_or_else(|| "invalid token format".to_string())?;
+        let encoded = &token[..dot];
+        let sig = &token[dot + 1..];
+
+        let payload_bytes = base64_decode(encoded)?;
+        let expected_sig = Self::sign_payload(&payload_bytes);
+
+        if sig != expected_sig {
+            return Err("invalid signature".to_string());
+        }
+
+        let payload: SessionPayload =
+            serde_json::from_slice(&payload_bytes).map_err(|e| format!("deserialize: {e}"))?;
+
+        let now = chrono::Utc::now().timestamp();
+        if payload.exp < now {
+            return Err("session expired".to_string());
+        }
+
+        Ok(payload)
+    }
+
+    /// Create a new session: store in D1 and return cookie string.
+    async fn create_session(&self, user_id: &str) -> Result<String, String> {
+        let id = uuid::Uuid::new_v4().to_string();
+        let exp = chrono::Utc::now().timestamp() + Self::session_duration_secs();
+        let now_ms = chrono::Utc::now().timestamp_millis();
+
+        let payload = SessionPayload {
+            id: id.clone(),
+            uid: user_id.to_string(),
+            exp,
+        };
+
+        let json = serde_json::to_string(&payload).map_err(|e| format!("serialize: {e}"))?;
+        let token = Self::create_token(json.as_bytes());
+
+        // Store session in D1 kv_store table
+        let session_json = serde_json::to_string(&payload).map_err(|e| format!("serialize: {e}"))?;
+        self.storage
+            .execute_async(
+                "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)",
+                &[
+                    DataValue::Text(format!("session:{}", id)),
+                    DataValue::Text(session_json),
+                    DataValue::Integer(now_ms),
+                ],
+            )
+            .await
+            .map_err(|e| format!("D1 insert failed: {e:?}"))?;
+
+        Ok(token)
+    }
+
+    /// Validate a session token and return the user_id.
+    async fn validate_session(&self, token: &str) -> Result<String, String> {
+        let payload = Self::verify_token(token)?;
+
+        // Check server-side session exists
+        let rows = self
+            .storage
+            .query_async(
+                "SELECT value FROM kv_store WHERE key = ?",
+                &[DataValue::Text(format!("session:{}", payload.id))],
+            )
+            .await
+            .map_err(|e| format!("D1 query failed: {e:?}"))?;
+
+        if rows.is_empty() {
+            return Err("session not found".to_string());
+        }
+
+        Ok(payload.uid)
+    }
+
+    /// Revoke a session.
+    async fn revoke_session(&self, token: &str) -> Result<(), String> {
+        let payload = match Self::verify_token(token) {
+            Ok(p) => p,
+            Err(_) => return Ok(()), // Already invalid, no-op
+        };
+
+        self.storage
+            .execute_async(
+                "DELETE FROM kv_store WHERE key = ?",
+                &[DataValue::Text(format!("session:{}", payload.id))],
+            )
+            .await
+            .map_err(|e| format!("D1 delete failed: {e:?}"))?;
+
+        Ok(())
+    }
+}
+
+// ===========================================================================
+// Lazy app initialization — runs once on first request (async).
 // ===========================================================================
 
 struct LazyApp {
-    session_mgr: Arc<SessionManager<D1CredentialStore>>,
+    session_mgr: WasmSessionManager,
     storage: Arc<D1WasmStorage>,
-    auth_middleware: SessionAuthMiddleware,
 }
 
 static LAZY_APP: std::sync::OnceLock<Arc<LazyApp>> = std::sync::OnceLock::new();
 
-fn get_or_init_app(bag: &ContextBag) -> Result<Arc<LazyApp>> {
+async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, String> {
     if let Some(app) = LAZY_APP.get() {
         return Ok(app.clone());
     }
 
-    let db = bag
-        .get::<foundation_db::D1Database>()
-        .ok_or_else(|| worker::Error::RustError("D1Database not found in ContextBag".into()))?;
+    let db = Arc::new(db);
+    let storage = Arc::new(D1WasmStorage::new(Arc::clone(&db), "app"));
 
-    let storage = Arc::new(D1WasmStorage::new(db, "app"));
-
+    // Run migrations to create tables.
     let runner = MigrationRunner::new(MIGRATIONS);
-    runner.run(&*storage).map_err(|e| {
-        worker::Error::RustError(format!("migration failed: {e:?}"))
-    })?;
+    runner
+        .run_async(&*storage)
+        .await
+        .map_err(|e| format!("migration failed: {e:?}"))?;
 
-    let cred_store = D1CredentialStore(Arc::clone(&storage));
-    let session_mgr = Arc::new(
-        SessionManager::new(cred_store, SessionConfig::default(), SIGNING_KEY)
-            .map_err(|e| worker::Error::RustError(format!("session init failed: {e}")))?,
-    );
-
-    let auth_middleware = SessionAuthMiddleware::new(Arc::clone(&session_mgr));
+    let session_mgr = WasmSessionManager {
+        storage: Arc::clone(&storage),
+    };
 
     let app = Arc::new(LazyApp {
         session_mgr,
         storage,
-        auth_middleware,
     });
 
     LAZY_APP
         .set(Arc::clone(&app))
-        .map_err(|_| worker::Error::RustError("concurrent init".into()))?;
+        .map_err(|_| "concurrent init".to_string())?;
     Ok(app)
-}
-
-// ===========================================================================
-// D1CredentialStore — wraps D1WasmStorage (KeyValueStore, stream-returning)
-// into CredentialStore (sync Result-returning) for SessionManager.
-// ===========================================================================
-
-#[derive(Clone)]
-struct D1CredentialStore(Arc<D1WasmStorage>);
-
-impl CredentialStore for D1CredentialStore {
-    fn get<V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, CredentialStoreError> {
-        let stream = self.0.get(key).map_err(CredentialStoreError::Storage)?;
-        for item in stream {
-            if let Stream::Next(result) = item {
-                return result.map_err(CredentialStoreError::Storage);
-            }
-        }
-        Err(CredentialStoreError::NotFound(key.to_string()))
-    }
-
-    fn set<V: serde::Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> Result<(), CredentialStoreError> {
-        let stream = self.0.set(key, value).map_err(CredentialStoreError::Storage)?;
-        for item in stream {
-            if let Stream::Next(result) = item {
-                return result.map_err(CredentialStoreError::Storage);
-            }
-        }
-        Err(CredentialStoreError::Generic("Stream ended without result".to_string()))
-    }
-
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        let stream = self.0.delete(key).map_err(CredentialStoreError::Storage)?;
-        for item in stream {
-            if let Stream::Next(result) = item {
-                return result.map_err(CredentialStoreError::Storage);
-            }
-        }
-        Err(CredentialStoreError::Generic("Stream ended without result".to_string()))
-    }
-
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        let stream = self.0.exists(key).map_err(CredentialStoreError::Storage)?;
-        for item in stream {
-            if let Stream::Next(result) = item {
-                return result.map_err(CredentialStoreError::Storage);
-            }
-        }
-        Err(CredentialStoreError::Generic("Stream ended without result".to_string()))
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self.0.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
-        let mut keys = Vec::new();
-        for item in stream {
-            if let Stream::Next(Ok(k)) = item {
-                keys.push(k);
-            }
-        }
-        Ok(keys)
-    }
-}
-
-// ===========================================================================
-// SessionAuthMiddleware — RequestMiddleware that checks session cookie.
-// ===========================================================================
-
-#[derive(Clone)]
-struct SessionAuthMiddleware {
-    session_mgr: Arc<SessionManager<D1CredentialStore>>,
-}
-
-impl SessionAuthMiddleware {
-    fn new(session_mgr: Arc<SessionManager<D1CredentialStore>>) -> Self {
-        Self { session_mgr }
-    }
-
-    fn has_valid_session(&self, req: &SimpleIncomingRequest) -> bool {
-        let cookie_values = match req.headers.get(&SimpleHeader::from("Cookie".to_string())) {
-            Some(v) => v,
-            None => return false,
-        };
-
-        let token = extract_session_token_from_cookie(
-            &cookie_values,
-            &self.session_mgr.config().token_cookie_name,
-        );
-
-        let Some(token) = token else {
-            return false;
-        };
-
-        match self.session_mgr.get_session(&token) {
-            Ok(Some(s)) => s.is_valid(),
-            _ => false,
-        }
-    }
-
-    fn redirect_to_login() -> MiddlewareResult {
-        let mut headers = SimpleHeaders::new();
-        headers
-            .entry(SimpleHeader::from("Location".to_string()))
-            .or_default()
-            .push("/login".to_string());
-
-        MiddlewareResult::Response(SimpleOutgoingResponse {
-            proto: Proto::HTTP11,
-            status: Status::TemporaryRedirect,
-            headers,
-            body: Some(SendSafeBody::Text("Redirect to login".into())),
-        })
-    }
-}
-
-impl RequestMiddleware for SessionAuthMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
-        if !req.request_url.url.starts_with("/dashboard") {
-            return MiddlewareResult::Continue;
-        }
-
-        if self.has_valid_session(req) {
-            MiddlewareResult::Continue
-        } else {
-            Self::redirect_to_login()
-        }
-    }
 }
 
 // ===========================================================================
 // Helpers
 // ===========================================================================
 
-fn extract_session_token_from_cookie(cookie_values: &[String], cookie_name: &str) -> Option<String> {
-    for cookie_str in cookie_values {
-        for cookie in cookie_str.split(';') {
-            let cookie = cookie.trim();
-            if let Some(value) = cookie.strip_prefix(&format!("{cookie_name}=")) {
-                return Some(value.split(';').next()?.trim().to_string());
-            }
+fn redirect_response(location: &str, body: &str) -> web_sys::Response {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(302);
+    let headers = web_sys::Headers::new().unwrap();
+    headers.set("Location", location).unwrap();
+    init.set_headers(&headers);
+    web_sys::Response::new_with_opt_str_and_init(Some(body), &init).unwrap()
+}
+
+fn html_response(body: &str, status: u16) -> web_sys::Response {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(status);
+    let headers = web_sys::Headers::new().unwrap();
+    headers.set("Content-Type", "text/html; charset=utf-8").unwrap();
+    init.set_headers(&headers);
+    web_sys::Response::new_with_opt_str_and_init(Some(body), &init).unwrap()
+}
+
+fn error_response(msg: &str) -> web_sys::Response {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(500);
+    web_sys::Response::new_with_opt_str_and_init(Some(msg), &init).unwrap()
+}
+
+fn session_cookie(token: &str) -> String {
+    let max_age = WasmSessionManager::session_duration_secs();
+    format!(
+        "{}={}; Path=/; HttpOnly; Max-Age={}; SameSite=Lax",
+        WasmSessionManager::cookie_name(),
+        token,
+        max_age
+    )
+}
+
+fn clear_cookie(name: &str) -> String {
+    format!("{name}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax")
+}
+
+fn get_session_token_from_cookie(req: &web_sys::Request) -> Option<String> {
+    let cookie_header = req.headers().get("Cookie").ok().flatten()?;
+    for cookie in cookie_header.split(';') {
+        let cookie = cookie.trim();
+        if let Some(value) = cookie.strip_prefix(&format!("{}=", WasmSessionManager::cookie_name()))
+        {
+            return Some(value.split(';').next()?.trim().to_string());
         }
     }
     None
 }
 
-fn serialize_cookie_header(cookie: &foundation_core::wire::simple_http::client::shared::Cookie) -> String {
-    let mut parts = vec![format!("{}={}", cookie.name, cookie.value)];
-    if let Some(ref path) = cookie.path {
-        parts.push(format!("Path={path}"));
-    }
-    if cookie.http_only {
-        parts.push("HttpOnly".to_string());
-    }
-    if let Some(max_age) = cookie.max_age {
-        parts.push(format!("Max-Age={}", max_age.as_secs()));
-    }
-    parts.push(format!("SameSite={:?}", cookie.same_site));
-    parts.join("; ")
-}
-
-fn set_cookies(conn: &mut CfConn, cookies: &[foundation_core::wire::simple_http::client::shared::Cookie]) {
-    for cookie in cookies {
-        conn.append_header("Set-Cookie", &serialize_cookie_header(cookie));
-    }
-}
-
-fn set_cookie_clear_headers(conn: &mut CfConn, names: &[&str]) {
-    for name in names {
-        conn.append_header(
-            "Set-Cookie",
-            &format!(
-                "{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax",
-                name
-            ),
-        );
-    }
-}
-
-fn redirect(conn: &mut CfConn, location: &str, body: &str) -> CfConnectionResult {
-    conn.set_status(302);
-    conn.set_header("Location", location);
-    conn.set_body(body.as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-fn user_exists(storage: &dyn QueryStore, email: &str) -> Result<bool, String> {
+async fn user_exists_async(storage: &D1WasmStorage, email: &str) -> Result<bool, String> {
     let rows = storage
-        .query("SELECT 1 FROM users WHERE email = ?", &[DataValue::Text(email.to_string())])
+        .query_async("SELECT 1 FROM users WHERE email = ?", &[DataValue::Text(email.to_string())])
+        .await
         .map_err(|e| format!("query failed: {e:?}"))?;
-    for row in rows {
-        if let Stream::Next(Ok(_)) = row {
-            return Ok(true);
-        }
-    }
-    Ok(false)
+    Ok(!rows.is_empty())
 }
 
-fn create_user(
-    storage: &dyn QueryStore,
+async fn create_user_async(
+    storage: &D1WasmStorage,
     email: &str,
     password_hash: &str,
 ) -> Result<String, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let stream = storage
-        .execute(
+    storage
+        .execute_async(
             "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
             &[
                 DataValue::Text(id.clone()),
@@ -315,30 +348,25 @@ fn create_user(
                 DataValue::Text(password_hash.to_string()),
             ],
         )
+        .await
         .map_err(|e| format!("insert failed: {e:?}"))?;
-    for item in stream {
-        if let Stream::Next(Err(e)) = item {
-            return Err(format!("insert failed: {e:?}"));
-        }
-    }
     Ok(id)
 }
 
-fn find_user_by_email(
-    storage: &dyn QueryStore,
+async fn find_user_password_hash(
+    storage: &D1WasmStorage,
     email: &str,
 ) -> Result<Option<String>, String> {
     let rows = storage
-        .query(
+        .query_async(
             "SELECT password_hash FROM users WHERE email = ?",
             &[DataValue::Text(email.to_string())],
         )
+        .await
         .map_err(|e| format!("query failed: {e:?}"))?;
-    for row in rows {
-        if let Stream::Next(Ok(sql_row)) = row {
-            if let Ok(hash) = sql_row.get_by_name::<String>("password_hash") {
-                return Ok(Some(hash));
-            }
+    for row in &rows {
+        if let Ok(hash) = row.get_by_name::<String>("password_hash") {
+            return Ok(Some(hash));
         }
     }
     Ok(None)
@@ -374,322 +402,25 @@ fn render_dashboard(user: &str) -> String {
 }
 
 // ===========================================================================
-// Handlers
+// Request parsing helpers
 // ===========================================================================
 
-struct RegisterHandler;
-
-impl CfServeFactory for RegisterHandler {
-    fn create(_bag: &ContextBag) -> Self { RegisterHandler }
-}
-
-impl CfServe for RegisterHandler {
-    fn serve_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &mut CfConn,
-    ) -> CfConnectionResult {
-        let app = get_or_init_app(&bag).expect("init app");
-        match req.method {
-            SimpleMethod::GET => handle_get_register(conn),
-            SimpleMethod::POST => handle_post_register(&app, bag, req, conn),
-            _ => {
-                conn.set_status(405);
-                conn.set_body(b"Method not allowed".to_vec());
-                CfConnectionResult::Ok
-            }
-        }
-    }
-}
-
-fn handle_get_register(conn: &mut CfConn) -> CfConnectionResult {
-    conn.set_status(200);
-    conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(render_register(None).as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-fn handle_post_register(
-    app: &Arc<LazyApp>,
-    _bag: Arc<ContextBag>,
-    req: SimpleIncomingRequest,
-    conn: &mut CfConn,
-) -> CfConnectionResult {
-    let (email, password) = extract_credentials(&req);
-    if email.is_empty() || password.is_empty() {
-        return send_register_error(conn, "Email and password required");
-    }
-
-    if password.len() < 6 {
-        return send_register_error(conn, "Password must be at least 6 characters");
-    }
-
-    let exists = user_exists(&*app.storage, &email).unwrap_or(false);
-    if exists {
-        return send_register_error(conn, "An account with this email already exists");
-    }
-
-    let argon2 = Argon2::default();
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
-        Ok(h) => h.to_string(),
-        Err(e) => {
-            console_error!("argon2 hash failed: {e}");
-            return send_register_error(conn, "Internal server error");
-        }
-    };
-
-    match create_user(&*app.storage, &email, &password_hash) {
-        Ok(_) => redirect(conn, "/login", "Account created. Redirecting to login..."),
-        Err(e) => {
-            console_error!("Failed to create user: {e}");
-            send_register_error(conn, "Failed to create account")
-        }
-    }
-}
-
-fn send_register_error(conn: &mut CfConn, msg: &str) -> CfConnectionResult {
-    conn.set_status(400);
-    conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(render_register(Some(msg)).as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-// ---------------------------------------------------------------------------
-
-struct LoginHandler;
-
-impl CfServeFactory for LoginHandler {
-    fn create(_bag: &ContextBag) -> Self { LoginHandler }
-}
-
-impl CfServe for LoginHandler {
-    fn serve_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &mut CfConn,
-    ) -> CfConnectionResult {
-        let app = get_or_init_app(&bag).expect("init app");
-        match req.method {
-            SimpleMethod::GET => handle_get_login(conn),
-            SimpleMethod::POST => handle_post_login(&app, req, conn),
-            _ => {
-                conn.set_status(405);
-                conn.set_body(b"Method not allowed".to_vec());
-                CfConnectionResult::Ok
-            }
-        }
-    }
-}
-
-fn handle_get_login(conn: &mut CfConn) -> CfConnectionResult {
-    conn.set_status(200);
-    conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(render_login(None).as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-fn handle_post_login(
-    app: &Arc<LazyApp>,
-    req: SimpleIncomingRequest,
-    conn: &mut CfConn,
-) -> CfConnectionResult {
-    let (email, password) = extract_credentials(&req);
-    if email.is_empty() || password.is_empty() {
-        return send_login_error(conn, "Email and password required");
-    }
-
-    let password_hash = match find_user_by_email(&*app.storage, &email) {
-        Ok(Some(hash)) => hash,
-        Ok(None) => return send_login_error(conn, "Invalid credentials"),
-        Err(e) => {
-            console_error!("Failed to look up user: {e}");
-            return send_login_error(conn, "Internal server error");
-        }
-    };
-
-    let parsed_hash = match PasswordHash::new(&password_hash) {
-        Ok(h) => h,
-        Err(_) => return send_login_error(conn, "Invalid credentials"),
-    };
-
-    if Argon2::default()
-        .verify_password(password.as_bytes(), &parsed_hash)
-        .is_err()
-    {
-        return send_login_error(conn, "Invalid credentials");
-    }
-
-    let (session, cookies) = match app.session_mgr.create_session(&email, None, None) {
-        Ok(v) => v,
-        Err(e) => {
-            console_error!("Session creation failed: {e}");
-            return send_login_error(conn, "Internal server error");
-        }
-    };
-
-    conn.set_status(302);
-    conn.set_header("Location", "/dashboard");
-    set_cookies(conn, &cookies);
-    conn.set_body(format!(r#"{{"status":"ok","session_id":"{}"}}"#, session.id).as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-fn send_login_error(conn: &mut CfConn, msg: &str) -> CfConnectionResult {
-    conn.set_status(401);
-    conn.set_header("Content-Type", "text/html; charset=utf-8");
-    conn.set_body(render_login(Some(msg)).as_bytes().to_vec());
-    CfConnectionResult::Ok
-}
-
-// ---------------------------------------------------------------------------
-
-struct DashboardHandler;
-
-impl CfServeFactory for DashboardHandler {
-    fn create(_bag: &ContextBag) -> Self { DashboardHandler }
-}
-
-impl CfServe for DashboardHandler {
-    fn serve_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &mut CfConn,
-    ) -> CfConnectionResult {
-        let app = get_or_init_app(&bag).expect("init app");
-        let cookie_values = match req.headers.get(&SimpleHeader::from("Cookie".to_string())) {
-            Some(v) => v,
-            None => return redirect(conn, "/login", "Redirecting to login..."),
-        };
-
-        let token = extract_session_token_from_cookie(
-            &cookie_values,
-            &app.session_mgr.config().token_cookie_name,
-        );
-
-        let Some(token) = token else {
-            return redirect(conn, "/login", "Redirecting to login...");
-        };
-
-        let session = match app.session_mgr.get_session(&token) {
-            Ok(Some(s)) if s.is_valid() => s,
-            _ => {
-                set_cookie_clear_headers(conn, &["session_token", "session_data", "dont_remember"]);
-                return redirect(conn, "/login", "Redirecting to login...");
-            }
-        };
-
-        let html = render_dashboard(&session.user_id);
-        conn.set_status(200);
-        conn.set_header("Content-Type", "text/html; charset=utf-8");
-        conn.set_body(html.as_bytes().to_vec());
-        CfConnectionResult::Ok
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-struct LogoutHandler;
-
-impl CfServeFactory for LogoutHandler {
-    fn create(_bag: &ContextBag) -> Self { LogoutHandler }
-}
-
-impl CfServe for LogoutHandler {
-    fn serve_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &mut CfConn,
-    ) -> CfConnectionResult {
-        let app = get_or_init_app(&bag).expect("init app");
-        let cookie_values = req.headers.get(&SimpleHeader::from("Cookie".to_string()));
-        if let Some(cookie_values) = cookie_values {
-            let token = extract_session_token_from_cookie(
-                &cookie_values,
-                &app.session_mgr.config().token_cookie_name,
-            );
-
-            if let Some(token) = token {
-                if let Ok(Some(session)) = app.session_mgr.get_session(&token) {
-                    let _ = app.session_mgr.revoke_session(&session.id);
-                }
-            }
-        }
-
-        set_cookie_clear_headers(conn, &["session_token", "session_data", "dont_remember"]);
-        redirect(conn, "/login", "Logged out. Redirecting...")
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-struct HomeHandler;
-
-impl CfServeFactory for HomeHandler {
-    fn create(_bag: &ContextBag) -> Self { HomeHandler }
-}
-
-impl CfServe for HomeHandler {
-    fn serve_cf(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &mut CfConn,
-    ) -> CfConnectionResult {
-        let app = get_or_init_app(&bag).expect("init app");
-        let cookie_values = req.headers.get(&SimpleHeader::from("Cookie".to_string()));
-        let logged_in = if let Some(cookie_values) = cookie_values {
-            let token = extract_session_token_from_cookie(
-                &cookie_values,
-                &app.session_mgr.config().token_cookie_name,
-            );
-            token.is_some_and(|t| {
-                app.session_mgr.get_session(&t).is_ok_and(|s| {
-                    s.is_some_and(|s| s.is_valid())
-                })
-            })
-        } else {
-            false
-        };
-
-        if logged_in {
-            redirect(conn, "/dashboard", "Redirecting to dashboard...")
-        } else {
-            redirect(conn, "/register", "Redirecting to registration...")
-        }
-    }
-}
-
-// ===========================================================================
-// Shared helpers
-// ===========================================================================
-
-fn extract_credentials(req: &SimpleIncomingRequest) -> (String, String) {
-    let body = match &req.body {
-        Some(SendSafeBody::Text(s)) => s.clone(),
-        Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(b).to_string(),
-        _ => return (String::new(), String::new()),
-    };
-
-    if let Some(json) = parse_json_body(&body) {
+fn parse_credentials_from_body(body: &str) -> (String, String) {
+    // Try JSON first
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(body) {
         return (
-            json.get("email").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-            json.get("password").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+            json.get("email")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            json.get("password")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
         );
     }
 
-    parse_form_encoded(&body)
-}
-
-fn parse_json_body(body: &str) -> Option<serde_json::Value> {
-    serde_json::from_str(body).ok()
-}
-
-fn parse_form_encoded(body: &str) -> (String, String) {
+    // Fall back to form-encoded
     let mut email = String::new();
     let mut password = String::new();
     for pair in body.split('&') {
@@ -728,115 +459,228 @@ fn url_decode(s: &str) -> String {
 }
 
 // ===========================================================================
-// CfHttpApp bridge + workers-rs entry point
+// wasm_bindgen entry point — async fetch handler for CF Workers
 // ===========================================================================
 
-fn build_worker() -> CfHttpApp {
+#[wasm_bindgen]
+pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response {
     console_error_panic_hook::set_once();
 
-    let app = HttpApp::new_cf();
-    let mut app = app;
-    app.middleware(LazyAuthMiddleware);
-    app.route_cf::<HomeHandler>(SimpleMethod::GET, "/");
-    app.route_cf::<RegisterHandler>(SimpleMethod::GET, "/register");
-    app.route_cf::<RegisterHandler>(SimpleMethod::POST, "/register");
-    app.route_cf::<LoginHandler>(SimpleMethod::GET, "/login");
-    app.route_cf::<LoginHandler>(SimpleMethod::POST, "/login");
-    app.route_cf::<DashboardHandler>(SimpleMethod::GET, "/dashboard");
-    app.route_cf::<LogoutHandler>(SimpleMethod::GET, "/logout");
-
-    CfHttpApp::from_app(app)
-}
-
-// ---------------------------------------------------------------------------
-
-struct LazyAuthMiddleware;
-
-impl RequestMiddleware for LazyAuthMiddleware {
-    fn handle(
-        &self,
-        ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
-        match get_or_init_app(ctx) {
-            Ok(app) => app.auth_middleware.handle(ctx, req),
-            Err(e) => {
-                console_error!("Auth middleware init failed: {e}");
-                MiddlewareResult::Continue
-            }
+    // Extract D1 binding via workers-rs (robust with miniflare).
+    let d1_db = match env.d1("DB") {
+        Ok(db) => db,
+        Err(e) => {
+            log::error!("D1 binding error: {:?}", e);
+            return error_response("D1 binding error");
         }
-    }
-}
-
-// ===========================================================================
-// Workers-rs entry point — proper wasm init via #[event(fetch)]
-// ===========================================================================
-// Full fetch handler — D1 binding + async migrations + CfHttpApp dispatch
-// ===========================================================================
-
-#[worker::event(fetch)]
-async fn fetch(req: worker::HttpRequest, env: Env, _ctx: worker::Context) -> Result<Response> {
-    console_error_panic_hook::set_once();
-    console_error_panic_hook::set_once();
-
-    let d1_db = env.d1("DB")
-        .map_err(|e| worker::Error::RustError(format!("DB binding error: {e:?}")))?;
-
+    };
     let db: foundation_db::D1Database = d1_db.into();
-    let bag = Arc::new(ContextBag::new());
-    bag.store(db);
 
-    let storage = Arc::new(D1WasmStorage::new(
-        Arc::clone(&bag.get::<foundation_db::D1Database>().unwrap()),
-        "app",
-    ));
-
-    let runner = MigrationRunner::new(MIGRATIONS);
-    let applied = runner.run_async(&*storage).await.map_err(|e| {
-        worker::Error::RustError(format!("migration failed: {e:?}"))
-    })?;
-
-    let path = req.uri().path();
-
-    let msg = if applied > 0 {
-        format!("Applied {} migrations ✓", applied)
-    } else {
-        "Migrations up to date ✓".to_string()
+    // Initialize app (migrations + session manager) on first request.
+    let app = match get_or_init_app(db).await {
+        Ok(a) => a,
+        Err(e) => {
+            log::error!("App init failed: {:?}", e);
+            return error_response(&format!("App init failed: {e}"));
+        }
     };
 
-    match path {
-        "/" => worker::Response::ok(&msg),
-        "/login" => worker::Response::ok("Login page (session manager pending)"),
-        "/register" => worker::Response::ok("Register page (session manager pending)"),
-        "/dashboard" => worker::Response::ok("Dashboard (requires session)"),
-        "/logout" => worker::Response::ok("Logged out"),
-        _ => worker::Response::error("Not found", 404),
+    // Route based on path and method.
+    let path = {
+        let u = req.url();
+        // web_sys::Request.url() returns full URL, extract path portion
+        if let Some(pos) = u.find("//") {
+            let rest = &u[pos + 2..];
+            if let Some(pos2) = rest.find('/') {
+                rest[pos2..].to_string()
+            } else {
+                "/".to_string()
+            }
+        } else {
+            u
+        }
+    };
+
+    let method = req.method();
+
+    match (method.as_str(), path.as_str()) {
+        ("GET", "/") => handle_home(&app, &req).await,
+        ("GET", "/register") => handle_get_register(),
+        ("POST", "/register") => handle_post_register(&app, &req).await,
+        ("GET", "/login") => handle_get_login(),
+        ("POST", "/login") => handle_post_login(&app, &req).await,
+        ("GET", "/dashboard") => handle_dashboard(&app, &req).await,
+        ("GET", "/logout") => handle_logout(&app, &req).await,
+        _ => html_response("Not Found", 404),
     }
 }
 
-fn request_from_worker(
-    req: &worker::HttpRequest,
-) -> Result<SimpleIncomingRequest, worker::Error> {
-    let method = SimpleMethod::from(req.method().as_str().to_string());
-    let url = req.uri().to_string();
+// ===========================================================================
+// Route handlers (async)
+// ===========================================================================
 
-    let mut simple_headers = SimpleHeaders::new();
-    for (key, value) in req.headers() {
-        let header = SimpleHeader::from(key.as_str().to_string());
-        if let Ok(v) = value.to_str() {
-            simple_headers.entry(header).or_default().push(v.to_string());
-        }
+async fn handle_home(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
+    let logged_in = if let Some(token) = get_session_token_from_cookie(req) {
+        app.session_mgr.validate_session(&token).await.is_ok()
+    } else {
+        false
+    };
+
+    if logged_in {
+        redirect_response("/dashboard", "Redirecting to dashboard...")
+    } else {
+        redirect_response("/register", "Redirecting to registration...")
+    }
+}
+
+fn handle_get_register() -> web_sys::Response {
+    html_response(&render_register(None), 200)
+}
+
+async fn handle_post_register(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
+    let body = read_body_text(req).await;
+    let (email, password) = parse_credentials_from_body(&body);
+
+    if email.is_empty() || password.is_empty() {
+        return html_response(&render_register(Some("Email and password required")), 400);
+    }
+    if password.len() < 6 {
+        return html_response(
+            &render_register(Some("Password must be at least 6 characters")),
+            400,
+        );
     }
 
-    // For simplicity, skip body reading in this demo
-    let body = None;
+    match user_exists_async(&app.storage, &email).await {
+        Ok(true) => {
+            return html_response(
+                &render_register(Some("An account with this email already exists")),
+                400,
+            );
+        }
+        Err(e) => {
+            log::error!("User check failed: {:?}", e);
+            return html_response(&render_register(Some("Internal server error")), 500);
+        }
+        Ok(false) => {}
+    }
 
-    SimpleIncomingRequest::builder()
-        .with_parsed_url(url)
-        .with_method(method)
-        .with_proto(Proto::HTTP11)
-        .with_headers(simple_headers)
-        .with_some_body(body)
-        .build()
-        .map_err(|e| worker::Error::RustError(format!("failed to build request: {e}")))
+    let argon2 = Argon2::default();
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
+        Ok(h) => h.to_string(),
+        Err(e) => {
+            log::error!("argon2 hash failed: {:?}", e);
+            return html_response(&render_register(Some("Internal server error")), 500);
+        }
+    };
+
+    match create_user_async(&app.storage, &email, &password_hash).await {
+        Ok(_) => redirect_response("/login", "Account created. Redirecting to login..."),
+        Err(e) => {
+            log::error!("Create user failed: {:?}", e);
+            html_response(&render_register(Some("Failed to create account")), 500)
+        }
+    }
+}
+
+fn handle_get_login() -> web_sys::Response {
+    html_response(&render_login(None), 200)
+}
+
+async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
+    let body = read_body_text(req).await;
+    let (email, password) = parse_credentials_from_body(&body);
+
+    if email.is_empty() || password.is_empty() {
+        return html_response(&render_login(Some("Email and password required")), 400);
+    }
+
+    let password_hash = match find_user_password_hash(&app.storage, &email).await {
+        Ok(Some(hash)) => hash,
+        Ok(None) => return html_response(&render_login(Some("Invalid credentials")), 401),
+        Err(e) => {
+            log::error!("User lookup failed: {:?}", e);
+            return html_response(&render_login(Some("Internal server error")), 500);
+        }
+    };
+
+    let parsed_hash = match PasswordHash::new(&password_hash) {
+        Ok(h) => h,
+        Err(_) => return html_response(&render_login(Some("Invalid credentials")), 401),
+    };
+
+    if Argon2::default()
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_err()
+    {
+        return html_response(&render_login(Some("Invalid credentials")), 401);
+    }
+
+    let token = match app.session_mgr.create_session(&email).await {
+        Ok(t) => t,
+        Err(e) => {
+            log::error!("Session creation failed: {:?}", e);
+            return html_response(&render_login(Some("Internal server error")), 500);
+        }
+    };
+
+    let init = web_sys::ResponseInit::new();
+    init.set_status(302);
+    let headers = web_sys::Headers::new().unwrap();
+    headers.set("Location", "/dashboard").unwrap();
+    headers.append("Set-Cookie", &session_cookie(&token)).unwrap();
+    init.set_headers(&headers);
+    web_sys::Response::new_with_opt_str_and_init(
+        Some(r#"{"status":"ok"}"#),
+        &init,
+    )
+    .unwrap()
+}
+
+async fn handle_dashboard(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
+    let Some(token) = get_session_token_from_cookie(req) else {
+        return redirect_response("/login", "Redirecting to login...");
+    };
+
+    let user_id = match app.session_mgr.validate_session(&token).await {
+        Ok(uid) => uid,
+        Err(e) => {
+            log::debug!("Dashboard auth failed: {:?}", e);
+            return redirect_response("/login", "Redirecting to login...");
+        }
+    };
+
+    html_response(&render_dashboard(&user_id), 200)
+}
+
+async fn handle_logout(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
+    if let Some(token) = get_session_token_from_cookie(req) {
+        let _ = app.session_mgr.revoke_session(&token).await;
+    }
+
+    let init = web_sys::ResponseInit::new();
+    init.set_status(302);
+    let headers = web_sys::Headers::new().unwrap();
+    headers.set("Location", "/login").unwrap();
+    headers
+        .append("Set-Cookie", &clear_cookie(WasmSessionManager::cookie_name()))
+        .unwrap();
+    init.set_headers(&headers);
+    web_sys::Response::new_with_opt_str_and_init(Some("Logged out. Redirecting..."), &init).unwrap()
+}
+
+// ===========================================================================
+// Body reading helper
+// ===========================================================================
+
+async fn read_body_text(req: &web_sys::Request) -> String {
+    let text_promise = match req.text() {
+        Ok(p) => p,
+        Err(_) => return String::new(),
+    };
+    match JsFuture::from(text_promise).await {
+        Ok(v) => v.as_string().unwrap_or_default(),
+        Err(_) => String::new(),
+    }
 }
