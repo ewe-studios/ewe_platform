@@ -9,9 +9,7 @@ repository.workspace = true
 keywords = ["cloudflare", "wasm", "login", "example"]
 
 [dependencies]
-foundation_http = { workspace = true, features = ["wasm-bindgen-http"] }
 foundation_db = { workspace = true, default-features = false, features = ["wasm", "wasm-bindgen-storage", "workers-rs"] }
-foundation_auth = { workspace = true, features = ["wasm"] }
 foundation_core = { workspace = true }
 
 wasm-bindgen = "0.2"
