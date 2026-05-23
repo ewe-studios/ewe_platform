@@ -420,6 +420,7 @@ mod multi_threaded_tests {
     }
 
     mod inline_execution {
+        use crate::valtron::NotificationItem;
         use crate::valtron::Stream;
 
         use super::*;
@@ -443,8 +444,11 @@ mod multi_threaded_tests {
 
             let complete: Vec<usize> = iter
                 .map(|item| match item {
-                    TaskStatus::Ready(value) => Some(value),
-                    _ => None,
+                    NotificationItem::Ready(inner) => match inner {
+                        TaskStatus::Ready(value) => Some(value),
+                        _ => None,
+                    },
+                    NotificationItem::None => None,
                 })
                 .take_while(|t: &Option<usize>| t.is_some())
                 .map(|t: Option<usize>| t.unwrap())
