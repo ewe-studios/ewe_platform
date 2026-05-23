@@ -2614,9 +2614,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             if matches!(&response, ProgressIndicator::Wait) {
                 tracing::debug!(
                     "run_until: Wait → yielding to JS event loop ({}ms)",
-                    crate::wasm::JS_WAIT_CHECK_INTERVAL.as_millis()
+                    crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL.as_millis()
                 );
-                let signal = self.yielder.yield_for(crate::wasm::JS_WAIT_CHECK_INTERVAL);
+                let signal = self.yielder.yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
                 if self.yielder.should_stop(&signal) {
                     break;
                 }
@@ -2685,7 +2685,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::Wait => {
                         #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
                         {
-                            let signal = self.yielder.yield_for(crate::wasm::JS_WAIT_CHECK_INTERVAL);
+                            let signal = self.yielder.yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
                             if self.yielder.should_stop(&signal) {
                                 break 'main_loop; // JS event loop will check for new tasks
                             }

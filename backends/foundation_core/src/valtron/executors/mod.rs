@@ -33,6 +33,8 @@ pub use unified::*;
 pub use wrappers::*;
 
 pub mod single;
+
+#[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
 pub mod wasm;
 
 #[cfg(feature = "multi")]
