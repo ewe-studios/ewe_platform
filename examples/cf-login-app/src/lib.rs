@@ -420,12 +420,14 @@ async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Re
         return html_response(&render_login(Some("Invalid credentials")), 401);
     }
 
-    // Use SessionManager (sync valtron API — exercises JSThreadYielder)
-    let (session, cookies) = match app.session_mgr.create_session(
+    // Use SessionManager async API — calls AsyncCredentialStore methods.
+    let (session, cookies) = match app.session_mgr.create_session_async(
         &email,
         None,
         None,
-    ) {
+    )
+    .await
+    {
         Ok(result) => result,
         Err(e) => {
             log::error!("Session creation failed: {:?}", e);
@@ -459,8 +461,8 @@ async fn handle_dashboard(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return redirect_response("/login", "Redirecting to login...");
     };
 
-    // Use SessionManager (sync valtron API — exercises JSThreadYielder)
-    match app.session_mgr.get_session(&token) {
+    // Use SessionManager async API — calls AsyncCredentialStore methods.
+    match app.session_mgr.get_session_async(&token).await {
         Ok(Some(session)) => html_response(&render_dashboard(&session.user_id), 200),
         Ok(None) => redirect_response("/login", "Redirecting to login..."),
         Err(e) => {
@@ -475,9 +477,9 @@ async fn handle_logout(app: &LazyApp, req: &web_sys::Request) -> web_sys::Respon
     if let Some(cookie_values) = cookie_values {
         let token = extract_session_token_from_cookie(&[cookie_values]);
         if let Some(token) = token {
-            match app.session_mgr.get_session(&token) {
+            match app.session_mgr.get_session_async(&token).await {
                 Ok(Some(session)) => {
-                    let _ = app.session_mgr.revoke_session(&session.id);
+                    let _ = app.session_mgr.revoke_session_async(&session.id).await;
                 }
                 _ => {}
             }
