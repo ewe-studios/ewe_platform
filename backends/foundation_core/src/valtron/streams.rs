@@ -56,6 +56,10 @@ pub enum Stream<D, P> {
 
     /// Indicative the stream just issued its next value.
     Next(D),
+
+    /// No data available, queue still open.
+    /// Propagates to executor as a yield signal — on JS, maps to a short setTimeout (~4ms).
+    Wait,
 }
 
 /// [`StreamIterator`] defines an iterator that yields [`Stream<D, P>`] items.
@@ -1394,6 +1398,7 @@ where
             Stream::Delayed(d) => Stream::Delayed(d),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -1431,6 +1436,7 @@ where
             Stream::Delayed(d) => Stream::Delayed(d),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -1466,6 +1472,7 @@ where
             Stream::Delayed(d) => Stream::Delayed(*d),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -1543,6 +1550,7 @@ where
             Stream::Delayed(d) => Stream::Delayed((self.mapper)(d)),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -1589,6 +1597,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => {
                 // Inner iterator is done, yield the collected result
                 self.done = true;
@@ -2099,6 +2108,10 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
+                Some(Stream::Wait) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
                 None => {
                     exhausted_indices.push(idx);
                     self.current_index = (self.current_index + 1) % self.sources.len();
@@ -2195,6 +2208,9 @@ where
                     all_done = false;
                 }
                 Some(Stream::Ignore) => {
+                    all_done = false;
+                }
+                Some(Stream::Wait) => {
                     all_done = false;
                 }
                 None => {
@@ -2334,6 +2350,7 @@ where
                 Stream::Delayed(inner) => Some(Stream::Delayed(inner)),
                 Stream::Init => Some(Stream::Init),
                 Stream::Ignore => Some(Stream::Ignore),
+                Stream::Wait => Some(Stream::Wait),
             },
             None => None,
         }
@@ -2385,6 +2402,7 @@ where
                 Stream::Delayed(inner) => Some(Stream::Delayed(inner)),
                 Stream::Init => Some(Stream::Init),
                 Stream::Ignore => Some(Stream::Ignore),
+                Stream::Wait => Some(Stream::Wait),
             },
             None => None,
         }
@@ -2485,6 +2503,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => None,
         }
     }
@@ -2533,6 +2552,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => None,
         }
     }
@@ -2585,6 +2605,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => None,
         }
     }
@@ -2637,6 +2658,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => None,
         }
     }
@@ -2866,6 +2888,7 @@ where
             Stream::Delayed(d) => Stream::Delayed(d),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -2902,6 +2925,7 @@ where
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
         }
     }
 }
@@ -2940,6 +2964,7 @@ where
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
         }
     }
 }
@@ -2983,6 +3008,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => {
                 // Inner exhausted, yield final accumulated value
                 self.done = true;
@@ -3036,6 +3062,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => {
                 self.done = true;
                 Some(Stream::Next(true))
@@ -3082,6 +3109,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => {
                 self.done = true;
                 Some(Stream::Next(false))
@@ -3112,6 +3140,7 @@ where
             Stream::Delayed(d) => Stream::Delayed(d),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
         })
     }
 }
@@ -3147,6 +3176,7 @@ where
             Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
+            Some(Stream::Wait) => Some(Stream::Wait),
             None => {
                 // Inner exhausted, yield final count
                 self.done = true;
@@ -3226,6 +3256,10 @@ where
                     return Some(Stream::Pending(self.sources.len()));
                 }
                 Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                Some(Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }

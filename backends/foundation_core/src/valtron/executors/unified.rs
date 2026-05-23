@@ -747,6 +747,10 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
+            Some(Stream::Wait) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
             None => {
                 // Source exhausted - remove it using swap_remove for O(1) complexity
                 self.sources.swap_remove(idx);
@@ -957,6 +961,10 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
+                Some(Stream::Wait) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
                 None => {
                     exhausted_indices.push(idx);
                     self.current_index = (self.current_index + 1) % self.sources.len();
@@ -1134,6 +1142,9 @@ where
                     all_done = false;
                 }
                 Some(Stream::Ignore) => {
+                    all_done = false;
+                }
+                Some(Stream::Wait) => {
                     all_done = false;
                 }
                 None => {
@@ -1476,6 +1487,10 @@ where
                     return Some(Stream::Pending(self.sources.len()));
                 }
                 Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                Some(Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }

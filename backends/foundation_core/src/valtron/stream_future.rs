@@ -47,7 +47,7 @@ where
             match iter.next() {
                 Some(Stream::Next(v)) => this.collected.push(v),
                 Some(Stream::Ignore) => {}
-                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
@@ -91,7 +91,7 @@ where
                     return Poll::Ready(Some((v, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
@@ -133,7 +133,7 @@ where
                     return Poll::Ready(Some((p, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init) => {
+                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }

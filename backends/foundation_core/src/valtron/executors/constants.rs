@@ -33,6 +33,11 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
     std::time::Duration::from_millis(10);
 
+/// `DEFAULT_NOTIFY_QUEUE_MAX_SPINS` is the maximum number of CondVar wait retries before
+/// yielding back to the executor. Default of 1 gives one CondVar wait cycle (~10ms) before
+/// yielding, allowing the executor to make progress decisions (e.g., yield to JS event loop).
+pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 1;
+
 /// `DEFAULT_KILL_SIGNAL_CHECK_INTERVAL` is how often to check kill signal in `block_on()` inner loop.
 /// Default is every 16 iterations (instead of checking every iteration or only every 200).
 pub const DEFAULT_KILL_SIGNAL_CHECK_INTERVAL: usize = 16;

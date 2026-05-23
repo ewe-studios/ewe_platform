@@ -111,6 +111,7 @@ where
                     State::ReadyValue(entry)
                 }
                 TaskStatus::Ignore => State::Pending(None),
+                TaskStatus::Wait => State::Wait,
             },
             None => State::Done,
         })

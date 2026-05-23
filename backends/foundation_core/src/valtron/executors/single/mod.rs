@@ -388,12 +388,10 @@ mod single_threaded_tests {
         run_until_complete();
 
         let complete: Vec<usize> = iter
-            .map(|item| match item {
-                TaskStatus::Ready(value) => Some(value),
+            .filter_map(|item| match item {
+                crate::valtron::executors::local::NotificationItem::Ready(TaskStatus::Ready(value)) => Some(value),
                 _ => None,
             })
-            .take_while(|t| t.is_some())
-            .map(|t| t.unwrap())
             .collect();
 
         assert_eq!(complete, vec![1, 2, 3, 4, 5]);

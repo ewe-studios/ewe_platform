@@ -62,7 +62,8 @@ impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
                             // when the child is active
                             let needs_propagation = matches!(
                                 parent_state,
-                                State::Pending(Some(_))
+                                State::Wait
+                                    | State::Pending(Some(_))
                                     | State::SpawnFinished(_)
                                     | State::Panicked
                                     | State::Reschedule

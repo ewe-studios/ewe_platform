@@ -16,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::valtron::{
     InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
     NotifyQueueStreamIterator, NotifyRecvIter, NotifyRecvIterator, PriorityOrder,
+    NotificationItem,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
@@ -50,9 +51,16 @@ fn test_notify_queue_blocks_until_item_available() {
         queue_clone.push(42).expect("push should succeed");
     });
 
-    // Consumer waits for item (blocks until available)
+    // Consumer waits for item (blocks until available via retry loop)
     let start = Instant::now();
-    let result = queue.wait_for_item(Duration::from_micros(100));
+    let mut result = None;
+    loop {
+        match queue.wait_for_item(Duration::from_micros(100)) {
+            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::None) => continue, // Yield signal, retry
+            None => break, // Queue closed
+        }
+    }
     let elapsed = start.elapsed();
 
     producer.join().expect("producer should complete");
@@ -90,7 +98,7 @@ fn test_notify_queue_receives_item_with_notification() {
 
     // Should receive immediately with short timeout
     let result = queue.wait_for_item(Duration::from_micros(100));
-    assert_eq!(result, Some(42));
+    assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
 
 /// Test NotifyQueue handles multiple items with blocking behavior.
@@ -109,11 +117,15 @@ fn test_notify_queue_multiple_items_blocking() {
         }
     });
 
-    // Receive all items (blocks for each)
+    // Receive all items (retry loop for each)
     let mut received = Vec::new();
     for _ in 0..5 {
-        if let Some(item) = queue.wait_for_item(Duration::from_micros(100)) {
-            received.push(item);
+        loop {
+            match queue.wait_for_item(Duration::from_micros(100)) {
+                Some(NotificationItem::Ready(item)) => { received.push(item); break; }
+                Some(NotificationItem::None) => continue,
+                None => break,
+            }
         }
     }
 
@@ -138,7 +150,7 @@ fn test_notify_queue_race_condition_handling() {
     let result = queue.wait_for_item(Duration::from_millis(100));
     let elapsed = start.elapsed();
 
-    assert_eq!(result, Some(100));
+    assert_eq!(result, Some(NotificationItem::Ready(100)));
     // Should be very fast since item was already there
     assert!(
         elapsed < Duration::from_millis(10),
@@ -184,9 +196,16 @@ fn test_notify_queue_timeout_is_recheck_interval() {
         queue_clone.push(99).expect("push should succeed");
     });
 
-    // Even with ultra-short timeout parameter, should block until item available
+    // Even with ultra-short timeout parameter, should block until item available (retry loop)
     let start = Instant::now();
-    let result = queue.wait_for_item(Duration::from_micros(1));
+    let mut result = None;
+    loop {
+        match queue.wait_for_item(Duration::from_micros(1)) {
+            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::None) => continue,
+            None => break,
+        }
+    }
     let elapsed = start.elapsed();
 
     producer.join().expect("producer should complete");
@@ -217,9 +236,16 @@ fn test_notify_recv_iterator_blocks_until_item() {
         queue_clone.push(42).expect("push should succeed");
     });
 
-    // Consumer blocks waiting for item
+    // Consumer blocks waiting for item (retry loop until Ready)
     let start = Instant::now();
-    let result = recv_iter.block_recv(Duration::from_micros(100));
+    let mut result = None;
+    loop {
+        match recv_iter.block_recv(Duration::from_micros(100)) {
+            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::None) => continue,
+            None => break,
+        }
+    }
     let elapsed = start.elapsed();
 
     producer.join().expect("producer should complete");
@@ -245,7 +271,13 @@ fn test_notify_recv_iterator_iterates_with_notification() {
     queue.push(3).unwrap();
 
     // Collect items through iterator
-    let items: Vec<_> = iterator.take(3).collect();
+    let items: Vec<_> = iterator
+        .take(3)
+        .filter_map(|item| match item {
+            NotificationItem::Ready(v) => Some(v),
+            _ => None,
+        })
+        .collect();
     assert_eq!(items, vec![1, 2, 3]);
 }
 
@@ -270,16 +302,21 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
         queue_clone.push(Stream::Next(2)).unwrap();
     });
 
-    // Iterator blocks waiting for values
+    // Iterator blocks waiting for values (retry loop for each)
     let start = Instant::now();
-    let result1 = iterator.next();
-    let result2 = iterator.next();
+    let mut results = Vec::new();
+    while results.len() < 2 {
+        match iterator.next() {
+            Some(Stream::Next(v)) => results.push(v),
+            Some(Stream::Wait) | Some(Stream::Ignore) | Some(Stream::Init) | Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) => continue,
+            None => break,
+        }
+    }
     let elapsed = start.elapsed();
 
     producer.join().expect("producer should complete");
 
-    assert_eq!(result1, Some(Stream::Next(1)));
-    assert_eq!(result2, Some(Stream::Next(2)));
+    assert_eq!(results, vec![1, 2]);
     // Should have blocked at least 20ms
     assert!(
         elapsed >= Duration::from_millis(15),
@@ -379,8 +416,8 @@ fn test_single_threaded_executor_with_notification_tasks() {
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(status) = receiver.next() {
-        if let TaskStatus::Ready(val) = status {
+    while let Some(item) = receiver.next() {
+        if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
     }
@@ -493,7 +530,7 @@ fn test_single_threaded_producer_consumer_interleaved() {
         produced += 1;
 
         // Consume with short timeout
-        if let Some(val) = queue.wait_for_item(short_timeout) {
+        if let Some(NotificationItem::Ready(val)) = queue.wait_for_item(short_timeout) {
             assert_eq!(val, i);
             consumed += 1;
         }

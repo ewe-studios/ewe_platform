@@ -375,6 +375,18 @@ where
                         });
                         Some(TaskStatus::Ignore)
                     }
+                    TaskStatus::Wait => {
+                        self.state = Some(StoreStatePrecomputed::Inner {
+                            inner,
+                            state_store,
+                            resource_id,
+                            resource_kind,
+                            provider,
+                            input,
+                            environment,
+                        });
+                        Some(TaskStatus::Wait)
+                    }
                 }
             }
             StoreStatePrecomputed::Storing { output, mut stream } => {
@@ -637,6 +649,15 @@ where
                             environment,
                         });
                         Some(TaskStatus::Ignore)
+                    }
+                    TaskStatus::Wait => {
+                        self.state = Some(StoreStateIdentifierInner::Inner {
+                            inner,
+                            state_store,
+                            input,
+                            environment,
+                        });
+                        Some(TaskStatus::Wait)
                     }
                 }
             }

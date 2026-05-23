@@ -158,6 +158,7 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
             foundation_core::valtron::TaskStatus::Ready(_) => "Ready".to_string(),
             foundation_core::valtron::TaskStatus::Ignore => "Ignore".to_string(),
             foundation_core::valtron::TaskStatus::Spawn(_) => "Spawn".to_string(),
+            foundation_core::valtron::TaskStatus::Wait => "Wait".to_string(),
         };
         states.push(label);
         // Safety valve

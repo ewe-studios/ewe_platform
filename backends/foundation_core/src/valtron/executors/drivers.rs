@@ -13,8 +13,8 @@ use crate::valtron::StreamTask;
 use crate::{
     valtron::{
         ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
-        InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
-        TaskStatusMapper,
+        InlineSendActionBehaviour, NotificationItem, ProgressIndicator, State, TaskIterator,
+        TaskStatus, TaskStatusMapper,
     },
     valtron::{NotifyQueueStreamIterator, NotifyRecvIterator, Stream},
 };
@@ -76,7 +76,11 @@ pub fn run_until_next_state() {
     run_until_next_acceptable_state(|candidate| {
         !matches!(
             candidate,
-            State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule | State::Done
+            State::SpawnFailed(_)
+                | State::SpawnFinished(_)
+                | State::Reschedule
+                | State::Done
+                | State::Wait
         )
     });
 }
@@ -833,6 +837,7 @@ where
                             | State::SpawnFinished(_)
                             | State::Reschedule
                             | State::Done
+                            | State::Wait
                     ) {
                         false
                     } else {
@@ -912,7 +917,10 @@ where
                 if let ProgressIndicator::CanProgress(Some(state)) = indicator {
                     if matches!(
                         state,
-                        State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+                        State::SpawnFailed(_)
+                            | State::SpawnFinished(_)
+                            | State::Reschedule
+                            | State::Wait
                     ) {
                         false
                     } else {
@@ -926,13 +934,19 @@ where
 
             let next_value = task_iterator.next();
 
-            // if the next value is Some(_) then set back the
-            // executor for the next call.
-            if next_value.is_some() {
-                self.0.replace(task_iterator);
+            // Handle NotificationItem from NotifyRecvIterator
+            match next_value {
+                Some(NotificationItem::Ready(status)) => {
+                    self.0.replace(task_iterator);
+                    Some(status)
+                }
+                Some(NotificationItem::None) => {
+                    // Queue open but empty — signal Wait to executor
+                    self.0.replace(task_iterator);
+                    Some(TaskStatus::Wait)
+                }
+                None => None, // Queue closed
             }
-
-            next_value
         } else {
             None
         }
@@ -981,13 +995,19 @@ where
 
             let next_value = task_iterator.next();
 
-            // if the next value is Some(_) then set back the
-            // executor for the next call.
-            if next_value.is_some() {
-                self.0.replace(task_iterator);
+            // Handle NotificationItem from NotifyRecvIterator
+            match next_value {
+                Some(NotificationItem::Ready(status)) => {
+                    self.0.replace(task_iterator);
+                    Some(status)
+                }
+                Some(NotificationItem::None) => {
+                    // Queue open but empty — signal Wait to executor
+                    self.0.replace(task_iterator);
+                    Some(TaskStatus::Wait)
+                }
+                None => None, // Queue closed
             }
-
-            next_value
         } else {
             None
         }

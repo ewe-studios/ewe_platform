@@ -78,6 +78,7 @@ where
             TaskStatus::Spawn(a) => TaskStatus::Spawn(a),
             TaskStatus::Init => TaskStatus::Init,
             TaskStatus::Ignore => TaskStatus::Ignore,
+            TaskStatus::Wait => TaskStatus::Wait,
         })
     }
 }

@@ -219,6 +219,7 @@ where
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
+                    Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Ready(item)) => {
                         match item {
                             HttpRequestRedirectResponse::Done(
@@ -507,6 +508,7 @@ where
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
+                    Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Ready(item)) => {
                         // do one last check for a redirect as final response
                         self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));

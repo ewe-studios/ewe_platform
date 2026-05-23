@@ -259,6 +259,21 @@ where
                     }
                 }
             }
+            TaskStatus::Wait => {
+                match self.channel.push(Stream::Wait) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        self.pending_msg = Some(Stream::Wait);
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
+                }
+            }
         })
     }
 }
@@ -513,6 +528,21 @@ where
                 }
             }
             TaskStatus::Ignore => State::Pending(None),
+            TaskStatus::Wait => {
+                match self.channel.push(TaskStatus::Wait) {
+                    Ok(()) => State::Pending(None),
+                    Err(PushError::Full(_)) => {
+                        self.pending_msg = Some(TaskStatus::Wait);
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
+                }
+            }
         })
     }
 }
@@ -693,6 +723,21 @@ where
                 }
             }
             TaskStatus::Ignore => State::Pending(None),
+            TaskStatus::Wait => {
+                match self.channel.push(TaskStatus::Wait) {
+                    Ok(()) => State::ReadyValue(entry),
+                    Err(PushError::Full(_)) => {
+                        self.pending_msg = Some(TaskStatus::Wait);
+                        State::Pending(None)
+                    }
+                    Err(PushError::Closed(_)) => {
+                        tracing::error!("Channel closed, terminating task");
+                        self.channel.close();
+                        self.alive.take();
+                        State::Done
+                    }
+                }
+            }
         })
     }
 }

@@ -10,7 +10,7 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{SharedTaskQueue, TaskStatus, WrapTask};
 use foundation_core::valtron::{
     ExecutionAction, InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    PriorityOrder,
+    PriorityOrder, NotificationItem,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
@@ -216,8 +216,8 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
     executor.run_until(|state| state == ProgressIndicator::NoWork);
 
     // Collect any remaining results
-    while let Some(status) = receiver.lock().unwrap().next() {
-        if let TaskStatus::Ready(val) = status {
+    while let Some(item) = receiver.lock().unwrap().next() {
+        if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
     }
@@ -280,8 +280,8 @@ fn test_executor_ready_iter_no_message_loss() {
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(status) = receiver.next() {
-        if let TaskStatus::Ready(val) = status {
+    while let Some(item) = receiver.next() {
+        if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
     }

@@ -8,7 +8,7 @@ use std::{
     rc,
     sync::{
         self,
-        atomic::{self, AtomicBool},
+        atomic::{self, AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
     time,
@@ -36,7 +36,7 @@ use crate::valtron::{
     SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskStatusMapper,
 };
 
-use crate::valtron::executors::constants::DEFAULT_KILL_SIGNAL_CHECK_INTERVAL;
+use crate::valtron::executors::constants::{DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS};
 
 /// Identifies a thread executor instance.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -167,6 +167,19 @@ impl Waiter for Sleepable {
 
 /// `NotifyQueue` wraps a `ConcurrentQueue` with CondVar-based notification.
 ///
+/// Return type for `wait_for_item` that lets callers decide how to handle "nothing yet".
+/// `Ready(value)` means an item was received. `None` means the queue is open but empty
+/// after exhausting `max_spins` retries — caller decides whether to retry, yield, or stop.
+/// When the queue is actually closed, `wait_for_item` returns `None` (Option) to end iteration.
+#[derive(Debug, Clone, PartialEq)]
+pub enum NotificationItem<T> {
+    /// An item was received successfully.
+    Ready(T),
+    /// No item available after max_spins retries, queue still open.
+    /// Caller maps this upward (e.g., to Stream::Wait or TaskStatus::Wait).
+    None,
+}
+
 /// When `push()` is called, it notifies one waiting consumer via CondVar.
 /// Consumers use `wait_for_item()` to block efficiently until an item is available.
 ///
@@ -179,6 +192,8 @@ pub struct NotifyQueue<T> {
     condvar: Arc<foundation_nostd::comp::condvar_comp::CondVar>,
     /// Mutex for CondVar wait condition
     mutex: Arc<foundation_nostd::comp::condvar_comp::Mutex<bool>>,
+    /// Maximum number of CondVar wait retries before yielding back.
+    max_spins: AtomicUsize,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -187,6 +202,7 @@ impl<T> Clone for NotifyQueue<T> {
             queue: self.queue.clone(),
             condvar: self.condvar.clone(),
             mutex: self.mutex.clone(),
+            max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
         }
     }
 }
@@ -198,6 +214,7 @@ impl<T> NotifyQueue<T> {
             queue: Arc::new(ConcurrentQueue::unbounded()),
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
+            max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
         }
     }
 
@@ -207,7 +224,13 @@ impl<T> NotifyQueue<T> {
             queue: Arc::new(ConcurrentQueue::bounded(capacity)),
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
+            max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
         }
+    }
+
+    /// Set the maximum number of CondVar wait retries before yielding back to executor.
+    pub fn set_max_spins(&self, max_spins: usize) {
+        self.max_spins.store(max_spins, Ordering::Relaxed);
     }
 
     /// Pushes an item to the queue and notifies one waiting consumer.
@@ -226,27 +249,32 @@ impl<T> NotifyQueue<T> {
     }
 
     /// Waits for an item, blocking efficiently via CondVar.
-    /// Returns the item if available, or None only if the queue is closed.
-    /// Loops indefinitely until either an item is available or queue is closed.
-    pub fn wait_for_item(&self, timeout: time::Duration) -> Option<T> {
+    /// Returns `Some(NotificationItem::Ready(value))` if item available,
+    /// `Some(NotificationItem::None)` if queue open but empty after max_spins,
+    /// or `None` (Option) if queue is closed — iteration should end.
+    pub fn wait_for_item(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
         // First try non-blocking pop
         match self.queue.pop() {
-            Ok(item) => return Some(item),
+            Ok(item) => return Some(NotificationItem::Ready(item)),
             Err(PopError::Closed) => return None,
             Err(PopError::Empty) => {}
         }
 
-        // Need to wait - use CondVar for efficient blocking
-        // Loop indefinitely until item available or queue closed
+        let max_spins = self.max_spins.load(Ordering::Relaxed);
+        let mut spins = 0;
         let mut guard = self.mutex.lock().unwrap();
 
         loop {
+            if spins >= max_spins {
+                *guard = false;
+                return Some(NotificationItem::None);
+            }
+
             // Check queue after acquiring lock
             match self.queue.pop() {
                 Ok(item) => {
-                    // Item available, no need to wait
                     *guard = false;
-                    return Some(item);
+                    return Some(NotificationItem::Ready(item));
                 }
                 Err(PopError::Closed) => {
                     *guard = false;
@@ -256,15 +284,15 @@ impl<T> NotifyQueue<T> {
             }
 
             // Wait with timeout - returns guard when notified or timeout
-            // Timeout just means we re-check; we don't return None on timeout
             let result = self.condvar.wait_timeout(guard, timeout).unwrap();
             guard = result.0;
+            spins += 1;
 
             // Check if item available after waking up
             match self.queue.pop() {
                 Ok(item) => {
-                    *guard = false; // Reset notification flag
-                    return Some(item);
+                    *guard = false;
+                    return Some(NotificationItem::Ready(item));
                 }
                 Err(PopError::Closed) => {
                     *guard = false;
@@ -343,8 +371,10 @@ impl<T> NotifyRecvIter<T> {
     }
 
     /// Blocks efficiently until an item is available or timeout.
-    /// Returns None if timeout expires or queue is closed.
-    pub fn block_recv(&self, timeout: time::Duration) -> Option<T> {
+    /// Returns `Some(NotificationItem::Ready(value))` if item available,
+    /// `Some(NotificationItem::None)` if queue open but empty,
+    /// or `None` (Option) if queue is closed.
+    pub fn block_recv(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
         self.queue.wait_for_item(timeout)
     }
 }
@@ -384,10 +414,14 @@ impl<T> NotifyRecvIterator<T> {
 }
 
 impl<T> Iterator for NotifyRecvIterator<T> {
-    type Item = T;
+    type Item = NotificationItem<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.block_recv(self.1)
+        match self.0.block_recv(self.1) {
+            Some(NotificationItem::Ready(value)) => Some(NotificationItem::Ready(value)),
+            Some(NotificationItem::None) => Some(NotificationItem::None),
+            None => None, // Queue closed, iteration ends
+        }
     }
 }
 
@@ -499,15 +533,18 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
         }
 
         // Queue is empty - block efficiently until item is available
-        // wait_for_item now loops internally until item or closed
-        tracing::trace!("queue empty, blocking via wait_for_item");
         match self.chan.wait_for_item(self.park_duration) {
-            Some(value) => {
+            Some(NotificationItem::Ready(value)) => {
                 tracing::debug!("received value after blocking wait");
                 Some(value)
             }
+            Some(NotificationItem::None) => {
+                // Queue open but empty after max_spins — signal executor to yield
+                tracing::trace!("queue empty after max_spins, returning Stream::Wait");
+                Some(Stream::Wait)
+            }
             None => {
-                // Only returns None when queue is closed
+                // Queue closed, iteration ends
                 tracing::debug!("queue closed, ending iteration");
                 None
             }
@@ -677,6 +714,10 @@ pub enum ProgressIndicator {
     /// Indicates it needs to wait for some period of time
     /// before progress can be made.
     SpinWait(time::Duration),
+
+    /// Queue empty, nothing available yet. Signals executor to yield
+    /// and re-check. On JS, maps to a short setTimeout (~4ms).
+    Wait,
 }
 
 // --- Task Dependences, Rng and Helper methods
@@ -1042,6 +1083,10 @@ impl ExecutorState {
             ProgressIndicator::SpinWait(_) => {
                 unreachable!("Requesting global task should never spin wait")
             }
+            ProgressIndicator::Wait => {
+                tracing::debug!("[request_global_task] Received Wait indicator from task");
+                return ProgressIndicator::Wait;
+            }
         }
 
         tracing::trace!("Waking up sleepers");
@@ -1121,6 +1166,10 @@ impl ExecutorState {
                     }
                 }
             }
+            ProgressIndicator::Wait => {
+                tracing::debug!("Received Wait indicator from task");
+                ProgressIndicator::Wait
+            }
         }
     }
 
@@ -1178,6 +1227,10 @@ impl ExecutorState {
                 ProgressIndicator::SpinWait(_) => {
                     tracing::trace!("Spin wait requested");
                     unreachable!("check_processing_queue should never reach here")
+                }
+                ProgressIndicator::Wait => {
+                    tracing::trace!("Wait indicator from processing queue");
+                    unreachable!("check_processing_queue should never return Wait")
                 }
             }
         }
@@ -1632,6 +1685,17 @@ impl ExecutorState {
                 self.processing.borrow_mut().push_back(top_entry);
 
                 ProgressIndicator::CanProgress(Some(State::Reschedule))
+            }
+            State::Wait => {
+                tracing::debug!("Task is waiting, yielding to executor");
+
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                // push entry back into processing queue
+                self.processing.borrow_mut().push_front(top_entry);
+
+                ProgressIndicator::Wait
             }
         }
     }
@@ -2662,6 +2726,10 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         self.yielder.yield_for(duration);
                     }
                     ProgressIndicator::CanProgress(_) => {}
+                    ProgressIndicator::Wait => {
+                        // Queue empty, yield to check other work
+                        self.yielder.yield_for(self.no_work_yield);
+                    }
                 }
             }
             // Use sleeper-aware yielding when no immediate work
@@ -2734,6 +2802,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         self.yielder.yield_for(duration);
+                    }
+                    ProgressIndicator::Wait => {
+                        // Queue empty, yield and re-check
+                        if kill_signal.probe() {
+                            tracing::debug!("Received signal stopping immediately at wait");
+                            return;
+                        }
+
+                        self.yielder.yield_for(self.no_work_yield);
                     }
                 }
             }
@@ -2941,7 +3018,7 @@ mod test_local_thread_executor {
                         self.1 = Some(ListItemInner::Response(iter));
 
                         match val_next {
-                            Some(inner) => match inner {
+                            Some(NotificationItem::Ready(status)) => match status {
                                 TaskStatus::Init => Some(TaskStatus::Init),
                                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
@@ -2950,7 +3027,9 @@ mod test_local_thread_executor {
                                     Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                                 }
                                 TaskStatus::Ignore => Some(TaskStatus::Ignore),
+                                TaskStatus::Wait => Some(TaskStatus::Wait),
                             },
+                            Some(NotificationItem::None) => Some(TaskStatus::Wait),
                             None => None,
                         }
                     }
@@ -3006,7 +3085,12 @@ mod test_local_thread_executor {
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-        let all_response: Vec<_> = receiver.collect();
+        let all_response: Vec<_> = receiver
+            .filter_map(|item| match item {
+                NotificationItem::Ready(v) => Some(v),
+                NotificationItem::None => None,
+            })
+            .collect();
         assert_eq!(
             all_response,
             vec![
@@ -3051,7 +3135,12 @@ mod test_local_thread_executor {
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+            .filter_map(|item| match item {
+                NotificationItem::Ready(v) => Some(v),
+                NotificationItem::None => None,
+            })
+            .collect();
 
         assert_eq!(
             all_response,
@@ -3097,7 +3186,12 @@ mod test_local_thread_executor {
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+            .filter_map(|item| match item {
+                NotificationItem::Ready(v) => Some(v),
+                NotificationItem::None => None,
+            })
+            .collect();
 
         assert_eq!(
             all_response,
@@ -3143,7 +3237,12 @@ mod test_local_thread_executor {
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+            .filter_map(|item| match item {
+                NotificationItem::Ready(v) => Some(v),
+                NotificationItem::None => None,
+            })
+            .collect();
 
         assert_eq!(
             all_response,

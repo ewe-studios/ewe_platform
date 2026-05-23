@@ -295,6 +295,10 @@ where
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         Some(TaskStatus::Ignore)
                     }
+                    Some(TaskStatus::Wait) => {
+                        self.state = Some(ReconnectingWebSocketState::Connected(inner));
+                        Some(TaskStatus::Wait)
+                    }
                     None => {
                         // Inner task closed - attempt reconnection
                         debug!("Inner task closed, attempting reconnection");

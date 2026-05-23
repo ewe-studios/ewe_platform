@@ -198,6 +198,7 @@ where
                             State::Progressed
                         }
                         TaskStatus::Ignore => State::Pending(None),
+                        TaskStatus::Wait => State::Wait,
                     },
                     None => State::Pending(None),
                 }

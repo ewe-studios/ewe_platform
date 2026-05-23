@@ -1216,7 +1216,7 @@ mod tests {
         }
 
         let batch = BatchReader::new(RetryReader).eof_on_zero_read(false);
-        let eof_reader = EOFStreamReader::new(batch);
+        let mut eof_reader = EOFStreamReader::new(batch);
 
         assert!(matches!(eof_reader.next(), Some(Ok(Data::Retry))));
     }
