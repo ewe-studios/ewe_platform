@@ -16,7 +16,7 @@ pub use wasm_storage::*;
 pub mod wasm_credential_store;
 
 #[cfg(feature = "wasm-bindgen-storage")]
-pub use wasm_credential_store::{WasmCredentialStore, init_valtron};
+pub use wasm_credential_store::WasmCredentialStore;
 
 /// Not activated for review only.
 // #[cfg(feature = "wasm-bindgen-storage")]

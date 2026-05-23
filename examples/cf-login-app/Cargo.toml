@@ -10,7 +10,7 @@ keywords = ["cloudflare", "wasm", "login", "example"]
 
 [dependencies]
 foundation_db = { workspace = true, default-features = false, features = ["wasm", "wasm-bindgen-storage", "workers-rs"] }
-foundation_core = { workspace = true }
+foundation_core = { workspace = true, features = ["js-wasmbindgen"] }
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

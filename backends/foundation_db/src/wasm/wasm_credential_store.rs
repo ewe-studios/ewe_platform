@@ -14,7 +14,6 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::single::initialize_pool;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::wasm::D1WasmStorage;
@@ -90,17 +89,6 @@ impl WasmCredentialStore {
     }
 }
 
-/// Initialize the valtron single executor for wasm32 non-Send task driving.
-///
-/// Must be called before any storage operations that go through the
-/// valtron executor (e.g., `MigrationRunner::run_async` via
-/// `D1WasmStorage::execute_async`).
-///
-/// Idempotent per thread — safe to call multiple times.
-pub fn init_valtron() {
-    initialize_pool(42);
-}
-
 // ===========================================================================
 // Tests
 // ===========================================================================
@@ -109,7 +97,7 @@ pub fn init_valtron() {
 mod tests {
     use super::*;
     use crate::core::schema::{MIGRATIONS, MigrationRunner};
-    use foundation_core::valtron::single::initialize_pool;
+    use foundation_core::valtron::initialize_pool;
 
     /// Build an in-memory credential store for testing.
     fn memory_store() -> WasmCredentialStore {

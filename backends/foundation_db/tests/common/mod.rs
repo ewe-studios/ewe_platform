@@ -64,7 +64,7 @@ pub fn is_local_cf_available() -> bool {
 
 /// Initialize the Valtron executor for tests.
 pub fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
+    foundation_core::valtron::initialize_pool(42);
 }
 
 /// Build a `D1KeyValueStore` pointed at the local worker, or return `None`

@@ -135,6 +135,7 @@ where
                 TaskStatus::Init => Some(Stream::Init),
                 TaskStatus::Delayed(d) => Some(Stream::Delayed(d)),
                 TaskStatus::Ignore | TaskStatus::Spawn(_) => None,
+                TaskStatus::Wait => Some(Stream::Wait),
             }
         },
     )))

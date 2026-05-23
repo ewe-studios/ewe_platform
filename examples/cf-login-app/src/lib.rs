@@ -22,7 +22,7 @@ use foundation_db::{
     core::storage_provider::DataValue,
     D1WasmStorage, WasmCredentialStore,
 };
-use foundation_db::init_valtron;
+use foundation_core::valtron::{initialize_pool, PoolGuard};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys;
@@ -212,6 +212,7 @@ struct LazyApp {
     storage: Arc<D1WasmStorage>,
     #[allow(dead_code)]
     cred_store: Arc<WasmCredentialStore>,
+    _pool_guard: PoolGuard,
 }
 
 static LAZY_APP: std::sync::OnceLock<Arc<LazyApp>> = std::sync::OnceLock::new();
@@ -222,7 +223,7 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
     }
 
     // Initialize valtron single executor for wasm32 non-Send task driving.
-    init_valtron();
+    let pool_guard = initialize_pool(42, None);
 
     let db = Arc::new(db);
     let storage = Arc::new(D1WasmStorage::new(Arc::clone(&db), "app"));
@@ -241,6 +242,7 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         session_mgr,
         storage,
         cred_store,
+        _pool_guard: pool_guard,
     });
 
     LAZY_APP
