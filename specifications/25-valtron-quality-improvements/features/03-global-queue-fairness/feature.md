@@ -1,18 +1,25 @@
 ---
 feature: global-queue-fairness
 description: Add fairness mechanism to prevent long-running local tasks from starving the global queue
-status: completed
+status: rejected
 priority: high
 created: 2026-05-12
 tasks:
-  completed: 5
+  completed: 0
   uncompleted: 0
   total: 5
-  completion_percentage: 100
+  rejected: 5
+  completion_percentage: 0
 dependencies: []
 ---
 
 # Feature 03: Global Queue Fairness
+
+## Status: REJECTED
+
+The proposed fairness mechanism was implemented and then removed. The counter-based periodic global queue checks with push-to-back semantics actually worsened starvation — global tasks acquired on fairness ticks were placed at the back of the local processing queue, meaning they still had to wait behind all existing local work. The original design (workers own local tasks to completion, only checking global queue when local queue is empty) is correct by design.
+
+## Problem (original)
 
 ## Problem
 

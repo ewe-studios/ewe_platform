@@ -89,7 +89,7 @@ The review identified issues across two categories:
 | 00 | [pending-none-livelock](./features/00-pending-none-livelock/) | CRITICAL | **rejected** | Fix unbounded CPU spin when tasks return Pending(None) | 9 | None |
 | 01 | [sleeper-lifecycle-safety](./features/01-sleeper-lifecycle-safety/) | CRITICAL | **completed** | Fix stale sleeper entries that can panic executor on task combination | 6 | None |
 | 02 | [linked-task-state-propagation](./features/02-linked-task-state-propagation/) | HIGH | **completed** | Fix DualSequence silently discarding parent State signals | 5 | 01 |
-| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | **completed** | Add fairness mechanism for global queue pickup | 5 | None |
+| 03 | [global-queue-fairness](./features/03-global-queue-fairness/) | HIGH | **rejected** | Add fairness mechanism for global queue pickup | 5 | None |
 | 04 | [notification-based-waiting](./features/04-notification-based-waiting/) | HIGH | **completed** | Replace spin+sleep polling with CondVar notification | 6 | None |
 | 05 | [iterator-semantics](./features/05-iterator-semantics/) | HIGH | **completed** | Fix TaskIterator recursion trap, TransformIterator, CollectAllStream | 10 | None |
 | 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | **completed** | Fix error swallowing, executor panics, Drain bounds | 5 | None |
@@ -102,7 +102,7 @@ The review identified issues across two categories:
 
 **Note:** Feature 01 is now complete. The `Sleepers` data structure was rewritten to use `HashMap<Entry, T>` keyed by task entry directly, eliminating entry ID collision bugs.
 
-**Note:** Feature 03 is now complete. Added fairness mechanism that checks global queue every N calls to `schedule_next()`, preventing long-running local tasks from starving global queue. Tasks acquired via fairness are pushed to back of processing queue.
+**Note:** Feature 03 was rejected — the fairness mechanism (counter-based periodic global queue checks with push-to-back) actually worsened starvation by deferring global tasks behind local ones. The simple "don't check global while local tasks exist" behavior was correct by design.
 
 ---
 
