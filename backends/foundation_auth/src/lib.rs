@@ -8,7 +8,7 @@ pub mod shared;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native;
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
+#[cfg(any(feature = "wasm-bindgen-oauth", feature = "wasm-bindgen-session"))]
 pub mod wasm_bindgen;
 
 // Re-export shared items at crate root for backward compatibility.
@@ -20,7 +20,7 @@ pub use shared::types::{
 pub use shared::auth_state::{AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest};
 pub use shared::auth_token::AuthToken;
 pub use shared::credential_store::{
-    CredentialStorage, CredentialStore, CredentialStoreError, OAuthState, OAuthTokenStore,
+    AsyncCredentialStore, CredentialStorage, CredentialStore, CredentialStoreError, OAuthState, OAuthTokenStore,
     StoredCredential,
 };
 pub use shared::jwt::{JwtError, JwtManager, JwtToken};
@@ -40,3 +40,11 @@ pub use native::oauth::NativeOAuth;
 
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
 pub use wasm_bindgen::oauth::WasmOAuth;
+
+#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm-bindgen-session")]
+pub use wasm_bindgen::d1_credential_store::D1CredentialStore;
+
+#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm-bindgen-session")]
+pub use wasm_bindgen::session::{SessionPayload, WasmSessionManager};

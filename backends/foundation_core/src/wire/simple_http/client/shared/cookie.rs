@@ -219,6 +219,47 @@ impl Cookie {
         self
     }
 
+    /// Formats this cookie as a `Set-Cookie` header value.
+    ///
+    /// WHY: Responses need `Set-Cookie` headers; `parse()` handles the reverse.
+    ///
+    /// WHAT: Serializes cookie name/value and attributes into RFC 6265 format.
+    ///
+    /// HOW: Appends optional attributes only when they differ from defaults.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn to_set_cookie_string(&self) -> String {
+        let mut parts = vec![format!("{}={}", self.name, self.value)];
+        if let Some(ref domain) = self.domain {
+            parts.push(format!("Domain={domain}"));
+        }
+        if let Some(ref path) = self.path {
+            parts.push(format!("Path={path}"));
+        }
+        if let Some(max_age) = self.max_age {
+            parts.push(format!("Max-Age={}", max_age.as_secs()));
+        }
+        if let Some(expires) = self.expires {
+            if let Ok(dur) = expires.duration_since(SystemTime::UNIX_EPOCH) {
+                let secs = dur.as_secs();
+                let dt = chrono::DateTime::from_timestamp(secs as i64, 0);
+                if let Some(dt) = dt {
+                    parts.push(format!("Expires={}", dt.format("%a, %d %b %Y %H:%M:%S GMT")));
+                }
+            }
+        }
+        if self.secure {
+            parts.push("Secure".to_string());
+        }
+        if self.http_only {
+            parts.push("HttpOnly".to_string());
+        }
+        parts.push(format!("SameSite={:?}", self.same_site));
+        parts.join("; ")
+    }
+
     /// Parses a `Set-Cookie` header value into a `Cookie`.
     ///
     /// WHY: HTTP responses contain `Set-Cookie` headers that must be parsed
@@ -591,5 +632,74 @@ impl CookieJar {
 impl Default for CookieJar {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn to_set_cookie_string_minimal() {
+        let cookie = Cookie::new("session", "abc123");
+        let s = cookie.to_set_cookie_string();
+        assert!(s.starts_with("session=abc123; "));
+        assert!(s.contains("SameSite=Lax"));
+    }
+
+    #[test]
+    fn to_set_cookie_string_with_max_age() {
+        let cookie = Cookie::new("remember", "me")
+            .max_age(Duration::from_secs(86400));
+        let s = cookie.to_set_cookie_string();
+        assert!(s.contains("Max-Age=86400"));
+    }
+
+    #[test]
+    fn to_set_cookie_string_with_path_and_domain() {
+        let cookie = Cookie::new("auth", "token")
+            .path("/api")
+            .domain(".example.com");
+        let s = cookie.to_set_cookie_string();
+        assert!(s.contains("Path=/api"));
+        assert!(s.contains("Domain=.example.com"));
+    }
+
+    #[test]
+    fn to_set_cookie_string_with_security_flags() {
+        let cookie = Cookie::new("secure_session", "xyz")
+            .secure(true)
+            .http_only(true)
+            .same_site(SameSite::Strict);
+        let s = cookie.to_set_cookie_string();
+        assert!(s.contains("Secure"));
+        assert!(s.contains("HttpOnly"));
+        assert!(s.contains("SameSite=Strict"));
+    }
+
+    #[test]
+    fn to_set_cookie_string_with_expires() {
+        let expires = SystemTime::UNIX_EPOCH + Duration::from_secs(1_700_000_000);
+        let cookie = Cookie::new("temp", "val").expires(expires);
+        let s = cookie.to_set_cookie_string();
+        assert!(s.contains("Expires="));
+    }
+
+    #[test]
+    fn to_set_cookie_string_roundtrip_with_parse() {
+        let original = Cookie::new("session", "abc123")
+            .path("/")
+            .http_only(true)
+            .max_age(Duration::from_secs(3600));
+        let formatted = original.to_set_cookie_string();
+        let parsed = Cookie::parse(&formatted).unwrap();
+
+        assert_eq!(parsed.name, original.name);
+        assert_eq!(parsed.value, original.value);
+        assert_eq!(parsed.path, original.path);
+        assert_eq!(parsed.http_only, original.http_only);
+        assert_eq!(parsed.max_age, original.max_age);
+        assert_eq!(parsed.same_site, original.same_site);
     }
 }

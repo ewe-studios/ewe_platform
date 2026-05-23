@@ -64,6 +64,36 @@ pub trait CredentialStore: Send + Sync {
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
 }
 
+/// Asynchronous credential storage API.
+///
+/// Implementations use native async/await for I/O (e.g. D1 Promises,
+/// HTTP requests). Specific impls exist for each storage type to avoid
+/// orphan/coherence conflicts.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncCredentialStore: Sync {
+    /// Get a credential by key.
+    async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError>;
+
+    /// Set a credential.
+    async fn set_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError>;
+
+    /// Delete a credential.
+    async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError>;
+
+    /// Check whether a credential exists.
+    async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError>;
+
+    /// List credential keys, optionally filtered by prefix.
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
+}
+
 /// Credential store error type.
 #[derive(derive_more::From, Debug)]
 pub enum CredentialStoreError {

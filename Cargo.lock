@@ -1126,6 +1126,7 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "console_log",
+ "foundation_auth",
  "foundation_core",
  "foundation_db",
  "js-sys",
@@ -2771,6 +2772,7 @@ name = "foundation_auth"
 version = "0.0.1"
 dependencies = [
  "argon2",
+ "async-trait",
  "base64 0.22.1",
  "bytes",
  "chacha20poly1305",
@@ -2819,6 +2821,7 @@ dependencies = [
  "base64 0.22.1",
  "brotli 6.0.0",
  "bytes",
+ "chrono",
  "concurrent-queue",
  "derive_more",
  "fastrand",

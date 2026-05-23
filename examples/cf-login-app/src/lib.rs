@@ -4,12 +4,9 @@
 
 //! Cloudflare Workers login app demo.
 //!
-//! Uses async session management via `WasmSessionManager` to avoid the
-//! valtron executor deadlock on miniflare. The sync `SessionManager`
-//! routes D1 through `schedule_future` → `drive_non_send_iterator` which
-//! blocks the JS event loop, preventing D1 Promises from resolving.
-//! `WasmSessionManager` calls `D1WasmStorage`'s `*_async` methods directly
-//! which use `JsFuture::from(promise).await` and yield properly.
+//! Uses foundation_auth types:
+//! - `WasmSessionManager` — async session management via D1 direct JS API
+//! - `SessionManager<D1CredentialStore>` — sync session management via valtron iterators
 
 use std::sync::Arc;
 
@@ -17,12 +14,13 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
+use foundation_auth::{D1CredentialStore, SessionConfig, SessionManager, WasmSessionManager};
+use foundation_core::valtron::initialize_pool;
 use foundation_db::{
     core::schema::{MIGRATIONS, MigrationRunner},
     core::storage_provider::DataValue,
-    D1WasmStorage, WasmCredentialStore,
+    D1WasmStorage,
 };
-use foundation_core::valtron::{initialize_pool, PoolGuard};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys;
@@ -34,185 +32,14 @@ use web_sys;
 const SIGNING_KEY: &[u8; 32] = b"CHANGE-ME-TO-32-RANDOM-BYTES!!!!";
 
 // ===========================================================================
-// WasmSessionManager — async session management with signed cookies + D1.
-//
-// Copied from foundation_db/wasm/session.rs (not yet exported for review).
-// Uses HMAC-SHA256 signed cookies and stores sessions in kv_store table.
-// ===========================================================================
-
-#[derive(serde::Serialize, serde::Deserialize)]
-struct SessionPayload {
-    id: String,
-    uid: String,
-    exp: i64,
-}
-
-struct WasmSessionManager {
-    storage: Arc<D1WasmStorage>,
-}
-
-impl WasmSessionManager {
-    pub const COOKIE_NAME: &'static str = "session";
-    pub const DEFAULT_SESSION_DURATION_SECS: i64 = 86_400;
-
-    fn new(storage: Arc<D1WasmStorage>) -> Self {
-        Self { storage }
-    }
-
-    async fn create_session(&self, user_id: &str) -> Result<String, String> {
-        let id = uuid::Uuid::new_v4().to_string();
-        let exp = chrono::Utc::now().timestamp() + Self::DEFAULT_SESSION_DURATION_SECS;
-        let now_ms = chrono::Utc::now().timestamp_millis();
-
-        let payload = SessionPayload { id: id.clone(), uid: user_id.to_string(), exp };
-        let json = serde_json::to_string(&payload).map_err(|e| e.to_string())?;
-        let token = Self::create_token(json.as_bytes());
-
-        let session_json = serde_json::to_string(&payload).map_err(|e| e.to_string())?;
-        self.storage
-            .execute_async(
-                "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)",
-                &[
-                    DataValue::Text(format!("session:{id}")),
-                    DataValue::Text(session_json),
-                    DataValue::Integer(now_ms),
-                ],
-            )
-            .await
-            .map_err(|e| format!("D1 insert failed: {e:?}"))?;
-
-        Ok(token)
-    }
-
-    async fn validate_session(&self, token: &str) -> Result<String, String> {
-        let payload = Self::verify_token(token)?;
-        let rows = self
-            .storage
-            .query_async(
-                "SELECT value FROM kv_store WHERE key = ?",
-                &[DataValue::Text(format!("session:{}", payload.id))],
-            )
-            .await
-            .map_err(|e| format!("D1 query failed: {e:?}"))?;
-        if rows.is_empty() {
-            return Err("session not found".to_string());
-        }
-        Ok(payload.uid)
-    }
-
-    async fn revoke_session(&self, token: &str) -> Result<(), String> {
-        let payload = match Self::verify_token(token) {
-            Ok(p) => p,
-            Err(_) => return Ok(()),
-        };
-        self.storage
-            .execute_async(
-                "DELETE FROM kv_store WHERE key = ?",
-                &[DataValue::Text(format!("session:{}", payload.id))],
-            )
-            .await
-            .map_err(|e| format!("D1 delete failed: {e:?}"))?;
-        Ok(())
-    }
-
-    fn session_cookie(token: &str) -> String {
-        format!(
-            "{}={}; Path=/; HttpOnly; Max-Age={}; SameSite=Lax",
-            Self::COOKIE_NAME,
-            token,
-            Self::DEFAULT_SESSION_DURATION_SECS
-        )
-    }
-
-    fn clear_cookie() -> String {
-        format!("{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax", Self::COOKIE_NAME)
-    }
-
-    fn create_token(payload_json: &[u8]) -> String {
-        let encoded = base64_encode(payload_json);
-        let sig = Self::sign_payload(payload_json);
-        format!("{encoded}.{sig}")
-    }
-
-    fn sign_payload(payload_json: &[u8]) -> String {
-        let sig = hmac_sha256(SIGNING_KEY, payload_json);
-        base64_encode(&sig)
-    }
-
-    fn verify_token(token: &str) -> Result<SessionPayload, String> {
-        let dot = token.rfind('.').ok_or_else(|| "invalid token format".to_string())?;
-        let encoded = &token[..dot];
-        let sig = &token[dot + 1..];
-        let payload_bytes = base64_decode(encoded)?;
-        let expected_sig = Self::sign_payload(&payload_bytes);
-        if sig != expected_sig {
-            return Err("invalid signature".to_string());
-        }
-        let payload: SessionPayload =
-            serde_json::from_slice(&payload_bytes).map_err(|e| e.to_string())?;
-        let now = chrono::Utc::now().timestamp();
-        if payload.exp < now {
-            return Err("session expired".to_string());
-        }
-        Ok(payload)
-    }
-}
-
-fn hmac_sha256(key: &[u8], message: &[u8]) -> [u8; 32] {
-    use sha2::{Digest, Sha256};
-    const BLOCK_SIZE: usize = 64;
-    let mut key_block = [0u8; BLOCK_SIZE];
-    if key.len() > BLOCK_SIZE {
-        let hashed = sha256(key);
-        key_block[..32].copy_from_slice(&hashed);
-    } else {
-        key_block[..key.len()].copy_from_slice(key);
-    }
-    let mut ipad = [0x36u8; BLOCK_SIZE];
-    let mut opad = [0x5cu8; BLOCK_SIZE];
-    for i in 0..BLOCK_SIZE {
-        ipad[i] ^= key_block[i];
-        opad[i] ^= key_block[i];
-    }
-    let inner = {
-        let mut h = Sha256::new();
-        h.update(&ipad);
-        h.update(message);
-        h.finalize()
-    };
-    let mut h = Sha256::new();
-    h.update(&opad);
-    h.update(&inner);
-    h.finalize().into()
-}
-
-fn sha256(data: &[u8]) -> [u8; 32] {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    hasher.finalize().into()
-}
-
-fn base64_encode(data: &[u8]) -> String {
-    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-    URL_SAFE_NO_PAD.encode(data)
-}
-
-fn base64_decode(s: &str) -> Result<Vec<u8>, String> {
-    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-    URL_SAFE_NO_PAD.decode(s).map_err(|e| e.to_string())
-}
-
-// ===========================================================================
 // Lazy app initialization — runs once on first request (async).
 // ===========================================================================
 
 struct LazyApp {
-    session_mgr: Arc<WasmSessionManager>,
+    session_mgr: Arc<SessionManager<D1CredentialStore>>,
+    wasm_session_mgr: Arc<WasmSessionManager<D1WasmStorage>>,
     storage: Arc<D1WasmStorage>,
-    #[allow(dead_code)]
-    cred_store: Arc<WasmCredentialStore>,
-    _pool_guard: PoolGuard,
+    _pool_guard: foundation_core::valtron::PoolGuard,
 }
 
 static LAZY_APP: std::sync::OnceLock<Arc<LazyApp>> = std::sync::OnceLock::new();
@@ -227,7 +54,6 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
 
     let db = Arc::new(db);
     let storage = Arc::new(D1WasmStorage::new(Arc::clone(&db), "app"));
-    let cred_store = Arc::new(WasmCredentialStore::new(Arc::clone(&storage)));
 
     // Run migrations to create tables.
     let runner = MigrationRunner::new(MIGRATIONS);
@@ -236,12 +62,19 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         .await
         .map_err(|e| format!("migration failed: {e:?}"))?;
 
-    let session_mgr = Arc::new(WasmSessionManager::new(Arc::clone(&storage)));
+    // SessionManager with D1CredentialStore — sync API via valtron iterators.
+    // This exercises JSThreadYielder when the valtron executor drives storage.
+    let cred_store = D1CredentialStore::new(Arc::clone(&storage));
+    let session_mgr = SessionManager::new(cred_store, Default::default(), SIGNING_KEY)
+        .map_err(|e| format!("session manager init failed: {e:?}"))?;
+
+    // WasmSessionManager — async API via direct D1 JS API.
+    let wasm_session_mgr = WasmSessionManager::new(Arc::clone(&storage), *SIGNING_KEY);
 
     let app = Arc::new(LazyApp {
-        session_mgr,
+        session_mgr: Arc::new(session_mgr),
+        wasm_session_mgr: Arc::new(wasm_session_mgr),
         storage,
-        cred_store,
         _pool_guard: pool_guard,
     });
 
@@ -259,7 +92,7 @@ fn extract_session_token_from_cookie(cookie_values: &[String]) -> Option<String>
     for cookie_str in cookie_values {
         for cookie in cookie_str.split(';') {
             let cookie = cookie.trim();
-            if let Some(value) = cookie.strip_prefix(&format!("{}=", WasmSessionManager::COOKIE_NAME)) {
+            if let Some(value) = cookie.strip_prefix(&format!("{}=", SessionConfig::default().token_cookie_name)) {
                 return Some(value.split(';').next()?.trim().to_string());
             }
         }
@@ -587,8 +420,13 @@ async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Re
         return html_response(&render_login(Some("Invalid credentials")), 401);
     }
 
-    let token = match app.session_mgr.create_session(&email).await {
-        Ok(t) => t,
+    // Use SessionManager (sync valtron API — exercises JSThreadYielder)
+    let (session, cookies) = match app.session_mgr.create_session(
+        &email,
+        None,
+        None,
+    ) {
+        Ok(result) => result,
         Err(e) => {
             log::error!("Session creation failed: {:?}", e);
             return html_response(&render_login(Some("Internal server error")), 500);
@@ -599,12 +437,12 @@ async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Re
     init.set_status(302);
     let headers = web_sys::Headers::new().unwrap();
     headers.set("Location", "/dashboard").unwrap();
-    headers
-        .append("Set-Cookie", &WasmSessionManager::session_cookie(&token))
-        .unwrap();
+    for cookie in cookies {
+        headers.append("Set-Cookie", &cookie.to_set_cookie_string()).unwrap();
+    }
     init.set_headers(&headers);
     web_sys::Response::new_with_opt_str_and_init(
-        Some(&format!(r#"{{"status":"ok","session_id":"{}"}}"#, token)),
+        Some(&format!(r#"{{"status":"ok","session_id":"{}"}}"#, session.id)),
         &init,
     )
     .unwrap()
@@ -621,9 +459,14 @@ async fn handle_dashboard(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return redirect_response("/login", "Redirecting to login...");
     };
 
-    match app.session_mgr.validate_session(&token).await {
-        Ok(user_id) => html_response(&render_dashboard(&user_id), 200),
-        Err(_) => redirect_response("/login", "Redirecting to login..."),
+    // Use SessionManager (sync valtron API — exercises JSThreadYielder)
+    match app.session_mgr.get_session(&token) {
+        Ok(Some(session)) => html_response(&render_dashboard(&session.user_id), 200),
+        Ok(None) => redirect_response("/login", "Redirecting to login..."),
+        Err(e) => {
+            log::error!("Session validation failed: {:?}", e);
+            redirect_response("/login", "Redirecting to login...")
+        }
     }
 }
 
@@ -632,17 +475,22 @@ async fn handle_logout(app: &LazyApp, req: &web_sys::Request) -> web_sys::Respon
     if let Some(cookie_values) = cookie_values {
         let token = extract_session_token_from_cookie(&[cookie_values]);
         if let Some(token) = token {
-            let _ = app.session_mgr.revoke_session(&token).await;
+            match app.session_mgr.get_session(&token) {
+                Ok(Some(session)) => {
+                    let _ = app.session_mgr.revoke_session(&session.id);
+                }
+                _ => {}
+            }
         }
     }
 
+    let config = SessionConfig::default();
     let init = web_sys::ResponseInit::new();
     init.set_status(302);
     let headers = web_sys::Headers::new().unwrap();
     headers.set("Location", "/login").unwrap();
-    headers
-        .append("Set-Cookie", &WasmSessionManager::clear_cookie())
-        .unwrap();
+    headers.append("Set-Cookie", &format!("{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax", config.token_cookie_name)).unwrap();
+    headers.append("Set-Cookie", &format!("{}=; Path=/; Max-Age=0", config.data_cookie_name)).unwrap();
     init.set_headers(&headers);
     web_sys::Response::new_with_opt_str_and_init(Some("Logged out. Redirecting..."), &init).unwrap()
 }
