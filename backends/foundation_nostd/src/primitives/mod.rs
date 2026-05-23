@@ -7,6 +7,7 @@ pub mod atomic_lazy;
 pub mod atomic_option;
 pub mod barrier;
 pub mod condvar;
+pub mod cooperative_spin_waiter;
 pub mod noop;
 pub mod once;
 pub mod once_lock;
@@ -46,6 +47,7 @@ pub use atomic_option::AtomicOption;
 
 // Re-export synchronization helpers
 pub use barrier::{BarrierWaitResult, SpinBarrier};
+pub use cooperative_spin_waiter::{CooperativeSpinWaiter, ScheduleResumeFn, WaitStatus};
 pub use spin_wait::SpinWait;
 pub use spin_waiter::SpinWaiter;
 

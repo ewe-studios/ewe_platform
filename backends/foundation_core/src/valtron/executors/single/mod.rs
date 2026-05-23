@@ -56,6 +56,8 @@ impl Default for NoThreadController {
 }
 
 impl ProcessController for NoThreadController {
+    type YieldSignal = ();
+
     fn yield_for(&self, dur: std::time::Duration) {
         // Use SpinWaiter instead of doing nothing
         // This provides actual delay via iteration counting

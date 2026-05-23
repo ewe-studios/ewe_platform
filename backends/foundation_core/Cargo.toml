@@ -13,7 +13,7 @@ keywords = ["foundations_core", "ewe-platform-core"]
 
 # -- Workspace dependencies
 
-foundation_wasm = {workspace = true }
+foundation_wasm = { workspace = true }
 foundation_nostd = {workspace = true }
 
 
@@ -47,6 +47,10 @@ rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-
 # Compression dependencies
 flate2 = { version = "1.0", optional = true }
 brotli = { version = "6.0", optional = true }
+
+# JS event loop yield (wasm-bindgen backend)
+wasm-bindgen = { version = "0.2", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["Window"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
@@ -108,9 +112,6 @@ compression = ["flate2", "brotli"]
 gzip = ["flate2"]
 deflate = ["flate2"]
 
-# default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std", "ssl", "compression", "wire-native"]
-
 # Wire module features
 # wire-native: includes socket/TLS-dependent wire modules (simple_http client, websocket, event_source, http_stream)
 # On non-wasm32 targets this is enabled by default via std. On wasm32, opt in if you have alternative netcap bindings.
@@ -120,6 +121,13 @@ wire-native = ["std"]
 std = ["futures-core/std", "foundation_nostd/std"]
 alloc = ["futures-core/alloc"]
 multi = ["std"]  # Multi-threaded executor requires std
+
+# JS event loop yield backends (mutually exclusive — pick one for wasm32)
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys"]
+js-foundation-wasm = []
+
+# default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
+default = ["standard", "std", "ssl", "compression", "wire-native"]
 
 [package.metadata.docs.rs]
 # enable one of these as default implementation

@@ -2673,10 +2673,49 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 break;
             }
 
+            // JS: intercept NoWork → stop and return to JS
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            if matches!(&response, ProgressIndicator::NoWork) {
+                tracing::debug!("run_until: NoWork → yielding to JS event loop");
+                break;
+            }
+
+            // JS: intercept Reschedule → yield, let JS do other work
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            if matches!(&response, ProgressIndicator::CanProgress(Some(State::Reschedule))) {
+                tracing::debug!("run_until: Reschedule → yielding to JS event loop");
+                break;
+            }
+
             // if we get recommended spin duration then lets spin that long
             if let ProgressIndicator::SpinWait(spin_duration) = response {
+                #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                {
+                    let signal = self.yielder.yield_for(spin_duration);
+                    if self.yielder.should_stop(&signal) {
+                        tracing::debug!(
+                            "run_until: SpinWait({}ms) → yielding to JS event loop",
+                            spin_duration.as_millis()
+                        );
+                        break;
+                    }
+                }
+                #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
                 self.yielder.yield_for(spin_duration);
                 continue;
+            }
+
+            // JS: intercept Wait → yield to event loop with short timer
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            if matches!(&response, ProgressIndicator::Wait) {
+                tracing::debug!(
+                    "run_until: Wait → yielding to JS event loop ({}ms)",
+                    crate::wasm::JS_WAIT_CHECK_INTERVAL.as_millis()
+                );
+                let signal = self.yielder.yield_for(crate::wasm::JS_WAIT_CHECK_INTERVAL);
+                if self.yielder.should_stop(&signal) {
+                    break;
+                }
             }
 
             // break as well if no work remains and there are zero tasks.
@@ -2720,14 +2759,34 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             for _ in 0..200 {
                 match self.run_once() {
                     ProgressIndicator::NoWork => {
+                        #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                        {
+                            break 'main_loop; // Nothing to do, return to JS
+                        }
+                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
                         break 'main_loop;
                     }
                     ProgressIndicator::SpinWait(duration) => {
+                        #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                        {
+                            let signal = self.yielder.yield_for(duration);
+                            if self.yielder.should_stop(&signal) {
+                                break 'main_loop; // JS event loop will resume us
+                            }
+                        }
+                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
                         self.yielder.yield_for(duration);
                     }
                     ProgressIndicator::CanProgress(_) => {}
                     ProgressIndicator::Wait => {
-                        // Queue empty, yield to check other work
+                        #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                        {
+                            let signal = self.yielder.yield_for(crate::wasm::JS_WAIT_CHECK_INTERVAL);
+                            if self.yielder.should_stop(&signal) {
+                                break 'main_loop; // JS event loop will check for new tasks
+                            }
+                        }
+                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
                         self.yielder.yield_for(self.no_work_yield);
                     }
                 }
@@ -2940,6 +2999,8 @@ mod test_local_thread_executor {
     struct NoYielder;
 
     impl ProcessController for NoYielder {
+        type YieldSignal = ();
+
         fn yield_for(&self, _: time::Duration) {}
     }
 

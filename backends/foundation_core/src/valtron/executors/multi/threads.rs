@@ -435,6 +435,8 @@ impl Clone for ThreadYielder {
 }
 
 impl ProcessController for ThreadYielder {
+    type YieldSignal = ();
+
     /// WHY: Uses CondVar::wait_timeout_while for interruptible waiting
     /// WHAT: Blocks thread with timeout, but can be woken early via interrupt()
     /// HOW:

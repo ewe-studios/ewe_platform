@@ -30,6 +30,8 @@ use tracing_test::traced_test;
 struct NoYielder;
 
 impl ProcessController for NoYielder {
+    type YieldSignal = ();
+
     fn yield_for(&self, _duration: Duration) {}
 }
 

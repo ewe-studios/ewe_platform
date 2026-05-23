@@ -35,3 +35,7 @@ pub mod trace;
 pub mod url;
 pub mod valtron;
 pub mod wire;
+
+// JS event loop yield backends — only compiled when a JS feature is active
+#[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+pub mod wasm;
