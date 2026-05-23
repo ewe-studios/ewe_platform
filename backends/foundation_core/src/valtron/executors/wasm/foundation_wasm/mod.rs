@@ -49,6 +49,7 @@ fn foundation_wasm_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()
 
 /// JS thread yielder using foundation_wasm FFI.
 /// Implements `ProcessController` with `YieldSignal = WaitStatus`.
+#[derive(Clone)]
 pub struct JSThreadYielder {
     spin_waiter: CooperativeSpinWaiter,
 }

@@ -51,6 +51,7 @@ fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) 
 
 /// JS thread yielder using wasm-bindgen + web-sys.
 /// Implements `ProcessController` with `YieldSignal = WaitStatus`.
+#[derive(Clone)]
 pub struct JSThreadYielder {
     spin_waiter: CooperativeSpinWaiter,
 }

@@ -66,9 +66,18 @@ impl ProcessController for NoThreadController {
     }
 }
 
+// Default controller: JSThreadYielder on wasm32 (JS event loop aware),
+// NoThreadController on native (iteration-based spinning).
+#[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+use crate::valtron::wasm::JSThreadYielder as DefaultController;
+
+// NoThreadController is defined in this same file below — no import needed for native.
+#[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+type DefaultController = NoThreadController;
+
 thread_local! {
     #[allow(clippy::missing_const_for_thread_local)]
-    static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<NoThreadController>> = OnceCell::new();
+    static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<DefaultController>> = OnceCell::new();
 }
 
 /// `initialize` initializes the local single-threaded
@@ -98,7 +107,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
                     ),
                 ),
                 PriorityOrder::Top,
-                NoThreadController::new(), // Changed from NoThreadController
+                DefaultController::new(),
                 DEFAULT_YIELD_WAIT_TIME,
                 None,
                 None,
