@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::shared::credential_store::CredentialStore;
+use crate::shared::credential_store::{AsyncCredentialStore, CredentialStore};
 use super::types::ConfidentialText;
 use crate::shared::credential_store::CredentialStoreError;
 
@@ -333,6 +333,190 @@ impl<S: CredentialStore> SessionManager<S> {
         }
 
         Ok(cookies)
+    }
+}
+
+// ============================================================================
+// Async methods — require `S: AsyncCredentialStore` in addition to `CredentialStore`.
+// These call `*_async` store methods instead of draining sync iterators.
+// ============================================================================
+
+impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
+    /// Create a new session for a user (async).
+    pub async fn create_session_async(
+        &self,
+        user_id: &str,
+        ip_address: Option<&str>,
+        user_agent: Option<&str>,
+    ) -> Result<(Session, Vec<Cookie>), SessionError> {
+        let token = generate_token();
+        let now = Utc::now();
+        let expires_at = now + self.config.max_session_age;
+        let token_prefix = token[..8].to_string();
+        let session_id = format!("session:{user_id}:{token_prefix}");
+
+        let signed_token = self.signer.lock().expect("signer lock").sign(&token);
+
+        let session = Session {
+            id: session_id.clone(),
+            user_id: user_id.to_string(),
+            token: ConfidentialText::new(signed_token),
+            created_at: now,
+            expires_at,
+            ip_address: ip_address.map(String::from),
+            user_agent: user_agent.map(String::from),
+            last_active_at: now,
+            revoked: false,
+        };
+
+        self.store
+            .set_async(&session_id, session.clone())
+            .await
+            .map_err(SessionError::Storage)?;
+
+        let cookies = self.make_cookies(&token, user_id)?;
+
+        Ok((session, cookies))
+    }
+
+    /// Get and validate a session by token (async).
+    pub async fn get_session_async(
+        &self,
+        token: &str,
+    ) -> Result<Option<Session>, SessionError> {
+        let cache = Self::get_cached_session(token);
+        if let Some(ref cache_data) = cache {
+            if !cache_data.user_id.is_empty() {
+                let token_prefix = token[..token.len().min(8)].to_string();
+                let key = format!("session:{}:{}", cache_data.user_id, token_prefix);
+                if let Some(session) = self
+                    .store
+                    .get_async::<Session>(&key)
+                    .await
+                    .map_err(SessionError::Storage)?
+                {
+                    if session.is_valid() {
+                        if self.config.sliding_expiration {
+                            self.extend_session_async(&session).await?;
+                        }
+                        return Ok(Some(session));
+                    }
+                    return Ok(None);
+                }
+            }
+        }
+
+        let keys = self
+            .store
+            .list_keys_async(Some("session:"))
+            .await
+            .map_err(SessionError::Storage)?;
+        for key in &keys {
+            if let Some(session) = self
+                .store
+                .get_async::<Session>(key)
+                .await
+                .map_err(SessionError::Storage)?
+            {
+                if !session.revoked
+                    && self
+                        .signer
+                        .lock()
+                        .expect("signer lock")
+                        .verify(&session.token.get(), token)?
+                {
+                    if session.is_valid() {
+                        if self.config.sliding_expiration {
+                            self.extend_session_async(&session).await?;
+                        }
+                        return Ok(Some(session));
+                    }
+                    return Ok(None);
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
+    /// Revoke a single session (async).
+    pub async fn revoke_session_async(
+        &self,
+        session_id: &str,
+    ) -> Result<(), SessionError> {
+        if let Some(session) = self
+            .store
+            .get_async::<Session>(session_id)
+            .await
+            .map_err(SessionError::Storage)?
+        {
+            if session.revoked {
+                return Ok(());
+            }
+            let mut updated = session;
+            updated.revoked = true;
+            let sid = updated.id.clone();
+            self.store
+                .set_async(&sid, updated)
+                .await
+                .map_err(SessionError::Storage)?;
+        }
+        Ok(())
+    }
+
+    /// Revoke all sessions for a user (async).
+    pub async fn revoke_all_sessions_async(
+        &self,
+        user_id: &str,
+    ) -> Result<usize, SessionError> {
+        let prefix = format!("session:{user_id}:");
+        let keys = self
+            .store
+            .list_keys_async(Some(&prefix))
+            .await
+            .map_err(SessionError::Storage)?;
+
+        let mut count = 0;
+        for key in &keys {
+            if let Some(session) = self
+                .store
+                .get_async::<Session>(key)
+                .await
+                .map_err(SessionError::Storage)?
+            {
+                if !session.revoked {
+                    let mut updated = session;
+                    updated.revoked = true;
+                    let sid = updated.id.clone();
+                    self.store
+                        .set_async(&sid, updated)
+                        .await
+                        .map_err(SessionError::Storage)?;
+                    count += 1;
+                }
+            }
+        }
+        Ok(count)
+    }
+
+    /// Extend session expiration (async, sliding expiration).
+    async fn extend_session_async(
+        &self,
+        session: &Session,
+    ) -> Result<(), SessionError> {
+        let now = Utc::now();
+        let time_left = session.expires_at - now;
+        if time_left < self.config.sliding_window {
+            let mut updated = session.clone();
+            updated.last_active_at = now;
+            updated.expires_at = now + self.config.max_session_age;
+            let sid = session.id.clone();
+            self.store
+                .set_async(&sid, updated)
+                .await
+                .map_err(SessionError::Storage)?;
+        }
+        Ok(())
     }
 }
 

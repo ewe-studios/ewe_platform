@@ -9,7 +9,7 @@
 use foundation_core::valtron::Stream;
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
-use foundation_db::{KeyValueStore, StorageError, StorageProvider};
+use foundation_db::{core::AsyncKeyValueStore, KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::shared::oauth_token::OAuthToken;
@@ -260,6 +260,49 @@ impl CredentialStore for CredentialStorage {
                 _ => vec![],
             })
             .collect::<Result<Vec<_>, _>>()
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncCredentialStore for CredentialStorage {
+    async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        self.storage.get_async(key)
+            .await
+            .map_err(|e| match e {
+                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+                other => CredentialStoreError::Storage(other),
+            })
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        self.storage.set_async(key, value)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
+        self.storage.delete_async(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        self.storage.exists_async(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        self.storage.list_keys_async(prefix)
+            .await
+            .map_err(CredentialStoreError::Storage)
     }
 }
 
