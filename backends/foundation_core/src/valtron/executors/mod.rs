@@ -33,6 +33,7 @@ pub use unified::*;
 pub use wrappers::*;
 
 pub mod single;
+pub mod wasm;
 
 #[cfg(feature = "multi")]
 pub mod multi;
