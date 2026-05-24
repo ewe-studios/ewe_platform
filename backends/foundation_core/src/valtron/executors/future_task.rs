@@ -107,8 +107,38 @@ where
     }
 }
 
+// WASM: FutureTask TaskIterator impl without Send bounds — for `from_future_non_send`.
+// This impl works with !Send futures (e.g. JsFuture) on the single-threaded wasm32 target.
+#[cfg(not(feature = "multi"))]
+impl<F> TaskIterator for FutureTask<F>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    type Ready = F::Output;
+    type Pending = FuturePollState;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.completed {
+            return None;
+        }
+
+        let waker = get_noop_waker();
+        let mut cx = Context::from_waker(&waker);
+
+        match self.future.as_mut().poll(&mut cx) {
+            Poll::Ready(output) => {
+                self.completed = true;
+                Some(TaskStatus::Ready(output))
+            }
+            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
+        }
+    }
+}
+
 // Native implementation with Send bounds
-#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
+#[cfg(feature = "multi")]
 impl<F> TaskIterator for FutureTask<F>
 where
     F: Future + Send + 'static,
@@ -180,7 +210,7 @@ where
 }
 
 // Native implementation with Send bounds
-#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
+#[cfg(feature = "multi")]
 impl<S> TaskIterator for StreamTask<S>
 where
     S: futures_core::Stream + Send + 'static,
@@ -209,39 +239,9 @@ where
     }
 }
 
-// WASM: FutureTask TaskIterator impl without Send bounds — for `from_future_non_send`.
-// This impl works with !Send futures (e.g. JsFuture) on the single-threaded wasm32 target.
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-impl<F> TaskIterator for FutureTask<F>
-where
-    F: Future + 'static,
-    F::Output: 'static,
-{
-    type Ready = F::Output;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.completed {
-            return None;
-        }
-
-        let waker = get_noop_waker();
-        let mut cx = Context::from_waker(&waker);
-
-        match self.future.as_mut().poll(&mut cx) {
-            Poll::Ready(output) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(output))
-            }
-            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
-        }
-    }
-}
-
 // WASM: StreamTask TaskIterator impl without Send bounds — for `from_stream_non_send`.
 // This impl works with !Send streams on the single-threaded wasm32 target.
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+#[cfg(not(feature = "multi"))]
 impl<S> TaskIterator for StreamTask<S>
 where
     S: futures_core::Stream + 'static,
@@ -278,6 +278,7 @@ where
 #[derive(Debug)]
 pub enum ThreadedValue<T, E> {
     Value(Result<T, E>),
+    Waiting,
 }
 
 // ============================================================================
@@ -288,12 +289,12 @@ pub enum ThreadedValue<T, E> {
 ///
 /// Uses `Receiver.into_recv_iter()` which already provides the Iterator
 /// implementation with proper blocking/consumption logic.
-#[cfg(all(feature = "std", feature = "multi"))]
+#[cfg(feature = "multi")]
 pub struct FutureIterator<T, E> {
     iter: mpp::RecvIterator<ThreadedValue<T, E>>,
 }
 
-#[cfg(all(feature = "std", feature = "multi"))]
+#[cfg(feature = "multi")]
 impl<T, E> Iterator for FutureIterator<T, E> {
     type Item = ThreadedValue<T, E>;
 
@@ -306,7 +307,7 @@ impl<T, E> Iterator for FutureIterator<T, E> {
 ///
 /// In multi-threaded mode, this submits work to the BackgroundJobRegistry.
 /// In single-threaded mode, this polls the future inline on each next() call.
-#[cfg(all(feature = "std", feature = "multi"))]
+#[cfg(feature = "multi")]
 pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
@@ -321,7 +322,7 @@ where
     _phantom: PhantomData<(Fut, I, T, E)>,
 }
 
-#[cfg(all(feature = "std", feature = "multi"))]
+#[cfg(feature = "multi")]
 impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
@@ -423,7 +424,7 @@ where
 // ============================================================================
 
 /// Iterator that polls a future on each `next()` call.
-#[cfg(all(feature = "std", not(feature = "multi")))]
+#[cfg(not(feature = "multi"))]
 pub struct FutureIterator<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -435,7 +436,7 @@ where
     _phantom: PhantomData<(Fut, T, E)>,
 }
 
-#[cfg(all(feature = "std", not(feature = "multi")))]
+#[cfg(not(feature = "multi"))]
 impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -456,22 +457,20 @@ where
             Box::pin((f)())
         };
 
-        loop {
-            let waker = get_noop_waker();
-            let mut cx = Context::from_waker(&waker);
+        let waker = get_noop_waker();
+        let mut cx = Context::from_waker(&waker);
 
-            match future.as_mut().poll(&mut cx) {
-                Poll::Ready(Ok(iter)) => {
-                    self.inner_iter = Some(iter);
-                    // Return first item from the newly acquired iterator
-                    if let Some(iter) = &mut self.inner_iter {
-                        return iter.next().map(ThreadedValue::Value);
-                    }
-                    return None;
+        match future.as_mut().poll(&mut cx) {
+            Poll::Ready(Ok(iter)) => {
+                self.inner_iter = Some(iter);
+                // Return first item from the newly acquired iterator
+                if let Some(iter) = &mut self.inner_iter {
+                    return iter.next().map(ThreadedValue::Value);
                 }
-                Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
-                Poll::Pending => std::thread::yield_now(),
+                return None;
             }
+            Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
+            Poll::Pending => return Some(ThreadedValue::Waiting),
         }
     }
 }
@@ -479,7 +478,7 @@ where
 /// A future executor for single-threaded std environments.
 ///
 /// Polls the future inline on each `next()` call without spawning threads.
-#[cfg(all(feature = "std", not(feature = "multi")))]
+#[cfg(not(feature = "multi"))]
 pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -490,106 +489,7 @@ where
     _phantom: PhantomData<(Fut, I, T, E)>,
 }
 
-#[cfg(all(feature = "std", not(feature = "multi")))]
-impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
-where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<I, E>>,
-    I: Iterator<Item = Result<T, E>>,
-{
-    pub fn new(future_fn: F) -> Self {
-        Self {
-            future_fn,
-            _phantom: PhantomData,
-        }
-    }
-
-    pub fn with_queue_size(future_fn: F, _queue_size: usize) -> Self {
-        Self {
-            future_fn,
-            _phantom: PhantomData,
-        }
-    }
-
-    pub fn execute(self) -> impl Iterator<Item = ThreadedValue<T, E>> {
-        FutureIterator {
-            future: Some(self.future_fn),
-            inner_iter: None,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-// ============================================================================
-// No-std implementation (not multi, not std)
-// ============================================================================
-
-/// Iterator that polls a future on each `next()` call (no_std version).
-#[cfg(all(not(feature = "multi"), not(feature = "std")))]
-pub struct FutureIterator<F, Fut, I, T, E>
-where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<I, E>>,
-    I: Iterator<Item = Result<T, E>>,
-{
-    future: Option<F>,
-    inner_iter: Option<I>,
-    _phantom: PhantomData<(Fut, T, E)>,
-}
-
-#[cfg(all(not(feature = "multi"), not(feature = "std")))]
-impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E>
-where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<I, E>>,
-    I: Iterator<Item = Result<T, E>>,
-{
-    type Item = ThreadedValue<T, E>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(iter) = &mut self.inner_iter {
-            return iter.next().map(ThreadedValue::Value);
-        }
-
-        let mut future = match self.future.take() {
-            Some(f) => Box::pin((f)()),
-            None => return None,
-        };
-
-        loop {
-            let waker = get_noop_waker();
-            let mut cx = Context::from_waker(&waker);
-
-            match future.as_mut().poll(&mut cx) {
-                Poll::Ready(Ok(iter)) => {
-                    self.inner_iter = Some(iter);
-                    if let Some(iter) = &mut self.inner_iter {
-                        return iter.next().map(ThreadedValue::Value);
-                    }
-                    return None;
-                }
-                Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
-                Poll::Pending => core::hint::spin_loop(),
-            }
-        }
-    }
-}
-
-/// A future executor for no_std environments.
-///
-/// Polls the future inline on each `next()` call without spawning threads.
-#[cfg(all(not(feature = "multi"), not(feature = "std")))]
-pub struct ThreadedIterFuture<F, Fut, I, T, E>
-where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<I, E>>,
-    I: Iterator<Item = Result<T, E>>,
-{
-    future_fn: F,
-    _phantom: PhantomData<(Fut, I, T, E)>,
-}
-
-#[cfg(all(not(feature = "multi"), not(feature = "std")))]
+#[cfg(not(feature = "multi"))]
 impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,

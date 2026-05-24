@@ -26,9 +26,8 @@ use crate::valtron::DrivenSendTaskIterator;
 use crate::valtron::{
     CollectAllStream, DrivenNonSendRecvIterator, DrivenNonSendStreamIterator,
     DrivenNonSendTaskIterator, DrivenRecvIterator, DrivenStreamIterator, ExecutionAction,
-    GenericResult, InlineAction, InlineActionBehaviour, InlineSendAction,
-    InlineSendActionBehaviour, NotifyQueueStreamIterator, NotifyRecvIterator, ReadyValues,
-    TaskIterator, TaskStatus, TaskStatusMapper, ThreadedValue,
+    GenericResult, InlineSendAction, InlineSendActionBehaviour, NotifyQueueStreamIterator,
+    NotifyRecvIterator, TaskIterator, TaskStatus, TaskStatusMapper, ThreadedValue,
 };
 
 use crate::valtron::executors::DEFAULT_WAIT_CYCLE;
