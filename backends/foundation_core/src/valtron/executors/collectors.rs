@@ -21,12 +21,12 @@ use crate::valtron::{
 /// This type holds the `DrivenStreamIterator`s returned from `execute()` and
 /// polls them one at a time, yielding `Stream::Pending` while any
 /// sources are pending, and `Stream::Next(Vec<D>)` when all complete.
-pub struct CollectAllStream<T>
+pub struct CollectAllTaskStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     collected: Vec<T::Ready>,
@@ -34,14 +34,14 @@ where
     current_index: usize,
 }
 
-impl<T> CollectAllStream<T>
+impl<T> CollectAllTaskStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
-    /// Create a new `CollectAllStream` from a vector of `DrivenStreamIterator`s.
+    /// Create a new `CollectAllTaskStream` from a vector of `DrivenStreamIterator`s.
     #[must_use]
     pub fn new(sources: Vec<DrivenStreamIterator<T>>) -> Self {
         Self {
@@ -53,12 +53,12 @@ where
     }
 }
 
-impl<T> Iterator for CollectAllStream<T>
+impl<T> Iterator for CollectAllTaskStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     type Item = Stream<Vec<T::Ready>, usize>;
 
@@ -388,6 +388,7 @@ where
 ///     }
 /// }
 /// ```
+#[cfg(feature = "multi")]
 pub fn execute_map_all<T, F, O>(
     tasks: Vec<T>,
     mapper: F,
@@ -409,6 +410,26 @@ where
     Ok(MapAllDoneStream::new(streams, mapper))
 }
 
+#[cfg(not(feature = "multi"))]
+pub fn execute_map_all<T, F, O>(
+    tasks: Vec<T>,
+    mapper: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<MapAllDoneStream<T, F, O>>
+where
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(MapAllDoneStream::new(streams, mapper))
+}
+
 /// Maps values from multiple `TaskIterators` only when all sources reach Done state.
 ///
 /// This type holds the `DrivenStreamIterator`s returned from `execute()` and
@@ -416,27 +437,24 @@ where
 /// mapper function to the collected values and yields the result.
 pub struct MapAllDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     mapper: F,
     buffer: Vec<Option<T::Ready>>,
     done: bool,
+    _phantom: std::marker::PhantomData<O>,
 }
 
 impl<T, F, O> MapAllDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `MapAllDoneStream` from sources and a mapper function.
     pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
@@ -446,18 +464,18 @@ where
             mapper,
             buffer: (0..len).map(|_| None).collect(),
             done: false,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 impl<T, F, O> Iterator for MapAllDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
+    F: Fn(Vec<T::Ready>) -> O,
 {
     type Item = Stream<O, usize>;
 
@@ -572,6 +590,7 @@ where
 ///     format!("Progress: {}/{} complete", done_count, states.len())
 /// }, None)?;
 /// ```
+#[cfg(feature = "multi")]
 pub fn execute_map_all_pending_and_done<T, F, O>(
     tasks: Vec<T>,
     mapper: F,
@@ -584,6 +603,26 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
     F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
     O: Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(MapAllPendingAndDoneStream::new(streams, mapper))
+}
+
+#[cfg(not(feature = "multi"))]
+pub fn execute_map_all_pending_and_done<T, F, O>(
+    tasks: Vec<T>,
+    mapper: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<MapAllPendingAndDoneStream<T, F, O>>
+where
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -613,26 +652,23 @@ where
 /// - After source 1 completes: `[Stream::Next(0)]` (1 element, was at index 0)
 pub struct MapAllPendingAndDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     mapper: F,
     done: bool,
+    _phantom: std::marker::PhantomData<O>,
 }
 
 impl<T, F, O> MapAllPendingAndDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `MapAllPendingAndDoneStream` from sources and a mapper.
     pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
@@ -640,18 +676,18 @@ where
             sources,
             mapper,
             done: false,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 impl<T, F, O> Iterator for MapAllPendingAndDoneStream<T, F, O>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
-    O: Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O,
 {
     type Item = Stream<O, usize>;
 
@@ -746,6 +782,7 @@ where
 ///     }
 /// }
 /// ```
+#[cfg(feature = "multi")]
 pub fn execute_collect_next_from_all<T>(
     tasks: Vec<T>,
     wait_cycle: Option<std::time::Duration>,
@@ -755,6 +792,25 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(CollectNextFromAllStream::new(streams))
+}
+
+#[cfg(not(feature = "multi"))]
+pub fn execute_collect_next_from_all<T>(
+    tasks: Vec<T>,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<CollectNextFromAllStream<T>>
+where
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -774,10 +830,10 @@ where
 /// Returns `None` when all streams are exhausted.
 pub struct CollectNextFromAllStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     current_index: usize,
@@ -786,10 +842,10 @@ where
 
 impl<T> CollectNextFromAllStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `CollectNextFromAllStream` from a vector of `DrivenStreamIterator`s.
     #[must_use]
@@ -804,10 +860,10 @@ where
 
 impl<T> Iterator for CollectNextFromAllStream<T>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     type Item = Stream<T::Ready, usize>;
 

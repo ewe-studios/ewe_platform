@@ -24,10 +24,11 @@ use crate::valtron::StreamTask;
 use crate::valtron::DrivenSendTaskIterator;
 
 use crate::valtron::{
-    CollectAllStream, DrivenNonSendRecvIterator, DrivenNonSendStreamIterator,
+    CollectAllTaskStream, DrivenNonSendRecvIterator, DrivenNonSendStreamIterator,
     DrivenNonSendTaskIterator, DrivenRecvIterator, DrivenStreamIterator, ExecutionAction,
-    GenericResult, InlineSendAction, InlineSendActionBehaviour, NotifyQueueStreamIterator,
-    NotifyRecvIterator, TaskIterator, TaskStatus, TaskStatusMapper, ThreadedValue,
+    GenericResult, InlineAction, InlineActionBehaviour, InlineSendAction,
+    InlineSendActionBehaviour, NotifyQueueStreamIterator, NotifyRecvIterator, ReadyValues,
+    TaskIterator, TaskStatus, TaskStatusMapper, ThreadedIterFuture, ThreadedValue,
 };
 
 use crate::valtron::executors::DEFAULT_WAIT_CYCLE;
@@ -522,7 +523,7 @@ where
 pub fn execute_with_config<T>(
     task: T,
     config: StreamConfig,
-) -> GenericResult<DrivenStreamIterator<T>>
+) -> GenericResult<DrivenNonSendStreamIterator<T>>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -539,7 +540,7 @@ where
         .with_task(task)
         .scheduled_stream_iter_with_config(config.park_duration, config.max_turns)?;
 
-    ok(drive_non_send_stream(iter))
+    Ok(drive_non_send_stream(iter))
 }
 
 /// Execute a task with custom [`StreamConfig`] for fine-grained control.
@@ -785,7 +786,7 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 pub fn execute_collect_all<T>(
     tasks: Vec<T>,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<CollectAllStream<T>>
+) -> GenericResult<CollectAllTaskStream<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -799,7 +800,7 @@ where
             .map(|t| execute(t, wait_cycle))
             .collect::<GenericResult<_>>()?;
 
-        Ok(CollectAllStream::new(streams))
+        Ok(CollectAllTaskStream::new(streams))
     }
 
     #[cfg(feature = "multi")]
@@ -809,7 +810,7 @@ where
             .map(|t| execute(t, wait_cycle))
             .collect::<GenericResult<_>>()?;
 
-        Ok(CollectAllStream::new(streams))
+        Ok(CollectAllTaskStream::new(streams))
     }
 }
 
@@ -1029,7 +1030,7 @@ where
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(not(feature = "multi"))]
-pub fn drive_future_stream<S>(stream: S) -> DrivenNotSendTaskIterator<StreamTask<S>>
+pub fn drive_future_stream<S>(stream: S) -> DrivenNonSendTaskIterator<StreamTask<S>>
 where
     S: futures_core::Stream + 'static,
     S::Item: 'static,

@@ -456,14 +456,14 @@ where
     }
 }
 
-pub struct DrivenStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
+pub struct DrivenSendStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static;
 
-impl<T> DrivenStreamIterator<T>
+impl<T> DrivenSendStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -483,7 +483,7 @@ where
     }
 }
 
-unsafe impl<T> Send for DrivenStreamIterator<T>
+unsafe impl<T> Send for DrivenSendStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -492,7 +492,7 @@ where
 {
 }
 
-impl<T> Iterator for DrivenStreamIterator<T>
+impl<T> Iterator for DrivenSendStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -541,7 +541,7 @@ where
     }
 }
 
-pub struct DrivenRecvIterator<T>(
+pub struct DrivenSendRecvIterator<T>(
     Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
 )
 where
@@ -550,7 +550,7 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static;
 
-impl<T> DrivenRecvIterator<T>
+impl<T> DrivenSendRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -567,7 +567,7 @@ where
 
 // This is safe to send since it contains a type `NotifyRecvIterator`
 // which is safe to send.
-unsafe impl<T> Send for DrivenRecvIterator<T>
+unsafe impl<T> Send for DrivenSendRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -576,7 +576,7 @@ where
 {
 }
 
-impl<T> Iterator for DrivenRecvIterator<T>
+impl<T> Iterator for DrivenSendRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -690,3 +690,25 @@ where
         }
     }
 }
+
+// ===========================================
+// Type aliases that resolve to Send or non-Send variants based on feature flag.
+// This lets structs store `DrivenStreamIterator<T>` without forcing `Send` bounds
+// at the struct level — the function that constructs them decides.
+// ===========================================
+
+/// Under `multi=off`, resolves to the non-Send stream iterator.
+/// Under `multi=on`, resolves to the Send stream iterator.
+#[cfg(not(feature = "multi"))]
+pub type DrivenStreamIterator<T> = DrivenNonSendStreamIterator<T>;
+
+#[cfg(feature = "multi")]
+pub type DrivenStreamIterator<T> = DrivenSendStreamIterator<T>;
+
+/// Under `multi=off`, resolves to the non-Send recv iterator.
+/// Under `multi=on`, resolves to the Send recv iterator.
+#[cfg(not(feature = "multi"))]
+pub type DrivenRecvIterator<T> = DrivenNonSendRecvIterator<T>;
+
+#[cfg(feature = "multi")]
+pub type DrivenRecvIterator<T> = DrivenSendRecvIterator<T>;
