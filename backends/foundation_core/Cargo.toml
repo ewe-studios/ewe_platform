@@ -51,7 +51,8 @@ brotli = { version = "6.0", optional = true }
 
 # JS event loop yield (wasm-bindgen backend)
 wasm-bindgen = { version = "0.2", optional = true }
-web-sys = { version = "0.3", optional = true, features = ["Window"] }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["Window", "DedicatedWorkerGlobalScope", "console"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
@@ -124,7 +125,7 @@ alloc = ["futures-core/alloc"]
 multi = ["std"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
 js-foundation-wasm = []
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)

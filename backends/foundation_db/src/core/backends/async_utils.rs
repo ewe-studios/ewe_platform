@@ -96,16 +96,16 @@ where
 
 #[cfg(target_arch = "wasm32")]
 use foundation_core::valtron::{
-    drive_non_send_iterator, from_future_non_send, TaskStatus,
+    drive_non_send_iterator, from_future_non_send, FuturePollState, NoAction, StreamIteratorExt,
+    TaskStatus,
 };
 
 /// WHY: wasm32 futures (JsFuture etc.) are !Send. On wasm32 single-threaded target
 /// Send is structurally safe but types don't implement it.
 ///
-/// WHAT: Schedules a future via `from_future_non_send` + `drive_non_send_iterator`,
-/// returning a boxed stream. Errors are preserved in the stream.
-///
-/// HOW: `from_future_non_send` → `drive_non_send_iterator` → filter_map to Stream → box.
+/// WHAT: `from_future_non_send` → `drive_non_send_iterator` → map errors → box.
+/// `drive_non_send_iterator` internally calls `run_until_next_state()` before each
+/// `next()`, driving the valtron executor so the scheduled task makes progress.
 ///
 /// # Errors
 ///
@@ -119,32 +119,26 @@ where
     T: Send + 'static,
     E: Into<StorageError> + 'static,
 {
-    use foundation_core::valtron::{NoAction, TaskStatus};
-
     let task = from_future_non_send(future);
-    let driven = drive_non_send_iterator(task);
+    let mut driven = drive_non_send_iterator(task);
 
-    // Map TaskStatus<Result<T, E>, FuturePollState, NoAction> → Stream<Result<T, StorageError>, ()>
-    Ok(Box::new(driven.filter_map(
-        |status: TaskStatus<Result<T, E>, foundation_core::valtron::FuturePollState, NoAction>| {
-            match status {
-                TaskStatus::Ready(result) => {
-                    Some(Stream::Next(result.map_err(Into::into)))
-                }
+    Ok(Box::new(
+        std::iter::from_fn(move || {
+            driven.next().and_then(|status| match status {
+                TaskStatus::Ready(result) => Some(Stream::Next(result.map_err(Into::into))),
                 TaskStatus::Pending(_) => Some(Stream::Pending(())),
                 TaskStatus::Init => Some(Stream::Init),
                 TaskStatus::Delayed(d) => Some(Stream::Delayed(d)),
-                TaskStatus::Ignore | TaskStatus::Spawn(_) => None,
-                TaskStatus::Wait => Some(Stream::Wait),
-            }
-        },
-    )))
+                TaskStatus::Ignore | TaskStatus::Wait => None,
+                TaskStatus::Spawn(_) => None,
+            })
+        }),
+    ))
 }
 
 /// WHY: One-shot blocking bridge for initialization and migrations on wasm32.
 ///
-/// WHAT: Drives a non-Send future via `drive_non_send_iterator`, blocking
-/// until the result is available.
+/// WHAT: `from_future_non_send` → `drive_non_send_iterator` → extract first Ready result.
 ///
 /// # Errors
 ///
@@ -160,19 +154,13 @@ where
     let task = from_future_non_send(future);
     let mut driven = drive_non_send_iterator(task);
 
-    let mut result: Option<Result<T, StorageError>> = None;
     for status in driven.by_ref() {
         if let TaskStatus::Ready(v) = status {
-            result = Some(v.map_err(Into::into));
-            break;
+            return v.map_err(Into::into);
         }
     }
 
-    match result {
-        Some(Ok(v)) => Ok(v),
-        Some(Err(e)) => Err(e),
-        None => Err(StorageError::Generic(
-            "No result from future execution".into(),
-        )),
-    }
+    Err(StorageError::Generic(
+        "No result from future execution".into(),
+    ))
 }

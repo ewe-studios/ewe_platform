@@ -99,6 +99,12 @@ pub struct SessionManager<S> {
 }
 
 impl<S: CredentialStore> SessionManager<S> {
+    /// Borrow the underlying credential store.
+    #[must_use]
+    pub fn store(&self) -> &S {
+        &self.store
+    }
+
     /// Get the session configuration.
     #[must_use]
     pub fn config(&self) -> &SessionConfig {

@@ -14,7 +14,7 @@ use crate::core::storage_provider::{
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, StreamReadyFuture};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -425,6 +425,58 @@ impl AsyncKeyValueStore for D1WasmStorage {
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
         self.list_keys_async(prefix).await
+    }
+}
+
+// ===========================================================================
+// Valtron-driven async methods — exercises JSThreadYielder
+//
+// WHY: Test that valtron's executor can drive futures through the JS event
+// loop in CF Workers. Unlike `*_async` (which uses JsFuture directly),
+// these go through `schedule_future` → valtron executor → JSThreadYielder
+// → setTimeout → back to executor.
+//
+// HOW: `schedule_future` creates a valtron stream iterator. `into_ready_future`
+// wraps it as a standard `Future`. When `.await`ed, `poll` calls `iter.next()`
+// which drives valtron. If the future is pending, JSThreadYielder yields via
+// setTimeout and poll returns Pending with wake_by_ref(). When the timer fires,
+// valtron resumes and the async runtime repolls.
+// ===========================================================================
+
+impl D1WasmStorage {
+    /// Set a key-value pair via valtron executor (exercises JSThreadYielder).
+    pub async fn set_valtron_async(&self, key: &str, value: impl serde::Serialize + Send + 'static) -> StorageResult<()> {
+        let this = self.clone();
+        let key = key.to_string();
+        let stream = schedule_future(async move {
+            Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
+        })?;
+        let future = StreamReadyFuture::new(stream);
+        let result = future.await;
+        match result {
+            Some((Ok(()), _)) => Ok(()),
+            Some((Err(e), _)) => Err(e),
+            None => Err(StorageError::Generic("valtron stream ended without result".into())),
+        }
+    }
+
+    /// Get a value via valtron executor (exercises JSThreadYielder).
+    pub async fn get_valtron_async<V: serde::de::DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let this = self.clone();
+        let key = key.to_string();
+        let stream = schedule_future(async move {
+            Self::do_get_async::<V>(&this.db, &this.table_prefix, &key).await
+        })?;
+        let future = StreamReadyFuture::new(stream);
+        let result = future.await;
+        match result {
+            Some((Ok(v), _)) => Ok(v),
+            Some((Err(e), _)) => Err(e),
+            None => Err(StorageError::Generic("valtron stream ended without result".into())),
+        }
     }
 }
 

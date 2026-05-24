@@ -1,6 +1,7 @@
 // Test modules for foundation_core
 mod channel_backpressure_tests;
 mod flatten_combinators;
+mod futures_in_valtron;
 mod map_circuit;
 mod notification_based_waiting;
 mod shutdown_mechanism_tests;

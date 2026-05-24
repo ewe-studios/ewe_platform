@@ -35,17 +35,34 @@ fn js_yield_and_continue() {
 }
 
 fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) {
-    let window = web_sys::window().expect("no window found");
     let closure = Closure::once(Box::new(move || {
         resume();
         js_yield_and_continue();
     }) as Box<dyn FnOnce()>);
-    window
-        .set_timeout_with_callback_and_timeout_and_arguments_0(
-            closure.as_ref().unchecked_ref(),
-            dur.as_millis() as i32,
-        )
-        .expect("set_timeout failed");
+
+    // Use js_sys::global() instead of web_sys::window() to support
+    // CF Workers (DedicatedWorkerGlobalScope) and browsers (Window).
+    let global = js_sys::global();
+    if let Some(scope) = global.dyn_ref::<web_sys::DedicatedWorkerGlobalScope>() {
+        web_sys::console::log_1(&"JSThreadYielder: using DedicatedWorkerGlobalScope".into());
+        scope
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                closure.as_ref().unchecked_ref(),
+                dur.as_millis() as i32,
+            )
+            .expect("set_timeout failed");
+    } else if let Some(window) = global.dyn_ref::<web_sys::Window>() {
+        web_sys::console::log_1(&"JSThreadYielder: using Window".into());
+        window
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                closure.as_ref().unchecked_ref(),
+                dur.as_millis() as i32,
+            )
+            .expect("set_timeout failed");
+    } else {
+        web_sys::console::log_1(&"JSThreadYielder: no matching global scope!".into());
+        panic!("no global scope found for setTimeout");
+    }
     closure.forget();
 }
 

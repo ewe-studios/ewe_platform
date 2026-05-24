@@ -110,7 +110,7 @@ impl AsyncCredentialStore for D1CredentialStore {
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        self.get(key)
+        self.storage.get_async(key).await
     }
 
     async fn set_async<V: Serialize + Send + 'static>(
@@ -118,18 +118,48 @@ impl AsyncCredentialStore for D1CredentialStore {
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        self.set(key, value)
+        self.storage.set_async(key, value).await
     }
 
     async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.delete(key)
+        self.storage.delete_async(key).await
     }
 
     async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.exists(key)
+        self.storage.exists_async(key).await
     }
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.list_keys(prefix)
+        self.storage.list_keys_async(prefix).await
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl AsyncCredentialStore for Arc<D1CredentialStore> {
+    async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        AsyncCredentialStore::get_async(self.as_ref(), key).await
+    }
+
+    async fn set_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        AsyncCredentialStore::set_async(self.as_ref(), key, value).await
+    }
+
+    async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
+        AsyncCredentialStore::delete_async(self.as_ref(), key).await
+    }
+
+    async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        AsyncCredentialStore::exists_async(self.as_ref(), key).await
+    }
+
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        AsyncCredentialStore::list_keys_async(self.as_ref(), prefix).await
     }
 }

@@ -14,7 +14,8 @@ use crate::valtron::{
     task::TaskStatus, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
-    BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionIterator, State, TaskStatusMapper,
+    BoxedExecutionIterator, BoxedSendExecutionIterator, DrivenStreamIterator, ExecutionIterator,
+    GenericResult, State, StreamIterator, TaskStatusMapper,
 };
 
 /// [`StreamConsumingIter`] provides an implementer of `ExecutionIterator` which is focused
@@ -132,16 +133,17 @@ where
             }
         }
 
-        let task_response =
-            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
-                Ok(inner) => inner,
-                Err(panic_error) => {
-                    if let Some(panic_handler) = &self.panic_handler {
-                        (panic_handler)(panic_error);
-                    }
-                    return Some(State::Panicked);
+        let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.task.lock().unwrap().next_status()
+        })) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
                 }
-            };
+                return Some(State::Panicked);
+            }
+        };
 
         if task_response.is_none() {
             // close the queue
@@ -179,101 +181,89 @@ where
                     State::SpawnFailed(entry)
                 }
             },
-            TaskStatus::Ignore => {
-                match self.channel.push(Stream::Ignore) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, storing Stream::Ignore for retry");
-                        self.pending_msg = Some(Stream::Ignore);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Ignore => match self.channel.push(Stream::Ignore) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(_)) => {
+                    tracing::debug!("Channel full, storing Stream::Ignore for retry");
+                    self.pending_msg = Some(Stream::Ignore);
+                    State::Pending(None)
                 }
-            }
-            TaskStatus::Delayed(inner) => {
-                match self.channel.push(Stream::Delayed(inner)) {
-                    Ok(()) => State::Pending(Some(inner)),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, storing Stream::Delayed for retry");
-                        self.pending_msg = Some(Stream::Delayed(inner));
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
                 }
-            }
-            TaskStatus::Init => {
-                match self.channel.push(Stream::Init) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, storing Stream::Init for retry");
-                        self.pending_msg = Some(Stream::Init);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            },
+            TaskStatus::Delayed(inner) => match self.channel.push(Stream::Delayed(inner)) {
+                Ok(()) => State::Pending(Some(inner)),
+                Err(PushError::Full(_)) => {
+                    tracing::debug!("Channel full, storing Stream::Delayed for retry");
+                    self.pending_msg = Some(Stream::Delayed(inner));
+                    State::Pending(None)
                 }
-            }
-            TaskStatus::Pending(inner) => {
-                match self.channel.push(Stream::Pending(inner)) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(msg)) => {
-                        tracing::debug!("Channel full, storing Stream::Pending for retry");
-                        self.pending_msg = Some(msg);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
                 }
-            }
-            TaskStatus::Ready(inner) => {
-                match self.channel.push(Stream::Next(inner)) {
-                    Ok(()) => State::ReadyValue(entry),
-                    Err(PushError::Full(msg)) => {
-                        tracing::debug!("Channel full, storing Stream::Next for retry");
-                        self.pending_msg = Some(msg);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            },
+            TaskStatus::Init => match self.channel.push(Stream::Init) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(_)) => {
+                    tracing::debug!("Channel full, storing Stream::Init for retry");
+                    self.pending_msg = Some(Stream::Init);
+                    State::Pending(None)
                 }
-            }
-            TaskStatus::Wait => {
-                match self.channel.push(Stream::Wait) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(Stream::Wait);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
                 }
-            }
+            },
+            TaskStatus::Pending(inner) => match self.channel.push(Stream::Pending(inner)) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel full, storing Stream::Pending for retry");
+                    self.pending_msg = Some(msg);
+                    State::Pending(None)
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
+            TaskStatus::Ready(inner) => match self.channel.push(Stream::Next(inner)) {
+                Ok(()) => State::ReadyValue(entry),
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel full, storing Stream::Next for retry");
+                    self.pending_msg = Some(msg);
+                    State::Pending(None)
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
+            TaskStatus::Wait => match self.channel.push(Stream::Wait) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(_)) => {
+                    self.pending_msg = Some(Stream::Wait);
+                    State::Pending(None)
+                }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
         })
     }
 }
@@ -397,16 +387,17 @@ where
         }
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
-        let task_response =
-            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
-                Ok(inner) => inner,
-                Err(panic_error) => {
-                    if let Some(panic_handler) = &self.panic_handler {
-                        (panic_handler)(panic_error);
-                    }
-                    return Some(State::Panicked);
+        let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.task.lock().unwrap().next_status()
+        })) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
                 }
-            };
+                return Some(State::Panicked);
+            }
+        };
 
         tracing::debug!(
             "Response for next value: {entry:?} with value?: {}",
@@ -528,21 +519,19 @@ where
                 }
             }
             TaskStatus::Ignore => State::Pending(None),
-            TaskStatus::Wait => {
-                match self.channel.push(TaskStatus::Wait) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(TaskStatus::Wait);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Wait => match self.channel.push(TaskStatus::Wait) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(_)) => {
+                    self.pending_msg = Some(TaskStatus::Wait);
+                    State::Pending(None)
                 }
-            }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
         })
     }
 }
@@ -657,16 +646,17 @@ where
             }
         }
 
-        let task_response =
-            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
-                Ok(inner) => inner,
-                Err(panic_error) => {
-                    if let Some(panic_handler) = &self.panic_handler {
-                        (panic_handler)(panic_error);
-                    }
-                    return Some(State::Panicked);
+        let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.task.lock().unwrap().next_status()
+        })) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
                 }
-            };
+                return Some(State::Panicked);
+            }
+        };
 
         if task_response.is_none() {
             // close the queue
@@ -706,38 +696,34 @@ where
             },
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
             TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
-            TaskStatus::Ready(inner) => {
-                match self.channel.push(TaskStatus::Ready(inner)) {
-                    Ok(()) => State::ReadyValue(entry),
-                    Err(PushError::Full(msg)) => {
-                        tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
-                        self.pending_msg = Some(msg);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
+                Ok(()) => State::ReadyValue(entry),
+                Err(PushError::Full(msg)) => {
+                    tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
+                    self.pending_msg = Some(msg);
+                    State::Pending(None)
                 }
-            }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
             TaskStatus::Ignore => State::Pending(None),
-            TaskStatus::Wait => {
-                match self.channel.push(TaskStatus::Wait) {
-                    Ok(()) => State::ReadyValue(entry),
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(TaskStatus::Wait);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Wait => match self.channel.push(TaskStatus::Wait) {
+                Ok(()) => State::ReadyValue(entry),
+                Err(PushError::Full(_)) => {
+                    self.pending_msg = Some(TaskStatus::Wait);
+                    State::Pending(None)
                 }
-            }
+                Err(PushError::Closed(_)) => {
+                    tracing::error!("Channel closed, terminating task");
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
         })
     }
 }
