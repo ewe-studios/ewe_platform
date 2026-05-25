@@ -30,8 +30,11 @@ pub mod native;
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-bindings"))]
 pub mod wasm;
 
-// State module (may contain native-only items — check contents)
-pub mod state;
+// State re-exports (from native/state_stores)
+#[cfg(not(target_arch = "wasm32"))]
+pub mod state {
+    pub use crate::native::state_stores::*;
+}
 
 // Public re-exports (shared — always available)
 pub use core::errors::*;
@@ -63,4 +66,5 @@ pub use wasm::{D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore}
 pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
 
 // State re-exports
+#[cfg(not(target_arch = "wasm32"))]
 pub use state::*;

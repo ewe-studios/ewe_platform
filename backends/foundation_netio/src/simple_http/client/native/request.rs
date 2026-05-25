@@ -8,7 +8,7 @@ use crate::simple_http::client::{
     PreparedRequest, SystemDnsResolver,
 };
 use crate::simple_http::shared::Extensions;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
 };
 use base64::prelude::*;

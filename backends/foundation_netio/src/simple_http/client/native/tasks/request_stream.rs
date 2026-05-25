@@ -17,7 +17,7 @@
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
-use crate::simple_http::{Http11, HttpClientError, RenderHttp};
+use crate::simple_http::shared::{Http11, HttpClientError, RenderHttp};
 use std::io::Write;
 use std::sync::Arc;
 

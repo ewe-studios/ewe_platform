@@ -4,7 +4,7 @@
 //! via `into_simple_incoming_request()` to use with HTTP rendering.
 
 use foundation_core::url::Uri;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest,
     SimpleMethod, SimpleUrl,
 };

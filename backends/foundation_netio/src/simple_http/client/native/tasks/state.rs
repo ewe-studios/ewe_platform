@@ -2,7 +2,7 @@ use crate::netcap::RawStream;
 use crate::simple_http::client::{
     DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending, PreparedRequest,
 };
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
 use std::sync::{Arc, Mutex};

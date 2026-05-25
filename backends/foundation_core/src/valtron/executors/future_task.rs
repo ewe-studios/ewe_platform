@@ -358,7 +358,7 @@ where
         let (sender, receiver) = mpp::bounded::<ThreadedValue<T, E>>(self.queue_size);
         let backpressure_sleep = self.backpressure_sleep;
 
-        super::unified::run_background_job(move || {
+        super::run_background_job(move || {
             let waker = create_noop_waker();
             let mut cx = Context::from_waker(&waker);
             let mut future = Box::pin((self.future_fn)());

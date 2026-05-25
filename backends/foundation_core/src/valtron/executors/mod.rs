@@ -2,39 +2,49 @@ mod actions;
 mod background;
 mod builders;
 mod collect_next;
-mod collectors;
+mod config;
 mod constants;
 mod controller;
 mod dependent_lift;
 mod do_next;
-mod drivers;
 mod future_task;
 mod local;
 mod on_next;
 mod state_machine;
+mod sync;
 mod task_iters;
-mod unified;
 mod wrappers;
 
 pub use actions::*;
 pub use background::*;
 pub use builders::*;
 pub use collect_next::*;
-pub use collectors::*;
+pub use config::*;
 pub use constants::*;
 pub use controller::*;
 pub use dependent_lift::*;
 pub use do_next::*;
-pub use drivers::*;
 pub use future_task::*;
 pub use local::*;
 pub use on_next::*;
 pub use state_machine::*;
+pub use sync::*;
 pub use task_iters::*;
-pub use unified::*;
 pub use wrappers::*;
 
 pub mod single;
+
+#[cfg(not(feature = "multi"))]
+pub mod non_sendables;
+
+#[cfg(not(feature = "multi"))]
+pub use non_sendables::*;
+
+#[cfg(feature = "multi")]
+pub mod sendables;
+
+#[cfg(feature = "multi")]
+pub use sendables::*;
 
 #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
 pub mod wasm;

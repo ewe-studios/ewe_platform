@@ -11,7 +11,7 @@
 ///
 /// Never panics.
 use super::request::PreparedRequest;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleResponse,
 };
 use std::sync::Arc;

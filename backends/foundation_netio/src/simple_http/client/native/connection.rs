@@ -676,7 +676,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         timeout: Option<Duration>,
     ) -> Result<Connection, HttpClientError> {
         use crate::simple_http::client::ProxyProtocol;
-        use crate::simple_http::{HttpResponseReader, SimpleHttpBody};
+        use crate::simple_http::shared::{HttpResponseReader, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -853,7 +853,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
         use crate::simple_http::client::ProxyProtocol;
-        use crate::simple_http::{HttpResponseReader, SimpleHttpBody};
+        use crate::simple_http::shared::{HttpResponseReader, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol

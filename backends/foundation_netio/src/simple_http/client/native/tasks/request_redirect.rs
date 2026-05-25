@@ -20,7 +20,7 @@ use crate::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::simple_http::client::redirects;
 use crate::simple_http::client::{DnsResolver, HttpClientConnection, HttpConnectionPool};
-use crate::simple_http::{
+use crate::simple_http::shared::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
     RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };

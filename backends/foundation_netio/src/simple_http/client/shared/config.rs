@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::time::Duration;
 
 use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
-use crate::simple_http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
+use crate::simple_http::shared::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;
 

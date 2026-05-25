@@ -1,5 +1,5 @@
 use foundation_core::url::Uri;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };

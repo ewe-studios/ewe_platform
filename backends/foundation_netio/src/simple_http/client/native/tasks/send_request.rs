@@ -24,7 +24,7 @@ use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_
 use crate::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };

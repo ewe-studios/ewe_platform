@@ -22,7 +22,7 @@ use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
 use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
 use crate::simple_http::client::{HttpClientConnection, ResponseIntro};
 use crate::simple_http::shared::IncomingResponseParts;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody, Status,
 };

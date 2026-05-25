@@ -20,7 +20,7 @@ use crate::simple_http::client::{
     ClientConfig, DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending,
     MiddlewareChain, PreparedRequest, RequestIntro, ResponseIntro, SendRequestTask,
 };
-use crate::simple_http::{
+use crate::simple_http::shared::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
 };

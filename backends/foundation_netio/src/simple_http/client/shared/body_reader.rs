@@ -29,7 +29,7 @@ use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use crate::event_source::shared::ParseResult;
 use crate::event_source::Event;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
 use serde::de::DeserializeOwned;

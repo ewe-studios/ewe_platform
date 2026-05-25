@@ -14,8 +14,7 @@ use crate::valtron::{
     task::TaskStatus, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
-    BoxedExecutionIterator, BoxedSendExecutionIterator, DrivenStreamIterator, ExecutionIterator,
-    GenericResult, State, StreamIterator, TaskStatusMapper,
+    BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionIterator, State, TaskStatusMapper,
 };
 
 /// [`StreamConsumingIter`] provides an implementer of `ExecutionIterator` which is focused
