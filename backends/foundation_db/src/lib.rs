@@ -30,12 +30,6 @@ pub mod native;
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-bindings"))]
 pub mod wasm;
 
-// State re-exports (from native/state_stores — used by foundation_deployment)
-#[cfg(not(target_arch = "wasm32"))]
-pub mod state {
-    pub use crate::native::state_stores::*;
-}
-
 // Public re-exports (shared — always available)
 pub use core::errors::*;
 pub use core::storage_provider as traits;

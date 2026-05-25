@@ -1,10 +1,10 @@
 //! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
 use foundation_core::valtron::TaskIterator;
-use foundation_db::state::file::FileStateStore;
-use foundation_db::state::resource_identifier::ResourceIdentifier;
-use foundation_db::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};
-use foundation_db::state::traits::StateStore;
+use foundation_db::core::state::file::FileStateStore;
+use foundation_db::core::state::resource_identifier::ResourceIdentifier;
+use foundation_db::core::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};
+use foundation_db::core::state::traits::StateStore;
 use foundation_db::StorageError;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -403,7 +403,7 @@ fn test_store_state_identifier_task_inner_failure() {
 
 #[test]
 fn test_provider_error_display() {
-    use foundation_db::state::store_state_task::ProviderError;
+    use foundation_db::core::state::store_state_task::ProviderError;
 
     let api_err: ProviderError<String> = ProviderError::Api("api error".to_string());
     assert!(api_err.to_string().contains("API error"));
@@ -425,7 +425,7 @@ fn test_provider_error_display() {
 
 #[test]
 fn test_provider_error_from_storage_error() {
-    use foundation_db::state::store_state_task::ProviderError;
+    use foundation_db::core::state::store_state_task::ProviderError;
 
     let storage_err = StorageError::Serialization("test error".to_string());
     let provider_err: ProviderError<String> = storage_err.into();
@@ -438,7 +438,7 @@ fn test_provider_error_from_storage_error() {
 
 #[test]
 fn test_provider_error_map() {
-    use foundation_db::state::store_state_task::ProviderError;
+    use foundation_db::core::state::store_state_task::ProviderError;
 
     let api_err: ProviderError<&str> = ProviderError::Api("original");
     let mapped: ProviderError<String> = api_err.map(std::string::ToString::to_string);
