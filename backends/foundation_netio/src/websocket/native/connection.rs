@@ -13,7 +13,7 @@
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
-use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::shared::DnsResolver;
 use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;

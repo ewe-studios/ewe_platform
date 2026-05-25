@@ -399,6 +399,7 @@ impl KeyValueStore for TursoStorage {
 
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
+            ThreadedValue::Waiting => Stream::Pending(()),
         });
 
         Ok(Box::new(stream))
@@ -437,6 +438,7 @@ impl QueryStore for TursoStorage {
 
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
+            ThreadedValue::Waiting => Stream::Pending(()),
         });
 
         Ok(Box::new(stream))

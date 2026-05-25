@@ -21,9 +21,10 @@ use foundation_core::valtron::{
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
 use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
-use crate::simple_http::client::{
-    redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
+use crate::simple_http::client::shared::{
+    redirects, ClientConfig, DnsResolver, PreparedRequest,
 };
+use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
@@ -83,7 +84,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::simple_http::client::ClientConfig,
+        config: ClientConfig,
     ) -> Self {
         let parsed_uri = request.url.clone();
         Self(

@@ -11,7 +11,7 @@ use crate::valtron::TaskStatusMapper;
 use crate::valtron::ThreadedValue;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
-    NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
+    NotifyQueueStreamIterator, NotifyRecvIterator, Stream,
     StreamIterator, TaskIterator, TaskStatus,
 };
 use core::future::Future;

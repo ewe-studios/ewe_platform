@@ -18,8 +18,8 @@
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::simple_http::client::redirects;
-use crate::simple_http::client::{DnsResolver, HttpClientConnection, HttpConnectionPool};
+use crate::simple_http::client::shared::{redirects, ClientConfig, DnsResolver};
+use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
     RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
@@ -33,14 +33,14 @@ use super::HttpOperationState;
 type InitData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::simple_http::client::ClientConfig,
+    crate::simple_http::client::shared::ClientConfig,
     u8,
 )>;
 
 type TryingData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::simple_http::client::ClientConfig,
+    crate::simple_http::client::shared::ClientConfig,
     RequestDescriptor,
     u8,
 )>;
@@ -84,7 +84,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     pub fn new(
         data: SimpleIncomingRequest,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::simple_http::client::ClientConfig,
+        config: ClientConfig,
         max_redirects: u8,
     ) -> Self {
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((

@@ -127,6 +127,7 @@ pub trait StateStore: Send + Sync {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -145,6 +146,7 @@ pub trait StateStore: Send + Sync {
             ThreadedValue::Value(Ok(id)) if id.starts_with(&prefix) => Ok(n + 1),
             ThreadedValue::Value(Ok(_)) => Ok(n),
             ThreadedValue::Value(Err(e)) => Err(e),
+            ThreadedValue::Waiting => Ok(n),
         });
         Ok(Box::new(std::iter::once(ThreadedValue::Value(count))))
     }
@@ -166,6 +168,7 @@ pub trait StateStore: Send + Sync {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -186,6 +189,7 @@ pub trait StateStore: Send + Sync {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -213,6 +217,7 @@ pub trait StateStore: Send + Sync {
                 }
             }
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -236,6 +241,7 @@ pub trait StateStore: Send + Sync {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -251,9 +257,10 @@ pub trait StateStore: Send + Sync {
     fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
         let ids: Vec<String> = self
             .list_by_prefix(prefix)?
-            .map(|item| match item {
-                ThreadedValue::Value(Ok(id)) => Ok(id),
-                ThreadedValue::Value(Err(e)) => Err(e),
+            .filter_map(|item| match item {
+                ThreadedValue::Value(Ok(id)) => Some(Ok(id)),
+                ThreadedValue::Value(Err(e)) => Some(Err(e)),
+                ThreadedValue::Waiting => None,
             })
             .collect::<Result<Vec<_>, _>>()?;
 

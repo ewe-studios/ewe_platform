@@ -10,15 +10,27 @@
 //! - **`exec_future`** (legacy): Blocks immediately at the leaf. Use only for
 //!   one-shot initialization (DB connection, migrations), not for trait methods.
 
+// WASM32 path imports (always needed for WASM32 feature)
+#[cfg(target_arch = "wasm32")]
 use crate::core::errors::StorageError;
+#[cfg(target_arch = "wasm32")]
 use crate::core::storage_provider::StorageItemStream;
+#[cfg(target_arch = "wasm32")]
+use foundation_core::valtron::Stream;
+
+// Multi-threaded native path imports
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+use crate::core::errors::StorageError;
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+use crate::core::storage_provider::StorageItemStream;
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 use foundation_core::valtron::Stream;
 
 // ============================================================================
 // Native path: Send-required via unified executor
 // ============================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
 
 /// WHY: Enables non-blocking, composable storage operations with error preservation.
@@ -32,7 +44,7 @@ use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
 /// # Errors
 ///
 /// Returns a `StorageError` if Valtron scheduling fails.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 pub fn schedule_future<T, E, F>(
     future: F,
 ) -> Result<StorageItemStream<'static, T>, StorageError>
@@ -61,7 +73,7 @@ where
 /// # Errors
 ///
 /// Returns a `StorageError` if scheduling fails or the future returns an error.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 pub fn exec_future<T, E, F>(future: F) -> Result<T, StorageError>
 where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,

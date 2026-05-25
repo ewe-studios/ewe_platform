@@ -15,7 +15,7 @@
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::shared::DnsResolver;
 use crate::simple_http::client::HttpClientConnection;
 use crate::simple_http::client::HttpConnectionPool;
 use foundation_core::url::Uri;

@@ -12,12 +12,12 @@ use derive_more::derive::From;
 
 use super::simple_http;
 
-pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
+pub fn create_simple_http_reader<T: simple_http::shared::BodyExtractor>(
     stream: RawStream,
     extractor: T,
-) -> simple_http::HttpRequestReader<T, RawStream> {
+) -> simple_http::shared::HttpRequestReader<T, RawStream> {
     let byte_reader = ioutils::SharedByteBufferStream::rwrite(stream);
-    simple_http::HttpRequestReader::new(byte_reader, extractor)
+    simple_http::shared::HttpRequestReader::new(byte_reader, extractor)
 }
 
 /// Representing the different state a connection goes through

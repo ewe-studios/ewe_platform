@@ -62,13 +62,13 @@ tempfile = "3"
 
 [features]
 default = ["turso", "d1", "r2"]
-turso = ["dep:turso"]
-libsql = ["dep:libsql"]
-d1 = []
-r2 = []
+turso = ["dep:turso", "multi"]
+libsql = ["dep:libsql", "multi"]
+d1 = ["foundation_netio/multi"]
+r2 = ["foundation_netio/multi"]
 
 # Multi-threaded support - enables foundation_core's multi feature
-multi = ["foundation_core/multi"]
+multi = ["foundation_core/multi", "foundation_netio/multi"]
 
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js", "dep:getrandom4", "getrandom4/wasm_js", "dep:uuid", "uuid/js"]

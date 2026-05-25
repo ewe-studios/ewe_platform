@@ -21,7 +21,7 @@ use foundation_core::extensions::result_ext::SendableBoxedError;
 use crate::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::event_source::{EventSourceError, ParseResult, SseParser};
-use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::shared::DnsResolver;
 use crate::simple_http::client::HttpClientConnection;
 use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
@@ -384,7 +384,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::simple_http::HttpResponseReader::new(
+                    crate::simple_http::shared::HttpResponseReader::new(
                         stream,
                         SimpleHttpBody::default(),
                     ),

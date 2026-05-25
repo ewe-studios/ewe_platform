@@ -108,7 +108,7 @@ wire-native = ["std"]
 # Valtron utilities features
 std = ["futures-core/std", "foundation_nostd/std"]
 alloc = ["futures-core/alloc"]
-multi = ["std"]  # Multi-threaded executor requires std
+multi = ["std", "foundation_core/multi"]  # Multi-threaded executor requires foundation_core multi
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]

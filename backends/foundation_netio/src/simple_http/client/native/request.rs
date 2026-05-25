@@ -3,10 +3,10 @@
 //! This module provides `ClientRequestBuilder` — the fluent API for building requests.
 
 use foundation_core::url::Uri;
-use crate::simple_http::client::{
-    ClientConfig, ClientRequest, DnsResolver, HttpConnectionPool, MiddlewareChain,
-    PreparedRequest, SystemDnsResolver,
+use crate::simple_http::client::shared::{
+    ClientConfig, DnsResolver, MiddlewareChain, PreparedRequest, SystemDnsResolver,
 };
+use crate::simple_http::client::{ClientRequest, HttpConnectionPool};
 use crate::simple_http::shared::Extensions;
 use crate::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,

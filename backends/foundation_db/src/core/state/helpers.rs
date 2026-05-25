@@ -25,6 +25,7 @@ pub fn collect_first<T>(mut stream: StateStoreStream<T>) -> Result<Option<T>, St
         match item {
             ThreadedValue::Value(Ok(val)) => return Ok(Some(val)),
             ThreadedValue::Value(Err(e)) => return Err(e),
+            ThreadedValue::Waiting => {}
         }
     }
     Ok(None)
@@ -41,6 +42,7 @@ pub fn collect_all<T>(stream: StateStoreStream<T>) -> Result<Vec<T>, StorageErro
         match item {
             ThreadedValue::Value(Ok(val)) => results.push(val),
             ThreadedValue::Value(Err(e)) => return Err(e),
+            ThreadedValue::Waiting => {}
         }
     }
     Ok(results)
@@ -56,6 +58,7 @@ pub fn drive_to_completion(stream: StateStoreStream<()>) -> Result<(), StorageEr
         match item {
             ThreadedValue::Value(Ok(())) => {}
             ThreadedValue::Value(Err(e)) => return Err(e),
+            ThreadedValue::Waiting => {}
         }
     }
     Ok(())

@@ -8,12 +8,12 @@
 //! HOW: All key-based operations prepend `self.prefix`. `list()` filters by prefix
 //! and strips it from returned keys.
 
-use foundation_core::valtron::ThreadedValue;
-use std::sync::Arc;
-
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
+use super::types::StateStatus;
 use crate::core::errors::StorageError;
+use foundation_core::valtron::ThreadedValue;
+use std::sync::Arc;
 
 /// `StateStore` wrapper that automatically prefixes all keys with a namespace.
 ///
@@ -71,7 +71,7 @@ impl<S: StateStore> NamespacedStore<S> {
             id: full_key.clone(),
             kind: String::new(),
             provider: String::new(),
-            status: crate::state::types::StateStatus::Created,
+            status: super::types::StateStatus::Created,
             environment: None,
             config_hash: String::new(),
             output: json_value,
@@ -116,6 +116,7 @@ impl<S: StateStore> NamespacedStore<S> {
                 }
                 ThreadedValue::Value(Ok(None)) => return Ok(None),
                 ThreadedValue::Value(Err(e)) => return Err(e),
+                ThreadedValue::Waiting => {}
             }
         }
         Ok(None)
@@ -150,7 +151,7 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
             ThreadedValue::Value(Ok(id)) => {
                 ThreadedValue::Value(Ok(id.strip_prefix(&prefix).unwrap().to_string()))
             }
-            other @ ThreadedValue::Value(_) => other,
+            other => other,
         })))
     }
 
@@ -206,7 +207,7 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
                 let stripped = id.strip_prefix(&ns_prefix).unwrap_or(&id);
                 ThreadedValue::Value(Ok(stripped.to_string()))
             }
-            other @ ThreadedValue::Value(_) => other,
+            other => other,
         })))
     }
 
@@ -232,6 +233,7 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -252,6 +254,7 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
                 }
             }
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -268,6 +271,7 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
             }
             ThreadedValue::Value(Ok(_)) => None,
             ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            ThreadedValue::Waiting => None,
         })))
     }
 
@@ -280,8 +284,8 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::helpers::drive_to_completion;
-    use crate::state::FileStateStore;
+    use crate::core::state::file::FileStateStore;
+    use crate::core::state::helpers::drive_to_completion;
 
     fn temp_store() -> (tempfile::TempDir, FileStateStore) {
         let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
@@ -324,7 +328,7 @@ mod tests {
                         id: "other-key".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(99),
@@ -400,7 +404,7 @@ mod tests {
                         id: "unrelated".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(0),
@@ -445,7 +449,7 @@ mod tests {
                         id: "other".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(0),
@@ -510,7 +514,7 @@ mod tests {
                         id: "other".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(0),
@@ -554,7 +558,7 @@ mod tests {
                         id: "unrelated".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(0),
@@ -600,7 +604,7 @@ mod tests {
                         id: "unrelated".to_string(),
                         kind: String::new(),
                         provider: String::new(),
-                        status: crate::state::types::StateStatus::Created,
+                        status: StateStatus::Created,
                         environment: None,
                         config_hash: String::new(),
                         output: serde_json::json!(0),

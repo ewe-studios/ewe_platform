@@ -17,8 +17,8 @@ use std::sync::Arc;
 use foundation_core::valtron::run_future_iter;
 
 use super::sqlite::{parse_resource_row, state_to_params, to_state_stream};
-use super::traits::{StateStore, StateStoreStream};
-use super::types::ResourceState;
+use crate::core::state::traits::{StateStore, StateStoreStream};
+use crate::core::state::types::ResourceState;
 use crate::core::backends::async_utils::{exec_future, schedule_future};
 use crate::core::errors::StorageError;
 use crate::native::rows_stream::LibsqlRowsIterator;

@@ -7,6 +7,7 @@ pub mod cleanup;
 pub mod backends;
 pub mod crypto;
 pub mod schema;
+pub mod state;
 
 pub use errors::*;
 pub use storage_provider::*;

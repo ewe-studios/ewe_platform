@@ -3,7 +3,7 @@
 //! WHY: Combines the speed of local `SQLite` with optional remote sync to Turso
 //! for cross-machine state sharing.
 //!
-//! WHAT: `LibSQLStateStore` wraps an embedded libsql database that can
+//! WHAT: `RemoteLibSQLStateStore` wraps an embedded libsql database that can
 //! optionally replicate to a remote Turso instance.
 //!
 //! HOW: Same schema and queries as `SqliteStateStore`. Table names use
@@ -17,10 +17,10 @@ use std::sync::Arc;
 use foundation_core::valtron::run_future_iter;
 
 use super::sqlite::{parse_resource_row, state_to_params, to_state_stream};
-use super::traits::{StateStore, StateStoreStream};
-use super::types::ResourceState;
 use crate::core::backends::async_utils::{exec_future, schedule_future};
 use crate::core::errors::StorageError;
+use crate::core::state::traits::{StateStore, StateStoreStream};
+use crate::core::state::types::ResourceState;
 use crate::native::rows_stream::LibsqlRowsIterator;
 
 /// Generate CREATE TABLE SQL for a given table name.
@@ -70,14 +70,14 @@ fn upsert_sql(table_name: &str) -> String {
 ///   2. Embedded replica: local file with automatic background sync to Turso
 ///
 /// Table names are prefixed with `{project}_{stage}_` for namespacing.
-pub struct LibSQLStateStore {
+pub struct RemoteLibSQLStateStore {
     conn: Arc<libsql::Connection>,
     db: Arc<libsql::Database>,
     has_remote: bool,
     table_name: String, // "{project}_{stage}_resources"
 }
 
-impl LibSQLStateStore {
+impl RemoteLibSQLStateStore {
     /// Local-only mode: no remote sync.
     ///
     /// Table name will be `{project}_{stage}_resources` for namespacing.
@@ -174,7 +174,7 @@ impl LibSQLStateStore {
     }
 }
 
-impl StateStore for LibSQLStateStore {
+impl StateStore for RemoteLibSQLStateStore {
     fn init(&self) -> Result<(), StorageError> {
         let conn = Arc::clone(&self.conn);
         let sql = create_table_sql(&self.table_name);

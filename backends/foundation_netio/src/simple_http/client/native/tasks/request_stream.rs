@@ -16,7 +16,8 @@
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
+use crate::simple_http::client::shared::{ClientConfig, DnsResolver, PreparedRequest};
+use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::{Http11, HttpClientError, RenderHttp};
 use std::io::Write;
 use std::sync::Arc;
@@ -48,7 +49,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::simple_http::client::ClientConfig,
+        config: ClientConfig,
     ) -> Self {
         Self(
             Some(HttpOperationState::Init),

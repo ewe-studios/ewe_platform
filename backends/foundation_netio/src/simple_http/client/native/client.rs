@@ -9,9 +9,11 @@
 //! HOW: Wraps `ClientRequestBuilder` and `TaskIterator` execution. Builder pattern
 //! for configuration. Generic type parameter for DNS resolver flexibility.
 
+use crate::simple_http::client::shared::{
+    ClientConfig, DnsResolver, MiddlewareChain, SystemDnsResolver,
+};
 use crate::simple_http::client::{
-    ClientConfig, ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver,
-    HttpConnectionPool, MiddlewareChain, SystemDnsResolver,
+    ClientRequest, ClientRequestBuilder, ConnectionPool, HttpConnectionPool,
 };
 use crate::simple_http::shared::timeout::TimeoutCalculator;
 use crate::simple_http::shared::HttpClientError;

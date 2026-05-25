@@ -11,10 +11,10 @@ use crate::core::backends::memory::MemoryStorage;
 use crate::core::backends::memory_json::MemoryJsonStore;
 
 #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
-use crate::native::d1_kvstore::D1KeyValueStore;
+use crate::native::d1_kvstore::D1Store;
 
 #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
-use crate::native::r2_blobstore::R2BlobStore;
+use crate::native::r2_blobstore::R2Store;
 
 // Native-only backends
 #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
@@ -94,9 +94,9 @@ enum StorageProviderInner {
     Memory(MemoryStorage),
     MemoryJson(MemoryJsonStore),
     #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
-    D1(D1KeyValueStore),
+    D1(D1Store),
     #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
-    R2(R2BlobStore),
+    R2(R2Store),
     #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
     D1Wasm(D1WasmStorage),
     #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
@@ -131,18 +131,17 @@ impl StorageProvider {
             }
             #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
             StorageBackend::D1 => {
-                let storage = D1KeyValueStore::from_env()?;
+                let storage = D1Store::from_env()?;
                 Ok(Self {
                     inner: StorageProviderInner::D1(storage),
                 })
             }
             #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
             StorageBackend::R2 { bucket } => {
-                let storage = R2BlobStore::from_env()?;
                 let storage = if bucket.is_empty() {
-                    storage
+                    R2Store::from_env()?
                 } else {
-                    R2BlobStore::new(
+                    R2Store::new_blob(
                         &std::env::var("CLOUDFLARE_API_TOKEN").unwrap_or_default(),
                         &std::env::var("CLOUDFLARE_ACCOUNT_ID").unwrap_or_default(),
                         &bucket,

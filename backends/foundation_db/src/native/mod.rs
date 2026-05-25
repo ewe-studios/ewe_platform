@@ -19,10 +19,10 @@ pub use turso_backend::TursoStorage;
 pub use libsql_backend::LibsqlStorage;
 
 #[cfg(feature = "d1")]
-pub use d1_kvstore::D1KeyValueStore;
+pub use d1_kvstore::D1Store;
 
 #[cfg(feature = "r2")]
-pub use r2_blobstore::R2BlobStore;
+pub use r2_blobstore::R2Store;
 
 pub mod json_file;
 pub mod rows_stream;

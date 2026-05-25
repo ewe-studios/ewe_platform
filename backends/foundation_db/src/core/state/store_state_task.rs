@@ -13,9 +13,10 @@
 //!      reception, state creation, and state store stream polling.
 
 use crate::core::errors::StorageError;
-use crate::state::resource_identifier::ResourceIdentifier;
-use crate::state::traits::{StateStore, StateStoreStream};
-use crate::state::{config_hash, ResourceState, StateStatus};
+use crate::core::state::resource_identifier::ResourceIdentifier;
+use crate::core::state::traits::{StateStore, StateStoreStream};
+use crate::core::state::hash::config_hash;
+use crate::core::state::types::{ResourceState, StateStatus};
 use foundation_core::valtron::{TaskIterator, TaskStatus, ThreadedValue};
 use serde::Serialize;
 use std::sync::Arc;
@@ -402,6 +403,11 @@ where
                         self.state = Some(StoreStatePrecomputed::Done);
                         Some(TaskStatus::Ready(Err(ProviderError::State(e))))
                     }
+                    Some(ThreadedValue::Waiting) => {
+                        // Stream is waiting - continue polling
+                        self.state = Some(StoreStatePrecomputed::Storing { output, stream });
+                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
+                    }
                     None => {
                         // Stream exhausted - storage complete
                         self.state = Some(StoreStatePrecomputed::Done);
@@ -673,6 +679,11 @@ where
                         // Stream yielded error
                         self.state = Some(StoreStateIdentifierInner::Done);
                         Some(TaskStatus::Ready(Err(ProviderError::State(e))))
+                    }
+                    Some(ThreadedValue::Waiting) => {
+                        // Stream is waiting - continue polling
+                        self.state = Some(StoreStateIdentifierInner::Storing { output, stream });
+                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
                     }
                     None => {
                         // Stream exhausted - storage complete

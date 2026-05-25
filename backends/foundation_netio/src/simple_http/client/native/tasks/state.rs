@@ -1,7 +1,6 @@
 use crate::netcap::RawStream;
-use crate::simple_http::client::{
-    DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending, PreparedRequest,
-};
+use crate::simple_http::client::shared::{ClientConfig, DnsResolver, PreparedRequest};
+use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::simple_http::shared::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
@@ -400,7 +399,7 @@ where
     #[allow(dead_code)]
     pub remaining_redirects: u8,
     /// Client configuration (for proxy support)
-    pub config: crate::simple_http::client::ClientConfig,
+    pub config: ClientConfig,
     /// The prepared request to send
     pub request: Option<PreparedRequest>,
     /// Connection pool for reuse (optional)
@@ -428,7 +427,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::simple_http::client::ClientConfig,
+        config: ClientConfig,
     ) -> Self {
         Self {
             pool,

@@ -12,6 +12,7 @@
 //! function that converts each raw row into the desired type. Each use site provides
 //! its own transformation closure specific to the type being extracted.
 
+#[cfg(any(feature = "turso", feature = "libsql"))]
 use futures_lite::future::block_on;
 
 // ============================================================================
