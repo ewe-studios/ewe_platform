@@ -216,6 +216,7 @@ fn test_store_state_task_success() {
             assert_eq!(state.provider, "test");
         }
         foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
+        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
     }
 }
 
@@ -273,6 +274,7 @@ fn test_store_state_task_inner_failure() {
         foundation_core::valtron::ThreadedValue::Value(_) => {
             panic!("Expected no state to be stored")
         }
+        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
     }
 }
 
@@ -340,6 +342,7 @@ fn test_store_state_identifier_task_success() {
             assert_eq!(state.provider, "test");
         }
         foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
+        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
     }
 }
 
@@ -394,6 +397,7 @@ fn test_store_state_identifier_task_inner_failure() {
         foundation_core::valtron::ThreadedValue::Value(_) => {
             panic!("Expected no state to be stored")
         }
+        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
     }
 }
 
