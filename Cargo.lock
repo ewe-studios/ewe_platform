@@ -2821,15 +2821,10 @@ dependencies = [
 name = "foundation_core"
 version = "0.0.3"
 dependencies = [
- "async-trait",
- "base64 0.22.1",
- "brotli 6.0.0",
  "bytes",
- "chrono",
  "concurrent-queue",
  "derive_more",
  "fastrand",
- "flate2",
  "foundation_nostd",
  "foundation_testing",
  "foundation_wasm",
@@ -2837,18 +2832,13 @@ dependencies = [
  "getrandom 0.2.16",
  "getrandom 0.3.4",
  "js-sys",
- "memchr",
  "ntest",
  "rand 0.9.2",
  "rand_chacha 0.9.0",
- "regex",
  "reqwest 0.12.24",
- "rust-embed",
  "serde",
  "serde_json",
- "serde_yml",
  "serial_test",
- "sha1",
  "smol",
  "tokio",
  "toml 0.9.8",
@@ -2858,7 +2848,6 @@ dependencies = [
  "tracing-test",
  "wasm-bindgen",
  "web-sys",
- "zeroize",
 ]
 
 [[package]]
@@ -5077,16 +5066,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
-name = "mime_guess"
-version = "2.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7c44f8e672c00fe5308fa235f821cb4198414e1c77935c1ab6948d3fd78550e"
-dependencies = [
- "mime",
- "unicase",
-]
-
-[[package]]
 name = "minijinja"
 version = "2.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6653,7 +6632,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rust-embed-utils",
- "shellexpand",
  "syn 2.0.114",
  "walkdir",
 ]
@@ -6664,7 +6642,6 @@ version = "8.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b161f275cb337fe0a44d924a5f4df0ed69c2c39519858f931ce61c779d3475"
 dependencies = [
- "mime_guess",
  "sha2",
  "walkdir",
 ]
@@ -7244,15 +7221,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
-]
-
-[[package]]
-name = "shellexpand"
-version = "3.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b1fdf65dd6331831494dd616b30351c38e96e45921a27745cf98490458b90bb"
-dependencies = [
- "dirs 6.0.0",
 ]
 
 [[package]]
