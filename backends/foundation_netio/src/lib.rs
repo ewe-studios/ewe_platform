@@ -8,6 +8,7 @@
 pub mod event_source;
 pub mod simple_http;
 pub mod websocket;
+pub mod netcap;
 
 #[cfg(feature = "multi")]
 pub mod http_stream;
