@@ -9,7 +9,7 @@
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 

@@ -1,5 +1,4 @@
 //! Native module — non-wasm only.
-pub mod state_stores;
 
 #[cfg(feature = "turso")]
 pub mod turso_backend;
@@ -13,9 +12,6 @@ pub mod d1_kvstore;
 #[cfg(feature = "r2")]
 pub mod r2_blobstore;
 
-pub mod json_file;
-pub mod rows_stream;
-
 #[cfg(feature = "turso")]
 pub use turso_backend::TursoStorage;
 
@@ -28,5 +24,9 @@ pub use d1_kvstore::D1KeyValueStore;
 #[cfg(feature = "r2")]
 pub use r2_blobstore::R2BlobStore;
 
-pub use json_file::JsonFileStorage;
+pub mod json_file;
+pub mod rows_stream;
+pub mod state_stores;
+
+pub use json_file::*;
 pub use rows_stream::*;

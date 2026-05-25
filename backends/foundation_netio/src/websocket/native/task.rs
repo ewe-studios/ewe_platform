@@ -19,7 +19,7 @@ use crate::simple_http::client::DnsResolver;
 use crate::simple_http::client::HttpClientConnection;
 use crate::simple_http::client::HttpConnectionPool;
 use foundation_core::url::Uri;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
 use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};

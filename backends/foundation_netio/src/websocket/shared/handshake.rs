@@ -11,7 +11,7 @@ use base64::Engine;
 use sha1::{Digest, Sha1};
 
 use crate::websocket::shared::error::WebSocketError;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleIncomingRequestBuilder, SimpleMethod,
     Status,
 };

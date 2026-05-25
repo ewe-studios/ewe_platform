@@ -26,7 +26,7 @@ use crate::simple_http::client::HttpClientConnection;
 use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_core::url::Uri;
-use crate::simple_http::{
+use crate::simple_http::shared::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };

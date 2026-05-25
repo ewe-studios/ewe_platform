@@ -18,7 +18,7 @@ use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatu
 use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::simple_http::client::DnsResolver;
 use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+use crate::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
