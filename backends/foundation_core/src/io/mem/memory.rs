@@ -1,12 +1,11 @@
 use std::cell;
+use std::error::Error;
 use std::fmt::Debug;
 use std::mem::size_of;
 use std::ops::{Deref, Index, RangeBounds};
 use std::rc;
 use std::result;
 use std::vec::Drain;
-
-use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, PartialEq, Copy, Error)]
 pub enum MemoryErrors {
