@@ -4,7 +4,7 @@
 pub mod turso_backend;
 
 #[cfg(feature = "libsql")]
-pub mod libsql_backend;
+pub mod libsql_store;
 
 #[cfg(feature = "d1")]
 pub mod d1_kvstore;
@@ -16,7 +16,7 @@ pub mod r2_blobstore;
 pub use turso_backend::TursoStorage;
 
 #[cfg(feature = "libsql")]
-pub use libsql_backend::LibsqlStorage;
+pub use libsql_store::LibsqlStore;
 
 #[cfg(feature = "d1")]
 pub use d1_kvstore::D1Store;

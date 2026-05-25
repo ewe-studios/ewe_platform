@@ -71,7 +71,7 @@ impl<S: StateStore> NamespacedStore<S> {
             id: full_key.clone(),
             kind: String::new(),
             provider: String::new(),
-            status: super::types::StateStatus::Created,
+            status: StateStatus::Created,
             environment: None,
             config_hash: String::new(),
             output: json_value,
