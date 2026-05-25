@@ -9,8 +9,9 @@
 //! HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
 //!       per-API provider instances.
 
-use foundation_netio::simple_http::client::{DnsResolver, SimpleHttpClient};
-use foundation_db::state::traits::StateStore;
+use foundation_netio::simple_http::client::shared::DnsResolver;
+use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_db::core::state::traits::StateStore;
 use std::sync::Arc;
 
 /// Central provider client wrapping a `StateStore` with HTTP client.
@@ -114,7 +115,7 @@ where
 }
 
 /// Re-export `ProviderError` for use in per-API providers.
-pub use foundation_db::state::store_state_task::ProviderError;
+pub use foundation_db::core::state::store_state_task::ProviderError;
 
 /// Re-export `StoreStateIdentifierTask` for state-aware operations.
-pub use foundation_db::state::store_state_task::StoreStateIdentifierTask;
+pub use foundation_db::core::state::store_state_task::StoreStateIdentifierTask;

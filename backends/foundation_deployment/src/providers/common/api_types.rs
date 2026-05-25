@@ -7,7 +7,7 @@
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
-use foundation_netio::simple_http::SimpleHeaders;
+use foundation_netio::simple_http::shared::SimpleHeaders;
 use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience

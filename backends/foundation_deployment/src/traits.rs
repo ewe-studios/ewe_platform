@@ -13,9 +13,9 @@
 //!      and HTTP client for API calls.
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::DnsResolver;
-use foundation_db::state::namespaced::NamespacedStore;
-use foundation_db::state::traits::StateStore;
+use foundation_netio::simple_http::client::shared::DnsResolver;
+use foundation_db::core::state::namespaced::NamespacedStore;
+use foundation_db::core::state::traits::StateStore;
 use serde::Serialize;
 
 use crate::provider_client::ProviderClient;
