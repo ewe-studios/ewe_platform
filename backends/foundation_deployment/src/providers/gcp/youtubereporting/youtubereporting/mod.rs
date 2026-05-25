@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -436,7 +436,7 @@ pub fn youtubereporting_jobs_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
@@ -471,7 +471,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -490,7 +490,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Job = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                     super::shared::ApiError::ParseFailed(e.to_string())
                 })?;
@@ -544,7 +544,7 @@ pub fn youtubereporting_jobs_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -578,7 +578,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -597,7 +597,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -652,7 +652,7 @@ pub fn youtubereporting_jobs_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -686,7 +686,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -705,7 +705,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Job = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                     super::shared::ApiError::ParseFailed(e.to_string())
                 })?;
@@ -759,7 +759,7 @@ pub fn youtubereporting_jobs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
@@ -820,7 +820,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -839,7 +839,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListJobsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -894,7 +894,7 @@ pub fn youtubereporting_jobs_reports_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -928,7 +928,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -947,7 +947,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Report =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1002,7 +1002,7 @@ pub fn youtubereporting_jobs_reports_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1086,7 +1086,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1105,7 +1105,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListReportsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1160,7 +1160,7 @@ pub fn youtubereporting_media_download_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1178,7 +1178,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1197,7 +1197,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: GdataMedia =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1252,7 +1252,7 @@ pub fn youtubereporting_report_types_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/reportTypes",);
@@ -1313,7 +1313,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1332,7 +1332,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListReportTypesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

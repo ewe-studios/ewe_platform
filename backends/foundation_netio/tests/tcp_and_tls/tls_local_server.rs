@@ -5,7 +5,7 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![cfg(feature = "ssl-rustls")]
 
-use foundation_core::netcap::ssl::rustls::RustlsAcceptor;
+use foundation_netio::netcap::ssl::rustls::RustlsAcceptor;
 use zeroize::Zeroizing;
 
 #[test]

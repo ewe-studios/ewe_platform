@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -652,7 +652,7 @@ pub fn audit_logs_get_account_audit_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -670,7 +670,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -689,7 +689,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaAuditLogsResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -744,7 +744,7 @@ pub fn dlp_payload_log_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -762,7 +762,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -830,7 +830,7 @@ pub fn dlp_payload_log_put_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -852,7 +852,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -923,7 +923,7 @@ pub fn get_accounts_account_id_logpush_datasets_dataset_id_fields_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -941,7 +941,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -960,7 +960,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushFieldResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1018,7 +1018,7 @@ pub fn get_accounts_account_id_logpush_datasets_dataset_id_jobs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1036,7 +1036,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1055,7 +1055,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushJobResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1113,7 +1113,7 @@ pub fn get_accounts_account_id_logpush_jobs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1131,7 +1131,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1150,7 +1150,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushJobResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1205,7 +1205,7 @@ pub fn post_accounts_account_id_logpush_jobs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1223,7 +1223,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1242,7 +1242,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushJobResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1297,7 +1297,7 @@ pub fn get_accounts_account_id_logpush_jobs_job_id_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1315,7 +1315,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1334,7 +1334,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushJobResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1389,7 +1389,7 @@ pub fn put_accounts_account_id_logpush_jobs_job_id_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1407,7 +1407,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1426,7 +1426,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushLogpushJobResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1481,7 +1481,7 @@ pub fn delete_accounts_account_id_logpush_jobs_job_id_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1499,7 +1499,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1567,7 +1567,7 @@ pub fn post_accounts_account_id_logpush_ownership_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1585,7 +1585,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1604,7 +1604,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushGetOwnershipResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1659,7 +1659,7 @@ pub fn post_accounts_account_id_logpush_ownership_validate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1677,7 +1677,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1696,7 +1696,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushValidateOwnershipResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1751,7 +1751,7 @@ pub fn delete_accounts_account_id_logpush_validate_destination_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1769,7 +1769,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1788,7 +1788,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushValidateResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1843,7 +1843,7 @@ pub fn delete_accounts_account_id_logpush_validate_destination_exists_request<R,
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1861,7 +1861,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1880,7 +1880,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushDestinationExistsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1935,7 +1935,7 @@ pub fn post_accounts_account_id_logpush_validate_origin_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1953,7 +1953,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1972,7 +1972,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogpushValidateResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2027,7 +2027,7 @@ pub fn audit_logs_v2_get_account_audit_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2045,7 +2045,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2064,7 +2064,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaAuditLogsV2ResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2119,7 +2119,7 @@ pub fn get_accounts_account_id_logs_control_cmb_config_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2137,7 +2137,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2156,7 +2156,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2211,7 +2211,7 @@ pub fn post_accounts_account_id_logs_control_cmb_config_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2233,7 +2233,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2252,7 +2252,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2307,7 +2307,7 @@ pub fn delete_accounts_account_id_logs_control_cmb_config_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2325,7 +2325,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2396,7 +2396,7 @@ pub fn catalog_syncs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2414,7 +2414,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2433,7 +2433,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnReadAccountCatalogSyncsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2488,7 +2488,7 @@ pub fn catalog_syncs_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2510,7 +2510,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2529,7 +2529,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnCreateCatalogSyncResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2587,7 +2587,7 @@ pub fn catalog_syncs_prebuilt_policies_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2605,7 +2605,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2624,7 +2624,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnCatalogSyncsPrebuiltPoliciesResponse = serde_json::from_str(&body)
                     .map_err(
                     |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),
@@ -2679,7 +2679,7 @@ pub fn catalog_syncs_read_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2697,7 +2697,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2716,7 +2716,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnReadAccountCatalogSyncResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2771,7 +2771,7 @@ pub fn catalog_syncs_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2793,7 +2793,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2812,7 +2812,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnUpdateCatalogSyncResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2867,7 +2867,7 @@ pub fn catalog_syncs_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2889,7 +2889,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2908,7 +2908,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnUpdateCatalogSyncResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2963,7 +2963,7 @@ pub fn catalog_syncs_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2981,7 +2981,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3000,7 +3000,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnDeleteCatalogSyncResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3055,7 +3055,7 @@ pub fn catalog_syncs_refresh_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3073,7 +3073,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3092,7 +3092,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnRefreshCatalogSyncResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3147,7 +3147,7 @@ pub fn resources_catalog_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3165,7 +3165,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3184,7 +3184,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnReadAccountResourcesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3239,7 +3239,7 @@ pub fn resources_catalog_export_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3257,7 +3257,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3328,7 +3328,7 @@ pub fn resources_catalog_policy_preview_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3350,7 +3350,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3369,7 +3369,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnResourcesCatalogPolicyPreviewResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3424,7 +3424,7 @@ pub fn resources_catalog_read_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3442,7 +3442,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3461,7 +3461,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: McnReadAccountResourceResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3516,7 +3516,7 @@ pub fn slurper_get_job_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3534,7 +3534,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {

@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -114,7 +114,7 @@ pub fn sts_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://sts.googleapis.com/v1/token",);
@@ -133,7 +133,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -152,7 +152,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: GoogleIdentityStsV1ExchangeTokenResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

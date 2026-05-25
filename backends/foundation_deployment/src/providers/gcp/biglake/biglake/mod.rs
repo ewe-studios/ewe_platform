@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -499,7 +499,7 @@ pub fn biglake_projects_catalogs_get_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -533,7 +533,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -552,7 +552,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -607,7 +607,7 @@ pub fn biglake_projects_catalogs_set_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -629,7 +629,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -648,7 +648,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -703,7 +703,7 @@ pub fn biglake_projects_catalogs_test_iam_permissions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -725,7 +725,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -744,7 +744,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TestIamPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -799,7 +799,7 @@ pub fn biglake_projects_catalogs_namespaces_get_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -833,7 +833,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -852,7 +852,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -907,7 +907,7 @@ pub fn biglake_projects_catalogs_namespaces_set_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -929,7 +929,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -948,7 +948,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1003,7 +1003,7 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1025,7 +1025,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1044,7 +1044,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TestIamPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1099,7 +1099,7 @@ pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1133,7 +1133,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1152,7 +1152,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1207,7 +1207,7 @@ pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1229,7 +1229,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1248,7 +1248,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1303,7 +1303,7 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1325,7 +1325,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1344,7 +1344,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TestIamPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1399,7 +1399,7 @@ pub fn biglake_projects_locations_catalogs_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}/catalogs", args.parent,);
@@ -1434,7 +1434,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1453,7 +1453,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Catalog =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1508,7 +1508,7 @@ pub fn biglake_projects_locations_catalogs_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -1523,7 +1523,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1542,7 +1542,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Catalog =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1597,7 +1597,7 @@ pub fn biglake_projects_locations_catalogs_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -1612,7 +1612,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1631,7 +1631,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Catalog =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1686,7 +1686,7 @@ pub fn biglake_projects_locations_catalogs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}/catalogs", args.parent,);
@@ -1727,7 +1727,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1746,7 +1746,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListCatalogsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1801,7 +1801,7 @@ pub fn biglake_projects_locations_catalogs_databases_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1839,7 +1839,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1858,7 +1858,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Database =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1913,7 +1913,7 @@ pub fn biglake_projects_locations_catalogs_databases_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -1928,7 +1928,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1947,7 +1947,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Database =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2002,7 +2002,7 @@ pub fn biglake_projects_locations_catalogs_databases_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -2017,7 +2017,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2036,7 +2036,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Database =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2091,7 +2091,7 @@ pub fn biglake_projects_locations_catalogs_databases_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2135,7 +2135,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2154,7 +2154,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListDatabasesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2209,7 +2209,7 @@ pub fn biglake_projects_locations_catalogs_databases_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -2244,7 +2244,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2263,7 +2263,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Database =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2318,7 +2318,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_create_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}/tables", args.parent,);
@@ -2353,7 +2353,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2372,7 +2372,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Table =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2427,7 +2427,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_delete_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -2442,7 +2442,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2461,7 +2461,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Table =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2516,7 +2516,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -2531,7 +2531,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2550,7 +2550,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Table =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2605,7 +2605,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}/tables", args.parent,);
@@ -2656,7 +2656,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2675,7 +2675,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ListTablesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2730,7 +2730,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}", args.name,);
@@ -2765,7 +2765,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2784,7 +2784,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Table =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2839,7 +2839,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_rename_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://biglake.googleapis.com/v1/{}:rename", args.name,);
@@ -2858,7 +2858,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2877,7 +2877,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: Table =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

@@ -1,6 +1,6 @@
 //! Health check handler — responds to /health, /health/live, /health/ready.
 
-use foundation_core::wire::simple_http::SimpleIncomingRequest;
+use foundation_netio::simple_http::SimpleIncomingRequest;
 use serde_json::json;
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
@@ -45,7 +45,7 @@ impl crate::shared::serve::Serve for HealthHandler {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>,
+        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
     ) -> ConnectionResult {
         <Self as ServeWriter>::serve_writer(self, &bag, req, &mut conn)
     }

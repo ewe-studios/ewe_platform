@@ -9,12 +9,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::netcap::RawStream;
+use foundation_netio::netcap::RawStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::wire::simple_http::timeout::{
+use foundation_netio::simple_http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
-use foundation_core::wire::simple_http::HTTPStreams;
+use foundation_netio::simple_http::HTTPStreams;
 
 #[cfg(any(
     feature = "ssl",
@@ -24,7 +24,7 @@ use foundation_core::wire::simple_http::HTTPStreams;
     feature = "ssl-openssl",
     feature = "ssl-native-tls",
 ))]
-use foundation_core::netcap::ssl::SSLAcceptor;
+use foundation_netio::netcap::ssl::SSLAcceptor;
 #[cfg(any(
     feature = "ssl",
     feature = "ssl-rustls",
@@ -33,7 +33,7 @@ use foundation_core::netcap::ssl::SSLAcceptor;
     feature = "ssl-openssl",
     feature = "ssl-native-tls",
 ))]
-use foundation_core::netcap::Connection;
+use foundation_netio::netcap::Connection;
 
 use crate::shared::app::HttpApp;
 use crate::shared::serve::{respond, Serve};
@@ -509,5 +509,5 @@ impl HttpServer {
 
 // Re-export timeout types so users can configure expect-continue behavior.
 pub mod timeout {
-    pub use foundation_core::wire::simple_http::timeout::ExpectContinueConfig;
+    pub use foundation_netio::simple_http::timeout::ExpectContinueConfig;
 }

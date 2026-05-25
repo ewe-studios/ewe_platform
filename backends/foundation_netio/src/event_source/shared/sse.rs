@@ -14,8 +14,8 @@
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
-use crate::io::ioutils::SharedByteBufferStream;
-use crate::wire::event_source::{Event, EventSourceError, ParseResult};
+use foundation_core::io::ioutils::SharedByteBufferStream;
+use crate::event_source::{Event, EventSourceError, ParseResult};
 use std::io::Read;
 
 /// Accumulator for building a single SSE event from parsed lines.

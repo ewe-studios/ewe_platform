@@ -3,13 +3,13 @@
 //! Internal type that holds all request data. Convert to `SimpleIncomingRequest`
 //! via `into_simple_incoming_request()` to use with HTTP rendering.
 
-use crate::url::Uri;
-use crate::wire::simple_http::{
+use foundation_core::url::Uri;
+use crate::simple_http::{
     HttpClientError, Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest,
     SimpleMethod, SimpleUrl,
 };
 
-pub use crate::wire::simple_http::shared::Extensions;
+pub use crate::simple_http::shared::Extensions;
 
 /// Prepared HTTP request ready to send.
 pub struct PreparedRequest {

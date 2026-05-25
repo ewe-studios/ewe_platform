@@ -1,5 +1,5 @@
-use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
-use crate::extensions::strings_ext::TryIntoStringError;
+use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
+use foundation_core::extensions::strings_ext::TryIntoStringError;
 use derive_more::From;
 use std::{
     string::{FromUtf16Error, FromUtf8Error},
@@ -8,7 +8,7 @@ use std::{
 };
 
 // Re-export URI types from the crate-level url module
-pub use crate::url::{InvalidUri, InvalidUriParts};
+pub use foundation_core::url::{InvalidUri, InvalidUriParts};
 
 pub type Result<T, E> = std::result::Result<T, E>;
 
@@ -29,7 +29,7 @@ impl core::fmt::Display for SimpleRequestError {
     }
 }
 
-// URI errors re-exported from `crate::url`.
+// URI errors re-exported from `foundation_core::url`.
 
 /// DNS resolution errors.
 ///

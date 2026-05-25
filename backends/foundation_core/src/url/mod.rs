@@ -184,7 +184,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::url::{Uri, Host};
+    /// use foundation_netio::simple_http::url::{Uri, Host};
     ///
     /// let uri = Uri::parse("http://192.168.1.1").unwrap();
     /// match uri.host_enum() {

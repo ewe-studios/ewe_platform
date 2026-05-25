@@ -15,16 +15,16 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::url::Uri;
-use crate::valtron::{
+use foundation_core::url::Uri;
+use foundation_core::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
-use crate::wire::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
-use crate::wire::simple_http::client::{
+use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
+use crate::simple_http::client::{
     redirects, ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
-use crate::wire::simple_http::{
+use crate::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };
@@ -83,7 +83,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::wire::simple_http::client::ClientConfig,
+        config: crate::simple_http::client::ClientConfig,
     ) -> Self {
         let parsed_uri = request.url.clone();
         Self(
@@ -170,7 +170,7 @@ where
 
                     tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask task for sendrequest.");
                     let (get_stream_action, get_stream_receiver) = inlined_task(
-                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                        foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
                         Vec::new(),
                         GetHttpRequestRedirectTask::new(
                             into_incoming,
@@ -415,7 +415,7 @@ where
                                 tracing::info!("SendRequestTask: Creating GetRequestIntroTask task for sendrequest.");
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
-                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                        foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
                                         GetRequestIntroTask::new(stream)
                                             .with_body_config(self.1.into_simple_http_body()),
@@ -441,7 +441,7 @@ where
 
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
-                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                        foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
                                         GetRequestIntroTask::new(conn)
                                             .with_body_config(self.1.into_simple_http_body()),
@@ -664,7 +664,7 @@ where
 
                                                 tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
-                                                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                                        foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
                                                         Vec::new(),
                                                         GetHttpRequestRedirectTask::new(
                                                             newly_built_request,

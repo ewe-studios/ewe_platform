@@ -10,21 +10,21 @@
 //! `WebSocketClient` uses `execute_stream()` to integrate with valtron executor and
 //! provides `MessageDelivery` for sending messages via `ConcurrentQueue`.
 
-use crate::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::valtron::{execute, DrivenStreamIterator, Stream};
-use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::client::HttpConnectionPool;
-use crate::wire::simple_http::SimpleHeader;
+use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
+use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::HttpConnectionPool;
+use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::wire::websocket::shared::batch_writer::BatchFrameWriter;
-use crate::wire::websocket::shared::error::WebSocketError;
-use crate::wire::websocket::shared::frame::{Opcode, WebSocketFrame};
-use crate::wire::websocket::shared::message::WebSocketMessage;
-use crate::wire::websocket::native::task::WebSocketTask;
+use crate::websocket::shared::batch_writer::BatchFrameWriter;
+use crate::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::websocket::shared::message::WebSocketMessage;
+use crate::websocket::native::task::WebSocketTask;
 
 /// WHY: Users need a simple blocking API for WebSocket communication.
 ///
@@ -288,7 +288,7 @@ impl WebSocketConnection {
 
     /// Get writer statistics (if batch writing is enabled).
     #[must_use]
-    pub fn writer_stats(&self) -> crate::wire::websocket::BatchWriterStats {
+    pub fn writer_stats(&self) -> crate::websocket::BatchWriterStats {
         self.writer.stats()
     }
 }

@@ -11,7 +11,7 @@
 //! `CookieJar` uses `HashMap` with composite key (domain, path, name) for storage.
 //! Domain and path matching follow RFC 6265 rules.
 
-use crate::url::Uri;
+use foundation_core::url::Uri;
 use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 

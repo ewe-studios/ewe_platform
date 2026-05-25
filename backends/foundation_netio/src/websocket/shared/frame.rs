@@ -6,7 +6,7 @@
 
 use std::io::Read;
 
-use crate::wire::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::error::WebSocketError;
 use bytes::BytesMut;
 
 /// WHY: RFC 6455 defines specific opcodes for different frame types.
@@ -353,8 +353,8 @@ impl WebSocketFrame {
     ///
     /// # Panics
     /// Never panics.
-    pub fn to_message(self) -> Result<crate::wire::websocket::shared::message::WebSocketMessage, WebSocketError> {
-        use crate::wire::websocket::shared::message::WebSocketMessage;
+    pub fn to_message(self) -> Result<crate::websocket::shared::message::WebSocketMessage, WebSocketError> {
+        use crate::websocket::shared::message::WebSocketMessage;
 
         match self.opcode {
             Opcode::Text => {

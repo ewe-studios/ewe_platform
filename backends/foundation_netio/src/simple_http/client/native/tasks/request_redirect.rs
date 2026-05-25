@@ -15,12 +15,12 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::io::ioutils::ReadTimeoutOperations;
+use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::redirects;
-use crate::wire::simple_http::client::{DnsResolver, HttpClientConnection, HttpConnectionPool};
-use crate::wire::simple_http::{
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::simple_http::client::redirects;
+use crate::simple_http::client::{DnsResolver, HttpClientConnection, HttpConnectionPool};
+use crate::simple_http::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
     RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
@@ -33,14 +33,14 @@ use super::HttpOperationState;
 type InitData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::wire::simple_http::client::ClientConfig,
+    crate::simple_http::client::ClientConfig,
     u8,
 )>;
 
 type TryingData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::wire::simple_http::client::ClientConfig,
+    crate::simple_http::client::ClientConfig,
     RequestDescriptor,
     u8,
 )>;
@@ -84,7 +84,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     pub fn new(
         data: SimpleIncomingRequest,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::wire::simple_http::client::ClientConfig,
+        config: crate::simple_http::client::ClientConfig,
         max_redirects: u8,
     ) -> Self {
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
@@ -148,7 +148,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     let read_timeout =
                         config.get_expect_continue_read_timeout();
 
-                    // let is_head_request = matches!(data.method, crate::wire::simple_http::SimpleMethod::HEAD);
+                    // let is_head_request = matches!(data.method, crate::simple_http::shared::SimpleMethod::HEAD);
                     // let read_timeout = if is_head_request {
                     //     // HEAD requests have no body, use minimum timeout
                     //     config.get_expect_continue_read_timeout()
@@ -163,7 +163,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                     // Determine effective proxy configuration
                     let env_proxy = if config.proxy_from_env {
-                        crate::wire::simple_http::client::ProxyConfig::from_env(
+                        crate::simple_http::client::ProxyConfig::from_env(
                             descriptor.request_uri.scheme(),
                         )
                     } else {

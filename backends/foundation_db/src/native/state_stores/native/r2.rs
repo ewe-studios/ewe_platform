@@ -10,8 +10,8 @@
 //! needed. Returns `StateStoreStream` via `Vec::into_iter().map(...)`.
 
 use foundation_core::valtron::ThreadedValue;
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;

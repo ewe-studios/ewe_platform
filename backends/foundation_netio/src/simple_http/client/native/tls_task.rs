@@ -15,8 +15,8 @@
 //! so no additional WASM guards are needed within.
 
 use crate::netcap::{Connection, RawStream};
-use crate::synca::mpp::Sender;
-use crate::valtron::{NoAction, TaskIterator, TaskStatus};
+use foundation_core::synca::mpp::Sender;
+use foundation_core::valtron::{NoAction, TaskIterator, TaskStatus};
 
 use crate::netcap::ssl::SSLConnector;
 

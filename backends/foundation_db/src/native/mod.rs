@@ -1,4 +1,5 @@
 //! Native module — non-wasm only.
+pub mod state_stores;
 
 #[cfg(feature = "turso")]
 pub mod turso_backend;

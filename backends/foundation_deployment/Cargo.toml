@@ -16,6 +16,9 @@ workspace = true
 workspace = true
 
 [dependencies.foundation_core]
+workspace = true
+
+[dependencies.foundation_netio]
 features = ["ssl"]
 workspace = true
 

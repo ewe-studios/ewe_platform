@@ -40,7 +40,7 @@ pub enum DeploymentError {
     StateFailed(String),
 
     /// HTTP request to provider API failed.
-    HttpError(foundation_core::wire::simple_http::HttpClientError),
+    HttpError(foundation_netio::simple_http::HttpClientError),
 
     /// IO error.
     IoError(std::io::Error),
@@ -149,8 +149,8 @@ impl From<std::io::Error> for DeploymentError {
     }
 }
 
-impl From<foundation_core::wire::simple_http::HttpClientError> for DeploymentError {
-    fn from(err: foundation_core::wire::simple_http::HttpClientError) -> Self {
+impl From<foundation_netio::simple_http::HttpClientError> for DeploymentError {
+    fn from(err: foundation_netio::simple_http::HttpClientError) -> Self {
         Self::HttpError(err)
     }
 }

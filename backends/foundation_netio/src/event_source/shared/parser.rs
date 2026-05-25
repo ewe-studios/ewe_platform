@@ -9,4 +9,4 @@
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
 // Re-export from simple_http::sse for backward compatibility
-pub use crate::wire::simple_http::sse::SseParser;
+pub use crate::event_source::shared::sse::SseParser;

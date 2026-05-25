@@ -9,12 +9,12 @@
 //! HOW: Wraps `ClientRequestBuilder` and `TaskIterator` execution. Builder pattern
 //! for configuration. Generic type parameter for DNS resolver flexibility.
 
-use crate::wire::simple_http::client::{
+use crate::simple_http::client::{
     ClientConfig, ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver,
     HttpConnectionPool, MiddlewareChain, SystemDnsResolver,
 };
-use crate::wire::simple_http::timeout::TimeoutCalculator;
-use crate::wire::simple_http::HttpClientError;
+use crate::simple_http::shared::timeout::TimeoutCalculator;
+use crate::simple_http::shared::HttpClientError;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -247,7 +247,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     }
 
     pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
-        use crate::wire::simple_http::client::shared::proxy::ProxyConfig;
+        use crate::simple_http::client::shared::proxy::ProxyConfig;
         let proxy_config = ProxyConfig::parse(proxy_url)?;
         self.config.proxy = Some(proxy_config);
         Ok(self)
@@ -255,7 +255,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
 
     #[must_use]
     pub fn proxy_auth(mut self, username: impl Into<String>, password: impl Into<String>) -> Self {
-        use crate::wire::simple_http::client::shared::proxy::ProxyAuth;
+        use crate::simple_http::client::shared::proxy::ProxyAuth;
         if let Some(ref mut proxy) = self.config.proxy {
             proxy.auth = Some(ProxyAuth::new(username, password));
         }

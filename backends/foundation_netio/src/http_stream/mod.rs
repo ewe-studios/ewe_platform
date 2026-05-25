@@ -3,11 +3,11 @@ use foundation_nostd::comp::basic::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::io::ioutils;
+use foundation_core::io::ioutils;
 use crate::netcap::{ClientEndpoint, DataStreamError, RawStream};
-use crate::retries::{CReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState};
-use crate::valtron::delayed_iterators::Delayed;
-use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
+use foundation_core::retries::{CReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState};
+use foundation_core::valtron::delayed_iterators::Delayed;
+use foundation_core::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 use derive_more::derive::From;
 
 use super::simple_http;

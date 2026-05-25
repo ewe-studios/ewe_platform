@@ -34,7 +34,6 @@ rand_chacha = "0.9"
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
 tracing = { version = "0.1.41" }
-thiserror = { version = "2.0" }
 
 regex = "1.12.2"
 base64 = "0.22"
@@ -75,7 +74,7 @@ log_warnings = []
 log_errors = []
 log_debug = []
 log_info = []
-nightly = ["socket2"]
+nightly = []
 
 # Compression features
 compression = ["flate2", "brotli"]
@@ -96,8 +95,8 @@ multi = ["std"]  # Multi-threaded executor requires std
 js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
 js-foundation-wasm = []
 
-# default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std", "ssl", "compression", "wire-native"]
+# default flags
+default = ["standard", "std", "compression", "wire-native"]
 
 [lints]
 workspace = true

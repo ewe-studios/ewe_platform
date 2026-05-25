@@ -1,4 +1,4 @@
-//! Reconnecting WebSocket client [`TaskIterator`](crate::valtron::TaskIterator) implementation.
+//! Reconnecting WebSocket client [`TaskIterator`](foundation_core::valtron::TaskIterator) implementation.
 //!
 //! WHY: WebSocket connections can drop at any time. Clients need automatic reconnection
 //! with exponential backoff to maintain persistent connections.
@@ -13,18 +13,18 @@
 //!
 //! PHASE 2 SCOPE: Max reconnect duration support, exponential backoff with jitter.
 
-use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::SimpleHeader;
+use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::simple_http::client::DnsResolver;
+use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace};
 
-use crate::wire::websocket::shared::error::WebSocketError;
-use crate::wire::websocket::shared::message::WebSocketMessage;
-use crate::wire::websocket::native::task::{WebSocketProgress, WebSocketTask};
+use crate::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::message::WebSocketMessage;
+use crate::websocket::native::task::{WebSocketProgress, WebSocketTask};
 
 /// Configuration for reconnecting WebSocket client.
 pub struct ReconnectingConfig {
@@ -106,7 +106,7 @@ where
         info!(url = %url_str, "Creating reconnecting WebSocket client");
 
         // Validate URL upfront (same as WebSocketTask)
-        let uri = crate::url::Uri::parse(&url_str).map_err(|e| {
+        let uri = foundation_core::url::Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
             WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;

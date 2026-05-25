@@ -17,9 +17,9 @@
 
 use clap::{ArgMatches, Command};
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
-use foundation_core::netcap::ssl::SSLConnector;
-use foundation_core::netcap::Connection;
-use foundation_core::netcap::RawStream;
+use foundation_netio::netcap::ssl::SSLConnector;
+use foundation_netio::netcap::Connection;
+use foundation_netio::netcap::RawStream;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::net::ToSocketAddrs;

@@ -16,7 +16,7 @@
 //! use ewe_deployables::gcp::CloudRunService;
 //! use foundation_deployment::provider_client::ProviderClient;
 //! use foundation_db::state::FileStateStore;
-//! use foundation_core::wire::simple_http::client::SimpleHttpClient;
+//! use foundation_netio::simple_http::client::SimpleHttpClient;
 //!
 //! // Deploy a Cloudflare Worker
 //! let worker: CloudflareWorker = CloudflareWorker::new("my-worker", "./worker.js", "account-id");

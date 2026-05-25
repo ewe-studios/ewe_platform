@@ -5,7 +5,7 @@
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
-use crate::wire::event_source::SseEvent;
+use crate::event_source::SseEvent;
 use std::io::Write;
 
 /// [`EventWriter`] formats and writes SSE events to an output stream.

@@ -13,7 +13,7 @@
 
 use std::io::{self, Read};
 
-use crate::wire::simple_http::HttpClientError;
+use crate::simple_http::shared::HttpClientError;
 
 #[cfg(feature = "gzip")]
 use flate2::read::GzDecoder;

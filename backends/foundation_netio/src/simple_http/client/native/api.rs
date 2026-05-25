@@ -12,15 +12,15 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
-use crate::valtron::{
+use foundation_core::valtron::{
     self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
     Stream, StreamIteratorExt, TaskIteratorExt,
 };
-use crate::wire::simple_http::client::{
+use crate::simple_http::client::{
     ClientConfig, DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending,
     MiddlewareChain, PreparedRequest, RequestIntro, ResponseIntro, SendRequestTask,
 };
-use crate::wire::simple_http::{
+use crate::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
 };

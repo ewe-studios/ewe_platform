@@ -23,13 +23,13 @@ pub mod native;
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
-pub use foundation_core::wire::simple_http::{
+pub use foundation_netio::simple_http::{
     SimpleIncomingRequest, SimpleMethod, SimpleHeader, SimpleHeaders, SimpleUrl,
     SimpleOutgoingResponse, SendSafeBody, Proto, Status,
 };
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use foundation_core::netcap::RawStream;
+pub use foundation_netio::netcap::RawStream;
 #[cfg(not(target_arch = "wasm32"))]
 pub use foundation_core::synca::OnSignal;

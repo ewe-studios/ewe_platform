@@ -6,9 +6,9 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 
-use crate::extensions::result_ext::BoxedError;
-use crate::io::readers::Data;
-use crate::wire::simple_http::errors::Result;
+use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::io::readers::Data;
+use crate::simple_http::shared::errors::Result;
 
 // ============================================================================
 // Extensions — type-safe extension storage for middleware

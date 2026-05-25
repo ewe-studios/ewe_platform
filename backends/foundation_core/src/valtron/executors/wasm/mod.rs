@@ -3,12 +3,15 @@
 //! Selects and exposes the correct `JSThreadYielder` implementation based on
 //! feature flags. The public API is always `JSThreadYielder` regardless of
 //! which feature is active.
+//!
+//! Priority: `js-foundation-wasm` > `js-wasmbindgen` (when both are enabled,
+//! foundation-wasm wins).
 
-#[cfg(feature = "js-wasmbindgen")]
+#[cfg(all(feature = "js-wasmbindgen", not(feature = "js-foundation-wasm")))]
 mod wasm_bindgen;
-#[cfg(feature = "js-wasmbindgen")]
+#[cfg(all(feature = "js-wasmbindgen", not(feature = "js-foundation-wasm")))]
 pub use wasm_bindgen::JSThreadYielder;
-#[cfg(feature = "js-wasmbindgen")]
+#[cfg(all(feature = "js-wasmbindgen", not(feature = "js-foundation-wasm")))]
 pub use wasm_bindgen::JS_WAIT_CHECK_INTERVAL;
 
 #[cfg(feature = "js-foundation-wasm")]

@@ -17,9 +17,9 @@
 //! let timeout = calculator.calculate_read_timeout(&context);
 //! ```
 
-use crate::wire::simple_http::client_classifier::ClientClassifier;
-use crate::wire::simple_http::latency_tracker::LatencyTracker;
-use crate::wire::simple_http::load_tracker::LoadTracker;
+use crate::simple_http::shared::client_classifier::ClientClassifier;
+use crate::simple_http::shared::latency_tracker::LatencyTracker;
+use crate::simple_http::shared::load_tracker::LoadTracker;
 use std::time::Duration;
 
 /// Configuration for 100-continue expect delay behavior.
@@ -413,7 +413,7 @@ impl TimeoutCalculator {
     pub fn classify_client(
         &self,
         client_ip: &str,
-    ) -> Option<crate::wire::simple_http::client_classifier::ClientClassification> {
+    ) -> Option<crate::simple_http::shared::client_classifier::ClientClassification> {
         self.client_classifier
             .as_ref()
             .map(|c| c.classify(client_ip))

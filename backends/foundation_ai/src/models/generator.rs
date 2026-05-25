@@ -3,9 +3,9 @@ use std::time::{Duration, Instant};
 
 use derive_more::{Display, From};
 use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::HttpRequestPending;
-use foundation_core::wire::simple_http::client::RequestIntro;
-use foundation_core::wire::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};
+use foundation_netio::simple_http::client::HttpRequestPending;
+use foundation_netio::simple_http::client::RequestIntro;
+use foundation_netio::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};
 use serde::Deserialize;
 
 use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelProviders, ModelUsageCosting};
@@ -21,7 +21,7 @@ pub enum GenModelError {
     #[display("http error for {url}: {source}")]
     Http {
         url: String,
-        source: foundation_core::wire::simple_http::HttpClientError,
+        source: foundation_netio::simple_http::HttpClientError,
     },
 
     #[display("http {status} from {url}")]

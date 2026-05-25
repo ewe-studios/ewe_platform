@@ -2,7 +2,7 @@
 
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::io::ioutils::ReadTimeoutOperations;
+use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::connection::Connection;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
@@ -59,7 +59,7 @@ pub fn initialize_tls_provider() -> Option<CryptoProvider> {
 /// # Example
 ///
 /// ```no_run
-/// use foundation_core::netcap::ssl::rustls::default_client_config;
+/// use foundation_netio::netcap::ssl::rustls::default_client_config;
 ///
 /// let config = default_client_config();
 /// // Use config with RustlsConnector
@@ -342,7 +342,7 @@ impl RustlsConnector {
     /// # Example
     ///
     /// ```no_run
-    /// use foundation_core::netcap::ssl::rustls::RustlsConnector;
+    /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
     ///
     /// let connector = RustlsConnector::new();
     /// // connector is ready to establish TLS connections
@@ -362,7 +362,7 @@ impl RustlsConnector {
     /// # Example
     ///
     /// ```no_run
-    /// use foundation_core::netcap::ssl::rustls::RustlsConnector;
+    /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
     /// use std::sync::Arc;
     ///
     /// let config = rustls::ClientConfig::builder()
@@ -514,7 +514,7 @@ mod tests {
     #[test]
     fn test_rustls_connector_create_from_endpoint() {
         let custom_config = default_client_config();
-        let uri = crate::url::Uri::parse("https://example.com:443").unwrap();
+        let uri = foundation_core::url::Uri::parse("https://example.com:443").unwrap();
         let endpoint =
             Endpoint::WithIdentity(EndpointConfig::NoTimeout(uri), custom_config.clone());
 

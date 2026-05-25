@@ -1,23 +1,23 @@
 #![allow(clippy::type_complexity)]
 
-use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
-use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
-use crate::io::readers::EOFStreamReader;
-use crate::io::readers::LimitedBatchStreamReader;
-use crate::io::readers::LimitedEOFStreamReader;
-use crate::io::readers::{BatchReader, Data, DataBytesIterator};
-use crate::io::ubytes;
-use crate::valtron::{
+use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
+use foundation_core::extensions::strings_ext::{TryIntoString, TryIntoStringError};
+use foundation_core::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
+use foundation_core::io::readers::EOFStreamReader;
+use foundation_core::io::readers::LimitedBatchStreamReader;
+use foundation_core::io::readers::LimitedEOFStreamReader;
+use foundation_core::io::readers::{BatchReader, Data, DataBytesIterator};
+use foundation_core::io::ubytes;
+use foundation_core::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
-use crate::wire::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
-use crate::wire::simple_http::errors::{
+use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
+use crate::simple_http::shared::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
 };
-use crate::url::Uri;
+use foundation_core::url::Uri;
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
@@ -316,7 +316,7 @@ pub enum SendSafeBody {
     /// NOTE: The iterator wraps an `SseParser` that reads lines and yields parsed SSE events.
     /// This allows the HTTP layer to return a complete SSE body handler to the caller.
     SseStream(
-        Option<BoxedSendableIterator<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+        Option<BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>>,
     ),
 }
 
@@ -4138,23 +4138,23 @@ impl LineFeed {
                         // then we've gotten to end of trailer, simply just end it there without
                         // moving back.
 
-                        if crate::is_ok!(binding.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\n\r\n", b"\n\n\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
-                        if crate::is_ok!(binding.peekby2(3), b"\n\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\n\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
                         // if even with 3 bytes forward peeks, if its still only more newline, then
                         // consider this has end of chunk and move back by 1.
-                        if crate::is_ok!(binding.peekby2(3), b"\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
 
                         // NOTE: We only want to capture one line at a time
-                        if crate::is_ok!(binding.peekby2(1), b"\n") {
+                        if foundation_core::is_ok!(binding.peekby2(1), b"\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
@@ -4165,23 +4165,23 @@ impl LineFeed {
                         // if 3 forward peeks reveal additional CLRF, two or three newlines
                         // then we've gotten to end of trailer, simply just end it there without
                         // moving back.
-                        if crate::is_ok!(binding.peekby2(3), b"\r\n", b"\n\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\r\n", b"\n\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
-                        if crate::is_ok!(binding.peekby2(3), b"\n\n\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\n\n\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
                         // if even with 3 bytes forward peeks, if its still only more newline, then
                         // consider this has end of chunk and move back by 1.
-                        if crate::is_ok!(binding.peekby2(3), b"\n") {
+                        if foundation_core::is_ok!(binding.peekby2(3), b"\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
 
                         // NOTE: We only want to capture one line at a time
-                        if crate::is_ok!(binding.peekby2(1), b"\n") {
+                        if foundation_core::is_ok!(binding.peekby2(1), b"\n") {
                             let _ = binding.unforward_by(1);
                             return false;
                         }
@@ -4196,7 +4196,7 @@ impl LineFeed {
         }
 
         let line_feed_result =
-            match pointer.do_once_mut(crate::io::ioutils::ByteBufferPointer::consume_some) {
+            match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some) {
                 Some(value) => match String::from_utf8(value.clone()) {
                     Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
                         LineFeed::SKIP
@@ -4426,17 +4426,17 @@ impl ChunkState {
                         // if 3 forward peeks reveal additional CLRF, two or three newlines
                         // then we've gotten to end of trailer, simply just end it there without
                         // moving back.
-                        if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
-                        if crate::is_ok!(acc.peekby2(3), b"\n\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\n\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
                         // if even with 3 bytes forward peeks, if its still only more newline, then
                         // consider this has end of chunk and move back by 1.
-                        if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
@@ -4444,7 +4444,7 @@ impl ChunkState {
                         // NOTE: We do not do this hear because we want to capture the whole trailer
                         // regardless of parts and then chunk up later.
                         //
-                        // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        // if foundation_core::is_ok!(acc.peekby2(1), b"\n") {
                         //     let _ = acc.unforward_by(1);
                         //     break;
                         // }
@@ -4455,17 +4455,17 @@ impl ChunkState {
                         // if 3 forward peeks reveal additional CLRF, two or three newlines
                         // then we've gotten to end of trailer, simply just end it there without
                         // moving back.
-                        if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
-                        if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\n\n\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
                         // if even with 3 bytes forward peeks, if its still only more newline, then
                         // consider this has end of chunk and move back by 1.
-                        if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        if foundation_core::is_ok!(acc.peekby2(3), b"\n") {
                             let _ = acc.unforward_by(1);
                             return false;
                         }
@@ -4473,7 +4473,7 @@ impl ChunkState {
                         // NOTE: We do not do this hear because we want to capture the whole trailer
                         // regardless of parts and then chunk up later.
                         //
-                        // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        // if foundation_core::is_ok!(acc.peekby2(1), b"\n") {
                         //     let _ = acc.unforward_by(1);
                         //     break;
                         // }
@@ -4488,7 +4488,7 @@ impl ChunkState {
             continue;
         }
 
-        match pointer.do_once_mut(crate::io::ioutils::ByteBufferPointer::consume) {
+        match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
             Ok(value) => match String::from_utf8(value.clone()) {
                 Ok(converted_string) => Ok(
                     if converted_string.is_empty() || converted_string.trim().is_empty() {
@@ -4671,7 +4671,7 @@ impl ChunkState {
         // do w have the extension starter marker (a semicolon)
         let extensions: Extensions = pointer.do_once_mut(|acc| {
             let mut extensions: Extensions = Vec::new();
-            if crate::is_ok!(acc.peekby2(1), b";") {
+            if foundation_core::is_ok!(acc.peekby2(1), b";") {
                 while let Ok(value) = acc.peekby2(1) {
                     if value == b"\r" || value == b"\n" {
                         break;
@@ -4691,12 +4691,12 @@ impl ChunkState {
 
         // are we starting out with a CRLF, if so, skip it
         pointer.do_once_mut(|acc| {
-            if crate::is_ok!(acc.peekby2(2), b"\r\n") {
+            if foundation_core::is_ok!(acc.peekby2(2), b"\r\n") {
                 let _ = acc.nextby(2);
                 acc.skip();
             }
 
-            if crate::is_ok!(acc.peekby2(2), b"\n\n") {
+            if foundation_core::is_ok!(acc.peekby2(2), b"\n\n") {
                 let _ = acc.nextby2(2);
                 acc.skip();
             }
@@ -4721,7 +4721,7 @@ impl ChunkState {
         acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter
-        if crate::is_ok!(acc.peekby2(1), b";") {
+        if foundation_core::is_ok!(acc.peekby2(1), b";") {
             acc.nextby2(1)?;
             acc.skip();
         }
@@ -4740,7 +4740,7 @@ impl ChunkState {
 
         // if we see a semicolon, this means this a
         // an extension without a value, stop and return as is
-        if crate::is_ok!(acc.peekby2(1), b";") {
+        if foundation_core::is_ok!(acc.peekby2(1), b";") {
             acc.nextby2(1)?;
             acc.skip();
 
@@ -4752,7 +4752,7 @@ impl ChunkState {
             }
         }
 
-        if crate::is_ok!(acc.peekby2(1), b"\n") {
+        if foundation_core::is_ok!(acc.peekby2(1), b"\n") {
             if let Some(ext) = extension_key {
                 return match String::from_utf8(ext) {
                     Ok(converted_string) => Ok((converted_string, None)),
@@ -4765,7 +4765,7 @@ impl ChunkState {
         Self::eat_space_pointer(acc)?;
 
         // skip first extension starter
-        if !crate::is_ok!(acc.nextby2(1), b"=") {
+        if !foundation_core::is_ok!(acc.nextby2(1), b"=") {
             if let Some(ext) = extension_key {
                 return match String::from_utf8(ext) {
                     Ok(converted_string) => Ok((converted_string, None)),
@@ -4781,7 +4781,7 @@ impl ChunkState {
         // eat all the space
         Self::eat_space_pointer(acc)?;
 
-        let is_quoted = crate::is_ok!(acc.peekby2(1), b"\"");
+        let is_quoted = foundation_core::is_ok!(acc.peekby2(1), b"\"");
 
         // move pointer forward for quoted value
         let mut quoted = 0;
@@ -4797,7 +4797,7 @@ impl ChunkState {
                     b"\"" => {
                         // if the next one is not a semiconlon then increase
                         // quote count as this can be a embedded token.
-                        if !crate::is_ok!(acc.peekby2(1), b";", b"\r", b"\n") {
+                        if !foundation_core::is_ok!(acc.peekby2(1), b";", b"\r", b"\n") {
                             quoted += 1;
                             continue;
                         }
@@ -4831,7 +4831,7 @@ impl ChunkState {
             acc.skip();
         }
 
-        if crate::is_ok!(acc.peekby2(1), b";") {
+        if foundation_core::is_ok!(acc.peekby2(1), b";") {
             acc.nextby2(1)?;
             acc.skip();
         }
@@ -5008,7 +5008,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
 /// WHAT: Wraps an SseParser to yield ParseResult items from an SSE stream.
 pub struct SimpleSseIterator<T: std::io::Read + Send>(
     SimpleHeaders,
-    crate::wire::simple_http::sse::SseParser<T>,
+    crate::event_source::shared::SseParser<T>,
 );
 
 impl<T: std::io::Read + Send> Clone for SimpleSseIterator<T> {
@@ -5026,13 +5026,13 @@ impl<T: std::io::Read + Send> SimpleSseIterator<T> {
     /// WHAT: Wraps the stream in an SseParser for event parsing.
     #[must_use]
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
-        let parser = crate::wire::simple_http::sse::SseParser::new(stream);
+        let parser = crate::event_source::shared::SseParser::new(stream);
         Self(headers, parser)
     }
 }
 
 impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
-    type Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>;
+    type Item = Result<crate::event_source::ParseResult, SendableBoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.1.parse_next() {

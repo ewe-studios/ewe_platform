@@ -12,6 +12,7 @@ keywords.workspace = true
 [dependencies]
 # Foundation crates
 foundation_core = { workspace = true }
+foundation_netio = { workspace = true }
 foundation_deployment = { workspace = true, features = ["cloudflare", "cloudflare_workers", "gcp", "gcp_run"] }
 foundation_db = { workspace = true }
 

@@ -13,6 +13,7 @@ keywords = ["database", "storage", "turso", "foundation"]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { workspace = true, features = ["std"] }
+foundation_netio = { workspace = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

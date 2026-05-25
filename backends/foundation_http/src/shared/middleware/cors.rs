@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::wire::simple_http::{
+use foundation_netio::simple_http::{
     SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SimpleMethod,
     SendSafeBody, Status,
 };

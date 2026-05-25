@@ -14,7 +14,7 @@
 //!   optimizations (background cleanup task, async-aware primitives) can be
 //!   added in a later phase.
 //!
-use crate::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};

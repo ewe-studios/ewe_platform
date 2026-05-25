@@ -25,11 +25,11 @@
 //! }
 //! ```
 
-use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
-use crate::io::readers::{Data, DataBytesIterator};
-use crate::wire::event_source::shared::ParseResult;
-use crate::wire::event_source::Event;
-use crate::wire::simple_http::{
+use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
+use foundation_core::io::readers::{Data, DataBytesIterator};
+use crate::event_source::shared::ParseResult;
+use crate::event_source::Event;
+use crate::simple_http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
 use serde::de::DeserializeOwned;
@@ -740,7 +740,7 @@ where
 
 fn drain_from_sse_stream<I>(iter: I) -> Result<(), SendableBoxedError>
 where
-    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+    I: Iterator<Item = Result<crate::event_source::ParseResult, SendableBoxedError>>,
 {
     for result in iter {
         match result {
@@ -783,7 +783,7 @@ where
 /// Generic over the error type — callers map it to whatever they need.
 fn collect_from_sse_stream_strict<I, E>(iter: I) -> Result<Vec<u8>, E>
 where
-    I: Iterator<Item = Result<crate::wire::event_source::ParseResult, E>>,
+    I: Iterator<Item = Result<crate::event_source::ParseResult, E>>,
 {
     let mut bytes = Vec::new();
     for result in iter {
@@ -1486,7 +1486,7 @@ where
 
 // Re-export from shared so the import path `client::body_reader::ContentLengthEnforcingIterator`
 // continues to work for existing callers
-pub use crate::wire::simple_http::shared::ContentLengthEnforcingIterator;
+pub use crate::simple_http::shared::ContentLengthEnforcingIterator;
 
 // ============================================================================
 // LineFeed Content-Length Enforcement (body_reader-internal)
@@ -1647,7 +1647,7 @@ pub fn try_collect_string(body: SendSafeBody) -> Result<String, BoxedError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
+    use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
     use serde::Deserialize;
 
     #[test]
@@ -2356,8 +2356,8 @@ mod tests {
 
     #[test]
     fn test_try_collect_bytes_sse_stream_success() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
             Ok(ParseResult::new(
@@ -2390,8 +2390,8 @@ mod tests {
 
     #[test]
     fn test_try_collect_bytes_sse_stream_skips_comments() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
             Ok(ParseResult::new(
@@ -2447,8 +2447,8 @@ mod tests {
 
     #[test]
     fn test_try_collect_string_sse_stream() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
             SseEvent::Message {
@@ -2518,16 +2518,16 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_sse_parse_result_vec(
-        events: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
-    ) -> Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>> {
+        events: Vec<Result<crate::event_source::ParseResult, SendableBoxedError>>,
+    ) -> Vec<Result<crate::event_source::ParseResult, SendableBoxedError>> {
         events
     }
 
     fn make_sse_stream(
-        data: Vec<Result<crate::wire::event_source::ParseResult, SendableBoxedError>>,
+        data: Vec<Result<crate::event_source::ParseResult, SendableBoxedError>>,
     ) -> SendSafeBody {
         let send_iter: Box<
-            dyn Iterator<Item = Result<crate::wire::event_source::ParseResult, SendableBoxedError>>
+            dyn Iterator<Item = Result<crate::event_source::ParseResult, SendableBoxedError>>
                 + Send,
         > = Box::new(data.into_iter());
         SendSafeBody::SseStream(Some(send_iter))
@@ -2535,8 +2535,8 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_from_send_safe_sse_stream() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let body = make_sse_stream(vec![
             Ok(ParseResult::new(
@@ -2565,8 +2565,8 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_from_send_safe_sse_skips_comments() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let body = make_sse_stream(vec![
             Ok(ParseResult::new(
@@ -2589,8 +2589,8 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_into_sse_stream() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let body = make_sse_stream(vec![Ok(ParseResult::new(
             SseEvent::Message {
@@ -2609,8 +2609,8 @@ mod tests {
 
     #[test]
     fn test_collect_string_strict_sse_stream() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
             SseEvent::Message {
@@ -2635,8 +2635,8 @@ mod tests {
 
     #[test]
     fn test_collect_bytes_strict_sse_stream() {
-        use crate::wire::event_source::Event as SseEvent;
-        use crate::wire::event_source::ParseResult;
+        use crate::event_source::Event as SseEvent;
+        use crate::event_source::ParseResult;
 
         let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
             SseEvent::Message {

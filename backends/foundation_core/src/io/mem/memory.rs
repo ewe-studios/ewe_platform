@@ -1,5 +1,5 @@
 use std::cell;
-use std::error::Error;
+use std::fmt;
 use std::fmt::Debug;
 use std::mem::size_of;
 use std::ops::{Deref, Index, RangeBounds};
@@ -7,11 +7,20 @@ use std::rc;
 use std::result;
 use std::vec::Drain;
 
-#[derive(Clone, Debug, Eq, PartialEq, Copy, Error)]
+#[derive(Clone, Debug, Eq, PartialEq, Copy)]
 pub enum MemoryErrors {
-    #[error("The memory limit has been exceeded")]
     MemoryLimitExceededError,
 }
+
+impl fmt::Display for MemoryErrors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MemoryErrors::MemoryLimitExceededError => write!(f, "The memory limit has been exceeded"),
+        }
+    }
+}
+
+impl std::error::Error for MemoryErrors {}
 
 type SharedMemoryLimiter = rc::Rc<cell::RefCell<MemoryLimiter>>;
 

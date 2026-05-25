@@ -14,13 +14,13 @@ use tracing_test::traced_test;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::netcap::RawStream;
+use foundation_netio::netcap::RawStream;
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
-use foundation_core::wire::event_source::SseEvent;
-use foundation_core::wire::simple_http::client::body_reader::try_collect_bytes;
-use foundation_core::wire::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
-use foundation_core::wire::simple_http::{
+use foundation_netio::event_source::SseEvent;
+use foundation_netio::simple_http::client::body_reader::try_collect_bytes;
+use foundation_netio::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
+use foundation_netio::simple_http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
 use serial_test::serial;
@@ -165,7 +165,7 @@ struct BlockMiddleware;
 impl RequestMiddleware for BlockMiddleware {
     fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
-            foundation_core::wire::simple_http::SimpleOutgoingResponse::builder()
+            foundation_netio::simple_http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
                 .with_body(SendSafeBody::Text("blocked by middleware".into()))
                 .build()
@@ -1387,7 +1387,7 @@ impl Serve for ExpectContinueEchoHandler {
         );
         let body_text = match req.body {
             Some(body) => {
-                let bytes = foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe(body);
+                let bytes = foundation_netio::simple_http::client::body_reader::collect_bytes_from_send_safe(body);
                 tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
                 String::from_utf8_lossy(&bytes).to_string()
             }
@@ -1562,7 +1562,7 @@ impl RequestMiddleware for InterimMiddleware {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
-            foundation_core::wire::simple_http::SimpleOutgoingResponse::builder()
+            foundation_netio::simple_http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Numbered(102, String::new()))
                 .build()
                 .expect("valid interim response"),
@@ -1580,7 +1580,7 @@ impl RequestMiddleware for BadInterimMiddleware {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
-            foundation_core::wire::simple_http::SimpleOutgoingResponse::builder()
+            foundation_netio::simple_http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Numbered(102, String::new()))
                 .with_body(SendSafeBody::Text("processing...".into()))
                 .build()

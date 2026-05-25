@@ -1,4 +1,4 @@
-//! Reconnecting SSE client [`TaskIterator`](crate::valtron::TaskIterator) implementation.
+//! Reconnecting SSE client [`TaskIterator`](foundation_core::valtron::TaskIterator) implementation.
 //!
 //! WHY: SSE connections can drop at any time. Clients need automatic reconnection
 //! with exponential backoff and Last-Event-ID resume to avoid missing events.
@@ -13,12 +13,12 @@
 //!
 //! PHASE 3 SCOPE: Max reconnect duration support.
 
-use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
-use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::timeout::TimeoutCalculator;
-use crate::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
+use crate::simple_http::client::DnsResolver;
+use crate::simple_http::shared::timeout::TimeoutCalculator;
+use crate::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -104,20 +104,20 @@ where
     pub fn connect(
         resolver: R,
         url: impl Into<String>,
-    ) -> Result<Self, crate::wire::event_source::EventSourceError> {
+    ) -> Result<Self, crate::event_source::EventSourceError> {
         let url_str = url.into();
         info!(url = %url_str, "Creating reconnecting SSE client");
 
         // Validate URL upfront (same as EventSourceTask)
-        let uri = crate::url::Uri::parse(&url_str).map_err(|e| {
+        let uri = foundation_core::url::Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            crate::wire::event_source::EventSourceError::InvalidUrl(format!(
+            crate::event_source::EventSourceError::InvalidUrl(format!(
                 "Failed to parse URL: {url_str} - {e:?}"
             ))
         })?;
 
         if !uri.scheme().is_http() && !uri.scheme().is_https() {
-            return Err(crate::wire::event_source::EventSourceError::InvalidUrl(
+            return Err(crate::event_source::EventSourceError::InvalidUrl(
                 format!(
                     "Unsupported scheme: {}. Only http:// and https:// are supported.",
                     uri.scheme()
@@ -338,7 +338,7 @@ where
                         let close_reason = inner.close_reason();
                         debug!(reason = ?close_reason, "Inner task closed");
 
-                        if let Some(crate::wire::event_source::EventSourceCloseReason::Eof) =
+                        if let Some(crate::event_source::EventSourceCloseReason::Eof) =
                             close_reason
                         {
                             // Legitimate EOF - server closed connection normally

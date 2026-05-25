@@ -17,6 +17,7 @@ foundation_nostd = { workspace = true }
 foundation_auth = { workspace = true, features = ["turso"] }
 foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
+foundation_netio = { workspace = true }
 foundation_deployment = { workspace = true, features = ["huggingface"] }
 foundation_errstacks = { workspace = true }
 foundation_jsonschema = { workspace = true }

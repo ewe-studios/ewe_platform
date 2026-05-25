@@ -1,8 +1,8 @@
 use crate::netcap::RawStream;
-use crate::wire::simple_http::client::{
+use crate::simple_http::client::{
     DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending, PreparedRequest,
 };
-use crate::wire::simple_http::{
+use crate::simple_http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
 use std::sync::{Arc, Mutex};
@@ -400,7 +400,7 @@ where
     #[allow(dead_code)]
     pub remaining_redirects: u8,
     /// Client configuration (for proxy support)
-    pub config: crate::wire::simple_http::client::ClientConfig,
+    pub config: crate::simple_http::client::ClientConfig,
     /// The prepared request to send
     pub request: Option<PreparedRequest>,
     /// Connection pool for reuse (optional)
@@ -428,7 +428,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::wire::simple_http::client::ClientConfig,
+        config: crate::simple_http::client::ClientConfig,
     ) -> Self {
         Self {
             pool,
@@ -499,7 +499,7 @@ impl Iterator for IncomingResponseMapper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wire::simple_http::client::HttpRequestPending;
+    use crate::simple_http::client::HttpRequestPending;
 
     #[test]
     fn test_fetch_pending_display() {

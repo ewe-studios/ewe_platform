@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
 
-use foundation_core::wire::simple_http::{
+use foundation_netio::simple_http::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     SimpleHeader, SendSafeBody,
 };
@@ -72,7 +72,7 @@ pub trait Serve: Send + Sync + 'static {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>,
+        conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
     ) -> ConnectionResult;
 }
 

@@ -10,6 +10,7 @@ keywords.workspace = true
 
 [dependencies]
 foundation_core = { workspace = true }
+foundation_netio = { workspace = true }
 foundation_db = { workspace = true, default-features = false }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)

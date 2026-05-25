@@ -7,7 +7,6 @@ pub mod compati;
 pub mod extensions;
 pub mod io;
 pub mod macros;
-pub mod netcap;
 pub mod retries;
 pub mod synca;
 pub mod trace;

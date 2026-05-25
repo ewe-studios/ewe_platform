@@ -10,8 +10,8 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{collect_one, collect_result, Stream};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, Status};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};

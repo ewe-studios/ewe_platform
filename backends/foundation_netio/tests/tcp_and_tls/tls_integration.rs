@@ -7,7 +7,7 @@
 
 #[cfg(feature = "ssl-rustls")]
 mod rustls_tests {
-    use foundation_core::netcap::ssl::rustls::{default_client_config, RustlsConnector};
+    use foundation_netio::netcap::ssl::rustls::{default_client_config, RustlsConnector};
 
     #[test]
     fn test_rustls_connector_new() {
@@ -35,7 +35,7 @@ mod rustls_tests {
     #[test]
     #[cfg(feature = "ssl-rustls")]
     fn test_rustls_https_connection() {
-        use foundation_core::netcap::connection::Connection;
+        use foundation_netio::netcap::connection::Connection;
         use std::io::{Read, Write};
         use std::net::TcpStream;
 
@@ -86,8 +86,8 @@ mod rustls_tests {
 
 #[cfg(feature = "ssl-openssl")]
 mod openssl_tests {
-    use foundation_core::netcap::ssl::openssl::{OpenSslConnector, SslConnector};
-    use foundation_core::netcap::{Endpoint, EndpointConfig};
+    use foundation_netio::netcap::ssl::openssl::{OpenSslConnector, SslConnector};
+    use foundation_netio::netcap::{Endpoint, EndpointConfig};
     use std::sync::Arc;
 
     #[test]
@@ -126,7 +126,7 @@ mod openssl_tests {
     #[test]
     #[ignore] // Requires network access
     fn test_openssl_https_connection() {
-        use foundation_core::netcap::connection::Connection;
+        use foundation_netio::netcap::connection::Connection;
         use std::io::{Read, Write};
         use std::net::TcpStream;
 
@@ -169,8 +169,8 @@ mod openssl_tests {
 
 #[cfg(feature = "ssl-native-tls")]
 mod native_tls_tests {
-    use foundation_core::netcap::ssl::native_ttls::NativeTlsConnector;
-    use foundation_core::netcap::{Endpoint, EndpointConfig};
+    use foundation_netio::netcap::ssl::native_ttls::NativeTlsConnector;
+    use foundation_netio::netcap::{Endpoint, EndpointConfig};
     use std::sync::Arc;
 
     #[test]
@@ -207,7 +207,7 @@ mod native_tls_tests {
     #[test]
     #[ignore] // Requires network access
     fn test_native_tls_https_connection() {
-        use foundation_core::netcap::connection::Connection;
+        use foundation_netio::netcap::connection::Connection;
         use std::io::{Read, Write};
         use std::net::TcpStream;
 

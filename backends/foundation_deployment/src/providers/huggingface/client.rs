@@ -31,10 +31,10 @@ use crate::providers::huggingface::types::{
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{
+use foundation_netio::simple_http::client::{
     body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
 };
-use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders, Status};
+use foundation_netio::simple_http::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -578,7 +578,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
     });
 
     let builder = http_client.post(&url).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -586,14 +586,14 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {
@@ -647,7 +647,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     });
 
     let builder = http_client.delete(&url).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -655,14 +655,14 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {
@@ -714,7 +714,7 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
     });
 
     let builder = http_client.post(&url).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -722,14 +722,14 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_core::wire::simple_http::HttpClientError| {
+        |e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {

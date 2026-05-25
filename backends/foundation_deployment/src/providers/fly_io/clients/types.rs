@@ -7,7 +7,7 @@
 
 #![cfg(feature = "fly_io")]
 
-use foundation_core::wire::simple_http::SimpleHeaders;
+use foundation_netio::simple_http::SimpleHeaders;
 
 use serde::{Deserialize, Serialize};
 

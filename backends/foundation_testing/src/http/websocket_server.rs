@@ -17,8 +17,8 @@ use std::sync::Arc;
 use std::thread;
 
 use base64::Engine;
-use foundation_core::netcap::RawStream;
-use foundation_core::wire::simple_http::{
+use foundation_netio::netcap::RawStream;
+use foundation_netio::simple_http::{
     http_streams, IncomingRequestParts, Proto, SimpleHeaders, SimpleMethod,
 };
 use sha1::{Digest, Sha1};
@@ -335,7 +335,7 @@ impl WebSocketEchoServer {
 
         // Check for WebSocket upgrade
         let upgrade_header = headers
-            .get(&foundation_core::wire::simple_http::SimpleHeader::UPGRADE)
+            .get(&foundation_netio::simple_http::SimpleHeader::UPGRADE)
             .and_then(|v| v.first())
             .map(|s| s.to_lowercase());
 
@@ -348,14 +348,14 @@ impl WebSocketEchoServer {
 
         // Get Sec-WebSocket-Key
         let ws_key = headers
-            .get(&foundation_core::wire::simple_http::SimpleHeader::SEC_WEBSOCKET_KEY)
+            .get(&foundation_netio::simple_http::SimpleHeader::SEC_WEBSOCKET_KEY)
             .and_then(|v| v.first())
             .cloned()
             .ok_or("Missing Sec-WebSocket-Key")?;
 
         // Check requested protocols
         let selected_protocol = headers
-            .get(&foundation_core::wire::simple_http::SimpleHeader::SEC_WEBSOCKET_PROTOCOL)
+            .get(&foundation_netio::simple_http::SimpleHeader::SEC_WEBSOCKET_PROTOCOL)
             .and_then(|v| v.first())
             .and_then(|requested| {
                 // Find first matching protocol
@@ -402,7 +402,7 @@ impl WebSocketEchoServer {
 
         // Check for WebSocket upgrade
         let upgrade_header = headers
-            .get(&foundation_core::wire::simple_http::SimpleHeader::UPGRADE)
+            .get(&foundation_netio::simple_http::SimpleHeader::UPGRADE)
             .and_then(|v| v.first())
             .map(|s| s.to_lowercase());
 
@@ -415,7 +415,7 @@ impl WebSocketEchoServer {
 
         // Get Sec-WebSocket-Key
         let ws_key = headers
-            .get(&foundation_core::wire::simple_http::SimpleHeader::SEC_WEBSOCKET_KEY)
+            .get(&foundation_netio::simple_http::SimpleHeader::SEC_WEBSOCKET_KEY)
             .and_then(|v| v.first())
             .cloned()
             .ok_or("Missing Sec-WebSocket-Key")?;
@@ -445,7 +445,7 @@ impl WebSocketEchoServer {
     ) -> Result<
         (
             SimpleMethod,
-            foundation_core::wire::simple_http::SimpleUrl,
+            foundation_netio::simple_http::SimpleUrl,
             Proto,
             SimpleHeaders,
         ),

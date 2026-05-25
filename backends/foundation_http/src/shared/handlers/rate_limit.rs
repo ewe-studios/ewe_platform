@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use foundation_core::wire::simple_http::{
+use foundation_netio::simple_http::{
     SimpleIncomingRequest, SimpleOutgoingResponse, SendSafeBody, Status,
     SimpleHeader,
 };

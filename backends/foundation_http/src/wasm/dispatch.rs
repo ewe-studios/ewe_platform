@@ -11,7 +11,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleIncomingRequest};
+use foundation_netio::simple_http::{SendSafeBody, SimpleIncomingRequest};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;

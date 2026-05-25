@@ -5,7 +5,7 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::ServeWriter;
-use foundation_core::wire::simple_http::{
+use foundation_netio::simple_http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    use foundation_core::netcap::RawStream;
+    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
     use foundation_netio::simple_http::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
@@ -225,7 +225,7 @@ mod http_response_compliance {
 
     use foundation_core::extensions::result_ext::BoxedError;
 
-    use foundation_core::netcap::RawStream;
+    use foundation_netio::netcap::RawStream;
     use foundation_netio::simple_http::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
@@ -3481,7 +3481,7 @@ mod http_requests_compliance {
 
     use foundation_core::extensions::result_ext::BoxedError;
 
-    use foundation_core::netcap::RawStream;
+    use foundation_netio::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_netio::simple_http::{
@@ -9745,7 +9745,7 @@ mod hardening_tests {
     //! - OWS whitespace handling
     //! - Duplicate header combination
 
-    use foundation_core::netcap::RawStream;
+    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
     use foundation_netio::simple_http::{
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,

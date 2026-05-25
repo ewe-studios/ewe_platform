@@ -1,9 +1,9 @@
-use crate::url::Uri;
-use crate::wire::simple_http::{
+use foundation_core::url::Uri;
+use crate::simple_http::{
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
-use crate::wire::simple_http::shared::Extensions;
+use crate::simple_http::shared::Extensions;
 use super::request::PreparedRequest;
 
 /// Resolve a `Location` header value against a base `Uri` (Uri).
@@ -174,7 +174,7 @@ pub fn build_followup_request_from(
     );
 
     PreparedRequest {
-        method: crate::wire::simple_http::SimpleMethod::GET,
+        method: crate::simple_http::shared::SimpleMethod::GET,
         url: new_url,
         headers,
         body: SendSafeBody::None,

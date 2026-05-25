@@ -9,7 +9,7 @@
 //! HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
 //!       per-API provider instances.
 
-use foundation_core::wire::simple_http::client::{DnsResolver, SimpleHttpClient};
+use foundation_netio::simple_http::client::{DnsResolver, SimpleHttpClient};
 use foundation_db::state::traits::StateStore;
 use std::sync::Arc;
 

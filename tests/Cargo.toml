@@ -10,6 +10,7 @@ path = "mod.rs"
 [dependencies]
 foundation_nostd = { workspace = true }
 foundation_core = { workspace = true }
+foundation_netio = { workspace = true }
 foundation_testing = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 
@@ -28,9 +29,9 @@ reqwest = { version = "0.13", features = ["blocking"] }
 std = ["foundation_core/std"]
 multi = ["foundation_core/multi"]
 alloc = ["foundation_core/alloc"]
-gzip = ["foundation_core/gzip"]
-deflate = ["foundation_core/gzip"]
-brotli = ["foundation_core/compression"]
-socks5 = ["foundation_core/socks5"]
-ssl-rustls = ["foundation_core/ssl-rustls"]
+gzip = ["foundation_netio/gzip"]
+deflate = ["foundation_netio/gzip"]
+brotli = ["foundation_netio/compression"]
+socks5 = ["foundation_netio/socks5"]
+ssl-rustls = ["foundation_netio/ssl-rustls"]
 default  = ["std"]

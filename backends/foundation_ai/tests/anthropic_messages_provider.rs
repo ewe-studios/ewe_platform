@@ -14,7 +14,7 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
 use foundation_core::valtron::Stream;
-use foundation_core::wire::simple_http::client::StaticSocketAddr;
+use foundation_netio::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 

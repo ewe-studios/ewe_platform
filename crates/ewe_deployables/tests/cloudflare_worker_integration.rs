@@ -15,7 +15,7 @@ use ewe_deployables::cloudflare::{CloudflareWorker, CloudflareWorkerError};
 use ewe_deployables::{Deployable, Deploying};
 
 use foundation_core::valtron::{execute, Stream};
-use foundation_core::wire::simple_http::client::StaticSocketAddr;
+use foundation_netio::simple_http::client::StaticSocketAddr;
 use foundation_db::state::traits::StateStore;
 use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -31,7 +31,7 @@ fn make_client(
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let dns = StaticSocketAddr::new(addr);
     let http_client =
-        foundation_core::wire::simple_http::client::SimpleHttpClient::with_resolver(dns)
+        foundation_netio::simple_http::client::SimpleHttpClient::with_resolver(dns)
             .with_tls_connector(test_tls_connector())
             .with_connection_pool();
 

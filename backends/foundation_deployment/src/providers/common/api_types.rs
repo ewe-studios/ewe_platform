@@ -7,12 +7,12 @@
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
-use foundation_core::wire::simple_http::SimpleHeaders;
+use foundation_netio::simple_http::SimpleHeaders;
 use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience
 pub use foundation_core::valtron::BoxedSendExecutionAction;
-pub use foundation_core::wire::simple_http::client::RequestIntro;
+pub use foundation_netio::simple_http::client::RequestIntro;
 
 // =============================================================================
 // ERROR TYPES

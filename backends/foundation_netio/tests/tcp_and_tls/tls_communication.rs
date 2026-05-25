@@ -6,8 +6,8 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![cfg(feature = "ssl-rustls")]
 
-use foundation_core::netcap::connection::Connection;
-use foundation_core::netcap::ssl::rustls::{RustlsAcceptor, RustlsConnector};
+use foundation_netio::netcap::connection::Connection;
+use foundation_netio::netcap::ssl::rustls::{RustlsAcceptor, RustlsConnector};
 use rustls::pki_types::pem::PemObject;
 use rustls::RootCertStore;
 use std::io::{Read, Write};

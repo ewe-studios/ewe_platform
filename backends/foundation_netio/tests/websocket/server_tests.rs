@@ -429,7 +429,7 @@ fn test_connection_state_tracking() {
     // This test verifies the API exists and compiles
     #[allow(clippy::no_effect_underscore_binding)]
     let _new_fn: fn(
-        foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>,
+        foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
     ) -> WebSocketServerConnection = WebSocketServerConnection::new;
 
     // The actual is_open() method is tested through integration tests

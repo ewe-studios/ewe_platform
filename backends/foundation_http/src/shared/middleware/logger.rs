@@ -6,7 +6,7 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use foundation_core::wire::simple_http::SimpleIncomingRequest;
+use foundation_netio::simple_http::SimpleIncomingRequest;
 
 use crate::shared::client_ip::ClientIp;
 use crate::shared::context::ContextBag;

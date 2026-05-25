@@ -12,12 +12,12 @@ use std::time::{Duration, SystemTime};
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
-use foundation_core::wire::event_source::{Event, ReconnectingEventSourceTask};
-use foundation_core::wire::simple_http::client::body_reader::collect_strings_from_send_safe;
-use foundation_core::wire::simple_http::client::{
+use foundation_netio::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_netio::simple_http::client::body_reader::collect_strings_from_send_safe;
+use foundation_netio::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader};
+use foundation_netio::simple_http::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;

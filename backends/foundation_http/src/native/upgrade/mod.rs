@@ -1,14 +1,14 @@
 //! Protocol upgrade helpers — WebSocket accept and SSE streaming.
 //!
-//! SSE client types are provided by `foundation_core::wire::event_source`.
+//! SSE client types are provided by `foundation_netio::event_source`.
 //! Server-side SSE streaming is provided by `SseStream`.
 
 use std::io::Write;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::netcap::RawStream;
-use foundation_core::wire::event_source::{EventWriter, SseEvent};
-use foundation_core::wire::simple_http::{
+use foundation_netio::netcap::RawStream;
+use foundation_netio::event_source::{EventWriter, SseEvent};
+use foundation_netio::simple_http::{
     Http11, RenderHttp, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
     SimpleOutgoingResponse, SendSafeBody, Status,
 };

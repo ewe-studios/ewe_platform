@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
-use crate::io::ioutils::{
+use foundation_core::io::ioutils::{
     BufferedReader, BufferedWriter, PeekError, PeekableReadStream, ReadTimeoutOperations,
 };
 

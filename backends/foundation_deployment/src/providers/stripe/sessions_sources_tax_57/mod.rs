@@ -8,7 +8,7 @@
 #![cfg(feature = "stripe_sessions_sources_tax_57")]
 
 use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
 
@@ -648,7 +648,7 @@ pub struct PostIssuingCardsCardArgs {
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_billing_portal_sessions_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing_portal/sessions",
@@ -677,7 +677,7 @@ pub fn post_billing_portal_sessions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: BillingPortalSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -707,7 +707,7 @@ pub fn post_billing_portal_sessions_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_checkout_sessions_builder<R>(client: &SimpleHttpClient<R>, args: &GetCheckoutSessionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions",
@@ -776,7 +776,7 @@ pub fn get_checkout_sessions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_checkout_sessions_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions",
@@ -805,7 +805,7 @@ pub fn post_checkout_sessions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: CheckoutSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -835,7 +835,7 @@ pub fn post_checkout_sessions_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_checkout_sessions_session_builder<R>(client: &SimpleHttpClient<R>, args: &GetCheckoutSessionsSessionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions/{session}",
@@ -865,7 +865,7 @@ pub fn get_checkout_sessions_session_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: CheckoutSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -907,7 +907,7 @@ pub fn get_checkout_sessions_session(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_checkout_sessions_session_builder<R>(client: &SimpleHttpClient<R>, args: &PostCheckoutSessionsSessionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions/{session}",
@@ -937,7 +937,7 @@ pub fn post_checkout_sessions_session_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: CheckoutSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -979,7 +979,7 @@ pub fn post_checkout_sessions_session(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_financial_connections_sessions_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/sessions",
@@ -1008,7 +1008,7 @@ pub fn post_financial_connections_sessions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: FinancialConnectionsSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1038,7 +1038,7 @@ pub fn post_financial_connections_sessions_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_financial_connections_sessions_session_builder<R>(client: &SimpleHttpClient<R>, args: &GetFinancialConnectionsSessionsSessionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/sessions/{session}",
@@ -1068,7 +1068,7 @@ pub fn get_financial_connections_sessions_session_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: FinancialConnectionsSession = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1110,7 +1110,7 @@ pub fn get_financial_connections_sessions_session(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_sources_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerSourcesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/sources",
@@ -1180,7 +1180,7 @@ pub fn get_customers_customer_sources(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_sources_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerSourcesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/sources",
@@ -1210,7 +1210,7 @@ pub fn post_customers_customer_sources_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: PaymentSource = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1252,7 +1252,7 @@ pub fn post_customers_customer_sources(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_sources_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerSourcesIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/sources/{id}",
@@ -1283,7 +1283,7 @@ pub fn get_customers_customer_sources_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: PaymentSource = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1325,7 +1325,7 @@ pub fn get_customers_customer_sources_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_sources_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerSourcesIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/sources/{id}",
@@ -1356,7 +1356,7 @@ pub fn post_customers_customer_sources_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1398,7 +1398,7 @@ pub fn post_customers_customer_sources_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_customers_customer_sources_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteCustomersCustomerSourcesIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/sources/{id}",
@@ -1429,7 +1429,7 @@ pub fn delete_customers_customer_sources_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1471,7 +1471,7 @@ pub fn delete_customers_customer_sources_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_sources_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources",
@@ -1500,7 +1500,7 @@ pub fn post_sources_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: Source = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1530,7 +1530,7 @@ pub fn post_sources_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_sources_source_builder<R>(client: &SimpleHttpClient<R>, args: &GetSourcesSourceArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources/{source}",
@@ -1560,7 +1560,7 @@ pub fn get_sources_source_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: Source = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1602,7 +1602,7 @@ pub fn get_sources_source(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_sources_source_builder<R>(client: &SimpleHttpClient<R>, args: &PostSourcesSourceArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources/{source}",
@@ -1632,7 +1632,7 @@ pub fn post_sources_source_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: Source = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1674,7 +1674,7 @@ pub fn post_sources_source(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_tax_ids_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerTaxIdsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/tax_ids",
@@ -1744,7 +1744,7 @@ pub fn get_customers_customer_tax_ids(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_tax_ids_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerTaxIdsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/tax_ids",
@@ -1774,7 +1774,7 @@ pub fn post_customers_customer_tax_ids_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1816,7 +1816,7 @@ pub fn post_customers_customer_tax_ids(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_tax_ids_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerTaxIdsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/tax_ids/{id}",
@@ -1847,7 +1847,7 @@ pub fn get_customers_customer_tax_ids_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1889,7 +1889,7 @@ pub fn get_customers_customer_tax_ids_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_customers_customer_tax_ids_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteCustomersCustomerTaxIdsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/tax_ids/{id}",
@@ -1920,7 +1920,7 @@ pub fn delete_customers_customer_tax_ids_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: DeletedTaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1962,7 +1962,7 @@ pub fn delete_customers_customer_tax_ids_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_ids_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxIdsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_ids",
@@ -2031,7 +2031,7 @@ pub fn get_tax_ids(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_tax_ids_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_ids",
@@ -2060,7 +2060,7 @@ pub fn post_tax_ids_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2090,7 +2090,7 @@ pub fn post_tax_ids_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_ids_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxIdsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_ids/{id}",
@@ -2120,7 +2120,7 @@ pub fn get_tax_ids_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2162,7 +2162,7 @@ pub fn get_tax_ids_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_tax_ids_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteTaxIdsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_ids/{id}",
@@ -2192,7 +2192,7 @@ pub fn delete_tax_ids_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: DeletedTaxId = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2234,7 +2234,7 @@ pub fn delete_tax_ids_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_financial_connections_transactions_builder<R>(client: &SimpleHttpClient<R>, args: &GetFinancialConnectionsTransactionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/transactions",
@@ -2303,7 +2303,7 @@ pub fn get_financial_connections_transactions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_financial_connections_transactions_transaction_builder<R>(client: &SimpleHttpClient<R>, args: &GetFinancialConnectionsTransactionsTransactionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/transactions/{transaction}",
@@ -2333,7 +2333,7 @@ pub fn get_financial_connections_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: FinancialConnectionsTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2375,7 +2375,7 @@ pub fn get_financial_connections_transactions_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_transactions_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingTransactionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/transactions",
@@ -2444,7 +2444,7 @@ pub fn get_issuing_transactions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_transactions_transaction_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingTransactionsTransactionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/transactions/{transaction}",
@@ -2474,7 +2474,7 @@ pub fn get_issuing_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: IssuingTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2516,7 +2516,7 @@ pub fn get_issuing_transactions_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_issuing_transactions_transaction_builder<R>(client: &SimpleHttpClient<R>, args: &PostIssuingTransactionsTransactionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/transactions/{transaction}",
@@ -2546,7 +2546,7 @@ pub fn post_issuing_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: IssuingTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2588,7 +2588,7 @@ pub fn post_issuing_transactions_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_transactions_transaction_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxTransactionsTransactionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/transactions/{transaction}",
@@ -2618,7 +2618,7 @@ pub fn get_tax_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TaxTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2660,7 +2660,7 @@ pub fn get_tax_transactions_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_treasury_transactions_builder<R>(client: &SimpleHttpClient<R>, args: &GetTreasuryTransactionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/transactions",
@@ -2729,7 +2729,7 @@ pub fn get_treasury_transactions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_treasury_transactions_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetTreasuryTransactionsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/transactions/{id}",
@@ -2759,7 +2759,7 @@ pub fn get_treasury_transactions_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TreasuryTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2801,7 +2801,7 @@ pub fn get_treasury_transactions_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_accounts_account_bank_accounts_builder<R>(client: &SimpleHttpClient<R>, args: &PostAccountsAccountBankAccountsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/bank_accounts",
@@ -2831,7 +2831,7 @@ pub fn post_accounts_account_bank_accounts_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2873,7 +2873,7 @@ pub fn post_accounts_account_bank_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_accounts_account_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetAccountsAccountBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/bank_accounts/{id}",
@@ -2904,7 +2904,7 @@ pub fn get_accounts_account_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2946,7 +2946,7 @@ pub fn get_accounts_account_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_accounts_account_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostAccountsAccountBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/bank_accounts/{id}",
@@ -2977,7 +2977,7 @@ pub fn post_accounts_account_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3019,7 +3019,7 @@ pub fn post_accounts_account_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_accounts_account_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteAccountsAccountBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/bank_accounts/{id}",
@@ -3050,7 +3050,7 @@ pub fn delete_accounts_account_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: DeletedExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3092,7 +3092,7 @@ pub fn delete_accounts_account_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_bank_accounts_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerBankAccountsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/bank_accounts",
@@ -3162,7 +3162,7 @@ pub fn get_customers_customer_bank_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_bank_accounts_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerBankAccountsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/bank_accounts",
@@ -3192,7 +3192,7 @@ pub fn post_customers_customer_bank_accounts_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: PaymentSource = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3234,7 +3234,7 @@ pub fn post_customers_customer_bank_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/bank_accounts/{id}",
@@ -3265,7 +3265,7 @@ pub fn get_customers_customer_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: BankAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3307,7 +3307,7 @@ pub fn get_customers_customer_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/bank_accounts/{id}",
@@ -3338,7 +3338,7 @@ pub fn post_customers_customer_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3380,7 +3380,7 @@ pub fn post_customers_customer_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_customers_customer_bank_accounts_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteCustomersCustomerBankAccountsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/bank_accounts/{id}",
@@ -3411,7 +3411,7 @@ pub fn delete_customers_customer_bank_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3453,7 +3453,7 @@ pub fn delete_customers_customer_bank_accounts_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_cards_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerCardsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cards",
@@ -3523,7 +3523,7 @@ pub fn get_customers_customer_cards(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_cards_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerCardsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cards",
@@ -3553,7 +3553,7 @@ pub fn post_customers_customer_cards_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: PaymentSource = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3595,7 +3595,7 @@ pub fn post_customers_customer_cards(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_customers_customer_cards_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetCustomersCustomerCardsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cards/{id}",
@@ -3626,7 +3626,7 @@ pub fn get_customers_customer_cards_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: Card = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3668,7 +3668,7 @@ pub fn get_customers_customer_cards_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_customers_customer_cards_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostCustomersCustomerCardsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cards/{id}",
@@ -3699,7 +3699,7 @@ pub fn post_customers_customer_cards_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3741,7 +3741,7 @@ pub fn post_customers_customer_cards_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn delete_customers_customer_cards_id_builder<R>(client: &SimpleHttpClient<R>, args: &DeleteCustomersCustomerCardsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cards/{id}",
@@ -3772,7 +3772,7 @@ pub fn delete_customers_customer_cards_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3814,7 +3814,7 @@ pub fn delete_customers_customer_cards_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_cards_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingCardsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cards",
@@ -3883,7 +3883,7 @@ pub fn get_issuing_cards(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_issuing_cards_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cards",
@@ -3912,7 +3912,7 @@ pub fn post_issuing_cards_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: IssuingCard = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3942,7 +3942,7 @@ pub fn post_issuing_cards_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_cards_card_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingCardsCardArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cards/{card}",
@@ -3972,7 +3972,7 @@ pub fn get_issuing_cards_card_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: IssuingCard = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4014,7 +4014,7 @@ pub fn get_issuing_cards_card(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_issuing_cards_card_builder<R>(client: &SimpleHttpClient<R>, args: &PostIssuingCardsCardArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cards/{card}",
@@ -4044,7 +4044,7 @@ pub fn post_issuing_cards_card_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: IssuingCard = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4088,7 +4088,7 @@ pub fn post_issuing_cards_card(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// POST /v1/billing_portal/sessions.
     ///

@@ -1,45 +1,34 @@
-//! Deployment state management — trait, types, backends, and factory.
-//!
-//! WHY: The deployment engine needs persistent, backend-agnostic state to track
-//! what's deployed, detect config changes, and coordinate rollbacks.
-//!
-//! WHAT: `StateStore` trait with six interchangeable backends (JSON files,
-//! `SQLite`, libsql, Turso, Cloudflare R2, Cloudflare D1), plus helpers
-//! and a factory for auto-detection.
-//!
-//! HOW: All backends implement the same `StateStore` trait. I/O methods return
-//! `StateStoreStream<T>` (lazy iterators). The factory selects a backend
-//! from environment variables.
-
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "d1")]
 pub mod d1;
-pub mod file;
-pub mod hash;
-pub mod helpers;
+
+#[cfg(feature = "r2")]
+pub mod r2;
+
 #[cfg(feature = "libsql")]
 pub mod libsql_state;
-pub mod namespaced;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod r2;
-pub mod resource_identifier;
+
 #[cfg(feature = "libsql")]
 pub mod sqlite;
-pub mod store_state_task;
-pub mod traits;
+
 #[cfg(feature = "libsql")]
 pub mod turso;
-pub mod types;
 
 #[cfg(feature = "libsql")]
 pub use self::turso::TursoStateStore;
+
+pub use super::shared::namespaced::NamespacedStore;
+pub use super::shared::traits::{StateStore, StateStoreStream};
+pub use super::shared::types::{ResourceState, StateStatus};
+
+pub use hash::config_hash;
+
 #[cfg(not(target_arch = "wasm32"))]
 pub use d1::D1StateStore;
 pub use file::FileStateStore;
-pub use hash::config_hash;
 pub use helpers::{collect_all, collect_first, drive_to_completion};
 #[cfg(feature = "libsql")]
 pub use libsql_state::LibSQLStateStore;
-pub use namespaced::NamespacedStore;
+
 #[cfg(not(target_arch = "wasm32"))]
 pub use r2::R2StateStore;
 #[cfg(feature = "libsql")]
@@ -47,8 +36,6 @@ pub use sqlite::SqliteStateStore;
 pub use store_state_task::{
     ProviderError, StoreStateIdentifierTask, StoreStatePending, StoreStateTask,
 };
-pub use traits::{StateStore, StateStoreStream};
-pub use types::{ResourceState, StateStatus};
 
 use std::path::Path;
 

@@ -10,8 +10,8 @@
 //! are POST'd as JSON. D1 returns JSON rows — no `!Send` issues, no Valtron.
 
 use foundation_core::valtron::ThreadedValue;
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};

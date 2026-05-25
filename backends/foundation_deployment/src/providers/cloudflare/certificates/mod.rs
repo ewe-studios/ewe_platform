@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -188,7 +188,7 @@ pub fn m_tls_certificate_management_list_m_tls_certificates_request<R, F>(
     builder_mod: Option<F>,
 ) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -207,14 +207,14 @@ where
     Ok(
         builder
             .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+            .map_err(|e: foundation_netio::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
             .map_ready(|intro| match intro {
                 super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
                     let status: usize = intro.0.into();
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -264,7 +264,7 @@ pub fn m_tls_certificate_management_upload_m_tls_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -282,7 +282,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -301,7 +301,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesCertificateResponseSinglePost =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -348,7 +348,7 @@ pub fn m_tls_certificate_management_get_m_tls_certificate_request<R, F>(
     builder_mod: Option<F>,
 ) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -367,14 +367,14 @@ where
     Ok(
         builder
             .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+            .map_err(|e: foundation_netio::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
             .map_ready(|intro| match intro {
                 super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
                     let status: usize = intro.0.into();
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -413,7 +413,7 @@ pub fn m_tls_certificate_management_delete_m_tls_certificate_request<R, F>(
     builder_mod: Option<F>,
 ) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -432,14 +432,14 @@ where
     Ok(
         builder
             .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+            .map_err(|e: foundation_netio::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
             .map_ready(|intro| match intro {
                 super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
                     let status: usize = intro.0.into();
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -489,7 +489,7 @@ pub fn m_tls_certificate_management_list_m_tls_certificate_associations_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -507,7 +507,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -526,7 +526,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesAssociationResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -582,7 +582,7 @@ pub fn origin_ca_list_certificates_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/certificates",);
@@ -597,7 +597,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -616,7 +616,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -672,7 +672,7 @@ pub fn origin_ca_create_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/certificates",);
@@ -687,7 +687,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -706,7 +706,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -764,7 +764,7 @@ pub fn origin_ca_get_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -782,7 +782,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -801,7 +801,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -859,7 +859,7 @@ pub fn origin_ca_revoke_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -877,7 +877,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -896,7 +896,7 @@ where
                     });
                 }
                 let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
                 let parsed: TlsCertificatesAndHostnamesCertificateRevokeResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

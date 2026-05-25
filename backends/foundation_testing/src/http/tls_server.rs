@@ -17,9 +17,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use foundation_core::netcap::connection::Connection;
-use foundation_core::netcap::ssl::{SSLAcceptor, SSLConnector};
-use foundation_core::wire::simple_http::{
+use foundation_netio::netcap::connection::Connection;
+use foundation_netio::netcap::ssl::{SSLAcceptor, SSLConnector};
+use foundation_netio::simple_http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl,
 };
 
@@ -171,7 +171,7 @@ pub fn test_tls_connector() -> SSLConnector {
     }
 
     let provider = Arc::new(
-        foundation_core::netcap::ssl::rustls::initialize_tls_provider()
+        foundation_netio::netcap::ssl::rustls::initialize_tls_provider()
             .expect("should have TLS provider"),
     );
 
@@ -185,7 +185,7 @@ pub fn test_tls_connector() -> SSLConnector {
 }
 
 fn handle_tls_connection(
-    mut tls_stream: foundation_core::netcap::ssl::ServerSSLStream,
+    mut tls_stream: foundation_netio::netcap::ssl::ServerSSLStream,
     handler: &ResponseHandler,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut buf = vec![0u8; 8192];
@@ -244,7 +244,7 @@ fn handle_tls_connection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_core::wire::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
+    use foundation_netio::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
     use std::net::SocketAddr;
 
     #[test]

@@ -1,4 +1,4 @@
-//! WebSocket client [`TaskIterator`](crate::valtron::TaskIterator) implementation.
+//! WebSocket client [`TaskIterator`](foundation_core::valtron::TaskIterator) implementation.
 //!
 //! WHY: Clients need a non-blocking, state-machine-based WebSocket consumer that
 //! integrates with the valtron executor system. Enables async-like event handling
@@ -12,27 +12,27 @@
 //! Uses `HttpConnectionPool` for connection management with pooling support.
 //! Uses WebSocket frame decoding for message parsing.
 
-use crate::io::ioutils::ReadTimeoutOperations;
+use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::client::HttpClientConnection;
-use crate::wire::simple_http::client::HttpConnectionPool;
-use crate::url::Uri;
-use crate::wire::simple_http::{
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::HttpClientConnection;
+use crate::simple_http::client::HttpConnectionPool;
+use foundation_core::url::Uri;
+use crate::simple_http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
-use crate::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use concurrent_queue::ConcurrentQueue;
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, instrument, trace, warn};
 
-use crate::wire::websocket::shared::error::WebSocketError;
-use crate::wire::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
-use crate::wire::websocket::shared::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
-use crate::wire::websocket::shared::message::WebSocketMessage;
+use crate::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
+use crate::websocket::shared::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
+use crate::websocket::shared::message::WebSocketMessage;
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -59,12 +59,12 @@ pub struct WebSocketConnectInfo {
 ///
 /// Added buffer pool and reusable buffer for zero-copy frame parsing.
 pub struct WebSocketOpenState {
-    pub stream: crate::io::ioutils::SharedByteBufferStream<RawStream>,
+    pub stream: foundation_core::io::ioutils::SharedByteBufferStream<RawStream>,
     pub delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
-    pub assembler: crate::wire::websocket::shared::assembler::MessageAssembler,
+    pub assembler: crate::websocket::shared::assembler::MessageAssembler,
     /// Buffer pool for zero-copy frame reading
-    pub buffer_pool: Arc<crate::io::buffer_pool::BytesPool>,
+    pub buffer_pool: Arc<foundation_core::io::buffer_pool::BytesPool>,
     /// Reusable buffer for frame payload reading
     pub frame_buffer: bytes::BytesMut,
 }
@@ -103,7 +103,7 @@ pub struct WebSocketHandshakeReadingState {
 /// `HandshakeValidating` state data.
 pub struct WebSocketHandshakeValidatingState {
     pub connection: HttpClientConnection,
-    pub headers: crate::wire::simple_http::SimpleHeaders,
+    pub headers: crate::simple_http::shared::SimpleHeaders,
     pub ws_key: String,
     pub subprotocols: Option<String>,
     pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
@@ -174,7 +174,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::wire::simple_http::client::ConnectionPool::default(),
+            crate::simple_http::client::ConnectionPool::default(),
             resolver,
         ));
 
@@ -271,7 +271,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::wire::simple_http::client::ConnectionPool::default(),
+            crate::simple_http::client::ConnectionPool::default(),
             resolver,
         ));
 
@@ -515,7 +515,7 @@ where
                 match state.reader.next() {
                     Some(Ok(part)) => {
                         match part {
-                            crate::wire::simple_http::IncomingResponseParts::Intro(
+                            crate::simple_http::shared::IncomingResponseParts::Intro(
                                 status,
                                 _proto,
                                 _text,
@@ -534,7 +534,7 @@ where
                                 self.state = Some(WebSocketState::HandshakeReading(Some(state)));
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
-                            crate::wire::simple_http::IncomingResponseParts::Headers(headers) => {
+                            crate::simple_http::shared::IncomingResponseParts::Headers(headers) => {
                                 debug!("Received headers, transitioning to validation");
                                 self.state = Some(WebSocketState::HandshakeValidating(Some(
                                     Box::new(WebSocketHandshakeValidatingState {
@@ -612,14 +612,14 @@ where
 
                                 // Create buffer pool for zero-copy frame reading (8KB buffers, 4 pre-allocated)
                                 let buffer_pool =
-                                    Arc::new(crate::io::buffer_pool::BytesPool::new(8192, 4));
+                                    Arc::new(foundation_core::io::buffer_pool::BytesPool::new(8192, 4));
 
                                 self.state = Some(WebSocketState::Open(Some(Box::new(
                                     WebSocketOpenState {
                                         stream,
                                         delivery_queue: queue,
                                         timeout_calculator: state.timeout_calculator,
-                                        assembler: crate::wire::websocket::shared::assembler::MessageAssembler::default(),
+                                        assembler: crate::websocket::shared::assembler::MessageAssembler::default(),
                                         buffer_pool,
                                         frame_buffer: bytes::BytesMut::new(),
                                     },

@@ -15,9 +15,9 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
-use crate::wire::simple_http::{Http11, HttpClientError, RenderHttp};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
+use crate::simple_http::{Http11, HttpClientError, RenderHttp};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -48,7 +48,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        config: crate::wire::simple_http::client::ClientConfig,
+        config: crate::simple_http::client::ClientConfig,
     ) -> Self {
         Self(
             Some(HttpOperationState::Init),
@@ -101,7 +101,7 @@ where
                 // Determine effective proxy configuration
                 // First check if proxy_from_env is set and try environment
                 let env_proxy = if self.1.config.proxy_from_env {
-                    crate::wire::simple_http::client::ProxyConfig::from_env(request.url.scheme())
+                    crate::simple_http::client::ProxyConfig::from_env(request.url.scheme())
                 } else {
                     None
                 };

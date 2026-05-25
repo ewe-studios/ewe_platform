@@ -1,4 +1,4 @@
-//! SSE client [`TaskIterator`](crate::valtron::TaskIterator) implementation.
+//! SSE client [`TaskIterator`](foundation_core::valtron::TaskIterator) implementation.
 //!
 //! WHY: Clients need a non-blocking, state-machine-based SSE consumer that
 //! integrates with the valtron executor system. Enables async-like event handling
@@ -17,16 +17,16 @@
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 //! PHASE 3 SCOPE: Idle timeout support.
 
-use crate::extensions::result_ext::SendableBoxedError;
+use foundation_core::extensions::result_ext::SendableBoxedError;
 use crate::netcap::RawStream;
-use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::event_source::{EventSourceError, ParseResult, SseParser};
-use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::client::HttpClientConnection;
-use crate::wire::simple_http::client::HttpConnectionPool;
-use crate::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
-use crate::url::Uri;
-use crate::wire::simple_http::{
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use crate::event_source::{EventSourceError, ParseResult, SseParser};
+use crate::simple_http::client::DnsResolver;
+use crate::simple_http::client::HttpClientConnection;
+use crate::simple_http::client::HttpConnectionPool;
+use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
+use foundation_core::url::Uri;
+use crate::simple_http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
@@ -133,7 +133,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::wire::simple_http::client::ConnectionPool::default(),
+            crate::simple_http::client::ConnectionPool::default(),
             resolver,
         ));
 
@@ -384,7 +384,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::wire::simple_http::HttpResponseReader::new(
+                    crate::simple_http::HttpResponseReader::new(
                         stream,
                         SimpleHttpBody::default(),
                     ),

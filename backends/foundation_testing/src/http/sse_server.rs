@@ -20,9 +20,9 @@ use std::time::Duration;
 
 use socket2::SockRef;
 
-use foundation_core::netcap::RawStream;
-use foundation_core::wire::simple_http::client::body_reader::collect_bytes_from_send_safe;
-use foundation_core::wire::simple_http::{
+use foundation_netio::netcap::RawStream;
+use foundation_netio::simple_http::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::simple_http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
 

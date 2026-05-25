@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.1.0"
+version = "0.0.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,6 +15,7 @@ workspace = true
 [dependencies]
 # -- Workspace dependencies
 
+foundation_core = { workspace = true }
 foundation_wasm = { workspace = true }
 foundation_nostd = {workspace = true }
 
@@ -41,6 +42,15 @@ base64 = "0.22"
 sha1 = "0.10"
 bytes = "1.5"
 zeroize = { version = "1" }
+
+# Compression dependencies
+flate2 = { version = "1.0", optional = true }
+brotli = { version = "6.0", optional = true }
+
+# JS event loop yield (wasm-bindgen backend)
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["Window", "DedicatedWorkerGlobalScope", "console"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # SSL/TLS backends — not available on wasm32 (require C compilation or OS APIs)

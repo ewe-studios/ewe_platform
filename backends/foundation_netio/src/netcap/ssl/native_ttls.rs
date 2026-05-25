@@ -2,7 +2,7 @@
 
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::io::ioutils::{PeekError, PeekableReadStream};
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream};
 use crate::netcap::connection::Connection;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,

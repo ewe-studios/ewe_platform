@@ -349,7 +349,7 @@ use crate::providers::neon::clients::UpdateProjectEndpointArgs;
 use crate::providers::neon::clients::UpdateSnapshotArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
+use foundation_netio::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -372,7 +372,7 @@ use std::sync::Arc;
 pub struct NeonProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
 {
     client: ProviderClient<S, R>,
     http_client: Arc<SimpleHttpClient<R>>,
@@ -381,7 +381,7 @@ where
 impl<S, R> NeonProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new NeonProvider.
     pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {

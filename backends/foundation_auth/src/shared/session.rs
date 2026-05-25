@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
-use foundation_core::wire::simple_http::client::shared::{Cookie, SameSite};
+use foundation_netio::simple_http::client::shared::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};

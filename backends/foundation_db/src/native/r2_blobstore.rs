@@ -9,8 +9,8 @@
 //! a configurable prefix + key pattern for namespacing.
 
 use foundation_core::valtron::{collect_one, Stream};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{AsyncBlobStore, BlobStore, StorageItemStream};

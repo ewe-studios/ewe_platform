@@ -7,7 +7,7 @@
 //! HOW: Implements `Deployable` trait with `ProviderClient` for state and HTTP access.
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{DnsResolver, SystemDnsResolver};
+use foundation_netio::simple_http::client::{DnsResolver, SystemDnsResolver};
 use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::providers::gcp::run::run::{

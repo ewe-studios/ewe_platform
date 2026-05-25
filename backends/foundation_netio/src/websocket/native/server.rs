@@ -7,17 +7,17 @@
 //! HOW: Checks Upgrade/Connection headers, validates Sec-WebSocket-Key, computes accept key,
 //! builds 101 response. Server connection does NOT mask outgoing frames (per RFC 6455).
 
-use crate::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::wire::simple_http::{
+use crate::simple_http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
-use crate::wire::websocket::shared::batch_writer::BatchFrameWriter;
-use crate::wire::websocket::shared::error::WebSocketError;
-use crate::wire::websocket::shared::frame::{Opcode, WebSocketFrame};
-use crate::wire::websocket::shared::handshake::compute_accept_key;
-use crate::wire::websocket::shared::message::WebSocketMessage;
+use crate::websocket::shared::batch_writer::BatchFrameWriter;
+use crate::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::websocket::shared::handshake::compute_accept_key;
+use crate::websocket::shared::message::WebSocketMessage;
 
 /// WHY: Servers need to detect incoming WebSocket upgrade requests.
 ///
@@ -396,7 +396,7 @@ impl WebSocketServerConnection {
 
     /// Get writer statistics (if batch writing is enabled).
     #[must_use]
-    pub fn writer_stats(&self) -> crate::wire::websocket::BatchWriterStats {
+    pub fn writer_stats(&self) -> crate::websocket::BatchWriterStats {
         self.writer.stats()
     }
 

@@ -8,7 +8,7 @@
 #![cfg(feature = "supabase_apply_authorize_autoscale_463")]
 
 use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
 
@@ -767,7 +767,7 @@ pub struct V1GetProjectUsageApiCountArgs {
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_update_network_restrictions_builder<R>(client: &SimpleHttpClient<R>, args: &V1UpdateNetworkRestrictionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/network-restrictions/apply",
@@ -798,7 +798,7 @@ pub fn v1_update_network_restrictions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: NetworkRestrictionsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -840,7 +840,7 @@ pub fn v1_update_network_restrictions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_authorize_user_builder<R>(client: &SimpleHttpClient<R>, args: &V1AuthorizeUserArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/oauth/authorize",
@@ -909,7 +909,7 @@ pub fn v1_authorize_user(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_project_disk_autoscale_config_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetProjectDiskAutoscaleConfigArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/config/disk/autoscale",
@@ -939,7 +939,7 @@ pub fn v1_get_project_disk_autoscale_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: DiskAutoscaleConfig = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -981,7 +981,7 @@ pub fn v1_get_project_disk_autoscale_config(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_available_regions_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetAvailableRegionsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/available-regions",
@@ -1010,7 +1010,7 @@ pub fn v1_get_available_regions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: RegionsInfo = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1052,7 +1052,7 @@ pub fn v1_get_available_regions(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_all_backups_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListAllBackupsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/backups",
@@ -1082,7 +1082,7 @@ pub fn v1_list_all_backups_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1BackupsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1124,7 +1124,7 @@ pub fn v1_list_all_backups(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_a_function_body_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetAFunctionBodyArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/functions/{function_slug}/body",
@@ -1155,7 +1155,7 @@ pub fn v1_get_a_function_body_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: StreamableFile = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1197,7 +1197,7 @@ pub fn v1_get_a_function_body(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_all_buckets_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListAllBucketsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/storage/buckets",
@@ -1227,7 +1227,7 @@ pub fn v1_list_all_buckets_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1269,7 +1269,7 @@ pub fn v1_list_all_buckets(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_cancel_a_project_restoration_builder<R>(client: &SimpleHttpClient<R>, args: &V1CancelAProjectRestorationArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/restore/cancel",
@@ -1339,7 +1339,7 @@ pub fn v1_cancel_a_project_restoration(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_check_vanity_subdomain_availability_builder<R>(client: &SimpleHttpClient<R>, args: &V1CheckVanitySubdomainAvailabilityArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/vanity-subdomain/check-availability",
@@ -1370,7 +1370,7 @@ pub fn v1_check_vanity_subdomain_availability_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: SubdomainAvailabilityResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1412,7 +1412,7 @@ pub fn v1_check_vanity_subdomain_availability(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_database_metadata_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetDatabaseMetadataArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/context",
@@ -1442,7 +1442,7 @@ pub fn v1_get_database_metadata_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: GetProjectDbMetadataResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1484,7 +1484,7 @@ pub fn v1_get_database_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_deploy_a_function_builder<R>(client: &SimpleHttpClient<R>, args: &V1DeployAFunctionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/functions/deploy",
@@ -1514,7 +1514,7 @@ pub fn v1_deploy_a_function_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: DeployFunctionResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1556,7 +1556,7 @@ pub fn v1_deploy_a_function(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_diff_a_branch_builder<R>(client: &SimpleHttpClient<R>, args: &V1DiffABranchArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{branch_id_or_ref}/diff",
@@ -1626,7 +1626,7 @@ pub fn v1_diff_a_branch(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_postgres_upgrade_eligibility_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetPostgresUpgradeEligibilityArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/upgrade/eligibility",
@@ -1656,7 +1656,7 @@ pub fn v1_get_postgres_upgrade_eligibility_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ProjectUpgradeEligibilityResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1698,7 +1698,7 @@ pub fn v1_get_postgres_upgrade_eligibility(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_enable_database_webhook_builder<R>(client: &SimpleHttpClient<R>, args: &V1EnableDatabaseWebhookArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/webhooks/enable",
@@ -1768,7 +1768,7 @@ pub fn v1_enable_database_webhook(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_all_network_bans_enriched_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListAllNetworkBansEnrichedArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/network-bans/retrieve/enriched",
@@ -1798,7 +1798,7 @@ pub fn v1_list_all_network_bans_enriched_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: NetworkBanResponseEnriched = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1840,7 +1840,7 @@ pub fn v1_list_all_network_bans_enriched(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_organization_entitlements_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetOrganizationEntitlementsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{slug}/entitlements",
@@ -1870,7 +1870,7 @@ pub fn v1_get_organization_entitlements_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1ListEntitlementsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1912,7 +1912,7 @@ pub fn v1_get_organization_entitlements(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_project_function_combined_stats_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetProjectFunctionCombinedStatsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/analytics/endpoints/functions.combined-stats",
@@ -1942,7 +1942,7 @@ pub fn v1_get_project_function_combined_stats_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: AnalyticsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1984,7 +1984,7 @@ pub fn v1_get_project_function_combined_stats(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_services_health_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetServicesHealthArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/health",
@@ -2014,7 +2014,7 @@ pub fn v1_get_services_health_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2056,7 +2056,7 @@ pub fn v1_get_services_health(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_update_hostname_config_builder<R>(client: &SimpleHttpClient<R>, args: &V1UpdateHostnameConfigArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/custom-hostname/initialize",
@@ -2087,7 +2087,7 @@ pub fn v1_update_hostname_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: UpdateCustomHostnameResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2129,7 +2129,7 @@ pub fn v1_update_hostname_config(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_jit_access_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListJitAccessArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/jit/list",
@@ -2159,7 +2159,7 @@ pub fn v1_list_jit_access_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: JitListAccessResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2201,7 +2201,7 @@ pub fn v1_list_jit_access(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_action_run_logs_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetActionRunLogsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/actions/{run_id}/logs",
@@ -2272,7 +2272,7 @@ pub fn v1_get_action_run_logs(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_project_logs_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetProjectLogsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/analytics/endpoints/logs.all",
@@ -2302,7 +2302,7 @@ pub fn v1_get_project_logs_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: AnalyticsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2344,7 +2344,7 @@ pub fn v1_get_project_logs(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_organization_members_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListOrganizationMembersArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{slug}/members",
@@ -2374,7 +2374,7 @@ pub fn v1_list_organization_members_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2416,7 +2416,7 @@ pub fn v1_list_organization_members(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_merge_a_branch_builder<R>(client: &SimpleHttpClient<R>, args: &V1MergeABranchArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{branch_id_or_ref}/merge",
@@ -2447,7 +2447,7 @@ pub fn v1_merge_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: BranchUpdateResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2489,7 +2489,7 @@ pub fn v1_merge_a_branch(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_delete_network_bans_builder<R>(client: &SimpleHttpClient<R>, args: &V1DeleteNetworkBansArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/network-bans",
@@ -2560,7 +2560,7 @@ pub fn v1_delete_network_bans(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_database_openapi_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetDatabaseOpenapiArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/openapi",
@@ -2590,7 +2590,7 @@ pub fn v1_get_database_openapi_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2632,7 +2632,7 @@ pub fn v1_get_database_openapi(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_update_database_password_builder<R>(client: &SimpleHttpClient<R>, args: &V1UpdateDatabasePasswordArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/password",
@@ -2663,7 +2663,7 @@ pub fn v1_update_database_password_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1UpdatePasswordResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2705,7 +2705,7 @@ pub fn v1_update_database_password(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_pause_a_project_builder<R>(client: &SimpleHttpClient<R>, args: &V1PauseAProjectArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/pause",
@@ -2775,7 +2775,7 @@ pub fn v1_pause_a_project(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_performance_advisors_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetPerformanceAdvisorsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/advisors/performance",
@@ -2805,7 +2805,7 @@ pub fn v1_get_performance_advisors_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1ProjectAdvisorsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2847,7 +2847,7 @@ pub fn v1_get_performance_advisors(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_project_pgbouncer_config_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetProjectPgbouncerConfigArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/config/database/pgbouncer",
@@ -2877,7 +2877,7 @@ pub fn v1_get_project_pgbouncer_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1PgbouncerConfigResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2919,7 +2919,7 @@ pub fn v1_get_project_pgbouncer_config(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_profile_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/profile",
@@ -2948,7 +2948,7 @@ pub fn v1_get_profile_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1ProfileResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2978,7 +2978,7 @@ pub fn v1_get_profile_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_push_a_branch_builder<R>(client: &SimpleHttpClient<R>, args: &V1PushABranchArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{branch_id_or_ref}/push",
@@ -3009,7 +3009,7 @@ pub fn v1_push_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: BranchUpdateResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3051,7 +3051,7 @@ pub fn v1_push_a_branch(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_run_a_query_builder<R>(client: &SimpleHttpClient<R>, args: &V1RunAQueryArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/query",
@@ -3122,7 +3122,7 @@ pub fn v1_run_a_query(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_read_only_query_builder<R>(client: &SimpleHttpClient<R>, args: &V1ReadOnlyQueryArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/query/read-only",
@@ -3193,7 +3193,7 @@ pub fn v1_read_only_query(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_readonly_mode_status_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetReadonlyModeStatusArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/readonly",
@@ -3223,7 +3223,7 @@ pub fn v1_get_readonly_mode_status_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ReadOnlyStatusResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3265,7 +3265,7 @@ pub fn v1_get_readonly_mode_status(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_remove_a_read_replica_builder<R>(client: &SimpleHttpClient<R>, args: &V1RemoveAReadReplicaArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/read-replicas/remove",
@@ -3336,7 +3336,7 @@ pub fn v1_remove_a_read_replica(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_reset_a_branch_builder<R>(client: &SimpleHttpClient<R>, args: &V1ResetABranchArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{branch_id_or_ref}/reset",
@@ -3367,7 +3367,7 @@ pub fn v1_reset_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: BranchUpdateResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3409,7 +3409,7 @@ pub fn v1_reset_a_branch(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_restore_pitr_backup_builder<R>(client: &SimpleHttpClient<R>, args: &V1RestorePitrBackupArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/backups/restore-pitr",
@@ -3480,7 +3480,7 @@ pub fn v1_restore_pitr_backup(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_list_all_network_bans_builder<R>(client: &SimpleHttpClient<R>, args: &V1ListAllNetworkBansArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/network-bans/retrieve",
@@ -3510,7 +3510,7 @@ pub fn v1_list_all_network_bans_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: NetworkBanResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3552,7 +3552,7 @@ pub fn v1_list_all_network_bans(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_verify_dns_config_builder<R>(client: &SimpleHttpClient<R>, args: &V1VerifyDnsConfigArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/custom-hostname/reverify",
@@ -3582,7 +3582,7 @@ pub fn v1_verify_dns_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: UpdateCustomHostnameResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3624,7 +3624,7 @@ pub fn v1_verify_dns_config(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_revoke_token_builder<R>(client: &SimpleHttpClient<R>, args: &V1RevokeTokenArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/oauth/revoke",
@@ -3694,7 +3694,7 @@ pub fn v1_revoke_token(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_security_advisors_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetSecurityAdvisorsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/advisors/security",
@@ -3724,7 +3724,7 @@ pub fn v1_get_security_advisors_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1ProjectAdvisorsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3766,7 +3766,7 @@ pub fn v1_get_security_advisors(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_setup_a_read_replica_builder<R>(client: &SimpleHttpClient<R>, args: &V1SetupAReadReplicaArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/read-replicas/setup",
@@ -3837,7 +3837,7 @@ pub fn v1_setup_a_read_replica(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_shutdown_realtime_builder<R>(client: &SimpleHttpClient<R>, args: &V1ShutdownRealtimeArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/config/realtime/shutdown",
@@ -3907,7 +3907,7 @@ pub fn v1_shutdown_realtime(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_disable_readonly_mode_temporarily_builder<R>(client: &SimpleHttpClient<R>, args: &V1DisableReadonlyModeTemporarilyArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/readonly/temporary-disable",
@@ -3977,7 +3977,7 @@ pub fn v1_disable_readonly_mode_temporarily(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_exchange_oauth_token_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/oauth/token",
@@ -4006,7 +4006,7 @@ pub fn v1_exchange_oauth_token_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: OAuthTokenResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4036,7 +4036,7 @@ pub fn v1_exchange_oauth_token_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_generate_typescript_types_builder<R>(client: &SimpleHttpClient<R>, args: &V1GenerateTypescriptTypesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/types/typescript",
@@ -4066,7 +4066,7 @@ pub fn v1_generate_typescript_types_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: TypescriptResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4108,7 +4108,7 @@ pub fn v1_generate_typescript_types(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_undo_builder<R>(client: &SimpleHttpClient<R>, args: &V1UndoArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/database/backups/undo",
@@ -4179,7 +4179,7 @@ pub fn v1_undo(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_upgrade_postgres_version_builder<R>(client: &SimpleHttpClient<R>, args: &V1UpgradePostgresVersionArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/upgrade",
@@ -4210,7 +4210,7 @@ pub fn v1_upgrade_postgres_version_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: ProjectUpgradeInitiateResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4252,7 +4252,7 @@ pub fn v1_upgrade_postgres_version(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn v1_get_project_usage_api_count_builder<R>(client: &SimpleHttpClient<R>, args: &V1GetProjectUsageApiCountArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{ref}/analytics/endpoints/usage.api-counts",
@@ -4282,7 +4282,7 @@ pub fn v1_get_project_usage_api_count_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
                     let parsed: V1GetUsageApiCountResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -4326,7 +4326,7 @@ pub fn v1_get_project_usage_api_count(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// POST /v1/projects/{ref}/network-restrictions/apply.
     ///

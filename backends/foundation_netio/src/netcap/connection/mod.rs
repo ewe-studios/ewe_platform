@@ -1,8 +1,8 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
-use crate::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
-use crate::url::{InvalidUri, Uri};
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
+use foundation_core::url::{InvalidUri, Uri};
 #[cfg(unix)]
 use std::os::unix::net as unix_net;
 use std::{
