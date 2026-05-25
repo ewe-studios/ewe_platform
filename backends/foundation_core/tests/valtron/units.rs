@@ -10,7 +10,12 @@
 //! - `execute_map_all`: executes multiple `TaskIterators`, applies mapper when all complete
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
-use foundation_core::valtron::{CollectAll, MapAllDone, MapAllPendingAndDone, Stream, TaskStatus};
+use foundation_core::valtron::{
+    execute_map_all_pending_and_done, initialize_pool, CollectAll, MapAllDone,
+    MapAllPendingAndDone, Stream, TaskStatus, DEFAULT_WAIT_CYCLE,
+};
+
+use std::cmp::Ordering;
 use tracing_test::traced_test;
 
 // Simple test stream iterator
@@ -211,7 +216,6 @@ fn test_map_all_pending_and_done_receives_states() {
 
 /// Simple test task that produces a single Ready value after Pending states
 struct CounterTask {
-    pending_count: u32,
     current: u32,
     ready_value: u32,
 }
@@ -219,8 +223,7 @@ struct CounterTask {
 impl CounterTask {
     fn new(pending_count: u32, ready_value: u32) -> Self {
         Self {
-            pending_count,
-            current: 0,
+            current: pending_count,
             ready_value,
         }
     }
@@ -230,18 +233,17 @@ impl Iterator for CounterTask {
     type Item = TaskStatus<u32, u32, foundation_core::valtron::NoAction>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use std::cmp::Ordering;
-        match self.current.cmp(&self.pending_count) {
-            Ordering::Less => {
-                self.current += 1;
-                Some(TaskStatus::Pending(self.current))
-            }
-            Ordering::Equal => {
-                self.current += 1;
-                Some(TaskStatus::Ready(self.ready_value))
-            }
-            Ordering::Greater => None,
+        println!("Count: {} {}", &self.current, self.ready_value);
+        if self.current < self.ready_value {
+            self.current += 1;
+            return Some(TaskStatus::Pending(self.current));
         }
+        if self.current == self.ready_value {
+            self.current += 1;
+            return Some(TaskStatus::Ready(self.current));
+        }
+
+        None
     }
 }
 
@@ -324,36 +326,27 @@ fn test_execute_map_all_applies_mapper() {
 /// Test 3: `execute_map_all_pending_and_done` receives state info
 #[test]
 fn test_execute_map_all_pending_and_done() {
-    use foundation_core::valtron::{
-        execute_map_all_pending_and_done, initialize_pool, DEFAULT_WAIT_CYCLE,
-    };
-
     // Initialize the valtron pool for this test
     let _guard = initialize_pool(42, None);
 
     // Create two tasks that each go through 1 pending state before ready
-    let tasks = vec![CounterTask::new(1, 42), CounterTask::new(1, 99)];
+    let tasks = vec![CounterTask::new(1, 3), CounterTask::new(2, 4)];
 
     let mapper = |states: Vec<Stream<u32, u32>>| states.len();
 
-    let result = execute_map_all_pending_and_done(tasks, mapper, Some(DEFAULT_WAIT_CYCLE));
+    let mut result = execute_map_all_pending_and_done(tasks, mapper, Some(DEFAULT_WAIT_CYCLE))
+        .expect("get the result");
 
-    match result {
-        Ok(mut progress) => {
-            // Iterate through the progress stream
-            let mut got_result = false;
-            for item in &mut progress {
-                if let Stream::Next(count) = item {
-                    assert_eq!(count, 2, "Should receive 2 states when all complete");
-                    got_result = true;
-                }
-            }
-            assert!(got_result, "Should produce result");
-        }
-        Err(e) => {
-            panic!("execute_map_all_pending_and_done failed: {e:?}");
+    // Iterate through the progress stream
+    let mut got_result = false;
+    for item in &mut result {
+        println!("Item: {:?}", &item);
+        if let Stream::Next(count) = item {
+            assert_eq!(count, 2, "Should receive 2 states when all complete");
+            got_result = true;
         }
     }
+    assert!(got_result, "Should produce result");
 }
 
 /// Test 2: Edge case - empty streams produce no output

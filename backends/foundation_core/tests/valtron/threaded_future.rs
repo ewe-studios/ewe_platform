@@ -42,6 +42,8 @@ fn test_threaded_future_future_error() {
             ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
         })
         .collect();
+
+    dbg!(&results);
 }
 
 #[test]
