@@ -1026,7 +1026,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    mapper: Box<dyn Fn(I::D) -> R + Send>,
+    mapper: Box<dyn Fn(I::D) -> R>,
     _phantom: std::marker::PhantomData<(I::P, R)>,
 }
 
@@ -1064,7 +1064,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    mapper: Box<dyn Fn(I::P) -> R + Send>,
+    mapper: Box<dyn Fn(I::P) -> R>,
     _phantom: std::marker::PhantomData<(I::D, R)>,
 }
 
@@ -1102,7 +1102,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    mapper: Box<dyn Fn(Stream<I::D, I::P>) -> R + Send>,
+    mapper: Box<dyn Fn(Stream<I::D, I::P>) -> R>,
 }
 
 impl<I, R> Iterator for MapPendingAndDone<I, R>
@@ -1140,7 +1140,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    predicate: Box<dyn Fn(&I::D) -> bool + Send>,
+    predicate: Box<dyn Fn(&I::D) -> bool>,
     _phantom: std::marker::PhantomData<I::P>,
 }
 
@@ -1179,7 +1179,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    mapper: Box<dyn Fn(std::time::Duration) -> std::time::Duration + Send>,
+    mapper: Box<dyn Fn(std::time::Duration) -> std::time::Duration>,
     _phantom: std::marker::PhantomData<(I::D, I::P)>,
 }
 
@@ -1262,7 +1262,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    circuit: Box<dyn Fn(Stream<I::D, I::P>) -> ShortCircuit<I::D, I::P> + Send>,
+    circuit: Box<dyn Fn(Stream<I::D, I::P>) -> ShortCircuit<I::D, I::P>>,
     stopped: bool,
     _phantom: std::marker::PhantomData<I::P>,
 }
@@ -1355,7 +1355,7 @@ where
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine which items to copy
-    predicate: Box<dyn Fn(&Stream<D, P>) -> bool + Send>,
+    predicate: Box<dyn Fn(&Stream<D, P>) -> bool>,
 }
 
 impl<I, D, P> Iterator for SSplitCollectorContinuation<I, D, P>
@@ -1447,7 +1447,7 @@ pub struct SSplitUntilContinuation<I: StreamIterator<D = D, P = P>, D, P> {
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine when to close observer
-    predicate: Box<dyn Fn(&Stream<D, P>) -> CollectionState + Send>,
+    predicate: Box<dyn Fn(&Stream<D, P>) -> CollectionState>,
 }
 
 impl<I, D, P> Iterator for SSplitUntilContinuation<I, D, P>
@@ -1557,7 +1557,7 @@ pub struct SSplitCollectorMapContinuation<I: StreamIterator<D = D, P = P>, D, P,
     /// Queue to send transformed items to observer
     queue: Arc<ConcurrentQueue<Stream<DM, PM>>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send>,
+    transform: Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>)>,
 }
 
 impl<I, D, P, DM, PM> Iterator for SSplitCollectorMapContinuation<I, D, P, DM, PM>

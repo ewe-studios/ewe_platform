@@ -1,5 +1,3 @@
-use crate::valtron::executors::DEFAULT_WAIT_CYCLE;
-
 /// Configuration for stream execution with fine-grained control over iterator behavior.
 ///
 /// # Fields

@@ -15,7 +15,7 @@ use crate::valtron::{
     collect_one, collect_result, ExecutionAction, NotificationItem, NotifyQueueStreamIterator,
     NotifyRecvIterator, ProgressIndicator, State, Stream, StreamTask, TaskIterator, TaskStatus,
 };
-use crate::valtron::{ExecutionIterator, GenericResult, StreamIterator};
+use crate::valtron::{GenericResult, StreamIterator};
 use core::future::Future;
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
@@ -51,7 +51,7 @@ pub fn initialize_pool(
 ///
 /// Returns an error if the job cannot be submitted (pool not initialized or shut down),
 /// or if the closure panics in single-threaded mode.
-pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
+pub fn run_background_job(job: impl FnOnce() + 'static) -> GenericResult<()> {
     super::single::run_background_job(job)
 }
 
@@ -287,10 +287,10 @@ where
 /// WHAT: Auto-selects executor based on compile-time configuration
 pub fn send<T>(task: T) -> GenericResult<()>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     use super::single;
 
@@ -412,10 +412,10 @@ where
 ///
 /// The required trait bounds ensure the task and produced values are safe to
 /// send between threads when the multi-threaded executor is selected:
-/// - `T: TaskIterator + Send + 'static`
-/// - `T::Ready: Send + 'static`
-/// - `T::Pending: Send + 'static`
-/// - `T::Spawner: ExecutionAction + Send + 'static`
+/// - `T: TaskIterator  + 'static`
+/// - `T::Ready:'static`
+/// - `T::Pending:'static`
+/// - `T::Spawner: ExecutionAction  + 'static`
 ///
 /// WHY: Provides single API that works across all platforms/configurations.
 /// WHAT: Auto-selects executor based on compile-time configuration and returns a
@@ -628,10 +628,10 @@ where
 /// ```
 pub fn sync_all<T>(tasks: Vec<T>) -> GenericResult<Vec<T::Ready>>
 where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     if tasks.is_empty() {
         return Err("empty tasks not allowed".into());
@@ -803,10 +803,10 @@ pub fn run_until_receiver_has_value<T, S>(
 ) -> NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
 where
     S: Fn(ProgressIndicator) -> bool,
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     while stream.is_empty() {
         single::run_until(&checker);
@@ -827,10 +827,10 @@ pub fn run_until_stream_has_value<T, S>(
 ) -> NotifyQueueStreamIterator<T::Ready, T::Pending>
 where
     S: Fn(ProgressIndicator) -> bool,
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
 {
     while stream.is_empty() && !stream.is_closed() {
         single::run_until(&checker);

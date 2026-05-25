@@ -340,7 +340,6 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
-            + Send
             + 'static;
 
     /// Returns the first `Ready` value from the iterator, short-circuiting after finding it.
@@ -478,7 +477,6 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> TaskStatus<Self::Ready, Self::Pending, Self::Spawner>
-            + Send
             + 'static;
 
     /// Side-effect on any `TaskStatus`.
@@ -503,7 +501,6 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
-            + Send
             + 'static;
 
     /// Skip items while state predicate returns true.
@@ -874,7 +871,6 @@ where
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
-            + Send
             + 'static,
     {
         TMapCircuit {
@@ -976,7 +972,6 @@ where
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> TaskStatus<Self::Ready, Self::Pending, Self::Spawner>
-            + Send
             + 'static,
     {
         TMapState {
@@ -1021,7 +1016,6 @@ where
         F: Fn(
                 TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
             ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
-            + Send
             + 'static,
     {
         TTransformUntil {
@@ -1145,7 +1139,7 @@ where
 /// Wrapper type that transforms Ready values.
 pub struct TMapReady<I: TaskIterator, R> {
     inner: I,
-    mapper: Box<dyn Fn(I::Ready) -> R + Send>,
+    mapper: Box<dyn Fn(I::Ready) -> R>,
 }
 
 impl<I, R> Iterator for TMapReady<I, R>
@@ -1171,7 +1165,7 @@ where
 /// Wrapper type that transforms Pending values.
 pub struct TMapPending<I: TaskIterator, R> {
     inner: I,
-    mapper: Box<dyn Fn(I::Pending) -> R + Send>,
+    mapper: Box<dyn Fn(I::Pending) -> R>,
 }
 
 impl<I, R> Iterator for TMapPending<I, R>
@@ -1199,7 +1193,7 @@ where
 /// Filtered-out Ready values are returned as `TaskStatus::Ignore` to avoid blocking.
 pub struct TFilterReady<I: TaskIterator> {
     inner: I,
-    predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
+    predicate: Box<dyn Fn(&I::Ready) -> bool>,
 }
 
 impl<I> Iterator for TFilterReady<I>
@@ -1636,7 +1630,7 @@ pub struct SplitCollectorContinuation<I: TaskIterator> {
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine which items to copy
-    predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
+    predicate: Box<dyn Fn(&I::Ready) -> bool>,
 }
 
 impl<I> Iterator for SplitCollectorContinuation<I>
@@ -1739,7 +1733,7 @@ pub struct SplitUntilContinuation<I: TaskIterator> {
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine when to close observer
-    predicate: Box<dyn Fn(&I::Ready) -> CollectionState + Send>,
+    predicate: Box<dyn Fn(&I::Ready) -> CollectionState>,
 }
 
 impl<I> Iterator for SplitUntilContinuation<I>
@@ -1869,7 +1863,7 @@ pub struct SplitUntilContinuationMap<I: TaskIterator, D> {
     /// Queue to send transformed copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, I::Pending>>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>) + Send>,
+    transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>)>,
 }
 
 impl<I, D> Iterator for SplitUntilContinuationMap<I, D>
@@ -2003,7 +1997,7 @@ pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
     /// Queue to send transformed items to observer
     queue: Arc<ConcurrentQueue<Stream<M, I::Pending>>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>) + Send>,
+    transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>)>,
 }
 
 impl<I, M> Iterator for SplitCollectorMapContinuation<I, M>
@@ -2071,7 +2065,6 @@ where
     F: Fn(
             TaskStatus<I::Ready, I::Pending, I::Spawner>,
         ) -> TaskStatus<I::Ready, I::Pending, I::Spawner>
-        + Send
         + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
@@ -2140,7 +2133,6 @@ where
     F: Fn(
             TaskStatus<I::Ready, I::Pending, I::Spawner>,
         ) -> Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>
-        + Send
         + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
@@ -2599,9 +2591,8 @@ pub struct TMapCircuit<I: TaskIterator> {
     inner: I,
     circuit: Box<
         dyn Fn(
-                TaskStatus<I::Ready, I::Pending, I::Spawner>,
-            ) -> TaskShortCircuit<I::Ready, I::Pending, I::Spawner>
-            + Send,
+            TaskStatus<I::Ready, I::Pending, I::Spawner>,
+        ) -> TaskShortCircuit<I::Ready, I::Pending, I::Spawner>,
     >,
     stopped: bool,
     _phantom: std::marker::PhantomData<I>,
