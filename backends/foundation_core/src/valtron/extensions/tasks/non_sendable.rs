@@ -12,7 +12,7 @@ use crate::valtron::{ExecutionAction, Stream, TaskIterator, TaskShortCircuit, Ta
 /// This trait is automatically implemented for any type that implements `TaskIterator`
 /// with the appropriate bounds. This includes:
 /// - Raw task iterators implementing `TaskIterator`
-/// - Driven iterators like `DrivenRecvIterator` and `DrivenSendTaskIterator`
+/// - Driven iterators like `DrivenRecvIterator` and `DrivenTaskIterator`
 ///
 /// ## Combinators
 ///
