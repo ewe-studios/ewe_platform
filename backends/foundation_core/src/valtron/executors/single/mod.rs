@@ -87,8 +87,7 @@ thread_local! {
 pub fn initialize_pool(seed_for_rng: u64) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
-            let tasks: SharedTaskQueue =
-                Arc::new(ConcurrentQueue::unbounded());
+            let tasks: SharedTaskQueue = Arc::new(ConcurrentQueue::unbounded());
             LocalThreadExecutor::from_seed(
                 seed_for_rng,
                 "single-thread-pool".to_string(),
@@ -253,9 +252,7 @@ where
 /// # Errors
 ///
 /// Returns an error if the closure panics.
-pub fn run_background_job(
-    job: impl FnOnce() + Send + 'static,
-) -> crate::valtron::GenericResult<()> {
+pub fn run_background_job(job: impl FnOnce() + 'static) -> crate::valtron::GenericResult<()> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(job));
     match result {
         Ok(()) => Ok(()),
@@ -400,7 +397,9 @@ mod single_threaded_tests {
 
         let complete: Vec<usize> = iter
             .filter_map(|item| match item {
-                crate::valtron::executors::local::NotificationItem::Ready(TaskStatus::Ready(value)) => Some(value),
+                crate::valtron::executors::local::NotificationItem::Ready(TaskStatus::Ready(
+                    value,
+                )) => Some(value),
                 _ => None,
             })
             .collect();
