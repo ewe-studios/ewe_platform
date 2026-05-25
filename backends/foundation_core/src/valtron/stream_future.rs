@@ -43,22 +43,17 @@ where
         let this = self.get_mut();
         let iter = this.inner.as_mut().expect("polled after completion");
 
-        match iter.next() {
-            Some(Stream::Next(v)) => {
-                this.collected.push(v);
-                cx.waker().wake_by_ref();
-                return Poll::Pending;
-            }
-            Some(Stream::Ignore) => {
-                cx.waker().wake_by_ref();
-                return Poll::Pending;
-            }
-            Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
-                cx.waker().wake_by_ref();
-                return Poll::Pending;
-            }
-            None => {
-                return Poll::Ready(std::mem::take(&mut this.collected));
+        loop {
+            match iter.next() {
+                Some(Stream::Next(v)) => this.collected.push(v),
+                Some(Stream::Ignore) => {}
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
+                None => {
+                    return Poll::Ready(std::mem::take(&mut this.collected));
+                }
             }
         }
     }

@@ -1,3 +1,6 @@
+use foundation_core::valtron::{FutureTask, FuturePollState, TaskStatus, from_future};
+use foundation_core::valtron::TaskIterator;
+
 /// WHY: FutureTask must poll and complete a simple future
 /// WHAT: Future that returns Ready immediately should complete on first poll
 #[test]
@@ -70,23 +73,4 @@ fn test_from_future_convenience() {
         Some(TaskStatus::Ready("hello")) => {}
         other => panic!("Expected Ready(hello), got {:?}", other),
     }
-}
-
-/// WHY: No-op waker must be created successfully
-/// WHAT: create_noop_waker() returns a valid Waker
-#[test]
-fn test_noop_waker_creation() {
-    let waker = create_noop_waker();
-    // Waker should be usable without panicking
-    waker.wake_by_ref();
-    let waker2 = waker.clone();
-    waker2.wake();
-}
-
-/// WHY: get_noop_waker() must return a valid waker
-/// WHAT: Function compiles and returns waker
-#[test]
-fn test_get_noop_waker() {
-    let waker = get_noop_waker();
-    waker.wake_by_ref();
 }

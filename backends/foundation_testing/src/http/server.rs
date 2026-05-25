@@ -18,8 +18,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::client::body_reader::collect_bytes_from_send_safe;
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::client::shared::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::simple_http::shared::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeaders,
     SimpleMethod, SimpleUrl,
 };

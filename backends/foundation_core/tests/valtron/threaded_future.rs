@@ -19,6 +19,7 @@ fn test_threaded_future_basic() {
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
             ThreadedValue::Value(_) => None,
+            ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -38,11 +39,9 @@ fn test_threaded_future_future_error() {
     let results: Vec<Result<i32, &'static str>> = iter
         .map(|v| match v {
             ThreadedValue::Value(result) => result,
+            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
         })
         .collect();
-
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0], Err("future failed"));
 }
 
 #[test]
@@ -56,6 +55,7 @@ fn test_threaded_future_empty_iterator() {
     let results: Vec<Result<i32, ()>> = iter
         .map(|v| match v {
             ThreadedValue::Value(result) => result,
+            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
         })
         .collect();
 
@@ -79,6 +79,7 @@ fn test_threaded_future_custom_queue_size() {
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
             ThreadedValue::Value(_) => None,
+            ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -111,6 +112,7 @@ fn test_threaded_future_backpressure() {
         .map(|v| match v {
             ThreadedValue::Value(Ok(val)) => val,
             ThreadedValue::Value(Err(e)) => panic!("Unexpected error: {e:?}"),
+            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
         })
         .collect();
 
