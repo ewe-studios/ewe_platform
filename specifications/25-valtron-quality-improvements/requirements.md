@@ -95,8 +95,9 @@ The review identified issues across two categories:
 | 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | **completed** | Fix error swallowing, executor panics, Drain bounds | 5 | None |
 | 07 | [channel-backpressure](./features/07-channel-backpressure/) | MEDIUM | **completed** | Add bounded queue option and EntryList slot reuse safety | 4 | 04 |
 | 08 | [code-quality](./features/08-code-quality/) | LOW | **completed** | WASM variable fix, BranchPath naming, alias cleanup | 3 | None |
+| 09 | [spread-variant](./features/09-spread-variant/) | HIGH | pending | Add Spread variant to TaskStatus and Stream for multi-value emission | 10 | None |
 
-**Total Tasks:** 48 (39 completed, 9 rejected)
+**Total Tasks:** 58 (39 completed, 19 pending, 9 rejected)
 
 **Note:** Feature 00 was rejected after design review - workers own tasks to completion by design, and the Pending(None) behavior is intentional. See feature file for details.
 
@@ -164,8 +165,9 @@ The review identified issues across two categories:
 | 06 | [error-handling-api](./features/06-error-handling-api/) | MEDIUM | pending | Fix error swallowing, executor panics, Drain bounds | 5 | None |
 | 07 | [channel-backpressure](./features/07-channel-backpressure/) | MEDIUM | pending | Add bounded queue option and EntryList slot reuse safety | 4 | 04 |
 | 08 | [code-quality](./features/08-code-quality/) | LOW | pending | WASM variable fix, BranchPath naming, alias cleanup | 3 | None |
+| 09 | [spread-variant](./features/09-spread-variant/) | HIGH | pending | Add Spread variant to TaskStatus and Stream for multi-value emission | 10 | None |
 
-**Total Tasks:** 48 (0 completed, 39 remaining, 9 rejected)
+**Total Tasks:** 58 (0 completed, 39 remaining, 9 rejected)
 
 **Note:** Feature 00 was rejected after design review - workers own tasks to completion by design, and the Pending(None) behavior is intentional. See feature file for details.
 
