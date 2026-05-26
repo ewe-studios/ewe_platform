@@ -106,6 +106,7 @@ where
                 TaskStatus::Ready(_) => State::ReadyValue(entry),
                 TaskStatus::Ignore => State::Pending(None),
                 TaskStatus::Wait => State::Wait,
+                TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_) => State::Pending(None),
             },
             None => State::Done,
         })

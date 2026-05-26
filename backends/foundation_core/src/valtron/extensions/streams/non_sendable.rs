@@ -1038,14 +1038,18 @@ where
     type Item = Stream<R, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|stream| match stream {
-            Stream::Next(v) => Stream::Next((self.mapper)(v)),
-            Stream::Pending(v) => Stream::Pending(v),
-            Stream::Delayed(d) => Stream::Delayed(d),
-            Stream::Init => Stream::Init,
-            Stream::Ignore => Stream::Ignore,
-            Stream::Wait => Stream::Wait,
-        })
+        match self.inner.next()? {
+            Stream::Next(v) => Some(Stream::Next((self.mapper)(v))),
+            Stream::Pending(v) => Some(Stream::Pending(v)),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::SpreadDone(items) => {
+                Some(Stream::SpreadDone(items.into_iter().map(&self.mapper).collect()))
+            }
+            Stream::SpreadPending(items) => Some(Stream::SpreadPending(items)),
+        }
     }
 }
 
@@ -1076,14 +1080,18 @@ where
     type Item = Stream<I::D, R>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|stream| match stream {
-            Stream::Next(v) => Stream::Next(v),
-            Stream::Pending(v) => Stream::Pending((self.mapper)(v)),
-            Stream::Delayed(d) => Stream::Delayed(d),
-            Stream::Init => Stream::Init,
-            Stream::Ignore => Stream::Ignore,
-            Stream::Wait => Stream::Wait,
-        })
+        match self.inner.next()? {
+            Stream::Next(v) => Some(Stream::Next(v)),
+            Stream::Pending(v) => Some(Stream::Pending((self.mapper)(v))),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::SpreadDone(items) => Some(Stream::SpreadDone(items)),
+            Stream::SpreadPending(items) => {
+                Some(Stream::SpreadPending(items.into_iter().map(&self.mapper).collect()))
+            }
+        }
     }
 }
 
@@ -1113,13 +1121,20 @@ where
     type Item = Stream<R, R>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|stream| match &stream {
-            Stream::Next(_) | Stream::Pending(_) => Stream::Next((self.mapper)(stream)),
-            Stream::Delayed(d) => Stream::Delayed(*d),
-            Stream::Init => Stream::Init,
-            Stream::Ignore => Stream::Ignore,
-            Stream::Wait => Stream::Wait,
-        })
+        let stream = self.inner.next()?;
+        match stream {
+            Stream::Next(_) | Stream::Pending(_) => Some(Stream::Next((self.mapper)(stream))),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::SpreadDone(items) => {
+                Some(Stream::SpreadDone(items.into_iter().map(|item| (self.mapper)(Stream::Next(item))).collect()))
+            }
+            Stream::SpreadPending(items) => {
+                Some(Stream::SpreadPending(items.into_iter().map(|item| (self.mapper)(Stream::Pending(item))).collect()))
+            }
+        }
     }
 }
 
@@ -1197,6 +1212,8 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
+            Stream::SpreadDone(items) => Stream::SpreadDone(items),
+            Stream::SpreadPending(items) => Stream::SpreadPending(items),
         })
     }
 }
@@ -1244,6 +1261,11 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                self.collected.extend(items);
+                Some(Stream::Ignore)
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => {
                 // Inner iterator is done, yield the collected result
                 self.done = true;
@@ -1758,6 +1780,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
+                Some(Stream::SpreadDone(items)) => {
+                    self.collected.extend(items);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.collected.len()));
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.collected.len() + 1));
+                }
                 None => {
                     exhausted_indices.push(idx);
                     self.current_index = (self.current_index + 1) % self.sources.len();
@@ -1858,6 +1889,16 @@ where
                 }
                 Some(Stream::Wait) => {
                     all_done = false;
+                }
+                Some(Stream::SpreadDone(items)) => {
+                    // Use last value from spread as the source's value
+                    if let Some(last) = items.into_iter().last() {
+                        self.buffer[i] = Some(last);
+                    }
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    all_done = false;
+                    has_pending = true;
                 }
                 None => {
                     // Source exhausted without producing - treat as done
@@ -1997,6 +2038,14 @@ where
                 Stream::Init => Some(Stream::Init),
                 Stream::Ignore => Some(Stream::Ignore),
                 Stream::Wait => Some(Stream::Wait),
+                Stream::SpreadDone(items) => Some(Stream::SpreadDone(items)),
+                Stream::SpreadPending(items) => {
+                    // Map first item to inner iterator, rest lost (same as Pending behavior)
+                    if let Some(first) = items.into_iter().next() {
+                        self.current_inner = Some((self.mapper)(first));
+                    }
+                    Some(Stream::Ignore)
+                }
             },
             None => None,
         }
@@ -2049,6 +2098,14 @@ where
                 Stream::Init => Some(Stream::Init),
                 Stream::Ignore => Some(Stream::Ignore),
                 Stream::Wait => Some(Stream::Wait),
+                Stream::SpreadDone(items) => {
+                    // Map last item to inner iterator
+                    if let Some(last) = items.into_iter().last() {
+                        self.current_inner = Some((self.mapper)(last));
+                    }
+                    Some(Stream::Ignore)
+                }
+                Stream::SpreadPending(items) => Some(Stream::SpreadPending(items)),
             },
             None => None,
         }
@@ -2150,6 +2207,10 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                Some(Stream::SpreadDone(items.into_iter().flatten().collect()))
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => None,
         }
     }
@@ -2199,6 +2260,10 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => Some(Stream::SpreadDone(items)),
+            Some(Stream::SpreadPending(items)) => {
+                Some(Stream::SpreadPending(items.into_iter().flatten().collect()))
+            }
             None => None,
         }
     }
@@ -2252,6 +2317,10 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                Some(Stream::SpreadDone(items.into_iter().flat_map(&self.mapper).collect()))
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => None,
         }
     }
@@ -2305,6 +2374,10 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => Some(Stream::SpreadDone(items)),
+            Some(Stream::SpreadPending(items)) => {
+                Some(Stream::SpreadPending(items.into_iter().flat_map(&self.mapper).collect()))
+            }
             None => None,
         }
     }
@@ -2535,6 +2608,14 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
+            Stream::SpreadDone(items) => {
+                let items: Vec<_> = items
+                    .into_iter()
+                    .map(|d| (self.count, d))
+                    .collect();
+                Stream::SpreadDone(items)
+            }
+            Stream::SpreadPending(items) => Stream::SpreadPending(items),
         })
     }
 }
@@ -2572,6 +2653,16 @@ where
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
+            Stream::SpreadDone(items) => {
+                for d in items {
+                    if (self.predicate)(&d) {
+                        self.found = true;
+                        return Some(Stream::Next(Some(d)));
+                    }
+                }
+                Some(Stream::Ignore)
+            }
+            Stream::SpreadPending(items) => Some(Stream::SpreadPending(items)),
         }
     }
 }
@@ -2611,6 +2702,16 @@ where
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
+            Stream::SpreadDone(items) => {
+                for d in items {
+                    if let Some(r) = (self.mapper)(d) {
+                        self.found = true;
+                        return Some(Stream::Next(Some(r)));
+                    }
+                }
+                Some(Stream::Ignore)
+            }
+            Stream::SpreadPending(items) => Some(Stream::SpreadPending(items)),
         }
     }
 }
@@ -2655,6 +2756,13 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                if let Some(acc) = self.acc.take() {
+                    self.acc = Some(items.into_iter().fold(acc, &self.folder));
+                }
+                Some(Stream::Ignore)
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => {
                 // Inner exhausted, yield final accumulated value
                 self.done = true;
@@ -2709,6 +2817,17 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                for v in items {
+                    if !(self.predicate)(v) {
+                        self.all_true = false;
+                        self.done = true;
+                        return Some(Stream::Next(false));
+                    }
+                }
+                Some(Stream::Ignore)
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => {
                 self.done = true;
                 Some(Stream::Next(true))
@@ -2756,6 +2875,17 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                for v in items {
+                    if (self.predicate)(v) {
+                        self.any_true = true;
+                        self.done = true;
+                        return Some(Stream::Next(true));
+                    }
+                }
+                Some(Stream::Ignore)
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => {
                 self.done = true;
                 Some(Stream::Next(false))
@@ -2787,6 +2917,11 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
+            Stream::SpreadDone(items) => {
+                self.count += items.len();
+                Stream::Ignore
+            }
+            Stream::SpreadPending(items) => Stream::SpreadPending(items),
         })
     }
 }
@@ -2823,6 +2958,11 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
+            Some(Stream::SpreadDone(items)) => {
+                self.count += items.len();
+                Some(Stream::Ignore)
+            }
+            Some(Stream::SpreadPending(items)) => Some(Stream::SpreadPending(items)),
             None => {
                 // Inner exhausted, yield final count
                 self.done = true;
@@ -2908,6 +3048,17 @@ where
                 Some(Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
+                }
+                Some(Stream::SpreadDone(items)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Return first item, rest are lost (no buffer)
+                    if let Some(first) = items.into_iter().next() {
+                        return Some(Stream::Next(first));
+                    }
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
                 }
                 None => {
                     exhausted_indices.push(idx);

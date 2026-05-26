@@ -113,6 +113,14 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// No data available, queue still open.
     /// Propagates to executor as a yield signal.
     Wait,
+
+    /// Emit multiple ready values at once.
+    /// Each element is delivered individually as `TaskStatus::Ready(value)` at the delivery point.
+    SpreadDone(Vec<D>),
+
+    /// Emit multiple pending values at once.
+    /// Each element is delivered individually as `TaskStatus::Pending(value)` at the delivery point.
+    SpreadPending(Vec<P>),
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -125,6 +133,8 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
             TaskStatus::Pending(inner) => Stream::Pending(inner),
             TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
+            TaskStatus::SpreadDone(items) => Stream::SpreadDone(items),
+            TaskStatus::SpreadPending(items) => Stream::SpreadPending(items),
         }
     }
 }
@@ -141,6 +151,8 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
             | (TaskStatus::Init, TaskStatus::Init)
             | (TaskStatus::Ignore, TaskStatus::Ignore)
             | (TaskStatus::Wait, TaskStatus::Wait) => true,
+            (TaskStatus::SpreadDone(me), TaskStatus::SpreadDone(them)) => me == them,
+            (TaskStatus::SpreadPending(me), TaskStatus::SpreadPending(them)) => me == them,
             _ => false,
         }
     }
@@ -152,14 +164,16 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[allow(unused)]
         #[derive(Debug)]
-        enum TStatus<D, P> {
+        enum TStatus<'a, D, P> {
             Delayed(time::Duration),
-            Pending(P),
-            Ready(D),
+            Pending(&'a P),
+            Ready(&'a D),
             Init,
             Spawn,
             Ignore,
             Wait,
+            SpreadDone(&'a [D]),
+            SpreadPending(&'a [P]),
         }
 
         let debug_item = match self {
@@ -170,6 +184,8 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             TaskStatus::Init => TStatus::Init,
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
+            TaskStatus::SpreadDone(items) => TStatus::SpreadDone(items.as_slice()),
+            TaskStatus::SpreadPending(items) => TStatus::SpreadPending(items.as_slice()),
         };
 
         write!(f, "{debug_item:?}")
@@ -182,14 +198,16 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[allow(unused)]
         #[derive(Debug)]
-        enum TStatus<D, P> {
+        enum TStatus<'a, D, P> {
             Delayed(time::Duration),
-            Pending(P),
-            Ready(D),
+            Pending(&'a P),
+            Ready(&'a D),
             Init,
             Spawn,
             Ignore,
             Wait,
+            SpreadDone(&'a [D]),
+            SpreadPending(&'a [P]),
         }
 
         let debug_item = match self {
@@ -200,6 +218,8 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             TaskStatus::Init => TStatus::Init,
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
+            TaskStatus::SpreadDone(items) => TStatus::SpreadDone(items.as_slice()),
+            TaskStatus::SpreadPending(items) => TStatus::SpreadPending(items.as_slice()),
         };
 
         write!(f, "{debug_item:?}")
@@ -1190,6 +1210,8 @@ where
                     self.used = Some(());
                     None
                 }
+                TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
+                TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
             },
             None => None,
         }
@@ -1227,6 +1249,8 @@ where
                 TaskStatus::Ready(item) => Some(Stream::Next(item)),
                 TaskStatus::Ignore => Some(Stream::Ignore),
                 TaskStatus::Wait => Some(Stream::Wait),
+                TaskStatus::SpreadDone(items) => Some(Stream::SpreadDone(items)),
+                TaskStatus::SpreadPending(items) => Some(Stream::SpreadPending(items)),
             },
             None => None,
         }
@@ -1279,6 +1303,8 @@ where
                 | TaskStatus::Ignore
                 | TaskStatus::Wait => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
+                TaskStatus::SpreadDone(_) => Some(ReadyValue::Skip),
+                TaskStatus::SpreadPending(_) => Some(ReadyValue::Skip),
             },
             None => None,
         }
@@ -1345,6 +1371,8 @@ where
                     None
                 }
                 TaskStatus::Wait => Some(TaskStatus::Wait),
+                TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
+                TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
             },
             None => None,
         }
@@ -1399,6 +1427,8 @@ where
                 TaskStatus::Ready(item)
             }
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::SpreadDone(items) => TaskStatus::SpreadDone(items),
+            TaskStatus::SpreadPending(items) => TaskStatus::SpreadPending(items),
         })
     }
 }

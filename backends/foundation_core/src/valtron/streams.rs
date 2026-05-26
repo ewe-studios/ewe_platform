@@ -40,7 +40,7 @@ use crate::synca::mpp::RecvIterator;
 ///
 /// * `D` - The data type yielded by the stream when complete
 /// * `P` - The progress/context type yielded while pending
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum Stream<D, P> {
     /// Indicative the stream is instantiating.
     Init,
@@ -60,6 +60,44 @@ pub enum Stream<D, P> {
     /// No data available, queue still open.
     /// Propagates to executor as a yield signal — on JS, maps to a short setTimeout (~4ms).
     Wait,
+
+    /// Emit multiple next values at once.
+    /// Each element is delivered individually as `Stream::Next(value)` at the delivery point.
+    SpreadDone(Vec<D>),
+
+    /// Emit multiple pending values at once.
+    /// Each element is delivered individually as `Stream::Pending(value)` at the delivery point.
+    SpreadPending(Vec<P>),
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for Stream<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Stream::Init => write!(f, "Init"),
+            Stream::Ignore => write!(f, "Ignore"),
+            Stream::Delayed(d) => write!(f, "Delayed({d:?})"),
+            Stream::Pending(p) => write!(f, "Pending({p:?})"),
+            Stream::Next(d) => write!(f, "Next({d:?})"),
+            Stream::Wait => write!(f, "Wait"),
+            Stream::SpreadDone(items) => write!(f, "SpreadDone({items:?})"),
+            Stream::SpreadPending(items) => write!(f, "SpreadPending({items:?})"),
+        }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Debug for Stream<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Stream::Init => f.write_str("Init"),
+            Stream::Ignore => f.write_str("Ignore"),
+            Stream::Delayed(d) => f.debug_tuple("Delayed").field(d).finish(),
+            Stream::Pending(p) => f.debug_tuple("Pending").field(p).finish(),
+            Stream::Next(d) => f.debug_tuple("Next").field(d).finish(),
+            Stream::Wait => f.write_str("Wait"),
+            Stream::SpreadDone(items) => f.debug_tuple("SpreadDone").field(items).finish(),
+            Stream::SpreadPending(items) => f.debug_tuple("SpreadPending").field(items).finish(),
+        }
+    }
 }
 
 /// [`StreamIterator`] defines an iterator that yields [`Stream<D, P>`] items.

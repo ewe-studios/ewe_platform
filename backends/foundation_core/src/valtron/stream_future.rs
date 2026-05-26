@@ -51,6 +51,10 @@ where
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
+                Some(Stream::SpreadDone(_) | Stream::SpreadPending(_)) => {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
                 None => {
                     return Poll::Ready(std::mem::take(&mut this.collected));
                 }
@@ -91,9 +95,15 @@ where
                     return Poll::Ready(Some((v, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait | Stream::SpreadPending(_)) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
+                }
+                Some(Stream::SpreadDone(items)) => {
+                    if let Some(first) = items.into_iter().next() {
+                        let remaining = this.inner.take().expect("inner should exist");
+                        return Poll::Ready(Some((first, remaining)));
+                    }
                 }
                 None => return Poll::Ready(None),
             }
@@ -133,9 +143,15 @@ where
                     return Poll::Ready(Some((p, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
+                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait | Stream::SpreadDone(_)) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
+                }
+                Some(Stream::SpreadPending(items)) => {
+                    if let Some(first) = items.into_iter().next() {
+                        let remaining = this.inner.take().expect("inner should exist");
+                        return Poll::Ready(Some((first, remaining)));
+                    }
                 }
                 None => return Poll::Ready(None),
             }

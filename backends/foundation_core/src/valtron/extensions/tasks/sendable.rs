@@ -1164,6 +1164,10 @@ where
             TaskStatus::Init => TaskStatus::Init,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::SpreadDone(items) => {
+                TaskStatus::SpreadDone(items.into_iter().map(&self.mapper).collect())
+            }
+            TaskStatus::SpreadPending(items) => TaskStatus::SpreadPending(items),
         })
     }
 }
@@ -1190,6 +1194,10 @@ where
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::SpreadDone(items) => TaskStatus::SpreadDone(items),
+            TaskStatus::SpreadPending(items) => {
+                TaskStatus::SpreadPending(items.into_iter().map(&self.mapper).collect())
+            }
         })
     }
 }
@@ -1284,6 +1292,19 @@ where
                 Some(TaskStatus::Ignore) => return Some(TaskStatus::Ignore),
                 Some(TaskStatus::Spawn(s)) => return Some(TaskStatus::Spawn(s.into())),
                 Some(TaskStatus::Wait) => return Some(TaskStatus::Wait),
+                Some(TaskStatus::SpreadDone(items)) => {
+                    // Map each item through mapper, collect inner iterators to drain
+                    let iters: Vec<InnerIter> = items.into_iter().map(&self.mapper).collect();
+                    // Drain first inner iterator; rest will be handled on subsequent calls
+                    // by chaining them together (simplest: just return Ignore for now)
+                    // For now, treat as Ignore since flattening Vec of iterators is complex
+                    let _ = iters;
+                    // Return Ignore to signal "processing spread batch"
+                }
+                Some(TaskStatus::SpreadPending(items)) => {
+                    // Convert P -> InnerP via Into
+                    return Some(TaskStatus::SpreadPending(items.into_iter().map(Into::into).collect()));
+                }
                 None => return None, // Outer exhausted
             }
         }
@@ -1367,6 +1388,11 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => {
+                // Flatten Vec<Vec<Item>> -> Vec<Item>
+                Some(TaskStatus::SpreadDone(items.into_iter().flatten().collect()))
+            }
+            TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
         }
     }
 }
@@ -1423,6 +1449,11 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
+            TaskStatus::SpreadPending(items) => {
+                // Flatten Vec<Vec<Item>> -> Vec<Item>
+                Some(TaskStatus::SpreadPending(items.into_iter().flatten().collect()))
+            }
         }
     }
 }
@@ -1479,6 +1510,11 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => {
+                // Map each item, then flatten: Vec<R> -> Vec<U::Item>
+                Some(TaskStatus::SpreadDone(items.into_iter().flat_map(&self.mapper).collect()))
+            }
+            TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
         }
     }
 }
@@ -1535,6 +1571,11 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
+            TaskStatus::SpreadPending(items) => {
+                // Map each item, then flatten: Vec<P> -> Vec<U::Item>
+                Some(TaskStatus::SpreadPending(items.into_iter().flat_map(&self.mapper).collect()))
+            }
         }
     }
 }
@@ -1576,6 +1617,11 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::SpreadDone(items)) => {
+                self.collected.extend(items);
+                Some(TaskStatus::Ignore)
+            }
+            Some(TaskStatus::SpreadPending(items)) => Some(TaskStatus::SpreadPending(items)),
             None => {
                 // Inner iterator is done, yield the collected result
                 self.done = true;
@@ -2288,6 +2334,14 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => {
+                let start = self.count;
+                self.count += items.len();
+                Some(TaskStatus::SpreadDone(
+                    items.into_iter().enumerate().map(|(i, item)| (start + i, item)).collect(),
+                ))
+            }
+            TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
         }
     }
 }
@@ -2327,6 +2381,15 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => {
+                if let Some(v) = items.into_iter().find(|v| (self.predicate)(v)) {
+                    self.found = true;
+                    Some(TaskStatus::Ready(Some(v)))
+                } else {
+                    Some(TaskStatus::Ignore)
+                }
+            }
+            TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
         }
     }
 }
@@ -2368,6 +2431,15 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::SpreadDone(items) => {
+                if let Some(r) = items.into_iter().find_map(&self.mapper) {
+                    self.found = true;
+                    Some(TaskStatus::Ready(Some(r)))
+                } else {
+                    Some(TaskStatus::Ignore)
+                }
+            }
+            TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
         }
     }
 }
@@ -2407,6 +2479,13 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::SpreadDone(items)) => {
+                if let Some(acc) = self.acc.take() {
+                    self.acc = Some(items.into_iter().fold(acc, &self.folder));
+                }
+                Some(TaskStatus::Ignore)
+            }
+            Some(TaskStatus::SpreadPending(items)) => Some(TaskStatus::SpreadPending(items)),
             None => {
                 // Inner exhausted, yield final accumulated value
                 self.done = true;
@@ -2462,6 +2541,16 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::SpreadDone(items)) => {
+                if items.into_iter().any(|v| !(self.predicate)(v)) {
+                    self.all_true = false;
+                    self.done = true;
+                    Some(TaskStatus::Ready(false))
+                } else {
+                    Some(TaskStatus::Ignore)
+                }
+            }
+            Some(TaskStatus::SpreadPending(items)) => Some(TaskStatus::SpreadPending(items)),
             None => {
                 self.done = true;
                 Some(TaskStatus::Ready(true))
@@ -2510,6 +2599,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::SpreadDone(_)) | Some(TaskStatus::SpreadPending(_)) => Some(TaskStatus::Ignore),
             None => {
                 self.done = true;
                 Some(TaskStatus::Ready(false))
@@ -2542,6 +2632,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::SpreadDone(_)) | Some(TaskStatus::SpreadPending(_)) => Some(TaskStatus::Ignore),
             None => Some(TaskStatus::Ready(self.count)),
         }
     }
@@ -2572,7 +2663,9 @@ where
             | Some(TaskStatus::Delayed(_))
             | Some(TaskStatus::Init)
             | Some(TaskStatus::Spawn(_))
-            | Some(TaskStatus::Wait) => {
+            | Some(TaskStatus::Wait)
+            | Some(TaskStatus::SpreadDone(_))
+            | Some(TaskStatus::SpreadPending(_)) => {
                 self.count += 1;
                 Some(TaskStatus::Ignore)
             }

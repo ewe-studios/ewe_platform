@@ -388,6 +388,26 @@ where
                         });
                         Some(TaskStatus::Wait)
                     }
+                    TaskStatus::SpreadDone(items) => {
+                        self.state = Some(StoreStatePrecomputed::Inner {
+                            inner, state_store, resource_id, resource_kind, provider, input, environment,
+                        });
+                        let converted: Vec<Result<D, ProviderError<E>>> = items
+                            .into_iter()
+                            .map(|r| r.map_err(|e| ProviderError::ExecuteFailed(e.to_string())))
+                            .collect();
+                        Some(TaskStatus::SpreadDone(converted))
+                    }
+                    TaskStatus::SpreadPending(items) => {
+                        self.state = Some(StoreStatePrecomputed::Inner {
+                            inner, state_store, resource_id, resource_kind, provider, input, environment,
+                        });
+                        let converted: Vec<StoreStatePending<P>> = items
+                            .into_iter()
+                            .map(StoreStatePending::WaitingInner)
+                            .collect();
+                        Some(TaskStatus::SpreadPending(converted))
+                    }
                 }
             }
             StoreStatePrecomputed::Storing { output, mut stream } => {
@@ -664,6 +684,26 @@ where
                             environment,
                         });
                         Some(TaskStatus::Wait)
+                    }
+                    TaskStatus::SpreadDone(items) => {
+                        self.state = Some(StoreStateIdentifierInner::Inner {
+                            inner, state_store, input, environment,
+                        });
+                        let converted: Vec<Result<O, ProviderError<E>>> = items
+                            .into_iter()
+                            .map(|r| r.map_err(|e| ProviderError::ExecuteFailed(e.to_string())))
+                            .collect();
+                        Some(TaskStatus::SpreadDone(converted))
+                    }
+                    TaskStatus::SpreadPending(items) => {
+                        self.state = Some(StoreStateIdentifierInner::Inner {
+                            inner, state_store, input, environment,
+                        });
+                        let converted: Vec<StoreStatePending<P>> = items
+                            .into_iter()
+                            .map(StoreStatePending::WaitingInner)
+                            .collect();
+                        Some(TaskStatus::SpreadPending(converted))
                     }
                 }
             }

@@ -1017,6 +1017,15 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
+            Some(Stream::SpreadDone(items)) => {
+                self.collected.extend(items);
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
+            Some(Stream::SpreadPending(_)) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
             None => {
                 // Source exhausted - remove it using swap_remove for O(1) complexity
                 self.sources.swap_remove(idx);
@@ -1231,6 +1240,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
+                Some(Stream::SpreadDone(items)) => {
+                    self.collected.extend(items);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
                 None => {
                     exhausted_indices.push(idx);
                     self.current_index = (self.current_index + 1) % self.sources.len();
@@ -1409,6 +1427,18 @@ where
                 }
                 Some(Stream::Wait) => {
                     all_done = false;
+                }
+                Some(Stream::SpreadDone(values)) => {
+                    // Take the last value for the buffer (or first if single)
+                    if let Some(last) = values.into_iter().last() {
+                        self.buffer[i] = Some(last);
+                    }
+                    all_done = false;
+                    has_pending = true;
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    all_done = false;
+                    has_pending = true;
                 }
                 None => {
                     // Source exhausted without producing
@@ -1736,6 +1766,16 @@ where
                 Some(Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
+                }
+                Some(Stream::SpreadDone(items)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    if let Some(first) = items.into_iter().next() {
+                        return Some(Stream::Next(first));
+                    }
+                }
+                Some(Stream::SpreadPending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
                 }
                 None => {
                     exhausted_indices.push(idx);
