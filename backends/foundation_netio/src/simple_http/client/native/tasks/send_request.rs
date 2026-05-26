@@ -221,6 +221,9 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+                    Some(TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_)) => {
+                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
+                    }
                     Some(TaskStatus::Ready(item)) => {
                         match item {
                             HttpRequestRedirectResponse::Done(
@@ -510,6 +513,9 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+                    Some(TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_)) => {
+                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
+                    }
                     Some(TaskStatus::Ready(item)) => {
                         // do one last check for a redirect as final response
                         self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));

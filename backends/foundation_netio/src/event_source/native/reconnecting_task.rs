@@ -333,6 +333,21 @@ where
                         self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Wait)
                     }
+                    Some(TaskStatus::SpreadDone(items)) => {
+                        self.state = Some(ReconnectingState::Connected(inner));
+                        Some(TaskStatus::SpreadDone(items))
+                    }
+                    Some(TaskStatus::SpreadPending(items)) => {
+                        self.state = Some(ReconnectingState::Connected(inner));
+                        let mapped: Vec<ReconnectingProgress> = items
+                            .into_iter()
+                            .map(|p| match p {
+                                EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
+                                EventSourceProgress::Reading => ReconnectingProgress::Reading,
+                            })
+                            .collect();
+                        Some(TaskStatus::SpreadPending(mapped))
+                    }
                     None => {
                         // Check why the inner task closed
                         let close_reason = inner.close_reason();

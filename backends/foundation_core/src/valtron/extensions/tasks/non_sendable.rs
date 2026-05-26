@@ -2631,6 +2631,7 @@ where
 
         match self.inner.next_status() {
             Some(TaskStatus::Ready(v)) => {
+                eprintln!("TAny: got Ready({:?})", std::any::type_name::<I::Ready>());
                 if (self.predicate)(v) {
                     self.any_true = true;
                     self.done = true;
@@ -2640,8 +2641,11 @@ where
                 }
             }
             Some(TaskStatus::SpreadDone(items)) => {
+                eprintln!("TAny: SpreadDone with {} items", items.len());
                 for item in items {
-                    if (self.predicate)(item) {
+                    let result = (self.predicate)(item);
+                    eprintln!("TAny: predicate returned {:?}", result);
+                    if result {
                         self.any_true = true;
                         self.done = true;
                         return Some(TaskStatus::Ready(true));

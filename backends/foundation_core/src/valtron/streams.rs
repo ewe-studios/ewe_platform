@@ -24,6 +24,40 @@ use concurrent_queue::ConcurrentQueue;
 
 use crate::synca::mpp::RecvIterator;
 
+#[derive(PartialEq, Clone)]
+pub enum StreamSpread<D, P> {
+    Pending(P),
+    Done(D),
+}
+
+impl<D: PartialEq, P: PartialEq> PartialEq for StreamSpread<D, P> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Done(me), Self::Done(them)) => me == them,
+            (Self::Pending(me), Self::Pending(them)) => me == them,
+            _ => false,
+        }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for StreamSpread<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(p) => write!(f, "Pending({p:?})"),
+            Self::Done(d) => write!(f, "Next({d:?})"),
+        }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Debug for StreamSpread<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(p) => f.debug_tuple("Pending").field(p).finish(),
+            Self::Done(d) => f.debug_tuple("Next").field(d).finish(),
+        }
+    }
+}
+
 /// [`Stream<D, P>`] represents the state of a stream in the valtron execution model.
 ///
 /// Valtron uses a progress-driven execution model where the executor polls iterators
@@ -63,11 +97,7 @@ pub enum Stream<D, P> {
 
     /// Emit multiple next values at once.
     /// Each element is delivered individually as `Stream::Next(value)` at the delivery point.
-    SpreadDone(Vec<D>),
-
-    /// Emit multiple pending values at once.
-    /// Each element is delivered individually as `Stream::Pending(value)` at the delivery point.
-    SpreadPending(Vec<P>),
+    Spread(Vec<StreamSpread<D, P>>),
 }
 
 impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for Stream<D, P> {
@@ -79,8 +109,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for Stream<D, 
             Stream::Pending(p) => write!(f, "Pending({p:?})"),
             Stream::Next(d) => write!(f, "Next({d:?})"),
             Stream::Wait => write!(f, "Wait"),
-            Stream::SpreadDone(items) => write!(f, "SpreadDone({items:?})"),
-            Stream::SpreadPending(items) => write!(f, "SpreadPending({items:?})"),
+            Stream::Spread(items) => write!(f, "SpreadDone({items:?})"),
         }
     }
 }

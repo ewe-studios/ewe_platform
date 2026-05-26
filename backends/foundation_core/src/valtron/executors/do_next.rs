@@ -80,16 +80,17 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        let task_response =
-            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.task.lock().unwrap().next_status())) {
-                Ok(inner) => inner,
-                Err(panic_error) => {
-                    if let Some(panic_handler) = &self.panic_handler {
-                        (panic_handler)(panic_error);
-                    }
-                    return Some(State::Panicked);
+        let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.task.lock().unwrap().next_status()
+        })) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
                 }
-            };
+                return Some(State::Panicked);
+            }
+        };
 
         Some(match task_response {
             Some(inner) => match inner {
@@ -106,7 +107,7 @@ where
                 TaskStatus::Ready(_) => State::ReadyValue(entry),
                 TaskStatus::Ignore => State::Pending(None),
                 TaskStatus::Wait => State::Wait,
-                TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_) => State::Pending(None),
+                TaskStatus::Spread(_) => State::Pending(None),
             },
             None => State::Done,
         })

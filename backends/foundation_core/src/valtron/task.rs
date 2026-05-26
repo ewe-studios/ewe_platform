@@ -70,6 +70,40 @@ impl SpawnInfo {
     }
 }
 
+#[derive(Clone)]
+pub enum TaskSpread<D, P> {
+    Pending(P),
+    Ready(D),
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for TaskSpread<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(p) => write!(f, "Pending({p:?})"),
+            Self::Ready(d) => write!(f, "Next({d:?})"),
+        }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Debug for TaskSpread<D, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(p) => f.debug_tuple("Pending").field(p).finish(),
+            Self::Ready(d) => f.debug_tuple("Ready").field(d).finish(),
+        }
+    }
+}
+
+impl<D: PartialEq, P: PartialEq> PartialEq for TaskSpread<D, P> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Ready(me), Self::Ready(them)) => me == them,
+            (Self::Pending(me), Self::Pending(them)) => me == them,
+            _ => false,
+        }
+    }
+}
+
 /// completed and delivered from the iterator.
 #[derive(Clone)]
 pub enum TaskStatus<D, P, S: ExecutionAction> {
@@ -116,11 +150,7 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
 
     /// Emit multiple ready values at once.
     /// Each element is delivered individually as `TaskStatus::Ready(value)` at the delivery point.
-    SpreadDone(Vec<D>),
-
-    /// Emit multiple pending values at once.
-    /// Each element is delivered individually as `TaskStatus::Pending(value)` at the delivery point.
-    SpreadPending(Vec<P>),
+    Spread(Vec<TaskSpread<D, P>>),
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -151,8 +181,7 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
             | (TaskStatus::Init, TaskStatus::Init)
             | (TaskStatus::Ignore, TaskStatus::Ignore)
             | (TaskStatus::Wait, TaskStatus::Wait) => true,
-            (TaskStatus::SpreadDone(me), TaskStatus::SpreadDone(them)) => me == them,
-            (TaskStatus::SpreadPending(me), TaskStatus::SpreadPending(them)) => me == them,
+            (TaskStatus::Spread(me), TaskStatus::Spread(them)) => me == them,
             _ => false,
         }
     }
@@ -184,8 +213,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             TaskStatus::Init => TStatus::Init,
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
-            TaskStatus::SpreadDone(items) => TStatus::SpreadDone(items.as_slice()),
-            TaskStatus::SpreadPending(items) => TStatus::SpreadPending(items.as_slice()),
+            TaskStatus::Spread(items) => TStatus::Spread(items.as_slice()),
         };
 
         write!(f, "{debug_item:?}")
@@ -218,8 +246,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             TaskStatus::Init => TStatus::Init,
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
-            TaskStatus::SpreadDone(items) => TStatus::SpreadDone(items.as_slice()),
-            TaskStatus::SpreadPending(items) => TStatus::SpreadPending(items.as_slice()),
+            TaskStatus::Spread(items) => TStatus::Spread(items.as_slice()),
         };
 
         write!(f, "{debug_item:?}")

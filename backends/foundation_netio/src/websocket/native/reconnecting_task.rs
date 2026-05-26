@@ -299,6 +299,26 @@ where
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         Some(TaskStatus::Wait)
                     }
+                    Some(TaskStatus::SpreadDone(items)) => {
+                        self.state = Some(ReconnectingWebSocketState::Connected(inner));
+                        Some(TaskStatus::SpreadDone(items))
+                    }
+                    Some(TaskStatus::SpreadPending(items)) => {
+                        self.state = Some(ReconnectingWebSocketState::Connected(inner));
+                        let mapped: Vec<ReconnectingWebSocketProgress> = items
+                            .into_iter()
+                            .map(|p| match p {
+                                WebSocketProgress::Connecting => {
+                                    ReconnectingWebSocketProgress::Connecting
+                                }
+                                WebSocketProgress::Handshaking => {
+                                    ReconnectingWebSocketProgress::Handshaking
+                                }
+                                WebSocketProgress::Reading => ReconnectingWebSocketProgress::Reading,
+                            })
+                            .collect();
+                        Some(TaskStatus::SpreadPending(mapped))
+                    }
                     None => {
                         // Inner task closed - attempt reconnection
                         debug!("Inner task closed, attempting reconnection");

@@ -582,8 +582,9 @@ impl<R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<'_, 
                     other => Some(other.map(WebSocketEvent::Message)),
                 }
             }
-            Stream::Init | Stream::Ignore | Stream::Pending(_) | Stream::Delayed(_) | Stream::Wait => {
-                tracing::debug!("Stream got Init/Ignore/Pending/Delayed/Wait to be skipped");
+            Stream::Init | Stream::Ignore | Stream::Pending(_) | Stream::Delayed(_) | Stream::Wait
+            | Stream::SpreadDone(_) | Stream::SpreadPending(_) => {
+                tracing::debug!("Stream got Init/Ignore/Pending/Delayed/Wait/Spread to be skipped");
                 Some(Ok(WebSocketEvent::Skip))
             }
         }
