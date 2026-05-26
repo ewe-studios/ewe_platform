@@ -31,12 +31,14 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 use crate::compati::Mutex;
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, GlobalTask, ProcessController,
-    SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskStatusMapper,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
+    ExecutorError, GlobalTask, ProcessController, SharedTaskQueue, SpawnInfo, SpawnType,
+    TaskReadyResolver, TaskStatusMapper,
 };
 
-use crate::valtron::executors::constants::{DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS};
+use crate::valtron::executors::constants::{
+    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS,
+};
 
 /// Identifies a thread executor instance.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -952,8 +954,7 @@ impl ExecutorState {
     pub fn schedule_next(&self) -> ScheduleOutcome {
         let span = tracing::trace_span!("LocalThreadExecutor::schedule_next");
         span.in_scope(|| {
-            if self.local_tasks.borrow().active_slots() > 0
-                && !self.processing.borrow().is_empty()
+            if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty()
             {
                 return ScheduleOutcome::LocalTaskRunning;
             }
@@ -1772,10 +1773,7 @@ impl ExecutorState {
     /// Delivers a task (Iterator) type to the global execution queue
     /// and in such a case you do not have an handle to the task as we
     /// no more have control as to where it gets allocated.
-    pub fn broadcast(
-        &self,
-        task: GlobalTask,
-    ) -> AnyResult<SpawnInfo, ExecutorError> {
+    pub fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.global_tasks.push(task) {
             Ok(()) => Ok(SpawnInfo::new(SpawnType::Broadcasted, None, None)),
             Err(err) => match err {
@@ -2396,13 +2394,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             max_yield_duration: time::Duration::from_millis(100),
             kill_signal_check_interval,
             state: ReferencedExecutorState::new(
-                rc::Rc::new(ExecutorState::new(
-                    state_owner,
-                    tasks,
-                    priority,
-                    rng,
-                    idler,
-                )),
+                rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
                 activities,
             ),
         }
@@ -2586,7 +2578,10 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
             // JS: intercept Reschedule → yield, let JS do other work
             #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-            if matches!(&response, ProgressIndicator::CanProgress(Some(State::Reschedule))) {
+            if matches!(
+                &response,
+                ProgressIndicator::CanProgress(Some(State::Reschedule))
+            ) {
                 tracing::debug!("run_until: Reschedule → yielding to JS event loop");
                 break;
             }
@@ -2616,7 +2611,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     "run_until: Wait → yielding to JS event loop ({}ms)",
                     crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL.as_millis()
                 );
-                let signal = self.yielder.yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
+                let signal = self
+                    .yielder
+                    .yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
                 if self.yielder.should_stop(&signal) {
                     break;
                 }
@@ -2667,7 +2664,10 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         {
                             break 'main_loop; // Nothing to do, return to JS
                         }
-                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+                        #[cfg(not(any(
+                            feature = "js-wasmbindgen",
+                            feature = "js-foundation-wasm"
+                        )))]
                         break 'main_loop;
                     }
                     ProgressIndicator::SpinWait(duration) => {
@@ -2678,19 +2678,27 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                                 break 'main_loop; // JS event loop will resume us
                             }
                         }
-                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+                        #[cfg(not(any(
+                            feature = "js-wasmbindgen",
+                            feature = "js-foundation-wasm"
+                        )))]
                         self.yielder.yield_for(duration);
                     }
                     ProgressIndicator::CanProgress(_) => {}
                     ProgressIndicator::Wait => {
                         #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
                         {
-                            let signal = self.yielder.yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
+                            let signal = self
+                                .yielder
+                                .yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
                             if self.yielder.should_stop(&signal) {
                                 break 'main_loop; // JS event loop will check for new tasks
                             }
                         }
-                        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+                        #[cfg(not(any(
+                            feature = "js-wasmbindgen",
+                            feature = "js-foundation-wasm"
+                        )))]
                         self.yielder.yield_for(self.no_work_yield);
                     }
                 }
@@ -3015,8 +3023,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3072,8 +3079,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3123,8 +3129,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3174,8 +3179,7 @@ mod test_local_thread_executor {
         let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3226,8 +3230,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_0_can_kill_local_executor_via_kill_signal() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3280,8 +3283,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3334,8 +3336,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_can_use_local_executor_builder_to_queue_task() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3385,8 +3386,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3457,8 +3457,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3614,8 +3613,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -3909,8 +3907,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_5_task_can_spawn_task_via_actions() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -4010,8 +4007,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -4109,8 +4105,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -4182,8 +4177,7 @@ mod test_local_thread_executor {
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits(
     ) {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
@@ -4256,8 +4250,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
-        let global: SharedTaskQueue =
-            Arc::new(ConcurrentQueue::bounded(10));
+        let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));

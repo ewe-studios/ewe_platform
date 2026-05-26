@@ -15,7 +15,6 @@ use foundation_core::valtron::{
     MapAllPendingAndDone, Stream, TaskStatus, DEFAULT_WAIT_CYCLE,
 };
 
-use std::cmp::Ordering;
 use tracing_test::traced_test;
 
 // Simple test stream iterator
@@ -235,12 +234,15 @@ impl Iterator for CounterTask {
     fn next(&mut self) -> Option<Self::Item> {
         println!("Count: {} {}", &self.current, self.ready_value);
         if self.current < self.ready_value {
+            let res = Some(TaskStatus::Pending(self.current));
             self.current += 1;
-            return Some(TaskStatus::Pending(self.current));
+            return res;
         }
         if self.current == self.ready_value {
+            println!("Sending ready for : {} {}", &self.current, self.ready_value);
+            let res = Some(TaskStatus::Ready(self.current));
             self.current += 1;
-            return Some(TaskStatus::Ready(self.current));
+            return res;
         }
 
         None
@@ -332,21 +334,43 @@ fn test_execute_map_all_pending_and_done() {
     // Create two tasks that each go through 1 pending state before ready
     let tasks = vec![CounterTask::new(1, 3), CounterTask::new(2, 4)];
 
-    let mapper = |states: Vec<Stream<u32, u32>>| states.len();
+    let mapper = |states: Vec<Stream<u32, u32>>| {
+        println!("Mapping states for : {:?}", &states);
+        let mut values: Vec<Stream<u32, ()>> = Vec::new();
 
-    let mut result = execute_map_all_pending_and_done(tasks, mapper, Some(DEFAULT_WAIT_CYCLE))
+        for state in states {
+            match state {
+                Stream::Next(n) => {
+                    values.push(Stream::Next(n));
+                }
+                _ => {}
+            }
+        }
+
+        values
+    };
+
+    let result = execute_map_all_pending_and_done(tasks, mapper, Some(DEFAULT_WAIT_CYCLE))
         .expect("get the result");
 
     // Iterate through the progress stream
-    let mut got_result = false;
-    for item in &mut result {
-        println!("Item: {:?}", &item);
-        if let Stream::Next(count) = item {
-            assert_eq!(count, 2, "Should receive 2 states when all complete");
-            got_result = true;
-        }
-    }
-    assert!(got_result, "Should produce result");
+    let results: Vec<u32> = Iterator::collect(
+        result
+            .filter(|v| matches!(v, Stream::Next(_)))
+            .flat_map(|item| match item {
+                Stream::Next(inner) => inner
+                    .into_iter()
+                    .filter_map(|item2| match item2 {
+                        Stream::Next(n) => Some(n),
+                        _ => None,
+                    }),
+                _ => unreachable!("should never be triggered"),
+            }),
+    );
+
+    assert_eq!(results.len(), 2, "Should get exactly 2 values");
+    assert!(results.contains(&3), "Should contain 3");
+    assert!(results.contains(&4), "Should contain 4");
 }
 
 /// Test 2: Edge case - empty streams produce no output

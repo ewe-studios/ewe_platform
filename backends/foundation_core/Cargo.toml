@@ -6,16 +6,14 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "central crate for all foundation crates for the ewe-platform project"
+description = "Central crate for all foundation crates for the ewe-platform project"
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
 
 # -- Workspace dependencies
-
 foundation_wasm = { workspace = true }
 foundation_nostd = {workspace = true }
-
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -28,9 +26,7 @@ toml = { version = "0.9" }
 fastrand = "2.3.0"
 rand = "0.9"
 rand_chacha = "0.9"
-
 tracing = { version = "0.1.41" }
-
 bytes = "1.5"
 
 # JS event loop yield (wasm-bindgen backend)
@@ -44,10 +40,10 @@ getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 serial_test = { workspace = true }
+foundation_testing = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
-foundation_testing = { path = "../foundation_testing" }
 ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"

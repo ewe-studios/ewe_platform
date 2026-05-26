@@ -1,5 +1,5 @@
-#![allow(clippy::type_complexity)]
 #![cfg(feature = "multi")]
+#![allow(clippy::type_complexity)]
 
 use crate::valtron::multi;
 
@@ -11,8 +11,8 @@ use crate::valtron::TaskStatusMapper;
 use crate::valtron::ThreadedValue;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
-    NotifyQueueStreamIterator, NotifyRecvIterator, Stream,
-    StreamIterator, TaskIterator, TaskStatus,
+    NotifyQueueStreamIterator, NotifyRecvIterator, Stream, StreamIterator, TaskIterator,
+    TaskStatus,
 };
 use core::future::Future;
 
@@ -1483,18 +1483,19 @@ where
 ///     format!("Progress: {}/{} complete", done_count, states.len())
 /// }, None)?;
 /// ```
-pub fn execute_map_all_pending_and_done<T, F, O>(
+pub fn execute_map_all_pending_and_done<T, F, O, R>(
     tasks: Vec<T>,
     mapper: F,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<MapAllPendingAndDoneStream<T, F, O>>
+) -> GenericResult<MapAllPendingAndDoneStream<T, F, O, R>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> Vec<Stream<O, R>> + Send + 'static,
     O: Send + 'static,
+    R: Send + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -1522,7 +1523,7 @@ where
 /// the mapper will receive a 1-element vector on the next poll:
 /// - Before: `[Stream::Next(0), Stream::Next(1)]` (2 elements)
 /// - After source 1 completes: `[Stream::Next(0)]` (1 element, was at index 0)
-pub struct MapAllPendingAndDoneStream<T, F, O>
+pub struct MapAllPendingAndDoneStream<T, F, O, R>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -1532,10 +1533,10 @@ where
     sources: Vec<DrivenStreamIterator<T>>,
     mapper: F,
     done: bool,
-    _phantom: std::marker::PhantomData<O>,
+    _phantom: std::marker::PhantomData<(O, R)>,
 }
 
-impl<T, F, O> MapAllPendingAndDoneStream<T, F, O>
+impl<T, F, O, R> MapAllPendingAndDoneStream<T, F, O, R>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -1553,15 +1554,17 @@ where
     }
 }
 
-impl<T, F, O> Iterator for MapAllPendingAndDoneStream<T, F, O>
+impl<T, F, O, R> Iterator for MapAllPendingAndDoneStream<T, F, O, R>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
-    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> Vec<Stream<O, R>>,
+    O: Send + 'static,
+    R: Send + 'static,
 {
-    type Item = Stream<O, usize>;
+    type Item = Stream<Vec<Stream<O, R>>, ()>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done {
@@ -1569,14 +1572,10 @@ where
         }
 
         let mut states: Vec<Stream<T::Ready, T::Pending>> = Vec::with_capacity(self.sources.len());
-        let mut all_exhausted = true;
 
         for source in &mut self.sources {
             if let Some(state) = source.next() {
                 states.push(state);
-                all_exhausted = false;
-            } else {
-                // Source exhausted
             }
         }
 
@@ -1585,24 +1584,7 @@ where
             return None;
         }
 
-        // Check if all sources have produced Next values
-        let all_done = states.iter().all(|s| matches!(s, Stream::Next(_)));
-        let pending_count = states
-            .iter()
-            .filter(|s| !matches!(s, Stream::Next(_)))
-            .count();
-
-        if all_done && !all_exhausted {
-            // All sources produced values, mapper will produce final result
-            self.done = true;
-        }
-
-        let result = (self.mapper)(states);
-        Some(if all_done {
-            Stream::Next(result)
-        } else {
-            Stream::Pending(pending_count)
-        })
+        Some(Stream::Next((self.mapper)(states)))
     }
 }
 
