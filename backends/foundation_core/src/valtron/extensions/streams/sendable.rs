@@ -2674,14 +2674,26 @@ where
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
             Stream::Spread(items) => {
-                if let Some(found) = items.into_iter().find_map(|item| match item {
-                    StreamSpread::Done(v) if (self.predicate)(&v) => Some(v),
-                    _ => None,
-                }) {
+                // Scan all Done items for a match, collect Pending for re-emit
+                let mut pending_items: Vec<StreamSpread<Option<I::D>, I::P>> = Vec::new();
+                let mut found = None;
+                for item in items {
+                    match item {
+                        StreamSpread::Done(v) if (self.predicate)(&v) => {
+                            found = Some(v);
+                            break;
+                        }
+                        StreamSpread::Done(v) => pending_items.push(StreamSpread::Done(Some(v))),
+                        StreamSpread::Pending(p) => pending_items.push(StreamSpread::Pending(p)),
+                    }
+                }
+                if let Some(v) = found {
                     self.found = true;
-                    Some(Stream::Next(Some(found)))
-                } else {
+                    Some(Stream::Next(Some(v)))
+                } else if pending_items.is_empty() {
                     Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(pending_items))
                 }
             }
         }
@@ -2724,15 +2736,24 @@ where
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
             Stream::Spread(items) => {
+                // Scan all Done items for a match, collect Pending for re-emit
+                let mut pending_items = Vec::new();
                 for item in items {
-                    if let StreamSpread::Done(v) = item {
-                        if let Some(r) = (self.mapper)(v) {
-                            self.found = true;
-                            return Some(Stream::Next(Some(r)));
+                    match item {
+                        StreamSpread::Done(v) => {
+                            if let Some(r) = (self.mapper)(v) {
+                                self.found = true;
+                                return Some(Stream::Next(Some(r)));
+                            }
                         }
+                        StreamSpread::Pending(p) => pending_items.push(StreamSpread::Pending(p)),
                     }
                 }
-                Some(Stream::Ignore)
+                if pending_items.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(pending_items))
+                }
             }
         }
     }
@@ -2780,13 +2801,25 @@ where
             Some(Stream::Wait) => Some(Stream::Wait),
             Some(Stream::Spread(items)) => {
                 if let Some(acc) = self.acc.take() {
-                    let acc = items.into_iter().fold(acc, |acc, item| match item {
-                        StreamSpread::Done(v) => (self.folder)(acc, v),
-                        StreamSpread::Pending(_) => acc,
+                    let mut pending_items = Vec::new();
+                    let acc = items.into_iter().fold(acc, |acc, item| {
+                        match item {
+                            StreamSpread::Done(v) => (self.folder)(acc, v),
+                            StreamSpread::Pending(p) => {
+                                pending_items.push(StreamSpread::Pending(p));
+                                acc
+                            }
+                        }
                     });
                     self.acc = Some(acc);
+                    if pending_items.is_empty() {
+                        Some(Stream::Ignore)
+                    } else {
+                        Some(Stream::Spread(pending_items))
+                    }
+                } else {
+                    Some(Stream::Ignore)
                 }
-                Some(Stream::Ignore)
             }
             None => {
                 // Inner exhausted, yield final accumulated value
