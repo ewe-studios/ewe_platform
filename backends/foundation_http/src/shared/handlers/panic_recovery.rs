@@ -1,6 +1,6 @@
 //! Panic recovery — wraps handler execution in `catch_unwind`.
 
-use foundation_netio::simple_http::SimpleIncomingRequest;
+use foundation_netio::simple_http::shared::SimpleIncomingRequest;
 use std::panic::AssertUnwindSafe;
 
 use crate::shared::context::ContextBag;

@@ -33,7 +33,7 @@ fn test_extensions_get_mut() {
 #[test]
 fn test_middleware_trait_basic() {
     use foundation_netio::simple_http::client::{Extensions, Middleware, PreparedRequest, Uri};
-    use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     struct TestMiddleware;
@@ -42,7 +42,7 @@ fn test_middleware_trait_basic() {
         fn handle_request(
             &self,
             request: &mut PreparedRequest,
-        ) -> Result<(), foundation_netio::simple_http::HttpClientError> {
+        ) -> Result<(), foundation_netio::simple_http::shared::HttpClientError> {
             request.headers.insert(
                 SimpleHeader::Custom("X-Test-Header".to_string()),
                 vec!["test-value".to_string()],
@@ -53,10 +53,10 @@ fn test_middleware_trait_basic() {
         fn handle_response(
             &self,
             _request: &PreparedRequest,
-            _response: &mut foundation_netio::simple_http::SimpleResponse<
-                foundation_netio::simple_http::SendSafeBody,
+            _response: &mut foundation_netio::simple_http::shared::SimpleResponse<
+                foundation_netio::simple_http::shared::SendSafeBody,
             >,
-        ) -> Result<(), foundation_netio::simple_http::HttpClientError> {
+        ) -> Result<(), foundation_netio::simple_http::shared::HttpClientError> {
             Ok(())
         }
     }
@@ -87,7 +87,7 @@ fn test_logging_middleware_passthrough() {
     use foundation_netio::simple_http::client::{
         Extensions, LoggingMiddleware, Middleware, PreparedRequest, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -114,7 +114,7 @@ fn test_timing_middleware_records_duration() {
     use foundation_netio::simple_http::client::{
         Extensions, Middleware, PreparedRequest, TimingMiddleware, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleMethod, Status};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::time::Duration;
 
@@ -133,7 +133,7 @@ fn test_timing_middleware_records_duration() {
     std::thread::sleep(Duration::from_millis(10));
 
     // Create a mock response
-    let mut response = foundation_netio::simple_http::SimpleResponse::new(
+    let mut response = foundation_netio::simple_http::shared::SimpleResponse::new(
         Status::OK,
         BTreeMap::new(),
         SendSafeBody::None,
@@ -151,7 +151,7 @@ fn test_header_middleware_adds_headers() {
     use foundation_netio::simple_http::client::{
         Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -181,7 +181,7 @@ fn test_header_middleware_respects_existing_headers() {
     use foundation_netio::simple_http::client::{
         Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -215,7 +215,7 @@ fn test_middleware_chain_execution_order() {
     use foundation_netio::simple_http::client::{
         Extensions, Middleware, MiddlewareChain, PreparedRequest, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::sync::{Arc, Mutex};
 
@@ -229,7 +229,7 @@ fn test_middleware_chain_execution_order() {
         fn handle_request(
             &self,
             _request: &mut PreparedRequest,
-        ) -> Result<(), foundation_netio::simple_http::HttpClientError> {
+        ) -> Result<(), foundation_netio::simple_http::shared::HttpClientError> {
             self.request_order.lock().unwrap().push(self.id);
             Ok(())
         }
@@ -237,10 +237,10 @@ fn test_middleware_chain_execution_order() {
         fn handle_response(
             &self,
             _request: &PreparedRequest,
-            _response: &mut foundation_netio::simple_http::SimpleResponse<
-                foundation_netio::simple_http::SendSafeBody,
+            _response: &mut foundation_netio::simple_http::shared::SimpleResponse<
+                foundation_netio::simple_http::shared::SendSafeBody,
             >,
-        ) -> Result<(), foundation_netio::simple_http::HttpClientError> {
+        ) -> Result<(), foundation_netio::simple_http::shared::HttpClientError> {
             self.response_order.lock().unwrap().push(self.id);
             Ok(())
         }
@@ -275,7 +275,7 @@ fn test_middleware_chain_execution_order() {
         extensions: Extensions::new(),
     };
 
-    let mut response = foundation_netio::simple_http::SimpleResponse::new(
+    let mut response = foundation_netio::simple_http::shared::SimpleResponse::new(
         Status::OK,
         BTreeMap::new(),
         SendSafeBody::None,
@@ -381,7 +381,7 @@ fn test_retry_middleware_stores_state_in_extensions() {
     use foundation_netio::simple_http::client::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, RetryState, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -408,7 +408,7 @@ fn test_retry_middleware_passes_through_success() {
     use foundation_netio::simple_http::client::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
-    use foundation_netio::simple_http::{SendSafeBody, SimpleMethod, Status};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -422,7 +422,7 @@ fn test_retry_middleware_passes_through_success() {
     let middleware = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
     middleware.handle_request(&mut request).unwrap();
 
-    let mut response = foundation_netio::simple_http::SimpleResponse::new(
+    let mut response = foundation_netio::simple_http::shared::SimpleResponse::new(
         Status::OK,
         BTreeMap::new(),
         SendSafeBody::None,
@@ -449,7 +449,7 @@ fn test_retry_middleware_returns_retry_error_for_matching_status() {
     use foundation_netio::simple_http::client::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
-    use foundation_netio::simple_http::{HttpClientError, SendSafeBody, SimpleMethod, Status};
+    use foundation_netio::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -463,7 +463,7 @@ fn test_retry_middleware_returns_retry_error_for_matching_status() {
     let middleware = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
     middleware.handle_request(&mut request).unwrap();
 
-    let mut response = foundation_netio::simple_http::SimpleResponse::new(
+    let mut response = foundation_netio::simple_http::shared::SimpleResponse::new(
         Status::TooManyRequests,
         BTreeMap::new(),
         SendSafeBody::None,

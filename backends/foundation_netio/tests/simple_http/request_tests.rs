@@ -8,7 +8,7 @@
 use foundation_netio::simple_http::client::{
     ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
 };
-use foundation_netio::simple_http::{Proto, SendSafeBody, SimpleHeader, SimpleMethod};
+use foundation_netio::simple_http::shared::{Proto, SendSafeBody, SimpleHeader, SimpleMethod};
 use serde::Serialize;
 use std::net::SocketAddr as StdSocketAddr;
 

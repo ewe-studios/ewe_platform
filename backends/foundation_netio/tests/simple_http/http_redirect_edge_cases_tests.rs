@@ -1,11 +1,11 @@
-use foundation_netio::simple_http::{client::SystemDnsResolver, HttpClientError};
+use foundation_netio::simple_http::shared::{client::SystemDnsResolver, HttpClientError};
 
 /// WHY: Validate redirect edge cases - chain, header stripping, POST→GET, invalid Location, redirect limit
 /// WHAT: Asserts client handles redirects correctly and surfaces errors (no panic)
 #[test]
 fn test_redirect_edge_cases() {
     use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-    use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 
     let client = SimpleHttpClient::from_system().max_redirects(2);
     let request = ClientRequestBuilder::<SystemDnsResolver>::post("http://host1.com/redirect")

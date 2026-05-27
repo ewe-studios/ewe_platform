@@ -23,7 +23,7 @@ pub mod native;
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
-pub use foundation_netio::simple_http::{
+pub use foundation_netio::simple_http::shared::{
     SimpleIncomingRequest, SimpleMethod, SimpleHeader, SimpleHeaders, SimpleUrl,
     SimpleOutgoingResponse, SendSafeBody, Proto, Status,
 };

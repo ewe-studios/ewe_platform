@@ -17,7 +17,7 @@ use foundation_netio::simple_http::client::body_reader::collect_strings_from_sen
 use foundation_netio::simple_http::client::{
     DnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
-use foundation_netio::simple_http::{SendSafeBody, SimpleHeader};
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;

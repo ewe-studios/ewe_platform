@@ -6,7 +6,7 @@ mod test_http_reader {
     use foundation_netio::simple_http::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
-    use foundation_netio::simple_http::{
+    use foundation_netio::simple_http::shared::{
         http_streams, HttpReaderError, IncomingRequestParts, SendSafeBody, SimpleHeader,
         SimpleMethod, SimpleUrl,
     };
@@ -231,7 +231,7 @@ mod http_response_compliance {
     };
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::{
+    use foundation_netio::simple_http::shared::{
         http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody,
         SimpleHeader, Status,
     };
@@ -3484,7 +3484,7 @@ mod http_requests_compliance {
     use foundation_netio::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::{
+    use foundation_netio::simple_http::shared::{
         http_streams, ChunkedData, HttpReaderError, IncomingRequestParts, SendSafeBody,
         SimpleHeader, SimpleMethod, SimpleUrl,
     };
@@ -9747,7 +9747,7 @@ mod hardening_tests {
 
     use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
-    use foundation_netio::simple_http::{
+    use foundation_netio::simple_http::shared::{
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
 

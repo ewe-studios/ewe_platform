@@ -4126,7 +4126,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4238,7 +4238,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4350,7 +4350,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4488,7 +4488,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4610,7 +4610,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4706,7 +4706,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4828,7 +4828,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4936,7 +4936,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5044,7 +5044,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5146,7 +5146,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5313,7 +5313,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5409,7 +5409,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5586,7 +5586,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5682,7 +5682,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5774,7 +5774,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5860,7 +5860,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -5978,7 +5978,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6074,7 +6074,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6166,7 +6166,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6281,7 +6281,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6373,7 +6373,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6475,7 +6475,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6571,7 +6571,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6667,7 +6667,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6805,7 +6805,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6901,7 +6901,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -6997,7 +6997,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7093,7 +7093,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7191,7 +7191,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7296,7 +7296,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7385,7 +7385,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7481,7 +7481,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7579,7 +7579,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7699,7 +7699,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7795,7 +7795,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7894,7 +7894,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -7990,7 +7990,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8148,7 +8148,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8240,7 +8240,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8352,7 +8352,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8448,7 +8448,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8544,7 +8544,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8662,7 +8662,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8774,7 +8774,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8870,7 +8870,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -8966,7 +8966,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -9078,7 +9078,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {

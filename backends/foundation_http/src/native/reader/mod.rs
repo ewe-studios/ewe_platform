@@ -10,7 +10,7 @@
 //! to the request reader iterator. It consumes parts until the iterator is
 //! exhausted, building the request along the way.
 
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     HTTPStreams, HttpReaderError, IncomingRequestParts, SimpleIncomingRequest,
 };
 

@@ -1329,7 +1329,7 @@ impl UnifiedGenerator {
         writeln!(out, "    Ok(")?;
         writeln!(out, "        builder")?;
         writeln!(out, "            .build_send_request()")?;
-        writeln!(out, "            .map_err(|e: foundation_netio::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
+        writeln!(out, "            .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
         writeln!(out, "            .map_ready(|intro| match intro {{")?;
         if return_type == "()" {
             writeln!(out, "                super::shared::RequestIntro::Success {{ stream: _, intro, headers, .. }} => {{")?;

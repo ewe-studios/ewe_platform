@@ -7,7 +7,7 @@
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_netio::event_source::ReconnectingEventSourceTask;
 use foundation_netio::simple_http::client::StaticSocketAddr;
-use foundation_netio::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
 };
@@ -68,7 +68,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
             {
                 let mut b = captured.body.lock().unwrap();
                 let bytes = match &req.body {
-                    foundation_netio::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+                    foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
                     _ => Vec::new(),
                 };
                 *b = String::from_utf8_lossy(&bytes).to_string();
@@ -190,7 +190,7 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
 
             let body = {
                 let bytes = match &req.body {
-                    foundation_netio::simple_http::SendSafeBody::Bytes(b) => b.clone(),
+                    foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
                     _ => Vec::new(),
                 };
                 String::from_utf8_lossy(&bytes).to_string()

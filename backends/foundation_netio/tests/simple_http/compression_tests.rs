@@ -8,7 +8,7 @@
 use foundation_netio::simple_http::client::{
     CompressionConfig, ContentEncoding, DecompressingReader,
 };
-use foundation_netio::simple_http::HttpClientError;
+use foundation_netio::simple_http::shared::HttpClientError;
 use std::io;
 use std::io::Read;
 

@@ -120,7 +120,7 @@ fn test_reconnecting_task_with_subprotocols() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_reconnecting_task_with_header() {
-    use foundation_netio::simple_http::SimpleHeader;
+    use foundation_netio::simple_http::shared::SimpleHeader;
 
     let resolver = SystemDnsResolver;
 

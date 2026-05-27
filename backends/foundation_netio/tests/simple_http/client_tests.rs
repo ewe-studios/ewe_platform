@@ -7,7 +7,7 @@
 //! They intentionally avoid performing real network operations.
 
 use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::*;
+use foundation_netio::simple_http::shared::*;
 use std::time::Duration;
 use tracing_test::traced_test;
 

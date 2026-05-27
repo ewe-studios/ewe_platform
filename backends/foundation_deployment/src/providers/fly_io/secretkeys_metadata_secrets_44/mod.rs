@@ -562,7 +562,7 @@ pub fn secretkeys_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: SecretKeys = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -671,7 +671,7 @@ pub fn secretkey_get_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: SecretKey = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -782,7 +782,7 @@ pub fn secretkey_set_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: SetSecretkeyResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -895,7 +895,7 @@ pub fn secretkey_delete_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DeleteSecretkeyResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1008,7 +1008,7 @@ pub fn machines_show_metadata_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: serde_json::Value = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1229,7 +1229,7 @@ pub fn machines_get_metadata_key_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: MetadataValueResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1556,7 +1556,7 @@ pub fn secrets_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AppSecrets = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1667,7 +1667,7 @@ pub fn secrets_update_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AppSecretsUpdateResp = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1780,7 +1780,7 @@ pub fn secret_get_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AppSecret = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1891,7 +1891,7 @@ pub fn secret_create_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: SetAppSecretResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2004,7 +2004,7 @@ pub fn secret_delete_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DeleteAppSecretResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2117,7 +2117,7 @@ pub fn machines_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: serde_json::Value = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2232,7 +2232,7 @@ pub fn machines_create_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Machine = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2341,7 +2341,7 @@ pub fn machines_show_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Machine = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2452,7 +2452,7 @@ pub fn machines_update_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Machine = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2667,7 +2667,7 @@ pub fn machines_org_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: OrgMachinesResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2780,7 +2780,7 @@ pub fn volumes_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: serde_json::Value = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2895,7 +2895,7 @@ pub fn volumes_create_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Volume = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3004,7 +3004,7 @@ pub fn volumes_get_by_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Volume = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3115,7 +3115,7 @@ pub fn volumes_update_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Volume = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3224,7 +3224,7 @@ pub fn volume_delete_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Volume = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3333,7 +3333,7 @@ pub fn volumes_org_list_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: OrgVolumesResponse = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {

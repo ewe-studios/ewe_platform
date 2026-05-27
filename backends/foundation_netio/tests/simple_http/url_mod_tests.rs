@@ -5,7 +5,7 @@
 /// copies adapted to the external test crate environment.
 ///
 /// Note: Keep these tests small and deterministic so they run fast as unit tests.
-use foundation_netio::simple_http::SimpleUrl;
+use foundation_netio::simple_http::shared::SimpleUrl;
 use std::collections::BTreeMap;
 use tracing_test::traced_test;
 

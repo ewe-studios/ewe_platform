@@ -1,6 +1,6 @@
 //! `RouteMethod<S>` — stores a handler per HTTP method.
 
-use foundation_netio::simple_http::SimpleMethod;
+use foundation_netio::simple_http::shared::SimpleMethod;
 
 use super::segments::{RouteResult, RouteOp};
 

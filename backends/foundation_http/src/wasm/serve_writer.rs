@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     SendSafeBody, SimpleIncomingRequest,
 };
 use foundation_errstacks::ErrorTrace;

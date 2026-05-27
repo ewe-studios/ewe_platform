@@ -7,7 +7,7 @@
 
 #![cfg(feature = "planetscale")]
 
-use foundation_netio::simple_http::SimpleHeaders;
+use foundation_netio::simple_http::shared::SimpleHeaders;
 
 use serde::{Deserialize, Serialize};
 

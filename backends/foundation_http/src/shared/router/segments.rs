@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use foundation_netio::simple_http::SimpleMethod;
+use foundation_netio::simple_http::shared::SimpleMethod;
 use regex::Regex;
 
 use super::method::RouteMethod;

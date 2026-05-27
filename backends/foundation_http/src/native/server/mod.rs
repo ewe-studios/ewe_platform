@@ -11,10 +11,10 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_core::synca::OnSignal;
-use foundation_netio::simple_http::timeout::{
+use foundation_netio::simple_http::shared::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
-use foundation_netio::simple_http::HTTPStreams;
+use foundation_netio::simple_http::shared::HTTPStreams;
 
 #[cfg(any(
     feature = "ssl",
@@ -509,5 +509,5 @@ impl HttpServer {
 
 // Re-export timeout types so users can configure expect-continue behavior.
 pub mod timeout {
-    pub use foundation_netio::simple_http::timeout::ExpectContinueConfig;
+    pub use foundation_netio::simple_http::shared::timeout::ExpectContinueConfig;
 }

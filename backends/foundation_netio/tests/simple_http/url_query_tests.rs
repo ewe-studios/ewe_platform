@@ -1,4 +1,4 @@
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     client::Uri, url::percent_decode, url::percent_encode, url::Query,
 };
 

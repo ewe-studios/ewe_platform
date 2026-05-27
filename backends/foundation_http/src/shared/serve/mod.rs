@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
 
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     SimpleHeader, SendSafeBody,
 };

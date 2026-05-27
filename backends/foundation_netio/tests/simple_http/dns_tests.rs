@@ -11,7 +11,7 @@
 use foundation_netio::simple_http::client::{
     CachingDnsResolver, DnsResolver, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
 };
-use foundation_netio::simple_http::{DnsError, HttpClientError};
+use foundation_netio::simple_http::shared::{DnsError, HttpClientError};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 use std::{io, thread};

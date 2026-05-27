@@ -255,7 +255,7 @@ pub fn v1_get_all_projects_for_organization_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: OrganizationProjectsResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -326,7 +326,7 @@ pub fn v1_list_all_projects_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -386,7 +386,7 @@ pub fn v1_create_a_project_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: V1ProjectResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -458,7 +458,7 @@ pub fn v1_get_project_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: V1ProjectWithDatabaseResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -531,7 +531,7 @@ pub fn v1_update_a_project_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: V1ProjectRefResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -603,7 +603,7 @@ pub fn v1_delete_a_project_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: V1ProjectRefResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -675,7 +675,7 @@ pub fn v1_get_a_branch_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BranchDetailResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -748,7 +748,7 @@ pub fn v1_update_a_branch_config_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BranchResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -820,7 +820,7 @@ pub fn v1_delete_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BranchDeleteResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -892,7 +892,7 @@ pub fn v1_list_all_branches_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -965,7 +965,7 @@ pub fn v1_create_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BranchResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1108,7 +1108,7 @@ pub fn v1_get_a_branch_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BranchResponse = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }

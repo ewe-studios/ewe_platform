@@ -734,7 +734,7 @@ pub fn get_balance_transactions_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: BalanceTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -876,7 +876,7 @@ pub fn post_customers_customer_balance_transactions_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: CustomerBalanceTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -949,7 +949,7 @@ pub fn get_customers_customer_balance_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: CustomerBalanceTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1022,7 +1022,7 @@ pub fn post_customers_customer_balance_transactions_transaction_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: CustomerBalanceTransaction = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1164,7 +1164,7 @@ pub fn post_accounts_account_external_accounts_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1237,7 +1237,7 @@ pub fn get_accounts_account_external_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1310,7 +1310,7 @@ pub fn post_accounts_account_external_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1383,7 +1383,7 @@ pub fn delete_accounts_account_external_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: DeletedExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1455,7 +1455,7 @@ pub fn post_external_accounts_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: ExternalAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1598,7 +1598,7 @@ pub fn get_customers_customer_payment_methods_payment_method_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: PaymentMethod = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1738,7 +1738,7 @@ pub fn post_payment_methods_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: PaymentMethod = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1798,7 +1798,7 @@ pub fn get_payment_methods_payment_method_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: PaymentMethod = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -1870,7 +1870,7 @@ pub fn post_payment_methods_payment_method_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: PaymentMethod = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2010,7 +2010,7 @@ pub fn post_accounts_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Account = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2070,7 +2070,7 @@ pub fn get_accounts_account_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Account = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2142,7 +2142,7 @@ pub fn post_accounts_account_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Account = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2214,7 +2214,7 @@ pub fn delete_accounts_account_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: DeletedAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2355,7 +2355,7 @@ pub fn get_financial_connections_accounts_account_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: FinancialConnectionsAccount = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2496,7 +2496,7 @@ pub fn get_disputes_dispute_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Dispute = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2568,7 +2568,7 @@ pub fn post_disputes_dispute_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Dispute = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2708,7 +2708,7 @@ pub fn post_issuing_disputes_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: IssuingDispute = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2768,7 +2768,7 @@ pub fn get_issuing_disputes_dispute_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: IssuingDispute = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2840,7 +2840,7 @@ pub fn post_issuing_disputes_dispute_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: IssuingDispute = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -2981,7 +2981,7 @@ pub fn get_climate_products_product_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: ClimateProduct = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3121,7 +3121,7 @@ pub fn post_products_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Product = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3181,7 +3181,7 @@ pub fn get_products_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Product = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3253,7 +3253,7 @@ pub fn post_products_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: Product = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -3325,7 +3325,7 @@ pub fn delete_products_id_task(
                     if status < 200 || status >= 300 {
                         return Err(crate::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                     let parsed: DeletedProduct = serde_json::from_str(&body).map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }

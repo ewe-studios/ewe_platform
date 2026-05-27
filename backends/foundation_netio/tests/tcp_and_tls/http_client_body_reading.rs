@@ -12,7 +12,7 @@ use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
 use foundation_netio::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
 use foundation_netio::simple_http::shared::body_readers::collect_strings_from_send_safe;
-use foundation_netio::simple_http::SendSafeBody;
+use foundation_netio::simple_http::shared::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use tracing_test::traced_test;
@@ -48,7 +48,7 @@ fn test_send_returns_complete_response_with_body() {
     println!("Response status: {:?}", response.get_status());
     assert!(matches!(
         response.get_status(),
-        foundation_netio::simple_http::Status::OK
+        foundation_netio::simple_http::shared::Status::OK
     ));
 
     // Verify body

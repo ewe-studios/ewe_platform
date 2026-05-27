@@ -262,7 +262,7 @@ data: [DONE]\n\n";
 fn test_provider_streaming_sends_post_with_body_and_parses_events() {
     let _guard = valtron::initialize_pool(42, Some(4));
 
-    use foundation_netio::simple_http::SimpleMethod;
+    use foundation_netio::simple_http::shared::SimpleMethod;
     use foundation_testing::http::HttpRequest;
 
     #[derive(Clone, Default)]
@@ -289,9 +289,9 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             };
 
             let body_len = match &req.body {
-                foundation_netio::simple_http::SendSafeBody::Text(s) => s.len(),
-                foundation_netio::simple_http::SendSafeBody::Bytes(v) => v.len(),
-                foundation_netio::simple_http::SendSafeBody::None => 0,
+                foundation_netio::simple_http::shared::SendSafeBody::Text(s) => s.len(),
+                foundation_netio::simple_http::shared::SendSafeBody::Bytes(v) => v.len(),
+                foundation_netio::simple_http::shared::SendSafeBody::None => 0,
                 _ => 0,
             };
 

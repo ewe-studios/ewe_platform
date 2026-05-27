@@ -3,7 +3,7 @@
 //! Tests `SseResponse` builder for SSE HTTP responses.
 
 use foundation_netio::event_source::SseResponse;
-use foundation_netio::simple_http::{SimpleHeader, Status};
+use foundation_netio::simple_http::shared::{SimpleHeader, Status};
 
 /// WHY: `SseResponse` must have correct default headers for SSE.
 /// WHAT: Verify Content-Type, Cache-Control, and Connection headers are set.

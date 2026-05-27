@@ -624,7 +624,7 @@ pub fn post_test_helpers_issuing_cards_card_shipping_fail_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: IssuingCard = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -733,7 +733,7 @@ pub fn post_test_helpers_treasury_inbound_transfers_id_fail_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryInboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -846,7 +846,7 @@ pub fn post_test_helpers_treasury_outbound_payments_id_fail_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundPayment = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -959,7 +959,7 @@ pub fn post_test_helpers_treasury_outbound_transfers_outbound_transfer_fail_task
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1172,7 +1172,7 @@ pub fn post_file_links_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FileLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1261,7 +1261,7 @@ pub fn get_file_links_link_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FileLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1367,7 +1367,7 @@ pub fn post_file_links_link_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FileLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1575,7 +1575,7 @@ pub fn post_treasury_financial_accounts_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryFinancialAccount = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1669,7 +1669,7 @@ pub fn get_treasury_financial_accounts_financial_account_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryFinancialAccount = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1782,7 +1782,7 @@ pub fn post_treasury_financial_accounts_financial_account_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryFinancialAccount = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2210,7 +2210,7 @@ pub fn post_invoices_invoice_lines_line_item_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: LineItem = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2418,7 +2418,7 @@ pub fn post_billing_meters_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: BillingMeter = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2509,7 +2509,7 @@ pub fn get_billing_meters_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: BillingMeter = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2619,7 +2619,7 @@ pub fn post_billing_meters_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: BillingMeter = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2831,7 +2831,7 @@ pub fn post_climate_orders_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ClimateOrder = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2925,7 +2925,7 @@ pub fn get_climate_orders_order_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ClimateOrder = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3038,7 +3038,7 @@ pub fn post_climate_orders_order_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ClimateOrder = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3151,7 +3151,7 @@ pub fn post_test_helpers_treasury_outbound_payments_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundPayment = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3363,7 +3363,7 @@ pub fn post_treasury_outbound_payments_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundPayment = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3457,7 +3457,7 @@ pub fn get_treasury_outbound_payments_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundPayment = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3570,7 +3570,7 @@ pub fn post_test_helpers_treasury_outbound_transfers_outbound_transfer_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3783,7 +3783,7 @@ pub fn post_treasury_outbound_transfers_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3877,7 +3877,7 @@ pub fn get_treasury_outbound_transfers_outbound_transfer_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TreasuryOutboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4089,7 +4089,7 @@ pub fn post_payment_intents_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentIntent = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4183,7 +4183,7 @@ pub fn get_payment_intents_intent_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentIntent = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4296,7 +4296,7 @@ pub fn post_payment_intents_intent_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentIntent = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4508,7 +4508,7 @@ pub fn post_payment_links_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4600,7 +4600,7 @@ pub fn get_payment_links_payment_link_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4709,7 +4709,7 @@ pub fn post_payment_links_payment_link_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentLink = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4917,7 +4917,7 @@ pub fn post_payment_method_configurations_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodConfiguration = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5011,7 +5011,7 @@ pub fn get_payment_method_configurations_configuration_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodConfiguration = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5124,7 +5124,7 @@ pub fn post_payment_method_configurations_configuration_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodConfiguration = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5336,7 +5336,7 @@ pub fn post_payment_method_domains_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodDomain = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5430,7 +5430,7 @@ pub fn get_payment_method_domains_payment_method_domain_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodDomain = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5543,7 +5543,7 @@ pub fn post_payment_method_domains_payment_method_domain_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: PaymentMethodDomain = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {

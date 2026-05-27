@@ -64,7 +64,7 @@ impl NativeOAuth {
             .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
-                foundation_netio::simple_http::SimpleHeader::CONTENT_TYPE,
+                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
                 "application/x-www-form-urlencoded",
             )
             .body_text(body)
@@ -75,8 +75,8 @@ impl NativeOAuth {
 
         if !response.is_success() {
             let body = match response.get_body_ref() {
-                foundation_netio::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
+                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                     String::from_utf8_lossy(b).to_string()
                 }
                 _ => String::new(),
@@ -88,8 +88,8 @@ impl NativeOAuth {
         }
 
         let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
+            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                 std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
             }
             _ => "",
@@ -149,7 +149,7 @@ impl NativeOAuth {
             .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
-                foundation_netio::simple_http::SimpleHeader::CONTENT_TYPE,
+                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
                 "application/x-www-form-urlencoded",
             )
             .body_text(body)
@@ -160,8 +160,8 @@ impl NativeOAuth {
 
         if !response.is_success() {
             let body = match response.get_body_ref() {
-                foundation_netio::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
+                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                     String::from_utf8_lossy(b).to_string()
                 }
                 _ => String::new(),
@@ -173,8 +173,8 @@ impl NativeOAuth {
         }
 
         let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
+            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                 std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
             }
             _ => "",
@@ -218,7 +218,7 @@ impl NativeOAuth {
             .post(&self.inner.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .header(
-                foundation_netio::simple_http::SimpleHeader::CONTENT_TYPE,
+                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
                 "application/x-www-form-urlencoded",
             )
             .body_text(body)
@@ -229,8 +229,8 @@ impl NativeOAuth {
 
         if !response.is_success() {
             let body = match response.get_body_ref() {
-                foundation_netio::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
+                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                     String::from_utf8_lossy(b).to_string()
                 }
                 _ => String::new(),
@@ -243,8 +243,8 @@ impl NativeOAuth {
         }
 
         let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::SendSafeBody::Bytes(b) => {
+            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
+            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
                 std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
             }
             _ => "",

@@ -8,7 +8,7 @@ use std::io::Write;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::event_source::{EventWriter, SseEvent};
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     Http11, RenderHttp, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
     SimpleOutgoingResponse, SendSafeBody, Status,
 };

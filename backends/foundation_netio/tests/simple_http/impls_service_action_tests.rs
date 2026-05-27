@@ -13,7 +13,7 @@
 // in the integration test suite; these unit tests focus on API shape and basic
 // trait properties.
 
-use foundation_netio::simple_http::{ServiceAction, SimpleHeader, SimpleMethod};
+use foundation_netio::simple_http::shared::{ServiceAction, SimpleHeader, SimpleMethod};
 
 /// Sanity-check: basic builder chaining compiles.
 ///

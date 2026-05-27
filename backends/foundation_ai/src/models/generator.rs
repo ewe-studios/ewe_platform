@@ -21,7 +21,7 @@ pub enum GenModelError {
     #[display("http error for {url}: {source}")]
     Http {
         url: String,
-        source: foundation_netio::simple_http::HttpClientError,
+        source: foundation_netio::simple_http::shared::HttpClientError,
     },
 
     #[display("http {status} from {url}")]

@@ -10,7 +10,7 @@
 
 use foundation_netio::simple_http::client::*;
 use foundation_netio::simple_http::url::*;
-use foundation_netio::simple_http::*;
+use foundation_netio::simple_http::shared::*;
 
 #[test]
 fn test_authority_type_is_send_sync() {

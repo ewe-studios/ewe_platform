@@ -227,7 +227,7 @@ pub fn get_application_fees_fee_refunds_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FeeRefund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -336,7 +336,7 @@ pub fn post_application_fees_fee_refunds_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FeeRefund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -551,7 +551,7 @@ pub fn post_application_fees_id_refunds_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: FeeRefund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -766,7 +766,7 @@ pub fn post_charges_charge_refunds_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -875,7 +875,7 @@ pub fn get_charges_charge_refunds_refund_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -984,7 +984,7 @@ pub fn post_charges_charge_refunds_refund_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1192,7 +1192,7 @@ pub fn post_refunds_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1281,7 +1281,7 @@ pub fn get_refunds_refund_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1387,7 +1387,7 @@ pub fn post_refunds_refund_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Refund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1492,7 +1492,7 @@ pub fn post_terminal_refunds_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::body_reader::collect_string(stream);
+                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TerminalRefund = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {

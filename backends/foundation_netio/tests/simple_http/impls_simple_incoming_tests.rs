@@ -9,7 +9,7 @@
 use foundation_netio::simple_http::client::{
     ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
 };
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     Http11, Proto, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

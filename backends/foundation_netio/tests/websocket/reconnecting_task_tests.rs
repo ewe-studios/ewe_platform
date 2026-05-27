@@ -151,7 +151,7 @@ fn test_with_subprotocols() {
 #[test]
 #[traced_test]
 fn test_with_header() {
-    use foundation_netio::simple_http::SimpleHeader;
+    use foundation_netio::simple_http::shared::SimpleHeader;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -240,7 +240,7 @@ fn test_failing_connection_eventual_exhaust() {
 #[test]
 #[traced_test]
 fn test_builder_chain() {
-    use foundation_netio::simple_http::SimpleHeader;
+    use foundation_netio::simple_http::shared::SimpleHeader;
     use std::time::Duration;
 
     let resolver = SystemDnsResolver;

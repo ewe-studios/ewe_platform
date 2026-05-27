@@ -10,7 +10,7 @@
 //! exercised deterministically.
 
 use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::*;
+use foundation_netio::simple_http::shared::*;
 
 #[test]
 fn test_intro_type_is_send_sync() {

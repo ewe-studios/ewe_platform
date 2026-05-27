@@ -10,7 +10,7 @@
 )]
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::simple_http::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
+use foundation_netio::simple_http::shared::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
 use std::io::Cursor;
 use tracing_test::traced_test;
 

@@ -6,7 +6,7 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_netio::event_source::ReconnectingEventSourceTask;
 use foundation_netio::simple_http::client::MockDnsResolver;
-use foundation_netio::simple_http::DnsError;
+use foundation_netio::simple_http::shared::DnsError;
 
 /// WHY: `ReconnectingEventSourceTask::connect` should validate URLs.
 /// WHAT: Verify connect returns Err for invalid URL.
@@ -44,7 +44,7 @@ fn test_reconnecting_task_builder_chaining() {
         .unwrap()
         .with_max_retries(10)
         .with_header(
-            foundation_netio::simple_http::SimpleHeader::custom("Authorization"),
+            foundation_netio::simple_http::shared::SimpleHeader::custom("Authorization"),
             "Bearer token",
         )
         .with_last_event_id("42");
@@ -119,11 +119,11 @@ fn test_reconnecting_task_defers_connection_until_next_status() {
     // Build task with body and headers
     let _task = ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
         .unwrap()
-        .with_body(foundation_netio::simple_http::SendSafeBody::Text(
+        .with_body(foundation_netio::simple_http::shared::SendSafeBody::Text(
             r#"{"model":"test"}"#.into(),
         ))
         .with_header(
-            foundation_netio::simple_http::SimpleHeader::AUTHORIZATION,
+            foundation_netio::simple_http::shared::SimpleHeader::AUTHORIZATION,
             "Bearer test-key",
         );
 

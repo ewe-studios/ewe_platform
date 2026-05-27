@@ -1,6 +1,6 @@
 //! Health check handler — responds to /health, /health/live, /health/ready.
 
-use foundation_netio::simple_http::SimpleIncomingRequest;
+use foundation_netio::simple_http::shared::SimpleIncomingRequest;
 use serde_json::json;
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;

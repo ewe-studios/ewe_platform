@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 use wasm_bindgen::prelude::*;

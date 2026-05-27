@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::{SimpleHeader, SimpleIncomingRequest};
+use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest};
 use uuid::Uuid;
 
 use crate::shared::context::ContextBag;

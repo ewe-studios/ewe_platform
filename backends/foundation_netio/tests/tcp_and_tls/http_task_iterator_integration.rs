@@ -117,7 +117,7 @@ fn test_simple_http_client_all_methods() {
 /// WHAT: Tests that header() method works with SimpleHeader enum
 #[test]
 fn test_client_request_builder_with_headers() {
-    use foundation_netio::simple_http::SimpleHeader;
+    use foundation_netio::simple_http::shared::SimpleHeader;
 
     let builder = ClientRequestBuilder::get("http://example.com")
         .unwrap()

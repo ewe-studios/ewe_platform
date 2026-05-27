@@ -82,7 +82,7 @@ fn test_external_httpbin_status_codes() {
 #[ignore] // Requires network
 fn test_external_httpbin_headers() {
     // TODO: Uncomment when SimpleHttpClient has execute() method and header support
-    // use foundation_netio::simple_http::SimpleHeader;
+    // use foundation_netio::simple_http::shared::SimpleHeader;
     //
     // let client = SimpleHttpClient::new();
     // let response = client

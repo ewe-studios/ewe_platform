@@ -5,7 +5,7 @@
 //! public `SimpleUrl` helper used by the simple HTTP backend for path matching
 //! and parameter extraction. They avoid network access and focus on parser logic.
 
-use foundation_netio::simple_http::{url::PathAndQuery, SimpleUrl};
+use foundation_netio::simple_http::shared::{url::PathAndQuery, SimpleUrl};
 use std::collections::BTreeMap;
 
 #[test]

@@ -9,9 +9,9 @@ use super::*;
 use foundation_netio::simple_http::client::{
     HttpClientConnection, MockDnsResolver, SystemDnsResolver,
 };
-use foundation_netio::simple_http::HttpClientError;
+use foundation_netio::simple_http::shared::HttpClientError;
 
-use foundation_netio::simple_http::{client::Uri, url::Scheme};
+use foundation_netio::simple_http::shared::{client::Uri, url::Scheme};
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     time::Duration,

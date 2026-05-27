@@ -1,6 +1,6 @@
 use std::io;
 
-use foundation_netio::simple_http::{DnsError, HttpClientError};
+use foundation_netio::simple_http::shared::{DnsError, HttpClientError};
 
 #[test]
 fn test_dns_error_resolution_failed_display() {

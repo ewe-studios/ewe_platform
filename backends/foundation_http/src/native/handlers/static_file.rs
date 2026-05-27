@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::{
+use foundation_netio::simple_http::shared::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
     SendSafeBody, Status,
 };

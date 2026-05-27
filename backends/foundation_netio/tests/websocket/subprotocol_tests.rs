@@ -210,7 +210,7 @@ fn test_server_without_subprotocol_support() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_subprotocol_header_extraction() {
-    use foundation_netio::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     // Build a mock request with subprotocol header
     let builder = SimpleIncomingRequest::builder()
@@ -238,7 +238,7 @@ fn test_subprotocol_header_extraction() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_missing_subprotocol_returns_none() {
-    use foundation_netio::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -263,7 +263,7 @@ fn test_missing_subprotocol_returns_none() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_empty_subprotocol_string() {
-    use foundation_netio::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -290,7 +290,7 @@ fn test_empty_subprotocol_string() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
-    use foundation_netio::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
     use foundation_netio::websocket::WebSocketUpgrade;
 
     // Build request with subprotocol
