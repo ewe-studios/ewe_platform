@@ -11,8 +11,8 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator};
-use foundation_netio::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_netio::simple_http::client::shared::{
     body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
 };
@@ -981,129 +981,152 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
         };
 
         match item {
-            Stream::Next(parse_result) => {
-                let Event::Message {
-                    data, event_type, ..
-                } = &parse_result.event
-                else {
-                    return Some(Stream::Ignore);
-                };
-
-                // Anthropic uses named events; skip if no event name
-                let event_name = event_type.as_ref().map_or("", String::as_str);
-                if event_name.is_empty() {
-                    return Some(Stream::Ignore);
-                }
-
-                match event_name {
-                    "message_start" => {
-                        let Ok(StreamEvent::MessageStart { message }) =
-                            serde_json::from_str::<StreamEvent>(data)
-                        else {
-                            return Some(Stream::Ignore);
-                        };
-                        self.usage = Some(message.usage);
-                        Some(Stream::Ignore)
-                    }
-                    "content_block_start" => {
-                        let Ok(StreamEvent::ContentBlockStart { content_block, .. }) =
-                            serde_json::from_str::<StreamEvent>(data)
-                        else {
-                            return Some(Stream::Ignore);
-                        };
-                        if let AnthropicContentBlock::ToolUse { id, name, .. } = content_block {
-                            self.tool_calls.push(AccumulatedToolCall {
-                                id,
-                                name,
-                                arguments: String::new(),
-                            });
-                        }
-                        Some(Stream::Ignore)
-                    }
-                    "content_block_delta" => {
-                        let Ok(StreamEvent::ContentBlockDelta { delta, .. }) =
-                            serde_json::from_str::<StreamEvent>(data)
-                        else {
-                            return Some(Stream::Ignore);
-                        };
-                        match delta {
-                            AnthropicDelta::TextDelta { text } => {
-                                self.accumulated_text.push_str(&text);
-                                Some(Stream::Next(Messages::Assistant {
-                                    model: self.model_id.clone(),
-                                    timestamp: SystemTime::now(),
-                                    usage: empty_usage_report(),
-                                    content: ModelOutput::Text(TextContent {
-                                        content: self.accumulated_text.clone(),
-                                        signature: None,
-                                    }),
-                                    stop_reason: StopReason::Stop,
-                                    provider: ModelProviders::ANTHROPIC,
-                                    error_detail: None,
-                                    signature: None,
-                                    metadata: None,
-                                }))
-                            }
-                            AnthropicDelta::ThinkingDelta { thinking } => {
-                                self.accumulated_thinking.push_str(&thinking);
-                                Some(Stream::Next(Messages::Assistant {
-                                    model: self.model_id.clone(),
-                                    timestamp: SystemTime::now(),
-                                    usage: empty_usage_report(),
-                                    content: ModelOutput::ThinkingContent {
-                                        thinking: self.accumulated_thinking.clone(),
-                                        signature: None,
-                                    },
-                                    stop_reason: StopReason::Stop,
-                                    provider: ModelProviders::ANTHROPIC,
-                                    error_detail: None,
-                                    signature: None,
-                                    metadata: None,
-                                }))
-                            }
-                            AnthropicDelta::InputJsonDelta { partial_json } => {
-                                if let Some(tc) = self.tool_calls.last_mut() {
-                                    tc.arguments.push_str(&partial_json);
-                                }
-                                Some(Stream::Ignore)
-                            }
-                        }
-                    }
-                    #[allow(clippy::match_same_arms)]
-                    "content_block_stop" => Some(Stream::Ignore),
-                    "message_delta" => {
-                        let Ok(StreamEvent::MessageDelta { delta, usage }) =
-                            serde_json::from_str::<StreamEvent>(data)
-                        else {
-                            return Some(Stream::Ignore);
-                        };
-                        if let Some(reason) = delta.stop_reason {
-                            self.stop_reason = Some(reason);
-                        }
-                        self.usage = Some(usage);
-                        Some(Stream::Ignore)
-                    }
-                    "message_stop" => {
-                        let (messages, report) = self.build_final_messages_with_cost();
-                        self.final_messages = messages;
-                        self.final_message_index = 0;
-                        self.cumulative_cost.borrow_mut().add(&report.cost);
-                        Some(Stream::Ignore)
-                    }
-                    _ => Some(Stream::Ignore),
-                }
-            }
+            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
-            Stream::Spread(_) => Some(Stream::Ignore),
+            Stream::Spread(items) => {
+                let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
+                for item in items {
+                    match item {
+                        StreamSpread::Done(parse_result) => {
+                            match self.process_parse_result(parse_result) {
+                                Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                                Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                                Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                            }
+                        }
+                        StreamSpread::Pending(_) => {
+                            mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
+                        }
+                    }
+                }
+                if mapped.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(mapped))
+                }
+            }
         }
     }
 }
 
 impl<R: DnsResolver + 'static> AnthropicStream<R> {
+    /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
+    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+        let Event::Message {
+            data, event_type, ..
+        } = &parse_result.event
+        else {
+            return Stream::Ignore;
+        };
+
+        let event_name = event_type.as_ref().map_or("", String::as_str);
+        if event_name.is_empty() {
+            return Stream::Ignore;
+        }
+
+        match event_name {
+            "message_start" => {
+                let Ok(StreamEvent::MessageStart { message }) =
+                    serde_json::from_str::<StreamEvent>(data)
+                else {
+                    return Stream::Ignore;
+                };
+                self.usage = Some(message.usage);
+                Stream::Ignore
+            }
+            "content_block_start" => {
+                let Ok(StreamEvent::ContentBlockStart { content_block, .. }) =
+                    serde_json::from_str::<StreamEvent>(data)
+                else {
+                    return Stream::Ignore;
+                };
+                if let AnthropicContentBlock::ToolUse { id, name, .. } = content_block {
+                    self.tool_calls.push(AccumulatedToolCall {
+                        id,
+                        name,
+                        arguments: String::new(),
+                    });
+                }
+                Stream::Ignore
+            }
+            "content_block_delta" => {
+                let Ok(StreamEvent::ContentBlockDelta { delta, .. }) =
+                    serde_json::from_str::<StreamEvent>(data)
+                else {
+                    return Stream::Ignore;
+                };
+                match delta {
+                    AnthropicDelta::TextDelta { text } => {
+                        self.accumulated_text.push_str(&text);
+                        Stream::Next(Messages::Assistant {
+                            model: self.model_id.clone(),
+                            timestamp: SystemTime::now(),
+                            usage: empty_usage_report(),
+                            content: ModelOutput::Text(TextContent {
+                                content: self.accumulated_text.clone(),
+                                signature: None,
+                            }),
+                            stop_reason: StopReason::Stop,
+                            provider: ModelProviders::ANTHROPIC,
+                            error_detail: None,
+                            signature: None,
+                            metadata: None,
+                        })
+                    }
+                    AnthropicDelta::ThinkingDelta { thinking } => {
+                        self.accumulated_thinking.push_str(&thinking);
+                        Stream::Next(Messages::Assistant {
+                            model: self.model_id.clone(),
+                            timestamp: SystemTime::now(),
+                            usage: empty_usage_report(),
+                            content: ModelOutput::ThinkingContent {
+                                thinking: self.accumulated_thinking.clone(),
+                                signature: None,
+                            },
+                            stop_reason: StopReason::Stop,
+                            provider: ModelProviders::ANTHROPIC,
+                            error_detail: None,
+                            signature: None,
+                            metadata: None,
+                        })
+                    }
+                    AnthropicDelta::InputJsonDelta { partial_json } => {
+                        if let Some(tc) = self.tool_calls.last_mut() {
+                            tc.arguments.push_str(&partial_json);
+                        }
+                        Stream::Ignore
+                    }
+                }
+            }
+            #[allow(clippy::match_same_arms)]
+            "content_block_stop" => Stream::Ignore,
+            "message_delta" => {
+                let Ok(StreamEvent::MessageDelta { delta, usage }) =
+                    serde_json::from_str::<StreamEvent>(data)
+                else {
+                    return Stream::Ignore;
+                };
+                if let Some(reason) = delta.stop_reason {
+                    self.stop_reason = Some(reason);
+                }
+                self.usage = Some(usage);
+                Stream::Ignore
+            }
+            "message_stop" => {
+                let (messages, report) = self.build_final_messages_with_cost();
+                self.final_messages = messages;
+                self.final_message_index = 0;
+                self.cumulative_cost.borrow_mut().add(&report.cost);
+                Stream::Ignore
+            }
+            _ => Stream::Ignore,
+        }
+    }
+
     fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {
         let usage_report = self.usage.as_ref().map_or_else(empty_usage_report, |u| {
             make_usage_report(

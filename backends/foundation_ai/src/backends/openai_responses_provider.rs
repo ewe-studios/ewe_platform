@@ -9,8 +9,8 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator};
-use foundation_netio::event_source::{Event, ReconnectingEventSourceTask};
+use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_netio::simple_http::client::shared::{
     body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
 };
@@ -884,64 +884,86 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
             let item = self.inner.next()?;
 
             match item {
-                Stream::Next(parse_result) => {
-                    let Event::Message { data, .. } = &parse_result.event else {
-                        continue;
-                    };
-
-                    let Ok(event) = serde_json::from_str::<ResponseEvent>(data) else {
-                        tracing::warn!(data = %data, "Failed to parse SSE chunk JSON in Responses API");
-                        return Some(Stream::Next(Messages::Assistant {
-                            model: self.model_id.clone(),
-                            timestamp: SystemTime::now(),
-                            usage: empty_usage_report(),
-                            content: ModelOutput::Text(TextContent {
-                                content: self.accumulated_text.clone(),
-                                signature: None,
-                            }),
-                            stop_reason: StopReason::Error,
-                            provider: ModelProviders::OPENAIRESPONSES,
-                            error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
-                            signature: None,
-                            metadata: None,
-                        }));
-                    };
-
-                    match event {
-                        ResponseEvent::ResponseOutputTextDelta { delta, .. } => {
-                            self.accumulated_text.push_str(&delta);
-                            return Some(Stream::Next(Messages::Assistant {
-                                model: self.model_id.clone(),
-                                timestamp: SystemTime::now(),
-                                usage: empty_usage_report(),
-                                content: ModelOutput::Text(TextContent {
-                                    content: self.accumulated_text.clone(),
-                                    signature: None,
-                                }),
-                                stop_reason: StopReason::Stop,
-                                provider: ModelProviders::OPENAIRESPONSES,
-                                error_detail: None,
-                                signature: None,
-                                metadata: None,
-                            }));
+                Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
+                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait => continue,
+                Stream::Spread(items) => {
+                    let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
+                    for item in items {
+                        match item {
+                            StreamSpread::Done(parse_result) => {
+                                match self.process_parse_result(parse_result) {
+                                    Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                                    Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                                    Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                                }
+                            }
+                            StreamSpread::Pending(_) => {
+                                mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
+                            }
                         }
-                        ResponseEvent::ResponseCompleted { response }
-                        | ResponseEvent::ResponseFailed { response } => {
-                            self.response = Some(response);
-                            self.done = true;
-                            return Some(Stream::Next(self.build_final_message()));
-                        }
-                        _ => {}
+                    }
+                    if !mapped.is_empty() {
+                        return Some(Stream::Spread(mapped));
                     }
                 }
-                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait => {}
-                Stream::Spread(_) => {}
             }
         }
     }
 }
 
 impl<R: DnsResolver + 'static> ResponsesStream<R> {
+    /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
+    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+        let Event::Message { data, .. } = &parse_result.event else {
+            return Stream::Ignore;
+        };
+
+        let Ok(event) = serde_json::from_str::<ResponseEvent>(data) else {
+            tracing::warn!(data = %data, "Failed to parse SSE chunk JSON in Responses API");
+            return Stream::Next(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: empty_usage_report(),
+                content: ModelOutput::Text(TextContent {
+                    content: self.accumulated_text.clone(),
+                    signature: None,
+                }),
+                stop_reason: StopReason::Error,
+                provider: ModelProviders::OPENAIRESPONSES,
+                error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
+                signature: None,
+                metadata: None,
+            });
+        };
+
+        match event {
+            ResponseEvent::ResponseOutputTextDelta { delta, .. } => {
+                self.accumulated_text.push_str(&delta);
+                Stream::Next(Messages::Assistant {
+                    model: self.model_id.clone(),
+                    timestamp: SystemTime::now(),
+                    usage: empty_usage_report(),
+                    content: ModelOutput::Text(TextContent {
+                        content: self.accumulated_text.clone(),
+                        signature: None,
+                    }),
+                    stop_reason: StopReason::Stop,
+                    provider: ModelProviders::OPENAIRESPONSES,
+                    error_detail: None,
+                    signature: None,
+                    metadata: None,
+                })
+            }
+            ResponseEvent::ResponseCompleted { response }
+            | ResponseEvent::ResponseFailed { response } => {
+                self.response = Some(response);
+                self.done = true;
+                Stream::Next(self.build_final_message())
+            }
+            _ => Stream::Ignore,
+        }
+    }
+
     fn build_final_message(&self) -> Messages {
         let Some(response) = &self.response else {
             return Messages::Assistant {

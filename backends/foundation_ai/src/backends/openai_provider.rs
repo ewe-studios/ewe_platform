@@ -13,9 +13,9 @@ use std::time::{Duration, SystemTime};
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator};
+use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
 use foundation_netio::event_source::{
-    Event, ReconnectingEventSourceTask, ReconnectingProgress,
+    Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
 };
 use foundation_netio::simple_http::client::shared::{
     body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
@@ -958,79 +958,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
         let item = self.inner.next()?;
 
         match item {
-            Stream::Next(parse_result) => {
-                let Event::Message { data, .. } = &parse_result.event else {
-                    return Some(Stream::Ignore);
-                };
-
-                if data.trim() == "[DONE]" {
-                    self.done = true;
-                    let (msg, report) = self.build_final_message();
-                    self.cumulative_cost.borrow_mut().add(&report.cost);
-                    return Some(Stream::Next(msg));
-                }
-
-                let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
-                    tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
-                    return Some(Stream::Next(Messages::Assistant {
-                        model: self.model_id.clone(),
-                        timestamp: SystemTime::now(),
-                        usage: empty_usage_report(),
-                        content: ModelOutput::Text(TextContent {
-                            content: self.accumulated_text.clone(),
-                            signature: None,
-                        }),
-                        stop_reason: StopReason::Error,
-                        provider: ModelProviders::OPENAI,
-                        error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
-                        signature: None,
-                        metadata: None,
-                    }));
-                };
-
-                if let Some(u) = chunk.usage {
-                    self.usage = Some(u);
-                }
-
-                let mut text_yielded = false;
-                for choice in &chunk.choices {
-                    if let Some(ref delta) = choice.delta {
-                        if let Some(ref content) = delta.content {
-                            if !content.is_empty() {
-                                self.accumulated_text.push_str(content);
-                                text_yielded = true;
-                            }
-                        }
-                        if let Some(ref tool_calls) = delta.tool_calls {
-                            self.accumulate_tool_calls(tool_calls);
-                        }
-                    }
-                    if let Some(ref reason) = choice.finish_reason {
-                        if reason != "null" {
-                            self.finish_reason = Some(reason.clone());
-                        }
-                    }
-                }
-
-                if text_yielded {
-                    Some(Stream::Next(Messages::Assistant {
-                        model: self.model_id.clone(),
-                        timestamp: SystemTime::now(),
-                        usage: empty_usage_report(),
-                        content: ModelOutput::Text(TextContent {
-                            content: self.accumulated_text.clone(),
-                            signature: None,
-                        }),
-                        stop_reason: StopReason::Stop,
-                        provider: ModelProviders::OPENAI,
-                        error_detail: None,
-                        signature: None,
-                        metadata: None,
-                    }))
-                } else {
-                    Some(Stream::Ignore)
-                }
-            }
+            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
             Stream::Pending(p) => Some(Stream::Pending(match p {
                 ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
                     ModelState::GeneratingTokens(None)
@@ -1041,12 +969,114 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
-            Stream::Spread(_) => Some(Stream::Ignore),
+            Stream::Spread(items) => {
+                let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
+                for item in items {
+                    match item {
+                        StreamSpread::Done(parse_result) => {
+                            match self.process_parse_result(parse_result) {
+                                Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                                Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                                Stream::Delayed(_) => {
+                                    // Delayed from parse: convert to Done with final message
+                                    self.done = true;
+                                    let (msg, _) = self.build_final_message();
+                                    mapped.push(StreamSpread::Done(msg));
+                                }
+                                Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                            }
+                        }
+                        StreamSpread::Pending(_) => {
+                            mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
+                        }
+                    }
+                }
+                if mapped.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(mapped))
+                }
+            }
         }
     }
 }
 
 impl<R: DnsResolver + 'static> OpenAIStream<R> {
+    /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
+    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+        let Event::Message { data, .. } = &parse_result.event else {
+            return Stream::Ignore;
+        };
+
+        if data.trim() == "[DONE]" {
+            self.done = true;
+            let (msg, report) = self.build_final_message();
+            self.cumulative_cost.borrow_mut().add(&report.cost);
+            return Stream::Next(msg);
+        }
+
+        let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
+            tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
+            return Stream::Next(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: empty_usage_report(),
+                content: ModelOutput::Text(TextContent {
+                    content: self.accumulated_text.clone(),
+                    signature: None,
+                }),
+                stop_reason: StopReason::Error,
+                provider: ModelProviders::OPENAI,
+                error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
+                signature: None,
+                metadata: None,
+            });
+        };
+
+        if let Some(u) = chunk.usage {
+            self.usage = Some(u);
+        }
+
+        let mut text_yielded = false;
+        for choice in &chunk.choices {
+            if let Some(ref delta) = choice.delta {
+                if let Some(ref content) = delta.content {
+                    if !content.is_empty() {
+                        self.accumulated_text.push_str(content);
+                        text_yielded = true;
+                    }
+                }
+                if let Some(ref tool_calls) = delta.tool_calls {
+                    self.accumulate_tool_calls(tool_calls);
+                }
+            }
+            if let Some(ref reason) = choice.finish_reason {
+                if reason != "null" {
+                    self.finish_reason = Some(reason.clone());
+                }
+            }
+        }
+
+        if text_yielded {
+            Stream::Next(Messages::Assistant {
+                model: self.model_id.clone(),
+                timestamp: SystemTime::now(),
+                usage: empty_usage_report(),
+                content: ModelOutput::Text(TextContent {
+                    content: self.accumulated_text.clone(),
+                    signature: None,
+                }),
+                stop_reason: StopReason::Stop,
+                provider: ModelProviders::OPENAI,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            })
+        } else {
+            Stream::Ignore
+        }
+    }
+
     fn accumulate_tool_calls(&mut self, deltas: &[OpenAIToolCallDelta]) {
         for delta in deltas {
             let idx = delta.index as usize;
