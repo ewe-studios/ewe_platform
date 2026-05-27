@@ -97,7 +97,7 @@ pub fn oauth2_userinfo_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://www.googleapis.com/oauth2/v2/userinfo",);
@@ -131,7 +131,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Userinfo =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -186,7 +186,7 @@ pub fn oauth2_userinfo_v2_me_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://www.googleapis.com/userinfo/v2/me",);
@@ -220,7 +220,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Userinfo =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

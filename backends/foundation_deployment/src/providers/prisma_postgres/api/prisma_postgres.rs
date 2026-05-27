@@ -177,7 +177,7 @@ use std::sync::Arc;
 pub struct PrismaPostgresProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     client: ProviderClient<S, R>,
     http_client: Arc<SimpleHttpClient<R>>,
@@ -186,7 +186,7 @@ where
 impl<S, R> PrismaPostgresProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// Create new PrismaPostgresProvider.
     pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {

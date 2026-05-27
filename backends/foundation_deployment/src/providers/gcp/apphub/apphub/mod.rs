@@ -983,7 +983,7 @@ pub fn apphub_projects_locations_detach_service_project_attachment_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1024,7 +1024,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DetachServiceProjectAttachmentResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1079,7 +1079,7 @@ pub fn apphub_projects_locations_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -1113,7 +1113,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Location =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1168,7 +1168,7 @@ pub fn apphub_projects_locations_get_boundary_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -1202,7 +1202,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Boundary =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1257,7 +1257,7 @@ pub fn apphub_projects_locations_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/locations", args.name,);
@@ -1337,7 +1337,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListLocationsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1395,7 +1395,7 @@ pub fn apphub_projects_locations_lookup_service_project_attachment_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1432,7 +1432,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: LookupServiceProjectAttachmentResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1487,7 +1487,7 @@ pub fn apphub_projects_locations_update_boundary_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -1551,7 +1551,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1606,7 +1606,7 @@ pub fn apphub_projects_locations_applications_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1673,7 +1673,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1728,7 +1728,7 @@ pub fn apphub_projects_locations_applications_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -1778,7 +1778,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1833,7 +1833,7 @@ pub fn apphub_projects_locations_applications_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -1867,7 +1867,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Application =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1922,7 +1922,7 @@ pub fn apphub_projects_locations_applications_get_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1975,7 +1975,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2030,7 +2030,7 @@ pub fn apphub_projects_locations_applications_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2113,7 +2113,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListApplicationsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2168,7 +2168,7 @@ pub fn apphub_projects_locations_applications_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -2232,7 +2232,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2287,7 +2287,7 @@ pub fn apphub_projects_locations_applications_set_iam_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2328,7 +2328,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2383,7 +2383,7 @@ pub fn apphub_projects_locations_applications_test_iam_permissions_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2424,7 +2424,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TestIamPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2479,7 +2479,7 @@ pub fn apphub_projects_locations_applications_services_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/services", args.parent,);
@@ -2543,7 +2543,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2598,7 +2598,7 @@ pub fn apphub_projects_locations_applications_services_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -2648,7 +2648,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2703,7 +2703,7 @@ pub fn apphub_projects_locations_applications_services_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -2737,7 +2737,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Service =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2792,7 +2792,7 @@ pub fn apphub_projects_locations_applications_services_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/services", args.parent,);
@@ -2872,7 +2872,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListServicesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2927,7 +2927,7 @@ pub fn apphub_projects_locations_applications_services_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -2991,7 +2991,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3046,7 +3046,7 @@ pub fn apphub_projects_locations_applications_workloads_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/workloads", args.parent,);
@@ -3110,7 +3110,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3165,7 +3165,7 @@ pub fn apphub_projects_locations_applications_workloads_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -3215,7 +3215,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3270,7 +3270,7 @@ pub fn apphub_projects_locations_applications_workloads_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -3304,7 +3304,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Workload =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3359,7 +3359,7 @@ pub fn apphub_projects_locations_applications_workloads_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/workloads", args.parent,);
@@ -3439,7 +3439,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListWorkloadsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3494,7 +3494,7 @@ pub fn apphub_projects_locations_applications_workloads_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -3558,7 +3558,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3613,7 +3613,7 @@ pub fn apphub_projects_locations_discovered_services_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -3647,7 +3647,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DiscoveredService =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3702,7 +3702,7 @@ pub fn apphub_projects_locations_discovered_services_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3785,7 +3785,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListDiscoveredServicesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3840,7 +3840,7 @@ pub fn apphub_projects_locations_discovered_services_lookup_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3893,7 +3893,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: LookupDiscoveredServiceResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3948,7 +3948,7 @@ pub fn apphub_projects_locations_discovered_workloads_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -3982,7 +3982,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DiscoveredWorkload =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4037,7 +4037,7 @@ pub fn apphub_projects_locations_discovered_workloads_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4120,7 +4120,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListDiscoveredWorkloadsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4175,7 +4175,7 @@ pub fn apphub_projects_locations_discovered_workloads_lookup_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4228,7 +4228,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: LookupDiscoveredWorkloadResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4283,7 +4283,7 @@ pub fn apphub_projects_locations_extended_metadata_schemas_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -4317,7 +4317,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ExtendedMetadataSchema =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4375,7 +4375,7 @@ pub fn apphub_projects_locations_extended_metadata_schemas_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4438,7 +4438,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListExtendedMetadataSchemasResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4493,7 +4493,7 @@ pub fn apphub_projects_locations_operations_cancel_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}:cancel", args.name,);
@@ -4531,7 +4531,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4586,7 +4586,7 @@ pub fn apphub_projects_locations_operations_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -4620,7 +4620,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4675,7 +4675,7 @@ pub fn apphub_projects_locations_operations_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -4709,7 +4709,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4764,7 +4764,7 @@ pub fn apphub_projects_locations_operations_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}/operations", args.name,);
@@ -4844,7 +4844,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListOperationsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4899,7 +4899,7 @@ pub fn apphub_projects_locations_service_project_attachments_create_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4966,7 +4966,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5021,7 +5021,7 @@ pub fn apphub_projects_locations_service_project_attachments_delete_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -5071,7 +5071,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Operation =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5126,7 +5126,7 @@ pub fn apphub_projects_locations_service_project_attachments_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://apphub.googleapis.com/v1/{}", args.name,);
@@ -5160,7 +5160,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ServiceProjectAttachment =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5218,7 +5218,7 @@ pub fn apphub_projects_locations_service_project_attachments_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5301,7 +5301,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListServiceProjectAttachmentsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

@@ -474,7 +474,7 @@ pub fn bigqueryconnection_projects_locations_connections_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -531,7 +531,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Connection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -586,7 +586,7 @@ pub fn bigqueryconnection_projects_locations_connections_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://bigqueryconnection.googleapis.com/v1/{}", args.name,);
@@ -620,7 +620,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -675,7 +675,7 @@ pub fn bigqueryconnection_projects_locations_connections_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://bigqueryconnection.googleapis.com/v1/{}", args.name,);
@@ -709,7 +709,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Connection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -764,7 +764,7 @@ pub fn bigqueryconnection_projects_locations_connections_get_iam_policy_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -805,7 +805,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -860,7 +860,7 @@ pub fn bigqueryconnection_projects_locations_connections_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -923,7 +923,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ListConnectionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -978,7 +978,7 @@ pub fn bigqueryconnection_projects_locations_connections_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://bigqueryconnection.googleapis.com/v1/{}", args.name,);
@@ -1032,7 +1032,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Connection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1087,7 +1087,7 @@ pub fn bigqueryconnection_projects_locations_connections_set_iam_policy_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1128,7 +1128,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Policy =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1183,7 +1183,7 @@ pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions_re
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1224,7 +1224,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: TestIamPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

@@ -174,7 +174,7 @@ pub fn searchads360_customers_list_accessible_customers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -209,7 +209,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -267,7 +267,7 @@ pub fn searchads360_customers_custom_columns_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -304,7 +304,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ResourcesCustomColumn =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -362,7 +362,7 @@ pub fn searchads360_customers_custom_columns_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -399,7 +399,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ServicesListCustomColumnsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -457,7 +457,7 @@ pub fn searchads360_customers_search_ads360_search_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -498,7 +498,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ServicesSearchSearchAds360Response =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -556,7 +556,7 @@ pub fn searchads360_search_ads360_fields_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -593,7 +593,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ResourcesSearchAds360Field =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -651,7 +651,7 @@ pub fn searchads360_search_ads360_fields_search_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields:search",);
@@ -689,7 +689,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

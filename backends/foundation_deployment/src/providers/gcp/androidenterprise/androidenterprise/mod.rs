@@ -1838,7 +1838,7 @@ pub fn androidenterprise_devices_force_report_upload_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1926,7 +1926,7 @@ pub fn androidenterprise_devices_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1965,7 +1965,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Device =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2020,7 +2020,7 @@ pub fn androidenterprise_devices_get_state_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2059,7 +2059,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DeviceState =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2114,7 +2114,7 @@ pub fn androidenterprise_devices_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2152,7 +2152,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DevicesListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2207,7 +2207,7 @@ pub fn androidenterprise_devices_set_state_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2250,7 +2250,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: DeviceState =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2305,7 +2305,7 @@ pub fn androidenterprise_devices_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2364,7 +2364,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Device =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2419,7 +2419,7 @@ pub fn androidenterprise_enrollment_tokens_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2460,7 +2460,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: EnrollmentToken =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2515,7 +2515,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2616,7 +2616,7 @@ pub fn androidenterprise_enterprises_complete_signup_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2678,7 +2678,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Enterprise =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2733,7 +2733,7 @@ pub fn androidenterprise_enterprises_create_web_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2774,7 +2774,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AdministratorWebToken =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2829,7 +2829,7 @@ pub fn androidenterprise_enterprises_enroll_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2885,7 +2885,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Enterprise =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2943,7 +2943,7 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_request<R, 
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3006,7 +3006,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GenerateEnterpriseUpgradeUrlResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3061,7 +3061,7 @@ pub fn androidenterprise_enterprises_generate_signup_url_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3133,7 +3133,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: SignupInfo =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3188,7 +3188,7 @@ pub fn androidenterprise_enterprises_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3225,7 +3225,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Enterprise =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3280,7 +3280,7 @@ pub fn androidenterprise_enterprises_get_service_account_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3333,7 +3333,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ServiceAccount =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3388,7 +3388,7 @@ pub fn androidenterprise_enterprises_get_store_layout_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3425,7 +3425,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreLayout =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3480,7 +3480,7 @@ pub fn androidenterprise_enterprises_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -3531,7 +3531,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: EnterprisesListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3586,7 +3586,7 @@ pub fn androidenterprise_enterprises_pull_notification_set_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3638,7 +3638,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: NotificationSet =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3696,7 +3696,7 @@ pub fn androidenterprise_enterprises_send_test_push_notification_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3733,7 +3733,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: EnterprisesSendTestPushNotificationResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3788,7 +3788,7 @@ pub fn androidenterprise_enterprises_set_account_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3829,7 +3829,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: EnterpriseAccount =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3884,7 +3884,7 @@ pub fn androidenterprise_enterprises_set_store_layout_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3925,7 +3925,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreLayout =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3980,7 +3980,7 @@ pub fn androidenterprise_enterprises_unenroll_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4066,7 +4066,7 @@ pub fn androidenterprise_entitlements_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4154,7 +4154,7 @@ pub fn androidenterprise_entitlements_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4193,7 +4193,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Entitlement =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4248,7 +4248,7 @@ pub fn androidenterprise_entitlements_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4286,7 +4286,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: EntitlementsListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4341,7 +4341,7 @@ pub fn androidenterprise_entitlements_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4400,7 +4400,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Entitlement =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4455,7 +4455,7 @@ pub fn androidenterprise_grouplicenses_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4493,7 +4493,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GroupLicense =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4548,7 +4548,7 @@ pub fn androidenterprise_grouplicenses_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4585,7 +4585,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GroupLicensesListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4640,7 +4640,7 @@ pub fn androidenterprise_grouplicenseusers_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4678,7 +4678,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: GroupLicenseUsersListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4733,7 +4733,7 @@ pub fn androidenterprise_installs_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4822,7 +4822,7 @@ pub fn androidenterprise_installs_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4862,7 +4862,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Install =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4917,7 +4917,7 @@ pub fn androidenterprise_installs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4956,7 +4956,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: InstallsListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5011,7 +5011,7 @@ pub fn androidenterprise_installs_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5055,7 +5055,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Install =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5110,7 +5110,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5199,7 +5199,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5239,7 +5239,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfiguration =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5297,7 +5297,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5336,7 +5336,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfigurationsForDeviceListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5391,7 +5391,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5435,7 +5435,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfiguration =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5490,7 +5490,7 @@ pub fn androidenterprise_managedconfigurationsforuser_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5578,7 +5578,7 @@ pub fn androidenterprise_managedconfigurationsforuser_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5617,7 +5617,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfiguration =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5675,7 +5675,7 @@ pub fn androidenterprise_managedconfigurationsforuser_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5713,7 +5713,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfigurationsForUserListResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5768,7 +5768,7 @@ pub fn androidenterprise_managedconfigurationsforuser_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5811,7 +5811,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfiguration =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5869,7 +5869,7 @@ pub fn androidenterprise_managedconfigurationssettings_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5907,7 +5907,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ManagedConfigurationsSettingsListResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -5962,7 +5962,7 @@ pub fn androidenterprise_permissions_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6015,7 +6015,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Permission =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6070,7 +6070,7 @@ pub fn androidenterprise_products_approve_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6164,7 +6164,7 @@ pub fn androidenterprise_products_generate_approval_url_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6218,7 +6218,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ProductsGenerateApprovalUrlResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6273,7 +6273,7 @@ pub fn androidenterprise_products_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6326,7 +6326,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: Product =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6381,7 +6381,7 @@ pub fn androidenterprise_products_get_app_restrictions_schema_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6435,7 +6435,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AppRestrictionsSchema =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6490,7 +6490,7 @@ pub fn androidenterprise_products_get_permissions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6528,7 +6528,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ProductPermissions =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6583,7 +6583,7 @@ pub fn androidenterprise_products_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6676,7 +6676,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ProductsListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -6731,7 +6731,7 @@ pub fn androidenterprise_products_unapprove_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6818,7 +6818,7 @@ pub fn androidenterprise_serviceaccountkeys_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6905,7 +6905,7 @@ pub fn androidenterprise_serviceaccountkeys_insert_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6946,7 +6946,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ServiceAccountKey =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7001,7 +7001,7 @@ pub fn androidenterprise_serviceaccountkeys_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7038,7 +7038,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ServiceAccountKeysListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7093,7 +7093,7 @@ pub fn androidenterprise_storelayoutclusters_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7181,7 +7181,7 @@ pub fn androidenterprise_storelayoutclusters_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7220,7 +7220,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreCluster =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7275,7 +7275,7 @@ pub fn androidenterprise_storelayoutclusters_insert_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7317,7 +7317,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreCluster =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7372,7 +7372,7 @@ pub fn androidenterprise_storelayoutclusters_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7410,7 +7410,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreLayoutClustersListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7465,7 +7465,7 @@ pub fn androidenterprise_storelayoutclusters_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7508,7 +7508,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreCluster =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7563,7 +7563,7 @@ pub fn androidenterprise_storelayoutpages_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7650,7 +7650,7 @@ pub fn androidenterprise_storelayoutpages_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7688,7 +7688,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StorePage =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7743,7 +7743,7 @@ pub fn androidenterprise_storelayoutpages_insert_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7784,7 +7784,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StorePage =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7839,7 +7839,7 @@ pub fn androidenterprise_storelayoutpages_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7876,7 +7876,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StoreLayoutPagesListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7931,7 +7931,7 @@ pub fn androidenterprise_storelayoutpages_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7973,7 +7973,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: StorePage =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8028,7 +8028,7 @@ pub fn androidenterprise_users_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8114,7 +8114,7 @@ pub fn androidenterprise_users_generate_authentication_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8152,7 +8152,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: AuthenticationToken =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8207,7 +8207,7 @@ pub fn androidenterprise_users_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8244,7 +8244,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: User =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8299,7 +8299,7 @@ pub fn androidenterprise_users_get_available_product_set_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8337,7 +8337,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ProductSet =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8392,7 +8392,7 @@ pub fn androidenterprise_users_insert_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8433,7 +8433,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: User =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8488,7 +8488,7 @@ pub fn androidenterprise_users_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8541,7 +8541,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: UsersListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8596,7 +8596,7 @@ pub fn androidenterprise_users_revoke_device_access_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8683,7 +8683,7 @@ pub fn androidenterprise_users_set_available_product_set_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8725,7 +8725,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: ProductSet =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8780,7 +8780,7 @@ pub fn androidenterprise_users_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8821,7 +8821,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: User =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8876,7 +8876,7 @@ pub fn androidenterprise_webapps_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8962,7 +8962,7 @@ pub fn androidenterprise_webapps_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8999,7 +8999,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: WebApp =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9054,7 +9054,7 @@ pub fn androidenterprise_webapps_insert_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9095,7 +9095,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: WebApp =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9150,7 +9150,7 @@ pub fn androidenterprise_webapps_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9187,7 +9187,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: WebAppsListResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9242,7 +9242,7 @@ pub fn androidenterprise_webapps_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9283,7 +9283,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
                 let parsed: WebApp =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

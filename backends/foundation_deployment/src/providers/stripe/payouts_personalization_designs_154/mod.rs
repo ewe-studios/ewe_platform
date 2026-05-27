@@ -601,7 +601,7 @@ pub struct PostTaxRatesTaxRateArgs {
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_payouts_builder<R>(client: &SimpleHttpClient<R>, args: &GetPayoutsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payouts",
@@ -670,7 +670,7 @@ pub fn get_payouts(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_payouts_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payouts",
@@ -729,7 +729,7 @@ pub fn post_payouts_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_payouts_payout_builder<R>(client: &SimpleHttpClient<R>, args: &GetPayoutsPayoutArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payouts/{payout}",
@@ -801,7 +801,7 @@ pub fn get_payouts_payout(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_payouts_payout_builder<R>(client: &SimpleHttpClient<R>, args: &PostPayoutsPayoutArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payouts/{payout}",
@@ -873,7 +873,7 @@ pub fn post_payouts_payout(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_personalization_designs_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingPersonalizationDesignsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs",
@@ -942,7 +942,7 @@ pub fn get_issuing_personalization_designs(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_issuing_personalization_designs_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs",
@@ -1001,7 +1001,7 @@ pub fn post_issuing_personalization_designs_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_issuing_personalization_designs_personalization_design_builder<R>(client: &SimpleHttpClient<R>, args: &GetIssuingPersonalizationDesignsPersonalizationDesignArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs/{personalization_design}",
@@ -1073,7 +1073,7 @@ pub fn get_issuing_personalization_designs_personalization_design(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_issuing_personalization_designs_personalization_design_builder<R>(client: &SimpleHttpClient<R>, args: &PostIssuingPersonalizationDesignsPersonalizationDesignArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs/{personalization_design}",
@@ -1145,7 +1145,7 @@ pub fn post_issuing_personalization_designs_personalization_design(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_prices_builder<R>(client: &SimpleHttpClient<R>, args: &GetPricesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/prices",
@@ -1214,7 +1214,7 @@ pub fn get_prices(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_prices_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/prices",
@@ -1273,7 +1273,7 @@ pub fn post_prices_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_prices_price_builder<R>(client: &SimpleHttpClient<R>, args: &GetPricesPriceArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/prices/{price}",
@@ -1345,7 +1345,7 @@ pub fn get_prices_price(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_prices_price_builder<R>(client: &SimpleHttpClient<R>, args: &PostPricesPriceArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/prices/{price}",
@@ -1417,7 +1417,7 @@ pub fn post_prices_price(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_promotion_codes_builder<R>(client: &SimpleHttpClient<R>, args: &GetPromotionCodesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes",
@@ -1486,7 +1486,7 @@ pub fn get_promotion_codes(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_promotion_codes_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes",
@@ -1545,7 +1545,7 @@ pub fn post_promotion_codes_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_promotion_codes_promotion_code_builder<R>(client: &SimpleHttpClient<R>, args: &GetPromotionCodesPromotionCodeArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes/{promotion_code}",
@@ -1617,7 +1617,7 @@ pub fn get_promotion_codes_promotion_code(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_promotion_codes_promotion_code_builder<R>(client: &SimpleHttpClient<R>, args: &PostPromotionCodesPromotionCodeArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes/{promotion_code}",
@@ -1689,7 +1689,7 @@ pub fn post_promotion_codes_promotion_code(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_quotes_builder<R>(client: &SimpleHttpClient<R>, args: &GetQuotesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/quotes",
@@ -1758,7 +1758,7 @@ pub fn get_quotes(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_quotes_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/quotes",
@@ -1817,7 +1817,7 @@ pub fn post_quotes_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_quotes_quote_builder<R>(client: &SimpleHttpClient<R>, args: &GetQuotesQuoteArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/quotes/{quote}",
@@ -1889,7 +1889,7 @@ pub fn get_quotes_quote(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_quotes_quote_builder<R>(client: &SimpleHttpClient<R>, args: &PostQuotesQuoteArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/quotes/{quote}",
@@ -1961,7 +1961,7 @@ pub fn post_quotes_quote(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_registrations_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxRegistrationsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/registrations",
@@ -2030,7 +2030,7 @@ pub fn get_tax_registrations(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_tax_registrations_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/registrations",
@@ -2089,7 +2089,7 @@ pub fn post_tax_registrations_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_registrations_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxRegistrationsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/registrations/{id}",
@@ -2161,7 +2161,7 @@ pub fn get_tax_registrations_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_tax_registrations_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostTaxRegistrationsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/registrations/{id}",
@@ -2233,7 +2233,7 @@ pub fn post_tax_registrations_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_test_helpers_issuing_cards_card_shipping_return_builder<R>(client: &SimpleHttpClient<R>, args: &PostTestHelpersIssuingCardsCardShippingReturnArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{card}/shipping/return",
@@ -2305,7 +2305,7 @@ pub fn post_test_helpers_issuing_cards_card_shipping_return(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_test_helpers_treasury_inbound_transfers_id_return_builder<R>(client: &SimpleHttpClient<R>, args: &PostTestHelpersTreasuryInboundTransfersIdReturnArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/inbound_transfers/{id}/return",
@@ -2377,7 +2377,7 @@ pub fn post_test_helpers_treasury_inbound_transfers_id_return(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_test_helpers_treasury_outbound_payments_id_return_builder<R>(client: &SimpleHttpClient<R>, args: &PostTestHelpersTreasuryOutboundPaymentsIdReturnArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_payments/{id}/return",
@@ -2449,7 +2449,7 @@ pub fn post_test_helpers_treasury_outbound_payments_id_return(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_test_helpers_treasury_outbound_transfers_outbound_transfer_return_builder<R>(client: &SimpleHttpClient<R>, args: &PostTestHelpersTreasuryOutboundTransfersOutboundTransferReturnArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_transfers/{outbound_transfer}/return",
@@ -2521,7 +2521,7 @@ pub fn post_test_helpers_treasury_outbound_transfers_outbound_transfer_return(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_transfers_id_reversals_builder<R>(client: &SimpleHttpClient<R>, args: &GetTransfersIdReversalsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{id}/reversals",
@@ -2591,7 +2591,7 @@ pub fn get_transfers_id_reversals(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_transfers_id_reversals_builder<R>(client: &SimpleHttpClient<R>, args: &PostTransfersIdReversalsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{id}/reversals",
@@ -2663,7 +2663,7 @@ pub fn post_transfers_id_reversals(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_transfers_transfer_reversals_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetTransfersTransferReversalsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{transfer}/reversals/{id}",
@@ -2736,7 +2736,7 @@ pub fn get_transfers_transfer_reversals_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_transfers_transfer_reversals_id_builder<R>(client: &SimpleHttpClient<R>, args: &PostTransfersTransferReversalsIdArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{transfer}/reversals/{id}",
@@ -2809,7 +2809,7 @@ pub fn post_transfers_transfer_reversals_id(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_setup_intents_builder<R>(client: &SimpleHttpClient<R>, args: &GetSetupIntentsArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents",
@@ -2878,7 +2878,7 @@ pub fn get_setup_intents(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_setup_intents_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents",
@@ -2937,7 +2937,7 @@ pub fn post_setup_intents_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_setup_intents_intent_builder<R>(client: &SimpleHttpClient<R>, args: &GetSetupIntentsIntentArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents/{intent}",
@@ -3009,7 +3009,7 @@ pub fn get_setup_intents_intent(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_setup_intents_intent_builder<R>(client: &SimpleHttpClient<R>, args: &PostSetupIntentsIntentArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents/{intent}",
@@ -3081,7 +3081,7 @@ pub fn post_setup_intents_intent(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_shipping_rates_builder<R>(client: &SimpleHttpClient<R>, args: &GetShippingRatesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates",
@@ -3150,7 +3150,7 @@ pub fn get_shipping_rates(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_shipping_rates_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates",
@@ -3209,7 +3209,7 @@ pub fn post_shipping_rates_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_shipping_rates_shipping_rate_token_builder<R>(client: &SimpleHttpClient<R>, args: &GetShippingRatesShippingRateTokenArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates/{shipping_rate_token}",
@@ -3281,7 +3281,7 @@ pub fn get_shipping_rates_shipping_rate_token(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_shipping_rates_shipping_rate_token_builder<R>(client: &SimpleHttpClient<R>, args: &PostShippingRatesShippingRateTokenArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates/{shipping_rate_token}",
@@ -3353,7 +3353,7 @@ pub fn post_shipping_rates_shipping_rate_token(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_subscription_schedules_builder<R>(client: &SimpleHttpClient<R>, args: &GetSubscriptionSchedulesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules",
@@ -3422,7 +3422,7 @@ pub fn get_subscription_schedules(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_subscription_schedules_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules",
@@ -3481,7 +3481,7 @@ pub fn post_subscription_schedules_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_subscription_schedules_schedule_builder<R>(client: &SimpleHttpClient<R>, args: &GetSubscriptionSchedulesScheduleArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{schedule}",
@@ -3553,7 +3553,7 @@ pub fn get_subscription_schedules_schedule(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_subscription_schedules_schedule_builder<R>(client: &SimpleHttpClient<R>, args: &PostSubscriptionSchedulesScheduleArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{schedule}",
@@ -3625,7 +3625,7 @@ pub fn post_subscription_schedules_schedule(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_rates_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxRatesArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_rates",
@@ -3694,7 +3694,7 @@ pub fn get_tax_rates(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_tax_rates_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_rates",
@@ -3753,7 +3753,7 @@ pub fn post_tax_rates_execute(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn get_tax_rates_tax_rate_builder<R>(client: &SimpleHttpClient<R>, args: &GetTaxRatesTaxRateArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_rates/{tax_rate}",
@@ -3825,7 +3825,7 @@ pub fn get_tax_rates_tax_rate(
 /// Returns `ClientRequestBuilder` for customization.
 
 pub fn post_tax_rates_tax_rate_builder<R>(client: &SimpleHttpClient<R>, args: &PostTaxRatesTaxRateArgs) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where R: foundation_netio::simple_http::client::DnsResolver + Clone,
+where R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax_rates/{tax_rate}",
@@ -3899,7 +3899,7 @@ pub fn post_tax_rates_tax_rate(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// GET /v1/payouts.
     ///

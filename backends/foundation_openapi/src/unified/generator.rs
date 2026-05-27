@@ -1261,7 +1261,7 @@ impl UnifiedGenerator {
         writeln!(out, "    builder_mod: Option<F>,")?;
         writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
-        writeln!(out, "    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,")?;
+        writeln!(out, "    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,")?;
         writeln!(out, "    F: FnOnce(&mut ClientRequestBuilder<R>),")?;
         writeln!(out, "{{")?;
 
@@ -1349,7 +1349,7 @@ impl UnifiedGenerator {
         if return_type == "()" {
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: () }})")?;
         } else {
-            writeln!(out, "                    let body = foundation_netio::simple_http::client::body_reader::collect_string(stream);")?;
+            writeln!(out, "                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);")?;
             writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: parsed }})")?;
         }

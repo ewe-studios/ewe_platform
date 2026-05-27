@@ -180,7 +180,7 @@ pub fn get_application_fees_fee_refunds_id_builder<R>(
     args: &GetApplicationFeesFeeRefundsIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{fee}/refunds/{id}",
@@ -289,7 +289,7 @@ pub fn post_application_fees_fee_refunds_id_builder<R>(
     args: &PostApplicationFeesFeeRefundsIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{fee}/refunds/{id}",
@@ -398,7 +398,7 @@ pub fn get_application_fees_id_refunds_builder<R>(
     args: &GetApplicationFeesIdRefundsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{id}/refunds",
@@ -504,7 +504,7 @@ pub fn post_application_fees_id_refunds_builder<R>(
     args: &PostApplicationFeesIdRefundsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{id}/refunds",
@@ -613,7 +613,7 @@ pub fn get_charges_charge_refunds_builder<R>(
     args: &GetChargesChargeRefundsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{charge}/refunds",
@@ -719,7 +719,7 @@ pub fn post_charges_charge_refunds_builder<R>(
     args: &PostChargesChargeRefundsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{charge}/refunds",
@@ -828,7 +828,7 @@ pub fn get_charges_charge_refunds_refund_builder<R>(
     args: &GetChargesChargeRefundsRefundArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{charge}/refunds/{refund}",
@@ -937,7 +937,7 @@ pub fn post_charges_charge_refunds_refund_builder<R>(
     args: &PostChargesChargeRefundsRefundArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{charge}/refunds/{refund}",
@@ -1046,7 +1046,7 @@ pub fn get_refunds_builder<R>(
     args: &GetRefundsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/refunds",);
 
@@ -1148,7 +1148,7 @@ pub fn post_refunds_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/refunds",);
 
@@ -1237,7 +1237,7 @@ pub fn get_refunds_refund_builder<R>(
     args: &GetRefundsRefundArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/refunds/{refund}", args.refund,);
 
@@ -1343,7 +1343,7 @@ pub fn post_refunds_refund_builder<R>(
     args: &PostRefundsRefundArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/refunds/{refund}", args.refund,);
 
@@ -1448,7 +1448,7 @@ pub fn post_terminal_refunds_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/refunds",);
 
@@ -1537,7 +1537,7 @@ pub fn post_terminal_refunds_execute(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// GET /v1/application_fees/{fee}/refunds/{id}.
     ///

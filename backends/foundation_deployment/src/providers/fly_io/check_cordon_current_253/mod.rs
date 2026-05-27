@@ -805,7 +805,7 @@ pub fn app_certificates_check_builder<R>(
     args: &AppCertificatesCheckArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/{hostname}/check",
@@ -918,7 +918,7 @@ pub fn machines_cordon_builder<R>(
     args: &MachinesCordonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/cordon",
@@ -1023,7 +1023,7 @@ pub fn current_token_show_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/v1/tokens/current",);
 
@@ -1114,7 +1114,7 @@ pub fn secretkey_decrypt_builder<R>(
     args: &SecretkeyDecryptArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}/decrypt",
@@ -1229,7 +1229,7 @@ pub fn app_create_deploy_token_builder<R>(
     args: &AppCreateDeployTokenArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/deploy_token",
@@ -1344,7 +1344,7 @@ pub fn secretkey_encrypt_builder<R>(
     args: &SecretkeyEncryptArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}/encrypt",
@@ -1459,7 +1459,7 @@ pub fn machines_list_events_builder<R>(
     args: &MachinesListEventsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/events",
@@ -1572,7 +1572,7 @@ pub fn machines_exec_builder<R>(
     args: &MachinesExecArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/exec",
@@ -1687,7 +1687,7 @@ pub fn volumes_extend_builder<R>(
     args: &VolumesExtendArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}/extend",
@@ -1802,7 +1802,7 @@ pub fn secretkey_generate_builder<R>(
     args: &SecretkeyGenerateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}/generate",
@@ -1916,7 +1916,7 @@ pub fn tokens_request_kms_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/tokens/kms",);
 
@@ -2007,7 +2007,7 @@ pub fn tokens_request_oidc_builder<R>(
     args: &TokensRequestOIDCArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/tokens/oidc",);
 
@@ -2119,7 +2119,7 @@ pub fn platform_placements_post_builder<R>(
     args: &PlatformPlacementsPostArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/platform/placements",);
 
@@ -2231,7 +2231,7 @@ pub fn machines_list_processes_builder<R>(
     args: &MachinesListProcessesArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/ps",
@@ -2344,7 +2344,7 @@ pub fn machines_reclaim_memory_builder<R>(
     args: &MachinesReclaimMemoryArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/memory/reclaim",
@@ -2458,7 +2458,7 @@ pub fn platform_regions_get_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/platform/regions",);
 
@@ -2549,7 +2549,7 @@ pub fn machines_restart_builder<R>(
     args: &MachinesRestartArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/restart",
@@ -2655,7 +2655,7 @@ pub fn secretkey_sign_builder<R>(
     args: &SecretkeySignArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}/sign",
@@ -2770,7 +2770,7 @@ pub fn machines_signal_builder<R>(
     args: &MachinesSignalArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/signal",
@@ -2878,7 +2878,7 @@ pub fn machines_start_builder<R>(
     args: &MachinesStartArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/start",
@@ -2984,7 +2984,7 @@ pub fn machines_stop_builder<R>(
     args: &MachinesStopArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/stop",
@@ -3092,7 +3092,7 @@ pub fn machines_suspend_builder<R>(
     args: &MachinesSuspendArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/suspend",
@@ -3198,7 +3198,7 @@ pub fn machines_uncordon_builder<R>(
     args: &MachinesUncordonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/uncordon",
@@ -3304,7 +3304,7 @@ pub fn secretkey_verify_builder<R>(
     args: &SecretkeyVerifyArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}/verify",
@@ -3412,7 +3412,7 @@ pub fn machines_list_versions_builder<R>(
     args: &MachinesListVersionsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/versions",
@@ -3525,7 +3525,7 @@ pub fn machines_wait_builder<R>(
     args: &MachinesWaitArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/wait",
@@ -3638,7 +3638,7 @@ pub fn app_certificates_acme_create_builder<R>(
     args: &AppCertificatesAcmeCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/acme",
@@ -3753,7 +3753,7 @@ pub fn app_certificates_acme_delete_builder<R>(
     args: &AppCertificatesAcmeDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/{hostname}/acme",
@@ -3866,7 +3866,7 @@ pub fn app_certificates_custom_create_builder<R>(
     args: &AppCertificatesCustomCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/custom",
@@ -3981,7 +3981,7 @@ pub fn app_certificates_custom_delete_builder<R>(
     args: &AppCertificatesCustomDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/{hostname}/custom",
@@ -4094,7 +4094,7 @@ pub fn machines_get_memory_builder<R>(
     args: &MachinesGetMemoryArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/memory",
@@ -4207,7 +4207,7 @@ pub fn machines_set_memory_limit_builder<R>(
     args: &MachinesSetMemoryLimitArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/memory",
@@ -4322,7 +4322,7 @@ pub fn volumes_list_snapshots_builder<R>(
     args: &VolumesListSnapshotsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}/snapshots",
@@ -4435,7 +4435,7 @@ pub fn create_volume_snapshot_builder<R>(
     args: &CreateVolumeSnapshotArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}/snapshots",
@@ -4541,7 +4541,7 @@ pub fn app_certificates_list_builder<R>(
     args: &AppCertificatesListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates",
@@ -4654,7 +4654,7 @@ pub fn app_certificates_show_builder<R>(
     args: &AppCertificatesShowArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/{hostname}",
@@ -4767,7 +4767,7 @@ pub fn app_certificates_delete_builder<R>(
     args: &AppCertificatesDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/certificates/{hostname}",
@@ -4873,7 +4873,7 @@ pub fn app_ip_assignments_list_builder<R>(
     args: &AppIPAssignmentsListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/ip_assignments",
@@ -4986,7 +4986,7 @@ pub fn app_ip_assignments_create_builder<R>(
     args: &AppIPAssignmentsCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/ip_assignments",
@@ -5101,7 +5101,7 @@ pub fn app_ip_assignments_delete_builder<R>(
     args: &AppIPAssignmentsDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/ip_assignments/{ip}",
@@ -5207,7 +5207,7 @@ pub fn machines_show_lease_builder<R>(
     args: &MachinesShowLeaseArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/lease",
@@ -5316,7 +5316,7 @@ pub fn machines_create_lease_builder<R>(
     args: &MachinesCreateLeaseArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/lease",
@@ -5427,7 +5427,7 @@ pub fn machines_release_lease_builder<R>(
     args: &MachinesReleaseLeaseArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/lease",
@@ -5533,7 +5533,7 @@ pub fn apps_list_builder<R>(
     args: &AppsListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/apps",);
 
@@ -5643,7 +5643,7 @@ pub fn apps_create_builder<R>(
     args: &AppsCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/apps",);
 
@@ -5748,7 +5748,7 @@ pub fn apps_show_builder<R>(
     args: &AppsShowArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{app_name}", args.app_name,);
 
@@ -5854,7 +5854,7 @@ pub fn apps_delete_builder<R>(
     args: &AppsDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{app_name}", args.app_name,);
 
@@ -5955,7 +5955,7 @@ pub fn apps_delete(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// POST /apps/{app_name}/certificates/{hostname}/check.
     ///

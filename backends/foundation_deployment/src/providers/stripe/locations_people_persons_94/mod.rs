@@ -553,7 +553,7 @@ pub fn get_terminal_locations_builder<R>(
     args: &GetTerminalLocationsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations",);
 
@@ -655,7 +655,7 @@ pub fn post_terminal_locations_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations",);
 
@@ -746,7 +746,7 @@ pub fn get_terminal_locations_location_builder<R>(
     args: &GetTerminalLocationsLocationArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/locations/{location}",
@@ -859,7 +859,7 @@ pub fn post_terminal_locations_location_builder<R>(
     args: &PostTerminalLocationsLocationArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/locations/{location}",
@@ -972,7 +972,7 @@ pub fn delete_terminal_locations_location_builder<R>(
     args: &DeleteTerminalLocationsLocationArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/locations/{location}",
@@ -1085,7 +1085,7 @@ pub fn get_accounts_account_people_builder<R>(
     args: &GetAccountsAccountPeopleArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/people",
@@ -1191,7 +1191,7 @@ pub fn post_accounts_account_people_builder<R>(
     args: &PostAccountsAccountPeopleArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/people",
@@ -1300,7 +1300,7 @@ pub fn get_accounts_account_people_person_builder<R>(
     args: &GetAccountsAccountPeoplePersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/people/{person}",
@@ -1409,7 +1409,7 @@ pub fn post_accounts_account_people_person_builder<R>(
     args: &PostAccountsAccountPeoplePersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/people/{person}",
@@ -1518,7 +1518,7 @@ pub fn delete_accounts_account_people_person_builder<R>(
     args: &DeleteAccountsAccountPeoplePersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/people/{person}",
@@ -1631,7 +1631,7 @@ pub fn get_accounts_account_persons_builder<R>(
     args: &GetAccountsAccountPersonsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/persons",
@@ -1737,7 +1737,7 @@ pub fn post_accounts_account_persons_builder<R>(
     args: &PostAccountsAccountPersonsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/persons",
@@ -1846,7 +1846,7 @@ pub fn get_accounts_account_persons_person_builder<R>(
     args: &GetAccountsAccountPersonsPersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/persons/{person}",
@@ -1955,7 +1955,7 @@ pub fn post_accounts_account_persons_person_builder<R>(
     args: &PostAccountsAccountPersonsPersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/persons/{person}",
@@ -2064,7 +2064,7 @@ pub fn delete_accounts_account_persons_person_builder<R>(
     args: &DeleteAccountsAccountPersonsPersonArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{account}/persons/{person}",
@@ -2177,7 +2177,7 @@ pub fn get_plans_builder<R>(
     args: &GetPlansArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/plans",);
 
@@ -2279,7 +2279,7 @@ pub fn post_plans_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/plans",);
 
@@ -2368,7 +2368,7 @@ pub fn get_plans_plan_builder<R>(
     args: &GetPlansPlanArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/plans/{plan}", args.plan,);
 
@@ -2474,7 +2474,7 @@ pub fn post_plans_plan_builder<R>(
     args: &PostPlansPlanArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/plans/{plan}", args.plan,);
 
@@ -2580,7 +2580,7 @@ pub fn delete_plans_plan_builder<R>(
     args: &DeletePlansPlanArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/plans/{plan}", args.plan,);
 
@@ -2686,7 +2686,7 @@ pub fn get_terminal_readers_builder<R>(
     args: &GetTerminalReadersArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers",);
 
@@ -2788,7 +2788,7 @@ pub fn post_terminal_readers_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers",);
 
@@ -2879,7 +2879,7 @@ pub fn get_terminal_readers_reader_builder<R>(
     args: &GetTerminalReadersReaderArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}",
@@ -2992,7 +2992,7 @@ pub fn post_terminal_readers_reader_builder<R>(
     args: &PostTerminalReadersReaderArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}",
@@ -3105,7 +3105,7 @@ pub fn delete_terminal_readers_reader_builder<R>(
     args: &DeleteTerminalReadersReaderArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}",
@@ -3218,7 +3218,7 @@ pub fn get_subscription_items_builder<R>(
     args: &GetSubscriptionItemsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/subscription_items",);
 
@@ -3320,7 +3320,7 @@ pub fn post_subscription_items_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/subscription_items",);
 
@@ -3411,7 +3411,7 @@ pub fn get_subscription_items_item_builder<R>(
     args: &GetSubscriptionItemsItemArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_items/{item}",
@@ -3524,7 +3524,7 @@ pub fn post_subscription_items_item_builder<R>(
     args: &PostSubscriptionItemsItemArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_items/{item}",
@@ -3637,7 +3637,7 @@ pub fn delete_subscription_items_item_builder<R>(
     args: &DeleteSubscriptionItemsItemArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_items/{item}",
@@ -3750,7 +3750,7 @@ pub fn get_issuing_tokens_builder<R>(
     args: &GetIssuingTokensArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/tokens",);
 
@@ -3853,7 +3853,7 @@ pub fn get_issuing_tokens_token_builder<R>(
     args: &GetIssuingTokensTokenArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/tokens/{token}",
@@ -3966,7 +3966,7 @@ pub fn post_issuing_tokens_token_builder<R>(
     args: &PostIssuingTokensTokenArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/tokens/{token}",
@@ -4078,7 +4078,7 @@ pub fn post_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/tokens",);
 
@@ -4167,7 +4167,7 @@ pub fn get_tokens_token_builder<R>(
     args: &GetTokensTokenArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/tokens/{token}", args.token,);
 
@@ -4273,7 +4273,7 @@ pub fn get_radar_value_lists_builder<R>(
     args: &GetRadarValueListsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/radar/value_lists",);
 
@@ -4375,7 +4375,7 @@ pub fn post_radar_value_lists_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/radar/value_lists",);
 
@@ -4466,7 +4466,7 @@ pub fn get_radar_value_lists_value_list_builder<R>(
     args: &GetRadarValueListsValueListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{value_list}",
@@ -4579,7 +4579,7 @@ pub fn post_radar_value_lists_value_list_builder<R>(
     args: &PostRadarValueListsValueListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{value_list}",
@@ -4692,7 +4692,7 @@ pub fn delete_radar_value_lists_value_list_builder<R>(
     args: &DeleteRadarValueListsValueListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{value_list}",
@@ -4805,7 +4805,7 @@ pub fn get_webhook_endpoints_builder<R>(
     args: &GetWebhookEndpointsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/webhook_endpoints",);
 
@@ -4907,7 +4907,7 @@ pub fn post_webhook_endpoints_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/webhook_endpoints",);
 
@@ -4998,7 +4998,7 @@ pub fn get_webhook_endpoints_webhook_endpoint_builder<R>(
     args: &GetWebhookEndpointsWebhookEndpointArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{webhook_endpoint}",
@@ -5111,7 +5111,7 @@ pub fn post_webhook_endpoints_webhook_endpoint_builder<R>(
     args: &PostWebhookEndpointsWebhookEndpointArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{webhook_endpoint}",
@@ -5224,7 +5224,7 @@ pub fn delete_webhook_endpoints_webhook_endpoint_builder<R>(
     args: &DeleteWebhookEndpointsWebhookEndpointArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{webhook_endpoint}",
@@ -5335,7 +5335,7 @@ pub fn delete_webhook_endpoints_webhook_endpoint(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// GET /v1/terminal/locations.
     ///

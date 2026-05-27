@@ -167,7 +167,7 @@ pub fn infra_targets_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -185,7 +185,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -253,7 +253,7 @@ pub fn infra_targets_post_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -271,7 +271,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -339,7 +339,7 @@ pub fn infra_targets_put_batch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -361,7 +361,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -429,7 +429,7 @@ pub fn infra_targets_delete_batch_post_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -447,7 +447,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -515,7 +515,7 @@ pub fn infra_targets_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -533,7 +533,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -601,7 +601,7 @@ pub fn infra_targets_put_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -619,7 +619,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -687,7 +687,7 @@ pub fn infra_targets_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -705,7 +705,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::HttpClientError| {
+        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {

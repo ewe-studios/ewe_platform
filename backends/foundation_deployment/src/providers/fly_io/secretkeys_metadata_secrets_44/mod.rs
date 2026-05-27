@@ -515,7 +515,7 @@ pub fn secretkeys_list_builder<R>(
     args: &SecretkeysListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys",
@@ -624,7 +624,7 @@ pub fn secretkey_get_builder<R>(
     args: &SecretkeyGetArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}",
@@ -733,7 +733,7 @@ pub fn secretkey_set_builder<R>(
     args: &SecretkeySetArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}",
@@ -848,7 +848,7 @@ pub fn secretkey_delete_builder<R>(
     args: &SecretkeyDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secretkeys/{secret_name}",
@@ -961,7 +961,7 @@ pub fn machines_show_metadata_builder<R>(
     args: &MachinesShowMetadataArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/metadata",
@@ -1074,7 +1074,7 @@ pub fn machines_update_metadata_builder<R>(
     args: &MachinesUpdateMetadataArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/metadata",
@@ -1182,7 +1182,7 @@ pub fn machines_get_metadata_key_builder<R>(
     args: &MachinesGetMetadataKeyArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/metadata/{key}",
@@ -1295,7 +1295,7 @@ pub fn machines_upsert_metadata_builder<R>(
     args: &MachinesUpsertMetadataArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/metadata/{key}",
@@ -1403,7 +1403,7 @@ pub fn machines_delete_metadata_builder<R>(
     args: &MachinesDeleteMetadataArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}/metadata/{key}",
@@ -1509,7 +1509,7 @@ pub fn secrets_list_builder<R>(
     args: &SecretsListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secrets",
@@ -1618,7 +1618,7 @@ pub fn secrets_update_builder<R>(
     args: &SecretsUpdateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secrets",
@@ -1733,7 +1733,7 @@ pub fn secret_get_builder<R>(
     args: &SecretGetArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secrets/{secret_name}",
@@ -1842,7 +1842,7 @@ pub fn secret_create_builder<R>(
     args: &SecretCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secrets/{secret_name}",
@@ -1957,7 +1957,7 @@ pub fn secret_delete_builder<R>(
     args: &SecretDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/secrets/{secret_name}",
@@ -2070,7 +2070,7 @@ pub fn machines_list_builder<R>(
     args: &MachinesListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines",
@@ -2183,7 +2183,7 @@ pub fn machines_create_builder<R>(
     args: &MachinesCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines",
@@ -2294,7 +2294,7 @@ pub fn machines_show_builder<R>(
     args: &MachinesShowArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}",
@@ -2403,7 +2403,7 @@ pub fn machines_update_builder<R>(
     args: &MachinesUpdateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}",
@@ -2514,7 +2514,7 @@ pub fn machines_delete_builder<R>(
     args: &MachinesDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/machines/{machine_id}",
@@ -2620,7 +2620,7 @@ pub fn machines_org_list_builder<R>(
     args: &MachinesOrgListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/orgs/{org_slug}/machines",
@@ -2733,7 +2733,7 @@ pub fn volumes_list_builder<R>(
     args: &VolumesListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes",
@@ -2846,7 +2846,7 @@ pub fn volumes_create_builder<R>(
     args: &VolumesCreateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes",
@@ -2957,7 +2957,7 @@ pub fn volumes_get_by_id_builder<R>(
     args: &VolumesGetByIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}",
@@ -3066,7 +3066,7 @@ pub fn volumes_update_builder<R>(
     args: &VolumesUpdateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}",
@@ -3177,7 +3177,7 @@ pub fn volume_delete_builder<R>(
     args: &VolumeDeleteArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{app_name}/volumes/{volume_id}",
@@ -3286,7 +3286,7 @@ pub fn volumes_org_list_builder<R>(
     args: &VolumesOrgListArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::DnsResolver + Clone,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.machines.dev/v1/orgs/{org_slug}/volumes",
@@ -3397,7 +3397,7 @@ pub fn volumes_org_list(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
 {
     /// GET /apps/{app_name}/secretkeys.
     ///
