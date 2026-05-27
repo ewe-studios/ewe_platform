@@ -2076,9 +2076,14 @@ where
                 Stream::Ignore => Some(Stream::Ignore),
                 Stream::Wait => Some(Stream::Wait),
                 Stream::Spread(items) => {
+                    // Prefer Done over Pending — returning Pending first loses Done items
                     for item in items {
                         match item {
-                            StreamSpread::Done(d) => return Some(Stream::Next(d)),
+                            StreamSpread::Done(d) => {
+                                // Return this Done item. Any subsequent Pending items
+                                // in the spread will be handled on the next poll.
+                                return Some(Stream::Next(d));
+                            }
                             StreamSpread::Pending(p) => {
                                 self.current_inner = Some((self.mapper)(p));
                                 return Some(Stream::Ignore);
@@ -2140,16 +2145,29 @@ where
                 Stream::Ignore => Some(Stream::Ignore),
                 Stream::Wait => Some(Stream::Wait),
                 Stream::Spread(items) => {
+                    // Scan all Done items first, collect Pending
+                    let mut pending_items = Vec::new();
+                    let mut found_done = false;
                     for item in items {
                         match item {
                             StreamSpread::Done(d) => {
-                                self.current_inner = Some((self.mapper)(d));
-                                return Some(Stream::Ignore);
+                                if !found_done {
+                                    // Start the first inner iterator; subsequent Done items
+                                    // are a known limitation (can't chain multiple inner iterators)
+                                    self.current_inner = Some((self.mapper)(d));
+                                    found_done = true;
+                                }
                             }
-                            StreamSpread::Pending(p) => return Some(Stream::Pending(p)),
+                            StreamSpread::Pending(p) => pending_items.push(p),
                         }
                     }
-                    Some(Stream::Ignore)
+                    if pending_items.is_empty() {
+                        Some(Stream::Ignore)
+                    } else {
+                        Some(Stream::Spread(
+                            pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                        ))
+                    }
                 }
             },
             None => None,
@@ -2772,18 +2790,27 @@ where
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
             Stream::Spread(items) => {
-                for d in items {
-                    match d {
+                // Scan all Done items first for a match, collect Pending
+                let mut pending_items = Vec::new();
+                for item in items {
+                    match item {
                         StreamSpread::Done(d) => {
                             if (self.predicate)(&d) {
                                 self.found = true;
                                 return Some(Stream::Next(Some(d)));
                             }
                         }
-                        StreamSpread::Pending(p) => return Some(Stream::Pending(p)),
+                        StreamSpread::Pending(p) => pending_items.push(p),
                     }
                 }
-                Some(Stream::Ignore)
+                // No match found — return Pending to be retried later
+                if pending_items.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(
+                        pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                    ))
+                }
             }
         }
     }
@@ -2825,18 +2852,26 @@ where
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
             Stream::Spread(items) => {
-                for d in items {
-                    match d {
+                // Scan all Done items first for a match, collect Pending
+                let mut pending_items = Vec::new();
+                for item in items {
+                    match item {
                         StreamSpread::Done(d) => {
                             if let Some(r) = (self.mapper)(d) {
                                 self.found = true;
                                 return Some(Stream::Next(Some(r)));
                             }
                         }
-                        StreamSpread::Pending(p) => return Some(Stream::Pending(p)),
+                        StreamSpread::Pending(p) => pending_items.push(p),
                     }
                 }
-                Some(Stream::Ignore)
+                if pending_items.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(
+                        pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                    ))
+                }
             }
         }
     }

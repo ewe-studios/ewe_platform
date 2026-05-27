@@ -7,8 +7,7 @@ use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use foundation_core::valtron::{
     NoAction, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
-    StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIteratorExt, TaskSpread,
-    TaskStatus,
+    StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIteratorExt, TaskSpread, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 use tracing_test::traced_test;
@@ -41,12 +40,19 @@ fn poll_stream_next<S: FuturesStream + Unpin>(s: &mut S) -> Poll<Option<S::Item>
 
 #[test]
 fn test_task_status_spread_ready_converts_to_stream_spread_done() {
-    let ts: TaskStatus<i32, &str, NoAction> =
-        TaskStatus::Spread(vec![TaskSpread::Ready(1), TaskSpread::Ready(2), TaskSpread::Ready(3)]);
+    let ts: TaskStatus<i32, &str, NoAction> = TaskStatus::Spread(vec![
+        TaskSpread::Ready(1),
+        TaskSpread::Ready(2),
+        TaskSpread::Ready(3),
+    ]);
     let stream: Stream<i32, &str> = ts.into();
     assert_eq!(
         stream,
-        Stream::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2), StreamSpread::Done(3)])
+        Stream::Spread(vec![
+            StreamSpread::Done(1),
+            StreamSpread::Done(2),
+            StreamSpread::Done(3)
+        ])
     );
 }
 
@@ -427,7 +433,9 @@ fn test_single_element_spread_done() {
 
 #[test]
 fn test_single_element_spread_pending() {
-    let items = vec![Stream::<i32, &str>::Spread(vec![StreamSpread::Pending("x")])];
+    let items = vec![Stream::<i32, &str>::Spread(vec![StreamSpread::Pending(
+        "x",
+    )])];
     let mut iter = items.into_iter();
     assert_eq!(
         Iterator::next(&mut iter),
@@ -472,10 +480,7 @@ fn test_collect_future_next_values_collected() {
 fn test_collect_future_spread_pending_returns_pending() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
-        Stream::Spread(vec![
-            StreamSpread::Pending("a"),
-            StreamSpread::Pending("b"),
-        ]),
+        Stream::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(2),
     ]
     .into_iter();
@@ -551,10 +556,7 @@ fn test_ready_future_spread_done_empty_returns_pending() {
 #[traced_test]
 fn test_ready_future_spread_pending_returns_pending() {
     let iter = vec![
-        Stream::<i32, &str>::Spread(vec![
-            StreamSpread::Pending("a"),
-            StreamSpread::Pending("b"),
-        ]),
+        Stream::<i32, &str>::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(42),
     ]
     .into_iter();
@@ -664,10 +666,7 @@ fn test_future_stream_spread_pending_yielded_as_single_item() {
     let mut stream = StreamAsFutureStream::new(
         vec![
             Stream::<i32, &str>::Pending("a"),
-            Stream::Spread(vec![
-                StreamSpread::Pending("b"),
-                StreamSpread::Pending("c"),
-            ]),
+            Stream::Spread(vec![StreamSpread::Pending("b"), StreamSpread::Pending("c")]),
         ]
         .into_iter(),
     );
@@ -690,11 +689,7 @@ fn test_future_stream_spread_pending_yielded_as_single_item() {
 #[traced_test]
 fn test_future_stream_empty_spread() {
     let mut stream = StreamAsFutureStream::new(
-        vec![
-            Stream::<i32, &str>::Spread(vec![]),
-            Stream::Spread(vec![]),
-        ]
-        .into_iter(),
+        vec![Stream::<i32, &str>::Spread(vec![]), Stream::Spread(vec![])].into_iter(),
     );
 
     assert_eq!(
@@ -804,10 +799,7 @@ fn test_smol_collect_with_spread_pending() {
 fn test_smol_ready_future_with_spread_done() {
     let (value, mut remaining) = smol::block_on(async {
         vec![
-            Stream::<i32, &str>::Spread(vec![
-                StreamSpread::Done(99),
-                StreamSpread::Done(100),
-            ]),
+            Stream::<i32, &str>::Spread(vec![StreamSpread::Done(99), StreamSpread::Done(100)]),
             Stream::Next(1),
         ]
         .into_iter()
@@ -824,10 +816,7 @@ fn test_smol_ready_future_with_spread_done() {
 #[traced_test]
 fn test_smol_future_stream_with_spread() {
     let mut stream = vec![
-        Stream::<i32, &str>::Spread(vec![
-            StreamSpread::Done(1),
-            StreamSpread::Done(2),
-        ]),
+        Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
         Stream::Spread(vec![StreamSpread::Pending("p")]),
     ]
     .into_iter()

@@ -2746,6 +2746,8 @@ where
                 }
             }
             Some(TaskStatus::Spread(items)) => {
+                // Scan all Ready items first for a match, collect Pending
+                let mut pending_items: Vec<I::Pending> = Vec::new();
                 for item in items {
                     match item {
                         TaskSpread::Ready(v) => {
@@ -2755,14 +2757,16 @@ where
                                 return Some(TaskStatus::Ready(true));
                             }
                         }
-                        TaskSpread::Pending(p) => {
-                            return Some(TaskStatus::Spread(
-                                vec![TaskSpread::Pending(p)],
-                            ));
-                        }
+                        TaskSpread::Pending(p) => pending_items.push(p),
                     }
                 }
-                Some(TaskStatus::Ignore)
+                if pending_items.is_empty() {
+                    Some(TaskStatus::Ignore)
+                } else {
+                    Some(TaskStatus::Spread(
+                        pending_items.into_iter().map(TaskSpread::Pending).collect(),
+                    ))
+                }
             }
             Some(TaskStatus::Pending(p)) => Some(TaskStatus::Pending(p)),
             Some(TaskStatus::Delayed(d)) => Some(TaskStatus::Delayed(d)),

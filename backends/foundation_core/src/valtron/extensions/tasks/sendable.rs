@@ -2726,21 +2726,30 @@ where
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
             Some(TaskStatus::Spread(items)) => {
+                // Scan all Ready items first for a match, collect Pending
+                let mut pending_items: Vec<I::Pending> = Vec::new();
                 for item in items {
                     match item {
                         TaskSpread::Ready(v) => {
                             if (self.predicate)(v) {
+                                // Found a match — return immediately.
+                                // Pending items are irrelevant once the answer is determined.
                                 self.any_true = true;
                                 self.done = true;
                                 return Some(TaskStatus::Ready(true));
                             }
                         }
-                        TaskSpread::Pending(p) => {
-                            return Some(TaskStatus::Pending(p));
-                        }
+                        TaskSpread::Pending(p) => pending_items.push(p),
                     }
                 }
-                Some(TaskStatus::Ignore)
+                // No Ready matched — return Pending items to be retried later
+                if pending_items.is_empty() {
+                    Some(TaskStatus::Ignore)
+                } else {
+                    Some(TaskStatus::Spread(
+                        pending_items.into_iter().map(TaskSpread::Pending).collect(),
+                    ))
+                }
             }
             None => {
                 self.done = true;
