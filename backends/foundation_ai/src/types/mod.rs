@@ -8,7 +8,7 @@ use derive_more::{Display, Error, From};
 use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
-use foundation_netio::simple_http::url::Uri;
+use foundation_core::url::Uri;
 use foundation_errstacks::ErrorTrace;
 use lazy_regex::regex;
 use regex::Regex;

@@ -13,10 +13,10 @@ use std::time::{Duration, SystemTime};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator};
 use foundation_netio::event_source::{Event, ReconnectingEventSourceTask};
-use foundation_netio::simple_http::client::body_reader::collect_strings_from_send_safe;
-use foundation_netio::simple_http::client::{
-    DnsResolver, SimpleHttpClient, SystemDnsResolver,
+use foundation_netio::simple_http::client::shared::{
+    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
 };
+use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
@@ -1097,6 +1097,8 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::Spread(_) => Some(Stream::Ignore),
         }
     }
 }

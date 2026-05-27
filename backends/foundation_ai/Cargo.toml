@@ -26,6 +26,7 @@ infrastructure_llama_cpp = { workspace = true }
 
 # -- Other dependencies
 regex = { version = "1.10" }
+tracing = { workspace = true }
 lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
@@ -48,9 +49,6 @@ tokenizers = { version = "0.22", optional = true }
 # on non-matching targets, unlike optional deps where features activate globally).
 [target.'cfg(target_vendor = "apple")'.dependencies]
 candle-core = { version = "0.10", features = ["metal"] }
-
-# Tracing for logging
-tracing = { workspace = true }
 
 [dev-dependencies]
 # Foundation testing with HuggingFace model downloading

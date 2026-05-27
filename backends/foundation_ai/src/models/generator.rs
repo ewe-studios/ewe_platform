@@ -5,7 +5,8 @@ use derive_more::{Display, From};
 use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::simple_http::client::HttpRequestPending;
 use foundation_netio::simple_http::client::RequestIntro;
-use foundation_netio::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};
+use foundation_netio::simple_http::client::shared::body_reader;
+use foundation_netio::simple_http::client::{SendRequestTask, SimpleHttpClient};
 use serde::Deserialize;
 
 use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelProviders, ModelUsageCosting};
