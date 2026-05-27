@@ -110,7 +110,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for SseStream<R> {
             Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
             Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
             Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::SpreadDone(_) | Stream::SpreadPending(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }
@@ -152,7 +152,7 @@ impl<R: DnsResolver + Clone + Send + 'static> Iterator for ReconnectingSseStream
             Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
             Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
             Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::SpreadDone(_) | Stream::SpreadPending(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }

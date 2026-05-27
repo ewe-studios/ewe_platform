@@ -221,7 +221,7 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
-                    Some(TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_)) => {
+                    Some(TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Ready(item)) => {
@@ -513,7 +513,7 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
-                    Some(TaskStatus::SpreadDone(_) | TaskStatus::SpreadPending(_)) => {
+                    Some(TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Ready(item)) => {

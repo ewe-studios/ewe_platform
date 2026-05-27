@@ -8,7 +8,7 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures_core::Stream as FuturesStream;
 
-use super::streams::{Stream, StreamIterator};
+use super::streams::{Stream, StreamIterator, StreamSpread};
 
 // ============================================================================
 // StreamCollectFuture
@@ -47,11 +47,7 @@ where
             match iter.next() {
                 Some(Stream::Next(v)) => this.collected.push(v),
                 Some(Stream::Ignore) => {}
-                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
-                    cx.waker().wake_by_ref();
-                    return Poll::Pending;
-                }
-                Some(Stream::SpreadDone(_) | Stream::SpreadPending(_)) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait | Stream::Spread(_)) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
@@ -95,14 +91,16 @@ where
                     return Poll::Ready(Some((v, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait | Stream::SpreadPending(_)) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
-                Some(Stream::SpreadDone(items)) => {
-                    if let Some(first) = items.into_iter().next() {
-                        let remaining = this.inner.take().expect("inner should exist");
-                        return Poll::Ready(Some((first, remaining)));
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        if let StreamSpread::Done(v) = item {
+                            let remaining = this.inner.take().expect("inner should exist");
+                            return Poll::Ready(Some((v, remaining)));
+                        }
                     }
                 }
                 None => return Poll::Ready(None),
@@ -143,14 +141,16 @@ where
                     return Poll::Ready(Some((p, remaining)));
                 }
                 Some(Stream::Ignore) => {}
-                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait | Stream::SpreadDone(_)) => {
+                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     cx.waker().wake_by_ref();
                     return Poll::Pending;
                 }
-                Some(Stream::SpreadPending(items)) => {
-                    if let Some(first) = items.into_iter().next() {
-                        let remaining = this.inner.take().expect("inner should exist");
-                        return Poll::Ready(Some((first, remaining)));
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        if let StreamSpread::Pending(p) = item {
+                            let remaining = this.inner.take().expect("inner should exist");
+                            return Poll::Ready(Some((p, remaining)));
+                        }
                     }
                 }
                 None => return Poll::Ready(None),

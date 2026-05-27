@@ -310,7 +310,7 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     while results.len() < 2 {
         match iterator.next() {
             Some(Stream::Next(v)) => results.push(v),
-            Some(Stream::Wait) | Some(Stream::Ignore) | Some(Stream::Init) | Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) | Some(Stream::SpreadDone(_)) | Some(Stream::SpreadPending(_)) => continue,
+            Some(Stream::Wait) | Some(Stream::Ignore) | Some(Stream::Init) | Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) | Some(Stream::Spread(_)) => continue,
             None => break,
         }
     }

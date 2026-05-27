@@ -14,7 +14,7 @@
 //! PHASE 2 SCOPE: Max reconnect duration support, exponential backoff with jitter.
 
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use crate::simple_http::client::shared::DnsResolver;
 use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
@@ -299,25 +299,20 @@ where
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         Some(TaskStatus::Wait)
                     }
-                    Some(TaskStatus::SpreadDone(items)) => {
+                    Some(TaskStatus::Spread(items)) => {
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
-                        Some(TaskStatus::SpreadDone(items))
-                    }
-                    Some(TaskStatus::SpreadPending(items)) => {
-                        self.state = Some(ReconnectingWebSocketState::Connected(inner));
-                        let mapped: Vec<ReconnectingWebSocketProgress> = items
+                        let mapped: Vec<TaskSpread<Result<WebSocketMessage, WebSocketError>, ReconnectingWebSocketProgress>> = items
                             .into_iter()
-                            .map(|p| match p {
-                                WebSocketProgress::Connecting => {
-                                    ReconnectingWebSocketProgress::Connecting
-                                }
-                                WebSocketProgress::Handshaking => {
-                                    ReconnectingWebSocketProgress::Handshaking
-                                }
-                                WebSocketProgress::Reading => ReconnectingWebSocketProgress::Reading,
+                            .map(|item| match item {
+                                TaskSpread::Ready(v) => TaskSpread::Ready(v),
+                                TaskSpread::Pending(p) => TaskSpread::Pending(match p {
+                                    WebSocketProgress::Connecting => ReconnectingWebSocketProgress::Connecting,
+                                    WebSocketProgress::Handshaking => ReconnectingWebSocketProgress::Handshaking,
+                                    WebSocketProgress::Reading => ReconnectingWebSocketProgress::Reading,
+                                }),
                             })
                             .collect();
-                        Some(TaskStatus::SpreadPending(mapped))
+                        Some(TaskStatus::Spread(mapped))
                     }
                     None => {
                         // Inner task closed - attempt reconnection

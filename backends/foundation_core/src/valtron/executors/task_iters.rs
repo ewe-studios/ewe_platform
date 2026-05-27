@@ -11,7 +11,7 @@ use crate::valtron::iterators::Stream;
 use concurrent_queue::PushError;
 
 use crate::valtron::{
-    task::TaskStatus, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
+    task::{TaskSpread, TaskStatus}, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
     BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionIterator, State, TaskStatusMapper,
@@ -39,7 +39,7 @@ where
     channel: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
     /// Pending message when channel is full (backpressure)
     pending_msg: Option<Stream<Done, Pending>>,
-    /// Spread items being iterated (for SpreadDone/SpreadPending)
+    /// Spread items being iterated (for Spread)
     spread_items: Vec<Stream<Done, Pending>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
@@ -284,30 +284,15 @@ where
                     State::Done
                 }
             },
-            TaskStatus::SpreadDone(items) => {
-                self.spread_items = items.into_iter().map(Stream::Next).collect();
+            TaskStatus::Spread(items) => {
+                self.spread_items = items
+                    .into_iter()
+                    .map(|item| match item {
+                        TaskSpread::Ready(d) => Stream::Next(d),
+                        TaskSpread::Pending(p) => Stream::Pending(p),
+                    })
+                    .collect();
                 // Try to push the first item immediately
-                if !self.spread_items.is_empty() {
-                    let item = self.spread_items.remove(0);
-                    match self.channel.push(item) {
-                        Ok(()) => State::Pending(None),
-                        Err(PushError::Full(msg)) => {
-                            self.pending_msg = Some(msg);
-                            State::Pending(None)
-                        }
-                        Err(PushError::Closed(_)) => {
-                            tracing::error!("Channel closed, terminating task");
-                            self.channel.close();
-                            self.alive.take();
-                            State::Done
-                        }
-                    }
-                } else {
-                    State::Pending(None)
-                }
-            }
-            TaskStatus::SpreadPending(items) => {
-                self.spread_items = items.into_iter().map(Stream::Pending).collect();
                 if !self.spread_items.is_empty() {
                     let item = self.spread_items.remove(0);
                     match self.channel.push(item) {
@@ -353,7 +338,7 @@ where
     channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     /// Pending message when channel is full (backpressure)
     pending_msg: Option<TaskStatus<Done, Pending, Action>>,
-    /// Spread items being iterated (for SpreadDone/SpreadPending)
+    /// Spread items being iterated (for Spread)
     spread_items: Vec<TaskStatus<Done, Pending, Action>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
@@ -616,29 +601,14 @@ where
                     State::Done
                 }
             },
-            TaskStatus::SpreadDone(items) => {
-                self.spread_items = items.into_iter().map(TaskStatus::Ready).collect();
-                if !self.spread_items.is_empty() {
-                    let item = self.spread_items.remove(0);
-                    match self.channel.push(item) {
-                        Ok(()) => State::Pending(None),
-                        Err(PushError::Full(msg)) => {
-                            self.pending_msg = Some(msg);
-                            State::Pending(None)
-                        }
-                        Err(PushError::Closed(_)) => {
-                            tracing::error!("Channel closed, terminating task");
-                            self.channel.close();
-                            self.alive.take();
-                            State::Done
-                        }
-                    }
-                } else {
-                    State::Pending(None)
-                }
-            }
-            TaskStatus::SpreadPending(items) => {
-                self.spread_items = items.into_iter().map(TaskStatus::Pending).collect();
+            TaskStatus::Spread(items) => {
+                self.spread_items = items
+                    .into_iter()
+                    .map(|item| match item {
+                        TaskSpread::Ready(d) => TaskStatus::Ready(d),
+                        TaskSpread::Pending(p) => TaskStatus::Pending(p),
+                    })
+                    .collect();
                 if !self.spread_items.is_empty() {
                     let item = self.spread_items.remove(0);
                     match self.channel.push(item) {
@@ -683,7 +653,7 @@ where
     channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     /// Pending message when channel is full (backpressure)
     pending_msg: Option<TaskStatus<Done, Pending, Action>>,
-    /// Spread items being iterated (for SpreadDone/SpreadPending)
+    /// Spread items being iterated (for Spread)
     spread_items: Vec<TaskStatus<Done, Pending, Action>>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
@@ -871,8 +841,14 @@ where
                     State::Done
                 }
             },
-            TaskStatus::SpreadDone(items) => {
-                self.spread_items = items.into_iter().map(TaskStatus::Ready).collect();
+            TaskStatus::Spread(items) => {
+                self.spread_items = items
+                    .into_iter()
+                    .filter_map(|item| match item {
+                        TaskSpread::Ready(d) => Some(TaskStatus::Ready(d)),
+                        TaskSpread::Pending(_) => None, // ReadyConsumingIter only pushes Ready
+                    })
+                    .collect();
                 if !self.spread_items.is_empty() {
                     let item = self.spread_items.remove(0);
                     match self.channel.push(item) {
@@ -892,7 +868,6 @@ where
                     State::Pending(None)
                 }
             }
-            TaskStatus::SpreadPending(_) => State::Pending(None),
         })
     }
 }

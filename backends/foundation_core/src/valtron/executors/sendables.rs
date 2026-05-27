@@ -1017,12 +1017,12 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
-            Some(Stream::SpreadDone(items)) => {
-                self.collected.extend(items);
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::SpreadPending(_)) => {
+            Some(Stream::Spread(items)) => {
+                for item in items {
+                    if let crate::valtron::streams::StreamSpread::Done(d) = item {
+                        self.collected.push(d);
+                    }
+                }
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
@@ -1240,12 +1240,12 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
-                Some(Stream::SpreadDone(items)) => {
-                    self.collected.extend(items);
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
-                Some(Stream::SpreadPending(_)) => {
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        if let crate::valtron::streams::StreamSpread::Done(d) = item {
+                            self.collected.push(d);
+                        }
+                    }
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
@@ -1428,15 +1428,13 @@ where
                 Some(Stream::Wait) => {
                     all_done = false;
                 }
-                Some(Stream::SpreadDone(values)) => {
-                    // Take the last value for the buffer (or first if single)
-                    if let Some(last) = values.into_iter().last() {
+                Some(Stream::Spread(values)) => {
+                    if let Some(last) = values.into_iter().find_map(|item| match item {
+                        crate::valtron::streams::StreamSpread::Done(d) => Some(d),
+                        _ => None,
+                    }) {
                         self.buffer[i] = Some(last);
                     }
-                    all_done = false;
-                    has_pending = true;
-                }
-                Some(Stream::SpreadPending(_)) => {
                     all_done = false;
                     has_pending = true;
                 }
@@ -1767,15 +1765,13 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
-                Some(Stream::SpreadDone(items)) => {
+                Some(Stream::Spread(items)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
-                    if let Some(first) = items.into_iter().next() {
-                        return Some(Stream::Next(first));
+                    for item in items {
+                        if let crate::valtron::streams::StreamSpread::Done(first) = item {
+                            return Some(Stream::Next(first));
+                        }
                     }
-                }
-                Some(Stream::SpreadPending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
                 }
                 None => {
                     exhausted_indices.push(idx);

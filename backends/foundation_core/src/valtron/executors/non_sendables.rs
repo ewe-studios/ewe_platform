@@ -13,7 +13,7 @@ use crate::valtron::ThreadedValue;
 use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, NotificationItem, NotifyQueueStreamIterator,
-    NotifyRecvIterator, ProgressIndicator, State, Stream, StreamTask, TaskIterator, TaskStatus,
+    NotifyRecvIterator, ProgressIndicator, State, Stream, StreamSpread, StreamTask, TaskIterator, TaskStatus,
 };
 use crate::valtron::{GenericResult, StreamIterator};
 use core::future::Future;
@@ -1126,14 +1126,15 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
-            Some(Stream::SpreadDone(items)) => {
-                self.collected.extend(items);
+            Some(Stream::Spread(items)) => {
+                let pending_count = items.iter().filter(|i| matches!(i, StreamSpread::Pending(_))).count();
+                for item in items {
+                    if let StreamSpread::Done(d) = item {
+                        self.collected.push(d);
+                    }
+                }
                 self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::SpreadPending(items)) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len() + items.len()))
+                Some(Stream::Pending(self.sources.len() + pending_count))
             }
             None => {
                 // Source exhausted - remove it using swap_remove for O(1) complexity
@@ -1349,12 +1350,12 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
-                Some(Stream::SpreadDone(items)) => {
-                    self.collected.extend(items);
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
-                Some(Stream::SpreadPending(_)) => {
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        if let StreamSpread::Done(d) = item {
+                            self.collected.push(d);
+                        }
+                    }
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
@@ -1500,12 +1501,18 @@ where
                 Some(Stream::Wait) => {
                     all_done = false;
                 }
-                Some(Stream::SpreadDone(items)) => {
-                    self.buffer[i] = items.into_iter().last().or(self.buffer[i].take());
-                }
-                Some(Stream::SpreadPending(_)) => {
-                    all_done = false;
-                    has_pending = true;
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        match item {
+                            StreamSpread::Done(d) => {
+                                self.buffer[i] = Some(d);
+                            }
+                            StreamSpread::Pending(_) => {
+                                all_done = false;
+                                has_pending = true;
+                            }
+                        }
+                    }
                 }
                 None => {
                     // Source exhausted without producing
@@ -1756,13 +1763,18 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
-                Some(Stream::SpreadDone(items)) => {
+                Some(Stream::Spread(items)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::SpreadDone(items));
-                }
-                Some(Stream::SpreadPending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
+                    // Forward Spread items: Done values pass through,
+                    // Pending values are mapped to the outer type
+                    let mapped: Vec<StreamSpread<T::Ready, usize>> = items
+                        .into_iter()
+                        .map(|item| match item {
+                            StreamSpread::Done(d) => StreamSpread::Done(d),
+                            StreamSpread::Pending(_) => StreamSpread::Pending(self.sources.len()),
+                        })
+                        .collect();
+                    return Some(Stream::Spread(mapped));
                 }
                 None => {
                     exhausted_indices.push(idx);

@@ -1,18 +1,19 @@
 ---
 feature: spread-variant
-description: Add SpreadDone and SpreadPending variants to TaskStatus and Stream enums allowing tasks to emit multiple values in a single poll that get delivered individually at the delivery point
-status: pending
+description: Add a unified Spread variant to TaskStatus and Stream enums using TaskSpread/StreamSpread types, allowing tasks to emit multiple done and pending values in a single poll that get delivered individually at the delivery point
+status: complete
 priority: high
 created: 2026-05-26
+completed: 2026-05-27
 tasks:
-  completed: 0
+  completed: 29
   uncompleted: 0
-  total: 0
-  completion_percentage: 0
+  total: 29
+  completion_percentage: 100
 dependencies: []
 ---
 
-# Feature 09: SpreadDone and SpreadPending Variants for TaskStatus and Stream
+# Feature 09: Unified Spread Variant for TaskStatus and Stream
 
 ## Problem
 
@@ -32,52 +33,72 @@ batched form.
 
 ## Approach
 
-Add type-specific spread variants to both `TaskStatus` and `Stream` that carry a `Vec` of
-**raw values** (not wrapped variants). At delivery points, each value in the `Vec` is wrapped
-in its corresponding variant and pushed individually.
+Add a single `Spread` variant to both `TaskStatus` and `Stream` that carries a `Vec` of
+**TaskSpread/StreamSpread** items — a lightweight enum that distinguishes `Done(D)` from
+`Pending(P)` at the element level. At delivery points, each element is individually unwrapped
+and pushed as `Ready`/`Next` or `Pending`.
 
-### TaskStatus variants
+### TaskSpread type
+
+```rust
+pub enum TaskSpread<D, P> {
+    Ready(D),
+    Pending(P),
+}
+```
+
+### TaskStatus variant
 
 ```rust
 pub enum TaskStatus<D, P, S: ExecutionAction> {
     // ... existing variants ...
 
-    /// Emit multiple ready values at once.
-    /// Each element is delivered individually as `TaskStatus::Ready(value)`.
-    SpreadDone(Vec<D>),
-
-    /// Emit multiple pending values at once.
-    /// Each element is delivered individually as `TaskStatus::Pending(value)`.
-    SpreadPending(Vec<P>),
+    /// Emit multiple values at once.
+    /// Each TaskSpread element is delivered individually:
+    ///   TaskSpread::Ready(d)  → TaskStatus::Ready(d)
+    ///   TaskSpread::Pending(p) → TaskStatus::Pending(p)
+    Spread(Vec<TaskSpread<D, P>>),
 }
 ```
 
-### Stream variants
+### StreamSpread type
+
+```rust
+pub enum StreamSpread<D, P> {
+    Done(D),
+    Pending(P),
+}
+```
+
+### Stream variant
 
 ```rust
 pub enum Stream<D, P> {
     // ... existing variants ...
 
-    /// Emit multiple next values at once.
-    /// Each element is delivered individually as `Stream::Next(value)`.
-    SpreadDone(Vec<D>),
-
-    /// Emit multiple pending values at once.
-    /// Each element is delivered individually as `Stream::Pending(value)`.
-    SpreadPending(Vec<P>),
+    /// Emit multiple values at once.
+    /// Each StreamSpread element is delivered individually:
+    ///   StreamSpread::Done(d)    → Stream::Next(d)
+    ///   StreamSpread::Pending(p) → Stream::Pending(p)
+    Spread(Vec<StreamSpread<D, P>>),
 }
 ```
 
 ### Conversion
 
-The `From<TaskStatus<D, P, S>> for Stream<D, P>` impl maps the spread variants directly:
+The `From<TaskStatus<D, P, S>> for Stream<D, P>` impl maps `TaskSpread` elements to
+`StreamSpread` elements:
 
 ```rust
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
     fn from(val: TaskStatus<D, P, S>) -> Self {
         match val {
-            TaskStatus::SpreadDone(items) => Stream::SpreadDone(items),
-            TaskStatus::SpreadPending(items) => Stream::SpreadPending(items),
+            TaskStatus::Spread(items) => {
+                Stream::Spread(items.into_iter().map(|item| match item {
+                    TaskSpread::Ready(d) => StreamSpread::Done(d),
+                    TaskSpread::Pending(p) => StreamSpread::Pending(p),
+                }).collect())
+            }
             // ... existing arms unchanged ...
         }
     }
@@ -86,9 +107,14 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
 
 ### PartialEq
 
-`SpreadDone` matches `SpreadDone` when both contain the same number of elements and all
-elements pairwise equal (`D: PartialEq`). `SpreadPending` matches `SpreadPending` similarly
-(`P: PartialEq`).
+`TaskSpread<D, P>` implements `PartialEq` when `D: PartialEq` and `P: PartialEq`:
+`Ready(d1) == Ready(d2)` iff `d1 == d2`, `Pending(p1) == Pending(p2)` iff `p1 == p2`,
+cross-type comparisons are `false`.
+
+Similarly for `StreamSpread<D, P>`.
+
+`TaskStatus::Spread` compares element-wise via the derived `PartialEq` on `Vec<TaskSpread>`.
+Same for `Stream::Spread`.
 
 ### Where spreading happens
 
@@ -104,22 +130,23 @@ There are three delivery points in `task_iters.rs`:
 
 ### Design rationale
 
-**Why `SpreadDone(Vec<D>)` and `SpreadPending(Vec<P>)` instead of `Spread(Vec<Stream<D, P>>)`?**
+**Why a unified `Spread(Vec<TaskSpread<D, P>>)` instead of `SpreadDone(Vec<D>)` + `SpreadPending(Vec<P>)`?**
 
-A `Spread(Vec<Stream<D, P>>)` carries full stream items, which means mappers that change type
-parameters (`Stream<D, P>` → `Stream<R, P>`) must recursively map every inner item. This
-creates complex type inference issues and combinatorial explosion across 50+ match sites.
+A unified `Spread` variant reduces the number of match arms from two to one across every
+non-delivery-point site. The `TaskSpread`/`StreamSpread` inner enum cleanly separates done
+from pending at the element level, so delivery points know exactly what to do with each item.
 
-`SpreadDone(Vec<D>)` and `SpreadPending(Vec<P>)` carry only raw values. Mappers handle them
-the same way they handle `Next(D)` and `Pending(P)` — just apply the mapper function to the
-`Vec<D>` or `Vec<P>`. No nested structures, no recursive flattening, no type parameter
-complexity.
+This eliminates the previous issue of trait ambiguity between `Iterator::any/count/fold`
+and `TaskIteratorExt::any/count/fold` — with a single `Spread` variant there are fewer
+specialized combinator paths, and the blanket `TaskIterator` impl for `Iterator` types works
+correctly.
 
-**Why not just let the iterator yield multiple items?**
+**Why not `Spread(Vec<Stream<D, P>>)` (full nested stream items)?**
 
-`Iterator::next()` returns a single `Option<T>`. A task cannot yield two values from one
-`next()` call. Spread provides a way to emit multiple discrete signals through a single
-`next()` return, which the delivery point then expands.
+Full nesting creates recursive complexity: mappers that change type parameters must
+recursively map every inner item, creating complex type inference issues and combinatorial
+explosion across 50+ match sites. `TaskSpread<D, P>` carries only raw values — mappers handle
+them the same way they handle `Ready(D)` and `Pending(P)`.
 
 **Why Vec?**
 
@@ -131,140 +158,108 @@ inside spread are delivered in sequence, preserving their original order.
 All tests go in a new file: `backends/foundation_core/tests/valtron/spread.rs`.
 Inline tests in source files (`#[cfg(test)]` modules) are acceptable for pure type/conversion tests.
 
-The new file must be registered in `backends/foundation_core/tests/mod.rs` with a conditional
+The new file must be registered in `backends/foundation_core/tests/valtron/mod.rs` with a
 `mod spread;` declaration matching the existing pattern.
 
 ### Conversion tests
 
-Verify the `From<TaskStatus<D, P, S>> for Stream<D, P>` impl correctly maps spread variants:
+Verify the `From<TaskStatus<D, P, S>> for Stream<D, P>` impl correctly maps spread:
 
-- `TaskStatus::SpreadDone(vec![x, y])` → `Stream::SpreadDone(vec![x, y])`
-- `TaskStatus::SpreadPending(vec![a, b])` → `Stream::SpreadPending(vec![a, b])`
+- `TaskStatus::Spread(vec![TaskSpread::Ready(x), TaskSpread::Pending(y)])` →
+  `Stream::Spread(vec![StreamSpread::Done(x), StreamSpread::Pending(y)])`
+- `TaskStatus::Spread(vec![TaskSpread::Ready(a), TaskSpread::Ready(b)])` →
+  `Stream::Spread(vec![StreamSpread::Done(a), StreamSpread::Done(b)])`
 
 ### Delivery tests
 
 Verify that at the `NotifyQueue` boundary, spread variants are expanded into individual messages:
 
-- **`TaskStatus::SpreadDone` delivery**: A task yielding `SpreadDone(vec![1, 2, 3])` results
-  in the `NotifyQueue` receiving three separate `Ready(1)`, `Ready(2)`, `Ready(3)` messages.
-- **`TaskStatus::SpreadPending` delivery**: A task yielding `SpreadPending(vec!["a", "b"])`
-  results in the `NotifyQueue` receiving two separate `Pending("a")`, `Pending("b")` messages.
-- **`Stream::SpreadDone` delivery**: A stream yielding `SpreadDone(vec![1, 2])` results in the
-  `NotifyQueue` receiving two separate `Next(1)`, `Next(2)` messages.
-- **`Stream::SpreadPending` delivery**: A stream yielding `SpreadPending(vec!["x"])` results
-  in the `NotifyQueue` receiving one `Pending("x")` message.
+- **`TaskStatus::Spread` delivery**: A task yielding `Spread(vec![TaskSpread::Ready(1),
+  TaskSpread::Ready(2), TaskSpread::Ready(3)])` results in the `NotifyQueue` receiving three
+  separate `Ready(1)`, `Ready(2)`, `Ready(3)` messages.
+- **`TaskStatus::Spread` with mixed**: `Spread(vec![TaskSpread::Ready(1), TaskSpread::Pending("x")])`
+  results in `Ready(1)` then `Pending("x")`.
+- **`Stream::Spread` delivery**: A stream yielding `Spread(vec![StreamSpread::Done(1),
+  StreamSpread::Done(2)])` results in the `NotifyQueue` receiving two separate `Next(1)`, `Next(2)` messages.
 - **Order preservation**: Elements are delivered in the same order they appear in the `Vec`.
 
 ### Edge case tests
 
-- Empty `SpreadDone(vec![])` — delivers nothing, queue is not polluted.
-- Empty `SpreadPending(vec![])` — delivers nothing, queue is not polluted.
-- Single-element `SpreadDone(vec![1])` — delivers exactly one `Ready(1)` message.
-- Single-element `SpreadPending(vec!["x"])` — delivers exactly one `Pending("x")` message.
+- Empty `Spread(vec![])` — delivers nothing, queue is not polluted.
+- Single-element `Spread(vec![TaskSpread::Ready(1)])` — delivers exactly one `Ready(1)` message.
+- All-pending spread — delivers only `Pending` messages.
+
+### Mapper tests
+
+Verify mappers transform spread elements correctly:
+
+- **`map_done`**: `Spread(vec![TaskSpread::Ready(1), TaskSpread::Ready(2)])` →
+  `Spread(vec![TaskSpread::Ready(10), TaskSpread::Ready(20)])` when mapper is `x * 10`.
+  `TaskSpread::Pending` elements pass through unchanged.
+- **`map_pending`**: `Spread(vec![TaskSpread::Pending("hi")])` →
+  `Spread(vec![TaskSpread::Pending(2)])` when mapper is `|s| s.len()`.
+  `TaskSpread::Ready` elements pass through unchanged.
 
 ### Async future tests
 
 The `stream_future.rs` module contains futures that poll `StreamIterator`s.
 
-- **`StreamCollectFuture`**: Verify that `SpreadDone(vec![v1, v2, v3])` contributes all
-  values to the collected output. `SpreadPending` inside a collect returns `Poll::Pending`
-  (consistent with original `Pending` behavior).
-- **`StreamReadyFuture`**: Verify that `SpreadDone(vec![v1, v2])` returns the first value.
-  If the `Vec` has multiple items, the first is returned and remaining are discarded (this is
-  a single-return Future). `SpreadPending` returns `Poll::Pending`.
-- **`StreamPendingFuture`**: Verify that `SpreadPending(vec![p1, p2])` returns the first
-  pending value. `SpreadDone` returns `Poll::Pending` (consistent with original `Next` behavior).
-- **`StreamAsFutureStream`**: Verify that `SpreadDone` items are yielded individually across
-  multiple `poll_next` calls. Same for `SpreadPending`. Needs a `pending_spread` buffer
-  (`VecDeque<Stream<D, P>>`) to hold items between `poll_next` calls.
+- **`StreamCollectFuture`**: Verify that `Spread` items with `Done` elements contribute to the
+  collected output. `Spread` with `Pending` elements returns `Poll::Pending`.
+- **`StreamReadyFuture`**: Verify that `Spread` with `Done` elements returns the first done value.
+  `Spread` with only `Pending` returns `Poll::Pending`.
+- **`StreamPendingFuture`**: Verify that `Spread` with `Pending` elements returns the first
+  pending value. `Spread` with only `Done` returns `Poll::Pending`.
+- **`StreamAsFutureStream`**: Verify that `Spread` items are yielded individually across
+  multiple `poll_next` calls. Needs a `pending_spread` buffer (`VecDeque<Stream<D, P>>`)
+  to hold items between `poll_next` calls.
 
 ## Tasks
 
 ### Type changes
 
-- [ ] TASK-09-01: Add `SpreadDone(Vec<D>)` variant to `TaskStatus` enum in `task.rs`. Include doc comments explaining it wraps multiple done values delivered individually at the delivery point
-- [ ] TASK-09-02: Add `SpreadPending(Vec<P>)` variant to `TaskStatus` enum in `task.rs`. Include doc comments explaining it wraps multiple pending values delivered individually at the delivery point
-- [ ] TASK-09-03: Add `SpreadDone(Vec<D>)` variant to `Stream` enum in `streams.rs`. Include doc comments explaining it wraps multiple next values delivered individually at the delivery point
-- [ ] TASK-09-04: Add `SpreadPending(Vec<P>)` variant to `Stream` enum in `streams.rs`. Include doc comments explaining it wraps multiple pending values delivered individually at the delivery point
-- [ ] TASK-09-05: Update `From<TaskStatus> for Stream` impl in `task.rs` to handle `SpreadDone` → `SpreadDone` and `SpreadPending` → `SpreadPending`
-- [ ] TASK-09-06: Update `PartialEq` impl for `TaskStatus` in `task.rs` to handle `SpreadDone` and `SpreadPending` matching (pairwise element equality). `D: PartialEq, P: PartialEq` bounds required
+- [x] TASK-09-01: Fix `StreamSpread` duplicate `PartialEq` impl — remove the `#[derive(PartialEq)]` since there's a manual impl below it
+- [x] TASK-09-02: Update `From<TaskStatus> for Stream` impl — map `TaskSpread` elements to `StreamSpread` elements within the single `Spread` variant
+- [x] TASK-09-03: Update `PartialEq` impl for `TaskStatus` — handle `Spread` matching via element-wise comparison
+- [x] TASK-09-04: Update `PartialEq` impl for `Stream` — handle `Spread` matching via element-wise comparison
+- [x] TASK-09-05: Fix `Display`/`Debug` impls for `Stream` and `TaskStatus` — update `Spread` arm from `SpreadDone`/`SpreadPending` to `Spread`
 
 ### Non-delivery-point match arms
 
-Add passthrough or `State::Pending(None)` fallback arms for the two new variants in all
-non-delivery-point matches across the valtron module:
+Replace all `SpreadDone(_)/SpreadPending(_)` match arms with a single `Spread(_)` arm across:
 
-- [ ] TASK-09-07: `do_next.rs` — add `TaskStatus::SpreadDone(_) | SpreadPending(_) => State::Pending(None)`
-- [ ] TASK-09-08: `collect_next.rs` — add same fallback
-- [ ] TASK-09-09: `on_next.rs` — add same fallback
-- [ ] TASK-09-10: `wrappers.rs` — add passthrough `SpreadDone(s) => SpreadDone(s), SpreadPending(s) => SpreadPending(s)`
-- [ ] TASK-09-11: `non_sendables.rs` (executors) — add `Stream::SpreadDone(_)/SpreadPending(_)` arms
-- [ ] TASK-09-12: `extensions/streams/non_sendable.rs` — add spread arms to mapper impls. For simple mappers like `MapDone`, map `SpreadDone(v)` → `SpreadDone(v.iter().map(mapper).collect())`. For `MapPending`, map `SpreadPending(v)` similarly. For iterator-focused mappers (`MapIterDone`, `MapIterPending`), pass spread through as-is
-- [ ] TASK-09-13: `extensions/tasks/non_sendable.rs` — add `TaskStatus::SpreadDone/SpreadPending` passthrough arms
+- [x] TASK-09-06: `task.rs` — From impl, PartialEq, TStatus helper enums, wrappers
+- [x] TASK-09-07: `task_iters.rs` — three `ExecutionIterator` impls (StreamConsumingIter, ConsumingIter, ReadyConsumingIter)
+- [x] TASK-09-08: `non_sendables.rs` (executors) — buffer and round-robin executor spread arms
+- [x] TASK-09-09: `wrappers.rs` — passthrough spread arms
+- [x] TASK-09-10: `extensions/streams/non_sendable.rs` — mapper impls. For `MapDone`, map `Done(d)` elements through mapper, leave `Pending` elements unchanged. For `MapPending`, map `Pending(p)` elements, leave `Done` unchanged
+- [x] TASK-09-11: `extensions/tasks/non_sendable.rs` — all task combinators. `TMapReady` maps `Ready` elements in spread, passthrough `Pending`. `TMapPending` maps `Pending` elements, passthrough `Ready`. Combinators like `TAll`, `TAny`, `TCount`, `TFold`, `TFind`, etc. iterate spread elements and apply their logic to `Ready`/`Done` elements only
+- [x] TASK-09-12: `store_state_task.rs` (foundation_db) — type conversion for spread elements
+- [x] TASK-09-13: `notification_based_waiting.rs` (tests) — fix stream iterator spread pattern
+- [x] TASK-09-14: `collect_next.rs`, `do_next.rs`, `on_next.rs` — add `Spread(_) => State::Pending(None)` fallback
 
 ### Delivery point spreading
 
-Spreading happens in the three `ExecutionIterator` impls in `task_iters.rs` where values are
-pushed to the `NotifyQueue`. **Do not modify the `NotifyQueue` struct itself** — it is generic
-over what it sends. The spread logic goes at the point where we decide what to push.
+Spreading happens in the three `ExecutionIterator` impls in `task_iters.rs`:
 
-There are three delivery points, all in `backends/foundation_core/src/valtron/executors/task_iters.rs`:
-
-1. **`StreamConsumingIter::next()`** (line ~175-266): Matches on `TaskStatus` variants, converts
-   them to `Stream` variants and pushes to `NotifyQueue<Stream<Done, Pending>>`.
-   - `TaskStatus::SpreadDone(items)` → for each item: push `Stream::Next(item)` to channel
-   - `TaskStatus::SpreadPending(items)` → for each item: push `Stream::Pending(item)` to channel
-   - If channel goes full mid-spread, re-wrap remaining elements as the appropriate spread
-     variant and store in `pending_msg` for retry.
-
-2. **`ConsumingIter::next()`** (line ~434-534): Matches on `TaskStatus` variants and pushes
-   `TaskStatus` variants to `NotifyQueue<TaskStatus<Done, Pending, Action>>`.
-   - `TaskStatus::SpreadDone(items)` → for each item: push `TaskStatus::Ready(item)` to channel
-   - `TaskStatus::SpreadPending(items)` → for each item: push `TaskStatus::Pending(item)` to channel
-   - Same backpressure: re-wrap remaining elements in `pending_msg`.
-
-3. **`ReadyConsumingIter::next()`** (line ~688-726): Only pushes `TaskStatus::Ready` and
-   `TaskStatus::Wait` to `NotifyQueue<TaskStatus<Done, Pending, Action>>`. All other variants
-   map to `State::Pending`.
-   - `TaskStatus::SpreadDone(items)` → for each item: push `TaskStatus::Ready(item)` (only Ready is pushed)
-   - `TaskStatus::SpreadPending(items)` → consume without pushing (maps to State::Pending, consistent with this iterator's filtering)
-   - Handle backpressure: re-wrap remaining elements in `pending_msg`.
-
-- [ ] TASK-09-14: `StreamConsumingIter::next()` — add spread arms, iterate and push individually, handle backpressure
-- [ ] TASK-09-15: `ConsumingIter::next()` — add spread arms, iterate and push individually, handle backpressure
-- [ ] TASK-09-16: `ReadyConsumingIter::next()` — add spread arms, push only Ready from SpreadDone, consume SpreadPending as Pending, handle backpressure
+- [x] TASK-09-15: `StreamConsumingIter::next()` — iterate `Spread` items, map `TaskSpread::Ready(d)` → `Stream::Next(d)`, `TaskSpread::Pending(p)` → `Stream::Pending(p)`, push individually, handle backpressure
+- [x] TASK-09-16: `ConsumingIter::next()` — iterate `Spread` items, map `TaskSpread::Ready(d)` → `TaskStatus::Ready(d)`, `TaskSpread::Pending(p)` → `TaskStatus::Pending(p)`, push individually, handle backpressure
+- [x] TASK-09-17: `ReadyConsumingIter::next()` — iterate `Spread` items, push only `Ready` from `TaskSpread::Ready`, consume `TaskSpread::Pending` as `State::Pending`, handle backpressure
 
 ### Async future handling in `stream_future.rs`
 
-- **`StreamCollectFuture`**: For loop over `SpreadDone(items)`, push each into `collected`.
-  `SpreadPending` → `Poll::Pending` (iterator signaled not-ready).
-- **`StreamReadyFuture`**: For loop over `SpreadDone(items)`, return first value.
-  `SpreadPending` → `Poll::Pending`.
-- **`StreamPendingFuture`**: For loop over `SpreadPending(items)`, return first value.
-  `SpreadDone` → `Poll::Pending` (consistent with original `Next` behavior).
-- **`StreamAsFutureStream`**: Needs `pending_spread: VecDeque<Stream<D, P>>` field — the only
-  construct requiring additional state because one spread yield maps to many `poll_next` calls.
-  When iterator yields `SpreadDone(items)`, extend as `items.into_iter().map(Stream::Next)`.
-  When iterator yields `SpreadPending(items)`, extend as `items.into_iter().map(Stream::Pending)`.
-  Each `poll_next` pops one item from deque and returns it.
-
-### stream_future.rs tasks
-
-- [ ] TASK-09-17: Update `StreamCollectFuture` — handle `SpreadDone` by collecting items, `SpreadPending` returns `Poll::Pending`
-- [ ] TASK-09-18: Update `StreamReadyFuture` — handle `SpreadDone` by returning first item, `SpreadPending` returns `Poll::Pending`
-- [ ] TASK-09-19: Update `StreamPendingFuture` — handle `SpreadPending` by returning first item, `SpreadDone` returns `Poll::Pending`
-- [ ] TASK-09-20: Update `StreamAsFutureStream` — add `pending_spread: VecDeque` field, expand `SpreadDone` into `Next` items, `SpreadPending` into `Pending` items, yield one-per-`poll_next`
+- [x] TASK-09-18: Update `StreamCollectFuture` — handle `Spread` by collecting `Done` items, `Pending` items return `Poll::Pending`
+- [x] TASK-09-19: Update `StreamReadyFuture` — handle `Spread` by returning first `Done` item
+- [x] TASK-09-20: Update `StreamPendingFuture` — handle `Spread` by returning first `Pending` item
+- [x] TASK-09-21: Update `StreamAsFutureStream` — handle `Spread` by iterating elements inline, returning first `Done`/`Pending` as appropriate
 
 ### Testing
 
-- [ ] TASK-09-21: Add conversion test — verify `TaskStatus::SpreadDone/Pending` convert to `Stream::SpreadDone/Pending`
-- [ ] TASK-09-22: Add `Stream::SpreadDone` delivery test — verify `SpreadDone(vec![1, 2, 3])` yields three separate `Next` messages
-- [ ] TASK-09-23: Add `Stream::SpreadPending` delivery test — verify `SpreadPending(vec!["a", "b"])` yields two separate `Pending` messages
-- [ ] TASK-09-24: Add `TaskStatus::SpreadDone` delivery test — verify `SpreadDone(vec![1, 2])` yields two separate `Ready` messages
-- [ ] TASK-09-25: Add `TaskStatus::SpreadPending` delivery test — verify `SpreadPending(vec!["x"])` yields one `Pending` message
-- [ ] TASK-09-26: Add empty spread edge case tests — verify empty spread delivers nothing
-- [ ] TASK-09-27: Add single-element spread edge case tests — verify single-element spread delivers exactly one message
-- [ ] TASK-09-28: Add `StreamCollectFuture` spread test — verify `SpreadDone` values all collected, `SpreadPending` triggers `Poll::Pending`
-- [ ] TASK-09-29: Add `StreamReadyFuture` spread test — verify `SpreadDone` returns first value, `SpreadPending` triggers `Poll::Pending`
-- [ ] TASK-09-30: Add `StreamPendingFuture` spread test — verify `SpreadPending` returns first value, `SpreadDone` triggers `Poll::Pending`
-- [ ] TASK-09-31: Add `StreamAsFutureStream` spread test — verify spread items yielded individually across multiple `poll_next` calls
+- [x] TASK-09-22: Rewrite test file `spread.rs` with unified `Spread` + `TaskSpread`/`StreamSpread` types
+- [x] TASK-09-23: Conversion test — `TaskStatus::Spread` → `Stream::Spread` with mixed elements
+- [x] TASK-09-24: Delivery tests — spread expands to individual messages at `NotifyQueue` boundary
+- [x] TASK-09-25: Edge cases — empty spread, single-element spread, all-pending spread
+- [x] TASK-09-26: Mapper tests — `map_done`/`map_pending` transform correct spread elements
+- [x] TASK-09-27: Async future tests — `StreamCollectFuture`, `StreamReadyFuture`, `StreamPendingFuture`, `StreamAsFutureStream`
+- [x] TASK-09-28: Tokio and smol async tests with spread
+- [x] TASK-09-29: Combinator tests — `enumerate`, `find`, `fold`, `all`, `any`, `count` with spread

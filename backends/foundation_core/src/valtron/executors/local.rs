@@ -2993,10 +2993,7 @@ mod test_local_thread_executor {
                         match val_next {
                             Some(NotificationItem::Ready(status)) => match status {
                                 TaskStatus::Init => Some(TaskStatus::Init),
-                                TaskStatus::SpreadDone(done) => Some(TaskStatus::SpreadDone(done)),
-                                TaskStatus::SpreadPending(pending) => {
-                                    Some(TaskStatus::SpreadPending(pending))
-                                }
+                                TaskStatus::Spread(items) => Some(TaskStatus::Spread(items)),
                                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                                 TaskStatus::Ready(item) => Some(TaskStatus::Ready(item)),

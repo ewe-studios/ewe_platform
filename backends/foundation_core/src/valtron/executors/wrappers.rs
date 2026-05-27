@@ -79,8 +79,7 @@ where
             TaskStatus::Init => TaskStatus::Init,
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Wait => TaskStatus::Wait,
-            TaskStatus::SpreadDone(items) => TaskStatus::SpreadDone(items),
-            TaskStatus::SpreadPending(items) => TaskStatus::SpreadPending(items),
+            TaskStatus::Spread(items) => TaskStatus::Spread(items),
         })
     }
 }

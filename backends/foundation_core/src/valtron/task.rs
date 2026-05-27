@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use crate::valtron::Stream;
+use crate::valtron::{Stream, StreamSpread};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
 
@@ -163,8 +163,17 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
             TaskStatus::Pending(inner) => Stream::Pending(inner),
             TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
-            TaskStatus::SpreadDone(items) => Stream::SpreadDone(items),
-            TaskStatus::SpreadPending(items) => Stream::SpreadPending(items),
+            TaskStatus::Spread(items) => {
+                Stream::Spread(
+                    items
+                        .into_iter()
+                        .map(|item| match item {
+                            TaskSpread::Ready(d) => crate::valtron::streams::StreamSpread::Done(d),
+                            TaskSpread::Pending(p) => crate::valtron::streams::StreamSpread::Pending(p),
+                        })
+                        .collect(),
+                )
+            }
         }
     }
 }
@@ -201,8 +210,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             Spawn,
             Ignore,
             Wait,
-            SpreadDone(&'a [D]),
-            SpreadPending(&'a [P]),
+            Spread(&'a [TaskSpread<D, P>]),
         }
 
         let debug_item = match self {
@@ -234,8 +242,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             Spawn,
             Ignore,
             Wait,
-            SpreadDone(&'a [D]),
-            SpreadPending(&'a [P]),
+            Spread(&'a [TaskSpread<D, P>]),
         }
 
         let debug_item = match self {
@@ -1237,8 +1244,7 @@ where
                     self.used = Some(());
                     None
                 }
-                TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
-                TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
+                TaskStatus::Spread(items) => Some(TaskStatus::Spread(items)),
             },
             None => None,
         }
@@ -1276,8 +1282,14 @@ where
                 TaskStatus::Ready(item) => Some(Stream::Next(item)),
                 TaskStatus::Ignore => Some(Stream::Ignore),
                 TaskStatus::Wait => Some(Stream::Wait),
-                TaskStatus::SpreadDone(items) => Some(Stream::SpreadDone(items)),
-                TaskStatus::SpreadPending(items) => Some(Stream::SpreadPending(items)),
+                TaskStatus::Spread(items) => {
+                    Some(Stream::Spread(
+                        items.into_iter().map(|item| match item {
+                            TaskSpread::Ready(d) => StreamSpread::Done(d),
+                            TaskSpread::Pending(p) => StreamSpread::Pending(p),
+                        }).collect(),
+                    ))
+                }
             },
             None => None,
         }
@@ -1330,8 +1342,7 @@ where
                 | TaskStatus::Ignore
                 | TaskStatus::Wait => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
-                TaskStatus::SpreadDone(_) => Some(ReadyValue::Skip),
-                TaskStatus::SpreadPending(_) => Some(ReadyValue::Skip),
+                TaskStatus::Spread(_) => Some(ReadyValue::Skip),
             },
             None => None,
         }
@@ -1398,8 +1409,7 @@ where
                     None
                 }
                 TaskStatus::Wait => Some(TaskStatus::Wait),
-                TaskStatus::SpreadDone(items) => Some(TaskStatus::SpreadDone(items)),
-                TaskStatus::SpreadPending(items) => Some(TaskStatus::SpreadPending(items)),
+                TaskStatus::Spread(items) => Some(TaskStatus::Spread(items)),
             },
             None => None,
         }
@@ -1454,8 +1464,7 @@ where
                 TaskStatus::Ready(item)
             }
             TaskStatus::Wait => TaskStatus::Wait,
-            TaskStatus::SpreadDone(items) => TaskStatus::SpreadDone(items),
-            TaskStatus::SpreadPending(items) => TaskStatus::SpreadPending(items),
+            TaskStatus::Spread(items) => TaskStatus::Spread(items),
         })
     }
 }

@@ -24,7 +24,7 @@ use concurrent_queue::ConcurrentQueue;
 
 use crate::synca::mpp::RecvIterator;
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub enum StreamSpread<D, P> {
     Pending(P),
     Done(D),
@@ -109,7 +109,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for Stream<D, 
             Stream::Pending(p) => write!(f, "Pending({p:?})"),
             Stream::Next(d) => write!(f, "Next({d:?})"),
             Stream::Wait => write!(f, "Wait"),
-            Stream::Spread(items) => write!(f, "SpreadDone({items:?})"),
+            Stream::Spread(items) => write!(f, "Spread({items:?})"),
         }
     }
 }
@@ -123,8 +123,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Debug for Stream<D, P>
             Stream::Pending(p) => f.debug_tuple("Pending").field(p).finish(),
             Stream::Next(d) => f.debug_tuple("Next").field(d).finish(),
             Stream::Wait => f.write_str("Wait"),
-            Stream::SpreadDone(items) => f.debug_tuple("SpreadDone").field(items).finish(),
-            Stream::SpreadPending(items) => f.debug_tuple("SpreadPending").field(items).finish(),
+            Stream::Spread(items) => f.debug_tuple("Spread").field(items).finish(),
         }
     }
 }

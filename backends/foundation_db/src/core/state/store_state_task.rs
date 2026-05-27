@@ -17,7 +17,7 @@ use crate::core::state::resource_identifier::ResourceIdentifier;
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::hash::config_hash;
 use crate::core::state::types::{ResourceState, StateStatus};
-use foundation_core::valtron::{TaskIterator, TaskStatus, ThreadedValue};
+use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus, ThreadedValue};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -388,25 +388,18 @@ where
                         });
                         Some(TaskStatus::Wait)
                     }
-                    TaskStatus::SpreadDone(items) => {
+                    TaskStatus::Spread(items) => {
                         self.state = Some(StoreStatePrecomputed::Inner {
                             inner, state_store, resource_id, resource_kind, provider, input, environment,
                         });
-                        let converted: Vec<Result<D, ProviderError<E>>> = items
+                        let converted: Vec<TaskSpread<Result<D, ProviderError<E>>, StoreStatePending<P>>> = items
                             .into_iter()
-                            .map(|r| r.map_err(|e| ProviderError::ExecuteFailed(e.to_string())))
+                            .map(|item| match item {
+                                TaskSpread::Ready(d) => TaskSpread::Ready(d.map_err(|e| ProviderError::ExecuteFailed(e.to_string()))),
+                                TaskSpread::Pending(p) => TaskSpread::Pending(StoreStatePending::WaitingInner(p)),
+                            })
                             .collect();
-                        Some(TaskStatus::SpreadDone(converted))
-                    }
-                    TaskStatus::SpreadPending(items) => {
-                        self.state = Some(StoreStatePrecomputed::Inner {
-                            inner, state_store, resource_id, resource_kind, provider, input, environment,
-                        });
-                        let converted: Vec<StoreStatePending<P>> = items
-                            .into_iter()
-                            .map(StoreStatePending::WaitingInner)
-                            .collect();
-                        Some(TaskStatus::SpreadPending(converted))
+                        Some(TaskStatus::Spread(converted))
                     }
                 }
             }
@@ -685,25 +678,18 @@ where
                         });
                         Some(TaskStatus::Wait)
                     }
-                    TaskStatus::SpreadDone(items) => {
+                    TaskStatus::Spread(items) => {
                         self.state = Some(StoreStateIdentifierInner::Inner {
                             inner, state_store, input, environment,
                         });
-                        let converted: Vec<Result<O, ProviderError<E>>> = items
+                        let converted: Vec<TaskSpread<Result<O, ProviderError<E>>, StoreStatePending<P>>> = items
                             .into_iter()
-                            .map(|r| r.map_err(|e| ProviderError::ExecuteFailed(e.to_string())))
+                            .map(|item| match item {
+                                TaskSpread::Ready(d) => TaskSpread::Ready(d.map_err(|e| ProviderError::ExecuteFailed(e.to_string()))),
+                                TaskSpread::Pending(p) => TaskSpread::Pending(StoreStatePending::WaitingInner(p)),
+                            })
                             .collect();
-                        Some(TaskStatus::SpreadDone(converted))
-                    }
-                    TaskStatus::SpreadPending(items) => {
-                        self.state = Some(StoreStateIdentifierInner::Inner {
-                            inner, state_store, input, environment,
-                        });
-                        let converted: Vec<StoreStatePending<P>> = items
-                            .into_iter()
-                            .map(StoreStatePending::WaitingInner)
-                            .collect();
-                        Some(TaskStatus::SpreadPending(converted))
+                        Some(TaskStatus::Spread(converted))
                     }
                 }
             }
