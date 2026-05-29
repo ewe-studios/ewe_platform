@@ -811,13 +811,8 @@ impl UnifiedGenerator {
             let is_used = group.endpoints.iter().any(|ep| {
                 ep.response_type
                     .as_ref()
-                    .map(|rt| rt.as_rust_type() == type_name)
-                    .unwrap_or(false)
-                    || ep
-                        .request_type
-                        .as_ref()
-                        .map(|rt| rt == type_name)
-                        .unwrap_or(false)
+                    .is_some_and(|rt| rt.as_rust_type() == type_name)
+                    || ep.request_type.as_ref().is_some_and(|rt| rt == type_name)
             });
             if is_used {
                 let renamed = rename_std_type_conflict(type_name);
@@ -897,9 +892,9 @@ impl UnifiedGenerator {
             writeln!(out, "// Import shared types used by this module")?;
             for (original, renamed) in &used_shared_types {
                 if original == renamed {
-                    writeln!(out, "use super::shared::{};", renamed)?;
+                    writeln!(out, "use super::shared::{renamed:};")?;
                 } else {
-                    writeln!(out, "use super::shared::{} as {};", original, renamed)?;
+                    writeln!(out, "use super::shared::{original:} as {renamed:};")?;
                 }
             }
             writeln!(out)?;
