@@ -10,7 +10,7 @@ keywords = ["cloudflare", "wasm", "valtron", "example"]
 
 [dependencies]
 foundation_core = {
-    path = "./backends/foundation_core",
+    path = "../../backends/foundation_core",
     default-features = false,
     features = ["js-wasmbindgen", "std"]
 }
