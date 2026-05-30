@@ -10,7 +10,7 @@ use common::{init_valtron, make_r2_store};
 use foundation_core::valtron::collect_one;
 use foundation_db::BlobStore;
 
-fn create_local_r2_store() -> Option<foundation_db::R2BlobStore> {
+fn create_local_r2_store() -> Option<foundation_db::R2Store> {
     make_r2_store()
 }
 

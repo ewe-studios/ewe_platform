@@ -6,8 +6,8 @@
 //! one place means the mise tasks only need to set a single env var.
 //!
 //! WHAT: Exposes [`local_cf_api_base`] for the base URL, a skip helper, and
-//! store builders that wire the local base URL into `D1KeyValueStore` /
-//! `R2BlobStore` via their `with_base_url` constructors.
+//! store builders that wire the local base URL into `D1Store` /
+//! `R2Store` via their `new_kv_with_base_url` / `new_blob_with_base_url` constructors.
 //!
 //! HOW: Reads `LOCAL_CF_API_BASE` (default `http://localhost:8789`) and
 //! `CF_INTEGRATION_TEST=1` to opt in. Both D1 and R2 tests share the same
@@ -15,7 +15,7 @@
 
 #![allow(dead_code)]
 
-use foundation_db::{D1KeyValueStore, R2BlobStore};
+use foundation_db::{D1Store, R2Store};
 
 /// Env var used to opt into Cloudflare integration tests.
 pub const ENV_ENABLE: &str = "CF_INTEGRATION_TEST";
@@ -63,18 +63,26 @@ pub fn is_local_cf_available() -> bool {
 }
 
 /// Initialize the Valtron executor for tests.
+/// Uses a shared Mutex<Option<PoolGuard>> so that parallel tests share the same
+/// pool instead of each creating and tearing down their own.
+static POOL_GUARD: std::sync::Mutex<Option<foundation_core::valtron::PoolGuard>> =
+    std::sync::Mutex::new(None);
+
 pub fn init_valtron() {
-    foundation_core::valtron::initialize_pool(42);
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+    }
 }
 
 /// Build a `D1KeyValueStore` pointed at the local worker, or return `None`
 /// when the integration environment is not available.
-pub fn make_d1_store() -> Option<D1KeyValueStore> {
+pub fn make_d1_store() -> Option<D1Store> {
     if !is_local_cf_available() {
         return None;
     }
     let db_id = env_or(ENV_D1_DB_ID, "test-db");
-    Some(D1KeyValueStore::with_base_url(
+    Some(D1Store::new_kv_with_base_url(
         "test-token",
         "test-account",
         &db_id,
@@ -85,12 +93,12 @@ pub fn make_d1_store() -> Option<D1KeyValueStore> {
 
 /// Build an `R2BlobStore` pointed at the local worker, or return `None`
 /// when the integration environment is not available.
-pub fn make_r2_store() -> Option<R2BlobStore> {
+pub fn make_r2_store() -> Option<R2Store> {
     if !is_local_cf_available() {
         return None;
     }
     let bucket = env_or(ENV_R2_BUCKET, "test-bucket");
-    Some(R2BlobStore::with_base_url(
+    Some(R2Store::new_blob_with_base_url(
         "test-token",
         "test-account",
         &bucket,

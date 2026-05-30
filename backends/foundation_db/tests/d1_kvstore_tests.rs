@@ -11,7 +11,7 @@ use foundation_core::valtron::collect_one;
 use foundation_core::valtron::collect_result;
 use foundation_db::{DataValue, KeyValueStore, QueryStore};
 
-fn create_local_d1_store() -> Option<foundation_db::D1KeyValueStore> {
+fn create_local_d1_store() -> Option<foundation_db::D1Store> {
     make_d1_store()
 }
 
@@ -24,7 +24,7 @@ fn test_d1_kvstore_put_get() {
     };
 
     // Initialize schema
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let test_value = "Hello, D1!";
     let key = format!(
@@ -54,7 +54,7 @@ fn test_d1_kvstore_delete() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let test_value = "To be deleted";
     let key = format!(
@@ -86,7 +86,7 @@ fn test_d1_kvstore_exists() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let key = format!(
         "test_exists_{}",
@@ -119,7 +119,7 @@ fn test_d1_kvstore_list_keys() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let prefix = format!(
         "test_list_{}",
@@ -166,7 +166,7 @@ fn test_d1_kvstore_list_keys() {
 
 #[test]
 fn test_d1_kvstore_json_serialization() {
-    #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+    #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Clone)]
     struct TestData {
         name: String,
         age: u32,
@@ -179,7 +179,7 @@ fn test_d1_kvstore_json_serialization() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let key = format!(
         "test_json_{}",
@@ -194,7 +194,7 @@ fn test_d1_kvstore_json_serialization() {
         active: true,
     };
 
-    let _: () = collect_one(storage.set(&key, &test_value).unwrap())
+    let _: () = collect_one(storage.set(&key, test_value.clone()).unwrap())
         .unwrap()
         .unwrap();
 
@@ -213,7 +213,7 @@ fn test_d1_query_store() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     // Create a test table
     let table_name = format!(
@@ -274,7 +274,7 @@ fn test_d1_kvstore_get_nonexistent() {
         return;
     };
 
-    storage.init().unwrap();
+    storage.init_kv().unwrap();
 
     let key = format!(
         "test_nonexistent_{}",

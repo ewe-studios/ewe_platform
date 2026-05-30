@@ -3,10 +3,18 @@
 use foundation_core::valtron::collect_one;
 use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
 use tempfile::TempDir;
+use std::sync::Mutex;
+
+/// Shared Valtron pool guard — initialized once and reused across all tests
+/// to avoid parallel tests interfering with each other's thread pool.
+static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
 
 /// Initialize the Valtron executor for tests.
 fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+    }
 }
 
 #[test]

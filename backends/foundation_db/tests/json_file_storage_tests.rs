@@ -116,7 +116,7 @@ fn test_json_file_storage_persistence() {
 
 #[test]
 fn test_json_file_storage_complex_value() {
-    #[derive(Serialize, Deserialize, Debug, PartialEq)]
+    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
     struct TestData {
         name: String,
         count: u32,
@@ -132,7 +132,7 @@ fn test_json_file_storage_complex_value() {
         count: 42,
     };
 
-    let _: () = collect_one(storage.set("complex", &data).unwrap())
+    let _: () = collect_one(storage.set("complex", data.clone()).unwrap())
         .unwrap()
         .unwrap();
 

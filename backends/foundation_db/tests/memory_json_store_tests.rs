@@ -3,7 +3,7 @@
 use foundation_core::valtron::Stream;
 use foundation_db::{
     BlobStore, KeyValueStore, MemoryJsonStore, QueryStore, RateLimiterStore, StorageBackend,
-    StorageItemStream, StorageProvider, StorageError,
+    StorageError, StorageItemStream, StorageProvider,
 };
 
 fn collect_one<T>(mut stream: StorageItemStream<'_, T>) -> Result<T, StorageError> {
@@ -11,7 +11,24 @@ fn collect_one<T>(mut stream: StorageItemStream<'_, T>) -> Result<T, StorageErro
         match stream.next() {
             Some(Stream::Next(Ok(v))) => return Ok(v),
             Some(Stream::Next(Err(e))) => return Err(e),
-            Some(Stream::Init | Stream::Ignore | Stream::Delayed(_) | Stream::Pending(_)) => continue,
+            Some(
+                Stream::Init
+                | Stream::Ignore
+                | Stream::Delayed(_)
+                | Stream::Pending(_)
+                | Stream::Wait,
+            ) => continue,
+            Some(Stream::Spread(items)) => {
+                for item in items {
+                    if let foundation_core::valtron::StreamSpread::Done(Ok(v)) = item {
+                        return Ok(v);
+                    }
+                    if let foundation_core::valtron::StreamSpread::Done(Err(e)) = item {
+                        return Err(e);
+                    }
+                }
+                continue;
+            }
             None => panic!("stream ended without value"),
         }
     }
@@ -34,15 +51,15 @@ fn collect_many<T>(stream: StorageItemStream<'_, T>) -> Vec<T> {
 fn test_memory_json_set_and_get() {
     let store = MemoryJsonStore::new();
 
-    store.set::<()>("key", ()).unwrap();
+    let _ = collect_one(store.set::<()>("key", ()).unwrap()).unwrap();
     let result: Option<()> = collect_one(store.get("key").unwrap()).unwrap();
     assert!(result.is_some());
 
-    store.set("count", 42i64).unwrap();
+    let _ = collect_one(store.set("count", 42i64).unwrap()).unwrap();
     let count: Option<i64> = collect_one(store.get("count").unwrap()).unwrap();
     assert_eq!(count, Some(42));
 
-    store.set("name", "test").unwrap();
+    let _ = collect_one(store.set("name", "test").unwrap()).unwrap();
     let name: Option<String> = collect_one(store.get("name").unwrap()).unwrap();
     assert_eq!(name, Some("test".to_string()));
 }
@@ -57,7 +74,7 @@ fn test_memory_json_get_missing_key() {
 #[test]
 fn test_memory_json_delete() {
     let store = MemoryJsonStore::new();
-    store.set("key", "value").unwrap();
+    let _ = collect_one(store.set("key", "value").unwrap()).unwrap();
     collect_one(store.delete("key").unwrap()).unwrap();
     let result: Option<String> = collect_one(store.get("key").unwrap()).unwrap();
     assert_eq!(result, None);
@@ -69,7 +86,7 @@ fn test_memory_json_exists() {
     let exists: bool = collect_one(store.exists("key").unwrap()).unwrap();
     assert!(!exists);
 
-    store.set("key", "value").unwrap();
+    let _ = collect_one(store.set("key", "value").unwrap()).unwrap();
     let exists: bool = collect_one(store.exists("key").unwrap()).unwrap();
     assert!(exists);
 }
@@ -77,9 +94,9 @@ fn test_memory_json_exists() {
 #[test]
 fn test_memory_json_list_keys() {
     let store = MemoryJsonStore::new();
-    store.set("user:1", "alice").unwrap();
-    store.set("user:2", "bob").unwrap();
-    store.set("admin:1", "charlie").unwrap();
+    let _ = collect_one(store.set("user:1", "alice").unwrap()).unwrap();
+    let _ = collect_one(store.set("user:2", "bob").unwrap()).unwrap();
+    let _ = collect_one(store.set("admin:1", "charlie").unwrap()).unwrap();
 
     let all_keys = collect_many(store.list_keys(None).unwrap());
     assert_eq!(all_keys.len(), 3);
@@ -90,7 +107,7 @@ fn test_memory_json_list_keys() {
 
 #[test]
 fn test_memory_json_struct_value() {
-    #[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug)]
+    #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
     struct User {
         name: String,
         age: u32,
@@ -101,7 +118,7 @@ fn test_memory_json_struct_value() {
         name: "Alice".to_string(),
         age: 30,
     };
-    store.set("user:1", &user).unwrap();
+    let _ = collect_one(store.set("user:1", user.clone()).unwrap()).unwrap();
     let retrieved: Option<User> = collect_one(store.get("user:1").unwrap()).unwrap();
     assert_eq!(retrieved, Some(user));
 }
@@ -196,7 +213,7 @@ fn test_memory_json_query_not_supported() {
 #[test]
 fn test_storage_provider_memory_json() {
     let provider = StorageProvider::memory_json();
-    provider.set::<()>("key", ()).unwrap();
+    let _ = collect_one(provider.set::<()>("key", ()).unwrap()).unwrap();
     let result: Option<()> = collect_one(provider.get("key").unwrap()).unwrap();
     assert!(result.is_some());
 }
@@ -204,7 +221,7 @@ fn test_storage_provider_memory_json() {
 #[test]
 fn test_storage_provider_memory_json_via_new() {
     let provider = StorageProvider::new(StorageBackend::MemoryJson).unwrap();
-    provider.set("count", 99i64).unwrap();
+    let _ = collect_one(provider.set("count", 99i64).unwrap()).unwrap();
     let count: Option<i64> = collect_one(provider.get("count").unwrap()).unwrap();
     assert_eq!(count, Some(99));
 }
