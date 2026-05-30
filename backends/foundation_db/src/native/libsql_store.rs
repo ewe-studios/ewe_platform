@@ -487,7 +487,8 @@ impl LibsqlStore {
     async fn check_rate_limit_async_internal(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let create_table = "CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
         let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(create_table).await })?;
+        conn.execute_batch(create_table).await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let window_start = now - window_seconds;
@@ -559,7 +560,8 @@ impl LibsqlStore {
     async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
         let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(create_table).await })?;
+        conn.execute_batch(create_table).await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let encoded = STANDARD.encode(data);
         let key = key.to_string();

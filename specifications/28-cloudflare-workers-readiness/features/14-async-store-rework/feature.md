@@ -1,7 +1,7 @@
 ---
 feature: "Async Store Rework — True Async-First Implementations"
 description: "Rewrite AsyncKeyValueStore/AsyncBlobStore/AsyncQueryStore/AsyncRateLimiterStore to be truly async-first, with sync traits wrapping async via valtron from_future. Add send_async() to SimpleHttpClient, AsyncSendSafeBody body reader, and native async SQL/HTTP helpers. D1/R2 use native async APIs, Turso/libsql use native crate async APIs."
-status: "pending"
+status: "implemented"
 priority: "high"
 depends_on: ["11-valtron-async-bridge"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-05-30
 last_updated: 2026-05-30
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 7
+  completed: 7
+  uncompleted: 0
   total: 7
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Async Store Rework — True Async-First Implementations

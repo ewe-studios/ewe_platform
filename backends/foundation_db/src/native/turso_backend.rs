@@ -381,7 +381,8 @@ impl TursoStorage {
             )
         ";
         let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(create_table).await })?;
+        conn.execute_batch(create_table).await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
