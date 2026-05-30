@@ -13,9 +13,10 @@ use crate::wasm::web_conn::{WebConn, WebConnectionResult};
 
 /// Web/browser handler — receives a typed `WebConn` for building
 /// structured responses without HTTP wire format.
-pub trait WebServe: Send + Sync + 'static {
+#[async_trait::async_trait(?Send)]
+pub trait WebServe: Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
-    fn serve_web(
+    async fn serve_web(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,

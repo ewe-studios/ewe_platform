@@ -90,7 +90,7 @@ impl CfHttpApp {
         let simple_req = request_from_cf(&req).await?;
         let bag = Arc::new(ContextBag::new());
         extract_cf_bindings(&env, &bag);
-        Ok(self.inner.dispatch_cf(bag, simple_req).map_err(|e| {
+        Ok(self.inner.dispatch_cf(bag, simple_req).await.map_err(|e| {
             JsError::new(&format!("dispatch failed: {e:?}"))
         })?)
     }
@@ -105,12 +105,12 @@ impl CfHttpApp {
     }
 
     /// Dispatch a `SimpleIncomingRequest` through the app with the given context bag.
-    pub fn dispatch(
+    pub async fn dispatch(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
     ) -> Result<Response, foundation_errstacks::ErrorTrace<crate::shared::serve::ServeError>> {
-        self.inner.dispatch_cf(bag, req)
+        self.inner.dispatch_cf(bag, req).await
     }
 
     /// Get the inner `HttpApp` reference for Rust-side route registration.

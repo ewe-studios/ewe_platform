@@ -75,7 +75,7 @@ impl WasmHttpApp {
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
         let bag = Arc::new(crate::shared::context::ContextBag::new());
-        Ok(self.inner.dispatch_web(bag, simple_req).map_err(|e| {
+        Ok(self.inner.dispatch_web(bag, simple_req).await.map_err(|e| {
             JsError::new(&format!("dispatch failed: {e:?}"))
         })?)
     }

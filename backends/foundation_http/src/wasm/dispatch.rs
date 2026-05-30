@@ -29,11 +29,11 @@ pub trait HttpAppCfDispatch {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-    ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>;
+    ) -> impl std::future::Future<Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>> + '_;
 }
 
 impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
-    fn dispatch_cf(
+    async fn dispatch_cf(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
@@ -74,9 +74,9 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
                 reason: format!("no route for {method:?} {path}"),
             })?;
 
-        // Execute handler
+        // Execute handler (async)
         let mut conn = CfConn::new();
-        let result = handler.serve_cf(bag, req, &mut conn);
+        let result = handler.serve_cf(bag, req, &mut conn).await;
 
         match result {
             CfConnectionResult::Ok => {
@@ -101,11 +101,11 @@ pub trait HttpAppWebDispatch {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-    ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>;
+    ) -> impl std::future::Future<Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>> + '_;
 }
 
 impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
-    fn dispatch_web(
+    async fn dispatch_web(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
@@ -146,9 +146,9 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
                 reason: format!("no route for {method:?} {path}"),
             })?;
 
-        // Execute handler
+        // Execute handler (async)
         let mut conn = WebConn::new();
-        let result = handler.serve_web(bag, req, &mut conn);
+        let result = handler.serve_web(bag, req, &mut conn).await;
 
         match result {
             WebConnectionResult::Ok => {

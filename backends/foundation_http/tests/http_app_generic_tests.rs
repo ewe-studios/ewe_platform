@@ -24,7 +24,7 @@ impl foundation_http::wasm::serve_cf::CfServeFactory for TestCfHandler {
 }
 
 impl foundation_http::wasm::serve_cf::CfServe for TestCfHandler {
-    fn serve_cf(
+    async fn serve_cf(
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
@@ -48,7 +48,7 @@ impl foundation_http::wasm::serve_web::WebServeFactory for TestWebHandler {
 }
 
 impl foundation_http::wasm::serve_web::WebServe for TestWebHandler {
-    fn serve_web(
+    async fn serve_web(
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,

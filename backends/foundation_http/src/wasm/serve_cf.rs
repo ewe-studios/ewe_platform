@@ -13,9 +13,10 @@ use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 
 /// Cloudflare Workers handler — receives a typed `CfConn` for building
 /// structured responses without HTTP wire format.
-pub trait CfServe: Send + Sync + 'static {
+#[async_trait::async_trait(?Send)]
+pub trait CfServe: Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
-    fn serve_cf(
+    async fn serve_cf(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
