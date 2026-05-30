@@ -29,10 +29,10 @@ related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
   - "specifications/21-http-framework"
 features:
-  completed: 2
-  uncompleted: 11
-  total: 13
-  completion_percentage: 15%
+  completed: 6
+  uncompleted: 8
+  total: 14
+  completion_percentage: 43%
 ---
 
 # Cloudflare Workers Readiness Specification
@@ -149,9 +149,10 @@ For the foundation_db integration:
 8. **[wasm-oauth-manager](./features/08-wasm-oauth-manager/feature.md)** — wasm-bindgen OAuth manager for CF Workers
 9. **[wasm-testbed](./features/09-wasm-testbed/feature.md)** — CLI-driven test harness for wasm32 execution
 10. **[generic-serve-traits](./features/10-generic-serve-traits/feature.md)** — Replace Server enum with generic Router<S>, environment-specific CfServe/WebServe traits
-11. **[valtron-async-bridge](./features/11-valtron-async-bridge/feature.md)** — Add Stream-to-Future async bridge wrapper types
-12. **[async-store-and-auth-traits](./features/12-async-store-and-auth-traits/feature.md)** — Async variants of store and auth traits
+11. **[valtron-async-bridge](./features/11-valtron-async-bridge/feature.md)** — Add Stream-to-Future async bridge wrapper types ✅
+12. **[async-store-and-auth-traits](./features/12-async-store-and-auth-traits/feature.md)** — Superseded by feature 14
 13. **[cf-valtron-counter](./features/13-cf-valtron-counter/feature.md)** — Minimal CF Worker example exercising valtron executor with incrementing counter task
+14. **[async-store-rework](./features/14-async-store-rework/feature.md)** — True async-first architecture: send_async(), AsyncSendSafeBody, native async SQL/HTTP, sync traits via from_future ✅
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 feature: "Async Store Traits and Auth Async Methods"
 description: "Add async trait variants for KeyValueStore, BlobStore, RateLimiterStore, CredentialStore, SessionManager, and NativeOAuth, enabling native .await usage in async contexts. Uses #[async_trait(?Send)] for wasm compatibility, with the valtron stream-to-future bridge for native async implementations. Eliminates all futures_lite::block_on usage."
-status: "proposed"
+status: "pending"
 priority: "high"
 depends_on:
   - "11-valtron-async-bridge"
