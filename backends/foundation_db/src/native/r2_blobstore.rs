@@ -9,7 +9,8 @@
 //!   - `R2Store::new_blob()` — BlobStore (raw binary, key: `{prefix}/key`)
 //!   - `R2Store::new_state()` — StateStore (JSON objects, key: `{project}/{stage}/{id}.json`)
 
-use foundation_core::valtron::{collect_one, Stream, ThreadedValue};
+use foundation_core::valtron::{Stream, ThreadedValue};
+use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
 
@@ -25,6 +26,7 @@ pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
 // ---- Mode enum ----
 
+#[derive(Clone)]
 enum R2Mode {
     /// BlobStore. Keys prefixed with `{prefix}/` (slashes replaced by colons).
     Blob { bucket: String, prefix: String },
@@ -34,6 +36,7 @@ enum R2Mode {
 
 // ---- R2Store ----
 
+#[derive(Clone)]
 pub struct R2Store {
     api_token: String,
     account_id: String,
@@ -187,6 +190,126 @@ impl R2Store {
             R2Mode::Blob { .. } => unreachable!("state_prefix called on Blob mode"),
         }
     }
+
+    // ========== Async HTTP helpers ==========
+
+    /// Async GET — returns object bytes, or None if not found.
+    async fn get_object_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .get(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
+
+        if response.get_status() == Status::NotFound {
+            return Ok(None);
+        }
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
+        }
+        let (_, _, body, ..) = response.into_parts();
+        let bytes = collect_bytes_async(AsyncSendSafeBody::from(body))
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
+        Ok(Some(bytes))
+    }
+
+    /// Async PUT — stores data at the given key.
+    async fn put_object_async(&self, key: &str, data: &[u8], content_type: &str) -> Result<(), StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .put(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .header(SimpleHeader::CONTENT_TYPE, content_type)
+            .body_bytes(data.to_vec())
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
+
+        let status: usize = response.get_status().into();
+        if status >= 400 {
+            return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
+        }
+        Ok(())
+    }
+
+    /// Async DELETE — removes the object at the given key.
+    async fn delete_object_async(&self, key: &str) -> Result<(), StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .delete(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .header(SimpleHeader::CONNECTION, "close")
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 DELETE request failed: {e}")))?;
+
+        let status: usize = response.get_status().into();
+        if status >= 400 && response.get_status() != Status::NotFound {
+            return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
+        }
+        Ok(())
+    }
+
+    /// Async HEAD — returns true if the object exists.
+    async fn head_object_async(&self, key: &str) -> Result<bool, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .head(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .header(SimpleHeader::CONNECTION, "close")
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
+
+        Ok(response.get_status() == Status::OK)
+    }
+
+    /// Async LIST — returns parsed JSON listing response.
+    async fn list_objects_async(&self, prefix: &str) -> Result<serde_json::Value, StorageError> {
+        let url = format!(
+            "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
+            self.base_url, self.account_id, self.bucket(), prefix
+        );
+        let response = self
+            .client
+            .get(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
+
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
+        }
+        let (_, _, body, ..) = response.into_parts();
+        let text = collect_string_async(AsyncSendSafeBody::from(body))
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
+        serde_json::from_str(&text)
+            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))
+    }
 }
 
 // ===========================================================================
@@ -282,20 +405,19 @@ impl BlobStore for R2Store {
 #[async_trait::async_trait(?Send)]
 impl AsyncBlobStore for R2Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::put_blob(self, key, data)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await
     }
+
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let stream = <Self as BlobStore>::get_blob(self, key)?;
-        collect_one(stream).transpose().map(Option::flatten)
+        self.get_object_async(&self.blob_object_key(key)).await
     }
+
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::delete_blob(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.delete_object_async(&self.blob_object_key(key)).await
     }
+
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        let stream = <Self as BlobStore>::blob_exists(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        self.head_object_async(&self.blob_object_key(key)).await
     }
 }
 

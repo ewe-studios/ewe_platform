@@ -11,7 +11,8 @@
 //!   - `D1Store::new_state()` — StateStore (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::{collect_one, collect_result, Stream, ThreadedValue};
+use foundation_core::valtron::{Stream, ThreadedValue};
+use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_string_async};
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
 use serde::{de::DeserializeOwned, Serialize};
@@ -109,6 +110,7 @@ fn state_to_params(state: &ResourceState) -> Result<Vec<serde_json::Value>, Stor
 
 // ---- Mode enum ----
 
+#[derive(Clone)]
 enum D1Mode {
     /// KV/query/rate-limit/blob store. Table name = `{prefix}_kv`.
     KeyValue { kv_table: String },
@@ -118,6 +120,7 @@ enum D1Mode {
 
 // ---- D1Store ----
 
+#[derive(Clone)]
 pub struct D1Store {
     api_token: ZeroizingString,
     account_id: String,
@@ -240,6 +243,36 @@ impl D1Store {
                 .map_err(|e| StorageError::Backend(format!("D1 response not UTF-8: {e}")))?,
             _ => return Err(StorageError::Backend("D1: empty response body".to_string())),
         };
+        serde_json::from_str(&text)
+            .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
+    }
+
+    /// Async version of `execute_sql`. Uses `SimpleHttpClient::send_async()`
+    /// to perform the HTTP request without blocking.
+    async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
+        let body = serde_json::json!({ "sql": sql, "params": params });
+        let response = self
+            .client
+            .post(&self.query_url())
+            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header())
+            .header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .body_text(body.to_string())
+            .build_client()
+            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
+            .send_async()
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 request failed: {e}")))?;
+
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!("D1 query failed with status {}", response.get_status())));
+        }
+
+        let (_, _, send_safe_body, ..) = response.into_parts();
+        let text = collect_string_async(AsyncSendSafeBody::from(send_safe_body))
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
+
         serde_json::from_str(&text)
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
@@ -673,75 +706,201 @@ impl StateStore for D1Store {
 #[async_trait::async_trait(?Send)]
 impl AsyncKeyValueStore for D1Store {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let stream = <Self as KeyValueStore>::get::<V>(self, key)?;
-        collect_one(stream).transpose().map(Option::flatten)
+        let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
+        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let rows = Self::extract_rows(&response);
+        match rows.first() {
+            Some(row) => {
+                let value: String = row.get("value").and_then(serde_json::Value::as_str).map(String::from)
+                    .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
+                Ok(Some(serde_json::from_str(&value).map_err(|e| StorageError::Serialization(e.to_string()))?))
+            }
+            None => Ok(None),
+        }
     }
+
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let stream = <Self as KeyValueStore>::set(self, key, value)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        let json_value = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let sql = format!(
+            "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
+            self.kv_table()
+        );
+        let kv = serde_json::Value::String(key.to_string());
+        let jv = serde_json::Value::String(json_value);
+        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv]).await?;
+        Ok(())
     }
+
     async fn delete_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as KeyValueStore>::delete(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
+        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        Ok(())
     }
+
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
-        let stream = <Self as KeyValueStore>::exists(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
+        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        Ok(!Self::extract_rows(&response).is_empty())
     }
+
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        let stream = <Self as KeyValueStore>::list_keys(self, prefix)?;
-        collect_result(stream).into_iter().collect()
+        let (sql, params) = match prefix {
+            Some(p) => (
+                format!("SELECT key FROM {} WHERE key LIKE ? ORDER BY key", self.kv_table()),
+                vec![serde_json::Value::String(format!("{p}%"))],
+            ),
+            None => (
+                format!("SELECT key FROM {} ORDER BY key", self.kv_table()),
+                vec![],
+            ),
+        };
+        let response = self.execute_sql_async(&sql, &params).await?;
+        Self::extract_rows(&response)
+            .iter()
+            .map(|row| row.get("key").and_then(serde_json::Value::as_str).map(String::from)
+                .ok_or_else(|| StorageError::SqlConversion("missing or invalid key field".to_string())))
+            .collect()
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for D1Store {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        let stream = <Self as QueryStore>::query(self, sql, params)?;
-        collect_result(stream).into_iter().collect()
+        let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
+            DataValue::Null => serde_json::Value::Null,
+            DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+            DataValue::Real(f) => serde_json::Number::from_f64(*f).map_or(serde_json::Value::Null, serde_json::Value::Number),
+            DataValue::Text(s) => serde_json::Value::String(s.clone()),
+            DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+        }).collect();
+        let response = self.execute_sql_async(sql, &json_params).await?;
+        Self::extract_rows(&response)
+            .iter()
+            .map(|row| {
+                let obj = row.as_object().ok_or_else(|| StorageError::SqlConversion("row is not an object".to_string()))?;
+                let columns: Vec<(String, DataValue)> = obj.iter().map(|(k, v)| {
+                    let dv = match v {
+                        serde_json::Value::Number(n) => {
+                            if let Some(i) = n.as_i64() { DataValue::Integer(i) }
+                            else if let Some(f) = n.as_f64() { DataValue::Real(f) }
+                            else { DataValue::Null }
+                        }
+                        serde_json::Value::String(s) => DataValue::Text(s.clone()),
+                        _ => DataValue::Null,
+                    };
+                    (k.clone(), dv)
+                }).collect();
+                Ok(SqlRow::new(columns))
+            }).collect()
     }
+
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let stream = <Self as QueryStore>::execute(self, sql, params)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+        let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
+            DataValue::Null => serde_json::Value::Null,
+            DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+            DataValue::Real(f) => serde_json::Number::from_f64(*f).map_or(serde_json::Value::Null, serde_json::Value::Number),
+            DataValue::Text(s) => serde_json::Value::String(s.clone()),
+            DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+        }).collect();
+        let response = self.execute_sql_async(sql, &json_params).await?;
+        let affected = response.pointer("/result/0/meta/changes")
+            .and_then(serde_json::Value::as_i64)
+            .map_or(0, i64::unsigned_abs);
+        Ok(affected)
     }
+
     async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
-        let stream = <Self as QueryStore>::execute_batch(self, sql)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.execute_sql_async(sql, &[]).await?;
+        Ok(())
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncRateLimiterStore for D1Store {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        let stream = <Self as RateLimiterStore>::check_rate_limit(self, key, max_count, window_seconds)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
+        self.execute_sql_async(create_table, &[]).await?;
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+        let window_start = now - window_seconds;
+        let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
+        let response = self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let allowed = match Self::extract_rows(&response).first() {
+            Some(row) => {
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                let count = row.get("count").and_then(serde_json::Value::as_i64).unwrap_or(0) as u32;
+                #[allow(clippy::cast_sign_loss)]
+                let stored = row.get("window_start").and_then(serde_json::Value::as_i64).unwrap_or(0).cast_unsigned();
+                if stored < window_start { true } else { count < max_count }
+            }
+            None => true,
+        };
+        Ok(allowed)
     }
+
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        let stream = <Self as RateLimiterStore>::record_rate_limit(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+        let sql = "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start";
+        self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string()), serde_json::Value::Number(serde_json::Number::from(now))]).await?;
+        let response = self.execute_sql_async("SELECT count FROM rate_limits WHERE key = ?", &[serde_json::Value::String(key.to_string())]).await?;
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let count = Self::extract_rows(&response).first()
+            .and_then(|r| r.get("count")).and_then(serde_json::Value::as_i64)
+            .map_or(1, |c| c as u32);
+        Ok(count)
     }
+
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as RateLimiterStore>::reset_rate_limit(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        let sql = "DELETE FROM rate_limits WHERE key = ?";
+        self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string())]).await?;
+        Ok(())
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncBlobStore for D1Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::put_blob(self, key, data)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        let encoded = STANDARD.encode(data);
+        let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();
+        let sql = format!(
+            "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
+            self.kv_table()
+        );
+        let kv = serde_json::Value::String(key.to_string());
+        let jv = serde_json::Value::String(json_value);
+        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv]).await?;
+        Ok(())
     }
+
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let stream = <Self as BlobStore>::get_blob(self, key)?;
-        collect_one(stream).transpose().map(Option::flatten)
+        let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
+        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let rows = Self::extract_rows(&response);
+        match rows.first() {
+            Some(row) => {
+                let value: String = row.get("value").and_then(serde_json::Value::as_str).map(String::from)
+                    .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
+                let wrapper: serde_json::Value = serde_json::from_str(&value)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                if wrapper.get("type").and_then(serde_json::Value::as_str) != Some("blob") {
+                    return Ok(None);
+                }
+                let encoded = wrapper.get("data").and_then(serde_json::Value::as_str)
+                    .ok_or_else(|| StorageError::Serialization("missing data field in blob wrapper".to_string()))?;
+                Ok(Some(STANDARD.decode(encoded).map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?))
+            }
+            None => Ok(None),
+        }
     }
+
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::delete_blob(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
+        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        Ok(())
     }
+
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        let stream = <Self as BlobStore>::blob_exists(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
+        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        Ok(!Self::extract_rows(&response).is_empty())
     }
 }

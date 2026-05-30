@@ -12,6 +12,7 @@ use foundation_core::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
+use crate::simple_http::client::shared::body_reader::AsyncSendSafeBody;
 use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
 use crate::simple_http::shared::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
@@ -415,6 +416,18 @@ impl From<SendSafeBody> for SimpleBody {
             // In this case, we return SimpleBody::None as SSE streams should be handled separately
             SendSafeBody::SseStream(_) => SimpleBody::None,
         }
+    }
+}
+
+impl SendSafeBody {
+    /// Consume this body and return an async stream yielding byte chunks.
+    ///
+    /// - `Text` / `Bytes` → yields one chunk then ends.
+    /// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` → yields each chunk from the inner iterator.
+    /// - `None` → yields nothing.
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_async(self) -> AsyncSendSafeBody {
+        AsyncSendSafeBody::from(self)
     }
 }
 

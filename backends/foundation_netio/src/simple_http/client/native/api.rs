@@ -513,4 +513,36 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         Ok((observer, body_stream))
     }
+
+    /// Asynchronous version of `send()`. Drives both intro and body streams
+    /// to completion using valtron's `into_ready_future()`, allowing the
+    /// caller to `.await` without blocking the current thread.
+    #[tracing::instrument(skip(self))]
+    pub async fn send_async(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+        let (intro_stream, body_stream) = self.start()?;
+
+        // Drive body first — required by split_collect_one_map ordering:
+        // the body must be consumed before the observer receives intro.
+        let body_result = body_stream
+            .into_ready_future()
+            .await
+            .ok_or(HttpClientError::InvalidRequestState)?;
+        let (conn, body) = body_result.0?;
+
+        // Drive intro stream — SplitCollectorMapObserver yields (ResponseIntro, SimpleHeaders) directly
+        let intro_result = intro_stream
+            .into_ready_future()
+            .await
+            .ok_or(HttpClientError::InvalidRequestState)?;
+        let (intro, headers) = intro_result.0;
+
+        let mut response = SimpleResponse::new(intro.status, headers, body);
+
+        // Apply middleware to response (after receiving)
+        if let Some(request) = &self.original_request {
+            self.middleware_chain.process_response(request, &mut response)?;
+        }
+
+        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
+    }
 }

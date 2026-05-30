@@ -27,6 +27,7 @@
 
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
+use foundation_core::valtron::{BoxedSendableDataIterator, BoxedSendableIterator};
 use crate::event_source::shared::ParseResult;
 use crate::event_source::Event;
 use crate::simple_http::shared::{
@@ -1637,6 +1638,164 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
 /// WHAT: Collects body bytes via `try_collect_bytes`, then validates UTF-8.
 pub fn try_collect_string(body: SendSafeBody) -> Result<String, BoxedError> {
     let bytes = try_collect_bytes(body)?;
+    String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
+}
+
+// ============================================================================
+// Async Body Reading — AsyncSendSafeBody
+// ============================================================================
+
+use core::pin::Pin;
+use core::task::{Context, Poll};
+use futures_core::Stream as FuturesStream;
+
+/// Async stream that reads body bytes from a `SendSafeBody`.
+///
+/// - `Text` / `Bytes` → yields one chunk then ends.
+/// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` → yields each
+///   chunk from the inner iterator.
+/// - `None` → yields nothing.
+///
+/// Since the inner iterators are synchronous, each poll returns `Poll::Ready`.
+/// The wrapper implements `futures_core::Stream` so it integrates with
+/// `.collect().await`, `StreamExt`, etc.
+pub struct AsyncSendSafeBody {
+    inner: SendSafeBodyState,
+}
+
+enum SendSafeBodyState {
+    Done,
+    Text(Vec<u8>),
+    Bytes(Vec<u8>),
+    Stream(BoxedSendableDataIterator<BoxedError>),
+    ChunkedStream(BoxedSendableIterator<ChunkedData, BoxedError>),
+    LineFeedStream(BoxedSendableIterator<LineFeed, BoxedError>),
+    SseStream(BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>),
+}
+
+impl From<SendSafeBody> for AsyncSendSafeBody {
+    fn from(body: SendSafeBody) -> Self {
+        let inner = match body {
+            SendSafeBody::Text(t) => SendSafeBodyState::Text(t.into_bytes()),
+            SendSafeBody::Bytes(b) => SendSafeBodyState::Bytes(b),
+            SendSafeBody::None => SendSafeBodyState::Done,
+            SendSafeBody::Stream(Some(iter)) => SendSafeBodyState::Stream(iter),
+            SendSafeBody::Stream(None) => SendSafeBodyState::Done,
+            SendSafeBody::ChunkedStream(Some(iter)) => SendSafeBodyState::ChunkedStream(iter),
+            SendSafeBody::ChunkedStream(None) => SendSafeBodyState::Done,
+            SendSafeBody::LineFeedStream(Some(iter)) => SendSafeBodyState::LineFeedStream(iter),
+            SendSafeBody::LineFeedStream(None) => SendSafeBodyState::Done,
+            SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
+            SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
+        };
+        Self { inner }
+    }
+}
+
+impl FuturesStream for AsyncSendSafeBody {
+    type Item = Result<Vec<u8>, BoxedError>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        // SAFETY: we never move out of self, and the inner state is not self-referential.
+        let this = unsafe { self.get_unchecked_mut() };
+
+        match std::mem::replace(&mut this.inner, SendSafeBodyState::Done) {
+            SendSafeBodyState::Done => Poll::Ready(None),
+            SendSafeBodyState::Text(bytes) => Poll::Ready(Some(Ok(bytes))),
+            SendSafeBodyState::Bytes(bytes) => Poll::Ready(Some(Ok(bytes))),
+            SendSafeBodyState::Stream(mut iter) => {
+                match iter.next() {
+                    Some(Ok(Data::Bytes(b))) => {
+                        this.inner = SendSafeBodyState::Stream(iter);
+                        Poll::Ready(Some(Ok(b)))
+                    }
+                    Some(Ok(Data::Retry)) => {
+                        this.inner = SendSafeBodyState::Stream(iter);
+                        // Retry means "no data yet but stream alive" — poll again immediately.
+                        cx.waker().wake_by_ref();
+                        Poll::Pending
+                    }
+                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
+                    None => Poll::Ready(None),
+                }
+            }
+            SendSafeBodyState::ChunkedStream(mut iter) => {
+                match iter.next() {
+                    Some(Ok(ChunkedData::Data(b, _))) => {
+                        this.inner = SendSafeBodyState::ChunkedStream(iter);
+                        Poll::Ready(Some(Ok(b)))
+                    }
+                    Some(Ok(ChunkedData::Trailers(_))) => {
+                        this.inner = SendSafeBodyState::ChunkedStream(iter);
+                        cx.waker().wake_by_ref();
+                        Poll::Pending
+                    }
+                    Some(Ok(ChunkedData::DataEnded)) => Poll::Ready(None),
+                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
+                    None => Poll::Ready(None),
+                }
+            }
+            SendSafeBodyState::LineFeedStream(mut iter) => {
+                match iter.next() {
+                    Some(Ok(LineFeed::Line(line))) => {
+                        this.inner = SendSafeBodyState::LineFeedStream(iter);
+                        // Include the stripped newline in the output
+                        let mut bytes = line.into_bytes();
+                        bytes.push(b'\n');
+                        Poll::Ready(Some(Ok(bytes)))
+                    }
+                    Some(Ok(LineFeed::SKIP | LineFeed::END)) => {
+                        this.inner = SendSafeBodyState::LineFeedStream(iter);
+                        cx.waker().wake_by_ref();
+                        Poll::Pending
+                    }
+                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
+                    None => Poll::Ready(None),
+                }
+            }
+            SendSafeBodyState::SseStream(mut iter) => {
+                match iter.next() {
+                    Some(Ok(pr)) => {
+                        this.inner = SendSafeBodyState::SseStream(iter);
+                        match pr.event {
+                            crate::event_source::Event::Message { data, .. } => {
+                                let mut bytes = data.into_bytes();
+                                bytes.push(b'\n');
+                                Poll::Ready(Some(Ok(bytes)))
+                            }
+                            crate::event_source::Event::Comment(_)
+                            | crate::event_source::Event::Reconnect => {
+                                cx.waker().wake_by_ref();
+                                Poll::Pending
+                            }
+                        }
+                    }
+                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
+                    None => Poll::Ready(None),
+                }
+            }
+        }
+    }
+}
+
+/// Collect all body bytes from an `AsyncSendSafeBody` in async context.
+pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, BoxedError> {
+    use core::future::poll_fn;
+    let mut all = Vec::new();
+    loop {
+        let chunk = poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await;
+        match chunk {
+            Some(Ok(bytes)) => all.extend(bytes),
+            Some(Err(e)) => return Err(e),
+            None => break,
+        }
+    }
+    Ok(all)
+}
+
+/// Collect body as a String in async context.
+pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, BoxedError> {
+    let bytes = collect_bytes_async(body).await?;
     String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
 }
 
