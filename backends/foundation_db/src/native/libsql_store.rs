@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, collect_result, run_future_iter, ShortCircuit, Stream, StreamIteratorExt,
+    collect_one, collect_result, from_future, run_future_iter, schedule_future, ShortCircuit, Stream, StreamIteratorExt,
     ThreadedValue,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -120,6 +120,7 @@ fn to_state_stream<T: Send + 'static>(
 // Mode enum
 // ============================================================================
 
+#[derive(Clone)]
 enum LibsqlMode {
     /// KV/query/rate-limit/blob store. Uses kv_store, rate_limits, blobs tables.
     KeyValue { encryption_key: Option<EncryptionKey> },
@@ -133,6 +134,7 @@ enum LibsqlMode {
 // LibsqlStore
 // ============================================================================
 
+#[derive(Clone)]
 pub struct LibsqlStore {
     conn: Arc<libsql::Connection>,
     db: Option<Arc<libsql::Database>>,
@@ -360,6 +362,292 @@ impl LibsqlStore {
         exec_future(async move { conn.execute_batch(schema_sql).await })?;
         Ok(())
     }
+
+    // ========================================================================
+    // Async-First internal methods (source of truth for all KV/blob/SQL ops)
+    // ========================================================================
+
+    async fn get_async_internal<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        let storage = self.clone();
+
+        let opt = conn
+            .prepare("SELECT value FROM kv_store WHERE key = ?")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        match opt {
+            Some(row) => {
+                let stored: String = row
+                    .get(0)
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let json_str = storage
+                    .maybe_decrypt(&stored)
+                    .map_err(|e| StorageError::Encryption(e.to_string()))?;
+                let value: V = serde_json::from_str(&json_str)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
+    async fn set_async_internal<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+        let serialized = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let stored_value = self.maybe_encrypt(&serialized)?;
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        conn.execute(
+            "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
+            [key.clone(), stored_value.clone(), stored_value],
+        )
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn delete_async_internal(&self, key: &str) -> StorageResult<()> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        conn.execute("DELETE FROM kv_store WHERE key = ?", [key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        let exists = conn
+            .prepare("SELECT 1 FROM kv_store WHERE key = ? LIMIT 1")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .is_some();
+        Ok(exists)
+    }
+
+    async fn query_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
+        let libsql_params = Self::to_libsql_params(params);
+        let sql = sql.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let mut stmt = conn
+            .prepare(&sql)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        let mut rows = stmt
+            .query(libsql_params)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        let mut results = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+        {
+            #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+            results.push(Self::libsql_row_to_sql_row(&row, row.column_count())?);
+        }
+        Ok(results)
+    }
+
+    async fn execute_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        let libsql_params = Self::to_libsql_params(params);
+        let sql = sql.to_string();
+        let conn = Arc::clone(&self.conn);
+        conn.execute(&sql, libsql_params)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))
+    }
+
+    async fn execute_batch_async_internal(&self, sql: &str) -> StorageResult<()> {
+        let sql = sql.to_string();
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch(&sql)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))
+    }
+
+    async fn check_rate_limit_async_internal(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
+        let create_table = "CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
+        let conn = Arc::clone(&self.conn);
+        exec_future(async move { conn.execute_batch(create_table).await })?;
+
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+        let window_start = now - window_seconds;
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let opt = conn
+            .prepare("SELECT count, window_start FROM rate_limits WHERE key = ?")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        match opt {
+            Some(row) => {
+                let count: i64 = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
+                let stored: i64 = row.get(1).map_err(|e| StorageError::Backend(e.to_string()))?;
+                if stored.cast_unsigned() < window_start { Ok(true) } else { Ok(count < i64::from(max_count)) }
+            }
+            None => Ok(true),
+        }
+    }
+
+    async fn record_rate_limit_async_internal(&self, key: &str) -> StorageResult<u32> {
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs().cast_signed();
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        conn.execute(
+            "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
+            [key.clone(), now.to_string()],
+        )
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        let opt = conn
+            .prepare("SELECT count FROM rate_limits WHERE key = ?")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        match opt {
+            Some(row) => {
+                let c: i64 = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok(u32::try_from(c).unwrap_or(1))
+            }
+            None => Ok(1),
+        }
+    }
+
+    async fn reset_rate_limit_async_internal(&self, key: &str) -> StorageResult<()> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
+        let conn = Arc::clone(&self.conn);
+        exec_future(async move { conn.execute_batch(create_table).await })?;
+
+        let encoded = STANDARD.encode(data);
+        let key = key.to_string();
+        let size_str = data.len().to_string();
+        let conn = Arc::clone(&self.conn);
+
+        conn.execute(
+            "INSERT INTO blobs (key, data, size, updated_at) VALUES (?, ?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET data = ?, size = ?, updated_at = strftime('%s', 'now') * 1000",
+            [key.clone(), encoded.clone(), size_str.clone(), encoded, size_str],
+        )
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn get_blob_async_internal(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let opt = conn
+            .prepare("SELECT data FROM blobs WHERE key = ?")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        match opt {
+            Some(row) => {
+                let encoded: String = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok(Some(STANDARD.decode(&encoded)
+                    .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?))
+            }
+            None => Ok(None),
+        }
+    }
+
+    async fn delete_blob_async_internal(&self, key: &str) -> StorageResult<()> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        conn.execute("DELETE FROM blobs WHERE key = ?", [key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn blob_exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        let exists = conn
+            .prepare("SELECT 1 FROM blobs WHERE key = ? LIMIT 1")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .is_some();
+        Ok(exists)
+    }
+
+    /// Helper: wrap an async result into a `StorageItemStream` via `from_future`.
+    fn wrap_async<T: Send + 'static>(
+        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
+    ) -> StorageResult<StorageItemStream<'static, T>> {
+        use foundation_core::valtron::execute;
+
+        let task = from_future(future);
+        let stream = execute(task, None)
+            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+
+        Ok(Box::new(
+            stream
+                .map_circuit(|item| match item {
+                    Stream::Next(result) => match result {
+                        Ok(v) => ShortCircuit::Continue(Stream::Next(Ok(v))),
+                        Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
+                    },
+                    _ => ShortCircuit::Continue(Stream::Ignore),
+                })
+                .map_pending(|_| ()),
+        ))
+    }
 }
 
 // ===========================================================================
@@ -369,91 +657,26 @@ impl LibsqlStore {
 impl KeyValueStore for LibsqlStore {
     fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare("SELECT value FROM kv_store WHERE key = ?").await?;
-            let mut rows = stmt.query([key]).await?;
-            match rows.next().await? {
-                Some(row) => {
-                    let value: String = row.get(0)?;
-                    Ok::<_, libsql::Error>(Some(value))
-                }
-                None => Ok::<_, libsql::Error>(None),
-            }
-        })?;
-
-        let circuit_stream = stream.map_circuit(|item| match item {
-            Stream::Next(result) => match result {
-                Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-                Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            },
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
-
-        Ok(Box::new(circuit_stream.map_done(move |opt_result: Result<Option<String>, StorageError>| {
-            match opt_result {
-                Ok(Some(stored)) => {
-                    let json_str = Self::maybe_decrypt(stored)?;
-                    let value: V = serde_json::from_str(&json_str)
-                        .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                    Ok(Some(value))
-                }
-                Ok(None) => Ok(None),
-                Err(e) => Err(e),
-            }
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.get_async_internal::<V>(&key).await })
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
-        let serialized = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let stored_value = self.maybe_encrypt(&serialized)?;
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let stream = schedule_future(async move {
-            conn.execute(
-                "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
-                [key.clone(), stored_value.clone(), stored_value],
-            ).await
-        })?;
-
-        let circuit = stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
-
-        Ok(Box::new(circuit.map_done(|result| result.map(|_rows| ()))))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.set_async_internal(&key, value).await })
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            conn.execute("DELETE FROM kv_store WHERE key = ?", [key]).await
-        })?;
-        let circuit = stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
-        Ok(Box::new(circuit.map_done(|result| result.map(|_rows| ()))))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.delete_async_internal(&key).await })
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare("SELECT 1 FROM kv_store WHERE key = ? LIMIT 1").await?;
-            let mut rows = stmt.query([key]).await?;
-            Ok::<bool, libsql::Error>(rows.next().await?.is_some())
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(b)) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.exists_async_internal(&key).await })
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -509,26 +732,16 @@ impl QueryStore for LibsqlStore {
     }
 
     fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
-        let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move { conn.execute(&sql, libsql_params).await })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        let params = params.to_vec();
+        Self::wrap_async(async move { storage.execute_async_internal(&sql, &params).await })
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move { conn.execute_batch(&sql).await })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(())) => ShortCircuit::Continue(Stream::Next(Ok(()))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.execute_batch_async_internal(&sql).await })
     }
 }
 
@@ -538,67 +751,27 @@ impl QueryStore for LibsqlStore {
 
 impl RateLimiterStore for LibsqlStore {
     fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<StorageItemStream<'_, bool>> {
-        let create_table = "CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(create_table).await })?;
-
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
-        let window_start = now - window_seconds;
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare("SELECT count, window_start FROM rate_limits WHERE key = ?").await?;
-            let mut rows = stmt.query([key]).await?;
-            match rows.next().await? {
-                Some(row) => {
-                    let count: i64 = row.get(0)?;
-                    let stored: i64 = row.get(1)?;
-                    if stored.cast_unsigned() < window_start { Ok(true) } else { Ok(count < i64::from(max_count)) }
-                }
-                None => Ok(true),
-            }
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(b)) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move {
+            storage.check_rate_limit_async_internal(&key, max_count, window_seconds).await
+        })
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs().cast_signed();
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let stream = schedule_future(async move {
-            conn.execute(
-                "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
-                [key.clone(), now.to_string()],
-            ).await?;
-            let mut stmt = conn.prepare("SELECT count FROM rate_limits WHERE key = ?").await?;
-            let mut rows = stmt.query([key]).await?;
-            match rows.next().await? {
-                Some(row) => { let c: i64 = row.get(0)?; Ok(u32::try_from(c).unwrap_or(1)) }
-                None => Ok(1),
-            }
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(c)) => ShortCircuit::Continue(Stream::Next(Ok(c))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move {
+            storage.record_rate_limit_async_internal(&key).await
+        })
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move { conn.execute("DELETE FROM rate_limits WHERE key = ?", [key]).await })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        }).map_done(|result| result.map(|_rows| ()))))
+        let storage = self.clone();
+        Self::wrap_async(async move {
+            storage.reset_rate_limit_async_internal(&key).await
+        })
     }
 }
 
@@ -608,74 +781,28 @@ impl RateLimiterStore for LibsqlStore {
 
 impl BlobStore for LibsqlStore {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
-        let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(create_table).await })?;
-
-        let encoded = STANDARD.encode(data);
         let key = key.to_string();
-        let size_str = data.len().to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let stream = schedule_future(async move {
-            conn.execute(
-                "INSERT INTO blobs (key, data, size, updated_at) VALUES (?, ?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET data = ?, size = ?, updated_at = strftime('%s', 'now') * 1000",
-                [key.clone(), encoded.clone(), size_str.clone(), encoded, size_str],
-            ).await
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        }).map_done(|result| result.map(|_rows| ()))))
+        let data = data.to_vec();
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.put_blob_async_internal(&key, &data).await })
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare("SELECT data FROM blobs WHERE key = ?").await?;
-            let mut rows = stmt.query([key]).await?;
-            match rows.next().await? {
-                Some(row) => { let encoded: String = row.get(0)?; Ok(Some(encoded)) }
-                None => Ok(None),
-            }
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(opt)) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        }).map_done(|opt_result| match opt_result {
-            Ok(Some(encoded)) => STANDARD.decode(&encoded).map(Some).map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}"))),
-            Ok(None) => Ok(None),
-            Err(e) => Err(e),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.get_blob_async_internal(&key).await })
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move { conn.execute("DELETE FROM blobs WHERE key = ?", [key]).await })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        }).map_done(|result| result.map(|_rows| ()))))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.delete_blob_async_internal(&key).await })
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare("SELECT 1 FROM blobs WHERE key = ? LIMIT 1").await?;
-            let mut rows = stmt.query([key]).await?;
-            Ok::<bool, libsql::Error>(rows.next().await?.is_some())
-        })?;
-        Ok(Box::new(stream.map_circuit(|item| match item {
-            Stream::Next(Ok(b)) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        })))
+        let storage = self.clone();
+        Self::wrap_async(async move { storage.blob_exists_async_internal(&key).await })
     }
 }
 
@@ -900,81 +1027,67 @@ impl StateStore for LibsqlStore {
 }
 
 // ===========================================================================
-// Async trait implementations
+// Async trait implementations — direct calls to _async_internal methods.
 // ===========================================================================
 
 #[async_trait::async_trait(?Send)]
 impl AsyncKeyValueStore for LibsqlStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let stream = <Self as KeyValueStore>::get::<V>(self, key)?;
-        collect_one(stream).transpose().map(Option::flatten)
+        self.get_async_internal::<V>(key).await
     }
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let stream = <Self as KeyValueStore>::set(self, key, value)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.set_async_internal(key, value).await
     }
     async fn delete_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as KeyValueStore>::delete(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.delete_async_internal(key).await
     }
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
-        let stream = <Self as KeyValueStore>::exists(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        self.exists_async_internal(key).await
     }
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        let stream = <Self as KeyValueStore>::list_keys(self, prefix)?;
-        collect_result(stream).into_iter().collect()
+        collect_result(<Self as KeyValueStore>::list_keys(self, prefix)?)
+            .into_iter().collect()
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for LibsqlStore {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        let stream = <Self as QueryStore>::query(self, sql, params)?;
-        collect_result(stream).into_iter().collect()
+        self.query_async_internal(sql, params).await
     }
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let stream = <Self as QueryStore>::execute(self, sql, params)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+        self.execute_async_internal(sql, params).await
     }
     async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
-        let stream = <Self as QueryStore>::execute_batch(self, sql)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.execute_batch_async_internal(sql).await
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncRateLimiterStore for LibsqlStore {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        let stream = <Self as RateLimiterStore>::check_rate_limit(self, key, max_count, window_seconds)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        self.check_rate_limit_async_internal(key, max_count, window_seconds).await
     }
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        let stream = <Self as RateLimiterStore>::record_rate_limit(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(0))
+        self.record_rate_limit_async_internal(key).await
     }
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as RateLimiterStore>::reset_rate_limit(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.reset_rate_limit_async_internal(key).await
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncBlobStore for LibsqlStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::put_blob(self, key, data)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.put_blob_async_internal(key, data).await
     }
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let stream = <Self as BlobStore>::get_blob(self, key)?;
-        collect_one(stream).transpose().map(Option::flatten)
+        self.get_blob_async_internal(key).await
     }
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        let stream = <Self as BlobStore>::delete_blob(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(()))
+        self.delete_blob_async_internal(key).await
     }
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        let stream = <Self as BlobStore>::blob_exists(self, key)?;
-        collect_one(stream).transpose().map(|opt| opt.unwrap_or(false))
+        self.blob_exists_async_internal(key).await
     }
 }
