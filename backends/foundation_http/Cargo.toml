@@ -23,6 +23,7 @@ sha1 = "0.10"
 base64 = "0.22"
 tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
+async-trait = "0.1"
 
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -52,6 +53,7 @@ foundation_testing = { workspace=true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
+async-trait = "0.1"
 
 [features]
 default = []

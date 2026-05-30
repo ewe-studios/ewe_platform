@@ -1,3 +1,7 @@
+//! Requires `--features wasm-test` on native or wasm32 target.
+
+#![cfg(feature = "wasm-test")]
+
 //! Tests for WasmStream — memory-backed HTTP wire format collector and parser.
 
 use foundation_http::wasm::stream::{WasmStream, parse_raw};

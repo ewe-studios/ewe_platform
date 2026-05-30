@@ -17,10 +17,10 @@ use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
 use crate::shared::middleware::MiddlewareResult;
 use crate::shared::serve::ServeError;
+use crate::shared::serve_web::WebServe;
+use crate::shared::web_conn::{WebConn, WebConnectionResult};
 use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 use crate::wasm::serve_cf::CfServe;
-use crate::wasm::serve_web::WebServe;
-use crate::wasm::web_conn::{WebConn, WebConnectionResult};
 
 /// Extension trait for dispatching `HttpApp<Arc<dyn CfServe>>`.
 pub trait HttpAppCfDispatch {

@@ -1,5 +1,9 @@
 //! Tests for HttpApp<Arc<dyn CfServe>> and HttpApp<Arc<dyn WebServe>> — route registration
 //! and dispatch through the generic router.
+//!
+//! Requires `--features wasm-test` on native or wasm32 target.
+
+#![cfg(feature = "wasm-test")]
 
 use std::sync::Arc;
 
@@ -23,6 +27,7 @@ impl foundation_http::wasm::serve_cf::CfServeFactory for TestCfHandler {
     }
 }
 
+#[async_trait::async_trait(?Send)]
 impl foundation_http::wasm::serve_cf::CfServe for TestCfHandler {
     async fn serve_cf(
         &self,
@@ -41,22 +46,23 @@ impl foundation_http::wasm::serve_cf::CfServe for TestCfHandler {
 
 struct TestWebHandler;
 
-impl foundation_http::wasm::serve_web::WebServeFactory for TestWebHandler {
+impl foundation_http::shared::serve_web::WebServeFactory for TestWebHandler {
     fn create(_bag: &ContextBag) -> Self {
         TestWebHandler
     }
 }
 
-impl foundation_http::wasm::serve_web::WebServe for TestWebHandler {
+#[async_trait::async_trait(?Send)]
+impl foundation_http::shared::serve_web::WebServe for TestWebHandler {
     async fn serve_web(
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        conn: &mut foundation_http::wasm::web_conn::WebConn,
-    ) -> foundation_http::wasm::web_conn::WebConnectionResult {
+        conn: &mut foundation_http::shared::web_conn::WebConn,
+    ) -> foundation_http::shared::web_conn::WebConnectionResult {
         conn.set_status(200);
         conn.set_body(b"web ok".to_vec());
-        foundation_http::wasm::web_conn::WebConnectionResult::Ok
+        foundation_http::shared::web_conn::WebConnectionResult::Ok
     }
 }
 
@@ -153,7 +159,7 @@ fn test_http_app_cf_wildcard_route() {
 
 #[test]
 fn test_http_app_web_route_registration() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web");
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web").is_some());
     assert!(app.router().dispatch(&SimpleMethod::POST, "/web").is_none());
@@ -161,7 +167,7 @@ fn test_http_app_web_route_registration() {
 
 #[test]
 fn test_http_app_web_route_any() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_any_web::<TestWebHandler>("/web-all");
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web-all").is_some());
     assert!(app.router().dispatch(&SimpleMethod::POST, "/web-all").is_some());
@@ -170,14 +176,14 @@ fn test_http_app_web_route_any() {
 
 #[test]
 fn test_http_app_web_middleware_pass_through() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.middleware(PassThroughMiddleware);
     assert_eq!(app.middleware_chain().len(), 1);
 }
 
 #[test]
 fn test_http_app_web_middleware_short_circuit() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.middleware(RejectMiddleware);
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web");
     assert_eq!(app.middleware_chain().len(), 1);
@@ -185,7 +191,7 @@ fn test_http_app_web_middleware_short_circuit() {
 
 #[test]
 fn test_http_app_web_param_route() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web/items/:id");
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web/items/42").is_some());
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web/items").is_none());
@@ -193,7 +199,7 @@ fn test_http_app_web_param_route() {
 
 #[test]
 fn test_http_app_web_wildcard_route() {
-    let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_web::WebServe>>::new_web();
+    let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web/*");
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web/anything").is_some());
     assert!(app.router().dispatch(&SimpleMethod::GET, "/web/a/b/c").is_some());

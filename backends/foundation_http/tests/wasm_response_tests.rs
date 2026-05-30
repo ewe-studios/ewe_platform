@@ -1,3 +1,7 @@
+//! Requires `--features wasm-test` on native or wasm32 target.
+
+#![cfg(feature = "wasm-test")]
+
 //! Tests for WasmResponse struct.
 //! These run natively with `--features wasm-test`.
 

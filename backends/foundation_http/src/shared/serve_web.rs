@@ -9,7 +9,7 @@ use foundation_netio::simple_http::shared::{SimpleIncomingRequest, SimpleMethod}
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
-use crate::wasm::web_conn::{WebConn, WebConnectionResult};
+use crate::shared::web_conn::{WebConn, WebConnectionResult};
 
 /// Web/browser handler — receives a typed `WebConn` for building
 /// structured responses without HTTP wire format.

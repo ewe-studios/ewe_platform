@@ -1,3 +1,7 @@
+//! Requires `--features wasm-test` on native or wasm32 target.
+
+#![cfg(feature = "wasm-test")]
+
 //! Tests for wasm server dispatch — middleware chain and short-circuit behavior.
 
 use foundation_http::wasm::serve_writer::run_middleware_writer;
