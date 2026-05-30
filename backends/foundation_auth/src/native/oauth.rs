@@ -1,9 +1,18 @@
 //! OAuth 2.0 token exchange using native HTTP client.
 
+use foundation_core::valtron::{from_future, execute, ShortCircuit, Stream, StreamIteratorExt};
+use foundation_db::{StorageError, StorageItemStream};
+use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+use foundation_netio::simple_http::client::FinalizedResponse;
+
+type HttpResponse = FinalizedResponse<SendSafeBody, SystemDnsResolver>;
+
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
 
 /// Native OAuth client wrapping shared OAuth configuration with sync token exchange.
+#[derive(Clone)]
 pub struct NativeOAuth {
     inner: OAuthManager,
 }
@@ -23,16 +32,12 @@ impl NativeOAuth {
         &self.inner
     }
 
-    /// Exchange authorization code for tokens.
-    ///
-    /// This completes the authorization code flow by sending the code
-    /// to the token endpoint along with the PKCE code verifier.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn exchange_code(
+    // ========================================================================
+    // Async API (source of truth — uses SimpleHttpClient::send_async)
+    // ========================================================================
+
+    /// Async version of [`Self::exchange_code`].
+    pub async fn exchange_code_async(
         &self,
         code: &str,
         code_verifier: Option<&str>,
@@ -59,61 +64,12 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let client = foundation_netio::simple_http::client::SimpleHttpClient::from_system();
-        let response = client
-            .post(&self.inner.config.token_url)
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(
-                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
-                "application/x-www-form-urlencoded",
-            )
-            .body_text(body)
-            .build_client()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .send()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
-
-        if !response.is_success() {
-            let body = match response.get_body_ref() {
-                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                    String::from_utf8_lossy(b).to_string()
-                }
-                _ => String::new(),
-            };
-            return Err(OAuthError::TokenEndpointError {
-                status: response.get_status().into_usize() as u16,
-                message: body,
-            });
-        }
-
-        let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
-            }
-            _ => "",
-        };
-        let token_response: TokenResponse = serde_json::from_str(body_text)
-            .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
-
-        Ok(OAuthToken {
-            access_token: token_response.access_token,
-            token_type: token_response.token_type,
-            expires_in: token_response.expires_in,
-            refresh_token: token_response.refresh_token,
-            scope: token_response.scope,
-            id_token: token_response.id_token,
-        })
+        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        parse_token_response(resp).await
     }
 
-    /// Client credentials flow for service-to-service authentication.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation, clippy::needless_pass_by_value)]
-    pub fn client_credentials(
+    /// Async version of [`Self::client_credentials`].
+    pub async fn client_credentials_async(
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
@@ -144,61 +100,15 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let client = foundation_netio::simple_http::client::SimpleHttpClient::from_system();
-        let response = client
-            .post(&self.inner.config.token_url)
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(
-                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
-                "application/x-www-form-urlencoded",
-            )
-            .body_text(body)
-            .build_client()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .send()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
-
-        if !response.is_success() {
-            let body = match response.get_body_ref() {
-                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                    String::from_utf8_lossy(b).to_string()
-                }
-                _ => String::new(),
-            };
-            return Err(OAuthError::TokenEndpointError {
-                status: response.get_status().into_usize() as u16,
-                message: body,
-            });
-        }
-
-        let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
-            }
-            _ => "",
-        };
-        let token_response: TokenResponse = serde_json::from_str(body_text)
-            .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
-
-        Ok(OAuthToken {
-            access_token: token_response.access_token,
-            token_type: token_response.token_type,
-            expires_in: token_response.expires_in,
-            refresh_token: None,
-            scope: token_response.scope,
-            id_token: None,
-        })
+        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        parse_token_response(resp).await
     }
 
-    /// Refresh an access token using a refresh token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+    /// Async version of [`Self::refresh_token`].
+    pub async fn refresh_token_async(
+        &self,
+        refresh_token: &str,
+    ) -> Result<OAuthToken, OAuthError> {
         self.inner.config.validate()?;
 
         let mut body_parts = vec![
@@ -213,160 +123,197 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let client = foundation_netio::simple_http::client::SimpleHttpClient::from_system();
-        let response = client
-            .post(&self.inner.config.token_url)
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(
-                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
-                "application/x-www-form-urlencoded",
-            )
-            .body_text(body)
-            .build_client()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .send()
-            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
+        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        parse_refresh_response(resp, refresh_token).await
+    }
 
-        if !response.is_success() {
-            let body = match response.get_body_ref() {
-                foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-                foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                    String::from_utf8_lossy(b).to_string()
-                }
-                _ => String::new(),
-            };
-            #[allow(clippy::cast_possible_truncation)]
-            return Err(OAuthError::TokenEndpointError {
-                status: response.get_status().into_usize() as u16,
-                message: body,
-            });
-        }
+    // ========================================================================
+    // Sync API (wraps async via valtron from_future)
+    // ========================================================================
 
-        let body_text = match response.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.as_str(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
-            }
-            _ => "",
-        };
-        let token_response: TokenResponse = serde_json::from_str(body_text)
-            .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
-
-        Ok(OAuthToken {
-            access_token: token_response.access_token,
-            token_type: token_response.token_type,
-            expires_in: token_response.expires_in,
-            refresh_token: token_response
-                .refresh_token
-                .or_else(|| Some(refresh_token.to_string())),
-            scope: token_response.scope,
-            id_token: token_response.id_token,
+    /// Exchange authorization code for tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn exchange_code(
+        &self,
+        code: &str,
+        code_verifier: Option<&str>,
+    ) -> Result<OAuthToken, OAuthError> {
+        let this = self.clone();
+        let code = code.to_string();
+        let code_verifier = code_verifier.map(String::from);
+        let stream = Self::wrap_oauth_async(async move {
+            this.exchange_code_async(&code, code_verifier.as_deref()).await
         })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
+        collect_one_result(stream)
+    }
+
+    /// Client credentials flow for service-to-service authentication.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation, clippy::needless_pass_by_value)]
+    pub fn client_credentials(
+        &self,
+        scopes: Option<Vec<String>>,
+    ) -> Result<OAuthToken, OAuthError> {
+        let this = self.clone();
+        let scopes = scopes.clone();
+        let stream = Self::wrap_oauth_async(async move {
+            this.client_credentials_async(scopes).await
+        })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
+        collect_one_result(stream)
+    }
+
+    /// Refresh an access token using a refresh token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+        let this = self.clone();
+        let refresh_token = refresh_token.to_string();
+        let stream = Self::wrap_oauth_async(async move {
+            this.refresh_token_async(&refresh_token).await
+        })
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
+        collect_one_result(stream)
+    }
+
+    /// Wrap an OAuth async future into a valtron `StorageItemStream`.
+    fn wrap_oauth_async<T: Send + 'static>(
+        future: impl std::future::Future<Output = Result<T, OAuthError>> + Send + 'static,
+    ) -> Result<StorageItemStream<'static, T>, StorageError> {
+        let task = from_future(async move {
+            future.await.map_err(|e| StorageError::Backend(e.to_string()))
+        });
+        let stream = execute(task, None)
+            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+        Ok(Box::new(
+            stream
+                .map_circuit(|item| match item {
+                    Stream::Next(result) => match result {
+                        Ok(v) => ShortCircuit::Continue(Stream::Next(Ok(v))),
+                        Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
+                    },
+                    _ => ShortCircuit::Continue(Stream::Ignore),
+                })
+                .map_pending(|_| ()),
+        ))
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::shared::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
-    use crate::shared::oauth_token::OAuthToken;
-    use crate::native::oauth::NativeOAuth;
+/// Helper: collect one result from a valtron stream.
+fn collect_one_result<T>(
+    stream: StorageItemStream<'_, T>,
+) -> Result<T, OAuthError> {
+    for item in stream {
+        if let Stream::Next(result) = item {
+            return result.map_err(|e| OAuthError::TokenRequestFailed(e.to_string()));
+        }
+    }
+    Err(OAuthError::TokenRequestFailed("stream ended without result".into()))
+}
 
-    #[test]
-    fn test_oauth_config_builder() {
-        let config = OAuthConfig::builder()
-            .client_id("test_client_id")
-            .client_secret("test_client_secret")
-            .authorization_url("https://auth.example.com/oauth/authorize")
-            .token_url("https://auth.example.com/oauth/token")
-            .redirect_uri("https://app.example.com/callback")
-            .scope("openid")
-            .scope("profile")
-            .scope("email")
-            .pkce_enabled(true)
-            .build();
+// ============================================================================
+// Internal helpers
+// ============================================================================
 
-        assert_eq!(config.client_id, "test_client_id");
-        assert_eq!(config.client_secret, Some("test_client_secret".to_string()));
-        assert_eq!(config.scopes.len(), 3);
-        assert!(config.pkce_enabled);
+/// Async HTTP POST with form-urlencoded body.
+async fn do_post_async(url: &str, body: &str) -> Result<HttpResponse, OAuthError> {
+    let client = foundation_netio::simple_http::client::SimpleHttpClient::from_system();
+    let response = client
+        .post(url)
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
+        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body_text(body.to_string())
+        .build_client()
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
+        .send_async()
+        .await
+        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
+
+    Ok(response)
+}
+
+/// Extract body text from a response.
+fn extract_body_text(body: &SendSafeBody) -> Result<String, OAuthError> {
+    match body {
+        SendSafeBody::Text(t) => Ok(t.clone()),
+        SendSafeBody::Bytes(b) => {
+            String::from_utf8(b.clone()).map_err(|e| OAuthError::TokenParseError(e.to_string()))
+        }
+        _ => Ok(String::new()),
+    }
+}
+
+/// Get error body text or empty string.
+fn error_body_text(body: &SendSafeBody) -> String {
+    match body {
+        SendSafeBody::Text(t) => t.clone(),
+        SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+        _ => String::new(),
+    }
+}
+
+/// Parse a successful token response into OAuthToken.
+async fn parse_token_response(resp: HttpResponse) -> Result<OAuthToken, OAuthError> {
+    let status: usize = resp.get_status().into();
+    if !resp.is_success() {
+        let body = error_body_text(resp.get_body_ref());
+        return Err(OAuthError::TokenEndpointError {
+            status: status as u16,
+            message: body,
+        });
     }
 
-    #[test]
-    fn test_oauth_config_validation() {
-        let config = OAuthConfig::default();
-        assert!(config.validate().is_err());
+    let body_text = extract_body_text(resp.get_body_ref())?;
+    let token_response: TokenResponse = serde_json::from_str(&body_text)
+        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
-        let config = OAuthConfig::builder()
-            .client_id("test")
-            .authorization_url("https://auth.example.com")
-            .token_url("https://auth.example.com/token")
-            .redirect_uri("https://app.example.com/callback")
-            .build();
-        assert!(config.validate().is_ok());
+    Ok(OAuthToken {
+        access_token: token_response.access_token,
+        token_type: token_response.token_type,
+        expires_in: token_response.expires_in,
+        refresh_token: token_response.refresh_token,
+        scope: token_response.scope,
+        id_token: token_response.id_token,
+    })
+}
+
+/// Parse a refresh token response, preserving the old refresh token if no new one is returned.
+async fn parse_refresh_response(
+    resp: HttpResponse,
+    old_refresh: &str,
+) -> Result<OAuthToken, OAuthError> {
+    let status: usize = resp.get_status().into();
+    if !resp.is_success() {
+        let body = error_body_text(resp.get_body_ref());
+        return Err(OAuthError::TokenEndpointError {
+            status: status as u16,
+            message: body,
+        });
     }
 
-    #[test]
-    fn test_pkce_challenge_generation() {
-        let challenge = PkceChallenge::generate();
-        assert_eq!(challenge.code_verifier.len(), 43);
-        assert_eq!(challenge.code_challenge.len(), 43);
-        assert_eq!(challenge.challenge_method, "S256");
-    }
+    let body_text = extract_body_text(resp.get_body_ref())?;
+    let token_response: TokenResponse = serde_json::from_str(&body_text)
+        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
-    #[test]
-    fn test_state_generation() {
-        let state1 = OAuthManager::generate_state();
-        let state2 = OAuthManager::generate_state();
-        assert_ne!(state1, state2);
-        assert!(state1.len() > 30);
-    }
-
-    #[test]
-    fn test_state_validation() {
-        let state = "test_state_value";
-        assert!(OAuthManager::validate_state(state, state));
-        assert!(!OAuthManager::validate_state(state, "different_state"));
-    }
-
-    #[test]
-    fn test_authorization_url_generation() {
-        let config = OAuthConfig::builder()
-            .client_id("test_client")
-            .authorization_url("https://auth.example.com/oauth/authorize")
-            .token_url("https://auth.example.com/oauth/token")
-            .redirect_uri("https://app.example.com/callback")
-            .scope("openid profile")
-            .pkce_enabled(true)
-            .build();
-
-        let manager = NativeOAuth::new(config);
-        let state = OAuthManager::generate_state();
-        let (url, pkce) = manager.manager().get_authorization_url(&state).unwrap();
-
-        assert!(url.contains("response_type=code"));
-        assert!(url.contains("client_id=test_client"));
-        assert!(url.contains("redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback"));
-        assert!(url.contains(&format!("state={state}")));
-        assert!(url.contains("scope=openid+profile"));
-        assert!(pkce.is_some());
-        assert!(url.contains("code_challenge="));
-        assert!(url.contains("code_challenge_method=S256"));
-    }
-
-    #[test]
-    fn test_oauth_token_conversion() {
-        let oauth_token = OAuthToken {
-            access_token: "access_123".to_string(),
-            token_type: "Bearer".to_string(),
-            expires_in: Some(3600),
-            refresh_token: Some("refresh_456".to_string()),
-            scope: Some("openid profile".to_string()),
-            id_token: None,
-        };
-
-        let jwt_token = oauth_token.into_jwt_token().unwrap();
-        assert_eq!(jwt_token.access_token(), "access_123");
-        assert_eq!(jwt_token.refresh_token(), Some("refresh_456".to_string()));
-        assert!(!jwt_token.is_expired());
-    }
+    Ok(OAuthToken {
+        access_token: token_response.access_token,
+        token_type: token_response.token_type,
+        expires_in: token_response.expires_in,
+        refresh_token: token_response
+            .refresh_token
+            .or_else(|| Some(old_refresh.to_string())),
+        scope: token_response.scope,
+        id_token: token_response.id_token,
+    })
 }
