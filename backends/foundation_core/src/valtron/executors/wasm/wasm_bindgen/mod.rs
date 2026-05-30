@@ -8,7 +8,7 @@ use foundation_nostd::primitives::cooperative_spin_waiter::{
 };
 use std::time;
 use wasm_bindgen::closure::Closure;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{JsCast, JsValue};
 
 /// JS-specific timeout for "queue empty, check again soon" scenarios.
 /// 4ms: browser minimum (clamped), CF Workers fire ~1ms but 4ms is safe.
@@ -60,8 +60,14 @@ fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) 
             )
             .expect("set_timeout failed");
     } else {
-        web_sys::console::log_1(&"JSThreadYielder: no matching global scope!".into());
-        panic!("no global scope found for setTimeout");
+        // Fallback: CF Workers and other JS environments — call setTimeout via Reflect
+        web_sys::console::log_1(&"JSThreadYielder: falling back to Reflect::get(setTimeout)".into());
+        let global = js_sys::global();
+        let set_timeout = js_sys::Reflect::get(&global, &JsValue::from_str("setTimeout"))
+            .expect("global has no setTimeout");
+        let set_timeout = set_timeout.dyn_ref::<js_sys::Function>()
+            .expect("setTimeout is not a function");
+        let _ = set_timeout.call2(&global, closure.as_ref().unchecked_ref(), &JsValue::from_f64(dur.as_millis() as f64));
     }
     closure.forget();
 }

@@ -12,6 +12,7 @@ keywords = ["foundation_nostd"]
 [features]
 default = []
 std = []
+js-wasmbindgen = []
 
 [lints]
 workspace = true

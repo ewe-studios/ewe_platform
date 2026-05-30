@@ -1,0 +1,20 @@
+[tools]
+rust = "latest"
+
+[tasks]
+build = """
+worker-build --release
+"""
+
+dev = """
+mise run build && \
+npx wrangler dev --port 8787
+"""
+
+serve = """
+npx wrangler dev --port 8787
+"""
+
+clean = """
+cargo clean && rm -rf build/
+"""

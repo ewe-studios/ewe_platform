@@ -53,24 +53,25 @@ impl WaitTimeoutResult {
     /// Creates a new `WaitTimeoutResult`.
     #[inline]
     #[must_use]
-    #[cfg(any(not(feature = "std"), test))] // Used in no_std implementation and tests
+    #[cfg(any(not(feature = "std"), feature = "js-wasmbindgen", test))] // Used in no_std implementation and tests
     pub const fn new(timed_out: bool) -> Self {
         Self(timed_out)
     }
 }
 
 // Feature-gate the implementation
-#[cfg(feature = "std")]
+// js-wasmbindgen always uses nostd_impl (spin-waiting) since std::thread::sleep panics on wasm32
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 mod std_impl;
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std_impl::{
     CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
     RawCondVarMutexGuard, RwLockCondVar,
 };
 
-#[cfg(not(feature = "std"))]
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 mod nostd_impl;
-#[cfg(not(feature = "std"))]
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use nostd_impl::{
     CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
     RawCondVarMutexGuard, RwLockCondVar,

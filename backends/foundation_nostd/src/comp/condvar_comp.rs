@@ -29,44 +29,44 @@
 
 /// `CondVarMutex` type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::Mutex`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
-#[cfg(feature = "std")]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `std` only: Uses `std::sync::Mutex`
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std::sync::Mutex as CondVarMutex;
 
 /// `CondVarMutex` type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::Mutex`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
-#[cfg(not(feature = "std"))]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `std` only: Uses `std::sync::Mutex`
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use crate::primitives::condvar::CondVarMutex;
 
 /// Mutex type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::Mutex`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
-#[cfg(feature = "std")]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `std` only: Uses `std::sync::Mutex`
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std::sync::Mutex;
 
 /// Mutex type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::Mutex`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
-#[cfg(not(feature = "std"))]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `std` only: Uses `foundation_nostd::primitives::CondVarMutex`
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use crate::primitives::condvar::CondVarMutex as Mutex;
 
 /// Mutex guard type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::MutexGuard`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
-#[cfg(feature = "std")]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
+/// - With `std` only: Uses `std::sync::MutexGuard`
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std::sync::MutexGuard;
 
 /// Mutex guard type for use with `CondVar`.
 ///
-/// - With `std` feature: Uses `std::sync::MutexGuard`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
-#[cfg(not(feature = "std"))]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
+/// - With `std` only: Uses `std::sync::MutexGuard`
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 
 // ============================================================================
@@ -75,28 +75,28 @@ pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 
 /// Platform-appropriate `CondVar` type.
 ///
-/// - With `std` feature: Uses `std::sync::Condvar`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVar`
-#[cfg(feature = "std")]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVar`
+/// - With `std` only: Uses `std::sync::Condvar`
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std::sync::Condvar as CondVar;
 
 /// Platform-appropriate `CondVar` type.
 ///
-/// - With `std` feature: Uses `std::sync::Condvar`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVar`
-#[cfg(not(feature = "std"))]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVar`
+/// - With `std` only: Uses `std::sync::Condvar`
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use crate::primitives::CondVar;
 
 /// Platform-appropriate `WaitTimeoutResult` type.
 ///
-/// - With `std` feature: Uses `std::sync::WaitTimeoutResult`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::WaitTimeoutResult`
-#[cfg(feature = "std")]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
+/// - With `std` only: Uses `std::sync::WaitTimeoutResult`
+#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
 pub use std::sync::WaitTimeoutResult;
 
 /// Platform-appropriate `WaitTimeoutResult` type.
 ///
-/// - With `std` feature: Uses `std::sync::WaitTimeoutResult`
-/// - Without `std` feature: Uses `foundation_nostd::primitives::WaitTimeoutResult`
-#[cfg(not(feature = "std"))]
+/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
+/// - With `std` only: Uses `std::sync::WaitTimeoutResult`
+#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
 pub use crate::primitives::WaitTimeoutResult;

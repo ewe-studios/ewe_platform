@@ -62,7 +62,7 @@ alloc = ["futures-core/alloc"]
 multi = ["std"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_nostd/js-wasmbindgen"]
 js-foundation-wasm = []
 
 # default flags

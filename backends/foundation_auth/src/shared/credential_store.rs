@@ -440,14 +440,18 @@ impl<T> StoredCredential<T> {
 #[cfg(all(test, feature = "turso"))]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
 
-    /// Initialise the Valtron single-thread executor for the current test
-    /// worker thread. The executor lives in a `thread_local!` `OnceCell`,
-    /// so every test thread needs its own call. `initialize_pool` is
-    /// idempotent per thread (internally `get_or_init`), so repeat calls
-    /// are safe.
+    /// Shared Valtron pool guard — initialized once and reused across all tests
+    /// to avoid parallel tests interfering with each other's thread pool.
+    /// Wrapped in a Mutex<Option<>> since PoolGuard is not Sync.
+    static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
+
     fn init_valtron() {
-        foundation_core::valtron::single::initialize_pool(42);
+        let mut guard = POOL_GUARD.lock().unwrap();
+        if guard.is_none() {
+            *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+        }
     }
 
     /// Build a fresh [`CredentialStorage`] backed by a temporary `SQLite`
@@ -528,9 +532,9 @@ mod tests {
     fn sqlite_store_list_keys_filters_by_prefix() {
         let (store, _dir) = sqlite_store();
 
-        store.set("oauth:provider1", "value1").unwrap();
-        store.set("oauth:provider2", "value2").unwrap();
-        store.set("jwt:token", "value3").unwrap();
+        let _ = store.set("oauth:provider1", "value1").unwrap();
+        let _ = store.set("oauth:provider2", "value2").unwrap();
+        let _ = store.set("jwt:token", "value3").unwrap();
 
         let keys = store.list_keys(None).unwrap();
         assert_eq!(keys.len(), 3);
@@ -561,7 +565,7 @@ mod tests {
         })
         .expect("init turso provider");
         let store = CredentialStorage::new(provider);
-        store.set("k", "v").unwrap();
+        let _ = store.set("k", "v").unwrap();
         let got: String = store.get("k").unwrap().unwrap();
         assert_eq!(got, "v");
     }
