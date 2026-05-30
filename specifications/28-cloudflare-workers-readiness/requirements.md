@@ -29,10 +29,10 @@ related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
   - "specifications/21-http-framework"
 features:
-  completed: 6
-  uncompleted: 8
+  completed: 7
+  uncompleted: 7
   total: 14
-  completion_percentage: 43%
+  completion_percentage: 50%
 ---
 
 # Cloudflare Workers Readiness Specification
