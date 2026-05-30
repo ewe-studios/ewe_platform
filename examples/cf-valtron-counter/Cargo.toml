@@ -9,7 +9,12 @@ repository.workspace = true
 keywords = ["cloudflare", "wasm", "valtron", "example"]
 
 [dependencies]
-foundation_core = { workspace = true, default-features = false, features = ["js-wasmbindgen", "std"] }
+foundation_core = {
+    path = "./backends/foundation_core",
+    default-features = false,
+    features = ["js-wasmbindgen", "std"]
+}
+
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

@@ -1496,8 +1496,8 @@ impl UnifiedGenerator {
             if !seen_modules.insert(safe_name.clone()) {
                 continue; // duplicate module name — skip
             }
-            writeln!(out, "#[cfg(feature = \"{}_{}\")]", feature_name, safe_name)?;
-            writeln!(out, "pub mod {};", safe_name)?;
+            writeln!(out, "#[cfg(feature = \"{feature_name:}_{safe_name:}\")]")?;
+            writeln!(out, "pub mod {safe_name:};")?;
         }
 
         let provider_dir = self.output_dir.join(provider);
