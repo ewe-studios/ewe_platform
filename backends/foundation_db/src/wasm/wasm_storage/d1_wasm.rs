@@ -262,10 +262,9 @@ impl KeyValueStore for D1WasmStorage {
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         let this = self.clone();
         let prefix = prefix.map(String::from);
-        let keys = crate::core::backends::exec_future(async move {
+        schedule_future(async move {
             Self::do_list_keys_async(&this.db, &this.table_prefix, prefix.as_deref()).await
-        })?;
-        Ok(Self::stream_many(keys))
+        })
     }
 }
 
