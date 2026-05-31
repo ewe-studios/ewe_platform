@@ -72,9 +72,9 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         .map_err(|e| format!("kv init failed: {e:?}"))?;
 
     // CredentialStorage → StorageProvider → D1WasmStorage
-    // All *_async calls go directly to D1 JS API (no valtron).
+    // All SessionManager async calls go through StorageProvider → D1 JS API.
     let provider = StorageProvider::new(StorageBackend::D1Wasm {
-        db: Arc::clone(&storage),
+        db: Arc::clone(&db),
         table_prefix: "app".to_string(),
     })
     .map_err(|e| format!("storage provider init failed: {e:?}"))?;
