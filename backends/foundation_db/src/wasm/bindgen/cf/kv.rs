@@ -30,3 +30,10 @@ impl KVNamespace {
         get_binding(env, binding)
     }
 }
+
+/// # Safety: `Send` and `Sync` on wasm32.
+/// `KVNamespace` wraps a JS `Object` which is `!Send` by default.
+/// On wasm32 there is only one thread and no shared memory,
+/// so it is safe to mark this type `Send + Sync`.
+unsafe impl Send for KVNamespace {}
+unsafe impl Sync for KVNamespace {}

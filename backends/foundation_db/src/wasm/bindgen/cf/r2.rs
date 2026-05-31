@@ -34,6 +34,21 @@ impl R2Bucket {
     }
 }
 
+/// # Safety: `Send` and `Sync` on wasm32.
+/// `R2Bucket` wraps a JS `Object` which is `!Send` by default.
+/// On wasm32 there is only one thread and no shared memory,
+/// so it is safe to mark this type `Send + Sync`.
+unsafe impl Send for R2Bucket {}
+unsafe impl Sync for R2Bucket {}
+
+/// # Safety: `Send` and `Sync` on wasm32.
+unsafe impl Send for R2Object {}
+unsafe impl Sync for R2Object {}
+
+/// # Safety: `Send` and `Sync` on wasm32.
+unsafe impl Send for R2Objects {}
+unsafe impl Sync for R2Objects {}
+
 /// R2 object returned by `R2Bucket::get()`.
 #[wasm_bindgen]
 extern "C" {

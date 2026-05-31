@@ -14,6 +14,7 @@ metadata:
     - cf-serve
     - cf-http-app
     - singleton
+    - weak-arc
 has_features: false
 has_fundamentals: false
 builds_on:
@@ -22,10 +23,10 @@ builds_on:
 related_specs:
   - "specifications/28-cloudflare-workers-readiness"
 tasks:
-  completed: 0
-  uncompleted: 6
-  total: 6
-  completion_percentage: 0%
+  completed: 8
+  uncompleted: 0
+  total: 8
+  completion_percentage: 100%
 ---
 
 # CfServe / CfHttpApp — Idiomatic Cloudflare Workers Entry Point
@@ -39,7 +40,22 @@ tasks:
 Two additions to `foundation_http::wasm::bridge::cf`:
 
 1. **`CfHttpApp::fetch()`** — idiomatic method name matching CF Workers convention
-2. **`CfHttpAppSingleton`** — `OnceLock`-backed singleton with `get_or_init()` and `get_or_init_with_env()`
+2. **`CfHttpAppSingleton`** — `Weak`/`Arc`-backed singleton with `get_or_init()` and `get_or_init_with_env()`
+
+**Why `Weak`/`Arc`, not `OnceLock`:**
+
+The same singleton pattern is used in spec 33 (valtron executors). Using `Weak`/`Arc` across all singletons gives a unified API and consistent lifecycle semantics:
+
+- **Static holds a `Weak`** — never owns the app, only tracks its existence.
+- **`CfHttpAppGuard` holds the `Arc<AppState>`** — strong ownership.
+- When all guards drop → `AppState` drops → `CfHttpApp` is reclaimed naturally.
+- The `Weak` becomes dangling → next `get_or_init` re-initializes cleanly.
+- No `unsafe`, no explicit cleanup, drop-based reclamation is natural.
+
+In CF Workers the V8 isolate lives for the duration of an invocation, so in practice the guard is never dropped before the isolate ends. But the pattern matters for:
+- Consistency with valtron singleton APIs (single and multi executors).
+- Local unit testing: dropping guards lets the app reclaim, enabling re-initialization.
+- Future-proofing: if `CfHttpApp` gains a `Drop` (flushing connections, closing pools), the pattern already supports it.
 
 The result: a CF Worker is a one-liner that exercises the full `CfServe` stack.
 
@@ -103,26 +119,63 @@ impl CfHttpApp {
 }
 ```
 
-### 2. `CfHttpAppSingleton` — OnceLock-Backed Lazy Init
+### 2. `CfHttpAppSingleton` — Weak/Arc-Backed Lazy Init
 
-**Storage:** a module-level static, not a struct field.
+**Storage:** a module-level static holding a `Weak`, not an `OnceLock`.
 
 ```rust
-/// The actual OnceLock storage — a module-level static that holds the
-/// initialized CfHttpApp for the lifetime of the V8 isolate.
-static HTTP_APP: OnceLock<Arc<CfHttpApp>> = OnceLock::new();
+/// Static tracking of app existence. Never owns the app — only holds a Weak.
+///
+/// When all CfHttpAppGuard instances drop, the Arc refcount hits 0 and
+/// the Weak becomes dangling. Next get_or_init detects this and re-initializes.
+static STATE: Mutex<Weak<AppState>> = Mutex::new(Weak::new());
 ```
 
-**Why static, not a field:**
-- CF Workers run in a single V8 isolate per invocation. No thread contention.
-- `OnceLock` exists only for its "initialize at most once" semantics.
-- A zero-sized wrapper struct provides a clean public API surface without exposing the raw static.
-- `Arc<>` allows the singleton to be cloned (cheap ref-count bump) and returned by value from `get_app()` without moving out of the `OnceLock`.
-
 ```rust
-/// Zero-sized namespace for methods that manage the `HTTP_APP` static.
-/// The app is initialized exactly once on first request, then reused
-/// for all subsequent requests in this isolate.
+/// Internal app state shared between all guards.
+///
+/// Holds the Arc<CfHttpApp> and the ContextBag with bindings.
+/// When all guards drop, AppState drops — in CF Workers this is a
+/// no-op (the V8 isolate is shutting down anyway), but the structure
+/// is ready for future cleanup hooks.
+struct AppState {
+    app: Arc<CfHttpApp>,
+    bag: Arc<ContextBag>,
+}
+
+/// Lifecycle token for the CF HTTP app.
+///
+/// Holds an `Arc<AppState>` so the app stays alive as long as any guard
+/// instance exists. When all guards drop, `AppState` drops naturally.
+pub struct CfHttpAppGuard {
+    state: Arc<AppState>,
+}
+
+impl CfHttpAppGuard {
+    /// Access the underlying CfHttpApp.
+    pub fn app(&self) -> &CfHttpApp {
+        &self.state.app
+    }
+
+    /// Dispatch a request with CF env bindings through the app.
+    pub async fn fetch(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
+        self.state.app.fetch(req, env).await
+    }
+}
+
+impl Clone for CfHttpAppGuard {
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+        }
+    }
+}
+
+/// Zero-sized namespace for methods that manage the `STATE` static.
+///
+/// The app is initialized exactly once per isolate lifecycle. When all
+/// CfHttpAppGuard instances drop, the app is reclaimed and can be
+/// re-initialized.
 ///
 /// # Usage
 /// ```rust
@@ -130,7 +183,7 @@ static HTTP_APP: OnceLock<Arc<CfHttpApp>> = OnceLock::new();
 /// CfHttpAppSingleton::get_app().fetch(req, env).await
 ///
 /// // During app startup (or lazily on first request):
-/// CfHttpAppSingleton::get_or_init(|bag| {
+/// let guard = CfHttpAppSingleton::get_or_init(|bag| {
 ///     let mut app = HttpApp::new_cf();
 ///     app.route_cf::<HomeHandler>(SimpleMethod::GET, "/");
 ///     app.route_cf::<LoginHandler>(SimpleMethod::GET, "/login");
@@ -141,42 +194,61 @@ static HTTP_APP: OnceLock<Arc<CfHttpApp>> = OnceLock::new();
 pub struct CfHttpAppSingleton;
 
 impl CfHttpAppSingleton {
-    /// Get the singleton app instance from the HTTP_APP static.
+    /// Get a guard to the singleton app.
     ///
-    /// Internally: `HTTP_APP.get().expect("CfHttpApp not initialized — \
-    ///   call get_or_init() or get_or_init_with_env() first")`
+    /// Internally: `STATE.lock().unwrap().upgrade()
+    ///   .expect("CfHttpApp not initialized — call get_or_init() or get_or_init_with_env() first")`
     ///
-    /// Returns `Arc<CfHttpApp>` (cheap clone of the Arc, not a deep copy).
-    pub fn get_app() -> Arc<CfHttpApp> { ... }
+    /// Returns `CfHttpAppGuard` (wraps a clone of the Arc, not a deep copy).
+    pub fn get_app() -> CfHttpAppGuard { ... }
 
-    /// Initialize the HTTP_APP static with a builder closure.
+    /// Initialize the app if not already initialized.
     ///
-    /// Internally: `HTTP_APP.get_or_init(|| builder(bag))`
-    /// where `bag` is a fresh `Arc<ContextBag>` (no bindings auto-extracted).
-    ///
-    /// If already initialized, returns the existing instance and ignores
-    /// the closure.
+    /// Internally:
+    ///   1. Lock STATE, check if existing Weak can be upgraded.
+    ///   2. If yes, return a new CfHttpAppGuard wrapping the existing Arc.
+    ///   3. If no, create a fresh `Arc<ContextBag>` (no bindings auto-extracted),
+    ///      build the `CfHttpApp`, wrap in `AppState` → `Arc` → `CfHttpAppGuard`,
+    ///      store Weak in STATE, return guard.
     ///
     /// The closure receives an `Arc<ContextBag>` so you can store typed
     /// bindings (D1, R2, KV, secrets) before registering routes.
-    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(builder: F) -> Arc<CfHttpApp> { ... }
+    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
+        builder: F,
+    ) -> CfHttpAppGuard { ... }
 
-    /// Initialize the HTTP_APP static from a raw CF env `JsValue`.
+    /// Initialize the app from a raw CF env `JsValue`.
     ///
     /// Internally:
-    ///   1. Create a fresh `Arc<ContextBag>`.
-    ///   2. Auto-extract bindings from `env` by name:
+    ///   1. Lock STATE, check if existing Weak can be upgraded.
+    ///   2. If yes, return a new CfHttpAppGuard wrapping the existing Arc.
+    ///   3. If no, create a fresh `Arc<ContextBag>`.
+    ///      Auto-extract bindings from `env` by name:
     ///      - `env.get("DB")`     → D1Database  → bag.store()
     ///      - `env.get("BUCKET")` → R2Bucket    → bag.store()
     ///      - `env.get("KV")`     → KVNamespace → bag.store()
-    ///   3. `HTTP_APP.get_or_init(|| builder(bag))`
+    ///      Build the `CfHttpApp`, wrap in `AppState` → `Arc` → `CfHttpAppGuard`,
+    ///      store Weak in STATE, return guard.
     ///
-    /// If already initialized, returns the existing instance and ignores
+    /// If already initialized, returns the existing guard and ignores
     /// the closure (env is not re-parsed).
     pub fn get_or_init_with_env<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
         env: &JsValue,
         builder: F,
-    ) -> Arc<CfHttpApp> { ... }
+    ) -> CfHttpAppGuard { ... }
+
+    /// Check if the app has been initialized.
+    pub fn is_initialized() -> bool { ... }
+
+    /// Force-reset the singleton state. cfg-gated to #[cfg(test)].
+    ///
+    /// Drops any existing app by clearing the Weak. In tests this
+    /// effectively resets state immediately.
+    #[cfg(test)]
+    pub fn reset() {
+        let mut weak = STATE.lock().unwrap();
+        *weak = Weak::new();
+    }
 }
 ```
 
@@ -235,25 +307,31 @@ Custom bindings can be added by the user inside the builder closure.
 
 | File | Change |
 |------|--------|
-| `foundation_http/src/wasm/bridge/cf.rs` | Add `fetch()` to `CfHttpApp`; add `static HTTP_APP` and `CfHttpAppSingleton` impl |
-| `foundation_http/src/wasm/mod.rs` | Re-export `CfHttpAppSingleton` |
+| `foundation_http/src/wasm/bridge/cf.rs` | Add `fetch()` to `CfHttpApp`; add `AppState`, `CfHttpAppGuard`, `static STATE: Mutex<Weak<AppState>>`, and `CfHttpAppSingleton` impl |
+| `foundation_http/src/wasm/mod.rs` | Re-export `CfHttpAppSingleton` and `CfHttpAppGuard` |
 
 No new dependencies. No changes outside `foundation_http`.
 
 ## Tasks
 
 1. [ ] Add `fetch()` method to `CfHttpApp` (alias for `handle_request`)
-2. [ ] Add `static HTTP_APP: OnceLock<Arc<CfHttpApp>>` and `CfHttpAppSingleton` struct
-3. [ ] Implement `get_app()`, `get_or_init()`, `get_or_init_with_env()` on `CfHttpAppSingleton`
-4. [ ] Export `CfHttpAppSingleton` from `wasm/mod.rs`
-5. [ ] Verify wasm32 compilation: `cargo check --target wasm32-unknown-unknown --features wasm-bindgen-http`
-6. [ ] Verify native compilation: `cargo check -p foundation_http`
+2. [ ] Add `AppState` struct with `Arc<CfHttpApp>` + `Arc<ContextBag>`
+3. [ ] Add `CfHttpAppGuard` holding `Arc<AppState>` with `fetch()` method
+4. [ ] Add `static STATE: Mutex<Weak<AppState>>` and `CfHttpAppSingleton` struct
+5. [ ] Implement `get_app()`, `get_or_init()`, `get_or_init_with_env()`, `is_initialized()`, `reset()` on `CfHttpAppSingleton`
+6. [ ] Export `CfHttpAppSingleton` and `CfHttpAppGuard` from `wasm/mod.rs`
+7. [ ] Verify wasm32 compilation: `cargo check --target wasm32-unknown-unknown --features wasm-bindgen-http`
+8. [ ] Verify native compilation: `cargo check -p foundation_http`
 
 ## Success Criteria
 
 - [ ] `CfHttpApp::fetch()` compiles and delegates to `handle_request`
-- [ ] `CfHttpAppSingleton::get_or_init()` initializes app once
+- [ ] `CfHttpAppGuard` holds `Arc<AppState>` and provides `fetch()` method
+- [ ] `CfHttpAppSingleton::get_or_init()` initializes app once via Weak/Arc pattern
 - [ ] `CfHttpAppSingleton::get_or_init_with_env()` auto-extracts D1/R2/KV bindings
+- [ ] `CfHttpAppSingleton::get_app()` returns guard via `Weak::upgrade`, panics if not initialized
+- [ ] `CfHttpAppSingleton::is_initialized()` returns `bool`
+- [ ] `CfHttpAppSingleton::reset()` clears state in tests only (`#[cfg(test)]`)
 - [ ] `cargo check --target wasm32-unknown-unknown --features wasm-bindgen-http` passes
 - [ ] `cargo check -p foundation_http` (native) passes
 

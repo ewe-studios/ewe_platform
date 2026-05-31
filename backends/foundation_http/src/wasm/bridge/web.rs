@@ -1,6 +1,6 @@
 //! Web-standard wasm-bindgen bridge: `web_sys::Request` → `SimpleIncomingRequest` → dispatch → `web_sys::Response`.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, Weak};
 
 use foundation_netio::simple_http::shared::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -10,6 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
+use crate::shared::context::ContextBag;
 use crate::shared::serve_web::WebServe;
 use crate::wasm::dispatch::HttpAppWebDispatch;
 
@@ -86,10 +87,105 @@ impl WasmHttpApp {
     pub fn app(&self) -> &HttpApp<Arc<dyn WebServe>> {
         &self.inner
     }
+
+    /// Create a `WasmHttpApp` from an existing `HttpApp<Arc<dyn WebServe>>`.
+    pub fn from_app(app: HttpApp<Arc<dyn WebServe>>) -> Self {
+        Self {
+            inner: Arc::new(app),
+        }
+    }
 }
 
 impl Default for WasmHttpApp {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+// ─── Singleton ─────────────────────────────────────────────────────
+
+struct AppState {
+    app: Arc<WasmHttpApp>,
+}
+
+// Safety: wasm32 is single-threaded with no shared memory.
+// `dyn WebServe` is not `Send` by default, but on wasm32 there is
+// only one thread, so it is safe to mark `AppState` as `Send + Sync`.
+unsafe impl Send for AppState {}
+unsafe impl Sync for AppState {}
+
+/// Lifecycle token for the web HTTP app.
+pub struct WasmHttpAppGuard {
+    state: Arc<AppState>,
+}
+
+impl WasmHttpAppGuard {
+    /// Dispatch a request through the web app.
+    pub async fn fetch(&self, req: Request) -> Result<Response, JsError> {
+        self.state.app.handle_request(req).await
+    }
+
+    /// Get the underlying `WasmHttpApp` for direct access.
+    pub fn app(&self) -> &WasmHttpApp {
+        &self.state.app
+    }
+}
+
+impl Clone for WasmHttpAppGuard {
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+        }
+    }
+}
+
+/// Static tracking of app existence. Never owns the app — only holds a Weak.
+static STATE: Mutex<Weak<AppState>> = Mutex::new(Weak::new());
+
+/// Zero-sized namespace for methods that manage the `STATE` static.
+pub struct WasmHttpAppSingleton;
+
+impl WasmHttpAppSingleton {
+    /// Get a guard to the singleton app.
+    ///
+    /// Panics if `get_or_init` was not called.
+    pub fn get_app() -> WasmHttpAppGuard {
+        let weak = STATE.lock().unwrap();
+        let state = weak
+            .upgrade()
+            .expect("WasmHttpApp not initialized — call WasmHttpAppSingleton::get_or_init() first");
+        WasmHttpAppGuard { state }
+    }
+
+    /// Initialize the app if not already initialized.
+    ///
+    /// The closure receives an `Arc<ContextBag>` so you can store typed
+    /// bindings before building the `WasmHttpApp`.
+    ///
+    /// If already initialized, returns the existing guard and ignores the closure.
+    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+        builder: F,
+    ) -> WasmHttpAppGuard {
+        let mut weak = STATE.lock().unwrap();
+        if let Some(arc) = weak.upgrade() {
+            return WasmHttpAppGuard { state: arc };
+        }
+        let bag = Arc::new(ContextBag::new());
+        let app = Arc::new(WasmHttpApp::from_app(builder(bag)));
+        let state = Arc::new(AppState { app });
+        *weak = Arc::downgrade(&state);
+        WasmHttpAppGuard { state }
+    }
+
+    /// Check if the app has been initialized.
+    pub fn is_initialized() -> bool {
+        STATE.lock().unwrap().upgrade().is_some()
+    }
+
+    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
+    #[cfg(test)]
+    pub fn reset() {
+        let mut weak = STATE.lock().unwrap();
+        *weak = Weak::new();
     }
 }

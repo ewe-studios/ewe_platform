@@ -21,3 +21,7 @@ pub mod bridge;
 // Dispatch logic for wasm-specific handler types — requires web_sys
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-http"))]
 pub mod dispatch;
+
+// Re-export singleton for easy access when wasm-bindgen-http is enabled
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-http"))]
+pub use bridge::{CfHttpAppGuard, CfHttpAppSingleton, WasmHttpAppGuard, WasmHttpAppSingleton};
