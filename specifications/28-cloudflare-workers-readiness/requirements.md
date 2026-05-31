@@ -1,9 +1,9 @@
 ---
 description: "Make foundation crates wasm32-unknown-unknown compatible for Cloudflare Workers deployment. Covers SSL backend switching, dead dependency removal, wasm feature flags, wasm-bindgen bindings layer, and a working login example app deployable via wrangler."
-status: "pending"
+status: "done"
 priority: "high"
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-31
 author: "Main Agent"
 metadata:
   version: "1.0"
