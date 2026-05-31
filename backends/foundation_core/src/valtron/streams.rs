@@ -154,12 +154,25 @@ pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
     type P;
 }
 
-// Blanket implementation for any compatible iterator
+// Blanket implementation for any compatible iterator (Send variant — multi-threaded)
+#[cfg(feature = "multi")]
 impl<M, D, P> StreamIterator for M
 where
     M: Iterator<Item = Stream<D, P>> + ?Sized,
     D: Send + 'static,
     P: Send + 'static,
+{
+    type D = D;
+    type P = P;
+}
+
+// Blanket implementation for any compatible iterator (non-Send variant — wasm32 / single-threaded)
+#[cfg(not(feature = "multi"))]
+impl<M, D, P> StreamIterator for M
+where
+    M: Iterator<Item = Stream<D, P>> + ?Sized,
+    D: 'static,
+    P: 'static,
 {
     type D = D;
     type P = P;

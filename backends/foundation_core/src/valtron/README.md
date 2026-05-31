@@ -382,6 +382,42 @@ fn main() {
 
 ---
 
+## StreamIterator — Send vs Non-Send Variants
+
+Valtron provides two parallel implementations of `StreamIteratorExt` (the combinator methods like `map_done`, `map_pending`, `map_circuit`):
+
+| Feature | `StreamIterator` blanket impl | `StreamIteratorExt` source | Send bound |
+|---------|------------------------------|---------------------------|------------|
+| `multi` | `D: Send + 'static, P: Send + 'static` | `extensions/streams/sendable.rs` | Required |
+| `not(multi)` | `D: 'static, P: 'static` | `extensions/streams/non_sendable.rs` | Not required |
+
+The blanket `StreamIterator` impl is cfg-gated to match: on `multi` it requires `Send` bounds, on non-`multi` (wasm32, single-threaded native) it only requires `'static`. This means `DrivenStreamIterator<FutureTask<F>>` — which produces `Result<T, E>` and `FuturePollState` (neither `Send` on wasm32) — correctly implements `StreamIterator` on the non-`multi` path and gets access to `StreamIteratorExt` combinators.
+
+### What this means for downstream code
+
+You use the same API regardless of target:
+
+```rust
+use foundation_core::valtron::{from_future, execute, StreamIteratorExt};
+
+let task = from_future(my_async_fn());
+let stream = execute(task, None)?;
+
+// Works on both multi (Send) and non-multi (non-Send) targets.
+// The correct StreamIteratorExt implementation is selected at compile time.
+let mapped = stream
+    .map_done(|result| result.map_err(MyError::from))
+    .map_pending(|_| ());
+```
+
+No `#[cfg(target_arch = "wasm32")]` or feature-gated imports needed in downstream code. The executor (`execute`, `from_future`) and the combinator trait (`StreamIteratorExt`) are always exported from `foundation_core::valtron` — the cfg selection happens entirely within valtron itself.
+
+### Why two implementations
+
+The `multi` executor runs tasks on background worker threads, so all task outputs (`Ready`, `Pending`) must be `Send` to cross thread boundaries. The single-threaded executor (used on wasm32 and native without `multi`) runs everything on the current thread, so no `Send` bound is needed. The `StreamIteratorExt` combinator types (`MapDone`, `MapPending`, etc.) store boxed closures — on the `multi` path those closures must be `Send`, on the non-`multi` path they don't need to be.
+
+---
+
 ## ⚠️ CRITICAL: TaskIterator/Iterator Recursion Trap
 
 **Location:** `task.rs:311-401`
