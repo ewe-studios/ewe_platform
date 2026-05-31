@@ -4,8 +4,8 @@
 pub mod shared;
 
 // Native types — gated behind not(target_arch = "wasm32")
-#[cfg(feature = "multi")]
+#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
 pub mod native;
 
-#[cfg(feature = "multi")]
+#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
 pub use native::*;

@@ -1,8 +1,8 @@
 pub mod shared;
 pub use shared::*;
 
-#[cfg(feature = "multi")]
+#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
 pub mod native;
 
-#[cfg(feature = "multi")]
+#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
 pub use native::*;

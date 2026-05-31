@@ -4,7 +4,7 @@
 //! Promises internally via `exec_future`. The underlying async
 //! implementations are exposed as `*_async` variants for callers that prefer them.
 
-use foundation_db::exec_future;
+use foundation_core::valtron::{collect_one, execute, from_future};
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -12,6 +12,22 @@ use web_sys::{Request, RequestInit, RequestMode, Response};
 
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
+
+/// Execute a `Future` on the valtron thread pool and collect the result.
+fn exec_future<T: 'static, E: std::fmt::Display + 'static, F>(
+    future: F,
+) -> Result<T, OAuthError>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| OAuthError::TokenRequestFailed(format!("valtron exec failed: {e}")))?;
+    let result: Result<Option<T>, OAuthError> = collect_one(stream)
+        .map(|r| r.map_err(|e| OAuthError::TokenRequestFailed(e.to_string())))
+        .transpose();
+    result?.ok_or_else(|| OAuthError::TokenRequestFailed("no result from valtron".into()))
+}
 
 /// Wasm OAuth client wrapping shared OAuth configuration with async token exchange.
 #[derive(Clone)]
@@ -53,9 +69,7 @@ impl WasmOAuth {
         let code_verifier = code_verifier.map(String::from);
         exec_future(async move {
             this.exchange_code_async(&code, code_verifier.as_deref()).await
-                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
         })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     /// Client credentials flow for service-to-service authentication.
@@ -71,9 +85,7 @@ impl WasmOAuth {
         let scopes = scopes.clone();
         exec_future(async move {
             this.client_credentials_async(scopes).await
-                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
         })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     /// Refresh an access token using a refresh token.
@@ -86,9 +98,7 @@ impl WasmOAuth {
         let refresh_token = refresh_token.to_string();
         exec_future(async move {
             this.refresh_token_async(&refresh_token).await
-                .map_err(|e| foundation_db::StorageError::Backend(e.to_string()))
         })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))
     }
 
     // ========================================================================

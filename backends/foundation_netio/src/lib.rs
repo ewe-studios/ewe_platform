@@ -12,7 +12,7 @@ pub mod simple_http;
 pub mod websocket;
 pub mod netcap;
 
-#[cfg(feature = "multi")]
+#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
 pub mod http_stream;
 
 #[cfg(all(feature = "ssl-native-tls", not(target_arch = "wasm32")))]

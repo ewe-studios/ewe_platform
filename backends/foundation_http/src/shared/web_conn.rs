@@ -60,7 +60,7 @@ impl WebConn {
     }
 
     /// Convert collected fields into a `web_sys::Response`.
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-http"))]
     pub fn into_response(self) -> Result<web_sys::Response, wasm_bindgen::JsError> {
         let init = web_sys::ResponseInit::new();
         init.set_status(self.status);

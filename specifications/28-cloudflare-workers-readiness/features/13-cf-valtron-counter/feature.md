@@ -1,18 +1,18 @@
 ---
 feature: "Valtron Counter Demo App"
 description: "Minimal Cloudflare Workers example with a static HTML page and a /counter endpoint that streams valtron executor ticks via ReadableStream using StreamAsFutureStream (.await) — counter alternates TaskStatus::Wait and TaskStatus::Pending to exercise both executor JS yield branches"
-status: "pending"
+status: "implemented"
 priority: "medium"
 depends_on: ["11-valtron-async-bridge"]
 estimated_effort: "small"
 created: 2026-05-29
-last_updated: 2026-05-30
+last_updated: 2026-05-31
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Valtron Counter Demo App

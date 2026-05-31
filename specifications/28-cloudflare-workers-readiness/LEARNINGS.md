@@ -7,17 +7,63 @@
 - Added `wasm` feature flag for `uuid/js`, `chrono/wasmbind`, `getrandom/js`
 - SSL backend switching: `aws-lc-rs` (wasm) vs `ring` (native)
 
+### 03-http-wasm-compat (2026-05-31)
+- Full module restructure: `shared/` (traits, router, middleware, handlers, app), `native/` (TCP server, reader, upgrade), `wasm/` (dispatch, streams, bridge)
+- `Serve` (native-only), `ServeWriter` (both targets), `WebServe` (async, web), `CfServe` (async, CF Workers) traits
+- `CfHttpApp` and `WasmHttpApp` wasm-bindgen wrappers with `handleRequest` entry points
+- `CfConn` and `WebConn` typed connection types with `into_response()` → `web_sys::Response`
+- Router extended with `add_route_cf`, `add_route_web`, `add_route_writer` methods
+- `HttpApp` builder with `route_cf`, `route_web`, `route_writer`, `new_cf`, `new_web`
+- `dispatch.rs` with `HttpAppCfDispatch` and `HttpAppWebDispatch` extension traits
+- **Cfg fix**: `CfConn::into_response()` and `WebConn::into_response()` must use `#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-http"))]`, not just `#[cfg(target_arch = "wasm32")]`, because `web_sys` and `wasm_bindgen` are optional deps only pulled in by the `wasm-bindgen-http` feature
+
 ### 04-wire-restructure (2026-05-16)
 - Split `foundation_core::wire` modules into shared (always compiled) and native (`#[cfg(not(wasm32))]`) submodules
 - Deep client split in `simple_http`: moved pure logic to `client/shared/`, socket-dependent code to `client/native/`
 - `event_source` and `websocket` shared types extracted, native consumers gated
 - `http_stream` entirely native (uses `RawStream`)
 
+### 05-db-wasm-compat (2026-05-31)
+- Module restructure complete: `core/` (traits, errors, schema, memory backends, HTTP-based D1/R2), `native/` (turso, libsql), `wasm/` (bindgen/cf D1/R2/KV, wasm_storage)
+- D1/R2/KV wasm-bindgen types exist in `wasm/bindgen/cf/` with `from_env()` extraction
+- **Key fix**: `foundation_netio` `native/` submodules were gated with `#[cfg(feature = "multi")]` but NOT `not(target_arch = "wasm32")`. Since `d1` pulls in `multi`, foundation_db couldn't compile on wasm32. Fixed in 4 files: `simple_http/client/mod.rs`, `event_source/mod.rs`, `websocket/mod.rs`, `http_stream/mod.rs` (lib.rs) — all now use `#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]`
+
+### 10-generic-serve-traits (2026-05-31)
+- `Server` enum replaced with generic `Router<S>`, `RouteMethod<S>`, `RouteSegment<S>` — handler type flows from `HttpApp<S>` through entire route tree
+- Environment-specific traits: `Serve` (native TCP), `ServeWriter` (bytes to writer), `CfServe` (CF Workers structured fields), `WebServe` (browser structured fields)
+- `CfConn`, `WebConn` typed connection types with `into_response()` → `web_sys::Response` — no wire-format parsing needed
+- `HttpApp` builder methods: `route_cf`/`route_web`/`route_writer`, `new_cf`/`new_web`
+- Dispatch extension traits: `HttpAppCfDispatch`, `HttpAppWebDispatch` in `wasm/dispatch.rs`
+
+### 13-cf-valtron-counter (2026-05-31)
+- `examples/cf-valtron-counter/` — CF Worker with static HTML (`/`) and streaming counter (`/counter`)
+- `CounterTaskIterator` alternates `TaskStatus::Wait` / `TaskStatus::Pending` to exercise both executor JS yield branches
+- Counter endpoint uses `execute()` + `into_future_stream()` + `.await` → `ReadableStream` via `future_to_promise`
+- Verified: `cargo check --target wasm32-unknown-unknown` passes clean
+
+### 06-example-app (2026-05-31)
+- `examples/cf-login-app/` fully implemented: register, login, dashboard, logout, note save/retrieve
+- Uses direct `async fn fetch(req, env)` entry point with `LazyApp` (OnceLock) for shared state
+- All async operations call D1 JS API directly via `JsFuture` — no valtron streams on wasm
+- `SessionManager::create_session_async` / `get_session_async` / `revoke_session_async` exercised
+- `D1WasmStorage::set_async` / `get_async` / `query_async` / `execute_async` for direct SQL and KV
+- minijinja templates for HTML rendering, argon2 password hashing
+- Verified: `cargo check --target wasm32-unknown-unknown` passes clean
+
+### 08-wasm-oauth-manager (2026-05-31)
+- `WasmOAuth` in `wasm_bindgen/oauth.rs` — full OAuth 2.0 flows via `web_sys::fetch`
+- Three token exchange methods: `exchange_code_async`, `client_credentials_async`, `refresh_token_async`
+- Sync wrappers (`exchange_code`, `client_credentials`, `refresh_token`) via valtron `exec_future`
+- `js_fetch()` runtime-detects ServiceWorkerGlobalScope vs browser Window context
+- `wasm-bindgen-oauth` feature flag gates wasm-bindgen deps — lightweight base wasm build unaffected
+- Fix: `exec_future` was imported from `foundation_db` but was private — replaced with local valtron-based impl
+
 ## Lessons Learned
 
 - **Duplicate numbering causes confusion**: Initially had two `03-` features (`03-http-wasm-compat` and `03-wire-restructure`). Fixed by renumbering sequentially.
 - **Orphaned root-level modules**: When restructuring `foundation_http` into `shared/`/`native/`/`wasm/`, old root-level directories were left behind. Deleted them — they were already unreferenced by `lib.rs`.
-- **Bridge not implemented**: `foundation_http/src/wasm/bridge/mod.rs` is a stub. The `web.rs` and `cf.rs` wasm-bindgen entry points were never written.
+
+- **`#[cfg(feature = "multi")]` is NOT enough for wasm32 gating**: When a feature is enabled via `#[cfg(feature = "multi")]` but the code uses `RawStream`, `Connection`, `ssl`, or other native-only types, it will fail on wasm32. Always combine with `not(target_arch = "wasm32")`: `#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]`. This caught 4 modules: `simple_http/client/native`, `event_source/native`, `websocket/native`, `http_stream`.
 
 ### --all-features Compilation (2026-05-20)
 
@@ -57,9 +103,4 @@ The `candle-metal` feature now uses `candle-core?/metal` syntax — the `?` mean
 
 ## Pending
 
-- Feature 03-http-wasm-compat: ServeWriter trait, Server enum, wasm bridge
-- Feature 05-db-wasm-compat: CF D1/R2/KV wasm-bindgen bridge
-- Feature 06-example-app: Working login app
-- Feature 07-ci-wasm-checks: CI wasm compilation checks
-- Feature 08-wasm-oauth-manager: wasm-bindgen OAuth manager
-- Feature 09-wasm-testbed: CLI-driven wasm test harness
+All 13 features complete. See spec 32 (`cf-serve-app`) for the idiomatic `CfHttpAppSingleton` entry point pattern.
