@@ -174,10 +174,19 @@ impl StorageProvider {
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
             StorageBackend::D1Wasm { db, table_prefix } => {
                 let storage = D1WasmStorage::new(db, &table_prefix);
+                // Init schema via valtron single-threaded executor.
                 let storage_ref = storage.clone();
-                crate::core::backends::exec_future(async move {
+                let mut driven = foundation_core::valtron::drive_future(async move {
                     storage_ref.init_schema_async().await
-                })?;
+                });
+                let mut init_result: Option<Result<(), StorageError>> = None;
+                for status in driven.by_ref() {
+                    if let foundation_core::valtron::TaskStatus::Ready(v) = status {
+                        init_result = Some(v.map_err(|e| StorageError::Backend(format!("Init failed: {e:?}"))));
+                        break;
+                    }
+                }
+                init_result.ok_or_else(|| StorageError::Generic("No result from init".into()))??;
                 Ok(Self {
                     inner: StorageProviderInner::D1Wasm(storage),
                 })

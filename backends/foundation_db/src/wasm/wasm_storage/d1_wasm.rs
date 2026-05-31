@@ -2,11 +2,11 @@
 //!
 //! Wraps `D1Database` and implements all storage traits using D1's SQL engine.
 //! Async `*_async` methods are the source of truth (JS Promises);
-//! sync trait methods delegate via `schedule_future`.
+//! sync trait methods delegate via `from_future` → `execute`.
 
 use std::sync::Arc;
 
-use crate::core::backends::schedule_future;
+use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore, BlobStore,
@@ -14,10 +14,44 @@ use crate::core::storage_provider::{
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::{Stream, StreamReadyFuture};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+
+// ===========================================================================
+// Inline valtron helpers (no async_utils — use valtron directly)
+// ===========================================================================
+
+fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
+    future: F,
+) -> StorageResult<StorageItemStream<'static, T>>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(Box::new(
+        stream
+            .map_done(|r: Result<T, E>| r.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
+}
+
+fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(
+    future: F,
+) -> StorageResult<T>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<Option<T>, StorageError> = collect_one(stream)
+        .map(|r| r.map_err(Into::into))
+        .transpose();
+    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
+}
 
 // ===========================================================================
 // D1WasmStorage
@@ -142,8 +176,6 @@ impl D1WasmStorage {
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
-        // D1 returns { results: [...] } or just [...] depending on version
-        // Try to extract results array
         let arr = if result.is_array() {
             result.unchecked_into::<Array>()
         } else {
@@ -184,7 +216,6 @@ impl D1WasmStorage {
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 
-        // Extract meta.changes from result
         let obj = result
             .dyn_into::<js_sys::Object>()
             .map_err(|_| StorageError::Backend("D1 run returned non-object".to_string()))?;
@@ -262,7 +293,7 @@ impl KeyValueStore for D1WasmStorage {
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         let this = self.clone();
         let prefix = prefix.map(String::from);
-        let keys = crate::core::backends::exec_future(async move {
+        let keys = exec_future(async move {
             Self::do_list_keys_async(&this.db, &this.table_prefix, prefix.as_deref()).await
         })?;
         Ok(Self::stream_many(keys))
@@ -289,7 +320,7 @@ impl D1WasmStorage {
 
         match row {
             Some(obj) => {
-                let value = get_str_field(&obj, "value").ok_or_else(|| {
+                let value = Self::get_str_field(&obj, "value").ok_or_else(|| {
                     StorageError::SqlConversion("missing or invalid value field".to_string())
                 })?;
                 let deserialized: V = serde_json::from_str(&value)
@@ -389,7 +420,7 @@ impl D1WasmStorage {
         let keys: Result<Vec<String>, StorageError> = rows
             .iter()
             .map(|obj| {
-                get_str_field(obj, "key").ok_or_else(|| {
+                Self::get_str_field(obj, "key").ok_or_else(|| {
                     StorageError::SqlConversion("missing or invalid key field".to_string())
                 })
             })
@@ -431,21 +462,15 @@ impl AsyncKeyValueStore for D1WasmStorage {
 // ===========================================================================
 // Valtron-driven async methods — exercises JSThreadYielder
 //
-// WHY: Test that valtron's executor can drive futures through the JS event
-// loop in CF Workers. Unlike `*_async` (which uses JsFuture directly),
-// these go through `schedule_future` → valtron executor → JSThreadYielder
-// → setTimeout → back to executor.
-//
-// HOW: `schedule_future` creates a valtron stream iterator. `into_ready_future`
-// wraps it as a standard `Future`. When `.await`ed, `poll` calls `iter.next()`
-// which drives valtron. If the future is pending, JSThreadYielder yields via
-// setTimeout and poll returns Pending with wake_by_ref(). When the timer fires,
-// valtron resumes and the async runtime repolls.
+// These use `set_valtron_async`/`get_valtron_async` which go through
+// `schedule_future` → valtron stream → `StreamReadyFuture` → `.await`.
+// The valtron executor drives the D1 Promise, JSThreadYielder yields via
+// setTimeout, and the Future polls back when repolled by the async runtime.
 // ===========================================================================
 
 impl D1WasmStorage {
     /// Set a key-value pair via valtron executor (exercises JSThreadYielder).
-    pub async fn set_valtron_async(&self, key: &str, value: impl serde::Serialize + Send + 'static) -> StorageResult<()> {
+    pub async fn set_valtron_async(&self, key: &str, value: impl serde::Serialize + Send + 'static) -> Result<(), StorageError> {
         let this = self.clone();
         let key = key.to_string();
         let stream = schedule_future(async move {
@@ -464,7 +489,7 @@ impl D1WasmStorage {
     pub async fn get_valtron_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
-    ) -> StorageResult<Option<V>> {
+    ) -> Result<Option<V>, StorageError> {
         let this = self.clone();
         let key = key.to_string();
         let stream = schedule_future(async move {
@@ -493,7 +518,7 @@ impl QueryStore for D1WasmStorage {
         let this = self.clone();
         let sql = sql.to_string();
         let params = params.to_vec();
-        let rows = crate::core::backends::exec_future(async move {
+        let rows = exec_future(async move {
             Self::do_query_rows_async(&this.db, &sql, &params).await
         })?;
         Ok(Self::stream_many(rows))
@@ -657,8 +682,8 @@ impl D1WasmStorage {
 
         let allowed = match row {
             Some(obj) => {
-                let count = get_num_field(&obj, "count").unwrap_or(0.0) as u32;
-                let stored_window = get_num_field(&obj, "window_start").unwrap_or(0.0) as u64;
+                let count = Self::get_num_field(&obj, "count").unwrap_or(0.0) as u32;
+                let stored_window = Self::get_num_field(&obj, "window_start").unwrap_or(0.0) as u64;
                 if stored_window < window_start {
                     true
                 } else {
@@ -698,7 +723,7 @@ impl D1WasmStorage {
 
         let count = row
             .as_ref()
-            .and_then(|obj| get_num_field(obj, "count"))
+            .and_then(|obj| Self::get_num_field(obj, "count"))
             .map(|f| f as u32)
             .unwrap_or(1);
 
@@ -836,7 +861,7 @@ impl D1WasmStorage {
 
         match row {
             Some(obj) => {
-                let value = get_str_field(&obj, "value").ok_or_else(|| {
+                let value = Self::get_str_field(&obj, "value").ok_or_else(|| {
                     StorageError::SqlConversion("missing or invalid value field".to_string())
                 })?;
 
@@ -852,9 +877,7 @@ impl D1WasmStorage {
                     .get("data")
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| {
-                        StorageError::Serialization(
-                            "missing data field in blob wrapper".to_string(),
-                        )
+                        StorageError::Serialization("missing data field in blob wrapper".to_string())
                     })?;
 
                 let decoded = STANDARD
@@ -1110,16 +1133,4 @@ async fn do_execute_with_changes(
         .unwrap_or(0);
 
     Ok(changes)
-}
-
-fn get_str_field(obj: &js_sys::Object, field: &str) -> Option<String> {
-    js_sys::Reflect::get(obj, &field.into())
-        .ok()
-        .and_then(|v| v.as_string())
-}
-
-fn get_num_field(obj: &js_sys::Object, field: &str) -> Option<f64> {
-    js_sys::Reflect::get(obj, &field.into())
-        .ok()
-        .and_then(|v| v.as_f64())
 }

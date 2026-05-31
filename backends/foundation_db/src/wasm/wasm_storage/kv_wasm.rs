@@ -4,17 +4,47 @@
 //! using Cloudflare Workers KV. Async `*_async` methods are the source of truth
 //! (JS Promises); sync trait methods delegate via `schedule_future`.
 
-use crate::core::backends::{exec_future, schedule_future};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::KVNamespace;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt};
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+
+/// Schedule a future, returning a boxed stream.
+fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
+    future: F,
+) -> StorageResult<StorageItemStream<'static, T>>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(Box::new(
+        stream
+            .map_done(|r: Result<T, E>| r.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
+}
+
+/// One-shot blocking bridge for init/migrations.
+fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(future: F) -> StorageResult<T>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<Option<T>, StorageError> = collect_one(stream)
+        .map(|r| r.map_err(Into::into))
+        .transpose();
+    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
+}
 
 // ===========================================================================
 // KVWasmStorage

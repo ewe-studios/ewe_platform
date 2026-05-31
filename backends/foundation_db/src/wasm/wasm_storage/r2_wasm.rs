@@ -2,16 +2,32 @@
 //!
 //! Wraps `R2Bucket` and implements `BlobStore` using R2's object storage.
 //! Async `*_async` methods are the source of truth (JS Promises);
-//! sync trait methods delegate via `schedule_wasm_future`.
+//! sync trait methods delegate via `schedule_future`.
 
-use crate::core::backends::schedule_future;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{AsyncBlobStore, BlobStore, StorageItemStream};
 use crate::wasm::bindgen::{R2Bucket, R2Object};
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt};
 use js_sys::{ArrayBuffer, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+
+/// Schedule a future, returning a boxed stream.
+fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
+    future: F,
+) -> StorageResult<StorageItemStream<'static, T>>
+where
+    F: std::future::Future<Output = Result<T, E>> + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(Box::new(
+        stream
+            .map_done(|r: Result<T, E>| r.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
+}
 
 // ===========================================================================
 // R2WasmStorage

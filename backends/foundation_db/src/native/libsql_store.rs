@@ -16,14 +16,48 @@ use std::sync::Arc;
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, collect_result, from_future, run_future_iter, schedule_future, ShortCircuit, Stream, StreamIteratorExt,
-    ThreadedValue,
+    collect_one, collect_result, execute, from_future, run_future_iter, ShortCircuit, Stream,
+    StreamIteratorExt, ThreadedValue,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::core::backends::async_utils::{exec_future, schedule_future};
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
+
+/// One-shot blocking bridge for initialization and migrations.
+fn exec_future<T: Send + 'static, E: Into<StorageError> + Send + 'static, F>(
+    future: F,
+) -> StorageResult<T>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<Option<T>, StorageError> = collect_one(stream)
+        .map(|r| r.map_err(Into::into))
+        .transpose();
+    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
+}
+
+/// Schedule a future, returning a boxed stream.
+fn schedule_future<T: Send + 'static, E: Into<StorageError> + Send + 'static, F>(
+    future: F,
+) -> StorageResult<StorageItemStream<'static, T>>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(Box::new(
+        stream
+            .map_done(|r: Result<T, E>| r.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
+}
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{ResourceState, StateStatus};
 use crate::native::rows_stream::LibsqlRowsIterator;

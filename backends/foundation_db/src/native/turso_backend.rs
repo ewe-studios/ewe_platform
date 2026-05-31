@@ -4,18 +4,53 @@
 //! `from_future` + `execute` pattern to provide Valtron-native integration.
 //! Multi-value operations return `StorageItemStream` for lazy iteration.
 
-use crate::core::backends::async_utils::exec_future;
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::StorageResult;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_result, from_future, run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue,
+    collect_one, collect_result, execute, from_future, run_future_iter, ShortCircuit, Stream,
+    StreamIteratorExt, ThreadedValue,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
 
 use crate::core::errors::StorageError;
+
+/// One-shot blocking bridge for initialization and migrations.
+fn exec_future<T, E, F>(future: F) -> StorageResult<T>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+    T: Send + 'static,
+    E: Into<StorageError> + Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<Option<T>, StorageError> = collect_one(stream)
+        .map(|r| r.map_err(Into::into))
+        .transpose();
+    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
+}
+
+/// Schedule a future, returning a boxed stream.
+fn schedule_future<T, E, F>(future: F) -> StorageResult<StorageItemStream<'static, T>>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+    T: Send + 'static,
+    E: Into<StorageError> + Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(Box::new(
+        stream
+            .map_done(|r: Result<T, E>| r.map_err(Into::into))
+            .map_pending(|_| ()),
+    ))
+}
 use crate::native::rows_stream::RowsIterator;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
