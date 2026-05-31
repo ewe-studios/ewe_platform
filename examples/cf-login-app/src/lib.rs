@@ -5,8 +5,17 @@
 //! Cloudflare Workers login app demo.
 //!
 //! Uses foundation_auth types:
-//! - `WasmSessionManager` — async session management via D1 direct JS API
-//! - `SessionManager<D1CredentialStore>` — sync session management via valtron iterators
+//! - `SessionManager<CredentialStorage>` — session management via `AsyncCredentialStore`
+//! - `CredentialStorage` wraps `StorageProvider` backed by `D1WasmStorage`
+//!
+//! All async handlers call `SessionManager::*_async` methods which delegate
+//! to `AsyncCredentialStore::get_async/set_async/list_keys_async` on
+//! `CredentialStorage`, which in turn calls `StorageProvider::*_async`,
+//! which delegates to `D1WasmStorage::*_async` — direct JS Promise resolution,
+//! no valtron stream involved.
+//!
+//! Raw SQL queries (`query_async`/`execute_async`) also call `D1WasmStorage`
+//! async methods directly.
 
 use std::sync::Arc;
 
@@ -14,12 +23,11 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use foundation_auth::{D1CredentialStore, SessionConfig, SessionManager, WasmSessionManager};
-use foundation_core::valtron::initialize_pool;
+use foundation_auth::{CredentialStorage, SessionConfig, SessionManager};
 use foundation_db::{
     core::schema::{MIGRATIONS, MigrationRunner},
     core::storage_provider::DataValue,
-    D1WasmStorage,
+    D1WasmStorage, StorageBackend, StorageProvider,
 };
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -36,10 +44,8 @@ const SIGNING_KEY: &[u8; 32] = b"CHANGE-ME-TO-32-RANDOM-BYTES!!!!";
 // ===========================================================================
 
 struct LazyApp {
-    session_mgr: Arc<SessionManager<D1CredentialStore>>,
-    wasm_session_mgr: Arc<WasmSessionManager<D1WasmStorage>>,
+    session_mgr: Arc<SessionManager<CredentialStorage>>,
     storage: Arc<D1WasmStorage>,
-    _pool_guard: foundation_core::valtron::PoolGuard,
 }
 
 static LAZY_APP: std::sync::OnceLock<Arc<LazyApp>> = std::sync::OnceLock::new();
@@ -48,9 +54,6 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
     if let Some(app) = LAZY_APP.get() {
         return Ok(app.clone());
     }
-
-    // Initialize valtron single executor for wasm32 non-Send task driving.
-    let pool_guard = initialize_pool(42, None);
 
     let db = Arc::new(db);
     let storage = Arc::new(D1WasmStorage::new(Arc::clone(&db), "app"));
@@ -68,20 +71,21 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         .await
         .map_err(|e| format!("kv init failed: {e:?}"))?;
 
-    // SessionManager with D1CredentialStore — sync API via valtron iterators.
-    // This exercises JSThreadYielder when the valtron executor drives storage.
-    let cred_store = D1CredentialStore::new(Arc::clone(&storage));
-    let session_mgr = SessionManager::new(cred_store, Default::default(), SIGNING_KEY)
-        .map_err(|e| format!("session manager init failed: {e:?}"))?;
+    // CredentialStorage → StorageProvider → D1WasmStorage
+    // All *_async calls go directly to D1 JS API (no valtron).
+    let provider = StorageProvider::new(StorageBackend::D1Wasm {
+        db: Arc::clone(&storage),
+        table_prefix: "app".to_string(),
+    })
+    .map_err(|e| format!("storage provider init failed: {e:?}"))?;
+    let cred_storage = CredentialStorage::new(provider);
 
-    // WasmSessionManager — async API via direct D1 JS API.
-    let wasm_session_mgr = WasmSessionManager::new(Arc::clone(&storage), *SIGNING_KEY);
+    let session_mgr = SessionManager::new(cred_storage, Default::default(), SIGNING_KEY)
+        .map_err(|e| format!("session manager init failed: {e:?}"))?;
 
     let app = Arc::new(LazyApp {
         session_mgr: Arc::new(session_mgr),
-        wasm_session_mgr: Arc::new(wasm_session_mgr),
         storage,
-        _pool_guard: pool_guard,
     });
 
     LAZY_APP
@@ -129,6 +133,20 @@ fn error_response(msg: &str) -> web_sys::Response {
     init.set_status(500);
     web_sys::Response::new_with_opt_str_and_init(Some(msg), &init).unwrap()
 }
+
+fn json_response(body: &serde_json::Value, status: u16) -> web_sys::Response {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(status);
+    let headers = web_sys::Headers::new().unwrap();
+    headers.set("Content-Type", "application/json").unwrap();
+    init.set_headers(&headers);
+    let text = serde_json::to_string(body).unwrap();
+    web_sys::Response::new_with_opt_str_and_init(Some(&text), &init).unwrap()
+}
+
+// ===========================================================================
+// User CRUD (async — calls D1 JS API directly)
+// ===========================================================================
 
 async fn user_exists_async(storage: &D1WasmStorage, email: &str) -> Result<bool, String> {
     let rows = storage
@@ -441,7 +459,8 @@ async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Re
     }
     log::info!("Argon2 verify OK");
 
-    // Use SessionManager async API — calls AsyncCredentialStore methods.
+    // SessionManager async — calls AsyncCredentialStore → StorageProvider → D1WasmStorage async.
+    // All JS Promises, no valtron streams.
     let (session, cookies) = match app.session_mgr.create_session_async(
         &email,
         None,
@@ -482,7 +501,7 @@ async fn handle_dashboard(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return redirect_response("/login", "Redirecting to login...");
     };
 
-    // Use SessionManager async API — calls AsyncCredentialStore methods.
+    // SessionManager async — calls AsyncCredentialStore methods directly.
     match app.session_mgr.get_session_async(&token).await {
         Ok(Some(session)) => html_response(&render_dashboard(&session.user_id), 200),
         Ok(None) => redirect_response("/login", "Redirecting to login..."),
@@ -519,12 +538,7 @@ async fn handle_logout(app: &LazyApp, req: &web_sys::Request) -> web_sys::Respon
 }
 
 // ===========================================================================
-// Valtron test handlers — valtron executor path (exercises JSThreadYielder)
-//
-// These use `set_valtron_async`/`get_valtron_async` which go through
-// `schedule_future` → valtron stream → `StreamReadyFuture` → `.await`.
-// The valtron executor drives the D1 Promise, JSThreadYielder yields via
-// setTimeout, and the Future polls back when repolled by the async runtime.
+// Note handlers — simple KV operations via D1WasmStorage async methods
 // ===========================================================================
 
 async fn handle_save_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Response {
@@ -554,15 +568,15 @@ async fn handle_save_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return json_response(&serde_json::json!({"error": "note is required"}), 400);
     }
 
-    // VALTRON PATH: schedule_future → StreamReadyFuture → .await
+    // Direct D1WasmStorage async — calls D1 JS API via JsFuture.
     let key = format!("note:{}", session.user_id);
-    match app.storage.set_valtron_async(&key, note.clone()).await {
+    match app.storage.set_async(&key, note.clone()).await {
         Ok(()) => {
-            log::info!("Valtron: stored note for {} via valtron executor", session.user_id);
+            log::info!("Stored note for {} via D1 async", session.user_id);
             json_response(&serde_json::json!({"status": "ok", "note": note}), 200)
         }
         Err(e) => {
-            log::error!("Valtron: set failed: {:?}", e);
+            log::error!("Note set failed: {:?}", e);
             json_response(&serde_json::json!({"error": format!("storage failed: {e}")}), 500)
         }
     }
@@ -584,27 +598,17 @@ async fn handle_get_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Resp
         _ => return json_response(&serde_json::json!({"error": "not authenticated"}), 401),
     };
 
-    // VALTRON PATH: schedule_future → StreamReadyFuture → .await
+    // Direct D1WasmStorage async — calls D1 JS API via JsFuture.
     let key = format!("note:{}", session.user_id);
-    match app.storage.get_valtron_async::<String>(&key).await {
+    match app.storage.get_async::<String>(&key).await {
         Ok(Some(note)) => {
-            log::info!("Valtron: retrieved note for {} via valtron executor", session.user_id);
+            log::info!("Retrieved note for {} via D1 async", session.user_id);
             json_response(&serde_json::json!({"note": note}), 200)
         }
         Ok(None) => json_response(&serde_json::json!({"note": ""}), 200),
         Err(e) => {
-            log::error!("Valtron: get failed: {:?}", e);
+            log::error!("Note get failed: {:?}", e);
             json_response(&serde_json::json!({"error": format!("storage failed: {e}")}), 500)
         }
     }
-}
-
-fn json_response(body: &serde_json::Value, status: u16) -> web_sys::Response {
-    let init = web_sys::ResponseInit::new();
-    init.set_status(status);
-    let headers = web_sys::Headers::new().unwrap();
-    headers.set("Content-Type", "application/json").unwrap();
-    init.set_headers(&headers);
-    let text = serde_json::to_string(body).unwrap();
-    web_sys::Response::new_with_opt_str_and_init(Some(&text), &init).unwrap()
 }

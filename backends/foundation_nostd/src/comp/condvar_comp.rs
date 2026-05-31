@@ -27,46 +27,44 @@
 // CondVar-Compatible Mutex
 // ============================================================================
 
-/// `CondVarMutex` type for use with `CondVar`.
-///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
 /// - With `std` only: Uses `std::sync::Mutex`
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std::sync::Mutex as CondVarMutex;
 
 /// `CondVarMutex` type for use with `CondVar`.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
 /// - With `std` only: Uses `std::sync::Mutex`
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use crate::primitives::condvar::CondVarMutex;
 
 /// Mutex type for use with `CondVar`.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
 /// - With `std` only: Uses `std::sync::Mutex`
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std::sync::Mutex;
 
 /// Mutex type for use with `CondVar`.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutex`
 /// - With `std` only: Uses `foundation_nostd::primitives::CondVarMutex`
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use crate::primitives::condvar::CondVarMutex as Mutex;
 
 /// Mutex guard type for use with `CondVar`.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
 /// - With `std` only: Uses `std::sync::MutexGuard`
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std::sync::MutexGuard;
 
 /// Mutex guard type for use with `CondVar`.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVarMutexGuard`
 /// - With `std` only: Uses `std::sync::MutexGuard`
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 
 // ============================================================================
@@ -75,28 +73,28 @@ pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 
 /// Platform-appropriate `CondVar` type.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVar`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVar`
 /// - With `std` only: Uses `std::sync::Condvar`
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std::sync::Condvar as CondVar;
 
 /// Platform-appropriate `CondVar` type.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::CondVar`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::CondVar`
 /// - With `std` only: Uses `std::sync::Condvar`
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use crate::primitives::CondVar;
 
 /// Platform-appropriate `WaitTimeoutResult` type.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
 /// - With `std` only: Uses `std::sync::WaitTimeoutResult`
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std::sync::WaitTimeoutResult;
 
 /// Platform-appropriate `WaitTimeoutResult` type.
 ///
-/// - With `js-wasmbindgen` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
+/// - With `js-event-loop` or no `std`: Uses `foundation_nostd::primitives::WaitTimeoutResult`
 /// - With `std` only: Uses `std::sync::WaitTimeoutResult`
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use crate::primitives::WaitTimeoutResult;

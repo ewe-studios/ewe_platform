@@ -111,7 +111,7 @@ alloc = ["futures-core/alloc"]
 multi = ["std", "foundation_core/multi"]  # Multi-threaded executor requires foundation_core multi
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
+js-event-loop = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
 js-foundation-wasm = []
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)

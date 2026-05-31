@@ -53,25 +53,25 @@ impl WaitTimeoutResult {
     /// Creates a new `WaitTimeoutResult`.
     #[inline]
     #[must_use]
-    #[cfg(any(not(feature = "std"), feature = "js-wasmbindgen", test))] // Used in no_std implementation and tests
+    #[cfg(any(not(feature = "std"), feature = "js-event-loop", test))] // Used in no_std implementation and tests
     pub const fn new(timed_out: bool) -> Self {
         Self(timed_out)
     }
 }
 
 // Feature-gate the implementation
-// js-wasmbindgen always uses nostd_impl (spin-waiting) since std::thread::sleep panics on wasm32
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+// js-event-loop always uses nostd_impl (spin-waiting) since std::thread::sleep panics on wasm32
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 mod std_impl;
-#[cfg(all(feature = "std", not(feature = "js-wasmbindgen")))]
+#[cfg(all(feature = "std", not(feature = "js-event-loop")))]
 pub use std_impl::{
     CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
     RawCondVarMutexGuard, RwLockCondVar,
 };
 
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 mod nostd_impl;
-#[cfg(any(not(feature = "std"), feature = "js-wasmbindgen"))]
+#[cfg(any(not(feature = "std"), feature = "js-event-loop"))]
 pub use nostd_impl::{
     CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
     RawCondVarMutexGuard, RwLockCondVar,
