@@ -1799,3 +1799,59 @@ where
         Some(Stream::Pending(self.sources.len()))
     }
 }
+
+// ============================================================================
+// Future → Stream helpers
+// ============================================================================
+
+/// Schedule a future, returning a stream that yields `Stream<Result<T, E>, ()>`.
+/// Errors are preserved as `Stream::Next(Err(e))`.
+pub fn schedule_future<T, E, F>(
+    future: F,
+) -> GenericResult<impl Iterator<Item = Stream<Result<T, E>, ()>> + Send + 'static>
+where
+    F: Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    let task = from_future(future);
+    execute(task, None).map(|stream| {
+        stream.map(|item| match item {
+            Stream::Next(result) => Stream::Next(result),
+            Stream::Pending(_) => Stream::Pending(()),
+            Stream::Init => Stream::Init,
+            Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
+            Stream::Delayed(d) => Stream::Delayed(d),
+            Stream::Spread(items) => Stream::Spread(items.into_iter().map(|item| {
+                match item {
+                    crate::valtron::streams::StreamSpread::Done(result) => {
+                        crate::valtron::streams::StreamSpread::Done(result)
+                    }
+                    crate::valtron::streams::StreamSpread::Pending(_) => {
+                        crate::valtron::streams::StreamSpread::Pending(())
+                    }
+                }
+            }).collect()),
+        })
+    })
+}
+
+/// One-shot blocking bridge: execute a future and return the first `Next` result.
+pub fn exec_future<T, E, F>(future: F) -> GenericResult<Result<T, E>>
+where
+    F: Future<Output = Result<T, E>> + Send + 'static,
+    F::Output: Send + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)?;
+    let result: Option<Result<T, E>> = collect_one(stream);
+    match result {
+        Some(Ok(v)) => Ok(Ok(v)),
+        Some(Err(e)) => Ok(Err(e)),
+        None => Err("no result from future execution".into()),
+    }
+}
