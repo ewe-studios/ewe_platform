@@ -89,10 +89,12 @@ impl D1WasmStorage {
         format!("{}_kv", self.table_prefix)
     }
 
+    #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
         Box::new(std::iter::once(Stream::Next(Ok(val))))
     }
 
+    #[allow(dead_code)]
     fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
         Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
@@ -131,6 +133,7 @@ impl D1WasmStorage {
     }
 
     /// Execute SQL and return the first row as `JsValue` (object or null).
+    #[allow(dead_code)]
     async fn do_query_first_async(
         &self,
         sql: &str,
@@ -159,6 +162,7 @@ impl D1WasmStorage {
     }
 
     /// Execute SQL and return all rows as `Vec<JsValue>` (objects).
+    #[allow(dead_code)]
     async fn do_query_all_async(
         &self,
         sql: &str,
@@ -199,6 +203,7 @@ impl D1WasmStorage {
     }
 
     /// Execute SQL and return changes count from a D1 run result.
+    #[allow(dead_code)]
     async fn do_execute_with_changes_async(
         &self,
         sql: &str,

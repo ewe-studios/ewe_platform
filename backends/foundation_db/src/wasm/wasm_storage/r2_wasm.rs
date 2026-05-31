@@ -55,6 +55,7 @@ impl R2WasmStorage {
         format!("{}/{}", self.prefix, safe_key)
     }
 
+    #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
         Box::new(std::iter::once(Stream::Next(Ok(val))))
     }

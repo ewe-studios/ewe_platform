@@ -33,24 +33,6 @@ where
         .transpose();
     result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
 }
-
-/// Schedule a future, returning a boxed stream.
-fn schedule_future<T, E, F>(future: F) -> StorageResult<StorageItemStream<'static, T>>
-where
-    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
-    F::Output: Send + 'static,
-    T: Send + 'static,
-    E: Into<StorageError> + Send + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-    Ok(Box::new(
-        stream
-            .map_done(|r: Result<T, E>| r.map_err(Into::into))
-            .map_pending(|_| ()),
-    ))
-}
 use crate::native::rows_stream::RowsIterator;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,

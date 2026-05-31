@@ -284,6 +284,7 @@ impl R2Store {
     }
 
     /// Async LIST — returns parsed JSON listing response.
+    #[allow(dead_code)]
     async fn list_objects_async(&self, prefix: &str) -> Result<serde_json::Value, StorageError> {
         let url = format!(
             "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
