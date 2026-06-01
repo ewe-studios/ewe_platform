@@ -36,7 +36,7 @@ This specification fixes the NotifyQueue contract first (Feature 1 — prerequis
 | 02 | [js-eventloop-yield-end-to-end](./features/02-js-aware-spinwaiter/feature.md) | Cooperative spin mutex, YieldSignal, JSThreadYielder (wasmbindgen + foundation_wasm), executor stop logic | draft | high | 01 |
 | 07 | [cf-login-app-integration](./features/07-cf-login-app-integration/feature.md) | Enable JS yield in cf-login-app example | draft | medium | 02 |
 | 08 | [wasm-js-yield-integration-tests](./features/08-wasm-js-yield-integration-tests/feature.md) | wasm-pack integration tests for full JS yield stack | draft | high | 02 |
-| 09 | [wasm-credential-store-e2e-tests](./features/09-wasm-credential-store-e2e-tests/feature.md) | End-to-end tests for credential store with JS yield | draft | high | 07, 08 |
+| 09 | [wasm-credential-store-e2e-tests](./features/09-wasm-credential-store-e2e-tests/feature.md) | End-to-end tests for credential store with JS yield | cancelled | high | 07, 08 |
 
 ## Architecture
 
@@ -101,11 +101,6 @@ This specification fixes the NotifyQueue contract first (Feature 1 — prerequis
     |                 |
     v                 v
 07-cf-login-app   08-integration-tests
-    |                 |
-    +--------+--------+
-             |
-             v
-    09-credential-store-e2e
 ```
 
 ---

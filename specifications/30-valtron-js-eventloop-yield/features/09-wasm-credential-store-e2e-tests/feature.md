@@ -1,11 +1,13 @@
 ---
 feature: "wasm Credential Store End-to-End Tests"
 description: "End-to-end wasm tests proving CredentialStorage::set() and SessionManager::create_session() work with JS yield enabled"
-status: "draft"
+status: "cancelled"
 priority: "high"
 depends_on: ["07-cf-login-app-integration", "08-wasm-js-yield-integration-tests"]
 estimated_effort: "medium"
 created: 2026-05-22
+cancelled: 2026-06-01
+cancel_reason: "Covered by spec 28 (Cloudflare Workers Readiness) — credential store tests already implemented there"
 author: "Main Agent"
 tasks:
   completed: 0

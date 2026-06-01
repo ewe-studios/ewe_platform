@@ -2,7 +2,7 @@
 
 ## Status
 
-**Overall**: 2/5 features completed
+**Overall**: 2/4 features completed (1 cancelled)
 
 ## Completed Features
 
@@ -65,7 +65,7 @@
 | 02-js-eventloop-yield-end-to-end | done | CooperativeSpinWaiter, YieldSignal, JSThreadYielder, executor stop |
 | 07-cf-login-app-integration | draft | Depends on 02 |
 | 08-wasm-js-yield-integration-tests | draft | Depends on 02 |
-| 09-wasm-credential-store-e2e-tests | draft | Depends on 07, 08 |
+| 09-wasm-credential-store-e2e-tests | cancelled | Covered by spec 28 (Cloudflare Workers Readiness) |
 
 ## Next Action
 
