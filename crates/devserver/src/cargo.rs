@@ -95,13 +95,13 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
             loop {
                 tokio::select! {
                     _ = trigger.recv() => {
-                        ewe_trace::info!("Rebuilding due to trigger signal");
+                        tracing::info!("Rebuilding due to trigger signal");
                             match handle.build().await {
                                 Ok(()) => {
-                                    ewe_trace::info!("Finished rebuilding binary!");
+                                    tracing::info!("Finished rebuilding binary!");
                                 },
                                 Err(err) => {
-                                    ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
+                                    tracing::error!("Failed rebuilding due to: {:?}!", err);
                                     if stop_on_failure {
                                         return Err(err);
                                     }
@@ -109,27 +109,27 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                             }
                     },
                     changed_file = recver.recv() => {
-                        ewe_trace::info!("Received changed file signal {:?}!", &changed_file);
+                        tracing::info!("Received changed file signal {:?}!", &changed_file);
                         if let Ok(FileChange::Rust(_)) = changed_file {
-                            ewe_trace::info!("Rust file changed, so rebuilding");
+                            tracing::info!("Rust file changed, so rebuilding");
                             match handle.build().await {
                                 Ok(()) => {
-                                    ewe_trace::info!("Finished rebuilding binary!");
+                                    tracing::info!("Finished rebuilding binary!");
                                 },
                                 Err(err) => {
-                                    ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
+                                    tracing::error!("Failed rebuilding due to: {:?}!", err);
                                     if stop_on_failure {
                                         return Err(err);
                                     }
                                 }
                             };
                         } else {
-                            ewe_trace::info!("Non-Rust file changed, so not rebuilding");
+                            tracing::info!("Non-Rust file changed, so not rebuilding");
                         }
                         continue;
                     },
                     _ = signal.recv() => {
-                        ewe_trace::info!("Cancel signal received, shutting down!");
+                        tracing::info!("Cancel signal received, shutting down!");
                         break;
                     }
                 }
@@ -145,7 +145,7 @@ impl CargoShellBuilder {
     pub async fn build(&self) -> CargoShellResult<()> {
         // only run checks if allowed
         if self.skip_check {
-            ewe_trace::info!("Skipping cargo checks");
+            tracing::info!("Skipping cargo checks");
         } else {
             self.run_checks().await?;
         }
@@ -155,7 +155,7 @@ impl CargoShellBuilder {
     }
 
     async fn run_build(&self) -> CargoShellResult<()> {
-        ewe_trace::info!(
+        tracing::info!(
             "Building project binary with cargo (project={}, binary={:?})",
             self.project.crate_name,
             self.project.run_arguments,
@@ -174,13 +174,13 @@ impl CargoShellBuilder {
             .await
         {
             Ok(result) => {
-                ewe_trace::info!(
+                tracing::info!(
                     "Running command `cargo build` (project={}, binary={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
                 );
                 if !result.status.success() {
-                    ewe_trace::error!(
+                    tracing::error!(
                         "Running command `cargo build` returned error (project={}, binary={:?})\n\t{:?}",
                         self.project.crate_name,
                         self.project.run_arguments,
@@ -191,7 +191,7 @@ impl CargoShellBuilder {
                 Ok(())
             }
             Err(err) => {
-                ewe_trace::error!(
+                tracing::error!(
                     "Failed command execution: `cargo build` (project={}, binary={:?}): {:?}",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -213,13 +213,13 @@ impl CargoShellBuilder {
             .await
         {
             Ok(result) => {
-                ewe_trace::info!(
+                tracing::info!(
                     "Running command `cargo check` (project={}, binary={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
                 );
                 if !result.status.success() {
-                    ewe_trace::error!(
+                    tracing::error!(
                         "Running command `cargo check` returned error (project={}, binary={:?})\n\t{:?}",
                         self.project.crate_name,
                         self.project.run_arguments,
@@ -230,7 +230,7 @@ impl CargoShellBuilder {
                 Ok(())
             }
             Err(err) => {
-                ewe_trace::error!(
+                tracing::error!(
                     "Failed command execution: `cargo check` (project={}, binary={:?}): {:?}",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -295,22 +295,22 @@ impl Operator for sync::Arc<BinaryApp> {
                 tokio::select! {
                     _ = build_notifier.recv() => {
                         if let Some(mut binary) = binary_handle {
-                            ewe_trace::info!("Killing current version of binary");
+                            tracing::info!("Killing current version of binary");
                             binary.kill().expect("kill binary and re-starts");
                         }
 
-                        ewe_trace::info!("Restarting latest version of binary");
+                        tracing::info!("Restarting latest version of binary");
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
-                        ewe_trace::info!("Restart done!");
+                        tracing::info!("Restart done!");
                         if run_sender.send_in((), wait_before_reload).await.is_err() {
-                            ewe_trace::warn!("No one is listening for re-running messages");
+                            tracing::warn!("No one is listening for re-running messages");
                         }
 
                         continue;
                     },
                     _ = signal.recv() => {
-                        ewe_trace::info!("Cancel signal received, shutting down!");
+                        tracing::info!("Cancel signal received, shutting down!");
                         if let Some(mut binary) = binary_handle {
                             match binary.kill() {
                                 Ok(()) => break,
@@ -330,7 +330,7 @@ impl Operator for sync::Arc<BinaryApp> {
 // -- Binary starter
 impl BinaryApp {
     fn run_binary(&self) -> types::Result<process::Child> {
-        ewe_trace::info!("Running binary from project={}", self.project);
+        tracing::info!("Running binary from project={}", self.project);
 
         let mut binary_and_arguments = self.project.run_arguments.clone();
         let run_arguments = binary_and_arguments.split_off(1);
@@ -345,7 +345,7 @@ impl BinaryApp {
             .spawn()
         {
             Ok(child) => {
-                ewe_trace::info!(
+                tracing::info!(
                     "Running command `cargo run` (binary={:?}, args={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -353,7 +353,7 @@ impl BinaryApp {
                 Ok(child)
             }
             Err(err) => {
-                ewe_trace::error!(
+                tracing::error!(
                     "Running command `cargo check` returned error (binary={:?}, args={:?})\n\t{:?}",
                     self.project.crate_name,
                     self.project.run_arguments,

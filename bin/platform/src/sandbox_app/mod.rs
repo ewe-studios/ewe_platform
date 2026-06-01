@@ -166,7 +166,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         .await
         .unwrap();
 
-    ewe_trace::info!("Listening on {}", listener.local_addr().unwrap());
+    tracing::info!("Listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.map_err(Box::new)?;
 

@@ -12,7 +12,7 @@ rust-version.workspace = true
 [dependencies]
 
 # internal crates
-ewe_templates.workspace = true
+foundation_packager.workspace = true
 ewe_templates_macro.workspace = true
 
 # serde and serialization/deserialization

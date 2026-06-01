@@ -32,7 +32,6 @@ bench = false
 # -- ewe platform dependencies
 ewe_devserver = { version = "0.0.1"}
 ewe_watch_utils = { version = "0.0.1" }
-ewe_trace = { version = "0.0.1",  features = ["standard"]}
 
 # -- tokio & axum
 axum = { version = "0.7.5" }

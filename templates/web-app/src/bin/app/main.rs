@@ -33,7 +33,7 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    ewe_trace::info!("Starting local binary");
+    tracing::info!("Starting local binary");
 
     let app = Router::new().route("/", get(handler));
 
@@ -41,5 +41,5 @@ async fn main() {
         .await
         .unwrap();
 
-    ewe_trace::info!("Listening on {}", listener.local_addr().unwrap());
+    tracing::info!("Listening on {}", listener.local_addr().unwrap());
 }

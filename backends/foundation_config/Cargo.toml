@@ -1,0 +1,21 @@
+[package]
+name = "foundation_config"
+version = "0.1.0"
+description = "TOML-based configuration file loading — pure std::fs + serde + toml"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["config-loader", "config", "toml"]
+
+[dependencies]
+toml = { workspace = true }
+derive_more = { workspace = true }
+
+# -- serde
+serde = { version = "1.0.197", features = ["derive"] }
+serde_with = { version = "3.6.1" }
+
+[lints]
+workspace = true

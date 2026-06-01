@@ -105,7 +105,7 @@ impl TemplateTag {
 
         tokens.extend(quote! {
             {
-                use ewe_templates::tinytemplate;
+                use foundation_packager::tinytemplate;
 
                 let mut core_template = tinytemplate::TinyTemplate::new();
 
@@ -131,7 +131,7 @@ impl TemplateTag {
 
         tokens.extend(quote! {
             {
-                use ewe_templates::minijinja;
+                use foundation_packager::minijinja;
                 let mut core_template = minijinja::Environment::new();
 
                 #templates

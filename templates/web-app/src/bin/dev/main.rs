@@ -17,7 +17,7 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    ewe_trace::info!("Starting local binary");
+    tracing::info!("Starting local binary");
 
     let operating_environment_name = std::env::var("ENVIRONMENT")
         .expect("should fetch ENVIRONMENT from environment via .cargo/config.toml");

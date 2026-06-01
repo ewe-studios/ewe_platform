@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use ewe_temple::{
+use foundation_packager::{
     Directorate, PackageConfig, PackageConfigurator, PackageGenerator, RustConfig,
     RustProjectConfigurator,
 };

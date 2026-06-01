@@ -15,7 +15,6 @@ foundation_core = { workspace = true }
 foundation_nostd = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_runtimes = { workspace = true }
-ewe_trace = { workspace = true, features = ["standard"]}
 ewe_watch_utils = { workspace = true, default-features = true }
 tracing.workspace = true
 anyhow.workspace = true

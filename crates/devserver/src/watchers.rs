@@ -88,7 +88,7 @@ impl Operator for DirectoryWatcher {
         tokio::task::spawn_blocking(move || match watcher_handler.0.join() {
             Ok(()) => Ok(()),
             Err(err) => {
-                ewe_trace::error!("Failed to correct destroy directory watcher: {:?}", err);
+                tracing::error!("Failed to correct destroy directory watcher: {:?}", err);
                 Err(Box::new(DirectoryWatcherError::FailedToFinishedCorrectly).into())
             }
         })

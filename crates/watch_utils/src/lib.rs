@@ -85,7 +85,7 @@ pub fn watch_path(
                 match event.kind {
                     EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
                         if let Err(failed) = handler(event.time, event.kind, event.paths.clone()) {
-                            ewe_trace::error!("Failed execution of update: {}", failed);
+                            tracing::error!("Failed execution of update: {}", failed);
                         }
                     }
                     _ => {}

@@ -1,4 +1,4 @@
-use ewe_templates::minijinja::context;
+use foundation_packager::minijinja::context;
 use ewe_templates_macro::template;
 
 fn main() {

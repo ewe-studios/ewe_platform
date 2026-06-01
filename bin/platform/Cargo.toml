@@ -12,11 +12,10 @@ keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 [dependencies]
 # -- workspace dependency
 foundation_wasmtools = { workspace = true }
-ewe_temple = { workspace = true }
+foundation_packager = { workspace = true }
 ewe_watch_utils = { workspace = true }
 ewe_watchers = { workspace = true }
 ewe_devserver = { workspace = true }
-ewe_trace = { workspace = true, features = ["standard"] }
 foundation_core = { workspace = true, features = ["multi"] }
 foundation_netio = { workspace = true, features = ["ssl", "multi"] }
 foundation_ai = { workspace = true }
@@ -75,7 +74,7 @@ regex = { version = "1.10" }
 foundation_testbed = { workspace = true, features = ["cli"] }
 
 [features]
-debug_trace = ["ewe_trace/debug_trace"]
+debug_trace = ["foundation_packager/debug_trace"]
 
 [lints]
 workspace = true
