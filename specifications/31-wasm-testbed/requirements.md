@@ -1,6 +1,6 @@
 ---
 description: "CLI-driven test harness for wasm32-unknown-unknown, supporting browser (Playwright), Deno, and Cloudflare Workers (wrangler) execution, with bindgen and custom modes"
-status: "pending"
+status: "in_progress"
 priority: "high"
 created: 2026-05-31
 author: "Main Agent"
@@ -32,10 +32,10 @@ related_specs:
   - "specifications/11-foundation-deployment"
   - "specifications/28-cloudflare-workers-readiness"
 features:
-  completed: 0
+  completed: 1
   uncompleted: 1
-  total: 1
-  completion_percentage: 25%
+  total: 2
+  completion_percentage: 50%
 ---
 
 # WASM Testbed Specification
