@@ -80,6 +80,55 @@ thread_local! {
     static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<DefaultController>> = OnceCell::new();
 }
 
+/// Optional singleton guard. Module-level so we can reset in tests.
+static VALTRON_SINGLETON: std::sync::Mutex<Option<PoolGuard>> = std::sync::Mutex::new(None);
+
+/// Optional convenience wrapper for initializing the single-threaded valtron executor.
+///
+/// Provides "init once, get guard" semantics similar to `CfHttpAppSingleton`.
+/// Only available on wasm32/wasm64 targets (where single-threaded mode is the norm).
+///
+/// The existing free functions (`initialize_pool`, `spawn`, `run_until_complete`, etc.)
+/// continue to work independently — use this when you want explicit guard ownership.
+pub struct SingleExecutorSingleton;
+
+impl SingleExecutorSingleton {
+    /// Initialize the executor and return a PoolGuard.
+    ///
+    /// On first call: calls `initialize_pool(seed)`, stores a PoolGuard,
+    /// runs the setup closure. On subsequent calls: returns a cloned guard
+    /// (PoolGuard is zero-sized in single mode).
+    pub fn get_or_init<F: FnOnce(&PoolGuard)>(seed: u64, setup: F) -> PoolGuard {
+        initialize_pool(seed);
+        let mut guard = VALTRON_SINGLETON.lock().unwrap();
+        if guard.is_none() {
+            *guard = Some(PoolGuard::default());
+        }
+        setup(guard.as_ref().unwrap());
+        guard.clone().unwrap()
+    }
+
+    /// Get a PoolGuard. Panics if `get_or_init` has not been called.
+    pub fn guard() -> PoolGuard {
+        VALTRON_SINGLETON
+            .lock()
+            .unwrap()
+            .clone()
+            .expect("Valtron not initialized — call SingleExecutorSingleton::get_or_init() first")
+    }
+
+    /// Check if the singleton has been initialized.
+    pub fn is_initialized() -> bool {
+        VALTRON_SINGLETON.lock().unwrap().is_some()
+    }
+
+    /// Force-reset for testing. cfg-gated to `#[cfg(test)]`.
+    #[cfg(test)]
+    pub fn reset() {
+        *VALTRON_SINGLETON.lock().unwrap() = None;
+    }
+}
+
 /// `initialize` initializes the local single-threaded
 /// execution engine, and is required to call this as your
 /// first call when using this in WebAssembly or `SingleThreaded`

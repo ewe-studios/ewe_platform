@@ -241,14 +241,43 @@ Valtron also provides a single-threaded module that provides a more finegrained 
 
 A benefit of single-threaded executor is the freedom to not be forced to think in multi-threaded contexts and require use of Send-safe smart pointers and wrappers but work with normal smart pointers like RefCell and Rc.
 
+#### SingleExecutorSingleton (wasm32/wasm64 only)
+
+On wasm32/wasm64 targets (when `multi` feature is off), valtron provides `SingleExecutorSingleton` — a convenience wrapper that combines initialization + guard ownership:
+
+```rust
+use foundation_core::valtron::SingleExecutorSingleton;
+
+// Initialize executor and get guard in one call
+let _guard = SingleExecutorSingleton::get_or_init(42, |_| {});
+
+// Later calls return the same guard (zero-sized, cheap clone)
+let guard = SingleExecutorSingleton::guard();
+
+// Schedule and run
+spawn()
+    .with_task(Counter::new(5, Rc::new(RefCell::new(Vec::new()))))
+    .with_resolver(Box::new(FnReady::new(|item, _| {
+        println!("Got: {:?}", item);
+    })))
+    .schedule()
+    .expect("should deliver task");
+
+run_until_complete();
+```
+
+The existing free functions (`initialize_pool`, `spawn`, `run_until_complete`) continue to work independently — `SingleExecutorSingleton` is optional.
+
+#### Free function API (always available)
+
 ```rust
 use std::{cell::RefCell, rc::Rc};
 
 use rand::RngCore;
 use tracing_test::traced_test;
 
-use foundations_core::valtron::{
-    single::{initialize, run_until_complete, spawn},
+use foundation_core::valtron::{
+    single::{initialize_pool, run_until_complete, spawn},
     FnReady, NoSpawner, TaskIterator,
 };
 
@@ -267,7 +296,7 @@ impl TaskIterator for Counter {
 
     type Spawner = NoSpawner;
 
-    fn next(
+    fn next_status(
         &mut self,
     ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let item_size = self.1.borrow().len();
@@ -298,7 +327,7 @@ fn main() {
     // your task can get a random number generator that
     // can provide predictable random numbers every single
     // time if the seed provided is the same.
-    initialize(seed);
+    initialize_pool(seed);
 
     // spawn a task.
     spawn()
@@ -321,8 +350,6 @@ fn main() {
 
 ```rust
 
-use foundations_core::valtron::single::task_iter;
-
 fn main() {
     let seed = rand::thread_rng().next_u64();
 
@@ -330,15 +357,14 @@ fn main() {
     let counter = Counter::new(5, shared_list.clone());
 
     // initialize executor with a predictable seed
-    // your task can get a random number generator that
-    // can provide predictable random numbers every single
-    // time if the seed provided is the same.
-    initialize(seed);
+    initialize_pool(seed);
 
-    // spawn a task and get back a iterator that returns the state 
-    // this means it return immediately with Pending or Done, so it never 
+    // spawn a task and get back a iterator that returns the state
+    // this means it return immediately with Pending or Done, so it never
     // blocks but lets you spin things or control polling of iterator.
-    for status in task_iter(spawn().with_task(counter)) {
+    for status in spawn().with_task(counter).schedule_iter(std::time::Duration::from_nanos(50))
+        .expect("should deliver task")
+    {
         // do something with status
     }
 
@@ -351,8 +377,6 @@ fn main() {
 
 ```rust
 
-use foundations_core::valtron::single::block_iter;
-
 fn main() {
     let seed = rand::thread_rng().next_u64();
 
@@ -360,18 +384,17 @@ fn main() {
     let counter = Counter::new(5, shared_list.clone());
 
     // initialize executor with a predictable seed
-    // your task can get a random number generator that
-    // can provide predictable random numbers every single
-    // time if the seed provided is the same.
-    initialize(seed);
+    initialize_pool(seed);
 
-    // spawn a task but block the thread till we get a Done 
-    // item, so it consumes the pending and blocks till 
+    // spawn a task but block the thread till we get a Done
+    // item, so it consumes the pending and blocks till
     // a `Done` is received.
     //
-    // Its iterable until all the the None value is received that 
+    // Its iterable until all the the None value is received that
     // closes the iterator.
-    for status in block_iter(spawn().with_task(counter)) {
+    for status in spawn().with_task(counter).schedule_iter(std::time::Duration::from_nanos(50))
+        .expect("should deliver task")
+    {
         // do something with status
     }
 

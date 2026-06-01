@@ -3,7 +3,7 @@
 //! In non-multi builds no OS threads are spawned, so `PoolGuard` is a no-op.
 
 /// Dummy guard for single-threaded builds. Does nothing on drop.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct PoolGuard;
 
 impl PoolGuard {

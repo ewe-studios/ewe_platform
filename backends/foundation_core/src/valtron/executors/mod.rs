@@ -59,5 +59,13 @@ pub use single::PoolGuard;
 #[cfg(feature = "multi")]
 pub use multi::PoolGuard;
 
+// SingleExecutorSingleton: optional convenience API for wasm targets.
+// Only available when multi feature is off AND compiling for wasm32/wasm64.
+#[cfg(all(
+    not(feature = "multi"),
+    any(target_arch = "wasm32", target_arch = "wasm64")
+))]
+pub use single::SingleExecutorSingleton;
+
 // re-exported external libraries
 pub use rand::SeedableRng;
