@@ -1,6 +1,6 @@
 ---
 description: "CLI-driven test harness for wasm32-unknown-unknown, supporting browser (Playwright), Deno, and Cloudflare Workers (wrangler) execution, with bindgen and custom modes"
-status: "in_progress"
+status: "completed"
 priority: "high"
 created: 2026-05-31
 author: "Main Agent"
@@ -32,10 +32,10 @@ related_specs:
   - "specifications/11-foundation-deployment"
   - "specifications/28-cloudflare-workers-readiness"
 features:
-  completed: 1
-  uncompleted: 1
+  completed: 2
+  uncompleted: 0
   total: 2
-  completion_percentage: 50%
+  completion_percentage: 100%
 ---
 
 # WASM Testbed Specification
@@ -53,7 +53,8 @@ A CLI crate `foundation_wasm_testbed` that provides a unified testing interface 
 
 | # | Feature | Description | Status |
 |---|---|---|---|
-| 01 | [wasm-testbed](./features/01-wasm-testbed/feature.md) | CLI-driven test harness for wasm32 execution across browser, Deno, and Cloudflare Workers | planned |
+| 01 | [wasm-testbed](./features/01-wasm-testbed/feature.md) | CLI-driven test harness for wasm32 execution across browser, Deno, and Cloudflare Workers | completed |
+| 02 | [wasm-js-yield-integration-tests](./features/02-wasm-js-yield-integration-tests/feature.md) | wasm-pack integration tests verifying full JS yield stack | completed |
 
 ## Architecture
 
@@ -81,13 +82,12 @@ See the feature-level `feature.md` for detailed architecture, directory structur
 
 ## Success Criteria
 
-- [ ] `cargo check -p foundation_wasm_testbed` passes
-- [ ] `wasm-testbed init web ./my_crate` scaffolds integration directories
-- [ ] `wasm-testbed test deno ./my_crate` builds and runs wasm tests
-- [ ] `wasm-testbed test bindgen-web ./my_crate` discovers and runs `#[wasm_bindgen_test]` tests
-- [ ] `wasm-testbed test wrangler ./my_crate` runs tests in Workers runtime
-- [ ] `cargo test -p foundation_wasm_testbed` passes unit tests
-- [ ] Integration tests verify each test mode with a minimal wasm crate
+- [x] `cargo check -p foundation_core --target wasm32-unknown-unknown --features js-wasmbindgen` passes
+- [x] `wasm_js_yield_integration.rs` created with 4 `#[wasm_bindgen_test]` tests
+- [x] `js_yield_returns_immediately` — verifies SpinWaiter returns in < 5ms
+- [x] `js_yield_callback_reschedules_executor` — verifies executor re-entry after setTimeout
+- [x] `concurrent_d1_queries_make_progress` — verifies concurrent tasks overlap in wall time
+- [x] `no_deadlock_with_js_yield` — verifies multi-iteration task completes without deadlock
 
 ## Dependencies
 

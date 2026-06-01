@@ -704,8 +704,14 @@ fn test_future_stream_empty_spread() {
 }
 
 // ============================================================================
-// Tokio async tests
+// Tokio async tests (native only — not available on wasm32)
 // ============================================================================
+
+#[cfg(not(target_arch = "wasm32"))]
+mod tokio_tests {
+    use super::*;
+    use tokio;
+    use tracing_test::traced_test;
 
 #[tokio::test]
 #[traced_test]
@@ -883,4 +889,6 @@ fn test_task_map_ready_then_collect_with_spread_done() {
         }
         _ => panic!("expected Spread"),
     }
+}
+
 }

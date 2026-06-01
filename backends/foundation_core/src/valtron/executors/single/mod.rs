@@ -312,7 +312,7 @@ pub fn run_background_job(job: impl FnOnce() + 'static) -> crate::valtron::Gener
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};
 

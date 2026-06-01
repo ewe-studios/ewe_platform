@@ -48,6 +48,16 @@ pub fn run_wasm_bindgen(
     output_dir: &Path,
     target: BindgenTarget,
 ) -> Result<()> {
+    run_wasm_bindgen_with_name(wasm_path, output_dir, target, None)
+}
+
+/// Run wasm-bindgen CLI with an optional output name override.
+pub fn run_wasm_bindgen_with_name(
+    wasm_path: &Path,
+    output_dir: &Path,
+    target: BindgenTarget,
+    out_name: Option<&str>,
+) -> Result<()> {
     std::fs::create_dir_all(output_dir)
         .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
 
@@ -72,6 +82,10 @@ pub fn run_wasm_bindgen(
     cmd.arg(wasm_path)
         .arg("--out-dir")
         .arg(output_dir);
+
+    if let Some(name) = out_name {
+        cmd.arg("--out-name").arg(name);
+    }
 
     if let Some(arg) = target.cli_arg() {
         cmd.arg("--target").arg(arg);

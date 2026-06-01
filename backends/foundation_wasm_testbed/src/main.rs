@@ -49,62 +49,68 @@ fn run_test(args: cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     let crate_path = std::fs::canonicalize(&args.crate_path)
         .map_err(|e| WasmTestbedError::Io(e).trace())?;
 
-    tracing::info!("Building wasm...");
-    let build = build::run(&crate_path, args.release, args.features.as_deref())?;
-
     let integration_dir = crate_path.join("integrations").join(args.mode.integration_dir());
 
     match args.mode {
-        Mode::Web => {
-            let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
-            std::fs::copy(&build.wasm_path, &wasm_dest)
-                .map_err(|e| WasmTestbedError::Io(e).trace())?;
-            tracing::info!("Copied wasm to {}", wasm_dest.display());
-
-            let server = server::start_serving(&integration_dir)?;
-            let url = server.url("index.html");
-            tracing::info!("Serving at {}", url);
-
-            let output = browser::run(&url, &args.browser, args.headless)?;
-            tracing::info!("Test output: {}", output.test_result);
-
-            server.shutdown();
-            if output.exit_code != 0 {
-                return Err(WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace());
+        Mode::Web | Mode::Deno | Mode::Wrangler => {
+            // Custom harness modes: build library only, user's JS handles testing
+            let build = build::run(&crate_path, args.release, args.features.as_deref())?;
+            match args.mode {
+                Mode::Web => {
+                    let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
+                    std::fs::copy(&build.wasm_path, &wasm_dest)
+                        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+                    tracing::info!("Copied wasm to {}", wasm_dest.display());
+                    let server = server::start_serving(&integration_dir)?;
+                    let url = server.url("index.html");
+                    tracing::info!("Serving at {}", url);
+                    let output = browser::run(&url, &args.browser, args.headless)?;
+                    tracing::info!("Test output: {}", output.test_result);
+                    server.shutdown();
+                    if output.exit_code != 0 {
+                        return Err(WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace());
+                    }
+                }
+                Mode::Deno => {
+                    let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
+                    std::fs::copy(&build.wasm_path, &wasm_dest)
+                        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+                    tracing::info!("Copied wasm to {}", wasm_dest.display());
+                    let output = deno::run(&integration_dir, "index.js")?;
+                    if !output.stdout.is_empty() {
+                        println!("{}", output.stdout);
+                    }
+                }
+                Mode::Wrangler => {
+                    let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
+                    std::fs::copy(&build.wasm_path, &wasm_dest)
+                        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+                    tracing::info!("Copied wasm to {}", wasm_dest.display());
+                    let output = wrangler::run(&integration_dir, None)?;
+                    if output.status_code >= 400 {
+                        return Err(WasmTestbedError::WranglerHttpFailed(
+                            format!("status {}", output.status_code)).trace());
+                    }
+                    println!("{}", output.response_body);
+                }
+                _ => unreachable!(),
             }
         }
-        Mode::Deno => {
-            let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
-            std::fs::copy(&build.wasm_path, &wasm_dest)
-                .map_err(|e| WasmTestbedError::Io(e).trace())?;
-            tracing::info!("Copied wasm to {}", wasm_dest.display());
-
-            let output = deno::run(&integration_dir, "index.js")?;
-            if !output.stdout.is_empty() {
-                println!("{}", output.stdout);
+        Mode::BindgenWeb | Mode::BindgenDeno | Mode::BindgenWrangler => {
+            // Bindgen modes: need --tests for #[wasm_bindgen_test] exports
+            let build = build::run_with_tests(&crate_path, args.release, args.features.as_deref())?;
+            match args.mode {
+                Mode::BindgenWeb => {
+                    run_bindgen_web(&build, &integration_dir, &args.browser, args.headless)?;
+                }
+                Mode::BindgenDeno => {
+                    run_bindgen_deno(&build, &integration_dir)?;
+                }
+                Mode::BindgenWrangler => {
+                    run_bindgen_wrangler(&build, &integration_dir)?;
+                }
+                _ => unreachable!(),
             }
-        }
-        Mode::Wrangler => {
-            let wasm_dest = integration_dir.join(format!("{}.wasm", build.package_name));
-            std::fs::copy(&build.wasm_path, &wasm_dest)
-                .map_err(|e| WasmTestbedError::Io(e).trace())?;
-            tracing::info!("Copied wasm to {}", wasm_dest.display());
-
-            let output = wrangler::run(&integration_dir, None)?;
-            if output.status_code >= 400 {
-                return Err(WasmTestbedError::WranglerHttpFailed(
-                    format!("status {}", output.status_code)).trace());
-            }
-            println!("{}", output.response_body);
-        }
-        Mode::BindgenWeb => {
-            run_bindgen_web(&build, &integration_dir, &args.browser, args.headless)?;
-        }
-        Mode::BindgenDeno => {
-            run_bindgen_deno(&build, &integration_dir)?;
-        }
-        Mode::BindgenWrangler => {
-            run_bindgen_wrangler(&build, &integration_dir)?;
         }
     }
 
@@ -154,10 +160,27 @@ fn run_bindgen_deno(
     build: &build::BuildOutput,
     integration_dir: &std::path::Path,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
 
     tracing::info!("Running wasm-bindgen (deno)...");
-    wasm::run_wasm_bindgen(&build.wasm_path, integration_dir, BindgenTarget::Deno)?;
+    wasm::run_wasm_bindgen_with_name(
+        &build.wasm_path,
+        integration_dir,
+        BindgenTarget::Deno,
+        Some(&build.package_name),
+    )?;
+
+    // Patch the generated JS to export the `wasm` variable (wasm exports).
+    // The deno target generates `const wasm = wasmInstance.exports;` locally;
+    // we need it exported so run.js can access __wbgt_ test functions.
+    let js_file = integration_dir.join(format!("{}.js", build.package_name));
+    if let Ok(content) = std::fs::read_to_string(&js_file) {
+        // Add `export { wasm };` at the end of the file
+        let patched = format!("{content}\nexport {{ wasm }};\n");
+        std::fs::write(&js_file, patched)
+            .map_err(|e| WasmTestbedError::Io(e).trace())?;
+    }
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;

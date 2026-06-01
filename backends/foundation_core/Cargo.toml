@@ -9,6 +9,9 @@ repository.workspace = true
 description = "Central crate for all foundation crates for the ewe-platform project"
 keywords = ["foundations_core", "ewe-platform-core"]
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 
 # -- Workspace dependencies
@@ -39,10 +42,14 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 
 [dev-dependencies]
+wasm-bindgen-test = "0.3"
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+tracing-subscriber = "0.3"
+foundation_webwasm = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }
 foundation_testing = { workspace = true }
-tracing-test = { version = "0.2",  features = ["no-env-filter"] }
-tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }

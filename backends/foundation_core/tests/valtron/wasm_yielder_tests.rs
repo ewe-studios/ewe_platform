@@ -7,7 +7,8 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use foundation_webwasm::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},

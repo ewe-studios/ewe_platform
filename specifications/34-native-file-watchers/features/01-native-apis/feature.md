@@ -352,6 +352,10 @@ backends/foundation_nativeapis/
 │   │   │   └── cancel.rs             # IORING_OP_ASYNC_CANCEL
 │   │   ├── tracker.rs                # slab-based operation tracking (learned from monoio)
 │   │   └── waker.rs                  # eventfd wakeup via IORING_OP_READ
+│   ├── fd/                           # file descriptor management (from tokio AsyncFd)
+│   │   ├── mod.rs                    # RegisteredFd<T>, FdRegistration, Ready, PollResult
+│   │   ├── guard.rs                  # ReadyGuard, MutReadyGuard, TryIoError (must_use pattern)
+│   │   └── error.rs                  # FdRegistrationError<T>, RegistrationError
 │   ├── ipc/                          # interprocess message bus (adapted from ipmb)
 │   │   ├── mod.rs                    # join(), Options, Selector, Label, LabelOp
 │   │   ├── message.rs                # Message<T>, MessageBox, encoding/decoding
@@ -491,6 +495,9 @@ windows-sys = { version = "0.59", features = [
 | `backends/foundation_nativeapis/src/poll/sys/windows/` | Create — IOCP selector |
 | `backends/foundation_nativeapis/src/net/` | Create — networking types (TCP, UDP, Unix sockets) |
 | `backends/foundation_nativeapis/src/uring/` | Create — io_uring abstractions (ops, tracker, waker) |
+| `backends/foundation_nativeapis/src/fd/` | Create — RegisteredFd, ReadyGuard, FdRegistration |
+| `backends/foundation_nativeapis/src/task/fd_monitor.rs` | Create — FdMonitorTask for valtron |
+| `backends/foundation_nativeapis/src/task/fd_readiness.rs` | Create — FdReadinessEvent, ReadinessKind |
 | `backends/foundation_nativeapis/src/ipc/` | Create — interprocess message bus (from ipmb) |
 | `backends/foundation_nativeapis/src/ipc/platform/` | Create — platform transports (Unix sockets, Mach ports, Named pipes) |
 | `backends/foundation_nativeapis/src/ipc/ffi.rs` | Create — FFI bindings for C/C++ |

@@ -23,8 +23,8 @@ related_specs:
   - "specifications/33-valtron-singleton"
 tasks:
   completed: 0
-  uncompleted: 52
-  total: 52
+  uncompleted: 70
+  total: 70
   completion_percentage: 0%
 ---
 
@@ -50,6 +50,7 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 | [02-valtron-watcher-task](features/02-valtron-watcher-task/) | Valtron task that wraps a `NativeWatcher`, polls on each tick, delivers events to subscriber queues | pending |
 | [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | pending |
 | [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | pending |
+| [05-fd-management](features/05-fd-management/) | File descriptor management (from tokio AsyncFd) — RegisteredFd, ReadyGuard, readiness tracking, valtron FdMonitorTask | pending |
 
 ## Architecture
 

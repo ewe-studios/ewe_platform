@@ -569,7 +569,7 @@ impl<T> ThreadSafeEntry<T> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod test_entry_list {
     use tracing_test::traced_test;
 

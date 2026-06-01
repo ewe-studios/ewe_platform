@@ -636,6 +636,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bincode"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36eaf5d7b090263e8150820482d5d93cd964a81e4019913c972f4edcc6edb740"
+dependencies = [
+ "bincode_derive",
+ "serde",
+ "unty",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+dependencies = [
+ "virtue",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.66.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1137,7 +1157,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tracing",
- "uuid",
+ "uuid 1.20.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2668,7 +2688,7 @@ dependencies = [
  "tempfile",
  "time",
  "urlencoding",
- "uuid",
+ "uuid 1.20.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2714,6 +2734,7 @@ dependencies = [
  "foundation_nostd",
  "foundation_testing",
  "foundation_wasm",
+ "foundation_webwasm",
  "futures-core",
  "getrandom 0.2.16",
  "getrandom 0.3.4",
@@ -2733,6 +2754,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "wasm-bindgen",
+ "wasm-bindgen-test",
  "web-sys",
 ]
 
@@ -2762,7 +2784,7 @@ dependencies = [
  "tracing",
  "tracing-test",
  "turso",
- "uuid",
+ "uuid 1.20.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "worker",
@@ -2853,7 +2875,7 @@ dependencies = [
  "sha1",
  "tracing",
  "tracing-test",
- "uuid",
+ "uuid 1.20.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2902,6 +2924,23 @@ dependencies = [
  "sha2",
  "syn 2.0.114",
  "trybuild",
+]
+
+[[package]]
+name = "foundation_nativeapis"
+version = "0.0.1"
+dependencies = [
+ "bincode 2.0.1",
+ "inotify 0.11.1",
+ "io-uring",
+ "libc",
+ "serde",
+ "thiserror 2.0.17",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-test",
+ "type-uuid",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3026,7 +3065,7 @@ dependencies = [
  "sha1",
  "tracing",
  "tracing-test",
- "uuid",
+ "uuid 1.20.0",
 ]
 
 [[package]]
@@ -3121,6 +3160,18 @@ dependencies = [
  "tempfile",
  "toml 0.9.8",
  "toml_edit 0.22.27",
+]
+
+[[package]]
+name = "foundation_webwasm"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.2.16",
+ "js-sys",
+ "rand 0.8.5",
+ "serde",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
 ]
 
 [[package]]
@@ -4311,6 +4362,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "inotify"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd5b3eaf1a28b758ac0faa5a4254e8ab2705605496f1b1f3fbbc3988ad73d199"
+dependencies = [
+ "bitflags 2.10.0",
+ "futures-core",
+ "inotify-sys",
+ "libc",
+ "tokio",
+]
+
+[[package]]
 name = "inotify-sys"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4674,7 +4738,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "base64 0.21.7",
- "bincode",
+ "bincode 1.3.3",
  "bitflags 2.10.0",
  "bytes",
  "fallible-iterator 0.3.0",
@@ -4698,7 +4762,7 @@ dependencies = [
  "tower 0.4.13",
  "tower-http 0.4.4",
  "tracing",
- "uuid",
+ "uuid 1.20.0",
  "zerocopy 0.7.35",
 ]
 
@@ -4792,7 +4856,7 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tracing",
- "uuid",
+ "uuid 1.20.0",
  "zerocopy 0.7.35",
 ]
 
@@ -5049,6 +5113,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
+name = "minicov"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4869b6a491569605d66d3952bcdf03df789e5b536e5f0cf7758a7f08a55ae24d"
+dependencies = [
+ "cc",
+ "walkdir",
+]
+
+[[package]]
 name = "minijinja"
 version = "2.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5202,7 +5276,7 @@ dependencies = [
  "crossbeam-channel",
  "filetime",
  "fsevent-sys",
- "inotify",
+ "inotify 0.9.6",
  "kqueue",
  "libc",
  "log",
@@ -8359,7 +8433,7 @@ dependencies = [
  "turso_parser",
  "twox-hash",
  "uncased",
- "uuid",
+ "uuid 1.20.0",
  "windows-sys 0.61.2",
 ]
 
@@ -8446,7 +8520,7 @@ dependencies = [
  "tracing",
  "turso_core",
  "turso_parser",
- "uuid",
+ "uuid 1.20.0",
 ]
 
 [[package]]
@@ -8475,6 +8549,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea3136b675547379c4bd395ca6b938e5ad3c3d20fad76e7fe85f9e0d011419c"
 dependencies = [
  "rand 0.9.2",
+]
+
+[[package]]
+name = "type-uuid"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15043bca41f43205c9b0055d365a405d81b8e4a8ff99c36b263cf79ad1f4c051"
+dependencies = [
+ "type-uuid-derive",
+]
+
+[[package]]
+name = "type-uuid-derive"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e090ee857961c746ecf7fb596022493ffaad54d189061df49f7a0cf17796dc1"
+dependencies = [
+ "quote",
+ "syn 1.0.109",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -8632,6 +8726,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
+name = "unty"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+
+[[package]]
 name = "url"
 version = "2.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8660,6 +8760,12 @@ name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+
+[[package]]
+name = "uuid"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
@@ -8708,6 +8814,12 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "virtue"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "051eb1abcf10076295e815102942cc58f9d5e3b4560e46e53c21e8ff6f3af7b1"
 
 [[package]]
 name = "walkdir"
@@ -8860,6 +8972,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4e0100b01e9f0d03189a92b96772a1fb998639d981193d7dbab487302513441"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "wasm-bindgen-test"
+version = "0.3.45"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d381749acb0943d357dcbd8f0b100640679883fcdeeef04def49daf8d33a5426"
+dependencies = [
+ "console_error_panic_hook",
+ "js-sys",
+ "minicov",
+ "scoped-tls",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test-macro",
+]
+
+[[package]]
+name = "wasm-bindgen-test-macro"
+version = "0.3.45"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c97b2ef2c8d627381e51c071c2ab328eac606d3f69dd82bcbca20a9e389d95f0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]

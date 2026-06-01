@@ -1,0 +1,60 @@
+[package]
+name = "foundation_nativeapis"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Cross-platform native APIs: I/O readiness polling, io_uring, file watching, and interprocess messaging"
+keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
+
+[dependencies]
+io-uring = { version = "0.7", optional = true }
+inotify = { version = "0.11", optional = true }
+serde = { workspace = true }
+bincode = { version = "2", features = ["serde"], optional = true }
+type-uuid = { version = "0.1", optional = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+libc = "0.2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Threading",
+    "Win32_Foundation",
+    "Win32_Networking_WinSock",
+]}
+
+[dev-dependencies]
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+tracing-subscriber = "0.3"
+
+[features]
+default = []
+
+# I/O readiness layer — extracted from mio
+poll = []
+
+# File watching layer
+watcher = ["poll"]
+watcher-linux = ["watcher", "dep:inotify"]
+watcher-macos = ["watcher"]
+watcher-windows = ["watcher"]
+
+# io_uring layer (Linux only)
+uring = ["dep:io-uring"]
+
+# Interprocess message bus (adapted from ipmb)
+ipc = ["dep:bincode", "dep:type-uuid"]
+
+# Full feature set for current platform
+native = ["poll", "watcher"]
+native-linux = ["native", "watcher-linux", "uring"]
+native-macos = ["native", "watcher-macos"]
+native-windows = ["native", "watcher-windows"]
+
+[lints]
+workspace = true

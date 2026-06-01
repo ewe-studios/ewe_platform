@@ -250,6 +250,7 @@ impl Iterator for CounterTask {
 }
 
 /// Test 1: `execute_collect_all` aggregates outputs from multiple tasks
+#[cfg(not(target_arch = "wasm32"))]
 #[test]
 #[traced_test]
 fn test_execute_collect_all_aggregates_outputs() {

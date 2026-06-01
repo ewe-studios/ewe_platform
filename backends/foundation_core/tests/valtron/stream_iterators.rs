@@ -29,11 +29,10 @@ struct SimpleStream<D, P> {
 
 impl<D, P> SimpleStream<D, P> {
     fn from_vec(vec: Vec<D>) -> Self {
-        let items = vec
-            .into_iter()
-            .map(Stream::Next)
-            .collect::<Vec<_>>()
-            .into_iter();
+        let items = <Vec<_> as std::iter::FromIterator<_>>::from_iter(
+            vec.into_iter().map(Stream::Next)
+        );
+        let items = items.into_iter();
         Self { items }
     }
 }
@@ -847,6 +846,7 @@ fn test_concurrent_queue_stream_iterator_passes_through_stream_variants() {
     assert!(matches!(iter.next(), Some(Stream::Next(42))));
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn test_concurrent_queue_stream_iterator_concurrent_push() {
     use std::thread;
