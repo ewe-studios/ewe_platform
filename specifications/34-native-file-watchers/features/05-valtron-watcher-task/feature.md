@@ -1,17 +1,17 @@
 ---
 feature: "Valtron Watcher Task"
-description: "A valtron task type that wraps a NativeWatcher, polls on each tick, and delivers file events to subscriber broadcast channels"
+description: "Thin valtron adapters: FileWatcherTask wraps NativeWatcher::poll() in a tick loop with broadcast channels, FdMonitorTask wraps RegisteredFd for arbitrary FD readiness monitoring"
 status: "pending"
 priority: "high"
-depends_on: ["01-native-apis"]
-estimated_effort: "medium"
+depends_on: ["01-native-apis", "02-fd-management"]
+estimated_effort: "small"
 created: 2026-06-01
 last_updated: 2026-06-01
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 7
-  total: 7
+  uncompleted: 6
+  total: 6
   completion_percentage: 0%
 ---
 
@@ -19,139 +19,125 @@ tasks:
 
 ## Problem
 
-Even with a minimal `NativeWatcher` trait, file watching needs to integrate into the valtron execution engine. The old `crates/watchers` used thread-per-watcher with blocking channels — this means:
+Even with minimal sync primitives (`NativeWatcher::poll()`, `RegisteredFd::poll_readable()`), valtron tasks need a way to integrate them into the execution engine. The old `crates/watchers` used thread-per-watcher with blocking channels — this means:
 
 - Other tasks can't react to file changes through the valtron scheduler
 - No queue-based event delivery — events go to a single handler closure
 - No way for multiple subscribers to receive the same file events
+- Arbitrary FD monitoring requires writing the same tick loop boilerplate
 
 ## Solution
 
-A valtron task that wraps a `NativeWatcher` and:
+Two thin valtron adapters over the sync primitives:
 
-1. **Polls the native watcher** on each valtron tick
-2. **Delivers events to subscriber channels** (broadcast, not single-consumer)
-3. **Allows dynamic watch management** — add/remove watches at runtime via task status mapper
+1. **`FileWatcherTask`** — wraps `NativeWatcher`, polls each tick, broadcasts `WatchEvent` to subscribers
+2. **`FdMonitorTask<T>`** — wraps `RegisteredFd<T>`, polls each tick, invokes user callback on readiness
 
-Other valtron tasks can:
-- **Start** a watcher task (spawns the NativeWatcher)
-- **Subscribe** to receive events (gets a `broadcast::Receiver<WatchEvent>`)
-- **React** to events in their own execution cycle
+Both are thin — the real work is done by the sync APIs. These tasks just schedule them in valtron's execution engine.
 
-## Architecture
+---
+
+## Component 1: FileWatcherTask
+
+### What It Does
+
+Wraps a `Box<dyn NativeWatcher>` and implements `TaskIterator`. Each tick:
+1. Calls `watcher.poll(timeout)` to get file events
+2. Broadcasts events to all subscribers via `broadcast::Sender`
+3. Yields back to valtron with `ExecutionAction::Wait(timeout)`
+
+### How It Works — Lifecycle
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                    Valtron Execution Engine                       │
-│                                                                   │
-│  ┌─────────────────────────────────────────┐                     │
-│  │         FileWatcherTask                 │                     │
-│  │                                         │                     │
-│  │  struct FileWatcherTask {               │                     │
-│  │      watcher: Box<dyn NativeWatcher>,   │                     │
-│  │      subscribers: Arc<Broadcaster>,     │                     │
-│  │      poll_timeout: Duration,            │                     │
-│  │  }                                      │                     │
-│  │                                         │                     │
-│  │  impl TaskIterator for FileWatcherTask  │                     │
-│  │    fn tick() -> ExecutionAction {       │                     │
-│  │        let events = watcher.poll(t)?    │  ◄── NativeWatcher
-│  │        for event in events {            │                     │
-│  │            subscribers.send(event)      │  ◄── broadcast
-│  │        }                                │                     │
-│  │        ExecutionAction::Wait(50ms)      │  ◄── yield back     │
-│  │    }                                    │                     │
-│  └────────────┬────────────────────────────┘                     │
-│               │                                                   │
-│               ▼                                                   │
-│  ┌────────────────────────┐  ┌────────────────────────┐          │
-│  │  Subscriber Task A     │  │  Subscriber Task B     │          │
-│  │  recv().for_each(|e| { │  │  recv().for_each(|e| { │          │
-│  │     if e.path.ends     │  │     rebuild(e)         │          │
-│  │       with(".rs") {    │  │  })                    │          │
-│  │       cargo_check(e)   │  │                        │          │
-│  │     }                  │  │                        │          │
-│  │  })                    │  │                        │          │
-│  └────────────────────────┘  └────────────────────────┘          │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘
+Construction:
+  FileWatcherTask::new()
+    1. Create NativeWatcher via WatcherBuilder::default().build()
+    2. Create broadcast::Sender<WatchEvent> (capacity 64)
+    3. Set default poll_timeout = 50ms
+
+  FileWatcherTask::new()
+    .watch("src/", true)?     ← registers path with NativeWatcher
+    .watch("Cargo.toml", false)?  ← registers another path
+
+Subscription:
+  let mut rx = watcher.subscribe();  ← gets broadcast::Receiver<WatchEvent>
+  // Can be called multiple times — each call returns a new receiver
+
+Tick (valtron calls this each iteration):
+  fn tick(&mut self) -> ExecutionAction {
+    match self.watcher.poll(self.poll_timeout) {
+      Ok(events) => {
+        for event in events {
+            let _ = self.broadcaster.send(event);  // broadcasts to all receivers
+        }
+      }
+      Err(e) => tracing::error!("Watcher poll error: {}", e),
+    }
+    ExecutionAction::Wait(self.poll_timeout)
+  }
+
+Subscriber receives:
+  while let Ok(event) = rx.try_recv() {
+      println!("{:?}: {:?}", event.kind, event.path);
+  }
+
+Dynamic watch management:
+  watcher.watch("new/path/", true)?   // add watch at runtime
+  watcher.unwatch("old/path/")?       // remove watch at runtime
+
+Teardown:
+  drop(watcher) → NativeWatcher dropped → closes inotify/kqueue fd
+  All receivers get lagged errors (broadcast channel empty)
 ```
 
-### Data Flow
-
-```mermaid
-sequenceDiagram
-    participant User as User Code
-    participant Engine as Valtron Engine
-    participant FWT as FileWatcherTask
-    participant NW as NativeWatcher
-    participant Sub as Subscriber Task
-
-    User->>Engine: spawn::<FileWatcherTask>()
-    Engine->>FWT: FileWatcherTask::new()
-    FWT->>NW: native_watcher()
-
-    loop Each valtron tick
-        Engine->>FWT: tick()
-        FWT->>NW: poll(50ms)
-        NW-->>FWT: Vec<WatchEvent> (or empty)
-        alt events available
-            FWT->>FWT: for event in events { broadcast.send(event) }
-            FWT->>Sub: WatchEvent { kind, path }
-            Sub->>Sub: handle event (rebuild, check, etc.)
-        end
-        FWT-->>Engine: ExecutionAction::Wait(50ms)
-    end
-```
-
-### WatchEvent Delivery
-
-```rust
-/// Broadcast channel for file events.
-/// Multiple subscribers can receive the same events.
-pub type WatchEventBroadcaster = tokio::sync::broadcast::Sender<WatchEvent>;
-
-/// A receiver for file events from a watcher.
-pub type WatchEventReceiver = tokio::sync::broadcast::Receiver<WatchEvent>;
-
-impl FileWatcherTask {
-    /// Add a path to watch. Returns the paths that were registered.
-    pub fn watch(&mut self, path: &Path, recursive: bool) -> Result<()>;
-
-    /// Remove a watched path.
-    pub fn unwatch(&mut self, path: &Path) -> Result<()>;
-
-    /// Subscribe to file events. Can be called multiple times.
-    pub fn subscribe(&self) -> WatchEventReceiver;
-
-    /// Get the broadcaster for sending events (internal).
-    fn broadcaster(&self) -> &WatchEventBroadcaster;
-}
-```
-
-### TaskIterator Implementation
-
-The `FileWatcherTask` implements valtron's `TaskIterator` trait:
+### Complete API
 
 ```rust
 pub struct FileWatcherTask {
     watcher: Box<dyn NativeWatcher>,
     broadcaster: Arc<WatchEventBroadcaster>,
     poll_timeout: Duration,
-    watches: Vec<PathBuf>,
 }
 
+impl FileWatcherTask {
+    /// Create a new FileWatcherTask with platform-default native watcher.
+    pub fn new() -> Result<Self>;
+
+    /// Create with a specific NativeWatcher implementation.
+    pub fn with_watcher(watcher: Box<dyn NativeWatcher>) -> Self;
+
+    /// Add a path to watch. Returns self for chaining.
+    pub fn watch(mut self, path: &Path, recursive: bool) -> Result<Self>;
+
+    /// Remove a previously watched path.
+    pub fn unwatch(&mut self, path: &Path) -> Result<()>;
+
+    /// Subscribe to file events. Can be called multiple times.
+    /// Each call returns a new receiver — all receive the same events.
+    pub fn subscribe(&self) -> WatchEventReceiver;
+
+    /// Set the poll timeout for each tick. Default: 50ms.
+    pub fn with_poll_timeout(mut self, timeout: Duration) -> Self;
+
+    /// Get the number of active subscribers.
+    pub fn subscriber_count(&self) -> usize;
+}
+
+/// Broadcast channel for file events. Multiple subscribers can receive the same events.
+pub type WatchEventBroadcaster = tokio::sync::broadcast::Sender<WatchEvent>;
+
+/// A receiver for file events from a watcher.
+pub type WatchEventReceiver = tokio::sync::broadcast::Receiver<WatchEvent>;
+
 impl TaskIterator for FileWatcherTask {
-    type Ready = ...;
-    type Pending = ...;
-    type Spawner = ...;
+    type Ready = ();
+    type Pending = ();
+    type Spawner = NoSpawner;
 
     fn tick(&mut self, _context: &TaskContext) -> ExecutionAction {
-        // Poll the native watcher for events
         match self.watcher.poll(self.poll_timeout) {
             Ok(events) => {
                 for event in events {
-                    // Broadcast to all subscribers
                     let _ = self.broadcaster.send(event);
                 }
             }
@@ -159,18 +145,16 @@ impl TaskIterator for FileWatcherTask {
                 tracing::error!("Watcher poll error: {}", e);
             }
         }
-
-        // Yield back to valtron — poll again on next tick
         ExecutionAction::Wait(self.poll_timeout)
     }
 }
 ```
 
-### How Users Use It
+### How Subscribers Use It
 
 ```rust
 // 1. Create and configure the watcher task
-let mut watcher = FileWatcherTask::new()
+let mut watcher = FileWatcherTask::new()?
     .watch("src/", true)?
     .watch("Cargo.toml", false)?;
 
@@ -194,7 +178,7 @@ guard.run_until_complete();
 
 ### Subscriber Pattern — Independent Task
 
-A subscriber task can run independently and react to events:
+A subscriber task can run independently:
 
 ```rust
 // Another task that rebuilds on .rs changes
@@ -206,43 +190,249 @@ pool.spawn::<RebuildTask, ...>()
     .schedule()?;
 ```
 
-## Implementation Plans
+---
 
-### Task Breakdown
+## Component 2: FdMonitorTask
 
-1. [ ] Write `backends/foundation_nativeapis/src/task.rs` with `FileWatcherTask` struct
-2. [ ] Implement `watch()`, `unwatch()`, `subscribe()` methods
-3. [ ] Implement `TaskIterator` trait for `FileWatcherTask`
-   - `tick()` polls `NativeWatcher`, broadcasts events, yields back
-4. [ ] Add `WatchEventBroadcaster` / `WatchEventReceiver` type aliases
-5. [ ] Add `tokio = { version = "1", features = ["sync"] }` as optional dependency (feature-gated)
-6. [ ] Write integration test: spawn watcher, touch file, verify event delivery
-7. [ ] Write example: simple file watcher that prints changes
+### What It Does
+
+Provides a generic valtron task for monitoring any registered file descriptor. Wraps a `RegisteredFd<T>`, polls `poll_readable()` each tick, and invokes a user-provided callback when the fd becomes readable.
+
+This saves users from writing the same tick loop boilerplate:
+
+```rust
+// Without FdMonitorTask (user writes this):
+struct MyInotifyTask { fd: RegisteredFd<FdWrapper>, ... }
+impl TaskIterator for MyInotifyTask {
+    fn tick(&mut self) -> ExecutionAction {
+        match self.fd.poll_readable() {
+            PollResult::Ready(mut guard) => {
+                guard.try_io(|fd| self.handle_readiness(fd.get_ref()))?;
+            }
+            PollResult::NotReady => {}
+            PollResult::Error(e) => tracing::error!("FD error: {}", e),
+        }
+        ExecutionAction::Wait(self.poll_interval)
+    }
+}
+
+// With FdMonitorTask (user provides just the callback):
+let monitor = FdMonitorTask::new(registered_fd)
+    .with_callback(|fd| { /* handle readiness */ })
+    .with_poll_interval(Duration::from_millis(50));
+```
+
+### How It Works — Lifecycle
+
+```
+Construction:
+  FdMonitorTask::new(registered_fd)
+    1. Store RegisteredFd<T>
+    2. Set default poll_interval = 50ms
+    3. No callback yet (user must set one)
+
+  FdMonitorTask::new(fd)
+    .with_callback(|fd| { /* handle readiness */ })
+    .with_poll_interval(Duration::from_millis(100))
+
+Tick (valtron calls this each iteration):
+  fn tick(&mut self) -> ExecutionAction {
+    match self.fd.poll_readable() {
+      PollResult::Ready(mut guard) => {
+        // User callback is invoked with the inner fd reference
+        if let Some(ref mut cb) = self.callback {
+          match guard.try_io(|fd| cb(fd.get_ref())) {
+            Ok(Ok(_)) => {}    // callback succeeded
+            Ok(Err(e)) if e.kind() == WouldBlock => {},  // readiness was spurious
+            Ok(Err(e)) => tracing::error!("FD I/O error: {}", e),
+            Err(_) => {},      // try_io error (non-I/O from callback)
+          }
+        }
+      }
+      PollResult::NotReady => {}
+      PollResult::Error(e) => tracing::error!("FdMonitorTask poll error: {}", e),
+    }
+    ExecutionAction::Wait(self.poll_interval)
+  }
+
+Teardown:
+  drop(monitor) → RegisteredFd dropped → deregisters from poll selector
+```
+
+### Complete API
+
+```rust
+/// A valtron task that monitors a RegisteredFd for read readiness.
+///
+/// Each tick, polls the fd for readability. When ready, invokes the user-provided
+/// callback with a reference to the inner IO object.
+///
+/// The callback receives the inner fd (via get_ref()) — not the RegisteredFd itself.
+/// This means the callback can read from the fd but cannot deregister it.
+pub struct FdMonitorTask<T: AsRawFd> {
+    fd: RegisteredFd<T>,
+    callback: Option<Box<dyn FnMut(&T) -> io::Result<()>>>,
+    poll_interval: Duration,
+    interest: Interest,
+}
+
+impl<T: AsRawFd> FdMonitorTask<T> {
+    /// Create a new FdMonitorTask wrapping the given RegisteredFd.
+    pub fn new(fd: RegisteredFd<T>) -> Self;
+
+    /// Set the callback to invoke when the fd becomes readable.
+    /// The callback receives a reference to the inner IO object.
+    pub fn with_callback(
+        mut self,
+        callback: impl FnMut(&T) -> io::Result<()> + 'static,
+    ) -> Self;
+
+    /// Set the poll interval for each tick. Default: 50ms.
+    pub fn with_poll_interval(mut self, interval: Duration) -> Self;
+
+    /// Set the interest to poll for. Default: Interest::READABLE.
+    pub fn with_interest(mut self, interest: Interest) -> Self;
+
+    /// Get a reference to the inner RegisteredFd.
+    pub fn fd(&self) -> &RegisteredFd<T>;
+
+    /// Get a mutable reference to the inner RegisteredFd.
+    pub fn fd_mut(&mut self) -> &mut RegisteredFd<T>;
+}
+
+impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
+    type Ready = ();
+    type Pending = ();
+    type Spawner = NoSpawner;
+
+    fn tick(&mut self, _context: &TaskContext) -> ExecutionAction {
+        let readiness = match self.interest {
+            Interest::READABLE => self.fd.poll_readable(),
+            Interest::WRITABLE => self.fd.poll_writable(),
+            _ => self.fd.poll_ready(self.interest),
+        };
+
+        match readiness {
+            PollResult::Ready(mut guard) => {
+                if let Some(ref mut cb) = self.callback {
+                    if let Ok(Err(e)) = guard.try_io(|fd| cb(fd.get_ref())) {
+                        tracing::error!("FdMonitorTask callback I/O error: {}", e);
+                    }
+                }
+            }
+            PollResult::NotReady => {}
+            PollResult::Error(e) => {
+                tracing::error!("FdMonitorTask poll error: {}", e);
+            }
+        }
+        ExecutionAction::Wait(self.poll_interval)
+    }
+}
+```
+
+### Usage Example: Monitor inotify fd
+
+```rust
+// Create raw inotify fd
+let inotify_fd = inotify_init1(IN_CLOEXEC)?;
+unsafe { libc::fcntl(inotify_fd, libc::F_SETFL, libc::O_NONBLOCK) };
+inotify_add_watch(inotify_fd, "/src", IN_ALL_EVENTS)?;
+
+// Wrap in RegisteredFd
+let registered = RegisteredFd::with_interest(
+    FdWrapper::from_raw(inotify_fd),
+    Interest::READABLE,
+)?;
+
+// Create monitor task with callback
+let monitor = FdMonitorTask::new(registered)
+    .with_callback(|fd| {
+        // Read inotify events from the fd
+        let mut buf = [0u8; 4096];
+        let n = fd.read(&mut buf)?;
+        let events = decode_inotify_events(&buf[..n])?;
+        for event in events {
+            println!("File changed: {:?}", event);
+        }
+        Ok(())
+    })
+    .with_poll_interval(Duration::from_millis(50));
+
+// Spawn into valtron
+pool.spawn::<FdMonitorTask<FdWrapper>, ...>()
+    .with_resolver(/* ... */)
+    .schedule()?;
+```
+
+---
+
+## Testing Strategy
+
+### What to Test
+
+#### Integration Tests (in `tests/`)
+
+1. **valtron_integration.rs**: End-to-end file watching through valtron
+   - Create FileWatcherTask, subscribe, spawn into valtron
+   - Touch a file in watched directory
+   - Run engine for a few ticks
+   - Verify event received via subscriber channel
+   - Test multiple subscribers receive the same events
+
+2. **fd_monitor_integration.rs**: FdMonitorTask with a pipe
+   - Create a pipe, wrap read end in RegisteredFd
+   - Create FdMonitorTask with callback that reads data
+   - Spawn into valtron
+   - Write to pipe's write end
+   - Verify callback is invoked and data is read
+   - Verify poll interval respected (callback not called before write)
+
+### Edge Cases to Test
+
+- **No subscribers**: FileWatcherTask polls and broadcasts, but no one receives → no panic, no memory leak
+- **Subscriber lag**: Subscriber falls behind (broadcast buffer full) → receiver gets `RecvError::Lagged` → task should handle gracefully, not crash
+- **Callback panics**: FdMonitorTask callback panics → task continues (catch_unwind in valtron engine), doesn't take down other tasks
+- **Watch error recovery**: NativeWatcher::poll returns error → task logs and continues, doesn't exit
+- **Multiple watches, one path fails**: watch("valid/") succeeds, watch("nonexistent/") fails → partial state, valid path still watched
+- **Dynamic unwatch of non-existent path**: unwatch("path/never/watched") → returns NotWatched error
+- **FdMonitorTask with no callback**: Created without with_callback → poll returns Ready, but no callback to invoke → should be a no-op, not a panic
+- **FdMonitorTask fd closure**: Underlying fd closed externally (not through RegisteredFd) → poll_readable returns Error → task logs and continues
+
+### How to Test
+
+```bash
+# Valtron integration tests
+cargo test -p foundation_nativeapis --test valtron_integration
+cargo test -p foundation_nativeapis --test fd_monitor_integration
+
+# Feature-gated compilation
+cargo check -p foundation_nativeapis --features "watcher"
+cargo check -p foundation_nativeapis --features "native-linux"
+```
+
+---
 
 ## Trade-offs
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Broadcast vs MPSC | Broadcast | Multiple subscribers need the same events |
-| Poll-based vs interrupt | Poll via valtron tick | valtron controls scheduling — no internal threads |
-| tokio::broadcast dependency | Feature-gated (`tokio-broadcast` feature) | Not all users need async; default uses crossbeam or mpsc |
 | Error handling | Log and continue | A poll error shouldn't kill the watcher — retry on next tick |
+| Broadcast capacity | 64 (tokio default) | Enough for bursty file change events. Consumer can adjust if needed. |
+| Callback ownership | Box<dyn FnMut> | User can capture state. FnMut allows mutation across calls. |
+| FdMonitorTask generic over T | Generic | Works with any AsRawFd type — TcpStream, pipe, signalfd, etc. |
+| tokio dependency | Feature-gated (`tokio/sync`) | Not all users need broadcast channels. Default could use crossbeam channel. |
 
 ## File Changes Summary
 
 | File | Action |
 |------|--------|
-| `backends/foundation_nativeapis/src/task.rs` | Create |
-| `backends/foundation_nativeapis/Cargo.toml` | Edit — add tokio optional dep |
+| `backends/foundation_nativeapis/src/task.rs` | Create — FileWatcherTask |
+| `backends/foundation_nativeapis/src/task/fd_monitor.rs` | Create — FdMonitorTask |
+| `backends/foundation_nativeapis/Cargo.toml` | Edit — add optional tokio dep for broadcast |
 | `backends/foundation_nativeapis/src/lib.rs` | Edit — export task module |
-| `backends/foundation_nativeapis/examples/file_watcher.rs` | Create — example usage |
 | `backends/foundation_nativeapis/tests/valtron_integration.rs` | Create |
-
-## Dependencies
-
-- **Feature 01 (native-apis)** must be complete first
-- Requires valtron task infrastructure from `foundation_core/src/valtron/`
-- Optional: `tokio` with `sync` feature for broadcast channels
+| `backends/foundation_nativeapis/tests/fd_monitor_integration.rs` | Create |
 
 ---
 

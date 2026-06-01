@@ -41,10 +41,10 @@ backends/foundation_toolings/
 │   ├── runner/
 │   │   └── mod.rs          # BinaryRunnerTask (sync process lifecycle)
 │   ├── proxy/
-│   │   ├── mod.rs          # ProxyTask (TcpListener + accept loop)
-│   │   ├── http1.rs        # Http1 request handler (raw socket I/O)
+│   │   ├── mod.rs          # ProxyTask (Listener + accept loop + route dispatch)
+│   │   ├── http1.rs        # Http1 request handler (simple_http parser, route dispatch)
 │   │   ├── tunnel.rs       # TCP tunnel (raw bidirectional copy)
-│   │   └── sse.rs          # SSE response generator + reloader.js endpoint
+│   │   └── sse.rs          # SSE reload handler (SseResponse + EventWriter + reload_queue)
 │   └── service/
 │       └── mod.rs          # DevService — valtron-coordinated top-level service
 └── tests/
@@ -68,6 +68,7 @@ keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 [dependencies]
 foundation_core = { workspace = true }
 foundation_nativeapis = { workspace = true, features = ["watcher"] }
+foundation_netio = { workspace = true }
 foundation_nostd = { workspace = true }
 foundation_runtimes = { workspace = true }
 foundation_errstacks = { workspace = true }
@@ -78,12 +79,6 @@ itertools = "0.14"
 concurrent-queue = "2.5"
 serde = { workspace = true }
 serde_json = { workspace = true }
-crossbeam = "0.8"
-
-# For raw socket I/O — NOT tokio, NOT hyper
-libc = "0.2"
-bytes = "1.5"    # for efficient buffer management
-http = "1.1"     # for URI, StatusCode, Method types only (pure data, no runtime)
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
@@ -100,13 +95,14 @@ workspace = true
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| `http` crate | Keep (data types only) | `http::Uri`, `http::StatusCode`, `http::Method` are pure data — no runtime |
-| `bytes` crate | Keep | Efficient buffer management for raw socket I/O |
+| `foundation_netio` | Primary networking crate | Provides `Connection`, `Listener`, `simple_http`, `event_source` — covers all networking needs |
 | `tokio::sync::broadcast` | Replace with `synca` | foundation_core already provides broadcast/signal primitives |
 | `tokio::process` | Replace with `std::process` | Sync spawn + valtron tick for polling process status |
-| `tokio::net` | Replace with poll-layer | foundation_nativeapis poll-layer provides TcpListener/TcpStream |
-| `axum` / `hyper` | Remove entirely | Raw socket I/O + manual HTTP parsing is sufficient for dev proxy |
+| `tokio::net` | Replace with `foundation_netio::netcap` | `Connection`/`Listener` provide sync TCP without async runtime |
+| `axum` / `hyper` | Remove entirely | `foundation_netio::simple_http` handles HTTP parsing/responses |
 | `async-trait` | Remove | TaskIterator is a sync trait — no async needed |
+| `http` crate | Not needed directly | `foundation_netio::simple_http` provides its own `Status`, `Proto`, headers |
+| `bytes` crate | Not needed | `foundation_netio` handles body I/O internally |
 
 ### Task Breakdown
 

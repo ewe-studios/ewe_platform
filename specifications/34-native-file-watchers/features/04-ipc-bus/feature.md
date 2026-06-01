@@ -38,9 +38,44 @@ Adapt ipmb's architecture into `foundation_nativeapis` as an IPC module. The bus
 | macOS | Mach ports | `mach_msg`, `mach_port` operations |
 | Windows | Named pipes | `CreateNamedPipe`, `ConnectNamedPipe` |
 
-## Architecture
+---
 
-### Core Types
+## Component 1: Core Message Bus
+
+### What It Does
+
+Provides a bus-based IPC where endpoints join a named bus, send typed messages, and receive messages that match their label selectors. Think of it like a pub/sub system where the "bus" is the transport layer, not a central server.
+
+### How It Works — Connection Flow
+
+```
+Process A                              Process B
+    │                                      │
+    │  join("com.ewe.watchers",             │  join("com.ewe.watchers",
+    │       label!("file-watcher"))              label!("build-system"))
+    │                                      │
+    ▼                                      ▼
+┌─────────────────┐                  ┌─────────────────┐
+│ 1. Create socket│                  │ 1. Create socket│
+│ 2. Connect to   │                  │ 2. Connect to   │
+│    bus address   │                  │    bus address   │
+│ 3. Send JOIN msg│ ───────────────► │                 │
+│                 │                  │                 │
+│                 │ ◄─────────────── │ 3. Send JOIN msg│
+└─────────────────┘                  └─────────────────┘
+    │                                      │
+    │  controller endpoint                 │  controller endpoint
+    │  (first with affinity)               │  (first with affinity)
+    │                                      │
+    ▼                                      ▼
+┌─────────────────┐                  ┌─────────────────┐
+│ sender.send(msg)│ ──► controller ─►│ receiver.recv() │
+│                 │    routes by     │                 │
+│                 │    label match   │                 │
+└─────────────────┘                  └─────────────────┘
+```
+
+### Core API
 
 ```rust
 /// Join a message bus. Returns (sender, receiver) pair.
@@ -48,49 +83,239 @@ pub fn join<T: MessageBox, R: MessageBox>(
     options: Options,
     timeout: Option<Duration>,
 ) -> Result<(EndpointSender<T>, EndpointReceiver<R>)>;
+```
 
-/// Options for joining a bus.
+### Options
+
+```rust
 pub struct Options {
-    /// Bus identifier (unique name for the bus).
+    /// Bus identifier — unique name all endpoints on the same bus share.
+    /// e.g., "com.ewe.watchers", "com.ewe.build-system"
     pub identifier: String,
-    /// Endpoint label (for routing).
+    /// Endpoint label — used for routing. Messages delivered only to matching labels.
     pub label: Label,
-    /// Authentication token (optional).
+    /// Authentication token — optional. If set, endpoints must share the same token.
     pub token: String,
     /// Whether to become the bus controller if none exists.
     pub controller_affinity: bool,
 }
 ```
 
-### Message Model
+---
+
+## Component 2: Message Model
+
+### Message Structure
 
 ```rust
-/// A message with typed payload.
+/// A message with typed payload and optional kernel objects / shared memory.
 pub struct Message<T> {
-    pub selector: Selector,       // routing: unicast/multicast + label matching
-    pub payload: T,                // typed payload
-    pub objects: Vec<Object>,      // kernel objects (FD/Handle/MachPort)
+    pub selector: Selector,              // routing: unicast/multicast + label matching
+    pub payload: T,                      // typed payload, serializable via bincode
+    pub objects: Vec<Object>,            // kernel objects (FD/Handle/MachPort)
     pub memory_regions: Vec<MemoryRegion>, // zero-copy shared memory blocks
-}
-
-/// Routing rules for messages.
-pub struct Selector {
-    pub label_op: LabelOp,         // AND/OR/NOT label matching
-    pub mode: SelectorMode,        // Unicast or Multicast
-    pub ttl: Duration,             // time-to-live if unroutable
-}
-
-/// Label-based routing with logical operations.
-pub enum LabelOp {
-    True, False,
-    Leaf(String),
-    Not(Box<LabelOp>),
-    And(Box<LabelOp>, Box<LabelOp>),
-    Or(Box<LabelOp>, Box<LabelOp>),
 }
 ```
 
-### Object Passing
+### Routing Selectors
+
+```rust
+pub struct Selector {
+    pub label_op: LabelOp,     // AND/OR/NOT label matching
+    pub mode: SelectorMode,    // Unicast or Multicast
+    pub ttl: Duration,         // time-to-live if unroutable
+}
+
+impl Selector {
+    pub fn broadcast() -> Self;                           // send to all
+    pub fn unicast(label: &str) -> Self;                  // send to specific endpoint
+    pub fn multicast(label_op: LabelOp) -> Self;          // send to all matching
+}
+
+#[derive(Clone, PartialEq)]
+pub enum SelectorMode {
+    Unicast,    // delivers to first matching endpoint
+    Multicast,  // delivers to all matching endpoints
+}
+```
+
+### Label-Based Routing
+
+```rust
+/// A label is a string identifier for an endpoint.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Label(String);
+
+/// Logical expression for label matching.
+pub enum LabelOp {
+    True,                                    // always matches
+    False,                                   // never matches
+    Leaf(String),                            // matches specific label
+    Not(Box<LabelOp>),                       // negation
+    And(Box<LabelOp>, Box<LabelOp>),         // conjunction
+    Or(Box<LabelOp>, Box<LabelOp>),          // disjunction
+}
+```
+
+**How label matching works:**
+
+```rust
+fn matches(selector: &Selector, endpoint_label: &Label) -> bool {
+    evaluate_label_op(&selector.label_op, &endpoint_label.0)
+}
+
+fn evaluate_label_op(op: &LabelOp, label: &str) -> bool {
+    match op {
+        LabelOp::True => true,
+        LabelOp::False => false,
+        LabelOp::Leaf(s) => label == s,
+        LabelOp::Not(sub) => !evaluate_label_op(sub, label),
+        LabelOp::And(left, right) => evaluate_label_op(left, label) && evaluate_label_op(right, label),
+        LabelOp::Or(left, right) => evaluate_label_op(left, label) || evaluate_label_op(right, label),
+    }
+}
+```
+
+Usage:
+```rust
+// Send to all endpoints
+Selector::broadcast()
+
+// Send to a specific endpoint
+Selector::unicast("build-system")
+
+// Send to endpoints matching complex label expression
+Selector::multicast(label!("build-system" | "ci-runner"))
+
+// Send to "build-system" but not "test-only"
+Selector::multicast(label!("build-system" & !"test-only"))
+```
+
+---
+
+## Component 3: MessageBox Trait + Serialization
+
+### What It Does
+
+`MessageBox` is the trait that makes a type sendable over the IPC bus. It's implemented via a derive macro that generates bincode serialization/deserialization.
+
+```rust
+/// Trait for types that can be sent over the IPC bus.
+/// Implement via derive macro: #[derive(MessageBox)]
+pub trait MessageBox: Serialize + DeserializeOwned + Send + Sync + 'static {
+    /// Unique type identifier for dynamic message type resolution.
+    fn type_uuid() -> u128;
+}
+
+/// Derive macro usage:
+/// #[derive(MessageBox, Serialize, Deserialize)]
+/// struct FileEvent {
+///     path: String,
+///     kind: String,
+/// }
+```
+
+### How Serialization Works
+
+1. Sender calls `sender.send(Message { payload: FileEvent { ... }, ... })`
+2. Payload is serialized via bincode into bytes
+3. Message header written: `[type_uuid: u128][selector_size: u32][payload_size: u32][object_count: u32]`
+4. Payload bytes written
+5. Objects attached via ancillary data (SCM_RIGHTS on Linux) or platform equivalent
+6. Receiver reads header, deserializes payload based on `type_uuid`
+7. Objects extracted from ancillary data and attached to Message
+
+---
+
+## Component 4: Bus Controller
+
+### What It Does
+
+The bus controller is the first endpoint that joins a bus with `controller_affinity: true`. It:
+- Listens for new endpoint connections
+- Routes incoming messages based on selector label matching
+- Forwards messages to matching endpoints
+- If the controller drops, remaining endpoints auto-rejoin
+
+### How It Works
+
+```
+Controller Thread:
+┌──────────────────────────────────────────┐
+│ 1. Listen socket accepts new connections │
+│ 2. New endpoint sends JOIN message       │
+│    → controller stores (conn, label)      │
+│ 3. Receive message from any endpoint     │
+│ 4. Evaluate selector against all labels  │
+│ 5. Forward message to matching endpoints │
+│ 6. If endpoint disconnects, remove it    │
+│ 7. If TTL expires, drop unrouted message │
+└──────────────────────────────────────────┘
+```
+
+The controller runs on our `poll::Poll` layer — it polls the listen socket and all endpoint connections simultaneously. When the listen socket is readable, a new connection arrived. When an endpoint socket is readable, a message arrived from that endpoint.
+
+### Auto-Rejoin
+
+If the controller process dies, remaining endpoints detect the disconnection (socket error on recv). They automatically attempt to rejoin:
+1. Create new connection to bus identifier
+2. Send JOIN message
+3. If no controller responds, the endpoint with `controller_affinity: true` becomes the new controller
+4. Other endpoints reconnect to the new controller
+
+---
+
+## Component 5: Shared Memory (MemoryRegion)
+
+### What It Does
+
+Zero-copy shared memory blocks for large payloads. Instead of serializing a 1MB buffer and sending it over the socket, create a shared memory region, write to it, and pass the region handle to the receiver.
+
+### How It Works
+
+```rust
+pub struct MemoryRegion {
+    // platform-specific internal
+}
+
+impl MemoryRegion {
+    /// Create a new shared memory region of `size` bytes.
+    pub fn new(size: usize) -> Option<Self>;
+
+    /// Map a range of the region into the process address space.
+    /// Returns a mutable slice — write data directly into shared memory.
+    pub fn map(&mut self, range: impl RangeBounds<usize>) -> &mut [u8];
+
+    /// Total size of the region in bytes.
+    pub fn buffer_size(&self) -> u64;
+}
+```
+
+**Platform implementations:**
+
+| Platform | Mechanism |
+|----------|-----------|
+| Linux | `memfd_create()` → creates anonymous file descriptor → `mmap()` to map into address space → FD passed via `SCM_RIGHTS` |
+| macOS | `mmap()` with `MAP_ANON | MAP_SHARED` → `vm_allocate` → region handle passed via Mach port |
+| Windows | `CreateFileMapping(INVALID_HANDLE_VALUE, ...)` → `MapViewOfFile()` → handle passed via `DuplicateHandle` |
+
+**Usage:**
+```rust
+let mut region = MemoryRegion::new(1 << 20)?;  // 1MB
+let view = region.map(..);
+view.copy_from_slice(&large_data);
+message.memory_regions.push(region);
+sender.send(message)?;
+// Receiver gets a MemoryRegion they can map and read — no copy.
+```
+
+---
+
+## Component 6: Object Passing
+
+### What It Does
+
+Pass kernel objects (file descriptors, handles) across process boundaries. The sender puts the object in `message.objects`, the receiver gets ownership.
 
 ```rust
 /// Platform-native kernel object.
@@ -98,60 +323,44 @@ pub enum LabelOp {
 #[cfg(target_os = "macos")]  pub type Object = MachPort; // mach_port_t
 #[cfg(target_os = "windows")] pub type Object = Handle;  // HANDLE
 
-// Sending an object to another endpoint:
-let mut message = Message::new(selector, payload);
-message.objects.push(unsafe { Object::from_raw(inotify_fd) });
-sender.send(message)?;
-
-// Receiving endpoint gets the object with ownership.
+impl Object {
+    /// Create from a raw value. The object must already be valid.
+    pub unsafe fn from_raw(raw: Self::Raw) -> Self;
+    /// Consume and return the raw value.
+    pub fn into_raw(self) -> Self::Raw;
+}
 ```
 
-### Shared Memory (MemoryRegion)
+**How it works on Linux:**
+1. Sender calls `sendmsg()` with `SCM_RIGHTS` ancillary data containing the fd
+2. Kernel duplicates the fd into the receiver's fd table
+3. Receiver calls `recvmsg()` and extracts fds from `SCM_RIGHTS` ancillary data
+4. Receiver gets ownership — original fd in sender remains valid (it's a dup, not a move)
 
-```rust
-/// Zero-copy shared memory block.
-/// Linux: memfd_create + mmap
-/// macOS: vm_allocate + vm_map
-/// Windows: CreateFileMapping + MapViewOfFile
-pub struct MemoryRegion {
-    // platform-specific internal
-}
+---
 
-impl MemoryRegion {
-    pub fn new(size: usize) -> Option<Self>;
-    pub fn map(&mut self, range: impl RangeBounds<usize>) -> &mut [u8];
-    pub fn buffer_size(&self) -> u64;
-}
+## Component 7: IO Multiplexing
 
-// Send large data without copying:
-let mut region = MemoryRegion::new(1 << 20)?;  // 1MB
-let view = region.map(..);
-view.copy_from_slice(&large_data);
-message.memory_regions.push(region);
-sender.send(message)?;
-```
+### What It Does
 
-### Bus Controller
+Uses our extracted `poll::Poll` layer for efficient IO multiplexing within the bus controller and endpoints.
 
-The first endpoint to join a bus with `controller_affinity: true` becomes the bus controller:
-- Listens for new connections on the bus identifier
-- Routes messages based on selector label matching
-- Handles object/memory region forwarding between endpoints
-- If controller drops, remaining endpoints auto-rejoin
+**Linux:** `epoll_create1` + `eventfd` waker (same pattern as our poll layer)
+**macOS:** kqueue + `EVFILT_USER` waker
+**Windows:** IOCP + overlapped I/O
 
-### IO Multiplexing
+The controller polls all endpoint connections simultaneously. This is why we need the poll layer — without it, the controller would need one thread per endpoint, which doesn't scale.
 
-Uses the same epoll/kqueue/IOCP patterns from our extracted poll layer:
-- Linux: `epoll_create1` + `eventfd` waker (same as `IoMultiplexing` in ipmb)
-- macOS: kqueue + `EVFILT_USER` waker
-- Windows: IOCP + overlapped I/O
+---
 
-### FFI Layer
+## Component 8: FFI Layer
 
-Same pattern as ipmb-ffi — opaque types, `extern "C"` functions:
+### What It Does
+
+Provides `extern "C"` bindings so C/C++ and other languages can use the IPC bus.
 
 ```c
-// ipmb.h (generated)
+// ipmb.h
 typedef struct ipmb_Sender* ipmb_Sender;
 typedef struct ipmb_Receiver* ipmb_Receiver;
 typedef struct ipmb_Message* ipmb_Message;
@@ -160,32 +369,111 @@ int32_t ipmb_join(ipmb_Options options, uint32_t timeout_ms,
                   ipmb_Sender* out_sender, ipmb_Receiver* out_receiver);
 int32_t ipmb_send(ipmb_Sender sender, ipmb_Message message);
 int32_t ipmb_recv(ipmb_Receiver receiver, ipmb_Message* out_message, uint32_t timeout_ms);
+void    ipmb_message_free(ipmb_Message msg);
+void    ipmb_sender_free(ipmb_Sender sender);
+void    ipmb_receiver_free(ipmb_Receiver receiver);
 ```
 
-## How valtron Uses It
-
+**Rust side:**
 ```rust
-// Task A sends file change notifications to other processes
-let (sender, _) = ipmb::join::<FileEvent, FileEvent>(
-    Options::new("com.ewe.watchers", label!("file-watcher"), ""),
-    None,
-)?;
-
-// On file change, broadcast to all listeners
-let selector = Selector::multicast(LabelOp::True);
-let message = Message::new(selector, FileEvent { path, kind });
-sender.send(message)?;
-
-// Task B in another process receives events
-let (_, mut receiver) = ipmb::join::<FileEvent, FileEvent>(
-    Options::new("com.ewe.watchers", label!("build-system"), ""),
-    None,
-)?;
-
-while let Ok(msg) = receiver.recv(None) {
-    rebuild(msg.payload.path);
+#[no_mangle]
+pub extern "C" fn ipmb_join(
+    options: ipmb_Options,
+    timeout_ms: u32,
+    out_sender: *mut *mut ipmb_Sender,
+    out_receiver: *mut *mut ipmb_Receiver,
+) -> i32 {
+    // Creates opaque Rust types, wraps in Box, returns raw pointers
 }
 ```
+
+---
+
+## Testing Strategy
+
+### What to Test
+
+#### Unit Tests (in `src/`)
+
+1. **Label matching**: All `LabelOp` combinations evaluate correctly
+   ```rust
+   assert!(evaluate_label_op(&LabelOp::Leaf("foo".into()), "foo"));
+   assert!(!evaluate_label_op(&LabelOp::Leaf("foo".into()), "bar"));
+   assert!(evaluate_label_op(&LabelOp::Or(Box::new(Leaf("a")), Box::new(Leaf("b"))), "b"));
+   assert!(evaluate_label_op(&LabelOp::Not(Box::new(Leaf("a"))), "b"));
+   ```
+
+2. **Selector construction**: `broadcast()`, `unicast()`, `multicast()` create correct selectors
+
+3. **MessageBox derive**: Generated serialization/deserialization round-trips correctly
+
+4. **MemoryRegion**: Create, map, write, read — data persists across map calls
+
+5. **Message encoding**: Header + payload + objects encode/decode correctly
+
+#### Integration Tests (in `tests/`)
+
+6. **ipc_two_process.rs**: Two processes join same bus, send typed messages, verify delivery
+   - Process A: `join("test-bus", label!("sender"))` → send message
+   - Process B: `join("test-bus", label!("receiver"))` → receive message
+   - Verify payload matches sent data
+   - Run as: `cargo test -p foundation_nativeapis --test ipc_two_process -- --test-threads=1`
+
+7. **ipc_multicast.rs**: Controller routes messages to multiple matching endpoints
+   - 3 endpoints join with labels "a", "b", "c"
+   - Send multicast to `Or("a", "c")` → only endpoints "a" and "c" receive
+   - Send unicast to "b" → only endpoint "b" receives
+
+8. **ipc_controller_failover.rs**: Controller drops, endpoints auto-rejoin
+   - Start controller + 2 endpoints
+   - Kill controller process
+   - Verify endpoints reconnect and messages still flow
+
+9. **ipc_shared_memory.rs**: Large data sent via MemoryRegion, no copy
+   - Create 1MB MemoryRegion, write data
+   - Send via IPC, receiver maps and reads
+   - Verify data matches
+
+10. **ipc_object_passing.rs**: FD passed via IPC, receiver can use it
+    - Linux: open a file, put fd in message.objects, send
+    - Receiver gets fd, reads from it — same file content
+
+11. **ipc_ffi.rs**: FFI bindings work from C perspective
+    - Call `ipmb_join` from test, send message, receive message
+    - Verify no memory leaks (valgrind or AddressSanitizer)
+
+### Edge Cases to Test
+
+- **Bus name collision**: Two controllers try to create the same bus → second becomes endpoint
+- **Token mismatch**: Endpoint joins with wrong token → connection rejected
+- **Message too large**: Payload exceeds socket buffer → error returned, not panic
+- **Controller crash during send**: Sender detects controller death, retries with new controller
+- **Unicode labels**: Labels with non-ASCII characters → routing still works
+- **Empty message**: Send message with no payload, no objects → delivers correctly
+- **Concurrent sends**: Multiple threads sending on same EndpointSender → no data corruption
+- **Timeout on recv**: `recv(Some(Duration::ZERO))` returns immediately with None if no message
+- **TTL expiration**: Message with short TTL, unroutable for longer → controller drops it
+- **Endpoint disconnect mid-broadcast**: Controller sending to 3 endpoints, one disconnectes → others still get message
+
+### How to Test
+
+```bash
+# Unit tests
+cargo test -p foundation_nativeapis --lib ipc
+
+# Integration tests (single-process)
+cargo test -p foundation_nativeapis --test ipc_multicast
+cargo test -p foundation_nativeapis --test ipc_shared_memory
+cargo test -p foundation_nativeapis --test ipc_object_passing
+cargo test -p foundation_nativeapis --test ipc_ffi
+cargo test -p foundation_nativeapis --test ipc_controller_failover
+
+# Cross-platform compilation
+cargo check -p foundation_nativeapis --features "ipc"
+cargo check -p foundation_nativeapis --features "ipc" --target wasm32-unknown-unknown  # should fail or stub
+```
+
+---
 
 ## Implementation Plans
 
@@ -222,6 +510,8 @@ while let Ok(msg) = receiver.recv(None) {
 | Message routing | Label-based with AND/OR/NOT | Flexible, composable, no central registry needed. |
 | Controller | First-come becomes controller | Simple, no election protocol needed. Auto-rejoin on drop. |
 | FFI | Opaque types + `extern "C"` | Standard C ABI, usable from any language with FFI. |
+| Large payloads | MemoryRegion (zero-copy) | Avoid serializing megabytes through socket buffers. |
+| Poll layer reuse | Uses our extracted `poll::Poll` | No duplicate IO multiplexing code. Controller uses same selector. |
 
 ## File Changes Summary
 
@@ -241,6 +531,12 @@ while let Ok(msg) = receiver.recv(None) {
 | `backends/foundation_nativeapis/src/ipc/ffi.rs` | Create |
 | `backends/foundation_nativeapis/src/ipc/derive.rs` | Create — `MessageBox` derive macro |
 | `backends/foundation_nativeapis/Cargo.toml` | Edit — add serde, bincode, type-uuid deps |
+| `backends/foundation_nativeapis/tests/ipc_two_process.rs` | Create — two-process IPC test |
+| `backends/foundation_nativeapis/tests/ipc_multicast.rs` | Create — multicast routing test |
+| `backends/foundation_nativeapis/tests/ipc_controller_failover.rs` | Create — controller failover test |
+| `backends/foundation_nativeapis/tests/ipc_shared_memory.rs` | Create — shared memory test |
+| `backends/foundation_nativeapis/tests/ipc_object_passing.rs` | Create — object passing test |
+| `backends/foundation_nativeapis/tests/ipc_ffi.rs` | Create — FFI binding test |
 
 ---
 

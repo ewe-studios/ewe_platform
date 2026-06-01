@@ -47,10 +47,10 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 | Feature | Description | Status |
 |---------|-------------|--------|
 | [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) + mio poll layer extraction + io_uring abstractions | pending |
-| [02-valtron-watcher-task](features/02-valtron-watcher-task/) | Valtron task that wraps a `NativeWatcher`, polls on each tick, delivers events to subscriber queues | pending |
+| [02-fd-management](features/02-fd-management/) | File descriptor management: `RegisteredFd`, `poll_readable()`/`poll_writable()`, `ReadyGuard`, edge-triggered readiness tracking, `try_io` auto-clear | pending |
 | [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | pending |
 | [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | pending |
-| [05-fd-management](features/05-fd-management/) | File descriptor management (from tokio AsyncFd) — RegisteredFd, ReadyGuard, readiness tracking, valtron FdMonitorTask | pending |
+| [05-valtron-watcher-task](features/05-valtron-watcher-task/) | Thin valtron adapter: `FileWatcherTask` wraps `NativeWatcher::poll()` in a tick loop with broadcast channels | pending |
 
 ## Architecture
 

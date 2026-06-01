@@ -1,0 +1,33 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const main: (a: number, b: number) => number;
+export const __wbgt_concurrent_d1_queries_make_progress_2: (a: number) => void;
+export const __wbgt_js_yield_callback_reschedules_executor_1: (a: number) => void;
+export const __wbgt_js_yield_returns_immediately_0: (a: number) => void;
+export const __wbgt_no_deadlock_with_js_yield_3: (a: number) => void;
+export const __wbgtest_cov_dump: () => [number, number];
+export const __wbg_wasmbindgentestcontext_free: (a: number, b: number) => void;
+export const __wbgtest_console_debug: (a: any) => void;
+export const __wbgtest_console_error: (a: any) => void;
+export const __wbgtest_console_info: (a: any) => void;
+export const __wbgtest_console_log: (a: any) => void;
+export const __wbgtest_console_warn: (a: any) => void;
+export const wasmbindgentestcontext_args: (a: number, b: number, c: number) => void;
+export const wasmbindgentestcontext_new: () => number;
+export const wasmbindgentestcontext_run: (a: number, b: number, c: number) => any;
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke___wasm_bindgen_db7d18e550cf3789___JsValue__u32__js_sys_49f2c4c3ec3918f8___Array______true_: (a: number, b: number, c: any, d: number, e: any) => void;
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke___wasm_bindgen_db7d18e550cf3789___JsValue__core_e1dd1f5b63695bbf___result__Result_____wasm_bindgen_db7d18e550cf3789___JsError___true_: (a: number, b: number, c: any) => [number, number];
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke___js_sys_49f2c4c3ec3918f8___Function_fn_wasm_bindgen_db7d18e550cf3789___JsValue_____wasm_bindgen_db7d18e550cf3789___sys__Undefined___js_sys_49f2c4c3ec3918f8___Function_fn_wasm_bindgen_db7d18e550cf3789___JsValue_____wasm_bindgen_db7d18e550cf3789___sys__Undefined_______true_: (a: number, b: number, c: any, d: any) => void;
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke___bool__true_: (a: number, b: number) => number;
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke_______true__1_: (a: number, b: number) => void;
+export const wasm_bindgen_db7d18e550cf3789___convert__closures_____invoke_______true_: (a: number, b: number) => void;
+export const __externref_table_alloc: () => number;
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_exn_store: (a: number) => void;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __wbindgen_destroy_closure: (a: number, b: number) => void;
+export const __externref_table_dealloc: (a: number) => void;
+export const __wbindgen_start: () => void;

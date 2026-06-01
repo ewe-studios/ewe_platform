@@ -12,7 +12,7 @@ created: 2026-06-01
 1. Read `feature.md` for full details
 2. Read `.agents/skills/rust-clean-code/skill.md`
 3. Read `crates/devserver/src/assets.rs` and `crates/devserver/src/reloader.js`
-4. Read `backends/foundation_runtimes/` for AssetReloader API
+4. Read `backends/foundation_netio/src/event_source/shared/` for `SseEvent`, `EventWriter`, `SseResponse`
 5. Implement per feature.md
 6. Update `LEARNINGS.md`
 

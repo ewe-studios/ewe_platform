@@ -1,6 +1,6 @@
 ---
 feature: "Native Watching"
-description: "Replace DirectoryWatcher (notify-based) with NativeWatcher from foundation_nativeapis — FileChange enum + watcher TaskIterator"
+description: "Replace DirectoryWatcher (notify-based) with NativeWatcher from foundation_nativeapis — FileChange enum + thin valtron FileWatcherTask adapter"
 status: "pending"
 priority: "high"
 depends_on: ["02-task-operators", "specifications/34-native-file-watchers/01-native-apis"]
@@ -21,7 +21,7 @@ Current `DirectoryWatcher` in `crates/devserver/src/watchers.rs`:
 
 ## Solution
 
-Replace with a `FileWatcherTask` that wraps `foundation_nativeapis::NativeWatcher`:
+Replace with `FileWatcherTask` that wraps `foundation_nativeapis::NativeWatcher`:
 
 ```rust
 pub struct FileWatcherTask {
@@ -37,7 +37,7 @@ impl TaskIterator for FileWatcherTask {
     type Spawner = NoSpawner;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        // Poll the native watcher
+        // Poll the native watcher (sync, blocks up to 50ms)
         match self.watcher.poll(Duration::from_millis(50)) {
             Ok(events) => {
                 for event in events {
@@ -53,6 +53,8 @@ impl TaskIterator for FileWatcherTask {
     }
 }
 ```
+
+The valtron task is a thin adapter. `NativeWatcher::poll()` does all the work.
 
 ### FileChange Enum (preserve current API)
 

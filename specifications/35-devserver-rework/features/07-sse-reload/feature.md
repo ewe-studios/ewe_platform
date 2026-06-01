@@ -1,6 +1,6 @@
 ---
 feature: "SSE Reload"
-description: "Replace axum SSE + tokio_stream with raw HTTP SSE response generator + embedded reloader.js from foundation_runtimes"
+description: "Use foundation_netio::event_source (EventWriter, SseEvent, SseResponse) for SSE reload endpoint — no hand-rolled HTTP"
 status: "pending"
 priority: "high"
 depends_on: ["06-native-proxy"]
@@ -17,139 +17,108 @@ Current SSE reload in `crates/devserver/src/assets.rs`:
 - Uses `axum::response::sse::{Event, KeepAlive, Sse}`
 - Uses `tokio_stream::wrappers::BroadcastStream` to convert broadcast to stream
 - Uses `axum::response::IntoResponse` trait
-- Two endpoints:
-  - `/static/sse/reloader.js` — serves embedded JS from `foundation_runtimes::AssetReloader`
-  - `/static/sse/reload` — SSE endpoint that sends reload events
-
-The reloader.js (`crates/devserver/src/reloader.js`) is an EventSource client that:
-1. Connects to `/static/sse/reload`
-2. Listens for `reload` events
-3. Reloads the page when received
+- Two SSE-related endpoints in the system:
+  - `/static/sse/reloader.js` — served by the **upstream app** (proxy forwards it through)
+  - `/static/sse/reload` — SSE endpoint served **locally by the proxy** (sends reload events)
 
 ## Solution
 
-Replace with raw HTTP response generators:
+Only `/static/sse/reload` is handled locally by the proxy. `/static/sse/reloader.js` goes
+upstream like any other request — the dev app serves the JS file itself. The proxy is a bridge
+for everything except the reload endpoint.
 
-### Static Script Endpoint
+The reloader.js (client-side) connects to `/static/sse/reload` on the proxy, and the proxy
+locally writes SSE events from the reload queue into the client's connection.
 
-Already works via `foundation_runtimes::AssetReloader` — keep as-is:
-
-```rust
-pub fn sse_endpoint_script(request: &HttpRequest) -> HttpResponse {
-    let instance = AssetReloader;
-    if let Some(data) = instance.read_utf8_for("reloader.js") {
-        HttpResponse::ok()
-            .header("Content-Type", "text/javascript")
-            .body(data.as_bytes())
-    } else {
-        HttpResponse::not_found()
-    }
-}
-```
-
-### SSE Endpoint (raw HTTP)
-
-```
-HTTP/1.1 200 OK
-Content-Type: text/event-stream
-Cache-Control: no-cache
-Connection: keep-alive
-
-retry: 1000
-keep-alive
-
-event: reload
-data: ready
-comment: indicates we should reload page
-
-```
+### SSE Server-Side Types (already in foundation_netio)
 
 ```rust
-pub fn sse_endpoint_reloader(
-    request: &HttpRequest,
+// Build SSE events
+use foundation_netio::event_source::{SseEvent, EventWriter};
+
+// Build proper SSE HTTP response with correct headers
+use foundation_netio::event_source::SseResponse;
+// Content-Type: text/event-stream
+// Cache-Control: no-cache
+// Connection: keep-alive
+```
+
+### SSE Reload Endpoint
+
+```rust
+use foundation_netio::event_source::{SseEvent, EventWriter, SseResponse};
+use foundation_netio::netcap::connection::Connection;
+use std::time::Instant;
+
+pub fn handle_sse_reload(
+    mut client: Connection,
     reload_queue: Arc<ConcurrentQueue<FileChange>>,
-) -> HttpResponse {
-    // Build SSE response as a stream
-    // Headers: Content-Type: text/event-stream, Cache-Control: no-cache
-    // Body: stream of events from reload_queue
-    HttpResponse::streaming()
-        .header("Content-Type", "text/event-stream")
-        .header("Cache-Control", "no-cache")
-        .header("Connection", "keep-alive")
-        .body(SseStream::new(reload_queue))
-}
-```
+) -> Result<()> {
+    // 1. Send SSE response headers
+    let sse_response = SseResponse::new().build();
+    sse_response.write_to(&mut client)?;
 
-### SSE Stream (poll-layer driven)
+    // 2. Create event writer
+    let mut writer = EventWriter::new(&mut client);
 
-The SSE stream is served by the proxy's HTTP/1 handler. Since we have raw socket I/O, we need to:
-1. Send the HTTP headers
-2. On each file change event, write the SSE event to the socket
-3. Send keep-alive comments every 1 second
+    let mut last_keepalive = Instant::now();
 
-```rust
-struct SseStream {
-    queue: Arc<ConcurrentQueue<FileChange>>,
-}
-
-impl SseStream {
-    fn write_event<W: io::Write>(&self, writer: &mut W, event: &FileChange) -> io::Result<()> {
-        write!(writer, "event: reload\r\n")?;
-        write!(writer, "data: ready\r\n")?;
-        write!(writer, "comment: indicates we should reload page\r\n")?;
-        write!(writer, "\r\n")?;
-        writer.flush()
-    }
-
-    fn write_keepalive<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
-        write!(writer, ": keep-alive\r\n\r\n")?;
-        writer.flush()
-    }
-
-    /// Called from proxy TaskIterator tick
-    fn tick<W: io::Write>(&self, writer: &mut W, last_keepalive: Instant) -> (Instant, bool) {
-        // Check for new events
-        while let Ok(change) = self.queue.pop() {
-            self.write_event(writer, &change)?;
+    // 3. Loop: send events from queue, send keepalive every 1s
+    loop {
+        // Check for new reload events
+        while let Ok(_change) = reload_queue.pop() {
+            writer.send(&SseEvent::new()
+                .event("reload")
+                .data("ready")
+                .build())?;
         }
 
-        // Send keepalive every 1s
+        // Send keepalive every 1 second
         if Instant::now() - last_keepalive >= Duration::from_secs(1) {
-            self.write_keepalive(writer)?;
-            return (Instant::now(), true);
+            writer.comment("keep-alive")?;
+            last_keepalive = Instant::now();
         }
 
-        (last_keepalive, false)
+        // Small sleep before next poll
+        std::thread::sleep(Duration::from_millis(50));
     }
 }
 ```
 
 ### Integration with Proxy
 
-The SSE connection is a long-lived HTTP/1 connection. The proxy's HTTP/1 handler needs to:
-1. Detect the `/static/sse/reload` path
-2. Send SSE headers
-3. Enter a loop: poll the SSE stream, write events, send keepalive
-4. Exit when client disconnects (write error) or cancel signal
+The SSE handler is called from the proxy's HTTP/1 request dispatch when the path matches `/static/sse/reload`. Because `Connection` implements `Read + Write`, the `EventWriter` writes directly to the socket. The loop runs as part of the proxy's connection handler — for long-lived SSE connections, the proxy dedicates the connection to SSE until the client disconnects.
 
-This is the one place where the proxy needs to "block" on a single connection — but it's still driven by the poll-layer, so other connections are not blocked.
+### Reloader.js (Client-Side)
+
+The existing `reloader.js` from `crates/devserver/src/reloader.js` is already embedded via `foundation_runtimes::AssetReloader`. No changes needed — it connects to `/static/sse/reload` and reloads on `event: reload`:
+
+```javascript
+const reload_signals = new EventSource("/static/sse/reload");
+reload_signals.addEventListener("reload", (event) => {
+    window.location.reload();
+});
+```
 
 ### Task Breakdown
 
-1. [ ] Define `HttpRequest` / `HttpResponse` with streaming support
-2. [ ] Implement `sse_endpoint_script` handler (reuses AssetReloader)
-3. [ ] Implement `sse_endpoint_reloader` handler
-4. [ ] Implement `SseStream` with tick-based event writing
-5. [ ] Integrate SSE endpoint into proxy HTTP/1 handler (long-lived connection)
-6. [ ] Keep-alive timer (sync `Instant::now()`, no tokio::time::interval)
-7. [ ] Write tests: SSE event format, keepalive timing, reloader.js content
+1. [ ] Implement `handle_sse_reload` using `SseResponse` + `EventWriter`
+3. [ ] Wire SSE routes into proxy HTTP/1 handler dispatch
+4. [ ] Keep-alive timer (sync `Instant::now()`, no tokio::time::interval)
+5. [ ] Write tests: SSE event format (via EventWriter), response headers (via SseResponse)
+
+### Dependencies from foundation_netio
+
+- `event_source::SseEvent` — server-side SSE event builder
+- `event_source::EventWriter<W>` — writes SSE events to any `Write` stream
+- `event_source::SseResponse` — builds SSE HTTP response with correct headers
+- `foundation_runtimes::AssetReloader` — embedded reloader.js (already used by current devserver)
 
 ## File Changes Summary
 
 | File | Action |
 |------|--------|
-| `backends/foundation_toolings/src/proxy/sse.rs` | Create — SSE endpoint + stream |
-| `backends/foundation_toolings/src/reloader.js` | Copy from devserver (or confirm in foundation_runtimes) |
+| `backends/foundation_toolings/src/proxy/sse.rs` | Create — SSE endpoint + handler |
 
 ---
 
