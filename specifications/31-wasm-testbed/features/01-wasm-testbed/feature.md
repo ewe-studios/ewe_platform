@@ -612,8 +612,6 @@ pub struct BuildOutput {
 
 ---
 
----
-
 ### `server.rs` — HTTP Server for Web Tests
 
 **Responsibility:** Start an HTTP server serving the integration directory, report the bound port, and provide shutdown capability.
@@ -643,15 +641,15 @@ pub struct TestServer {
    ```rust
    use foundation_http::{
        shared::app::HttpApp,
-       native::{handlers::static_file::StaticFileHandler, server::HttpServer},
+       native::handlers::static_file::StaticFileHandler,
    };
-   use foundation_netio::simple_http::shared::SimpleMethod;
 
    let mut app = HttpApp::new_serve();
-   let handler = StaticFileHandler::new(integration_dir);
-   app.router().add_route_any(SimpleMethod::GET, "/*", &handler);
+   let handler: Arc<dyn foundation_http::shared::serve::Serve> =
+       Arc::new(StaticFileHandler::new(integration_dir));
+   app.router.add_route_any("/*", &handler);
    ```
-   `Router::add_route_any(path, handler)` takes the handler directly — no `ServeFactory` needed. `StaticFileHandler::new(root)` creates the handler with a root directory and already implements `Serve`.
+   `Router::add_route_any(path, handler)` takes a handler directly (not through `ServeFactory`). `app.router` is a public field (not a method) so we access it directly. `StaticFileHandler::new(root)` creates the handler with a filesystem root directory and already implements `Serve`.
 4. Create the server: `app.server("127.0.0.1:{port}")`
 5. Spawn the server in a thread: `server.serve(&shutdown)` (blocks until `shutdown.probe()` returns true)
 6. Return `TestServer` with port, signal, and thread handle
@@ -1036,19 +1034,20 @@ Used for the test HTTP server that serves integration directories during web/bro
 ```rust
 use foundation_http::{
     shared::app::HttpApp,
-    native::{handlers::static_file::StaticFileHandler, server::HttpServer},
+    native::handlers::static_file::StaticFileHandler,
+    shared::serve::Serve,
 };
-use foundation_netio::simple_http::shared::SimpleMethod;
+use std::sync::Arc;
 
 let mut app = HttpApp::new_serve();
-let handler = StaticFileHandler::new(integration_dir);
-app.router().add_route_any(SimpleMethod::GET, "/*", &handler);
+let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(integration_dir));
+app.router.add_route_any("/*", &handler);
 
 let server = app.server("127.0.0.1:{port}");
 server.serve(&shutdown_signal);  // blocks until shutdown_signal.turn_on()
 ```
 
-The `Router::add_route_any(path, handler)` method takes a handler directly (not through `ServeFactory`). `StaticFileHandler::new(root)` creates the handler with a filesystem root directory. The handler already implements path traversal prevention, MIME type detection, `index.html` fallback, and `Content-Type: application/wasm` headers.
+The `Router::add_route_any(path, handler)` method takes a handler directly (not through `ServeFactory`). `app.router` is a public field. `StaticFileHandler::new(root)` creates the handler with a filesystem root directory and already implements path traversal prevention, MIME type detection, `index.html` fallback, and `Content-Type: application/wasm` headers.
 
 ### `foundation_core::synca::OnSignal`
 
