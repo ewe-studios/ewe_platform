@@ -10,23 +10,20 @@ description = "CLI-driven test harness for wasm32-unknown-unknown"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-anyhow = { workspace = true }
 walrus = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { version = "1", features = ["full"] }
 foundation_http = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
+foundation_errstacks = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tempfile = "3"
 which = "7"
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-indicatif = { workspace = true }
 portpicker = { workspace = true }
-reqwest = { workspace = true, features = ["blocking", "json"] }
-fs_extra = { workspace = true }
+derive_more = { version = "2", features = ["display", "error", "from"] }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }

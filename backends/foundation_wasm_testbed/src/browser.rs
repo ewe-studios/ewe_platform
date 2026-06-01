@@ -2,77 +2,62 @@
 //!
 //! WHY: Browser tests need a real browser environment with DOM and WebAssembly support.
 //! WHAT: Generates a Playwright Node.js script, runs it, captures results.
-//! HOW: Creates a persistent cache dir for playwright node_modules, generates
-//!      a test script tailored to the target URL/browser/headless mode.
+//! HOW: Creates a temp dir for the Playwright script, installs playwright via npm,
+//!      generates a test script tailored to the target URL/browser/headless mode.
 
 use std::process::Command;
 
 use tracing::{debug, info};
 
 use crate::cli::Browser;
+use crate::error::{Result, ToTrace, WasmTestbedError};
 
 /// Output from a browser test run.
 pub struct BrowserOutput {
-    /// Content of the #output element after tests complete.
     pub test_result: String,
-    /// Console log messages captured during the test.
     pub console_logs: Vec<String>,
-    /// Exit code from the node process.
     pub exit_code: i32,
 }
 
 /// Run a browser test via Playwright.
-///
-/// # Errors
-///
-/// Returns an error if:
-/// - node/npx not on PATH
-/// - Playwright installation fails
-/// - Browser not available
-/// - Test times out
-pub fn run(url: &str, browser: &Browser, headless: bool) -> anyhow::Result<BrowserOutput> {
-    // Verify node is available
-    which::which("node").map_err(|_| {
-        anyhow::anyhow!(
-            "node not found on PATH.\n\
-            Playwright requires Node.js."
-        )
-    })?;
+pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
+    which::which("node").map_err(|_| WasmTestbedError::NodeNotFound.trace())?;
 
-    info!("Running browser test: {url} (browser={browser:?}, headless={headless})");
+    info!("Running browser test: {url} (headless={headless})");
 
-    // Create a temp directory for the playwright script
-    let temp_dir = tempfile::tempdir()?;
+    let temp_dir = tempfile::tempdir()
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
     let script_path = temp_dir.path().join("run-test.js");
 
-    // Generate the Playwright script
     let script = generate_playwright_script(url, browser, headless);
-    std::fs::write(&script_path, &script)?;
+    std::fs::write(&script_path, &script)
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
     debug!("Wrote playwright script to {}", script_path.display());
 
-    // Install playwright in the temp dir
     info!("Installing playwright (first run may take a moment)...");
+
     let status = Command::new("npm")
         .arg("init")
         .arg("-y")
         .current_dir(temp_dir.path())
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
-        .status()?;
+        .status()
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
     if !status.success() {
-        anyhow::bail!("Failed to initialize npm package for playwright");
+        return Err(WasmTestbedError::NpmInitFailed.trace());
     }
 
     let status = Command::new("npm")
         .arg("install")
         .arg("playwright")
         .current_dir(temp_dir.path())
-        .status()?;
+        .status()
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
     if !status.success() {
-        anyhow::bail!("Failed to install playwright");
+        return Err(WasmTestbedError::PlaywrightInstallFailed.trace());
     }
 
-    // Install the browser binary
     let browser_name = match browser {
         Browser::Chrome => "chromium",
         Browser::Firefox => "firefox",
@@ -85,19 +70,17 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> anyhow::Result<Brows
         .arg("install")
         .arg(browser_name)
         .current_dir(temp_dir.path())
-        .status()?;
+        .status()
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
     if !status.success() {
-        anyhow::bail!(
-            "Failed to install playwright browser: {browser_name}\n\
-            Run: npx playwright install {browser_name}"
-        );
+        return Err(WasmTestbedError::PlaywrightBrowserInstallFailed(browser_name.to_string()).trace());
     }
 
-    // Run the test script
     let output = Command::new("node")
         .arg(&script_path)
         .current_dir(temp_dir.path())
-        .output()?;
+        .output()
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -108,10 +91,8 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> anyhow::Result<Brows
         debug!("Playwright stderr:\n{stderr}");
     }
 
-    // First line of stdout is the test result
     let test_result = stdout.lines().next().unwrap_or("").trim().to_string();
 
-    // Parse console logs from stderr (JSON array)
     let mut console_logs = Vec::new();
     for line in stderr.lines() {
         if let Ok(logs) = serde_json::from_str::<Vec<serde_json::Value>>(line) {
@@ -124,10 +105,7 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> anyhow::Result<Brows
     }
 
     if exit_code != 0 {
-        anyhow::bail!(
-            "Browser test failed (exit code {exit_code})\n\
-            Test result: {test_result}"
-        );
+        return Err(WasmTestbedError::BrowserTestFailed(exit_code, test_result).trace());
     }
 
     Ok(BrowserOutput {
@@ -163,9 +141,7 @@ const {{ {browser_module} }} = require('playwright');
     for (let i = 0; i < 60; i++) {{
       try {{
         output = await page.$eval('#output', el => el.textContent);
-      }} catch (e) {{
-        // Element not ready yet
-      }}
+      }} catch (e) {{}}
       if (output && (output.includes('test result:') || output.includes('Tests complete'))) break;
       await new Promise(r => setTimeout(r, 500));
     }}
@@ -181,8 +157,5 @@ const {{ {browser_module} }} = require('playwright');
   }}
 }})();
 "#,
-        browser_module = browser_module,
-        headless = headless,
-        url = url,
     )
 }

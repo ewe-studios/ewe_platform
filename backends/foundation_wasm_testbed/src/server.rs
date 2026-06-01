@@ -12,7 +12,10 @@ use std::thread;
 use foundation_core::synca::OnSignal;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::shared::app::HttpApp;
+use foundation_http::shared::serve::Serve;
 use tracing::debug;
+
+use crate::error::{Result, ToTrace, WasmTestbedError};
 
 /// Running test server.
 pub struct TestServer {
@@ -50,9 +53,9 @@ impl TestServer {
 /// # Errors
 ///
 /// Returns an error if no available port can be found.
-pub fn start_serving(integration_dir: &Path) -> anyhow::Result<TestServer> {
+pub fn start_serving(integration_dir: &Path) -> Result<TestServer> {
     let port = portpicker::pick_unused_port()
-        .ok_or_else(|| anyhow::anyhow!("No available port found"))?;
+        .ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
 
     let shutdown = Arc::new(OnSignal::new());
     let shutdown_clone = shutdown.clone();
@@ -61,8 +64,7 @@ pub fn start_serving(integration_dir: &Path) -> anyhow::Result<TestServer> {
 
     let handle = thread::spawn(move || {
         let mut app = HttpApp::new_serve();
-        let handler: Arc<dyn foundation_http::shared::serve::Serve> =
-            Arc::new(StaticFileHandler::new(&root));
+        let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(&root));
         app.router.add_route_any("/*", &handler);
 
         let server = app.server(&addr);

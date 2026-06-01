@@ -2788,6 +2788,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_conditional"
+version = "0.1.0"
+
+[[package]]
 name = "foundation_core"
 version = "0.0.3"
 dependencies = [
@@ -3133,21 +3137,18 @@ dependencies = [
 name = "foundation_wasm_testbed"
 version = "0.0.1"
 dependencies = [
- "anyhow",
  "clap",
+ "derive_more",
  "foundation_core",
+ "foundation_errstacks",
  "foundation_http",
  "foundation_macros",
  "foundation_nostd",
- "fs_extra",
- "indicatif 0.18.4",
  "portpicker",
- "reqwest 0.12.24",
  "serde",
  "serde_json",
  "serial_test",
  "tempfile",
- "tokio",
  "tracing",
  "tracing-subscriber",
  "tracing-test",

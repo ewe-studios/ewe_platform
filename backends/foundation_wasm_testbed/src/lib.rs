@@ -7,6 +7,7 @@ mod browser;
 mod build;
 mod cli;
 mod deno;
+mod error;
 mod init;
 mod server;
 mod wasm;

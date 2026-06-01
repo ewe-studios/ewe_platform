@@ -10,6 +10,7 @@ use foundation_nostd::embeddable::DirectoryData;
 use tracing::info;
 
 use crate::cli::{InitArgs, InitType};
+use crate::error::{Result, ToTrace, WasmTestbedError};
 
 /// Embedded template directory.
 ///
@@ -21,10 +22,11 @@ use crate::cli::{InitArgs, InitType};
 struct TemplateDirectory;
 
 /// Read a template file by its path within the templates directory.
-fn read_template(path: &str) -> anyhow::Result<String> {
+fn read_template(path: &str) -> Result<String> {
     let bytes = TemplateDirectory.read_utf8_for(path)
-        .ok_or_else(|| anyhow::anyhow!("Template not found: {path}"))?;
-    String::from_utf8(bytes).map_err(|e| anyhow::anyhow!("Template is not valid UTF-8: {path}: {e}"))
+        .ok_or_else(|| WasmTestbedError::TemplateNotFound(path.to_string()).trace())?;
+    String::from_utf8(bytes)
+        .map_err(|e| WasmTestbedError::TemplateNotUtf8(e).trace())
 }
 
 /// Write a template to a target directory, replacing PACKAGE_NAME.
@@ -35,16 +37,17 @@ pub fn write_template_to(
     template_path: &str,
     package_name: &str,
     target_dir: &std::path::Path,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     let content = read_template(template_path)?;
     let content = content.replace("PACKAGE_NAME", package_name);
 
     let file_name = std::path::Path::new(template_path)
         .file_name()
-        .ok_or_else(|| anyhow::anyhow!("Invalid template path: {template_path}"))?;
+        .ok_or_else(|| WasmTestbedError::InvalidTemplatePath(template_path.to_string()).trace())?;
     let dest = target_dir.join(file_name);
 
-    std::fs::write(&dest, content)?;
+    std::fs::write(&dest, content)
+        .map_err(|e| WasmTestbedError::TemplateNotFound(format!("write failed: {e}")).trace())?;
     tracing::debug!("Wrote template to {}", dest.display());
     Ok(())
 }
@@ -59,7 +62,7 @@ pub fn write_bindgen_runjs_to(
     package_name: &str,
     tests: &[String],
     target_dir: &std::path::Path,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     let content = read_template(template_path)?;
     let content = content.replace("PACKAGE_NAME", package_name);
 
@@ -72,20 +75,20 @@ pub fn write_bindgen_runjs_to(
 
     let file_name = std::path::Path::new(template_path)
         .file_name()
-        .ok_or_else(|| anyhow::anyhow!("Invalid template path: {template_path}"))?;
+        .ok_or_else(|| WasmTestbedError::InvalidTemplatePath(template_path.to_string()).trace())?;
     let dest = target_dir.join(file_name);
 
-    std::fs::write(&dest, content)?;
+    std::fs::write(&dest, content)
+        .map_err(|e| WasmTestbedError::TemplateNotFound(format!("write failed: {e}")).trace())?;
     tracing::debug!("Wrote bindgen template to {}", dest.display());
     Ok(())
 }
 
 /// Read the package name from a Cargo.toml file.
-fn read_package_name(cargo_toml: &std::path::Path) -> anyhow::Result<String> {
+fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
     let content = std::fs::read_to_string(cargo_toml)
-        .map_err(|e| anyhow::anyhow!("Failed to read {}: {e}", cargo_toml.display()))?;
+        .map_err(|_e| WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())?;
 
-    // Simple TOML parsing — look for name = "..." under [package]
     let mut in_package = false;
     for line in content.lines() {
         let trimmed = line.trim();
@@ -105,18 +108,18 @@ fn read_package_name(cargo_toml: &std::path::Path) -> anyhow::Result<String> {
         }
     }
 
-    anyhow::bail!("Cargo.toml missing [package].name in {}", cargo_toml.display())
+    Err(WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())
 }
 
 /// Entry point for the `init` command.
-pub async fn run(args: InitArgs) -> anyhow::Result<()> {
+pub fn run(args: InitArgs) -> Result<()> {
     let crate_path = args.crate_path.canonicalize().map_err(|_| {
-        anyhow::anyhow!("Crate path does not exist: {}", args.crate_path.display())
+        WasmTestbedError::CratePathNotFound(args.crate_path.display().to_string()).trace()
     })?;
 
     let cargo_toml = crate_path.join("Cargo.toml");
     if !cargo_toml.exists() {
-        anyhow::bail!("Not a Cargo crate: {}", crate_path.display());
+        return Err(WasmTestbedError::NotACargoCrate(crate_path.display().to_string()).trace());
     }
 
     let package_name = read_package_name(&cargo_toml)?;
@@ -135,9 +138,9 @@ pub async fn run(args: InitArgs) -> anyhow::Result<()> {
         };
 
         let integration_dir = crate_path.join("integrations").join(dir_name);
-        std::fs::create_dir_all(&integration_dir)?;
+        std::fs::create_dir_all(&integration_dir)
+            .map_err(|e| WasmTestbedError::CratePathNotFound(format!("{e}")).trace())?;
 
-        // Determine which template files to write for this type
         let templates = match init_type {
             InitType::Web => vec!["web/index.html", "web/index.js", "web/loader.js"],
             InitType::Deno => vec!["deno/index.js", "deno/loader.js"],

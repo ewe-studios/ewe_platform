@@ -10,6 +10,8 @@ use std::process::Command;
 
 use tracing::{debug, info};
 
+use crate::error::{Result, ToTrace, WasmTestbedError};
+
 /// Target platform for wasm-bindgen output.
 pub enum BindgenTarget {
     /// Web browser (default, no --target flag needed).
@@ -45,25 +47,24 @@ pub fn run_wasm_bindgen(
     wasm_path: &Path,
     output_dir: &Path,
     target: BindgenTarget,
-) -> anyhow::Result<()> {
-    // Ensure output directory exists
-    std::fs::create_dir_all(output_dir)?;
+) -> Result<()> {
+    std::fs::create_dir_all(output_dir)
+        .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
 
-    // Clean existing files in output dir (avoid stale artifacts)
-    for entry in std::fs::read_dir(output_dir)? {
-        let entry = entry?;
-        if entry.file_type()?.is_file() {
-            std::fs::remove_file(entry.path())?;
+    for entry in std::fs::read_dir(output_dir)
+        .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?
+    {
+        let entry = entry.map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
+        if entry.file_type()
+            .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?
+            .is_file()
+        {
+            std::fs::remove_file(entry.path())
+                .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
         }
     }
 
-    // Locate wasm-bindgen
-    which::which("wasm-bindgen").map_err(|_| {
-        anyhow::anyhow!(
-            "wasm-bindgen not found on PATH.\n\
-            Install: cargo install wasm-bindgen-cli"
-        )
-    })?;
+    which::which("wasm-bindgen").map_err(|_| WasmTestbedError::WasmBindgenNotFound.trace())?;
 
     info!("Running wasm-bindgen...");
 
@@ -79,14 +80,11 @@ pub fn run_wasm_bindgen(
     debug!("Executing: {:?}", cmd);
 
     let status = cmd.status().map_err(|e| {
-        anyhow::anyhow!("Failed to execute wasm-bindgen: {e}")
+        WasmTestbedError::WasmBindgenExecFailed(e).trace()
     })?;
 
     if !status.success() {
-        anyhow::bail!(
-            "wasm-bindgen failed (exit code {:?})",
-            status.code()
-        );
+        return Err(WasmTestbedError::WasmBindgenFailed(status.code()).trace());
     }
 
     info!("wasm-bindgen output in {}", output_dir.display());

@@ -36,23 +36,20 @@ description = "CLI-driven test harness for wasm32-unknown-unknown"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-anyhow = "1"
 walrus = "0.23"
 serde = { workspace = true }
-serde_json = "1"
-tokio = { version = "1", features = ["full"] }
+serde_json = { workspace = true }
 foundation_http = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
+foundation_errstacks = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tempfile = "3"
 which = "7"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-indicatif = "0.18"
-portpicker = "0.1"
-reqwest = { version = "0.12", features = ["blocking", "json"] }
-fs_extra = "1.3"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+portpicker = { workspace = true }
+derive_more = { version = "2", features = ["display", "error", "from"] }
 
 [[bin]]
 name = "wasm-testbed"
@@ -68,22 +65,23 @@ workspace = true
 |---|---|
 | `foundation_http` | StaticFileHandler for serving integration directories during web/browser tests |
 | `foundation_core` | OnSignal for graceful server shutdown, valtron executor for HTTP connections |
+| `foundation_errstacks` | Error handling with ErrorTrace — project standard, replaces anyhow |
+| `derive_more` | Display/Error/From derives for WasmTestbedError enum |
 | `walrus` | wasm binary parsing — discovers `__wbgt_` exports by name in the wasm module's export section |
 | `portpicker` | Find a random available port for the HTTP server / wrangler dev |
-| `reqwest` (blocking) | curl-equivalent for wrangler mode — sends HTTP request to wrangler dev and reads response |
-| `indicatif` | Progress spinner UX during build / test steps |
+| `serde`/`serde_json` | JSON parsing for Playwright console log output |
 | `tempfile` | Temp directories for Playwright scripts |
 | `which` | Locate `wasm-bindgen`, `deno`, `wrangler`, `npx` on PATH |
 
-### NEW workspace dependencies to add to root Cargo.toml
+### Removed dependencies
 
-These are not currently in the workspace:
-- `walrus = "0.23"` — wasm binary parsing (test discovery)
-- `portpicker = "0.1"` — random available port allocation
-- `reqwest = { version = "0.12", features = ["blocking", "json"] }` — HTTP client for wrangler mode
-- `fs_extra = "1.3"` — recursive file copying
-- `indicatif = "0.18"` — progress spinners
-- `tracing-subscriber = { version = "0.3", features = ["env-filter"] }` — CLI log output
+| Was | Why removed |
+|---|---|
+| `anyhow` | Replaced with `foundation_errstacks::ErrorTrace` + `derive_more` error enum |
+| `tokio` | All work is synchronous — cargo build, wasm-bindgen, subprocesses, foundation_http uses valtron |
+| `reqwest` | wrangler poll is a single HTTP GET — use `std::net::TcpStream` with raw HTTP bytes instead |
+| `indicatif` | Declared but never used in code |
+| `fs_extra` | Declared but never used in code
 
 ---
 
@@ -93,7 +91,7 @@ These are not currently in the workspace:
 backends/foundation_wasm_testbed/
 ├── Cargo.toml
 ├── src/
-│   ├── main.rs           # CLI entry point (clap), tokio runtime bootstrap, tracing init
+│   ├── main.rs           # CLI entry point (clap), tracing init, sync dispatch
 │   ├── lib.rs            # Re-exports for testing
 │   ├── cli.rs            # Clap subcommand definitions (InitArgs, TestArgs, Mode, InitType)
 │   ├── init.rs           # init command — scaffold integration directories from templates
@@ -101,7 +99,7 @@ backends/foundation_wasm_testbed/
 │   ├── wasm.rs           # locate wasm binary in target/, run wasm-bindgen CLI
 │   ├── wasm_test.rs      # discover __wbgt_ exports via walrus wasm parsing
 │   ├── deno.rs           # deno run --allow-read --allow-net command construction + execution
-│   ├── wrangler.rs       # wrangler dev subprocess management + HTTP curl
+│   ├── wrangler.rs       # wrangler dev subprocess + raw HTTP poll (std::net::TcpStream)
 │   ├── browser.rs        # Playwright subprocess management for web tests
 │   ├── server.rs         # foundation_http server setup (uses StaticFileHandler)
 │   └── templates/        # Template source files (NOT compiled in, read at build time by macro)

@@ -9,6 +9,8 @@ use std::process::Command;
 
 use tracing::{debug, info};
 
+use crate::error::{Result, ToTrace, WasmTestbedError};
+
 /// Output from a Deno test run.
 pub struct DenoOutput {
     /// Captured stdout.
@@ -28,24 +30,14 @@ pub struct DenoOutput {
 /// Returns an error if:
 /// - deno is not on PATH
 /// - deno exits with a non-zero code (error includes captured output)
-pub fn run(integration_dir: &Path, entry_file: &str) -> anyhow::Result<DenoOutput> {
-    // Verify deno is available
-    which::which("deno").map_err(|_| {
-        anyhow::anyhow!(
-            "deno not found on PATH.\n\
-            Install from https://deno.land"
-        )
-    })?;
+pub fn run(integration_dir: &Path, entry_file: &str) -> Result<DenoOutput> {
+    which::which("deno").map_err(|_| WasmTestbedError::DenoNotFound.trace())?;
 
     info!("Running deno test: {entry_file}");
 
     let entry_path = integration_dir.join(entry_file);
     if !entry_path.exists() {
-        anyhow::bail!(
-            "Entry file not found: {}\n\
-            Hint: run wasm-testbed init deno ./crate first.",
-            entry_path.display()
-        );
+        return Err(WasmTestbedError::DenoEntryNotFound(entry_path.display().to_string()).trace());
     }
 
     let mut cmd = Command::new("deno");
@@ -59,7 +51,7 @@ pub fn run(integration_dir: &Path, entry_file: &str) -> anyhow::Result<DenoOutpu
     debug!("Executing: {:?}", cmd);
 
     let output = cmd.output().map_err(|e| {
-        anyhow::anyhow!("Failed to execute deno: {e}")
+        WasmTestbedError::DenoExecFailed(e).trace()
     })?;
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
@@ -74,11 +66,7 @@ pub fn run(integration_dir: &Path, entry_file: &str) -> anyhow::Result<DenoOutpu
     }
 
     if exit_code != 0 {
-        anyhow::bail!(
-            "deno test failed (exit code {exit_code})\n\
-            stdout:\n{stdout}\n\
-            stderr:\n{stderr}"
-        );
+        return Err(WasmTestbedError::DenoTestFailed(exit_code, stdout, stderr).trace());
     }
 
     Ok(DenoOutput {

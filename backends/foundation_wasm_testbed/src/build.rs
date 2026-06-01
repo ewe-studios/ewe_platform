@@ -10,6 +10,8 @@ use std::process::Command;
 
 use tracing::{debug, info};
 
+use crate::error::{Result, ToTrace, WasmTestbedError};
+
 /// Output of a successful wasm build.
 pub struct BuildOutput {
     /// Absolute path to the built .wasm file.
@@ -21,9 +23,9 @@ pub struct BuildOutput {
 }
 
 /// Read the package name from a Cargo.toml file.
-fn read_package_name(cargo_toml: &Path) -> anyhow::Result<String> {
+fn read_package_name(cargo_toml: &Path) -> Result<String> {
     let content = std::fs::read_to_string(cargo_toml)
-        .map_err(|e| anyhow::anyhow!("Failed to read {}: {e}", cargo_toml.display()))?;
+        .map_err(|_e| WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())?;
 
     let mut in_package = false;
     for line in content.lines() {
@@ -44,7 +46,7 @@ fn read_package_name(cargo_toml: &Path) -> anyhow::Result<String> {
         }
     }
 
-    anyhow::bail!("Cargo.toml missing [package].name in {}", cargo_toml.display())
+    Err(WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())
 }
 
 /// Run `cargo build --target wasm32-unknown-unknown` and return the wasm output.
@@ -60,16 +62,13 @@ pub fn run(
     crate_path: &Path,
     release: bool,
     features: Option<&str>,
-) -> anyhow::Result<BuildOutput> {
+) -> Result<BuildOutput> {
     let cargo_toml = crate_path.join("Cargo.toml");
     let package_name = read_package_name(&cargo_toml)?;
 
     let profile = if release { "release" } else { "debug" };
 
-    // Check that cargo is available
-    which::which("cargo").map_err(|_| {
-        anyhow::anyhow!("cargo not found on PATH")
-    })?;
+    which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
 
     info!("Running cargo build --target wasm32-unknown-unknown...");
 
@@ -89,23 +88,16 @@ pub fn run(
 
     debug!("Executing: {:?}", cmd);
 
-    let status = cmd
-        .status()
-        .map_err(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                anyhow::anyhow!("cargo not found on PATH")
-            } else {
-                anyhow::anyhow!("Failed to execute cargo: {e}")
-            }
-        })?;
+    let status = cmd.status().map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            WasmTestbedError::CargoNotFound.trace()
+        } else {
+            WasmTestbedError::CargoExecFailed(e).trace()
+        }
+    })?;
 
     if !status.success() {
-        anyhow::bail!(
-            "cargo build failed (exit code {:?})\n\
-            Hint: if wasm32-unknown-unknown target is not installed, run:\n\
-            rustup target add wasm32-unknown-unknown",
-            status.code()
-        );
+        return Err(WasmTestbedError::CargoBuildFailed(status.code()).trace());
     }
 
     let wasm_path = crate_path
@@ -115,11 +107,7 @@ pub fn run(
         .join(format!("{package_name}.wasm"));
 
     if !wasm_path.exists() {
-        anyhow::bail!(
-            "Wasm binary not found at {}\n\
-            Expected cargo build to produce this file.",
-            wasm_path.display()
-        );
+        return Err(WasmTestbedError::WasmBinaryNotFound(wasm_path.display().to_string()).trace());
     }
 
     info!("Built wasm: {}", wasm_path.display());
