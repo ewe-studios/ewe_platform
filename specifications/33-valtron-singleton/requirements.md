@@ -1,7 +1,7 @@
 ---
 description: "Add ValtronSingleton with Weak/Arc-backed singleton initialization to both single and multi-threaded valtron executors, providing explicit guard ownership, natural drop-based cleanup, and unified API surface."
-status: "pending"
-priority: "high"
+status: "cancelled"
+priority: "low"
 created: 2026-06-01
 updated: 2026-06-01
 author: "Main Agent"
@@ -21,6 +21,15 @@ builds_on: []
 related_specs:
   - "specifications/32-cf-serve-app"
 ---
+
+## Decision: Cancelled
+
+The Weak/Arc singleton pattern was explored for both single and multi-threaded valtron executors. It was kept for the HTTP app layer (spec 32, CF and Web) but **rejected for valtron** for the following reasons:
+
+- **Single-threaded executor**: The original `thread_local!` + `OnceCell` design was better — each test thread gets its own isolated executor, tests run in parallel without interference. The global singleton broke test isolation and required fragile `reset()` calls.
+- **Multi-threaded executor**: The existing `PoolGuard` with explicit `shutdown()` and `cleanup_fn` works correctly. The Weak/Arc pattern caused shutdown deadlocks in test contexts.
+
+**Takeaway**: The singleton pattern with `Mutex<Weak<T>>` is appropriate for HTTP app registration (where there is genuinely one app per lifecycle), but the executor should remain per-thread/local-scoped for flexibility and testability.
 
 # Valtron Executor — Singleton Initialization (Single & Multi)
 
