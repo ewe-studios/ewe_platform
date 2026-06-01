@@ -142,7 +142,7 @@ impl<'template> TemplateCompiler<'template> {
                     if escaped && self.remaining_text.is_empty() {
                         return Err(self.parse_error(
                             text,
-                            "Found an escape that doesn't escape any character.".to_string()
+                            "Found an escape that doesn't escape any character.".to_string(),
                         ));
                     }
                 }

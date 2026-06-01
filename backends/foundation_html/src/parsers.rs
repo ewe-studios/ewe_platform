@@ -1273,7 +1273,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
@@ -1289,7 +1289,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn _parse<'a>(&self, accumulator: &mut StringPointer<'a>) -> ParsingResult<Stack<'a>> {
@@ -1500,7 +1500,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_element_from_accumulator<'c, 'd>(
@@ -1657,7 +1657,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_comment<'c, 'd>(
@@ -1702,7 +1702,7 @@ impl HTMLParser {
 
     #[allow(clippy::used_underscore_binding)]
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_code_block<'c, 'd>(
@@ -1792,7 +1792,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_text_block<'c, 'd>(
@@ -1840,7 +1840,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_element_text_block<'c, 'd>(
@@ -1911,7 +1911,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_doc_type<'c, 'd>(
@@ -1995,7 +1995,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_xml_elem<'c, 'd>(
@@ -2071,7 +2071,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_elem<'c, 'd>(
@@ -2189,7 +2189,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn collect_space(&self, acc: &mut StringPointer) -> ParsingResult<()> {
@@ -2220,7 +2220,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn is_valid_attribute_value_token(&self, token: &str) -> bool {
@@ -2234,7 +2234,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
@@ -2249,7 +2249,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn is_valid_attribute_name(&self, token: &str) -> bool {
@@ -2261,7 +2261,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
@@ -2345,7 +2345,7 @@ impl HTMLParser {
 
     #[allow(unused)]
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn collect_attribute_name_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
@@ -2364,7 +2364,7 @@ impl HTMLParser {
 
     #[allow(unused)]
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn collect_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
@@ -2382,7 +2382,7 @@ impl HTMLParser {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip(self))
     )]
     fn parse_elem_attribute<'c, 'd>(

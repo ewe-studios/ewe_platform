@@ -74,7 +74,8 @@ regex = { version = "1.10" }
 foundation_testbed = { workspace = true, features = ["cli"] }
 
 [features]
-debug_trace = ["foundation_packager/debug_trace"]
+debug_block = ["foundation_packager/debug_block"]
+trace_block = ["foundation_packager/trace_block"]
 
 [lints]
 workspace = true

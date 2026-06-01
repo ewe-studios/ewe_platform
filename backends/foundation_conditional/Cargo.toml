@@ -11,7 +11,8 @@ keywords = ["conditional-compilation", "macros", "feature-flags"]
 
 [features]
 default = []
-debug_trace = []
+debug_block = []
+trace_block = []
 test_utils = []
 
 [lints]

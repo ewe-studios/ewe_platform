@@ -34,7 +34,8 @@ criterion = { version = "0.5", features = ["html_reports"] }
 workspace = true
 
 [features]
-debug_trace = ["foundation_conditional/debug_trace"]
+debug_block = ["foundation_conditional/debug_block"]
+trace_block = ["foundation_conditional/trace_block"]
 
 [[bench]]
 name = "cwikipedia"

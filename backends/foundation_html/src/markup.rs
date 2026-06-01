@@ -215,7 +215,7 @@ pub enum FragmentDef<'a> {
 
 #[allow(unused)]
 #[cfg_attr(
-    feature = "debug_trace",
+    feature = "trace_block",
     tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_nodes<'a>(
@@ -240,7 +240,7 @@ fn deallocate_nodes<'a>(
 
 #[allow(unused)]
 #[cfg_attr(
-    feature = "debug_trace",
+    feature = "trace_block",
     tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_attributes<'a>(
@@ -265,7 +265,7 @@ fn deallocate_attributes<'a>(
 
 #[allow(unused)]
 #[cfg_attr(
-    feature = "debug_trace",
+    feature = "trace_block",
     tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_markup_list<'a>(
@@ -289,7 +289,7 @@ fn deallocate_markup_list<'a>(
 }
 
 #[cfg_attr(
-    feature = "debug_trace",
+    feature = "trace_block",
     tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_markup<'a>(
@@ -610,7 +610,7 @@ impl<'a> Fragment<'a> {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip_all)
     )]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
@@ -632,7 +632,7 @@ impl<'a> Fragment<'a> {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip_all)
     )]
     pub fn update_attribute(&mut self, name: Bytes<'a>, value: Bytes<'a>) {
@@ -659,7 +659,7 @@ impl<'a> Fragment<'a> {
     }
 
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip_all)
     )]
     pub fn remove_child_at(&mut self, index: usize) -> ElementResult<()> {
@@ -720,7 +720,7 @@ impl<'a> Fragment<'a> {
 
 impl memory::Resettable for Fragment<'_> {
     #[cfg_attr(
-        feature = "debug_trace",
+        feature = "trace_block",
         tracing::instrument(level = "trace", skip_all)
     )]
     fn reset(&mut self) {

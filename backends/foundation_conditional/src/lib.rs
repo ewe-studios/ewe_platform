@@ -22,26 +22,26 @@
 //! Code after the block cannot reference variables declared inside it, since the block is its
 //! own scope. If you need the value outside the block, gate the entire usage.
 
-/// Gates a block of code on the `debug_trace` feature.
+/// Gates a block of code on the `debug_block` feature.
 /// Expands to the block when enabled, or `{}` when disabled.
 #[macro_export]
 macro_rules! debug {
     ($($block:tt)*) => {
-        #[cfg(feature = "debug_trace")]
+        #[cfg(feature = "debug_block")]
         { $($block)* }
-        #[cfg(not(feature = "debug_trace"))]
+        #[cfg(not(feature = "debug_block"))]
         {}
     };
 }
 
-/// Gates a block of code on the `debug_trace` feature.
+/// Gates a block of code on the `trace_block` feature.
 /// Semantically equivalent to [`debug!`] but named for trace-level instrumentation.
 #[macro_export]
 macro_rules! trace {
     ($($block:tt)*) => {
-        #[cfg(feature = "debug_trace")]
+        #[cfg(feature = "trace_block")]
         { $($block)* }
-        #[cfg(not(feature = "debug_trace"))]
+        #[cfg(not(feature = "trace_block"))]
         {}
     };
 }

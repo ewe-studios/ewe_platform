@@ -377,7 +377,7 @@ impl<'a> BytesPointer<'a> {
     ///
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[cfg_attr(feature = "trace_block", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a [u8]> {
         let new_peek_pos = self.pos + from;
@@ -403,7 +403,7 @@ impl<'a> BytesPointer<'a> {
     ///
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[cfg_attr(feature = "trace_block", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn vpeek_at(&mut self, from: usize, to: usize) -> Option<&'a [u8]> {
         let new_peek_pos = self.peek_pos + from;
@@ -426,7 +426,7 @@ impl<'a> BytesPointer<'a> {
     /// If we've exhausted the total string slice left or are trying to
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[cfg_attr(feature = "trace_block", tracing::instrument(level = "trace"))]
     #[inline]
     fn peek_slice(&mut self, by: usize) -> Option<&'a [u8]> {
         if self.peek_pos + by > self.content.len() {
@@ -448,7 +448,7 @@ impl<'a> BytesPointer<'a> {
     /// If we've exhausted the total string slice left or are trying to
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[cfg_attr(feature = "trace_block", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn take_with_amount(&mut self, by: usize) -> Option<(&'a [u8], (usize, usize))> {
         if self.peek_pos + by > self.content.len() {

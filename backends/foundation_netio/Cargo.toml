@@ -75,6 +75,8 @@ smol = "2"
 
 [features]
 debug_trace = ["standard", "log_debug"]
+debug_block = []
+trace_block = []
 standard = ["log_info", "log_errors", "log_warnings"]
 log_warnings = []
 log_errors = []

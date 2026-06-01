@@ -29,7 +29,8 @@ minijinja = { version = "2.0.0", features = ["loader"] }
 tracing-test = { version = "0.2.5" }
 
 [features]
-debug_trace = ["foundation_conditional/debug_trace"]
+debug_block = ["foundation_conditional/debug_block"]
+trace_block = ["foundation_conditional/trace_block"]
 
 [lints]
 workspace = true
