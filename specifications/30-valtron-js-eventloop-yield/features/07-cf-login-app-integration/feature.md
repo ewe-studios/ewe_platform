@@ -1,11 +1,13 @@
 ---
 feature: "cf-login-app Integration"
 description: "Enable js_eventloop_yield feature in cf-login-app example and verify full login flow works on miniflare"
-status: "draft"
+status: "cancelled"
 priority: "medium"
 depends_on: ["02-js-eventloop-yield-end-to-end"]
 estimated_effort: "small"
 created: 2026-05-22
+cancelled: 2026-06-01
+cancel_reason: "Superseded by spec 32 (cf-serve-app)"
 author: "Main Agent"
 tasks:
   completed: 0

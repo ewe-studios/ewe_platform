@@ -1,7 +1,7 @@
 ---
 feature: "Valtron JS Event Loop-Aware Yield on wasm32"
 description: "Fix NotifyQueue contract and add JS-aware yielding so valtron executor yields to JS event loop on wasm32"
-status: "draft"
+status: "done"
 priority: "high"
 depends_on: ["specifications/03-wasm-friendly-sync-primitives", "specifications/28-cloudflare-workers-readiness"]
 related_to: ["specifications/28-cloudflare-workers-readiness/features/11-valtron-async-bridge"]
@@ -10,10 +10,10 @@ created: 2026-05-22
 author: "Main Agent"
 has_features: true
 tasks:
-  completed: 0
-  uncompleted: 9
-  total: 9
-  completion_percentage: 0%
+  completed: 2
+  uncompleted: 0
+  total: 2
+  completion_percentage: 100%
 ---
 
 # Valtron JS Event Loop-Aware Yield on wasm32
@@ -32,10 +32,10 @@ This specification fixes the NotifyQueue contract first (Feature 1 — prerequis
 
 | Feature # | Name | Description | Status | Priority | Dependencies |
 |-----------|------|-------------|--------|----------|--------------|
-| 01 | [notify-queue-contract-fix](./features/01-notify-queue-contract-fix/feature.md) | Add NotificationItem enum, max_spins, fix indefinite loop | draft | critical | none |
-| 02 | [js-eventloop-yield-end-to-end](./features/02-js-aware-spinwaiter/feature.md) | Cooperative spin mutex, YieldSignal, JSThreadYielder (wasmbindgen + foundation_wasm), executor stop logic | draft | high | 01 |
-| 07 | [cf-login-app-integration](./features/07-cf-login-app-integration/feature.md) | Enable JS yield in cf-login-app example | draft | medium | 02 |
-| 08 | [wasm-js-yield-integration-tests](./features/08-wasm-js-yield-integration-tests/feature.md) | wasm-pack integration tests for full JS yield stack | draft | high | 02 |
+| 01 | [notify-queue-contract-fix](./features/01-notify-queue-contract-fix/feature.md) | Add NotificationItem enum, max_spins, fix indefinite loop | done | critical | none |
+| 02 | [js-eventloop-yield-end-to-end](./features/02-js-aware-spinwaiter/feature.md) | Cooperative spin mutex, YieldSignal, JSThreadYielder (wasmbindgen + foundation_wasm), executor stop logic | done | high | 01 |
+| 07 | [cf-login-app-integration](./features/07-cf-login-app-integration/feature.md) | Enable JS yield in cf-login-app example | cancelled | medium | 02 |
+| 08 | wasm-js-yield-integration-tests | wasm-pack integration tests for full JS yield stack | cancelled | high | 02 |
 | 09 | [wasm-credential-store-e2e-tests](./features/09-wasm-credential-store-e2e-tests/feature.md) | End-to-end tests for credential store with JS yield | cancelled | high | 07, 08 |
 
 ## Architecture
@@ -95,12 +95,7 @@ This specification fixes the NotifyQueue contract first (Feature 1 — prerequis
 01-notify-queue-contract-fix (critical, base)
     |
     v
-02-js-eventloop-yield-end-to-end (merged: wasmbindgen + foundation_wasm backends)
-    |
-    +--------+--------+
-    |                 |
-    v                 v
-07-cf-login-app   08-integration-tests
+02-js-eventloop-yield-end-to-end (done)
 ```
 
 ---

@@ -2,7 +2,7 @@
 
 ## Status
 
-**Overall**: 2/4 features completed (1 cancelled)
+**Overall**: 2/2 features completed (3 cancelled/superseded)
 
 ## Completed Features
 
@@ -63,10 +63,13 @@
 |---------|--------|-------|
 | 01-notify-queue-contract-fix | done | NotifyQueue contract fix + yield signal chain |
 | 02-js-eventloop-yield-end-to-end | done | CooperativeSpinWaiter, YieldSignal, JSThreadYielder, executor stop |
-| 07-cf-login-app-integration | draft | Depends on 02 |
-| 08-wasm-js-yield-integration-tests | draft | Depends on 02 |
+| 07-cf-login-app-integration | cancelled | Superseded by spec 32 (cf-serve-app) |
+| 08-wasm-js-yield-integration-tests | cancelled | Moved to spec 31 (wasm-testbed) |
 | 09-wasm-credential-store-e2e-tests | cancelled | Covered by spec 28 (Cloudflare Workers Readiness) |
 
 ## Next Action
 
-Implement Feature 07: cf-login-app integration, or Feature 08: wasm-js-yield integration tests.
+Spec 30 is complete. Core implementation (Features 01, 02) done. Remaining features cancelled/superseded:
+- Feature 07 → spec 32 (cf-serve-app)
+- Feature 08 → spec 31 (wasm-testbed)
+- Feature 09 → spec 28 (Cloudflare Workers Readiness)
