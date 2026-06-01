@@ -389,6 +389,500 @@ pub extern "C" fn ipmb_join(
 
 ---
 
+## Component 9: Version Compatibility Protocol
+
+### What It Does
+
+Every message carries a version header. Endpoints refuse to communicate with incompatible versions, preventing silent data corruption from protocol changes.
+
+### How It Works
+
+**Version format:** `[magic: u8 = 0xFF][major: u8][minor: u8][patch: u8]` — packed as `u32`.
+
+**Compatibility rule:**
+- If both major versions are `0` → minor versions must match (pre-1.0 breaking changes allowed on minor bump)
+- If either major version is `≥1` → major versions must match (semver rules)
+
+```rust
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub struct Version((u8, u8, u8));
+
+impl Version {
+    fn compatible(&self, rhs: Self) -> bool {
+        if self.major() == 0 && rhs.major() == 0 {
+            self.minor() == rhs.minor()
+        } else {
+            self.major() == rhs.major()
+        }
+    }
+
+    pub fn major(&self) -> u8 { self.0 .0 }
+    pub fn minor(&self) -> u8 { self.0 .1 }
+    pub fn patch(&self) -> u8 { self.0 .2 }
+}
+
+/// Version read from crate metadata at compile time
+static VERSION: Lazy<Version> = Lazy::new(|| {
+    let v_major = env!("CARGO_PKG_VERSION_MAJOR");
+    let v_minor = env!("CARGO_PKG_VERSION_MINOR");
+    let v_patch = env!("CARGO_PKG_VERSION_PATCH");
+    Version((v_major.parse().unwrap(), v_minor.parse().unwrap(), v_patch.parse().unwrap()))
+});
+
+pub fn version() -> Version { *VERSION }
+```
+
+**Where version is checked:**
+1. **On join (connect handshake)**: Endpoint sends version in `ConnectMessage`. Controller compares and responds with `ConnectMessageAck::Ok` or `ErrVersion`.
+2. **On receive**: `EncodedMessage::from_local()` / `EncodedMessage::new()` checks version in every received message. `VersionMismatch` returned if incompatible.
+
+---
+
+## Component 10: ConnectMessage Handshake
+
+### What It Does
+
+When an endpoint joins a bus, it doesn't just connect to a socket — it performs a handshake to verify version, token, and register its label with the controller.
+
+### How It Works
+
+**Step-by-step (ipmb/src/platform/linux.rs `look_up()`):**
+
+```
+1. Endpoint creates SOCK_SEQPACKET socket
+2. Connects to abstract socket address (bus identifier)
+3. Creates socketpair for local communication
+4. Sends ConnectMessage with:
+   - version (own version)
+   - token (auth token)
+   - label (routing label)
+   - write end of socketpair as object (for controller's reply)
+5. Waits for ConnectMessageAck on the socketpair read end
+6. Controller receives ConnectMessage, validates:
+   a. version.compatible(own_version)? → if no, send ErrVersion(own_version)
+   b. token == own_token? → if no, send ErrToken
+   c. If valid: create EndpointID (UUID v4), store (label, remote) in endpoints list
+      → send Ok(endpoint_id)
+7. Endpoint receives ack → if Ok, creates IoHub with the reply fd, returns (IoHub, Remote, EndpointID)
+```
+
+**Message types:**
+
+```rust
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "b2c1deb3-3091-4a74-a99c-c8e8d710d4b2"]
+pub struct ConnectMessage {
+    pub version: Version,
+    pub token: String,
+    pub label: Label,
+}
+
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "c3de9eb4-c310-4c14-9747-093d62c09998"]
+pub enum ConnectMessageAck {
+    Ok(EndpointID),
+    ErrVersion(Version),
+    ErrToken,
+}
+```
+
+---
+
+## Component 11: EncodedMessage Wire Format
+
+### What It Does
+
+Messages are encoded as raw bytes for transmission. The wire format carries version, selector, and payload in a single buffer with 4-byte alignment padding.
+
+### Wire Format
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ version: u32 (0xFF | major | minor | patch)            │ 4 bytes
+├─────────────────────────────────────────────────────────┤
+│ selector_size: u32                                      │ 4 bytes
+├─────────────────────────────────────────────────────────┤
+│ selector: bincode(serialized Selector)                  │ selector_size bytes
+├─────────────────────────────────────────────────────────┤
+│ selector_padding (align to 4 bytes)                     │ 0-3 bytes
+├─────────────────────────────────────────────────────────┤
+│ payload_size: u32                                       │ 4 bytes
+├─────────────────────────────────────────────────────────┤
+│ payload: bincode(serialized T)                          │ payload_size bytes
+├─────────────────────────────────────────────────────────┤
+│ payload_padding (align to 4 bytes)                      │ 0-3 bytes
+└─────────────────────────────────────────────────────────┘
+
+Objects/MemoryRegions: sent via ancillary data (SCM_RIGHTS on Linux)
+or Mach port descriptors (macOS) or handle duplication (Windows).
+```
+
+**Linux encoding (ipmb/src/platform/linux.rs `Message::encode_inner()`):**
+- `iov_data`: version + selector_size + selector + padding + payload_size + payload
+- `control_data`: `cmsghdr` with `SOL_SOCKET`/`SCM_RIGHTS` containing fd array
+- `sendmsg()` with iov + control data
+
+**macOS encoding:** Same layout but embedded in `mach_msg_header_t` + `mach_msg_body_t` + `mach_msg_port_descriptor_t` array.
+
+---
+
+## Component 12: Message Buffer (TTL Retry)
+
+### What It Does
+
+When the controller can't route a message (no matching endpoint), it buffers the message with an expiration time. When a new endpoint connects, the controller retries all buffered messages.
+
+### How It Works (ipmb/src/bus_controller.rs)
+
+```rust
+// In handle_message():
+if !routed && encoded_msg.selector.label_op.validate(&self.label) {
+    // Controller itself is the target
+    match self.sender.send(encoded_msg) {
+        Ok(_) => {}
+        Err(err) => {
+            if !routed {
+                remain = Some(err.0);  // message couldn't be sent
+            }
+        }
+    }
+} else {
+    if !routed {
+        remain = Some(encoded_msg);  // no matching endpoint found
+    }
+}
+
+// If there's an unrouted message and it has TTL:
+if let Some(remain) = remain {
+    if !remain.selector.ttl.is_zero() {
+        self.message_buffer.push((now + remain.selector.ttl, remain));
+    }
+}
+
+// When a new endpoint connects (endpoint_connected == true):
+if endpoint_connected && !self.message_buffer.is_empty() {
+    let mut message_buffer = mem::take(&mut self.message_buffer);
+    for (expire, msg) in message_buffer.drain(..) {
+        let (remain, _) = self.handle_message(msg);
+        if let Some(remain) = remain {
+            if expire > now {  // still valid
+                self.message_buffer_swap.push((expire, remain));
+            }
+        }
+    }
+    mem::swap(&mut self.message_buffer, &mut self.message_buffer_swap);
+}
+
+// Periodic cleanup:
+fn maintain(&mut self, now: Instant) {
+    self.message_buffer.retain(|(expire, _)| *expire > now);
+}
+```
+
+---
+
+## Component 13: Endpoint Reachability Detection
+
+### What It Does
+
+The controller periodically checks if connected endpoints are still alive. Dead endpoints are removed from the endpoint list to prevent routing to disconnected peers.
+
+### How It Works (ipmb/src/bus_controller.rs)
+
+```rust
+fn detect_reachable(&mut self, now: Instant) {
+    if now - self.last_detect_reachable > Duration::from_secs(30) {
+        self.endpoints.retain(|ep| !ep.remote.is_dead());
+        self.last_detect_reachable = now;
+    }
+}
+```
+
+**`Remote::is_dead()` per platform:**
+- **Linux**: Implicit — `sendmsg()` returns error, `EncodedMessage::from_local()` returns `Error::Disconnect`
+- **macOS**: `mach_port_type()` → check `MACH_PORT_TYPE_DEAD_NAME` flag
+- **Windows**: `WriteFile()` with 0 bytes — returns false if pipe broken
+
+---
+
+## Component 14: Auto-Rejoin with Epoch Tracking
+
+### What It Does
+
+When an endpoint loses connection to the controller (controller crash, network partition), it automatically re-joins with epoch tracking to avoid stale state.
+
+### How It Works (ipmb/src/lib.rs `Rule::join()`)
+
+```rust
+enum Rule {
+    Client {
+        endpoint_id: EndpointID,
+        options: Options,
+        remote: Remote,
+        io_hub: Option<Mutex<IoHub>>,
+        reader_closed: bool,
+        im: Arc<IoMultiplexing>,
+        epoch: u32,  // incremented on each re-join
+    },
+    Server {
+        endpoint_id: EndpointID,
+        bus_sender: Mutex<Sender<EncodedMessage>>,
+        receiver: Option<Mutex<Receiver<EncodedMessage>>>,
+        im: Arc<IoMultiplexing>,
+    },
+}
+
+// On send/recv Error::Disconnect:
+let epoch = *epoch;
+drop(rule);
+
+let mut rule = self.rule.write().unwrap();
+match &mut *rule {
+    Rule::Client { options, io_hub, reader_closed, im, epoch: epoch1, .. } => {
+        if epoch == *epoch1 {
+            let reader_closed = *reader_closed;
+            drop(io_hub.take());  // close old connection
+
+            *rule = Rule::join(
+                options.clone(),
+                epoch.overflowing_add(1).0,  // epoch + 1
+                im.clone(),
+                None,  // re-join with no timeout (blocking)
+            )?;
+
+            if reader_closed {
+                rule.reader_close();
+            }
+        }
+    }
+    Rule::Server { .. } => {}
+}
+```
+
+**Join retry loop:** The `Rule::join()` function loops with 2-second backoff, retrying up to 5 times for `PermissionDenied` and timeout errors.
+
+---
+
+## Component 15: Error Type Hierarchy
+
+### What It Does
+
+Four error types distinguish between internal errors and user-facing errors at different lifecycle stages.
+
+```rust
+/// Internal error — used throughout the IPC layer
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("encode error")]
+    Encode(#[from] bincode::error::EncodeError),
+    #[error("decode error")]
+    Decode(#[from] bincode::error::DecodeError),
+    #[error("type uuid not found")]
+    TypeUuidNotFound,
+    #[error("timeout")]
+    Timeout,
+    #[error("disconnected")]
+    Disconnect,
+    #[error("version mismatch: {0}")]
+    VersionMismatch(Version, Option<Remote>),
+    #[error("token mismatch")]
+    TokenMismatch,
+    #[error("identifier in use")]
+    IdentifierInUse,
+    #[error("identifier not in use")]
+    IdentifierNotInUse,
+    #[error("io error: {0}")]
+    IoError(#[from] std::io::Error),
+    #[error("memory region mapping error")]
+    MemoryRegionMapping,
+    #[error("permission denied")]
+    PermissionDenied,
+    #[error("unknown error")]
+    Unknown,
+}
+
+/// Error from join() — endpoint couldn't connect to bus
+#[derive(Debug, Error)]
+pub enum JoinError {
+    #[error("version mismatch: {0}")]
+    VersionMismatch(Version),
+    #[error("token mismatch")]
+    TokenMismatch,
+    #[error("timeout")]
+    Timeout,
+    #[error("permission denied")]
+    PermissionDenied,
+}
+
+/// Error from send() — message couldn't be sent
+#[derive(Debug, Error)]
+pub enum SendError {
+    #[error("timeout")]
+    Timeout,
+    #[error("version mismatch: {0}")]
+    VersionMismatch(Version),
+    #[error("token mismatch")]
+    TokenMismatch,
+    #[error("permission denied")]
+    PermissionDenied,
+}
+
+/// Error from recv() — message couldn't be received
+#[derive(Debug, Error)]
+pub enum RecvError {
+    #[error("decode error")]
+    Decode(#[from] bincode::error::DecodeError),
+    #[error("timeout")]
+    Timeout,
+    #[error("version mismatch: {0}")]
+    VersionMismatch(Version),
+    #[error("token mismatch")]
+    TokenMismatch,
+    #[error("permission denied")]
+    PermissionDenied,
+}
+
+// Conversions: JoinError → SendError, JoinError → RecvError
+impl From<JoinError> for SendError { ... }
+impl From<JoinError> for RecvError { ... }
+```
+
+---
+
+## Additional Details
+
+### EndpointSender / EndpointReceiver Semantics
+
+- **`EndpointSender<T>` implements `Clone`** — can be shared across threads. All clones send to the same bus.
+- **`EndpointReceiver<R>` does NOT implement `Clone`** — each receiver owns its receiving kernel buffer. Dropping the receiver closes the buffer.
+
+### BytesMessage (Built-in Raw Bytes Type)
+
+```rust
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "dd95ba8e-1279-47cf-925e-83e614e79588"]
+pub struct BytesMessage {
+    pub format: u16,
+    #[serde(with = "serde_bytes")]
+    pub data: Vec<u8>,
+}
+```
+
+Useful for forwarding arbitrary data without defining a custom type. The `format` field lets the receiver interpret the raw bytes.
+
+### MemoryRegion Reference Counting
+
+`MemoryRegion` uses atomic reference counting stored in the shared memory header:
+
+```rust
+// Header layout in shared memory:
+// [reference_count: AtomicU32 (4 bytes)][buffer_size: u64 (8 bytes)][buffer data...]
+
+pub(crate) fn ref_count_inner(&self, val: i32) -> u32 {
+    let rc: &AtomicU32 = unsafe { mem::transmute(self.header.as_slice().as_ptr()) };
+    if val == 0 { rc.load(Ordering::SeqCst) }
+    else if val > 0 { rc.fetch_add(val as _, Ordering::SeqCst) }
+    else { rc.fetch_sub(-val as _, Ordering::SeqCst) }
+}
+```
+
+- `new()`: ref count = 1
+- `clone()`/send: ref count += 1 (before sendmsg)
+- Receive: ref count -= 1 (after mapping)
+- `Drop`: ref count -= 1
+
+### MessageBox Derive Macro Constraints
+
+The `#[derive(MessageBox)]` macro **only supports enums with unnamed single fields** per variant:
+
+```rust
+// VALID:
+#[derive(MessageBox, Serialize, Deserialize)]
+pub enum MyMessage {
+    Text(String),
+    Data(Vec<u8>),
+    Event(FileEvent),
+}
+
+// INVALID:
+#[derive(MessageBox)]  // panic! — struct, not enum
+pub struct MyMessage { ... }
+
+#[derive(MessageBox)]  // panic! — multiple fields per variant
+pub enum MyMessage {
+    Text(String, u32),
+}
+
+#[derive(MessageBox)]  // panic! — named field
+pub enum MyMessage {
+    Text { content: String },
+}
+```
+
+### EndpointID
+
+```rust
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub struct EndpointID(Bytes);  // 16 bytes
+
+impl EndpointID {
+    pub fn new() -> Self {
+        Self(uuid::Uuid::new_v4().into_bytes())
+    }
+}
+```
+
+Unique identifier for each endpoint, assigned by the controller on successful connection.
+
+### Align4 Utility
+
+All sizes in the wire format are padded to 4-byte boundaries:
+
+```rust
+pub trait Align4 {
+    fn align4(self) -> Self;
+}
+
+impl Align4 for usize {
+    fn align4(mut self) -> Self {
+        if (self & 0x3) != 0 { self = (self & !0x3) + 4; }
+        self
+    }
+}
+```
+
+---
+
+## Reference Source (for implementation)
+
+| Component | ipmb source file |
+|-----------|-----------------|
+| Main lib (join, EndpointSender/Receiver, Rule, Version) | `ipmb/src/lib.rs` |
+| Bus controller | `ipmb/src/bus_controller.rs` |
+| Error types | `ipmb/src/errors.rs` |
+| Options | `ipmb/src/options.rs` |
+| Message types (MessageBox, ConnectMessage, BytesMessage) | `ipmb/src/message.rs` |
+| Label / LabelOp | `ipmb/src/label.rs` |
+| MemoryRegistry | `ipmb/src/memory_registry.rs` |
+| Platform module (Object, MemoryRegion, look_up, register) | `ipmb/src/platform/mod.rs` |
+| Linux: socket, IoHub, EncodedMessage, IoMultiplexing | `ipmb/src/platform/linux.rs` |
+| Linux: EncodedMessage (wire format, send/recv) | `ipmb/src/platform/linux/encoded_message.rs` |
+| Linux: IoMultiplexing (epoll + eventfd) | `ipmb/src/platform/linux/io_mul.rs` |
+| Linux: Fd, Local, Remote | `ipmb/src/platform/linux/fd.rs` |
+| macOS: mach ports, bootstrap, IoMultiplexing | `ipmb/src/platform/macos/mod.rs` |
+| macOS: mach_sys bindings | `ipmb/src/platform/macos/mach_sys.rs` |
+| macOS: MemoryRegion | `ipmb/src/platform/macos/memory_region.rs` |
+| Windows: named pipes, IoHub | `ipmb/src/platform/windows/mod.rs` |
+| Windows: MemoryRegion | `ipmb/src/platform/windows/memory_region.rs` |
+| Windows: pipe handling | `ipmb/src/platform/windows/pipe.rs` |
+| Windows: security attributes | `ipmb/src/platform/windows/security.rs` |
+| Windows: utilities | `ipmb/src/platform/windows/util.rs` |
+| Derive macro | `ipmb-derive/src/lib.rs` |
+| FFI C++ wrapper | `ipmb-ffi/src/lib.rs` |
+| Utility (Align4, EndpointID, range_to_offset_size) | `ipmb/src/util/mod.rs` |
+
+---
+
 ## Testing Strategy
 
 ### What to Test
@@ -441,18 +935,39 @@ pub extern "C" fn ipmb_join(
     - Call `ipmb_join` from test, send message, receive message
     - Verify no memory leaks (valgrind or AddressSanitizer)
 
+12. **ipc_version.rs**: Version compatibility protocol
+    - Join with same version → success
+    - Join with incompatible version → `JoinError::VersionMismatch`
+    - Join with `0.x.y` vs `0.z.y` (different minor) → rejected
+    - Join with `1.x.y` vs `1.a.b` (same major) → accepted
+
+13. **ipc_message_buffer.rs**: Message buffer with TTL retry
+    - Send message to non-existent label with TTL
+    - New endpoint joins with matching label → message delivered
+    - Wait for TTL expiry → message dropped from buffer
+
+14. **ipc_bytes_message.rs**: BytesMessage send/receive
+    - Send `BytesMessage { format: 1, data: vec![...] }` → receiver decodes correctly
+
 ### Edge Cases to Test
 
 - **Bus name collision**: Two controllers try to create the same bus → second becomes endpoint
-- **Token mismatch**: Endpoint joins with wrong token → connection rejected
+- **Token mismatch**: Endpoint joins with wrong token → `JoinError::TokenMismatch`
+- **Version mismatch**: Endpoint joins with incompatible version → `JoinError::VersionMismatch`
 - **Message too large**: Payload exceeds socket buffer → error returned, not panic
-- **Controller crash during send**: Sender detects controller death, retries with new controller
+- **Controller crash during send**: Sender detects `Error::Disconnect`, re-joins with `epoch + 1`
 - **Unicode labels**: Labels with non-ASCII characters → routing still works
 - **Empty message**: Send message with no payload, no objects → delivers correctly
-- **Concurrent sends**: Multiple threads sending on same EndpointSender → no data corruption
-- **Timeout on recv**: `recv(Some(Duration::ZERO))` returns immediately with None if no message
+- **Concurrent sends**: Multiple threads cloning `EndpointSender` and sending → no data corruption
+- **Timeout on recv**: `recv(Some(Duration::ZERO))` returns `RecvError::Timeout` if no message
 - **TTL expiration**: Message with short TTL, unroutable for longer → controller drops it
-- **Endpoint disconnect mid-broadcast**: Controller sending to 3 endpoints, one disconnectes → others still get message
+- **Endpoint disconnect mid-broadcast**: Controller sending to 3 endpoints, one disconnects → others still get message
+- **Message buffer retry**: Send message to non-existent endpoint with TTL → new endpoint joins → message delivered
+- **Reachability detection**: Kill endpoint process → controller detects dead port within 30s → removes from list
+- **BytesMessage**: Send raw bytes with format field → receiver decodes correctly
+- **MessageBox derive constraint**: Derive on struct → compile error; derive on enum with named fields → compile error
+- **MemoryRegion ref count**: Clone MemoryRegion, send, drop → ref count tracked correctly, memory freed at 0
+- **4-byte alignment**: Serialize payload with non-aligned size → wire format padded correctly, decode succeeds
 
 ### How to Test
 
