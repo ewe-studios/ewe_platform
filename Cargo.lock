@@ -2289,14 +2289,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe_domain_macro"
-version = "0.0.1"
-dependencies = [
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "ewe_html"
 version = "0.0.1"
 dependencies = [

@@ -70,7 +70,7 @@ foundation_jsonschema = { path = "./backends/foundation_jsonschema", version = "
 foundation_testbed = { path = "./backends/foundation_testbed", version = "0.0.1" }
 foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
 
-system_operations = { path = "./crates/system_operations", version = "0.1.0" }
+foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.1.0" }
 ewe_trace = { path = "./crates/trace", version = "0.0.1" }
 ewe_temple = { path = "./crates/temple", version = "0.0.2" }
 ewe_channels = { path = "./crates/channels", version = "0.0.1" }

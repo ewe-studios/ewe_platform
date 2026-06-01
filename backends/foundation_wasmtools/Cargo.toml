@@ -1,13 +1,13 @@
 [package]
-name = "system_operations"
+name = "foundation_wasmtools"
 version = "0.1.0"
-description = "System operations for the ewe platform — WASM binary generation, crate scanning, and build tooling"
+description = "WASM binary generation, crate scanning, and build tooling for the ewe platform"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = ["system-operations", "wasm", "codegen"]
+keywords = ["wasm", "codegen", "build-tools"]
 
 [dependencies]
 foundation_codegen = { workspace = true }

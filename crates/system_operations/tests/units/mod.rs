@@ -1,2 +1,0 @@
-mod system_operations_wasm_bins_tests;
-mod system_operations_wasm_bins_validator_tests;

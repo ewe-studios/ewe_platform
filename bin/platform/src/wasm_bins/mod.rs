@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use system_operations::wasm_bins::WasmBinGenerator;
+use foundation_wasmtools::wasm_bins::WasmBinGenerator;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
