@@ -212,25 +212,23 @@ assert!(events.is_empty());
 
 ```rust
 // 1. Create FileWatcherTask
-let mut watcher = FileWatcherTask::new()
+let mut watcher = FileWatcherTask::new()?
     .watch(temp_dir.path(), false)?;
 
 // 2. Subscribe to events
 let mut rx = watcher.subscribe();
 
 // 3. Spawn into valtron engine
-let engine = SingleThreadedEngine::new()?;
-let id = engine.schedule(Box::new(watcher.into_execution_iterator()))?;
+let stream = execute(watcher, None)?;
 
 // 4. Touch a file
 File::create(temp_dir.path().join("trigger.txt"))?;
 
-// 5. Run engine for a few ticks
-engine.run_until(|_| rx.try_recv().is_ok())?;
+// 5. Collect results
+let events = collect_result(stream);
 
 // 6. Verify event received
-let event = rx.try_recv().unwrap();
-assert!(event.path.ends_with("trigger.txt"));
+assert!(events.iter().any(|e| e.path.ends_with("trigger.txt")));
 ```
 
 ---

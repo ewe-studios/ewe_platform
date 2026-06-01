@@ -612,23 +612,31 @@ impl<T: AsRawFd> Drop for RegisteredFd<T> {
 ### Direct usage (user's own task)
 
 ```rust
+use foundation_core::valtron::{TaskIterator, TaskStatus, BoxedSendExecutionAction};
+
 struct MySocketTask {
     socket: RegisteredFd<TcpStream>,
     buf: [u8; 4096],
+    poll_interval: Duration,
 }
 
 impl TaskIterator for MySocketTask {
-    fn tick(&mut self) -> ExecutionAction {
+    type Ready = usize;           // bytes read per tick
+    type Pending = ();
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.socket.poll_readable() {
             PollResult::Ready(mut guard) => {
                 match guard.try_io(|fd| fd.get_ref().read(&mut self.buf)) {
                     Ok(Ok(0)) => {
                         // EOF — remote closed the connection cleanly
-                        tracing::info!("socket closed (EOF)");
-                        return ExecutionAction::Terminate;
+                        // Task terminates by returning None
+                        return None;
                     }
                     Ok(Ok(n)) => {
-                        self.data_received(n);
+                        // Report progress, then continue next tick
+                        return Some(TaskStatus::Ready(n));
                     }
                     Ok(Err(e)) => {
                         // Non-WouldBlock error from try_io — connection reset etc.
@@ -641,10 +649,10 @@ impl TaskIterator for MySocketTask {
             PollResult::Error(e) => {
                 // This catches EPOLLHUP / EPOLLERR / broken pipe
                 tracing::error!("FD error (broken pipe / closed): {}", e);
-                return ExecutionAction::Terminate;
+                return None;  // task terminates on error
             }
         }
-        ExecutionAction::Wait(self.poll_interval)
+        Some(TaskStatus::Wait(self.poll_interval))
     }
 }
 ```
@@ -737,6 +745,8 @@ cargo test -p foundation_nativeapis --test fd_registration
 cargo test -p foundation_nativeapis --test fd_lifecycle
 cargo test -p foundation_nativeapis --test fd_edge_triggered
 cargo test -p foundation_nativeapis --test fd_multi_interest
+cargo test -p foundation_nativeapis --test fd_broken_pipe
+cargo test -p foundation_nativeapis --test fd_eof_handling
 
 # Platform-specific compilation
 cargo check -p foundation_nativeapis --features "poll"
@@ -777,6 +787,9 @@ cargo check -p foundation_nativeapis --features "native-linux"
 | Buffer management | User-provided buffers | Don't own buffers — the fd wrapper just signals readiness, user decides how to read/write |
 | Nonblocking enforcement | Documented, not enforced at runtime | Checking O_NONBLOCK requires a fcntl syscall on every construction. Trust the user, but document clearly. |
 | Thread safety | RegisteredFd is Send + Sync, but concurrent poll_readable is not recommended | The atomic bitmask handles concurrent updates from the poll layer, but concurrent readiness polling by users is not a supported pattern. |
+| Broken pipe handling | READ_CLOSED flag checked BEFORE READABLE | Prevents busy-wait loop when EPOLLHUP arrives with EPOLLIN. Error returned immediately, no guard created. |
+| EOF handling | try_io clears readiness on Ok(0) | read() returns 0 bytes on EOF — if readiness isn't cleared, next poll returns Ready again → busy loop. |
+| Error reporting | Separate ERROR flag, checked before READABLE/WRITABLE | EPOLLERR can arrive without EPOLLIN/EPOLLOUT. Without ERROR flag, fd would appear "not ready" when it actually has an error. |
 
 ## File Changes Summary
 
@@ -790,9 +803,12 @@ cargo check -p foundation_nativeapis --features "native-linux"
 | `backends/foundation_nativeapis/tests/fd_lifecycle.rs` | Create — construction/destruction tests |
 | `backends/foundation_nativeapis/tests/fd_edge_triggered.rs` | Create — edge-triggered behavior tests |
 | `backends/foundation_nativeapis/tests/fd_multi_interest.rs` | Create — combined interest tests |
-| `backends/foundation_nativeapis/src/poll/sys/unix/selector/epoll.rs` | Edit — ensure SourceFd + waker support |
-| `backends/foundation_nativeapis/src/poll/sys/unix/selector/kqueue.rs` | Edit — ensure SourceFd + waker support |
-| `backends/foundation_nativeapis/src/poll/sys/windows/selector.rs` | Edit — ensure IOCP waker support |
+| `backends/foundation_nativeapis/tests/fd_broken_pipe.rs` | Create — broken pipe / EPOLLHUP / EOF handling tests |
+| `backends/foundation_nativeapis/tests/fd_eof_handling.rs` | Create — EOF (Ok(0)) readiness clearing tests |
+| `backends/foundation_nativeapis/src/poll/sys/unix/selector/epoll.rs` | Edit — add is_read_closed, is_write_closed, is_error (EPOLLHUP/EPOLLRDHUP/EPOLLERR mapping) |
+| `backends/foundation_nativeapis/src/poll/sys/unix/selector/kqueue.rs` | Edit — add is_read_closed, is_write_closed, is_error (EV_EOF mapping) |
+| `backends/foundation_nativeapis/src/poll/sys/windows/selector.rs` | Edit — add connection closed / error mapping for IOCP |
+| `backends/foundation_nativeapis/src/poll/event/event.rs` | Edit — add is_read_closed(), is_write_closed(), is_error() methods to Event |
 
 ---
 

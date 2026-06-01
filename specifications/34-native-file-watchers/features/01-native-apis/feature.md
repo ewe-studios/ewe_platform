@@ -112,9 +112,23 @@ pub struct Events {
 /// A single readiness event from poll().
 pub struct Event {
     token: Token,          // which fd
-    is_readable: bool,     // readable flag
-    is_writable: bool,     // writable flag
-    // platform-specific extras accessible via methods
+    // platform-specific internal buffer
+}
+
+impl Event {
+    pub fn token(&self) -> Token;
+
+    // Readiness flags
+    pub fn is_readable(&self) -> bool;
+    pub fn is_writable(&self) -> bool;
+
+    // Lifecycle flags — critical for broken pipe / EOF handling
+    pub fn is_read_closed(&self) -> bool;   // EPOLLHUP / EPOLLRDHUP / EV_EOF on read filter
+    pub fn is_write_closed(&self) -> bool;  // EPOLLHUP / EV_EOF on write filter
+    pub fn is_error(&self) -> bool;         // EPOLLERR / EV_EOF + fflags!=0
+
+    // Platform-specific extras
+    pub fn priority(&self) -> bool;         // EPOLLPRI / SIGIO
 }
 
 impl Events {
@@ -179,7 +193,11 @@ registry.register(&mut SourceFd(inotify_fd), Token(0), Interest::READABLE)?;
 - `epoll_wait()` blocks until events arrive or timeout
 - Uses `EPOLLET` (edge-triggered) mode — only notifies on state transitions
 - Token stored in `epoll_event.data.u64` field
-- `EPOLLIN` maps to `Interest::READABLE`, `EPOLLOUT` to `Interest::WRITABLE`
+- `EPOLLIN` → `is_readable()`, `EPOLLOUT` → `is_writable()`
+- `EPOLLHUP` → `is_read_closed()` and `is_write_closed()` (both halves closed)
+- `EPOLLRDHUP` + `EPOLLIN` → `is_read_closed()` (peer shut down read side)
+- `EPOLLERR` → `is_error()` (socket error condition)
+- `EPOLLPRI` → `priority()` (out-of-band data)
 - waker: `eventfd(EFD_CLOEXEC | EFD_NONBLOCK)` → registered with `EPOLLIN` → write to eventfd to wake the poll
 
 #### kqueue (macOS/BSD/iOS)
@@ -187,7 +205,10 @@ registry.register(&mut SourceFd(inotify_fd), Token(0), Interest::READABLE)?;
 - `kqueue()` creates the kernel event queue
 - `kevent()` does both registration AND polling (single syscall)
 - `EV_SET` macros build the `struct kevent` entries
-- `EVFILT_READ` maps to `Interest::READABLE`, `EVFILT_WRITE` to `Interest::WRITABLE`
+- `EVFILT_READ` → `is_readable()`, `EVFILT_WRITE` → `is_writable()`
+- `EVFILT_READ` + `EV_EOF` → `is_read_closed()` (peer closed read side)
+- `EVFILT_WRITE` + `EV_EOF` → `is_write_closed()` (peer closed write side)
+- `EV_EOF` + `fflags != 0` → `is_error()` (error condition)
 - Also supports `EVFILT_VNODE` for file watching (see watcher section)
 - Token stored in `udata` field (cast from usize to *const c_void and back)
 - waker: `EVFILT_USER` with `NOTE_TRIGGER` flag

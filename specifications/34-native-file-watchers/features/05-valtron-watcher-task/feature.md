@@ -1,6 +1,6 @@
 ---
 feature: "Valtron Watcher Task"
-description: "Thin valtron adapters: FileWatcherTask wraps NativeWatcher::poll() in a tick loop with broadcast channels, FdMonitorTask wraps RegisteredFd for arbitrary FD readiness monitoring"
+description: "Thin valtron adapters: FileWatcherTask wraps NativeWatcher::poll() with TaskIterator and broadcast channels, FdMonitorTask wraps RegisteredFd for arbitrary FD readiness monitoring"
 status: "pending"
 priority: "high"
 depends_on: ["01-native-apis", "02-fd-management"]
@@ -24,16 +24,18 @@ Even with minimal sync primitives (`NativeWatcher::poll()`, `RegisteredFd::poll_
 - Other tasks can't react to file changes through the valtron scheduler
 - No queue-based event delivery — events go to a single handler closure
 - No way for multiple subscribers to receive the same file events
-- Arbitrary FD monitoring requires writing the same tick loop boilerplate
+- Arbitrary FD monitoring requires writing the same task boilerplate
 
 ## Solution
 
 Two thin valtron adapters over the sync primitives:
 
-1. **`FileWatcherTask`** — wraps `NativeWatcher`, polls each tick, broadcasts `WatchEvent` to subscribers
-2. **`FdMonitorTask<T>`** — wraps `RegisteredFd<T>`, polls each tick, invokes user callback on readiness
+1. **`FileWatcherTask`** — wraps `NativeWatcher`, polls via `next_status()`, broadcasts `WatchEvent` to subscribers
+2. **`FdMonitorTask<T>`** — wraps `RegisteredFd<T>`, polls each `next_status()` call, invokes user callback on readiness
 
 Both are thin — the real work is done by the sync APIs. These tasks just schedule them in valtron's execution engine.
+
+The `TaskIterator` trait requires implementing `next_status()` which returns `Option<TaskStatus<Ready, Pending, Spawner>>`. Returning `Some(TaskStatus::Wait(duration))` yields back to the executor. Returning `None` terminates the task.
 
 ---
 
@@ -41,10 +43,10 @@ Both are thin — the real work is done by the sync APIs. These tasks just sched
 
 ### What It Does
 
-Wraps a `Box<dyn NativeWatcher>` and implements `TaskIterator`. Each tick:
+Wraps a `Box<dyn NativeWatcher>` and implements `TaskIterator`. Each `next_status()` call:
 1. Calls `watcher.poll(timeout)` to get file events
 2. Broadcasts events to all subscribers via `broadcast::Sender`
-3. Yields back to valtron with `ExecutionAction::Wait(timeout)`
+3. Returns `Some(TaskStatus::Wait(timeout))` to yield back to valtron
 
 ### How It Works — Lifecycle
 
@@ -63,17 +65,28 @@ Subscription:
   let mut rx = watcher.subscribe();  ← gets broadcast::Receiver<WatchEvent>
   // Can be called multiple times — each call returns a new receiver
 
-Tick (valtron calls this each iteration):
-  fn tick(&mut self) -> ExecutionAction {
+next_status (valtron calls this each iteration):
+  fn next_status(&mut self) -> Option<TaskStatus<WatchEvent, (), BoxedSendExecutionAction>> {
     match self.watcher.poll(self.poll_timeout) {
-      Ok(events) => {
-        for event in events {
-            let _ = self.broadcaster.send(event);  // broadcasts to all receivers
+      Ok(events) if !events.is_empty() => {
+        // Broadcast all events, return first one as Ready
+        let (first, rest) = events.split_first().unwrap();
+        self.broadcaster.send(first.clone()).ok();
+        for event in rest {
+            let _ = self.broadcaster.send(event.clone());
         }
+        Some(TaskStatus::Ready(first.clone()))
       }
-      Err(e) => tracing::error!("Watcher poll error: {}", e),
+      Ok(_) => {
+        // No events — yield back to executor
+        Some(TaskStatus::Wait(self.poll_timeout))
+      }
+      Err(e) => {
+        tracing::error!("Watcher poll error: {}", e);
+        // Continue polling — don't terminate on error
+        Some(TaskStatus::Wait(self.poll_timeout))
+      }
     }
-    ExecutionAction::Wait(self.poll_timeout)
   }
 
 Subscriber receives:
@@ -86,6 +99,7 @@ Dynamic watch management:
   watcher.unwatch("old/path/")?       // remove watch at runtime
 
 Teardown:
+  Task terminates by returning None when the watcher is dropped
   drop(watcher) → NativeWatcher dropped → closes inotify/kqueue fd
   All receivers get lagged errors (broadcast channel empty)
 ```
@@ -130,22 +144,28 @@ pub type WatchEventBroadcaster = tokio::sync::broadcast::Sender<WatchEvent>;
 pub type WatchEventReceiver = tokio::sync::broadcast::Receiver<WatchEvent>;
 
 impl TaskIterator for FileWatcherTask {
-    type Ready = ();
+    type Ready = WatchEvent;
     type Pending = ();
-    type Spawner = NoSpawner;
+    type Spawner = BoxedSendExecutionAction;
 
-    fn tick(&mut self, _context: &TaskContext) -> ExecutionAction {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.watcher.poll(self.poll_timeout) {
-            Ok(events) => {
-                for event in events {
-                    let _ = self.broadcaster.send(event);
+            Ok(events) if !events.is_empty() => {
+                let (first, rest) = events.split_first().unwrap();
+                let _ = self.broadcaster.send(first.clone());
+                for event in rest {
+                    let _ = self.broadcaster.send(event.clone());
                 }
+                Some(TaskStatus::Ready(first.clone()))
+            }
+            Ok(_) => {
+                Some(TaskStatus::Wait(self.poll_timeout))
             }
             Err(e) => {
                 tracing::error!("Watcher poll error: {}", e);
+                Some(TaskStatus::Wait(self.poll_timeout))
             }
         }
-        ExecutionAction::Wait(self.poll_timeout)
     }
 }
 ```
@@ -153,6 +173,8 @@ impl TaskIterator for FileWatcherTask {
 ### How Subscribers Use It
 
 ```rust
+use foundation_core::valtron::{execute, collect_result, Stream};
+
 // 1. Create and configure the watcher task
 let mut watcher = FileWatcherTask::new()?
     .watch("src/", true)?
@@ -161,19 +183,18 @@ let mut watcher = FileWatcherTask::new()?
 // 2. Subscribe before spawning (get events from the start)
 let mut rx = watcher.subscribe();
 
-// 3. Spawn into valtron
-let guard = ValtronSingleton::get_or_init(42, |pool| {
-    pool.spawn::<FileWatcherTask, ...>()
-        .with_resolver(Box::new(FnReady::new(|_, _| {
-            // Process events from the broadcast channel
-            while let Ok(event) = rx.try_recv() {
-                println!("File changed: {:?} ({:?})", event.path, event.kind);
-            }
-        })))
-        .schedule()?;
-});
+// 3. Execute into valtron
+let stream = execute(watcher, None)?;
 
-guard.run_until_complete();
+// 4. Collect results (blocks until task terminates)
+let events = collect_result(stream);
+
+// Or process events as they arrive:
+for item in stream {
+    if let Stream::Next(event) = item {
+        println!("File changed: {:?} ({:?})", event.path, event.kind);
+    }
+}
 ```
 
 ### Subscriber Pattern — Independent Task
@@ -183,11 +204,14 @@ A subscriber task can run independently:
 ```rust
 // Another task that rebuilds on .rs changes
 let mut rx = watcher.subscribe();
-let rebuild_task = RebuildTask { events: rx };
 
-pool.spawn::<RebuildTask, ...>()
-    .with_resolver(/* ... */)
-    .schedule()?;
+for item in stream {
+    if let Stream::Next(event) = item {
+        if event.path.ends_with(".rs") {
+            cargo_check(&event.path);
+        }
+    }
+}
 ```
 
 ---
@@ -196,23 +220,34 @@ pool.spawn::<RebuildTask, ...>()
 
 ### What It Does
 
-Provides a generic valtron task for monitoring any registered file descriptor. Wraps a `RegisteredFd<T>`, polls `poll_readable()` each tick, and invokes a user-provided callback when the fd becomes readable.
+Provides a generic valtron task for monitoring any registered file descriptor. Wraps a `RegisteredFd<T>`, polls `poll_readable()` each `next_status()` call, and invokes a user-provided callback when the fd becomes readable.
 
-This saves users from writing the same tick loop boilerplate:
+This saves users from writing the same task boilerplate:
 
 ```rust
 // Without FdMonitorTask (user writes this):
-struct MyInotifyTask { fd: RegisteredFd<FdWrapper>, ... }
+struct MyInotifyTask {
+    fd: RegisteredFd<FdWrapper>,
+    poll_interval: Duration,
+}
+
 impl TaskIterator for MyInotifyTask {
-    fn tick(&mut self) -> ExecutionAction {
+    type Ready = usize;
+    type Pending = ();
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.fd.poll_readable() {
             PollResult::Ready(mut guard) => {
                 guard.try_io(|fd| self.handle_readiness(fd.get_ref()))?;
             }
             PollResult::NotReady => {}
-            PollResult::Error(e) => tracing::error!("FD error: {}", e),
+            PollResult::Error(e) => {
+                tracing::error!("FD error: {}", e);
+                return None;  // terminate on error
+            }
         }
-        ExecutionAction::Wait(self.poll_interval)
+        Some(TaskStatus::Wait(self.poll_interval))
     }
 }
 
@@ -235,13 +270,18 @@ Construction:
     .with_callback(|fd| { /* handle readiness */ })
     .with_poll_interval(Duration::from_millis(100))
 
-Tick (valtron calls this each iteration):
-  fn tick(&mut self) -> ExecutionAction {
+next_status (valtron calls this each iteration):
+  fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
     match self.fd.poll_readable() {
       PollResult::Ready(mut guard) => {
         // User callback is invoked with the inner fd reference
         if let Some(ref mut cb) = self.callback {
           match guard.try_io(|fd| cb(fd.get_ref())) {
+            Ok(Ok(0)) => {
+              // EOF — peer closed. Readiness cleared by try_io.
+              // Task logs and continues — user callback should handle EOF.
+              tracing::info!("FdMonitorTask: EOF detected");
+            }
             Ok(Ok(_)) => {}    // callback succeeded
             Ok(Err(e)) if e.kind() == WouldBlock => {},  // readiness was spurious
             Ok(Err(e)) => tracing::error!("FD I/O error: {}", e),
@@ -250,9 +290,13 @@ Tick (valtron calls this each iteration):
         }
       }
       PollResult::NotReady => {}
-      PollResult::Error(e) => tracing::error!("FdMonitorTask poll error: {}", e),
+      PollResult::Error(e) => {
+        // This catches EPOLLHUP / broken pipe / EPOLLERR
+        // poll_readable() returns Error immediately when READ_CLOSED or ERROR is set
+        tracing::error!("FdMonitorTask poll error: {}", e);
+      }
     }
-    ExecutionAction::Wait(self.poll_interval)
+    Some(TaskStatus::Wait(self.poll_interval))
   }
 
 Teardown:
@@ -303,9 +347,9 @@ impl<T: AsRawFd> FdMonitorTask<T> {
 impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
+    type Spawner = BoxedSendExecutionAction;
 
-    fn tick(&mut self, _context: &TaskContext) -> ExecutionAction {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let readiness = match self.interest {
             Interest::READABLE => self.fd.poll_readable(),
             Interest::WRITABLE => self.fd.poll_writable(),
@@ -325,7 +369,7 @@ impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
                 tracing::error!("FdMonitorTask poll error: {}", e);
             }
         }
-        ExecutionAction::Wait(self.poll_interval)
+        Some(TaskStatus::Wait(self.poll_interval))
     }
 }
 ```
@@ -358,10 +402,11 @@ let monitor = FdMonitorTask::new(registered)
     })
     .with_poll_interval(Duration::from_millis(50));
 
-// Spawn into valtron
-pool.spawn::<FdMonitorTask<FdWrapper>, ...>()
-    .with_resolver(/* ... */)
-    .schedule()?;
+// Execute into valtron
+let stream = execute(monitor, None)?;
+for item in stream {
+    // Process stream items if needed
+}
 ```
 
 ---
