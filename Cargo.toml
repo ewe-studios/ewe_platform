@@ -62,7 +62,7 @@ foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1"
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
 foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_netio = { path = "./backends/foundation_netio", version = "0.0.1" }
-foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
+foundation_runtimes = { path = "./backends/foundation_runtimes", version = "0.0.3" }
 foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
 foundation_codegen = { path = "./backends/foundation_codegen", version = "0.1.0" }
 foundation_conditional = { path = "./backends/foundation_conditional", version = "0.1.0" }
