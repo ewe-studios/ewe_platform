@@ -1,7 +1,7 @@
 ---
 feature: "Foundation WASM Testbed"
 description: "CLI-driven test harness for wasm32-unknown-unknown, supporting browser (Playwright), Deno, and Cloudflare Workers (wrangler) execution, with bindgen and custom modes"
-status: "planned"
+status: "in_progress"
 priority: "high"
 depends_on: ["01-core-wasm-compat", "08-wasm-oauth-manager"]
 estimated_effort: "large"

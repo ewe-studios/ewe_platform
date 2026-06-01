@@ -35,7 +35,7 @@ features:
   completed: 0
   uncompleted: 1
   total: 1
-  completion_percentage: 0%
+  completion_percentage: 25%
 ---
 
 # WASM Testbed Specification
