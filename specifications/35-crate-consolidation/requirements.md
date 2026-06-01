@@ -1,9 +1,9 @@
 ---
 description: "Consolidate scattered crates into foundation backends: move html, config, templates into appropriate foundation crates; strip ewe_routing of tokio/axum/server heavy deps for wasm-friendly routing; create foundation_packager from ewe_temple + ewe_templates with all tokio removed."
-status: "pending"
+status: "completed"
 priority: "high"
 created: 2026-06-01
-updated: 2026-06-01
+updated: 2026-06-01 (completed)
 author: "Main Agent"
 metadata:
   version: "1.0"
@@ -23,10 +23,10 @@ related_specs:
   - "specifications/21-http-framework"
   - "specifications/34-native-file-watchers"
 tasks:
-  completed: 0
+  completed: 5
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 5
+  completion_percentage: 100%
 ---
 
 # Crate Consolidation & foundation_packager
