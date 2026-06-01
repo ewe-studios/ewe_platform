@@ -1,4 +1,5 @@
-use anyhow::anyhow;
+use derive_more::{Display, Error};
+use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
 use crate::tinytemplate::TinyTemplate;
 use minijinja;
 use serde::Serialize;
@@ -11,46 +12,72 @@ use std::{
     sync::Arc,
 };
 
-type FileResult<T> = result::Result<T, anyhow::Error>;
+#[derive(Debug, Display, Error)]
+#[display("{_0}")]
+#[error(ignore)]
+pub(crate) struct RenderError(String);
 
-pub enum FileContent<'a> {
+#[derive(Debug, Display, Error)]
+pub(crate) enum PackagingError {
+    #[display("IO error: {_0}")]
+    Io(std::io::Error),
+    #[display("written content does not match provided data size")]
+    ContentSizeMismatch,
+    #[display("template render failed: {_0}")]
+    TemplateRender(RenderError),
+}
+
+type FileResult<T> = result::Result<T, ErrorTrace<PackagingError>>;
+
+fn io_err(e: std::io::Error) -> ErrorTrace<PackagingError> {
+    PackagingError::Io(e).into_error_trace()
+}
+
+fn render_err(e: impl std::fmt::Display) -> ErrorTrace<PackagingError> {
+    PackagingError::TemplateRender(RenderError(e.to_string())).into_error_trace()
+}
+
+pub(crate) enum FileContent<'a> {
     Text(String),
     Tiny(String, TinyTemplate<'a>),
     Jinja(String, Arc<minijinja::Environment<'a>>),
 }
 
 impl FileContent<'_> {
-    pub fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
+    pub(crate) fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
         match self {
             FileContent::Text(content) => {
-                let mut file = fs::File::create(dest.as_path())?;
-                let written = file.write(content.as_bytes())?;
+                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
+                let written = file.write(content.as_bytes()).map_err(io_err)?;
                 if written != content.len() {
-                    return Err(anyhow!("written content does not match provided data size"));
+                    return Err(PackagingError::ContentSizeMismatch.into_error_trace());
                 }
                 Ok(())
             }
             FileContent::Jinja(name, templater) => {
-                let mut file = fs::File::create(dest.as_path())?;
+                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
 
                 let rendered = templater
                     .get_template(name.as_str())
                     .unwrap()
-                    .render(value)?;
+                    .render(value)
+                    .map_err(render_err)?;
 
-                let written = file.write(rendered.as_bytes())?;
+                let written = file.write(rendered.as_bytes()).map_err(io_err)?;
                 if written != rendered.len() {
-                    return Err(anyhow!("written content does not match provided data size"));
+                    return Err(PackagingError::ContentSizeMismatch.into_error_trace());
                 }
                 Ok(())
             }
             FileContent::Tiny(name, templater) => {
-                let mut file = fs::File::create(dest.as_path())?;
+                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
 
-                let rendered = templater.render(name.as_str(), &value)?;
-                let written = file.write(rendered.as_bytes())?;
+                let rendered = templater
+                    .render(name.as_str(), &value)
+                    .map_err(render_err)?;
+                let written = file.write(rendered.as_bytes()).map_err(io_err)?;
                 if written != rendered.len() {
-                    return Err(anyhow!("written content does not match provided data size"));
+                    return Err(PackagingError::ContentSizeMismatch.into_error_trace());
                 }
                 Ok(())
             }
@@ -58,7 +85,7 @@ impl FileContent<'_> {
     }
 }
 
-pub enum FileSystemCommand<'a> {
+pub(crate) enum FileSystemCommand<'a> {
     Dir(String, Vec<FileSystemCommand<'a>>),
     DirPath(PathBuf, Vec<FileSystemCommand<'a>>),
     File(String, FileContent<'a>),
@@ -74,7 +101,7 @@ impl FileSystemCommand<'_> {
                 }
 
                 let mut builder = fs::DirBuilder::new();
-                builder.recursive(true).create(dir.clone())?;
+                builder.recursive(true).create(dir.clone()).map_err(io_err)?;
 
                 for sub_command in commands {
                     sub_command.exec(dir.clone(), value.clone())?;
@@ -91,7 +118,7 @@ impl FileSystemCommand<'_> {
                 }
 
                 let mut builder = fs::DirBuilder::new();
-                builder.recursive(true).create(target_path.clone())?;
+                builder.recursive(true).create(target_path.clone()).map_err(io_err)?;
 
                 for sub_command in commands {
                     sub_command.exec(target_path.clone(), value.clone())?;
@@ -118,7 +145,7 @@ impl FileSystemCommand<'_> {
     }
 }
 
-pub struct Templater<'a> {
+pub(crate) struct Templater<'a> {
     dest: path::PathBuf,
     commands: Vec<FileSystemCommand<'a>>,
 }
@@ -156,12 +183,15 @@ impl<'a> Templater<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{FileContent, FileResult, FileSystemCommand, Templater};
+    use super::{FileContent, FileSystemCommand, Templater};
+    use crate::error::BoxedError;
     use crate::tinytemplate::TinyTemplate;
     use minijinja;
     use rand::Rng;
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path, sync};
+
+    type TestResult<T> = std::result::Result<T, BoxedError>;
 
     fn random_directory_name(prefix: &str) -> String {
         let suffix: String = rand::rng()
@@ -176,7 +206,7 @@ mod tests {
         fs::remove_dir_all(target).expect("should have deleted directory");
     }
 
-    fn create_jinja_template() -> FileResult<minijinja::Environment<'static>> {
+    fn create_jinja_template() -> TestResult<minijinja::Environment<'static>> {
         let mut tt = minijinja::Environment::new();
 
         tt.add_template("world", "{{country}} wonderworld!")?;
@@ -187,7 +217,7 @@ mod tests {
         Ok(tt)
     }
 
-    fn create_tiny_template() -> FileResult<TinyTemplate<'static>> {
+    fn create_tiny_template() -> TestResult<TinyTemplate<'static>> {
         let mut tt = TinyTemplate::new();
 
         tt.add_template("world", "{country} wonderworld!")?;
@@ -217,7 +247,7 @@ mod tests {
             "country": "Nigeria",
         });
 
-        assert!(matches!(tml.run(&data), FileResult::Ok(())));
+        assert!(matches!(tml.run(&data), Ok(())));
 
         let mut expected_path = target.clone();
         expected_path.push("weeds");

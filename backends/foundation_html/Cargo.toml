@@ -12,6 +12,9 @@ keywords.workspace = true
 [dependencies]
 foundation_core.workspace = true
 foundation_conditional.workspace = true
+foundation_errstacks.workspace = true
+
+derive_more = { workspace = true }
 
 regex = { version = "1.10" }
 lazy-regex = { version = "3.1" }

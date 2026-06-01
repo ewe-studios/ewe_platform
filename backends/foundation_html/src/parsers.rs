@@ -1,11 +1,10 @@
 #![allow(clippy::match_like_matches_macro)]
 #![allow(clippy::ptr_arg)]
 
-use anyhow::anyhow;
+use derive_more::{Display, Error};
 use foundation_core::io::mem::stringpointer::StringPointer;
 use lazy_static::lazy_static;
 use std::{collections::HashMap, str::FromStr};
-use thiserror::Error;
 use tracing;
 
 lazy_static! {
@@ -22,58 +21,71 @@ lazy_static! {
     .collect();
 }
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Display, Error, PartialEq, Eq)]
 pub enum ParsingTagError {
-    #[error("unknown tag can't parse")]
+    #[display("unknown tag can't parse")]
     UnknownTag,
 
-    #[error("failed parsing text tag")]
+    #[display("failed parsing text tag")]
     FailedParsing,
 
-    #[error("Parser cound not parse content, stopped at: {0}")]
+    #[display("Parser cound not parse content, stopped at: {_0}")]
+    #[error(ignore)]
     FailedContentParsing(String),
 
-    #[error("we expect after tag names will be a space")]
+    #[display("we expect after tag names will be a space")]
     ExpectingSpaceAfterTagName,
 
-    #[error("Parser expected only one root element left after parsing but found more than 1")]
+    #[display("Parser expected only one root element left after parsing but found more than 1")]
     UnexpectedParsingWithUnfinishedTag,
 
-    #[error("Parser encountered tag with unexpected ending, please check your markup: {0}")]
+    #[display("Parser encountered tag with unexpected ending, please check your markup: {_0}")]
+    #[error(ignore)]
     TagWithUnexpectedEnding(String),
 
-    #[error("Parser encountered closing tag but never pre-allocated the start tag in stack")]
+    #[display("Parser encountered closing tag but never pre-allocated the start tag in stack")]
     ClosingTagHasZeroElementInStack,
 
-    #[error("Parser encountered markup at top of stack has no markup, our invariants are broken")]
+    #[display("Parser encountered markup at top of stack has no markup, our invariants are broken")]
     StackedMarkupHasNoTag,
 
-    #[error("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules: {0}")]
+    #[display("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules: {_0}")]
+    #[error(ignore)]
     ClosingTagDoesNotMatchTopMarkup(String),
 
-    #[error("Parser failed to pop top markup in stack into children list of lower markup")]
+    #[display("Parser failed to pop top markup in stack into children list of lower markup")]
     FailedToMoveTopMarkupIntoParentInStack,
 
-    #[error("Attribute value starting with invalid token: {0}")]
+    #[display("Attribute value starting with invalid token: {_0}")]
+    #[error(ignore)]
     AttributeValueNotValidStarter(String),
 
-    #[error("Attribute value should generally end with a space after declaration: {0}")]
+    #[display("Attribute value should generally end with a space after declaration: {_0}")]
+    #[error(ignore)]
     AttributeValueNotValidEnding(String),
 
-    #[error("Invalid HTML content seen, probably not ending proper markup, cant parse: {0}")]
+    #[display("Invalid HTML content seen, probably not ending proper markup, cant parse: {_0}")]
+    #[error(ignore)]
     InvalidHTMLContent(String),
 
-    #[error("Invalid HTML content ending incorrectly and cant be parsed: {0}")]
+    #[display("Invalid HTML content ending incorrectly and cant be parsed: {_0}")]
+    #[error(ignore)]
     InvalidHTMLEnd(String),
 
-    #[error("invalid state with last child Option being None, not expected")]
+    #[display("invalid state with last child Option being None, not expected")]
     LastChildWasEmptyShell,
 
-    #[error("still expected stack to still contain a previous elem for operation")]
+    #[display("still expected stack to still contain a previous elem for operation")]
     ExpectedUnemptyStack,
 }
 
 pub type ParsingResult<T> = std::result::Result<T, ParsingTagError>;
+
+#[derive(Debug, Display, Error)]
+#[display("can't get &str representation of {tag:?}")]
+pub struct MarkupStrError {
+    tag: MarkupTags,
+}
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum SVGTags {
@@ -1042,25 +1054,25 @@ impl MarkupTags {
         }
     }
 
-    pub fn to_string(self) -> Result<String, anyhow::Error> {
+    pub fn markup_to_string(self) -> String {
         match self {
-            MarkupTags::DocType => Ok(String::from("!Doctype")),
-            MarkupTags::SVG(sg) => Ok(sg.into()),
-            MarkupTags::HTML(ht) => Ok(ht.into()),
+            MarkupTags::DocType => String::from("!Doctype"),
+            MarkupTags::SVG(sg) => sg.into(),
+            MarkupTags::HTML(ht) => ht.into(),
             MarkupTags::Comment(text)
             | MarkupTags::Code(text)
             | MarkupTags::Rust(text)
             | MarkupTags::Text(text)
-            | MarkupTags::Component(text) => Ok(text.clone()),
+            | MarkupTags::Component(text) => text.clone(),
         }
     }
 
-    pub fn to_str<'a>(self) -> Result<&'a str, anyhow::Error> {
+    pub fn to_str(self) -> Result<&'static str, MarkupStrError> {
         match self {
             MarkupTags::DocType => Ok("!doctype"),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
-            _ => Err(anyhow!("Cant get &str representation of {self:?}")),
+            _ => Err(MarkupStrError { tag: self }),
         }
     }
 
@@ -1323,7 +1335,7 @@ impl HTMLParser {
                         }
                         ParserDirective::Closed((tag, _)) => {
                             return Err(ParsingTagError::TagWithUnexpectedEnding(
-                                tag.to_string().unwrap(),
+                                tag.markup_to_string(),
                             ));
                         }
                     },

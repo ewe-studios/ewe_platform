@@ -2814,8 +2814,10 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "criterion",
+ "derive_more",
  "foundation_conditional",
  "foundation_core",
+ "foundation_errstacks",
  "lazy-regex",
  "lazy_static",
  "lazycell",
@@ -2981,11 +2983,11 @@ dependencies = [
 name = "foundation_packager"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "cargo_toml",
  "derive_more",
  "foundation_conditional",
  "foundation_core",
+ "foundation_errstacks",
  "foundation_macros",
  "foundation_nostd",
  "minijinja",

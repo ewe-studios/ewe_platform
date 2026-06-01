@@ -4,54 +4,56 @@ use foundation_core::io::mem::{
     primitives::Bytes,
 };
 
-use thiserror::Error;
+use derive_more::{Display, Error};
 
 use std::{cell, rc};
 
 pub type ElementResult<T> = std::result::Result<T, ElementError>;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum ElementError {
-    #[error("failed to create element")]
+    #[display("failed to create element")]
     CreationFailure,
 
-    #[error("failed to update element")]
+    #[display("failed to update element")]
     UpdateFailure,
 
-    #[error("you can't replace the root")]
+    #[display("you can't replace the root")]
     FailedReplaceRoot,
 
-    #[error("failed to detach child from parent")]
+    #[display("failed to detach child from parent")]
     FailedChildDetach,
 
-    #[error("Node has no children")]
+    #[display("Node has no children")]
     NoChildren,
 
-    #[error("ParentLink has no index")]
+    #[display("ParentLink has no index")]
     NoIndexInLink,
 
-    #[error("Node has no ParentLink")]
+    #[display("Node has no ParentLink")]
     NoParentLink,
 
-    #[error("Appending a RootNode into a NonRoot is not allowed")]
+    #[display("Appending a RootNode into a NonRoot is not allowed")]
     RootCantBeChild,
 
-    #[error("Found a container with no children")]
+    #[display("Found a container with no children")]
     ContainerHasNoContent,
 
-    #[error("Can't have children")]
+    #[display("Can't have children")]
     CantHaveChildren,
 
-    #[error("Failed to add child")]
+    #[display("Failed to add child")]
     FailedAddChild,
 
-    #[error("provided index is out of bounds: {0}")]
+    #[display("provided index is out of bounds: {_0}")]
+    #[error(ignore)]
     OutofBoundIndex(usize),
 
-    #[error("not usable for operation")]
+    #[display("not usable for operation")]
     NotUsable,
 
-    #[error("unable to render not due to : {0}")]
+    #[display("unable to render not due to : {_0}")]
+    #[error(ignore)]
     CantRender(String),
 }
 
@@ -769,12 +771,14 @@ impl memory::Resettable for Fragment<'_> {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum IslandError {
-    #[error("Could not locate location of target insertion point: {0}")]
+    #[display("Could not locate location of target insertion point: {_0}")]
+    #[error(ignore)]
     CantFindSlotPoint(String),
 
-    #[error("Fragment failed to complete successfully due to: {0}")]
+    #[display("Fragment failed to complete successfully due to: {_0}")]
+    #[error(ignore)]
     FragmentFailed(String),
 }
 
