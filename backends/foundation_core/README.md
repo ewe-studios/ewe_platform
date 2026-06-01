@@ -156,6 +156,7 @@ fn main() {
         get_pool().kill();
     });
 
+    let _guard = initialize_pool(seed, None);
     block_on(seed, None, |pool| {
         pool.spawn()
             .with_task(Counter::new(5))
@@ -192,6 +193,7 @@ fn main() {
         get_pool().kill();
     });
 
+    let _guard = initialize_pool(seed, None);
     // spawn a task and get back a iterator that returns the state 
     // this means it return immediately with Pending or Done, so it never 
     // blocks but lets you spin things or control polling of iterator.
@@ -222,6 +224,7 @@ fn main() {
         get_pool().kill();
     });
 
+    let _guard = initialize_pool(seed, None);
     // spawn a task but block the thread till we get a Done 
     // item, so it consumes the pending and blocks till 
     // a `Done` is received.
@@ -327,7 +330,7 @@ fn main() {
     // your task can get a random number generator that
     // can provide predictable random numbers every single
     // time if the seed provided is the same.
-    initialize_pool(seed);
+    let _guard = initialize_pool(seed, None);
 
     // spawn a task.
     spawn()
@@ -357,7 +360,7 @@ fn main() {
     let counter = Counter::new(5, shared_list.clone());
 
     // initialize executor with a predictable seed
-    initialize_pool(seed);
+    let _guard = initialize_pool(seed, None);
 
     // spawn a task and get back a iterator that returns the state
     // this means it return immediately with Pending or Done, so it never
@@ -384,7 +387,7 @@ fn main() {
     let counter = Counter::new(5, shared_list.clone());
 
     // initialize executor with a predictable seed
-    initialize_pool(seed);
+    let _guard = initialize_pool(seed, None);
 
     // spawn a task but block the thread till we get a Done
     // item, so it consumes the pending and blocks till
