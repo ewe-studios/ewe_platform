@@ -200,18 +200,108 @@ Lines of code: ~150
 Caveat: Not real-time. Misses rapid changes. Use only as last resort.
 ```
 
+### API: NativeAPI Enum + WatcherBuilder
+
+Users select their preferred backend via a builder with explicit fallback chain. The enum variants map to platform-appropriate implementations at compile time via `cfg` gates.
+
+```rust
+/// The native API backend to use for I/O readiness and file watching.
+///
+/// Available options are feature-gated per platform — attempting to use
+/// an unavailable option will panic at build time (cfg-gated compile error).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NativeAPI {
+    /// io_uring-based completion-driven I/O (Linux 5.1+).
+    /// Supports all IORING_OP_* operations, zero-copy, linked ops.
+    /// On Linux: replaces epoll + inotify with IORING_OP_POLL_ADD + IORING_OP_READ on inotify fd.
+    IOUring,
+
+    /// Traditional readiness-driven polling:
+    ///   Linux: epoll + inotify
+    ///   macOS/BSD: kqueue + EVFILT_VNODE
+    ///   Windows: IOCP + ReadDirectoryChangesW
+    /// This is the "standard" path on non-Linux platforms.
+    EPoll,
+
+    /// Stdlib-only metadata polling fallback — works everywhere.
+    /// Slow, not real-time. Use as last resort.
+    Poll,
+}
+```
+
+**Platform mapping at build time:**
+
+| `NativeAPI` | Linux | macOS/BSD | Windows |
+|-------------|-------|-----------|---------|
+| `IOUring` | `io-uring` crate — `IORING_OP_POLL_ADD` + `IORING_OP_READ` on inotify fd | compile error | compile error |
+| `EPoll` | `poll::Selector` (epoll) + `inotify` crate | `poll::Selector` (kqueue) + `EVFILT_VNODE` via libc | `poll::Selector` (IOCP) + `ReadDirectoryChangesW` |
+| `Poll` | stdlib `metadata()` polling | stdlib `metadata()` polling | stdlib `metadata()` polling |
+
+**Builder pattern:**
+
+```rust
+pub struct WatcherBuilder {
+    preferred: Option<NativeAPI>,
+    fallbacks: Vec<NativeAPI>,
+    poll_timeout: Duration,
+    // ... future: buffer size, recursive default, etc.
+}
+
+impl WatcherBuilder {
+    pub fn preferred(mut self, api: NativeAPI) -> Self;
+    pub fn fallback(mut self, api: NativeAPI) -> Self;
+    pub fn poll_timeout(mut self, timeout: Duration) -> Self;
+    pub fn build(self) -> Result<Box<dyn NativeWatcher>>;
+}
+
+impl Default for WatcherBuilder {
+    fn default() -> Self {
+        // Platform-aware defaults:
+        Self {
+            preferred: Some(native_default_api()),  // IOUring on Linux, EPoll elsewhere
+            fallbacks: vec![NativeAPI::Poll],
+            poll_timeout: Duration::from_millis(100),
+        }
+    }
+}
+```
+
+**Usage:**
+
+```rust
+// Linux: try io_uring first, fall back to epoll, then poll
+let watcher = WatcherBuilder::default()
+    .preferred(NativeAPI::IOUring)
+    .fallback(NativeAPI::EPoll)
+    .fallback(NativeAPI::Poll)
+    .build()?;
+
+// macOS: kqueue is the only real option (EPoll maps to kqueue)
+let watcher = WatcherBuilder::default()
+    .preferred(NativeAPI::EPoll)
+    .fallback(NativeAPI::Poll)
+    .build()?;
+
+// Simple: just use the platform default
+let watcher = native_watcher()?;
+// Equivalent to: WatcherBuilder::default().build()
+```
+
+**Compile-time safety:** If a user explicitly requests `NativeAPI::IOUring` on macOS, the build fails at the `#[cfg(not(target_os = "linux"))]` gate in the `IOUring` variant's implementation — not at runtime.
+
 ### Factory Function
 
 ```rust
 /// Create the best native watcher for the current platform.
 ///
-/// Tries platform-specific backends in order:
-///   1. Linux: inotify
-///   2. macOS/BSD: kqueue
-///   3. Windows: ReadDirectoryChangesW
-///   4. Fallback: PollWatcher
-pub fn native_watcher() -> Box<dyn NativeWatcher> {
-    // #[cfg] gated — only the current platform's backend is compiled
+/// Equivalent to `WatcherBuilder::default().build()`.
+///
+/// Platform defaults:
+///   Linux: IOUring → Poll fallback
+///   macOS/BSD: EPoll (kqueue) → Poll fallback
+///   Windows: EPoll (IOCP) → Poll fallback
+pub fn native_watcher() -> Result<Box<dyn NativeWatcher>> {
+    WatcherBuilder::default().build()
 }
 ```
 
@@ -262,6 +352,24 @@ backends/foundation_nativeapis/
 │   │   │   └── cancel.rs             # IORING_OP_ASYNC_CANCEL
 │   │   ├── tracker.rs                # slab-based operation tracking (learned from monoio)
 │   │   └── waker.rs                  # eventfd wakeup via IORING_OP_READ
+│   ├── ipc/                          # interprocess message bus (adapted from ipmb)
+│   │   ├── mod.rs                    # join(), Options, Selector, Label, LabelOp
+│   │   ├── message.rs                # Message<T>, MessageBox, encoding/decoding
+│   │   ├── bus_controller.rs         # bus controller with message routing
+│   │   ├── memory_registry.rs        # pooled shared memory allocation
+│   │   ├── label.rs                  # Label + LabelOp (AND/OR/NOT routing)
+│   │   ├── errors.rs                 # JoinError, SendError, RecvError
+│   │   ├── derive.rs                 # MessageBox derive macro
+│   │   ├── ffi.rs                    # extern "C" FFI bindings
+│   │   └── platform/                 # platform-specific transports
+│   │       ├── mod.rs                # Object, MemoryRegion, EncodedMessage
+│   │       ├── linux/
+│   │       │   ├── mod.rs            # SOCK_SEQPACKET, abstract sockets, SCM_RIGHTS
+│   │       │   └── io_mul.rs         # epoll + eventfd (or reuse our poll layer)
+│   │       ├── macos/
+│   │       │   └── mod.rs            # Mach ports, mach_msg, vm_allocate/vm_map
+│   │       └── windows/
+│   │           └── mod.rs            # Named pipes, CreateFileMapping, MapViewOfFile
 │   ├── watcher/                      # our file watching layer
 │   │   ├── mod.rs                    # NativeWatcher trait, native_watcher() factory
 │   │   ├── linux/
@@ -291,6 +399,9 @@ edition.workspace = true
 [dependencies]
 io-uring = "0.7"
 inotify = "0.11"
+serde = { version = "1", features = ["derive"] }
+bincode = { version = "2", features = ["serde"] }
+type-uuid = "0.1"
 tracing = "0.1"
 thiserror = "2.0"
 libc = "0.2"
@@ -327,6 +438,9 @@ windows-sys = { version = "0.59", features = [
 13. [ ] Write `src/lib.rs` with module declarations, feature flags, re-exports
 14. [ ] Write `src/error.rs` with `WatchError` enum
 15. [ ] Write `src/event.rs` with `WatchEvent` and `WatchEventKind`
+16. [ ] Write `src/api.rs` with `NativeAPI` enum and platform mapping
+17. [ ] Write `src/builder.rs` with `WatcherBuilder` — preferred/fallback chain, `build()` tries each in order
+18. [ ] Write `native_watcher()` factory — defaults to `WatcherBuilder::default().build()`
 
 #### 3. Linux Backend (inotify + our epoll selector)
 16. [ ] Write `src/watcher/linux/mod.rs` with `InotifyWatcher`
@@ -368,12 +482,19 @@ windows-sys = { version = "0.59", features = [
 | `backends/foundation_nativeapis/src/lib.rs` | Create |
 | `backends/foundation_nativeapis/src/error.rs` | Create |
 | `backends/foundation_nativeapis/src/event.rs` | Create |
+| `backends/foundation_nativeapis/src/api.rs` | Create — `NativeAPI` enum, platform mapping, `native_default_api()` |
+| `backends/foundation_nativeapis/src/builder.rs` | Create — `WatcherBuilder` with preferred/fallback chain |
 | `backends/foundation_nativeapis/src/poll/` | Create — extracted from mio (Poll, Registry, Selector, Events, Token, Interest, Source) |
 | `backends/foundation_nativeapis/src/poll/sys/` | Create — platform selectors (epoll, kqueue, IOCP) + shell stubs |
 | `backends/foundation_nativeapis/src/poll/sys/unix/sourcefd.rs` | Create |
 | `backends/foundation_nativeapis/src/poll/sys/unix/waker/` | Create — eventfd, kqueue-user, pipe |
 | `backends/foundation_nativeapis/src/poll/sys/windows/` | Create — IOCP selector |
 | `backends/foundation_nativeapis/src/net/` | Create — networking types (TCP, UDP, Unix sockets) |
+| `backends/foundation_nativeapis/src/uring/` | Create — io_uring abstractions (ops, tracker, waker) |
+| `backends/foundation_nativeapis/src/ipc/` | Create — interprocess message bus (from ipmb) |
+| `backends/foundation_nativeapis/src/ipc/platform/` | Create — platform transports (Unix sockets, Mach ports, Named pipes) |
+| `backends/foundation_nativeapis/src/ipc/ffi.rs` | Create — FFI bindings for C/C++ |
+| `backends/foundation_nativeapis/src/ipc/derive.rs` | Create — MessageBox derive macro |
 | `backends/foundation_nativeapis/src/watcher/mod.rs` | Create — NativeWatcher trait + factory |
 | `backends/foundation_nativeapis/src/watcher/linux/mod.rs` | Create — InotifyWatcher |
 | `backends/foundation_nativeapis/src/watcher/unix/mod.rs` | Create — KqueueWatcher |

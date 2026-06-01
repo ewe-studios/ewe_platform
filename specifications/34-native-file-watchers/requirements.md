@@ -23,8 +23,8 @@ related_specs:
   - "specifications/33-valtron-singleton"
 tasks:
   completed: 0
-  uncompleted: 38
-  total: 38
+  uncompleted: 52
+  total: 52
   completion_percentage: 0%
 ---
 
@@ -46,9 +46,10 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) | pending |
+| [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) + mio poll layer extraction + io_uring abstractions | pending |
 | [02-valtron-watcher-task](features/02-valtron-watcher-task/) | Valtron task that wraps a `NativeWatcher`, polls on each tick, delivers events to subscriber queues | pending |
 | [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | pending |
+| [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | pending |
 
 ## Architecture
 
