@@ -15,10 +15,10 @@ use std::{
 #[derive(Debug, Display, Error)]
 #[display("{_0}")]
 #[error(ignore)]
-pub(crate) struct RenderError(String);
+pub struct RenderError(String);
 
 #[derive(Debug, Display, Error)]
-pub(crate) enum PackagingError {
+pub enum PackagingError {
     #[display("IO error: {_0}")]
     Io(std::io::Error),
     #[display("written content does not match provided data size")]
@@ -37,14 +37,14 @@ fn render_err(e: impl std::fmt::Display) -> ErrorTrace<PackagingError> {
     PackagingError::TemplateRender(RenderError(e.to_string())).into_error_trace()
 }
 
-pub(crate) enum FileContent<'a> {
+pub enum FileContent<'a> {
     Text(String),
     Tiny(String, TinyTemplate<'a>),
     Jinja(String, Arc<minijinja::Environment<'a>>),
 }
 
 impl FileContent<'_> {
-    pub(crate) fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
+    pub fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
         match self {
             FileContent::Text(content) => {
                 let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
@@ -85,7 +85,7 @@ impl FileContent<'_> {
     }
 }
 
-pub(crate) enum FileSystemCommand<'a> {
+pub enum FileSystemCommand<'a> {
     Dir(String, Vec<FileSystemCommand<'a>>),
     DirPath(PathBuf, Vec<FileSystemCommand<'a>>),
     File(String, FileContent<'a>),
@@ -145,7 +145,7 @@ impl FileSystemCommand<'_> {
     }
 }
 
-pub(crate) struct Templater<'a> {
+pub struct Templater<'a> {
     dest: path::PathBuf,
     commands: Vec<FileSystemCommand<'a>>,
 }
