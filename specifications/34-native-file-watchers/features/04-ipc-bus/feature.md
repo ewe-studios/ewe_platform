@@ -417,7 +417,6 @@ pub extern "C" fn ipmb_join(
    - Process A: `join("test-bus", label!("sender"))` → send message
    - Process B: `join("test-bus", label!("receiver"))` → receive message
    - Verify payload matches sent data
-   - Run as: `cargo test -p foundation_nativeapis --test ipc_two_process -- --test-threads=1`
 
 7. **ipc_multicast.rs**: Controller routes messages to multiple matching endpoints
    - 3 endpoints join with labels "a", "b", "c"
