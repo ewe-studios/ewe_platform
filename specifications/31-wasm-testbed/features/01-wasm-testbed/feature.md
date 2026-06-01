@@ -42,6 +42,7 @@ serde = { workspace = true }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 foundation_http = { workspace = true }
+foundation_core = { workspace = true, features = ["multi"] }
 foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tempfile = "3"
@@ -65,11 +66,12 @@ workspace = true
 
 | Dependency | Why |
 |---|---|
+| `foundation_http` | StaticFileHandler for serving integration directories during web/browser tests |
+| `foundation_core` | OnSignal for graceful server shutdown, valtron executor for HTTP connections |
 | `walrus` | wasm binary parsing — discovers `__wbgt_` exports by name in the wasm module's export section |
 | `portpicker` | Find a random available port for the HTTP server / wrangler dev |
 | `reqwest` (blocking) | curl-equivalent for wrangler mode — sends HTTP request to wrangler dev and reads response |
 | `indicatif` | Progress spinner UX during build / test steps |
-| `fs_extra` | Recursive directory copy for staging templates during `init` |
 | `tempfile` | Temp directories for Playwright scripts |
 | `which` | Locate `wasm-bindgen`, `deno`, `wrangler`, `npx` on PATH |
 
@@ -610,6 +612,8 @@ pub struct BuildOutput {
 
 ---
 
+---
+
 ### `server.rs` — HTTP Server for Web Tests
 
 **Responsibility:** Start an HTTP server serving the integration directory, report the bound port, and provide shutdown capability.
@@ -633,64 +637,36 @@ pub struct TestServer {
 
 **Flow for `start_serving`:**
 
-1. Use `portpicker::pick_unused_port()` to get a random available port → `port`
+1. Pick unused port via `portpicker::pick_unused_port()` → `port`
 2. Create `OnSignal` for shutdown: `let shutdown = Arc::new(OnSignal::new())`
-3. Create a `StaticFileHandler` from foundation_http: `StaticFileHandler::new(integration_dir)`
-4. Create an `HttpApp`:
+3. Create an `HttpApp` and register `StaticFileHandler` directly via the router:
    ```rust
-   let mut app = foundation_http::shared::app::HttpApp::new_serve();
-   app.route_any::<foundation_http::native::handlers::static_file::StaticFileHandler>("/*");
+   use foundation_http::{
+       shared::app::HttpApp,
+       native::{handlers::static_file::StaticFileHandler, server::HttpServer},
+   };
+   use foundation_netio::simple_http::shared::SimpleMethod;
+
+   let mut app = HttpApp::new_serve();
+   let handler = StaticFileHandler::new(integration_dir);
+   app.router().add_route_any(SimpleMethod::GET, "/*", &handler);
    ```
-   But wait — `StaticFileHandler::new(root)` requires the root directory, and `ServeFactory::create()` panics. So we need a different approach.
+   `Router::add_route_any(path, handler)` takes the handler directly — no `ServeFactory` needed. `StaticFileHandler::new(root)` creates the handler with a root directory and already implements `Serve`.
+4. Create the server: `app.server("127.0.0.1:{port}")`
+5. Spawn the server in a thread: `server.serve(&shutdown)` (blocks until `shutdown.probe()` returns true)
+6. Return `TestServer` with port, signal, and thread handle
 
-   **Alternative approach:** The server uses a custom handler. Looking at how `StaticFileHandler` works: it implements `Serve` and `ServeFactory`. The `ServeFactory::create` panics because it needs a root directory. We need to create the handler manually and register it.
+**Shutdown flow:**
+- `TestServer::shutdown()` calls `shutdown_signal.turn_on()` (sets the atomic flag)
+- The server's accept loop checks `shutdown.probe()` each iteration
+- Once set, the server stops accepting and the thread exits
+- `server_thread.join()` waits for the thread to finish
 
-   The actual approach: Create a wrapper type that holds the `StaticFileHandler` and implements `ServeFactory`:
-
-   ```rust
-   struct ServeRoot(PathBuf);
-   impl ServeFactory for ServeRoot {
-       fn create(_bag: &ContextBag) -> Self {
-           // This won't work — ServeFactory::create has no way to pass the root
-       }
-   }
-   ```
-
-   **Better approach:** Don't use `HttpApp::route_any::<H>` at all. Instead, use a simpler server setup. Since `foundation_http` requires the full valtron/foundation_core machinery which is heavy for a test server, consider using a lightweight alternative:
-
-   **Use `tiny_http` or similar:** For the testbed's test server, a minimal static file server is sufficient. No need for valtron, connection pooling, etc. Use a simple HTTP server that serves files from a directory.
-
-   Actually, looking more carefully at the spec: "The `foundation_http` server serves via the `EmbedDirectoryAs` structs". But the existing `StaticFileHandler` serves from a filesystem path, not from an `EmbedDirectoryAs`. The spec says to use `foundation_http` but the integration is complex.
-
-   **Decision:** Use a minimal static file server via `axum` or `tiny_http` for simplicity. The test server only needs to serve static files with correct Content-Type headers. It doesn't need valtron, middleware, or connection pooling.
-
-   Revised dependency: add `tiny_http = "0.12"` to Cargo.toml, remove `foundation_http` and `foundation_core` from testbed dependencies. The test server is a simple `tiny_http::Server` with a handler that:
-   - Maps request path to file path under the integration directory
-   - Prevents path traversal (`..` check)
-   - Returns 404 for missing files
-   - Sets `Content-Type: application/wasm` for `.wasm` files
-   - Serves from disk (not embedded) — this is a test server, not a deployment artifact
-
-   This is simpler and has fewer moving parts. The spec mentions `foundation_http` but that's overkill for a local test server that only runs during testing.
-
-   **Revised `TestServer` implementation:**
-
-   1. Pick unused port via `portpicker`
-   2. Spawn a thread running a `tiny_http::Server` on `127.0.0.1:{port}`
-   3. The server handler:
-      - Parse request path (strip query string)
-      - Strip leading `/`
-      - Check for `..` → 403
-      - Resolve path against `integration_dir`
-      - Verify resolved path starts with `integration_dir` → 403 if not
-      - If directory, try `index.html`
-      - Read file bytes → 404 if missing
-      - Detect MIME type from extension (`.wasm` → `application/wasm`, `.js` → `application/javascript`, `.html` → `text/html`, etc.)
-      - Respond with 200, correct Content-Type, file bytes as body
-   4. Return `TestServer` with port, shutdown signal, and thread handle
-   5. Shutdown: set signal, wait for thread to finish
-
----
+**StaticFileHandler behavior (from foundation_http):**
+- Already handles path traversal prevention (checks for `..` and verifies resolved path starts with root)
+- Already serves `index.html` for directory requests
+- Already sets correct `Content-Type` headers including `application/wasm` for `.wasm` files
+- Already handles 404 for missing files, 403 for forbidden paths
 
 ### `deno.rs` — Deno Test Runner
 
@@ -1053,15 +1029,33 @@ This gives:
 
 The trait implemented by the derive above. Used via `read_utf8_for()`.
 
-### Not used: `foundation_http`
+### `foundation_http`
 
-The test HTTP server uses `tiny_http` instead of `foundation_http` because:
-1. `foundation_http` requires `foundation_core` with valtron executor
-2. `StaticFileHandler`'s `ServeFactory::create()` panics without a context bag setup
-3. The test server is a simple static file server — doesn't need valtron, connection pooling, or keep-alive
-4. `tiny_http` is a well-known, minimal HTTP server library perfect for this use case
+Used for the test HTTP server that serves integration directories during web/browser test modes:
 
-If the team prefers `foundation_http`, a wrapper `ServeFactory` implementation would be needed to pass the root directory. The spec recommends `tiny_http` for simplicity.
+```rust
+use foundation_http::{
+    shared::app::HttpApp,
+    native::{handlers::static_file::StaticFileHandler, server::HttpServer},
+};
+use foundation_netio::simple_http::shared::SimpleMethod;
+
+let mut app = HttpApp::new_serve();
+let handler = StaticFileHandler::new(integration_dir);
+app.router().add_route_any(SimpleMethod::GET, "/*", &handler);
+
+let server = app.server("127.0.0.1:{port}");
+server.serve(&shutdown_signal);  // blocks until shutdown_signal.turn_on()
+```
+
+The `Router::add_route_any(path, handler)` method takes a handler directly (not through `ServeFactory`). `StaticFileHandler::new(root)` creates the handler with a filesystem root directory. The handler already implements path traversal prevention, MIME type detection, `index.html` fallback, and `Content-Type: application/wasm` headers.
+
+### `foundation_core::synca::OnSignal`
+
+Used for graceful server shutdown. `OnSignal` is an atomic flag that the server accept loop checks each iteration:
+- `OnSignal::new()` creates unset signal
+- `turn_on()` sets it (server stops on next `probe()`)
+- `probe()` returns true when set
 
 ---
 

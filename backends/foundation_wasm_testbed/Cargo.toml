@@ -15,6 +15,8 @@ walrus = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { version = "1", features = ["full"] }
+foundation_http = { workspace = true }
+foundation_core = { workspace = true, features = ["multi"] }
 foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tempfile = "3"
@@ -25,7 +27,6 @@ indicatif = { workspace = true }
 portpicker = { workspace = true }
 reqwest = { workspace = true, features = ["blocking", "json"] }
 fs_extra = { workspace = true }
-tiny_http = { workspace = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
