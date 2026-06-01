@@ -853,6 +853,278 @@ impl Align4 for usize {
 
 ---
 
+## Component 16: MemoryRegistry (Region Pool Allocator)
+
+### What It Does
+
+`MemoryRegistry` is a pooled allocator for `MemoryRegion`. Instead of creating a new shared memory object on every send, it keeps a cache of recently-used regions and reuses them when possible. This avoids the overhead of `memfd_create`/`mmap` on every message.
+
+### How It Works (ipmb/src/memory_registry.rs)
+
+```rust
+#[derive(Default)]
+pub struct MemoryRegistry {
+    // BTreeMap keyed by minimum size, value is a list of (region, metadata) pairs
+    inner: BTreeMap<usize, Vec<MemoryRegionEntry>>,
+}
+
+struct MemoryRegionEntry {
+    region: MemoryRegion,           // the cached region
+    last_alloc: Instant,            // when last allocated (for expiry)
+    tag: Option<String>,            // optional tag for matching
+    guard: Guard,                   // free callback holder
+}
+
+struct Guard {
+    free: Option<Box<dyn FnOnce()>>,
+}
+```
+
+**Allocation algorithm (`alloc(min_size, tag)`):**
+
+1. Search BTreeMap for entries in range `[min_size .. min_size * 2)`
+2. For each entry, check if it can be reused:
+   - `region.ref_count() == 1` (only our cache holds a reference)
+   - `tag` matches the entry's tag (if tag was provided)
+3. If reusable: clone the region, set the Guard's free callback, update `last_alloc`, return
+4. If no reusable entry: create new `MemoryRegion::new(min_size)`, add to BTreeMap, return
+
+**Expiry (`maintain()`):**
+- Called after every allocation
+- Removes entries where `(now - last_alloc) >= 5 seconds`
+- If `ref_count() == 1`, clears the Guard's free callback (no cleanup needed)
+
+**`alloc_with_free(min_size, tag, free_callback)`:**
+- Same as `alloc()` but with a callback that runs when the cached entry is evicted
+- Used for resource cleanup when the pooled region is finally dropped
+
+**Example (ipmb/examples/region_free.rs):**
+```rust
+let mut registry = MemoryRegistry::default();
+
+// Allocate with a free callback — called when entry expires from cache
+let region = registry.alloc_with_free(0, None, || {
+    println!("free");
+});
+
+drop(region);  // ref count drops, but entry stays in cache for 5 seconds
+
+// This reuses the same cached entry (ref_count == 1, tag matches)
+let _region = registry.alloc(0, None).unwrap();
+```
+
+---
+
+## Component 17: Platform-Specific Fd / Remote / Local Wrappers
+
+### What It Does
+
+Each platform wraps its native handle type in a platform-specific `Fd`/`Handle`/`MachPort` with thread-safety, cloning, and reachability detection.
+
+### Linux (ipmb/src/platform/linux/fd.rs)
+
+```rust
+pub struct Fd(OwnedFd);  // wraps OwnedFd
+
+impl Fd {
+    pub fn clone(&self) -> io::Result<Self> {
+        self.0.try_clone().map(Self)  // dup() under the hood
+    }
+    pub unsafe fn from_raw(raw: RawFd) -> Self;
+    pub fn into_raw(self) -> RawFd;
+    pub fn as_raw(&self) -> RawFd;
+}
+
+/// The remote (write) end of a socket connection. Thread-safe via Mutex.
+pub struct Remote {
+    v: i32,              // cached fd for is_dead check
+    fd: Mutex<Fd>,       // Mutex for thread-safe sendmsg
+}
+
+impl Remote {
+    pub fn new(fd: Fd) -> Self;
+    pub fn lock(&self) -> MutexGuard<'_, Fd>;  // get exclusive access for sendmsg
+
+    /// Check if the remote socket is dead via getsockopt(SO_ERROR)
+    pub fn is_dead(&self) -> bool {
+        let mut err: i32 = 0;
+        let mut len: u32 = mem::size_of_val(&err) as _;
+        let r = libc::getsockopt(self.v, SOL_SOCKET, SO_ERROR, &mut err, &mut len);
+        r == -1 || err != 0
+    }
+}
+
+/// The local (read) end of a socket connection
+pub struct Local(pub(crate) Fd);
+```
+
+**Key design: `Mutex<Fd>` in `Remote`** — `sendmsg()` on a shared socket must be serialized. The `Mutex` ensures thread-safe sends when multiple threads clone `EndpointSender`.
+
+### macOS (ipmb/src/platform/macos/mod.rs)
+
+```rust
+pub struct MachPort {
+    port: mach_port_t,
+    receive_right: bool,  // whether we own the receive right
+}
+
+impl MachPort {
+    /// Allocate a new port with receive right + send right (self-sendable)
+    fn with_receive_right() -> Self {
+        mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &mut local);
+        mach_port_insert_right(mach_task_self(), local, local, MACH_MSG_TYPE_MAKE_SEND);
+        mach_port_set_attributes(..., MACH_PORT_LIMITS_INFO, &mpl_qlimit: MACH_PORT_QLIMIT_MAX);
+        Self { port: local, receive_right: true }
+    }
+
+    fn clone(&self) -> io::Result<Self> {
+        mach_port_mod_refs(mach_task_self(), self.port, MACH_PORT_RIGHT_SEND, 1);
+        Ok(Self::from_raw(self.port))
+    }
+}
+
+impl Drop for MachPort {
+    fn drop(&mut self) {
+        if self.receive_right {
+            mach_port_mod_refs(..., MACH_PORT_RIGHT_RECEIVE, -1);
+        }
+        mach_port_deallocate(mach_task_self(), self.port);
+    }
+}
+```
+
+**Pipe state machine** — each connected endpoint is wrapped in a `Pipe` that tracks message receive state:
+
+```rust
+enum PipeStatus { Readable, Pending, Offline }
+
+struct Pipe {
+    port: MachPort,
+    status: PipeStatus,
+}
+
+impl Pipe {
+    fn read(&mut self) -> Option<Vec<u8>> {
+        match self.status {
+            PipeStatus::Readable => { /* mach_msg(MACH_RCV_MSG | MACH_RCV_LARGE | MACH_RCV_TIMEOUT) */ }
+            PipeStatus::Pending => None,  // waiting for kqueue to signal
+            PipeStatus::Offline => None,   // port died
+        }
+    }
+}
+```
+
+**`Remote::is_dead()` on macOS:**
+```rust
+fn is_dead(&self) -> bool {
+    let mut ty = 0;
+    mach_port_type(mach_task_self(), self.port, &mut ty);
+    ty & MACH_PORT_TYPE_DEAD_NAME != 0
+}
+```
+
+**Shared memory on macOS** (ipmb/src/platform/macos/memory_region.rs):
+- `mach_make_memory_entry_64()` — creates a named memory object (port-based shared memory)
+- `vm_map()` — maps the memory object into the process address space
+- `vm_deallocate()` — unmaps
+- `vm_page_mask` — page alignment from mach_sys
+
+**IoMultiplexing on macOS:** Uses kqueue with `EVFILT_MACHPORT` filter to monitor mach ports:
+```rust
+fn register_mach_port(&self, mach_port: &MachPort) {
+    let event = kevent {
+        ident: mach_port.as_raw(),
+        filter: EVFILT_MACHPORT,
+        flags: EV_ADD | EV_RECEIPT,
+        ...
+    };
+    kevent(self.fd, &event, 1, ...);
+}
+```
+
+### Windows (ipmb/src/platform/windows/)
+
+**Security attributes** (ipmb/src/platform/windows/security.rs):
+```rust
+pub struct SecurityAttr {
+    raw: SECURITY_ATTRIBUTES,
+    _sd: SecurityDescriptor,  // initialized security descriptor
+    _acl: Acl,                // ACL with Everyone:FILE_ALL_ACCESS
+    _sid: Sid,                // Everyone SID (S-1-1-0)
+}
+
+impl SecurityAttr {
+    pub fn allow_everyone() -> Result<Self, Error> {
+        // AllocateAndInitializeSid(SECURITY_WORLD_SID_AUTHORITY, 1, SECURITY_WORLD_RID)
+        // SetEntriesInAclW(EVERYONE_SID, FILE_ALL_ACCESS)
+        // InitializeSecurityDescriptor + SetSecurityDescriptorDacl
+    }
+}
+```
+
+**Anonymous pipes** (ipmb/src/platform/windows/pipe.rs):
+```rust
+/// Create a named pipe pair: read end + write end (different handles)
+pub unsafe fn anon_pipe(identifier: &str, sa: &SecurityAttr)
+    -> Result<(Handle, Handle), Error>
+{
+    // CreateNamedPipeW(\\.\pipe\{identifier}.{random}, PIPE_ACCESS_INBOUND | OVERLAPPED,
+    //                  PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT)
+    // CreateFileW(\\.\pipe\{identifier}.{random}, FILE_GENERIC_WRITE, OPEN_EXISTING)
+}
+
+/// Create just the read end + return the pipe name (for the sender to connect later)
+pub unsafe fn anon_pipe_half(identifier: &str, sa: &SecurityAttr)
+    -> Result<(Handle, String), Error>
+```
+
+**Process handle duplication** (ipmb/src/platform/windows/util.rs):
+
+Windows can't pass handles directly like Unix fds. Instead, ipmb implements a roundtrip protocol:
+
+1. Client sends `FetchProcessHandleMessage { pid, reply_pipe_name }` to the remote endpoint
+2. Server receives message, opens the client's process with `OpenProcess(PROCESS_DUP_HANDLE, pid)`
+3. Server duplicates its current process handle to the client's process via `DuplicateHandle`
+4. Server writes the duplicated pseudo-handle value back through the reply pipe
+5. Client reads the pseudo-handle from the pipe — now has a valid handle to the server's process
+
+```rust
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "fbf88372-d2cd-425a-a183-133f8f119df2"]
+pub struct FetchProcessHandleMessage {
+    pub pid: u32,
+    pub reply_pipe: String,
+}
+```
+
+**Windows `Remote::is_dead()`:**
+```rust
+fn is_dead(&self) -> bool {
+    let mut written = 0;
+    !WriteFile(self.pipe, None, Some(&mut written), None).as_bool()
+}
+```
+A 0-byte write to a broken pipe returns false — simple and compatible with Windows 7.
+
+---
+
+## Component 18: Examples (from ipmb)
+
+The ipmb library ships with examples that demonstrate key patterns. We should replicate these:
+
+| Example | What It Demonstrates |
+|---------|---------------------|
+| `bench.rs` | Throughput benchmark — sends messages of varying sizes (16B to 16KB) across multiple receiver processes. Uses `num_format` for human-readable stats. |
+| `latency.rs` | Round-trip latency measurement — sender timestamps each message with `SystemTime::now()`, receiver measures receive delay. |
+| `multiple_type.rs` | Using `#[derive(MessageBox)]` enum to send heterogeneous message types through a single bus. Sender sends `MultipleMessage::MyMessage(...)`, `MultipleMessage::String(...)`, etc. |
+| `region_free.rs` | MemoryRegistry pooling — allocates region with free callback, drops it, then allocates again (reuses cached entry). |
+| `rejoin.rs` | Auto-rejoin pattern — creates and drops a sender/receiver pair, then joins again. Demonstrates that the bus survives endpoint churn. |
+| `reliability.rs` | Fault tolerance — spawns 3 child processes as endpoints, kills 2 of them, verifies messages still flow to the surviving one. |
+| `task_info.rs` | Object passing — sends `mach_task_self()` as an object across the bus, receiver uses `task_info()` to query the sender's memory usage. |
+| `triangle.rs` | Multi-endpoint routing — 3 endpoints (a, b, c) in a triangle topology. Each sends to the other two via `Or()` label expressions. Demonstrates multicast + MemoryRegion passing. |
+
+---
+
 ## Reference Source (for implementation)
 
 | Component | ipmb source file |
