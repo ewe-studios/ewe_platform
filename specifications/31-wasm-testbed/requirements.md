@@ -32,9 +32,9 @@ related_specs:
   - "specifications/11-foundation-deployment"
   - "specifications/28-cloudflare-workers-readiness"
 features:
-  completed: 2
+  completed: 3
   uncompleted: 0
-  total: 2
+  total: 3
   completion_percentage: 100%
 ---
 
@@ -55,6 +55,7 @@ A CLI crate `foundation_wasm_testbed` that provides a unified testing interface 
 |---|---|---|---|
 | 01 | [wasm-testbed](./features/01-wasm-testbed/feature.md) | CLI-driven test harness for wasm32 execution across browser, Deno, and Cloudflare Workers | completed |
 | 02 | [wasm-js-yield-integration-tests](./features/02-wasm-js-yield-integration-tests/feature.md) | wasm-pack integration tests verifying full JS yield stack | completed |
+| 03 | [webwasm-polyfill](./features/03-webwasm-polyfill/feature.md) | foundation_webwasm crate: std::time polyfills for wasm32-unknown-unknown | completed |
 
 ## Architecture
 
