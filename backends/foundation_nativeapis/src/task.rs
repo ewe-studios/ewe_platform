@@ -1,17 +1,22 @@
-/// Valtron task: FileWatcherTask — wraps a NativeWatcher and broadcasts
-/// file events to subscribers via mpp channels.
+/// Valtron tasks for file watching and FD monitoring.
 ///
-/// Each tick, polls the native watcher for events, broadcasts them to all
-/// subscribers, and yields back to the valtron execution engine.
+/// Requires the `task` feature flag (which depends on foundation_core for valtron types).
 
 use std::path::Path;
 use std::time::Duration;
 
 use foundation_core::synca::mpp::{self, Receiver, Sender};
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, TaskIterator, TaskStatus,
+};
 
 use crate::error::Result;
 use crate::event::WatchEvent;
+use crate::poll::Interest;
 use crate::watcher::NativeWatcher;
+
+mod fd_monitor;
+pub use fd_monitor::FdMonitorTask;
 
 /// Multi-subscriber broadcaster built on top of mpp channels.
 ///
@@ -48,13 +53,9 @@ impl<T: Clone + Send + 'static> EventBroadcaster<T> {
     /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
     pub fn broadcast(&mut self, event: T) {
         self.subscribers.retain(|tx| {
-            // Try normal send first; if full, force_push to drop oldest
             match tx.send(event.clone()) {
                 Ok(()) => true,
-                Err(_) => {
-                    // Queue full or closed — try force_send
-                    tx.force_send(event.clone()).is_ok()
-                }
+                Err(_) => tx.force_send(event.clone()).is_ok(),
             }
         });
     }
@@ -85,7 +86,7 @@ pub struct FileWatcherTask {
 impl FileWatcherTask {
     /// Create a new FileWatcherTask with a platform-default native watcher.
     pub fn new() -> Result<Self> {
-        use crate::api::{native_watcher, WatcherBuilder};
+        use crate::api::native_watcher;
 
         Ok(Self {
             watcher: native_watcher()?,
@@ -117,7 +118,7 @@ impl FileWatcherTask {
     /// Subscribe to file events.
     ///
     /// Returns a (Sender, Receiver) pair — the Sender can be used to close
-    /// the subscriber's channel explicitly, or to send events to other subscribers.
+    /// the subscriber's channel explicitly.
     pub fn subscribe(&mut self) -> (Sender<WatchEvent>, Receiver<WatchEvent>) {
         self.broadcaster.subscribe()
     }
@@ -134,23 +135,26 @@ impl FileWatcherTask {
     }
 }
 
-impl FileWatcherTask {
-    /// Poll the native watcher and broadcast events to subscribers.
-    ///
-    /// Returns the events that were received, or an empty Vec on timeout/error.
-    /// This method is called by the valtron execution engine each tick.
-    pub fn tick(&mut self) -> Vec<WatchEvent> {
+impl TaskIterator for FileWatcherTask {
+    type Ready = WatchEvent;
+    type Pending = ();
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.watcher.poll(self.poll_timeout) {
             Ok(events) if !events.is_empty() => {
-                for event in &events {
+                // Broadcast all events to subscribers, return first as Ready
+                let (first, rest) = events.split_first().unwrap();
+                self.broadcaster.broadcast(first.clone());
+                for event in rest {
                     self.broadcaster.broadcast(event.clone());
                 }
-                events
+                Some(TaskStatus::Ready(first.clone()))
             }
-            Ok(_) => Vec::new(),
+            Ok(_) => Some(TaskStatus::Delayed(self.poll_timeout)),
             Err(e) => {
                 tracing::error!("Watcher poll error: {}", e);
-                Vec::new()
+                Some(TaskStatus::Delayed(self.poll_timeout))
             }
         }
     }
