@@ -54,3 +54,7 @@ pub mod linux;
     feature = "watcher-macos"
 ))]
 pub mod unix;
+
+/// WinWatcher — Windows ReadDirectoryChangesW-based file watching.
+#[cfg(all(target_os = "windows", feature = "watcher-windows"))]
+pub mod windows;

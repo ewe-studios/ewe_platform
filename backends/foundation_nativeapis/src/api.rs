@@ -117,7 +117,12 @@ impl WatcherBuilder {
             NativeAPI::EPoll => Err(WatchError::UnsupportedPlatform),
             #[cfg(target_os = "windows")]
             NativeAPI::EPoll => {
-                // Windows watcher (ReadDirectoryChangesW + IOCP) not yet implemented
+                #[cfg(feature = "watcher-windows")]
+                {
+                    let w = crate::watcher::windows::WinWatcher::new()?;
+                    return Ok(Box::new(w));
+                }
+                #[cfg(not(feature = "watcher-windows"))]
                 Err(WatchError::UnsupportedPlatform)
             }
             NativeAPI::Poll => Self::build_poll_watcher(),

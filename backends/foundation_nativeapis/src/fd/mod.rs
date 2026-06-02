@@ -353,6 +353,13 @@ impl<T: AsRawFd> AsRawFd for RegisteredFd<T> {
     }
 }
 
+#[cfg(unix)]
+impl<T: std::os::unix::io::AsFd + AsRawFd> std::os::unix::io::AsFd for RegisteredFd<T> {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        self.inner.as_ref().unwrap().as_fd()
+    }
+}
+
 impl<T: AsRawFd> Drop for RegisteredFd<T> {
     fn drop(&mut self) {
         // Deregister from the poll selector so we don't get stale events.
