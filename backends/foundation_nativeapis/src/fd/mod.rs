@@ -297,6 +297,54 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         PollResult::NotReady
     }
+
+    /// Poll for readiness with the given interest flags.
+    ///
+    /// Checks the readiness bitmask for any of the requested flags
+    /// and returns a guard for the first matching readiness state.
+    pub fn poll_ready(&self, interest: Interest) -> PollResult<ReadyGuard<'_, T>> {
+        let ready = self.registration.load_readiness();
+
+        // Check error first
+        if ready.is_error() {
+            self.registration.clear_readiness(Ready::ERROR);
+            return PollResult::Error(io::Error::new(
+                io::ErrorKind::Other,
+                "file descriptor has an error condition",
+            ));
+        }
+
+        // Check closed states
+        if interest.is_readable() && ready.is_read_closed() {
+            self.registration.clear_readiness(Ready::READ_CLOSED);
+            return PollResult::Error(io::Error::new(
+                io::ErrorKind::ConnectionReset,
+                "read end of file descriptor is closed",
+            ));
+        }
+
+        if interest.is_writable() && ready.is_write_closed() {
+            self.registration.clear_readiness(Ready::WRITE_CLOSED);
+            return PollResult::Error(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "write end of file descriptor is closed",
+            ));
+        }
+
+        // Check readable
+        if interest.is_readable() && ready.is_readable() {
+            self.registration.clear_readiness(Ready::READABLE);
+            return PollResult::Ready(ReadyGuard::new(self, Ready::READABLE));
+        }
+
+        // Check writable
+        if interest.is_writable() && ready.is_writable() {
+            self.registration.clear_readiness(Ready::WRITABLE);
+            return PollResult::Ready(ReadyGuard::new(self, Ready::WRITABLE));
+        }
+
+        PollResult::NotReady
+    }
 }
 
 impl<T: AsRawFd> AsRawFd for RegisteredFd<T> {

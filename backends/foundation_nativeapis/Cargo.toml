@@ -18,6 +18,7 @@ type-uuid = { version = "0.1", optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
 libc = "0.2"
+foundation_core = { workspace = true, optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -44,7 +45,7 @@ poll = []
 fd = ["poll"]
 
 # File watching layer
-watcher = ["poll"]
+watcher = ["poll", "dep:foundation_core"]
 watcher-linux = ["watcher", "dep:inotify"]
 watcher-macos = ["watcher"]
 watcher-windows = ["watcher"]
@@ -52,11 +53,14 @@ watcher-windows = ["watcher"]
 # io_uring layer (Linux only)
 uring = ["dep:io-uring"]
 
+# Valtron task integration (FileWatcherTask, FdMonitorTask)
+task = ["watcher", "fd"]
+
 # Interprocess message bus (adapted from ipmb)
 ipc = ["dep:bincode", "dep:type-uuid"]
 
 # Full feature set for current platform
-native = ["poll", "watcher"]
+native = ["poll", "watcher", "fd"]
 native-linux = ["native", "watcher-linux", "uring"]
 native-macos = ["native", "watcher-macos"]
 native-windows = ["native", "watcher-windows"]
