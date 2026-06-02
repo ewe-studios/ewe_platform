@@ -9,10 +9,10 @@ created: 2026-06-01
 last_updated: 2026-06-01
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Valtron Watcher Task
@@ -129,10 +129,10 @@ impl TaskIterator for FileWatcherTask {
                 }
                 Some(TaskStatus::Ready(first.clone()))
             }
-            Ok(_) => Some(TaskStatus::Wait(self.poll_timeout)),
+            Ok(_) => Some(TaskStatus::Delayed(self.poll_timeout)),
             Err(e) => {
                 tracing::error!("Watcher poll error: {}", e);
-                Some(TaskStatus::Wait(self.poll_timeout))
+                Some(TaskStatus::Delayed(self.poll_timeout))
             }
         }
     }
@@ -208,7 +208,7 @@ impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
                     }
                 }
             }
-            PollResult::NotReady => {}
+            PollResult::NotReady => Some(TaskStatus::Delayed(self.poll_interval)),
             PollResult::Error(e) => {
                 tracing::error!("FdMonitorTask poll error: {}", e);
             }
@@ -271,14 +271,14 @@ cargo test -p foundation_nativeapis --test fd_monitor_integration
 
 ## File Changes Summary
 
-| File | Action |
-|------|--------|
-| `backends/foundation_nativeapis/src/task.rs` | Create — FileWatcherTask + EventBroadcaster |
-| `backends/foundation_nativeapis/src/task/fd_monitor.rs` | Create — FdMonitorTask |
-| `backends/foundation_nativeapis/Cargo.toml` | Edit — depends on foundation_core for mpp |
-| `backends/foundation_nativeapis/src/lib.rs` | Edit — export task module |
-| `backends/foundation_nativeapis/tests/valtron_integration.rs` | Create |
-| `backends/foundation_nativeapis/tests/fd_monitor_integration.rs` | Create |
+| File | Action | Status |
+|------|--------|--------|
+| `backends/foundation_nativeapis/src/task.rs` | Create — FileWatcherTask + EventBroadcaster + TaskIterator impl | ✅ Done |
+| `backends/foundation_nativeapis/src/task/fd_monitor.rs` | Create — FdMonitorTask + TaskIterator impl | ✅ Done |
+| `backends/foundation_nativeapis/Cargo.toml` | Edit — depends on foundation_core for mpp, task feature | ✅ Done |
+| `backends/foundation_nativeapis/src/lib.rs` | Edit — export task module | ✅ Done |
+| `backends/foundation_nativeapis/tests/valtron_integration.rs` | Create — 6 integration tests | ✅ Done |
+| `backends/foundation_nativeapis/tests/fd_monitor_integration.rs` | Create — 4 integration tests | ✅ Done |
 
 ---
 

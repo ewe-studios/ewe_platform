@@ -17,7 +17,7 @@ pub mod error;
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
 
-use crate::poll::{Interest, Registry, SourceFd, Token};
+use crate::poll::{Interest, Registry, Token};
 use crate::poll::sys::RawFd;
 
 use std::io;

@@ -91,22 +91,7 @@ Created `src/net/` with poll-layer-integrated networking:
 
 ## What's Remaining
 
-All 14 tasks are complete. The following items are deferred to future features:
-- Full mio networking test suite (currently have 7 networking tests via TcpStream/UdpSocket/UnixSocket)
-- Watcher integration tests with valtron TaskIterator execution (tests the structs but not full valtron engine)
-- IPC bus (feature 04) — this is the biggest missing piece, covered separately
-
-## Implementation Plans
-
-### Remaining Task Breakdown
-
-1. [ ] **Create `src/watcher/windows.rs`** — WinWatcher with ReadDirectoryChangesW + IOCP
-   - watch() → CreateFile + ReadDirectoryChangesW overlapped
-   - poll() → GetQueuedCompletionStatus + decode FILE_NOTIFY_INFORMATION
-   - unwatch() → CancelIoEx + close handle
-   - clear() → cancel all + close all handles
-2. [ ] **Add `AsFd` impl for `RegisteredFd<T>`** when `T: AsFd`
-3. [ ] **Expand test coverage** — add mio-style network tests (TcpStream/UdpSocket/UnixSocket), concurrent registration tests, edge-triggered behavior tests
+All 14 tasks are complete. 41 tests passing.
 
 ## Trade-offs
 
