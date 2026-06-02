@@ -258,6 +258,14 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         }
     }
 
+    #[must_use]
+    pub fn with_max_readiness_wait(dur: std::time::Duration) -> Self {
+        Self {
+            sleepers: Arc::new(RwLock::new(HashMap::new())),
+            max_readiness_wait: dur,
+        }
+    }
+
     pub fn set_max_readiness_wait(&mut self, dur: std::time::Duration) {
         self.max_readiness_wait = dur;
     }

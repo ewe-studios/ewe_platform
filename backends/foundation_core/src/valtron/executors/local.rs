@@ -37,7 +37,7 @@ use crate::valtron::{
 };
 
 use crate::valtron::executors::constants::{
-    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS,
+    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
 };
 
 /// Identifies a thread executor instance.
@@ -666,13 +666,13 @@ impl ExecutorState {
             state_owner,
             wakeup_priority,
             global_tasks,
-            sleepers: Sleepers::new(),
             rng: rc::Rc::new(cell::RefCell::new(rng)),
             idler: rc::Rc::new(cell::RefCell::new(idler)),
             current_task: rc::Rc::new(cell::RefCell::new(None)),
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             local_tasks: rc::Rc::new(cell::RefCell::new(EntryList::new())),
+            sleepers: Sleepers::with_max_readiness_wait(DEFAULT_READINESS_WAIT),
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
