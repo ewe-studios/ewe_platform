@@ -32,3 +32,11 @@ pub trait NativeWatcher: Send + Sync {
     /// Remove all watches and release resources.
     fn clear(&mut self) -> Result<()>;
 }
+
+/// PollWatcher — stdlib-only metadata polling fallback.
+#[cfg(feature = "watcher")]
+pub mod poll_watcher;
+
+/// InotifyWatcher — Linux inotify-based file watching.
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
+pub mod linux;
