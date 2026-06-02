@@ -53,7 +53,7 @@ pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 100;
 pub const DEFAULT_KILL_SIGNAL_CHECK_INTERVAL: usize = 16;
 
 /// `DEFAULT_READINESS_WAIT` is the default duration to wait for a readiness signal before timing out.
-static DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
+pub const DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
 
 pub const BACK_OFF_JITER: f32 = 0.75;
 pub const BACK_OFF_THREAD_FACTOR: u32 = 6;
