@@ -38,6 +38,9 @@ default = []
 # I/O readiness layer — extracted from mio
 poll = []
 
+# File descriptor readiness tracking (like tokio's AsyncFd)
+fd = ["poll"]
+
 # File watching layer
 watcher = ["poll"]
 watcher-linux = ["watcher", "dep:inotify"]
