@@ -191,6 +191,17 @@ impl Registry {
         self.selector.deregister_fd(fd)
     }
 
+    /// Register an EVFILT_VNODE filter for file watching (macOS/BSD only).
+    /// On Linux/Windows, returns Unsupported.
+    pub fn register_vnode(&self, fd: sys::RawFd, token: Token) -> io::Result<()> {
+        self.selector.register_vnode(fd, token)
+    }
+
+    /// Deregister an EVFILT_VNODE filter (macOS/BSD only).
+    pub fn deregister_vnode(&self, fd: sys::RawFd) -> io::Result<()> {
+        self.selector.deregister_vnode(fd)
+    }
+
     /// Access the internal selector (for platform-specific operations).
     pub(crate) fn selector(&self) -> &sys::Selector {
         &self.selector

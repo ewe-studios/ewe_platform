@@ -192,6 +192,16 @@ impl Selector {
         }
     }
 
+    /// EVFILT_VNODE is not supported on epoll. Returns Unsupported.
+    pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
+        Err(io::Error::new(io::ErrorKind::Unsupported, "EVFILT_VNODE not supported on epoll"))
+    }
+
+    /// EVFILT_VNODE deregistration — no-op on epoll.
+    pub fn deregister_vnode(&self, _fd: RawFd) -> io::Result<()> {
+        Ok(())
+    }
+
     /// Wait for readiness events.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         let timeout_ms = timeout

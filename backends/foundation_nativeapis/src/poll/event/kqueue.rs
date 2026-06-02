@@ -55,6 +55,16 @@ impl Event {
     pub fn is_priority(&self) -> bool {
         false
     }
+
+    /// Returns the `ident` field (usually the fd or vnode identifier).
+    pub fn ident(&self) -> libc::uintptr_t {
+        self.event.ident
+    }
+
+    /// Returns the `fflags` field (used by EVFILT_VNODE for change flags).
+    pub fn fflags(&self) -> u32 {
+        self.event.fflags
+    }
 }
 
 impl Default for Event {

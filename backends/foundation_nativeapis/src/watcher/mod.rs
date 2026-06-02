@@ -40,3 +40,17 @@ pub mod poll_watcher;
 /// InotifyWatcher — Linux inotify-based file watching.
 #[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 pub mod linux;
+
+/// KqueueWatcher — macOS/BSD kqueue-based file watching (EVFILT_VNODE).
+#[cfg(all(
+    any(
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd",
+        target_os = "dragonfly",
+    ),
+    feature = "watcher-macos"
+))]
+pub mod unix;

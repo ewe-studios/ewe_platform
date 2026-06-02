@@ -45,6 +45,12 @@ impl Event {
         self
     }
 
+    /// Set the completion key (token).
+    pub fn with_key(mut self, key: usize) -> Self {
+        self.key = key;
+        self
+    }
+
     /// Which token was registered for this event.
     pub fn token(&self) -> crate::poll::Token {
         crate::poll::Token(self.key)

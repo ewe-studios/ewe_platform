@@ -43,6 +43,88 @@ impl Selector {
         Ok((selector, registry))
     }
 
+    /// Register an EVFILT_VNODE filter for file watching on the given fd.
+    ///
+    /// Unlike register_fd (which uses EVFILT_READ/WRITE), this registers
+    /// EVFILT_VNODE to track file system changes: write, delete, extend, rename, revoke.
+    /// Multiple filters can coexist on the same kqueue — events are distinguished
+    /// by their filter field in the returned kevent.
+    ///
+    /// The fd must remain open for the lifetime of the watch — kqueue tracks by fd,
+    /// not by path. If the fd is closed, the filter is automatically removed.
+    pub fn register_vnode(&self, fd: RawFd, token: Token) -> io::Result<()> {
+        let mut event: libc::kevent = unsafe { std::mem::zeroed() };
+        unsafe {
+            libc::EV_SET(
+                &mut event,
+                fd as libc::uintptr_t,
+                libc::EVFILT_VNODE,
+                libc::EV_ADD | libc::EV_CLEAR,
+                libc::NOTE_WRITE
+                    | libc::NOTE_DELETE
+                    | libc::NOTE_EXTEND
+                    | libc::NOTE_RENAME
+                    | libc::NOTE_REVOKE,
+                0,
+                token.0 as *mut libc::c_void,
+            );
+        }
+
+        let r = unsafe {
+            libc::kevent(
+                self.kq.as_raw_fd(),
+                &event,
+                1,
+                std::ptr::null_mut(),
+                0,
+                std::ptr::null(),
+            )
+        };
+
+        if r < 0 {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Deregister an EVFILT_VNODE filter for the given fd.
+    pub fn deregister_vnode(&self, fd: RawFd) -> io::Result<()> {
+        let mut event: libc::kevent = unsafe { std::mem::zeroed() };
+        unsafe {
+            libc::EV_SET(
+                &mut event,
+                fd as libc::uintptr_t,
+                libc::EVFILT_VNODE,
+                libc::EV_DELETE,
+                0,
+                0,
+                std::ptr::null_mut(),
+            );
+        }
+
+        let r = unsafe {
+            libc::kevent(
+                self.kq.as_raw_fd(),
+                &event,
+                1,
+                std::ptr::null_mut(),
+                0,
+                std::ptr::null(),
+            )
+        };
+
+        // EV_DELETE may return ENOENT if the filter doesn't exist — that's fine
+        if r < 0 {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error() != Some(libc::ENOENT) {
+                return Err(err);
+            }
+        }
+
+        Ok(())
+    }
+
     /// Register a raw file descriptor with the kqueue selector.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         let mut events: [libc::kevent; 2] = [unsafe { std::mem::zeroed() }, unsafe {

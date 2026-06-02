@@ -36,6 +36,14 @@ impl Selector {
         Err(io::Error::new(io::ErrorKind::Unsupported, "unsupported"))
     }
 
+    pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
+        Err(io::Error::new(io::ErrorKind::Unsupported, "unsupported"))
+    }
+
+    pub fn deregister_vnode(&self, _fd: RawFd) -> io::Result<()> {
+        Err(io::Error::new(io::ErrorKind::Unsupported, "unsupported"))
+    }
+
     pub fn register_waker(&self, _token: Token) -> io::Result<()> {
         Err(io::Error::new(io::ErrorKind::Unsupported, "unsupported"))
     }
