@@ -16,7 +16,7 @@ use std::{
 
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, EventReadiness, State},
+    valtron::{AnyResult, EventReadiness, ExecutionEngine, ExecutionIterator, State},
 };
 use crate::{
     synca::{Timeable, Timing},
@@ -168,11 +168,11 @@ impl Timeable for Sleepable {
 }
 
 impl Waiter for Sleepable {
-    fn is_ready(&self) -> bool {
+    fn is_ready(&self, dur: Option<time::Duration>) -> bool {
         match self {
-            Sleepable::Timable(inner) => inner.is_ready(),
+            Sleepable::Timable(inner) => inner.is_ready(dur),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
-            Sleepable::Readiness(signal, _) => signal.is_ready(None),
+            Sleepable::Readiness(signal, _) => signal.is_ready(dur),
         }
     }
 }
@@ -1677,7 +1677,11 @@ impl ExecutorState {
                         .and_modify(|c| *c += 1)
                         .or_insert(1);
 
-                    let violations = *self.depends_true_violations.borrow().get(&top_entry).unwrap();
+                    let violations = *self
+                        .depends_true_violations
+                        .borrow()
+                        .get(&top_entry)
+                        .unwrap();
                     if violations >= DEPENDS_TRUE_PANIC_THRESHOLD {
                         panic!(
                             "Task {:?} returned State::Depends with an already-ready signal {} \
@@ -1699,7 +1703,10 @@ impl ExecutorState {
                 }
 
                 // 3. Signal is false -> register as Sleepable::Readiness(signal, entry)
-                tracing::debug!("[DEPENDS] Task {:?} registered as Readiness sleeper", top_entry);
+                tracing::debug!(
+                    "[DEPENDS] Task {:?} registered as Readiness sleeper",
+                    top_entry
+                );
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry));
@@ -2980,9 +2987,9 @@ mod test_local_thread_executor {
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
         valtron::{
-            BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour,
-            IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator,
-            TaskStatus, WrapTask,
+            BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction,
+            InlineSendAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner,
+            OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
         },
     };
 
@@ -4412,4 +4419,331 @@ mod test_local_thread_executor {
     // 2. Returns parent states requiring executor action (Pending with duration,
     //    SpawnFinished, Panicked, Reschedule) on the next poll
     // 3. Only ignores "pass-through" states (ReadyValue, Progressed, etc.)
+
+    // ============================================================================
+    // Feature 01: TaskStatus::Depends Signal Tests
+    // ============================================================================
+
+    /// A counter that returns Ready values until it hits `trigger_at`,
+    /// then returns Depends(signal) until `resume_at`.
+    struct DependsCounter {
+        count: usize,
+        max: usize,
+        trigger_at: usize,
+        depends_returned: bool,
+        signal: BoolSignal,
+    }
+
+    impl DependsCounter {
+        fn new(trigger_at: usize, signal: BoolSignal) -> Self {
+            Self {
+                count: 0,
+                max: 10,
+                trigger_at,
+                depends_returned: false,
+                signal,
+            }
+        }
+    }
+
+    impl TaskIterator for DependsCounter {
+        type Ready = usize;
+        type Spawner = NoSpawner;
+        type Pending = time::Duration;
+
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            self.count += 1;
+
+            if self.count >= self.max {
+                return None;
+            }
+
+            // Return Depends exactly once when we hit trigger_at
+            if self.count == self.trigger_at && !self.depends_returned {
+                self.depends_returned = true;
+                return Some(TaskStatus::Depends(sync::Arc::new(self.signal.clone())));
+            }
+
+            Some(TaskStatus::Ready(self.count))
+        }
+    }
+
+    /// A custom EventReadiness that flips after N polls.
+    struct CounterSignal {
+        polls: AtomicUsize,
+        threshold: usize,
+    }
+
+    impl CounterSignal {
+        fn new(threshold: usize) -> Self {
+            Self {
+                polls: AtomicUsize::new(0),
+                threshold,
+            }
+        }
+    }
+
+    impl EventReadiness for CounterSignal {
+        fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+            self.polls.fetch_add(1, Ordering::SeqCst) >= self.threshold
+        }
+    }
+
+    #[test]
+    #[traced_test]
+    fn depends_false_registers_as_sleeper() {
+        let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
+        let signal = BoolSignal::new(false);
+
+        let seed = rand::rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            "1".into(),
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            time::Duration::from_secs(10),
+            None,
+            None,
+        );
+
+        let signal_clone = signal.clone();
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
+            DependsCounter::new(1, signal),
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {
+                // callback - we track via run_once return values
+            },
+            None,
+        ))));
+
+        // First run_once: task returns Depends(false), should register as sleeper
+        let result = executor.run_once();
+        assert!(matches!(result, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        // Flip the signal so the sleeper is ready
+        signal_clone.clone_inner().store(true, Ordering::SeqCst);
+
+        // Second run_once: wakeup_ready_sleepers wakes the task (signal=true)
+        // Task returns Ready(2) since Depends was already consumed once
+        let result2 = executor.run_once();
+        assert!(matches!(result2, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 0);
+    }
+
+    #[test]
+    #[traced_test]
+    fn depends_signal_wakes_task_and_continues() {
+        let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
+        let signal = BoolSignal::new(false);
+
+        let seed = rand::rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            "1".into(),
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            time::Duration::from_secs(10),
+            None,
+            None,
+        );
+
+        let signal_clone = signal.clone_inner();
+
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
+            DependsCounter::new(1, signal),
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
+            None,
+        ))));
+
+        // Run 1: Depends(false) → registered as sleeper
+        let r1 = executor.run_once();
+        assert!(matches!(r1, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        // Flip the signal AFTER the task is sleeping
+        signal_clone.store(true, Ordering::SeqCst);
+
+        // Run 2: wakeup_ready_sleepers sees signal=true, wakes the task
+        // Task returns Ready(2) since Depends was consumed
+        let r2 = executor.run_once();
+        assert!(matches!(r2, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 0);
+    }
+
+    #[test]
+    #[traced_test]
+    fn depends_true_violation_pushed_to_back() {
+        let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
+        // Signal starts true - task will immediately get Depends(true)
+        let signal = BoolSignal::new(true);
+
+        let seed = rand::rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            "1".into(),
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            time::Duration::from_secs(10),
+            None,
+            None,
+        );
+
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
+            DependsCounter::new(1, signal),
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
+            None,
+        ))));
+
+        // Depends(true) → violation, treated as Pending, pushed to back
+        let result = executor.run_once();
+        assert!(matches!(result, ProgressIndicator::CanProgress(_)));
+        // No sleepers since it was treated as Pending
+        assert_eq!(executor.number_of_sleepers(), 0);
+        // Violation tracked
+        assert_eq!(
+            executor.state.inner.depends_true_violations.borrow().len(),
+            1
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn custom_event_readiness_flips_after_polls() {
+        let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
+        let signal = sync::Arc::new(CounterSignal::new(2));
+
+        let seed = rand::rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            "1".into(),
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            time::Duration::from_secs(10),
+            None,
+            None,
+        );
+
+        // Task returns Depends immediately with a signal that becomes ready after 2 polls
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
+            DependsCounterCustom {
+                count: 0,
+                max: 3,
+                signal: signal.clone(),
+            },
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
+            None,
+        ))));
+
+        // First run_once: Depends(false), registers as sleeper
+        let r1 = executor.run_once();
+        assert!(matches!(r1, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        // Second run_once: wakeup_ready_sleepers polls signal (poll count = 1, still false)
+        let r2 = executor.run_once();
+        // Sleeper still not ready, still sleeping
+        assert!(matches!(r2, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        // Third run_once: wakeup_ready_sleepers polls signal (poll count = 2, now true)
+        let r3 = executor.run_once();
+        // Sleeper woken up, task continues
+        assert!(matches!(r3, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 0);
+    }
+
+    struct DependsCounterCustom {
+        count: usize,
+        max: usize,
+        signal: sync::Arc<CounterSignal>,
+    }
+
+    impl TaskIterator for DependsCounterCustom {
+        type Ready = usize;
+        type Spawner = NoSpawner;
+        type Pending = time::Duration;
+
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            self.count += 1;
+            if self.count >= self.max {
+                return None;
+            }
+            Some(TaskStatus::Depends(self.signal.clone()))
+        }
+    }
+
+    #[test]
+    #[traced_test]
+    fn bool_signal_clone_and_flip() {
+        let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
+        let signal = BoolSignal::new(false);
+        let atomic = signal.clone_inner();
+
+        let seed = rand::rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            "1".into(),
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            time::Duration::from_secs(10),
+            None,
+            None,
+        );
+
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
+            DependsCounter::new(1, signal.clone()),
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
+            None,
+        ))));
+
+        // Verify signal is initially false
+        assert!(!signal.is_ready(None));
+
+        // Register as sleeper
+        let r1 = executor.run_once();
+        assert!(matches!(r1, ProgressIndicator::CanProgress(_)));
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        // Flip via the atomic handle
+        atomic.store(true, Ordering::SeqCst);
+
+        // Verify signal is now true
+        assert!(signal.is_ready(None));
+
+        // Wake up
+        let r2 = executor.run_once();
+        assert!(matches!(r2, ProgressIndicator::CanProgress(_)));
+        // Task continues past Depends, no more sleepers
+        assert_eq!(executor.number_of_sleepers(), 0);
+    }
 }

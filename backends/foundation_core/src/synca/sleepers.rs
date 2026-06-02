@@ -7,6 +7,8 @@ use std::{collections::HashMap, sync::Arc, time};
 use super::{Entry, EntryList};
 use foundation_nostd::comp::basic::RwLock;
 
+static DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
+
 pub trait Waker {
     fn wake(&self);
 }
@@ -83,7 +85,10 @@ impl<T: std::fmt::Debug> DurationStore<T> {
     /// Returns the list of
     #[must_use]
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
-        self.store.write().unwrap().select_take(Waiter::is_ready)
+        self.store
+            .write()
+            .unwrap()
+            .select_take(|t| t.is_ready(None))
     }
 
     /// Returns the minimum duration of time of all entries in the
@@ -124,11 +129,11 @@ impl<T: Waker> Timeable for DurationWaker<T> {
 }
 
 pub trait Waiter {
-    fn is_ready(&self) -> bool;
+    fn is_ready(&self, dur: Option<std::time::Duration>) -> bool;
 }
 
 impl<T> Waiter for DurationWaker<T> {
-    fn is_ready(&self) -> bool {
+    fn is_ready(&self, _dur: Option<std::time::Duration>) -> bool {
         self.try_is_ready().unwrap_or(false)
     }
 }
@@ -188,6 +193,8 @@ impl<T> DurationWaker<T> {
 pub struct Sleepers<T: Waiter> {
     /// Map from task entry to sleeper data.
     sleepers: Arc<RwLock<HashMap<Entry, T>>>,
+    /// max wait for readiness checks
+    max_readiness_wait: std::time::Duration,
 }
 
 pub trait Timing {
@@ -231,6 +238,7 @@ impl<T: Waiter + std::fmt::Debug> Clone for Sleepers<T> {
     fn clone(&self) -> Self {
         Self {
             sleepers: self.sleepers.clone(),
+            max_readiness_wait: self.max_readiness_wait,
         }
     }
 }
@@ -246,7 +254,12 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     pub fn new() -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(HashMap::new())),
+            max_readiness_wait: DEFAULT_READINESS_WAIT,
         }
+    }
+
+    pub fn set_max_readiness_wait(&mut self, dur: std::time::Duration) {
+        self.max_readiness_wait = dur;
     }
 
     /// Inserts a new Wakeable keyed by the task entry.
@@ -288,7 +301,7 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         let mut sleepers = self.sleepers.write().unwrap();
         let matured_entries: Vec<Entry> = sleepers
             .iter()
-            .filter(|(_, sleeper)| sleeper.is_ready())
+            .filter(|(_, sleeper)| sleeper.is_ready(Some(self.max_readiness_wait)))
             .map(|(entry, _)| *entry)
             .collect();
         let mut matured = Vec::new();
@@ -370,7 +383,7 @@ mod tests {
     }
 
     impl Waiter for MockSleeper {
-        fn is_ready(&self) -> bool {
+        fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
             self.ready
         }
     }
@@ -523,10 +536,7 @@ mod tests {
         let sleepers = Sleepers::new();
         assert!(!sleepers.has_pending_tasks());
 
-        sleepers.insert(
-            Entry { id: 1, gen: 0 },
-            MockSleeper { ready: false },
-        );
+        sleepers.insert(Entry { id: 1, gen: 0 }, MockSleeper { ready: false });
         assert!(sleepers.has_pending_tasks());
 
         let _ = sleepers.remove(&Entry { id: 1, gen: 0 });
@@ -716,8 +726,14 @@ mod tests {
         let handle1 = MockWaker::new();
         let handle2 = MockWaker::new();
 
-        store.insert(DurationWaker::from_now(handle1, time::Duration::from_millis(100)));
-        store.insert(DurationWaker::from_now(handle2, time::Duration::from_millis(50)));
+        store.insert(DurationWaker::from_now(
+            handle1,
+            time::Duration::from_millis(100),
+        ));
+        store.insert(DurationWaker::from_now(
+            handle2,
+            time::Duration::from_millis(50),
+        ));
 
         let min = store.min_duration();
         assert!(min.is_some());
@@ -731,8 +747,14 @@ mod tests {
         let handle1 = MockWaker::new();
         let handle2 = MockWaker::new();
 
-        store.insert(DurationWaker::from_now(handle1, time::Duration::from_millis(100)));
-        store.insert(DurationWaker::from_now(handle2, time::Duration::from_millis(50)));
+        store.insert(DurationWaker::from_now(
+            handle1,
+            time::Duration::from_millis(100),
+        ));
+        store.insert(DurationWaker::from_now(
+            handle2,
+            time::Duration::from_millis(50),
+        ));
 
         let max = store.max_duration();
         assert!(max.is_some());
