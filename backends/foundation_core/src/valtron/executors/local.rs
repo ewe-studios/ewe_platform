@@ -40,6 +40,8 @@ use crate::valtron::executors::constants::{
     DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
 };
 
+const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
+
 /// Identifies a thread executor instance.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct ThreadId(Entry, String);
@@ -2719,7 +2721,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
-            const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
             let yield_duration = self
                 .state
                 .time_until_next_wakeup()
