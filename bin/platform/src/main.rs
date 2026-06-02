@@ -11,12 +11,12 @@ mod gen_api;
 mod generate;
 mod local;
 mod models;
-mod sandbox;
-mod sandbox_app;
+// mod sandbox;
+// mod sandbox_app;
 mod tcp_capture;
+mod testbed;
 mod wasm_bins;
 mod watchful;
-mod testbed;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -34,8 +34,8 @@ async fn main() -> std::result::Result<(), BoxedError> {
     commander = tcp_capture::register(commander);
     commander = local::register(commander);
     commander = watchful::register(commander);
-    commander = sandbox_app::register(commander);
-    commander = sandbox::register(commander);
+    // commander = sandbox_app::register(commander);
+    // commander = sandbox::register(commander);
     commander = gen_api::register(commander);
     commander = wasm_bins::register(commander);
     commander = testbed::register(commander);
@@ -43,8 +43,8 @@ async fn main() -> std::result::Result<(), BoxedError> {
     let matches = commander.get_matches();
     match matches.subcommand() {
         Some(("local", arguments)) => local::run(arguments).await?,
-        Some(("sandbox", arguments)) => sandbox::run(arguments).await?,
-        Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
+        // Some(("sandbox", arguments)) => sandbox::run(arguments).await?,
+        // Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
         Some(("generate", arguments)) => generate::run(arguments)?,
         Some(("gen_api", arguments)) => gen_api::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,

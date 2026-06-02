@@ -8,8 +8,11 @@ use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 use std::os::windows::io::{AsRawHandle, RawHandle};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::Duration;
 use std::{io, mem, ptr};
+
+use concurrent_queue::ConcurrentQueue;
 
 use crate::error::{Result, WatchError};
 use crate::event::{WatchEvent, WatchEventKind};
@@ -39,6 +42,10 @@ pub struct WinWatcher {
     watches: HashMap<PathBuf, WatchState>,
     /// Reusable event buffer.
     events_buf: Vec<u8>,
+    /// Cached events — populated by `is_ready()` so they aren't lost,
+    /// drained by `poll()`. IOCP is dequeue-based; this cache lets us
+    /// peek without consuming.
+    event_cache: Arc<ConcurrentQueue<WatchEvent>>,
 }
 
 impl WinWatcher {
@@ -49,6 +56,7 @@ impl WinWatcher {
             poll,
             watches: HashMap::new(),
             events_buf: Vec::with_capacity(64 << 10), // 64KB
+            event_cache: Arc::new(ConcurrentQueue::unbounded()),
         })
     }
 
@@ -186,6 +194,17 @@ impl NativeWatcher for WinWatcher {
     fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>> {
         use crate::poll::Events;
 
+        // Drain any cached events from a prior is_ready() call first.
+        // This ensures events peeked by is_ready() are not lost.
+        let cached: Vec<WatchEvent> = self
+            .event_cache
+            .try_iter()
+            .take_while(|_| !self.event_cache.is_empty())
+            .collect();
+        if !cached.is_empty() {
+            return Ok(cached);
+        }
+
         // For each watch, check if the overlapped I/O has completed
         let mut all_events = Vec::new();
         let mut completed_paths: Vec<PathBuf> = Vec::new();
@@ -198,7 +217,7 @@ impl NativeWatcher for WinWatcher {
                     state.dir_handle,
                     state.overlapped.as_ref() as *const _ as *mut _,
                     &mut bytes_transferred,
-                    0, // don't wait — we poll
+                    if timeout.is_zero() { 0 } else { 1 },
                 );
 
                 if result != 0 && bytes_transferred > 0 {
@@ -223,7 +242,7 @@ impl NativeWatcher for WinWatcher {
                         state.dir_handle,
                         state.buffer.as_ptr() as *mut _,
                         state.buffer.len() as u32,
-                        0, // recursive flag set in initial call
+                        0,
                         FILE_NOTIFY_CHANGE_FILE_NAME
                             | FILE_NOTIFY_CHANGE_DIR_NAME
                             | FILE_NOTIFY_CHANGE_SIZE
@@ -264,5 +283,39 @@ impl NativeWatcher for WinWatcher {
             let _ = self.unwatch(&path);
         }
         Ok(())
+    }
+
+    fn has_events(&self, timeout: Option<Duration>) -> bool {
+        // IOCP is dequeue-based — peek the cache first.
+        if !self.event_cache.is_empty() {
+            return true;
+        }
+
+        // Cache is empty, so we poll each watch with the given timeout
+        // to see if anything is ready. We use GetOverlappedResult with
+        // bWait=0 (non-blocking) since the caller can pass a timeout
+        // here if they want to wait — but for IOCP, waiting requires
+        // actually consuming, so we just check what's already queued.
+        if let Some(dur) = timeout {
+            if !dur.is_zero() {
+                std::thread::sleep(dur);
+            }
+        }
+
+        for (_path, state) in &self.watches {
+            let mut bytes_transferred: u32 = 0;
+            unsafe {
+                let result = GetOverlappedResult(
+                    state.dir_handle,
+                    state.overlapped.as_ref() as *const _ as *mut _,
+                    &mut bytes_transferred,
+                    0, // don't wait
+                );
+                if result != 0 && bytes_transferred > 0 {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

@@ -17,6 +17,9 @@ pub mod watcher;
 #[cfg(feature = "task")]
 pub mod task;
 
+// Re-export shared watcher types
+pub use watcher::{SharedNativeWatcher, SharedWatcher};
+
 // Re-export common types at the crate root
 pub use api::{native_watcher, NativeAPI, WatcherBuilder};
 pub use error::{Result, WatchError};

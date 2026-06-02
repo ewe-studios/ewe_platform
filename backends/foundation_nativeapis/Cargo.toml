@@ -12,6 +12,7 @@ keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
 [dependencies]
 io-uring = { version = "0.7", optional = true }
 inotify = { version = "0.11", optional = true }
+concurrent-queue = "2.5.0"
 serde = { workspace = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 type-uuid = { version = "0.1", optional = true }
@@ -30,13 +31,17 @@ windows-sys = { version = "0.59", features = [
 ]}
 
 [dev-dependencies]
-tracing-test = { version = "0.2", features = ["no-env-filter"] }
-tracing-subscriber = "0.3"
+tracing-test.workspace = true
+tracing-subscriber.workspace = true
 nix = { version = "0.29", features = ["fs", "poll"] }
 serial_test = "3.3"
+foundation_core = { workspace = true, features = ["multi"] }
 
 [features]
-default = []
+default = ["multi"]
+
+# multi feature to enable multi feature for foundation_core
+multi = ["foundation_core/multi"]
 
 # I/O readiness layer — extracted from mio
 poll = []

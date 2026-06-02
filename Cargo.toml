@@ -3,16 +3,16 @@ resolver = "3"
 # set members of your workspace
 members = [
   "bin/*",
-  "crates/*",
+  # "crates/*",
   "backends/*",
   "infrastructure/*",
   "tests",  # Workspace integration tests
   "benches",  # Workspace benchmarks
 
   # examples
-  "examples/web/*",
-  "examples/intro",
-  "examples/template/*",
+  # "examples/web/*",
+  # "examples/intro",
+  # "examples/template/*",
   "examples/cf-login-app",
   "examples/cf-valtron-counter",
   "backends/foundation_wasm_testbed",
@@ -32,6 +32,11 @@ exclude = [
   "examples/llama-cpp/*",
   # tests members
   "integrations/nodejs/integrations/*",
+  # devserver
+  "crates/*",
+  "examples/web/*",
+  "examples/intro",
+  "examples/template/*",
 ]
 
 [workspace.package]
@@ -76,12 +81,6 @@ foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "
 
 foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.1.0" }
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
-ewe_channels = { path = "./crates/channels", version = "0.0.1" }
-ewe_watchers = { path = "./crates/watchers", version = "0.0.1" }
-ewe_devserver = { path = "./crates/devserver", version = "0.0.2" }
-ewe_watch_utils = { path = "./crates/watch_utils", version = "0.0.1" }
-ewe_async_utils = { path = "./crates/async-utils", version = "0.0.1" }
-ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
 toml = { version = "0.9" }
@@ -95,6 +94,8 @@ regex = "1.12.2"
 # core library dependencies
 tracing = { version = "0.1" }
 tracing-core = { version = "0.1" }
+tracing-test = { version = "0.2",  features = ["no-env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["json"] }
 
 thiserror = { version = "2"}
 
@@ -110,13 +111,10 @@ bindgen = { version = "0.72.1" }
 cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }
-tracing-subscriber = { version = "0.3", features = ["json"] }
 walrus = "0.23"
 portpicker = "0.1"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 fs_extra = "1.3"
-indicatif = "0.18"
-tiny_http = "0.12"
 
 [workspace.lints.rust]
 missing_docs = { level = "allow" }

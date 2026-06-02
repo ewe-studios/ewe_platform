@@ -1528,10 +1528,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "counter"
-version = "0.0.1"
-
-[[package]]
 name = "cpubits"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2208,96 +2204,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe_async_utils"
-version = "0.0.1"
-dependencies = [
- "async-trait",
-]
-
-[[package]]
-name = "ewe_channels"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-channel",
- "crossbeam",
- "futures",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tracing",
- "tracing-test",
-]
-
-[[package]]
-name = "ewe_deployables"
-version = "0.0.1"
-dependencies = [
- "chrono",
- "foundation_core",
- "foundation_db",
- "foundation_deployment",
- "foundation_netio",
- "foundation_testing",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 1.0.69",
- "tracing",
-]
-
-[[package]]
-name = "ewe_devserver"
-version = "0.0.2"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum 0.7.9",
- "bytes",
- "crossbeam",
- "derive_more",
- "ewe_watch_utils",
- "foundation_core",
- "foundation_macros",
- "foundation_nostd",
- "foundation_runtimes",
- "futures",
- "h2 0.4.12",
- "h3",
- "http 1.4.0",
- "http-body 1.0.1",
- "http-body-util",
- "hyper 1.8.1",
- "hyper-util",
- "itertools 0.14.0",
- "lazy_static",
- "serde",
- "serde_json",
- "serde_with",
- "tokio",
- "tokio-stream",
- "tower 0.4.13",
- "tracing",
-]
-
-[[package]]
-name = "ewe_domain"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-channel",
- "crossbeam",
- "ewe_channels",
- "futures",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tracing",
- "tracing-subscriber",
- "tracing-test",
-]
-
-[[package]]
 name = "ewe_platform"
 version = "0.0.2"
 dependencies = [
@@ -2309,9 +2215,6 @@ dependencies = [
  "crossbeam",
  "ctrlc",
  "derive_more",
- "ewe_devserver",
- "ewe_watch_utils",
- "ewe_watchers",
  "foundation_ai",
  "foundation_core",
  "foundation_deployment",
@@ -2366,49 +2269,6 @@ dependencies = [
  "serial_test",
  "sha1",
  "tracing",
- "tracing-test",
-]
-
-[[package]]
-name = "ewe_templates_macro"
-version = "0.0.1"
-dependencies = [
- "foundation_packager",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "serde_with",
- "syn 2.0.114",
- "trybuild",
-]
-
-[[package]]
-name = "ewe_watch_utils"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "notify",
- "notify-debouncer-full",
- "thiserror 2.0.17",
- "tracing",
- "tracing-test",
-]
-
-[[package]]
-name = "ewe_watchers"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "notify",
- "notify-debouncer-full",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.17",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
  "tracing-test",
 ]
 
@@ -2502,15 +2362,6 @@ checksum = "c0b50bfb653653f9ca9095b427bed08ab8d75a137839d9ad64eb11810d5b6393"
 dependencies = [
  "rand_core 0.6.4",
  "subtle",
-]
-
-[[package]]
-name = "file-id"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1fc6a637b6dc58414714eddd9170ff187ecb0933d4c7024d1abbd23a3cc26e9"
-dependencies = [
- "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2931,8 +2782,9 @@ name = "foundation_nativeapis"
 version = "0.0.1"
 dependencies = [
  "bincode 2.0.1",
+ "concurrent-queue",
  "foundation_core",
- "inotify 0.11.1",
+ "inotify",
  "io-uring",
  "libc",
  "nix 0.29.0",
@@ -3192,15 +3044,6 @@ name = "fs_extra"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
-
-[[package]]
-name = "fsevent-sys"
-version = "4.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76ee7a02da4d231650c7cea31349b889be2f45ddb3ef3032d2ec8185f6313fd2"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "fslock"
@@ -3729,20 +3572,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "h3"
-version = "0.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e7675a0963b47a6d12fe44c279918b4ffb19baee838ac37f48d2722ad5bc6ab"
-dependencies = [
- "bytes",
- "fastrand",
- "futures-util",
- "http 1.4.0",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "half"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3810,17 +3639,6 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
-
-[[package]]
-name = "hello"
-version = "0.0.1"
-dependencies = [
- "ewe_templates_macro",
- "foundation_packager",
- "serde",
- "serde_json",
- "serde_with",
-]
 
 [[package]]
 name = "hermit-abi"
@@ -4355,17 +4173,6 @@ dependencies = [
 
 [[package]]
 name = "inotify"
-version = "0.9.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8069d3ec154eb856955c1c0fbffefbf5f3c40a104ec912d4797314c1801abff"
-dependencies = [
- "bitflags 1.3.2",
- "inotify-sys",
- "libc",
-]
-
-[[package]]
-name = "inotify"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd5b3eaf1a28b758ac0faa5a4254e8ab2705605496f1b1f3fbbc3988ad73d199"
@@ -4414,14 +4221,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.114",
-]
-
-[[package]]
-name = "intro"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
 ]
 
 [[package]]
@@ -4599,26 +4398,6 @@ dependencies = [
  "once_cell",
  "sha2",
  "signature",
-]
-
-[[package]]
-name = "kqueue"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eac30106d7dce88daf4a3fcb4879ea939476d5074a9b7ddd0fb97fa4bed5596a"
-dependencies = [
- "kqueue-sys",
- "libc",
-]
-
-[[package]]
-name = "kqueue-sys"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed9625ffda8729b85e45cf04090035ac368927b8cebc34898e7c120f52e4838b"
-dependencies = [
- "bitflags 1.3.2",
- "libc",
 ]
 
 [[package]]
@@ -5154,18 +4933,6 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
-dependencies = [
- "libc",
- "log",
- "wasi 0.11.1+wasi-snapshot-preview1",
- "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "mio"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69d83b0086dc8ecf3ce9ae2874b2d1290252e2a30720bea58a5c6639b0092873"
@@ -5195,17 +4962,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.114",
-]
-
-[[package]]
-name = "multi_template"
-version = "0.0.1"
-dependencies = [
- "ewe_templates_macro",
- "foundation_packager",
- "serde",
- "serde_json",
- "serde_with",
 ]
 
 [[package]]
@@ -5280,38 +5036,6 @@ name = "noop_proc_macro"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0676bb32a98c1a483ce53e500a81ad9c3d5b3f7c920c28c24e9cb0980d0b5bc8"
-
-[[package]]
-name = "notify"
-version = "6.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6205bd8bb1e454ad2e27422015fb5e4f2bcc7e08fa8f27058670d208324a4d2d"
-dependencies = [
- "bitflags 2.10.0",
- "crossbeam-channel",
- "filetime",
- "fsevent-sys",
- "inotify 0.9.6",
- "kqueue",
- "libc",
- "log",
- "mio 0.8.11",
- "walkdir",
- "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "notify-debouncer-full"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb7fd166739789c9ff169e654dc1501373db9d80a4c3f972817c8a4d7cf8f34e"
-dependencies = [
- "file-id",
- "log",
- "notify",
- "parking_lot",
- "walkdir",
-]
 
 [[package]]
 name = "ntest"
@@ -6694,40 +6418,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-embed"
-version = "8.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "947d7f3fad52b283d261c4c99a084937e2fe492248cb9a68a8435a861b8798ca"
-dependencies = [
- "rust-embed-impl",
- "rust-embed-utils",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-impl"
-version = "8.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fa2c8c9e8711e10f9c4fd2d64317ef13feaab820a4c51541f1a8c8e2e851ab2"
-dependencies = [
- "proc-macro2",
- "quote",
- "rust-embed-utils",
- "syn 2.0.114",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-utils"
-version = "8.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60b161f275cb337fe0a44d924a5f4df0ed69c2c39519858f931ce61c779d3475"
-dependencies = [
- "sha2",
- "walkdir",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7920,7 +7610,7 @@ checksum = "ff360e02eab121e0bc37a2d3b4d4dc622e6eda3a8e5253d5435ecf5bd4c68408"
 dependencies = [
  "bytes",
  "libc",
- "mio 1.1.0",
+ "mio",
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
@@ -7990,20 +7680,6 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
- "tokio-util",
-]
-
-[[package]]
-name = "tokio-test"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2468baabc3311435b55dd935f702f42cd1b8abb7e754fb7dfb16bd36aa88f9f7"
-dependencies = [
- "async-stream",
- "bytes",
- "futures-core",
- "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -9137,25 +8813,6 @@ name = "weezl"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
-
-[[package]]
-name = "wello"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "axum 0.7.9",
- "ewe_devserver",
- "http 1.4.0",
- "rust-embed",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.17",
- "tokio",
- "tower 0.4.13",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "which"

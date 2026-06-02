@@ -18,7 +18,7 @@ use crate::poll::Interest;
 /// user-provided callback with a reference to the inner IO object.
 pub struct FdMonitorTask<T: AsRawFd> {
     fd: RegisteredFd<T>,
-    callback: Option<Box<dyn FnMut(&T) -> io::Result<()>>>,
+    callback: Option<Box<dyn FnMut(&T) -> io::Result<()> + Send>>,
     poll_interval: Duration,
     interest: Interest,
 }
@@ -37,7 +37,7 @@ impl<T: AsRawFd> FdMonitorTask<T> {
     /// Set the callback to invoke when the fd becomes readable.
     pub fn with_callback(
         mut self,
-        callback: impl FnMut(&T) -> io::Result<()> + 'static,
+        callback: impl FnMut(&T) -> io::Result<()> + Send + 'static,
     ) -> Self {
         self.callback = Some(Box::new(callback));
         self

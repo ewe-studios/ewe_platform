@@ -31,6 +31,26 @@ pub trait NativeWatcher: Send + Sync {
 
     /// Remove all watches and release resources.
     fn clear(&mut self) -> Result<()>;
+
+    /// Check if events are available without consuming them.
+    ///
+    /// If `timeout` is `Some`, blocks up to that duration waiting for the
+    /// first event. If `None` (or `Some(Duration::ZERO)`), returns immediately.
+    ///
+    /// This is a **peek** — calling this method does not drain events.
+    /// Subsequent calls will return the same result until `poll()` is called
+    /// to actually read/consume them.
+    ///
+    /// On level-triggered platforms (Linux epoll, macOS/BSD kqueue), this
+    /// checks OS readiness. On dequeuing platforms (Windows IOCP), events
+    /// are cached internally so they can be peeked without being lost.
+    ///
+    /// The default implementation returns `false` (conservative fallback
+    /// for platforms that can't peek).
+    fn has_events(&self, timeout: Option<Duration>) -> bool {
+        let _ = timeout;
+        false
+    }
 }
 
 /// PollWatcher — stdlib-only metadata polling fallback.
@@ -58,3 +78,8 @@ pub mod unix;
 /// WinWatcher — Windows ReadDirectoryChangesW-based file watching.
 #[cfg(all(target_os = "windows", feature = "watcher-windows"))]
 pub mod windows;
+
+/// SharedNativeWatcher — thread-safe Arc<RwLock<T>> wrapper + type-erased SharedWatcher.
+pub mod shared;
+
+pub use shared::{SharedNativeWatcher, SharedWatcher};

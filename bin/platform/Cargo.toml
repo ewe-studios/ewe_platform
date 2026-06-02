@@ -13,9 +13,9 @@ keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 # -- workspace dependency
 foundation_wasmtools = { workspace = true }
 foundation_packager = { workspace = true }
-ewe_watch_utils = { workspace = true }
-ewe_watchers = { workspace = true }
-ewe_devserver = { workspace = true }
+# ewe_watch_utils = { workspace = true }
+# ewe_watchers = { workspace = true }
+# ewe_devserver = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
 foundation_netio = { workspace = true, features = ["ssl", "multi"] }
 foundation_ai = { workspace = true }

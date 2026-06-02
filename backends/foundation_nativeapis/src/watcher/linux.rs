@@ -357,4 +357,9 @@ impl NativeWatcher for InotifyWatcher {
         self.path_to_wd.clear();
         Ok(())
     }
+
+    fn has_events(&self, timeout: Option<Duration>) -> bool {
+        let mut events = crate::poll::Events::with_capacity(1);
+        self.poll.poll(&mut events, timeout).is_ok() && !events.is_empty()
+    }
 }
