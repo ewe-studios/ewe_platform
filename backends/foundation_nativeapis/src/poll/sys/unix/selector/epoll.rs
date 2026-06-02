@@ -39,15 +39,6 @@ impl Selector {
         })
     }
 
-    /// Returns a reference to the [`Registry`] for registering sources.
-    pub fn registry(self: &Arc<Self>) -> &Registry {
-        // Registry stores an Arc<Selector>, so we can return a reference
-        // from the Arc. This is safe because the Registry's selector field
-        // is a clone of the same Arc.
-        // We construct the Registry on the fly.
-        unimplemented!("use Selector::new_with_registry instead")
-    }
-
     /// Create a new selector and return both the Arc<Selector> and its Registry.
     pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
         let epoll_fd = unsafe {

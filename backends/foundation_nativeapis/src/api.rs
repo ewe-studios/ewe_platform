@@ -94,7 +94,32 @@ impl WatcherBuilder {
     #[cfg(not(target_os = "linux"))]
     fn try_build_api(api: NativeAPI, _timeout: Duration) -> Result<Box<dyn NativeWatcher>> {
         match api {
-            NativeAPI::EPoll => Err(WatchError::UnsupportedPlatform), // TODO: kqueue/IOCP
+            #[cfg(all(target_os = "macos", feature = "watcher-macos"))]
+            NativeAPI::EPoll => {
+                let w = crate::watcher::unix::KqueueWatcher::new()?;
+                Ok(Box::new(w))
+            }
+            #[cfg(all(
+                any(
+                    target_os = "ios",
+                    target_os = "freebsd",
+                    target_os = "netbsd",
+                    target_os = "openbsd",
+                    target_os = "dragonfly",
+                ),
+                feature = "watcher-macos"
+            ))]
+            NativeAPI::EPoll => {
+                let w = crate::watcher::unix::KqueueWatcher::new()?;
+                Ok(Box::new(w))
+            }
+            #[cfg(not(feature = "watcher-macos"))]
+            NativeAPI::EPoll => Err(WatchError::UnsupportedPlatform),
+            #[cfg(target_os = "windows")]
+            NativeAPI::EPoll => {
+                // Windows watcher (ReadDirectoryChangesW + IOCP) not yet implemented
+                Err(WatchError::UnsupportedPlatform)
+            }
             NativeAPI::Poll => Self::build_poll_watcher(),
         }
     }

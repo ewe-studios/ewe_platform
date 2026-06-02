@@ -166,7 +166,12 @@ impl NativeWatcher for KqueueWatcher {
 
             let path = match self.fd_to_path.get(&fd) {
                 Some(p) => p.clone(),
-                None => continue,
+                None => {
+                    // Got a vnode event for an fd we don't know about — this shouldn't
+                    // happen unless there's a bug or the fd was closed without cleanup.
+                    tracing::warn!("KqueueWatcher: vnode event for unknown fd {}", fd);
+                    continue;
+                }
             };
 
             // Decode EVFILT_VNODE fflags

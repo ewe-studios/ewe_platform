@@ -87,14 +87,19 @@ impl InotifyWatcher {
     /// Decode inotify events from the raw buffer.
     /// Takes the wd→path map as a mutable reference to handle DELETE_SELF,
     /// and the inotify fd for removing watches when paths are deleted.
+    ///
+    /// Returns `(events, error)` — successfully decoded events, and an optional
+    /// error if any event could not be decoded (e.g., unknown watch descriptor
+    /// or queue overflow). The caller should log the error and continue polling.
     fn decode_events(
         wd_to_path: &mut HashMap<i32, PathBuf>,
         path_to_wd: &mut HashMap<PathBuf, i32>,
         inotify_fd: std::os::fd::RawFd,
         buf: &[u8],
-    ) -> Vec<WatchEvent> {
+    ) -> (Vec<WatchEvent>, Option<WatchError>) {
         let mut events = Vec::new();
         let mut offset = 0;
+        let mut decode_error = None;
 
         // Track renamed-from events for cookie matching
         let mut cookie_from: HashMap<u32, PathBuf> = HashMap::new();
@@ -108,17 +113,27 @@ impl InotifyWatcher {
                     (event_ptr as *const u8).offset(mem::size_of::<libc::inotify_event>() as isize)
                 };
                 let name_bytes = unsafe { std::slice::from_raw_parts(name_ptr, event.len as usize) };
-                // Find the null terminator
+                // Find the null terminator — if none found, treat all bytes as the name
                 let null_pos = name_bytes.iter().position(|&b| b == 0).unwrap_or(name_bytes.len());
                 String::from_utf8_lossy(&name_bytes[..null_pos]).to_string()
             } else {
                 String::new()
             };
 
-            let dir_path = wd_to_path
-                .get(&event.wd)
-                .cloned()
-                .unwrap_or_else(|| PathBuf::from("<unknown>"));
+            let dir_path = match wd_to_path.get(&event.wd).cloned() {
+                Some(p) => p,
+                None => {
+                    // The watch descriptor is not in our map — this shouldn't happen
+                    // unless there's a bug or the watch was removed without us knowing.
+                    // Skip this event but record the error so the caller can log it.
+                    decode_error = Some(WatchError::Io(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("inotify event for unknown watch descriptor {}", event.wd),
+                    )));
+                    offset += mem::size_of::<libc::inotify_event>() + event.len as usize;
+                    continue;
+                }
+            };
 
             let full_path = if name.is_empty() {
                 dir_path.clone()
@@ -129,13 +144,19 @@ impl InotifyWatcher {
             let mask = event.mask;
 
             if mask & libc::IN_IGNORED != 0 {
-                // Watch was removed — skip
+                // Watch was removed by kernel — this is expected when the user
+                // calls unwatch() or when the watched file is deleted.
                 offset += mem::size_of::<libc::inotify_event>() + event.len as usize;
                 continue;
             }
 
             if mask & libc::IN_Q_OVERFLOW != 0 {
-                // Queue overflow — just log and continue
+                // Queue overflow — inotify's buffer was full and some events were lost.
+                // We cannot recover the lost events, so return an error to the caller.
+                decode_error = Some(WatchError::Io(io::Error::new(
+                    io::ErrorKind::Other,
+                    "inotify queue overflow — some events may have been lost",
+                )));
                 offset += mem::size_of::<libc::inotify_event>() + event.len as usize;
                 continue;
             }
@@ -198,7 +219,7 @@ impl InotifyWatcher {
             });
         }
 
-        events
+        (events, decode_error)
     }
 
     /// Recursively add watches for all subdirectories.
@@ -309,12 +330,19 @@ impl NativeWatcher for InotifyWatcher {
         }
 
         // Decode the buffer into WatchEvents (borrows &mut self.wd_to_path, &mut self.path_to_wd)
-        let events = Self::decode_events(
+        let (events, error) = Self::decode_events(
             &mut self.wd_to_path,
             &mut self.path_to_wd,
             self.inotify_fd.as_raw_fd(),
             &self.buffer[..n as usize],
         );
+
+        // If there was a decode error, log it but still return any events we did get.
+        // Queue overflow means some events were lost — the caller should know.
+        if let Some(e) = error {
+            tracing::error!("InotifyWatcher decode error: {}", e);
+        }
+
         Ok(events)
     }
 

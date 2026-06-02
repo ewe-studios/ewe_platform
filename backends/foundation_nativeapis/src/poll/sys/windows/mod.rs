@@ -1,24 +1,24 @@
 /// Windows IOCP selector.
 ///
 /// Uses `CreateIoCompletionPort` to associate handles with a completion port,
-/// and `GetQueuedCompletionStatus` to poll for readiness events.
+/// and `GetQueuedCompletionStatus` to poll for completion events.
 ///
-/// On Windows, readiness tracking works differently than epoll/kqueue:
-/// - Handles are associated with an IOCP via `CreateIoCompletionPort`
-/// - Overlapped I/O operations post completions to the IOCP when ready
-/// - For readiness polling (not overlapped I/O), we use `PostQueuedCompletionStatus`
-///   to manually post readiness events when a handle becomes ready
+/// For readiness polling on sockets, we use `WSAPoll` under the hood since
+/// IOCP only posts completions for overlapped I/O operations (not readiness).
+/// For non-socket handles, readiness must be tracked via overlapped I/O operations.
 
 use crate::poll::event::Event;
 use crate::poll::Events;
 use crate::poll::{Interest, Registry, Token};
 
+use std::collections::HashMap;
 use std::io;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use windows_sys::Win32::{
     Foundation::*,
+    Networking::WinSock::*,
     System::Threading::*,
 };
 
@@ -28,8 +28,8 @@ struct IoState {
     token: u64,
     /// What readiness we're tracking for this handle.
     interest: Interest,
-    /// Whether a readiness event has been posted but not yet consumed.
-    readiness: u8,
+    /// Whether this is a socket (uses WSAPoll for readiness).
+    is_socket: bool,
 }
 
 /// The raw handle type on Windows.
@@ -40,7 +40,7 @@ pub struct Selector {
     /// The IOCP handle.
     iocp: HANDLE,
     /// Track registered handles and their state.
-    handles: Mutex<std::collections::HashMap<RawFd, IoState>>,
+    handles: Mutex<HashMap<RawFd, IoState>>,
     /// Waker token.
     waker_token: Mutex<Option<Token>>,
     /// Waker event handle.
@@ -56,9 +56,20 @@ impl Selector {
                 return Err(io::Error::last_os_error());
             }
 
+            // Initialize Winsock for WSAPoll
+            let mut wsa_data: WSADATA = std::mem::zeroed();
+            let wsa_result = WSAStartup(0x0202, &mut wsa_data);
+            if wsa_result != 0 {
+                CloseHandle(iocp);
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("WSAStartup failed with error code {}", wsa_result),
+                ));
+            }
+
             let selector = Arc::new(Self {
                 iocp,
-                handles: Mutex::new(std::collections::HashMap::new()),
+                handles: Mutex::new(HashMap::new()),
                 waker_token: Mutex::new(None),
                 waker_event: Mutex::new(None),
             });
@@ -75,6 +86,8 @@ impl Selector {
     ///
     /// Associates the handle with our completion port via `CreateIoCompletionPort`.
     /// The token is stored as the completion key.
+    ///
+    /// For sockets, readiness is tracked via `WSAPoll` internally.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         unsafe {
             let handle = fd as HANDLE;
@@ -89,13 +102,26 @@ impl Selector {
             }
         }
 
+        // Determine if this is a socket by checking if getsockopt with SOL_SOCKET works
+        let is_socket = unsafe {
+            let mut optval: i32 = 0;
+            let mut optlen = std::mem::size_of::<i32>() as i32;
+            getsockopt(
+                fd as SOCKET,
+                SOL_SOCKET,
+                SO_TYPE,
+                &mut optval as *mut _ as *mut _,
+                &mut optlen,
+            ) == 0
+        };
+
         let mut handles = self.handles.lock().unwrap();
         handles.insert(
             fd,
             IoState {
                 token: token.0 as u64,
                 interest,
-                readiness: 0,
+                is_socket,
             },
         );
 
@@ -104,8 +130,6 @@ impl Selector {
 
     /// Re-register a raw handle with new token and/or interest.
     pub fn reregister_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        // Update our internal state. The IOCP association doesn't need re-doing
-        // since CreateIoCompletionPort doesn't support re-registration.
         let mut handles = self.handles.lock().unwrap();
         if let Some(state) = handles.get_mut(&fd) {
             state.token = token.0 as u64;
@@ -170,7 +194,11 @@ impl Selector {
         }
     }
 
-    /// Wait for readiness events via `GetQueuedCompletionStatus`.
+    /// Wait for readiness events.
+    ///
+    /// For sockets, uses `WSAPoll` to check readiness.
+    /// For non-socket handles, uses `GetQueuedCompletionStatus` with the given timeout
+    /// to check for overlapped I/O completions.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         let timeout_ms = timeout
             .map(|d| d.as_millis() as u32)
@@ -179,54 +207,77 @@ impl Selector {
         let (ptr, cap) = events.as_mut_ptr_and_cap();
         let mut count = 0;
 
-        unsafe {
-            let mut completion_key: usize = 0;
-            let mut overlapped: *mut OVERLAPPED = std::ptr::null_mut();
-            let mut bytes_transferred: u32 = 0;
+        let handles = self.handles.lock().unwrap();
 
-            let result = GetQueuedCompletionStatus(
-                self.iocp,
-                &mut bytes_transferred,
-                &mut completion_key,
-                &mut overlapped,
-                timeout_ms,
-            );
+        // Collect sockets for WSAPoll
+        let mut pollfds: Vec<WSAPOLLFD> = Vec::new();
+        let mut socket_tokens: Vec<Token> = Vec::new();
 
-            if result == 0 {
-                let err = io::Error::last_os_error();
-                // WAIT_TIMEOUT is expected when timeout expires
-                if err.raw_os_error() == Some(WAIT_TIMEOUT as i32) {
-                    events.clear();
-                    return Ok(());
+        for (&fd, state) in handles.iter() {
+            if state.is_socket {
+                let mut events_flags: i16 = 0;
+                if state.interest.is_readable() {
+                    events_flags |= POLLIN;
                 }
-                // For other errors, check if the handle was closed
-                if err.raw_os_error() == Some(6) /* ERROR_INVALID_HANDLE */ {
+                if state.interest.is_writable() {
+                    events_flags |= POLLOUT;
+                }
+
+                pollfds.push(WSAPOLLFD {
+                    fd: fd as SOCKET,
+                    events: events_flags,
+                    revents: 0,
+                });
+                socket_tokens.push(Token(state.token as usize));
+            }
+        }
+
+        drop(handles);
+
+        // Poll sockets via WSAPoll
+        if !pollfds.is_empty() {
+            let n = unsafe {
+                WSAPoll(
+                    pollfds.as_mut_ptr(),
+                    pollfds.len() as u32,
+                    timeout_ms as i32,
+                )
+            };
+
+            if n < 0 {
+                let err = unsafe { io::Error::from_raw_os_error(WSAGetLastError()) };
+                // WSAEINTR is expected when interrupted
+                if err.raw_os_error() == Some(WSAEINTR) {
                     events.clear();
                     return Ok(());
                 }
                 return Err(err);
             }
 
-            // Build an Event from the completion
-            let token = Token(completion_key);
-            let mut event = Event::default().with_key(token.0);
-            // On IOCP, a successful completion means the fd is ready
-            if bytes_transferred > 0 {
-                event = event.with_flags(crate::poll::event::windows::READABLE | crate::poll::event::windows::WRITABLE);
-            }
+            if n > 0 {
+                for (i, pollfd) in pollfds.iter().enumerate() {
+                    if pollfd.revents != 0 {
+                        if count < cap {
+                            let mut event = Event::default().with_key(socket_tokens[i].0);
+                            let mut flags = 0;
 
-            if count < cap {
-                *ptr.add(count) = event;
-                count += 1;
-            }
+                            if pollfd.revents & (POLLIN | POLLPRI) != 0 {
+                                flags |= crate::poll::event::windows::READABLE;
+                            }
+                            if pollfd.revents & POLLOUT != 0 {
+                                flags |= crate::poll::event::windows::WRITABLE;
+                            }
+                            if pollfd.revents & (POLLERR | POLLHUP) != 0 {
+                                flags |= crate::poll::event::windows::ERROR;
+                            }
+                            if pollfd.revents & POLLHUP != 0 {
+                                flags |= crate::poll::event::windows::READ_CLOSED;
+                            }
 
-            // Check waker
-            let waker_token = self.waker_token.lock().unwrap();
-            if let Some(wt) = *waker_token {
-                if token == wt {
-                    // Reset the waker event
-                    if let Some(event) = *self.waker_event.lock().unwrap() {
-                        ResetEvent(event);
+                            event = event.with_flags(flags);
+                            *ptr.add(count) = event;
+                            count += 1;
+                        }
                     }
                 }
             }
@@ -249,6 +300,7 @@ impl Drop for Selector {
             if self.iocp != 0 {
                 CloseHandle(self.iocp);
             }
+            WSACleanup();
         }
     }
 }
