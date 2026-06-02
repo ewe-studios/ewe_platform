@@ -248,15 +248,16 @@ impl Selector {
             std::ptr::null()
         };
 
-        let kevents = events.as_mut_slice();
+        // Get pointer to the Vec's buffer and its capacity (not length)
+        let (ptr, cap) = events.as_mut_ptr_and_cap();
 
         let n = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
                 std::ptr::null(),
                 0,
-                kevents.as_mut_ptr() as *mut libc::kevent,
-                kevents.len() as libc::c_int,
+                ptr as *mut libc::kevent,
+                cap as libc::c_int,
                 if ts_ptr.is_null() {
                     std::ptr::null()
                 } else {

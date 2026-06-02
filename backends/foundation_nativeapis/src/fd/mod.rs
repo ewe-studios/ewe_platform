@@ -92,6 +92,16 @@ pub enum PollResult<T> {
     Error(io::Error),
 }
 
+impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PollResult::Ready(t) => f.debug_tuple("Ready").field(t).finish(),
+            PollResult::NotReady => write!(f, "NotReady"),
+            PollResult::Error(e) => f.debug_tuple("Error").field(e).finish(),
+        }
+    }
+}
+
 /// Tracks readiness state for a registered file descriptor.
 ///
 /// # How readiness tracking works:

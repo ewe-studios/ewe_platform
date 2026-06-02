@@ -198,13 +198,16 @@ impl Selector {
             .map(|d| d.as_millis() as libc::c_int)
             .unwrap_or(-1);
 
-        let epoll_events = events.as_mut_slice();
+        // Get pointer to the Vec's buffer and its capacity (not length).
+        // The Vec has capacity but length 0 — epoll_wait writes directly into
+        // the buffer, and we update the length afterward.
+        let (ptr, cap) = events.as_mut_ptr_and_cap();
 
         let n = unsafe {
             libc::epoll_wait(
                 self.epoll.as_raw_fd(),
-                epoll_events.as_mut_ptr() as *mut libc::epoll_event,
-                epoll_events.len() as libc::c_int,
+                ptr as *mut libc::epoll_event,
+                cap as libc::c_int,
                 timeout_ms,
             )
         };

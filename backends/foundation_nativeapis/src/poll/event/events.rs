@@ -40,11 +40,13 @@ impl Events {
         self.events.clear();
     }
 
-    /// Returns a mutable slice of the underlying event storage.
-    /// This is used internally by the poll layer to write events.
+    /// Returns a mutable pointer to the underlying event buffer
+    /// and its capacity. Used internally by platform selectors.
     #[doc(hidden)]
-    pub fn as_mut_slice(&mut self) -> &mut [Event] {
-        &mut self.events
+    pub fn as_mut_ptr_and_cap(&mut self) -> (*mut Event, usize) {
+        let ptr = self.events.as_mut_ptr();
+        let cap = self.events.capacity();
+        (ptr, cap)
     }
 
     /// Set the length of events (used internally by platform selectors).

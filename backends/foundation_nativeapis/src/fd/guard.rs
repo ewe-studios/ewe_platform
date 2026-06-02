@@ -22,6 +22,15 @@ pub struct ReadyGuard<'a, T: AsRawFd> {
     readiness: Ready,
 }
 
+impl<'a, T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ReadyGuard")
+            .field("readiness", &self.readiness)
+            .field("inner", &self.fd.get_ref())
+            .finish()
+    }
+}
+
 impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
     pub(crate) fn new(fd: &'a RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
