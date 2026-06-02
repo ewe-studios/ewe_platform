@@ -333,6 +333,10 @@ where
                         self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Wait)
                     }
+                    Some(TaskStatus::Depends(signal)) => {
+                        self.state = Some(ReconnectingState::Connected(inner));
+                        Some(TaskStatus::Depends(signal))
+                    }
                     Some(TaskStatus::Spread(items)) => {
                         self.state = Some(ReconnectingState::Connected(inner));
                         let mapped: Vec<TaskSpread<ParseResult, ReconnectingProgress>> = items

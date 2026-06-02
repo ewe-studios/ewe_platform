@@ -1,11 +1,12 @@
 ---
 feature: "TaskStatus::Depends State"
-description: "Add signal-based task waiting via TaskStatus::Depends(Arc<AtomicBool>) wired to existing Sleepable::Atomic"
+description: "Add signal-based task waiting via TaskStatus::Depends(Arc<dyn EventReadiness>) wired to existing Sleepable::Atomic"
 status: "pending"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-05-15
+updated: 2026-06-02
 author: "Main Agent"
 tasks:
   completed: 0
@@ -22,20 +23,64 @@ A task may not always perform well if it uses `TaskStatus::Delayed(duration)` wh
 
 Worse, if we depend on timing, we may miss important signals that require low-latency executions. But we do not want to bring in more heavy burden logic like channels or mutex-guarded condvars.
 
-The existing `Sleepable::Atomic(Arc<AtomicBool>, Entry)` variant in `local.rs:56-58` already supports signal-based sleeping with proper `Waiter` impl. What is missing is the wire from `TaskStatus` to this registration.
+Using `Arc<AtomicBool>` directly ties the readiness mechanism to a single boolean. Tasks should be able to return any shareable readiness type — a file descriptor watcher, a condition variable, a mio-style poll token, a complex state object — anything that can answer the question "am I ready?" without the executor needing to know the details.
+
+**Design principle:** If a task's readiness signal is never satisfied, it sleeps forever. It is not the executor's place to stop a task from being stupid.
 
 ## WHAT: Solution
 
+### EventReadiness Trait
+
+A new trait that any readiness signal must implement:
+
+```rust
+/// A trait for types that can answer "is this task ready to run?"
+/// Implementors must be Send + Sync safe, as they will be shared
+/// between the task (which may mutate the signal) and the executor
+/// (which polls is_ready).
+pub trait EventReadiness: Send + Sync {
+    /// Check if the task is ready to run.
+    ///
+    /// `dur`: Optional timeout. If `None`, check immediately without blocking.
+    /// If `Some(dur)`, may block up to `dur` waiting for readiness.
+    ///
+    /// Returns `true` if ready, `false` otherwise.
+    fn is_ready(&self, dur: Option<Duration>) -> bool;
+}
+```
+
+This trait allows tasks to return any type wrapped in `Arc<dyn EventReadiness>` that the system can poll to determine readiness. Types that implement this could be:
+- A simple `AtomicBool` wrapper (trivial case)
+- A file descriptor poll token
+- A channel receiver
+- A custom state machine
+- A mio-style readiness set
+
+### Blanket impl for AtomicBool
+
+For convenience, `AtomicBool` gets a blanket impl via a newtype:
+
+```rust
+pub struct BoolSignal(Arc<AtomicBool>);
+
+impl EventReadiness for BoolSignal {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.load(Ordering::SeqCst)
+    }
+}
+```
+
 ### TaskStatus Enum Changes (task.rs)
 
-Add a new variant:
+Replace the `AtomicBool` variant with a trait-based one:
 
 ```rust
 pub enum TaskStatus<D, P, S: ExecutionAction> {
     // ... existing variants ...
-    /// Wait for an external signal (Arc<AtomicBool>) rather than a timed duration.
-    /// The signal must be false when returned. If true, treated as Pending.
-    Depends(sync::Arc<sync::atomic::AtomicBool>),
+    /// Wait for an external readiness signal.
+    /// The signal must return false on first receipt. If true, treated as Pending.
+    /// Any type implementing EventReadiness can be used.
+    Depends(sync::Arc<dyn EventReadiness>),
 }
 ```
 
@@ -53,7 +98,7 @@ Streams do not care about this internal mechanism -- it is between the task and 
 (TaskStatus::Depends(_), TaskStatus::Depends(_)) => true,
 ```
 
-Variant-level match only -- identity of the `Arc<AtomicBool>` does not matter.
+Variant-level match only -- identity of the `Arc<dyn EventReadiness>` does not matter.
 
 **`Display` and `Debug` impls:**
 
@@ -71,6 +116,21 @@ enum TStatus<D, P> {
 }
 ```
 
+### Sleepable::Atomic Changes (local.rs)
+
+The existing `Sleepable::Atomic(Arc<AtomicBool>, Entry)` becomes:
+
+```rust
+pub enum Sleepable {
+    Timable(Instant, Entry),
+    /// A task waiting on an EventReadiness signal.
+    /// The executor calls is_ready(None) to check without blocking.
+    Atomic(sync::Arc<dyn EventReadiness>, Entry),
+}
+```
+
+The `Waiter` impl for `Sleepable::Atomic` now calls `signal.is_ready(None)` instead of `atomic.load(Ordering::SeqCst)`.
+
 ### State::Depends Handler in `do_work()` (local.rs)
 
 ```rust
@@ -80,7 +140,7 @@ State::Depends(signal) => {
     //    It must be woken and its sleeper record removed before
     //    it can send Depends again.
 
-    // 2. If signal is already true -> treat as Pending(None)
+    // 2. If signal.is_ready(None) is already true -> treat as Pending(None)
     //    Push to BACK of processing queue (not front).
     //    Track consecutive violations -- after 3 -> PANIC
     //    (task is misbehaving, loud fail)
@@ -90,85 +150,79 @@ State::Depends(signal) => {
 }
 ```
 
-### Cycle Counter (Zombie Detection)
+### Zombie Detection: Removed
 
-Add to `ExecutorState`:
+**Design change:** If a task's `EventReadiness` never returns `true`, the task sleeps indefinitely. The executor does not enforce a zombie cycle threshold or forcibly re-poll. It is not the executor's responsibility to protect tasks from their own bugs — a task that waits forever on a signal that never fires is a task bug, not an executor concern.
 
-```rust
-/// Track how many schedule_and_do_work() cycles each Depends sleeper has been waiting.
-/// Only Sleepable::Atomic registrations get a cycle counter.
-/// Sleepable::Timable entries are NEVER counted or nudged.
-pub depends_cycle_counts: Rc<RefCell<HashMap<Entry, u32>>>,
-```
-
-**Re-poll guard:** After **10,000 cycles** without the signal flipping, forcibly remove the sleeper and re-schedule the task. If the task returns `Depends` again, re-register it with a fresh counter.
-
-**Rationale:** A task using `Depends` guarantees it will be signalled, but the executor retains the right to forcibly wake it after prolonged inactivity (10,000 cycles) to prevent indefinite starvation.
-
-### Ordering in `schedule_and_do_work()`
-
-1. `wakeup_ready_sleepers()` -- removes Atomic sleepers whose signal flipped to true
-2. Increment cycle counters for remaining `Sleepable::Atomic` entries
-3. Force-wake those exceeding threshold (10,000 cycles)
+This removes:
+- `DEPENDS_ZOMBIE_CYCLE_THRESHOLD` constant
+- `depends_cycle_counts` field from `ExecutorState`
+- Cycle counter increment logic in `schedule_and_do_work()`
+- Forced re-poll / forced wake logic for Atomic sleepers
 
 ### Constants
 
 | Constant | Value | Purpose |
 |----------|-------|---------|
-| `DEPENDS_ZOMBIE_CYCLE_THRESHOLD` | 10,000 | Max cycles before forced re-poll |
 | `DEPENDS_TRUE_PANIC_THRESHOLD` | 3 | Consecutive `Depends(true)` violations before panic |
 
 ## HOW: Implementation Steps
 
-### Step 1: Add `TaskStatus::Depends` variant
+### Step 1: Add `EventReadiness` trait
+
+In `backends/foundation_core/src/valtron/task.rs` (or a new `readiness.rs` module):
+- Define the `EventReadiness` trait with `is_ready(&self, dur: Option<Duration>) -> bool`
+- Require `Send + Sync` bounds
+- Add `BoolSignal` newtype wrapping `Arc<AtomicBool>` with a trivial impl
+
+### Step 2: Add `TaskStatus::Depends` variant
 
 In `backends/foundation_core/src/valtron/task.rs`:
-- Add `Depends(sync::Arc<sync::atomic::AtomicBool>)` variant
-- Add `sync::atomic::AtomicBool` import if not present
+- Add `Depends(sync::Arc<dyn EventReadiness>)` variant
+- Update imports
 
-### Step 2: Update `From<TaskStatus>` for `Stream`
+### Step 3: Update `From<TaskStatus>` for `Stream`
 
 In the `impl From<TaskStatus<D, P, S>> for Stream<D, P>`:
 - Add `TaskStatus::Depends(_) => Stream::Ignore`
 
-### Step 3: Update `PartialEq` impl
+### Step 4: Update `PartialEq` impl
 
 In the `impl PartialEq for TaskStatus`:
 - Add `(TaskStatus::Depends(_), TaskStatus::Depends(_)) => true`
 
-### Step 4: Update `Display` and `Debug` impls
+### Step 5: Update `Display` and `Debug` impls
 
 In both impl blocks:
 - Add `Depends` to the `TStatus` internal enum
 - Add `TaskStatus::Depends(_) => TStatus::Depends` to the match
 
-### Step 5: Check `State` enum relationship
+### Step 6: Check `State` enum relationship
 
 In `local.rs`, check if there is a separate `State` enum that mirrors `TaskStatus`. If so, add `State::Depends` variant.
 
-### Step 6: Add `depends_cycle_counts` to `ExecutorState`
+### Step 7: Update `Sleepable::Atomic` to use `EventReadiness`
 
 In `local.rs`:
-- Add field: `pub depends_cycle_counts: Rc<RefCell<HashMap<Entry, u32>>>`
-- Initialize in `ExecutorState::new()`: `Rc::new(RefCell::new(HashMap::new()))`
-- Update `Clone` impl to create new `Rc<RefCell<HashMap>>` (not clone the inner data)
-- Update `Debug` impl
+- Change `Sleepable::Atomic(Arc<AtomicBool>, Entry)` to `Sleepable::Atomic(Arc<dyn EventReadiness>, Entry)`
+- Update the `Waiter` impl to call `signal.is_ready(None)` instead of atomic load
 
-### Step 7: Implement `State::Depends` handler in `do_work()`
+### Step 8: Implement `State::Depends` handler in `do_work()`
 
 Pattern match in the `do_work()` method:
 - Check for existing sleeper record -> PANIC if found
-- Check if signal is true -> track violations, push to back, PANIC after 3
-- If signal is false -> register as `Sleepable::Atomic(signal, entry)`, remove from processing queue
+- Check if `signal.is_ready(None)` is true -> track violations, push to back, PANIC after 3
+- If false -> register as `Sleepable::Atomic(signal, entry)`, remove from processing queue
 
-### Step 8: Implement cycle counter increment
+### Step 9: Remove zombie detection infrastructure
 
-In `schedule_and_do_work()`, after `wakeup_ready_sleepers()`:
-- Iterate remaining `Sleepable::Atomic` entries in sleepers
-- Increment their cycle counter in `depends_cycle_counts`
-- If counter >= 10,000 -> forcibly remove sleeper, re-add entry to processing queue
+- Remove `DEPENDS_ZOMBIE_CYCLE_THRESHOLD` constant
+- Remove `depends_cycle_counts: Rc<RefCell<HashMap<Entry, u32>>>` from `ExecutorState`
+- Remove cycle counter increment logic from `schedule_and_do_work()`
+- Remove forced re-poll / wake logic for Atomic sleepers
+- Simplify `schedule_and_do_work()` ordering: only `wakeup_ready_sleepers()` needed
 
-### Step 9: Add panic tracking for `Depends(true)`
+### Step 10: Add panic tracking for `Depends(true)`
 
 Add to `ExecutorState`:
 ```rust
@@ -180,16 +234,16 @@ In the `Depends(true)` handler:
 - If >= 3 -> PANIC with descriptive message
 - If < 3 -> push to back of processing queue as Pending
 
-### Step 10: Unit Tests
+### Step 11: Unit Tests
 
 Test cases:
 1. Task returns `Depends(false)` -> gets registered as sleeper
 2. External code flips signal -> task wakes up on next cycle
 3. Task returns `Depends(true)` once -> treated as Pending
 4. Task returns `Depends(true)` 3 consecutive times -> PANIC
-5. Task's signal never flips for 10,000 cycles -> forced re-poll
-6. Task re-registers `Depends` after being forced awake -> fresh counter
-7. Cycle counter only increments for Atomic sleepers, not Timable
+5. Cycle counter no longer exists (verify removal)
+6. Custom `EventReadiness` impl (e.g., a counter that flips after N calls) works correctly
+7. `BoolSignal` blanket impl behaves identically to old `AtomicBool` approach
 
 ## Target Files
 

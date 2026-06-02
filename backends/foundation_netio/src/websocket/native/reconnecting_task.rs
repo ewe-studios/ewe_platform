@@ -299,6 +299,10 @@ where
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         Some(TaskStatus::Wait)
                     }
+                    Some(TaskStatus::Depends(signal)) => {
+                        self.state = Some(ReconnectingWebSocketState::Connected(inner));
+                        Some(TaskStatus::Depends(signal))
+                    }
                     Some(TaskStatus::Spread(items)) => {
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         let mapped: Vec<TaskSpread<Result<WebSocketMessage, WebSocketError>, ReconnectingWebSocketProgress>> = items

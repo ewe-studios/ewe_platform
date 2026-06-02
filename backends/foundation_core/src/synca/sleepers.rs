@@ -266,6 +266,12 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.sleepers.write().unwrap().remove(handle)
     }
 
+    /// Returns true if a sleeper exists for the given entry.
+    #[must_use]
+    pub fn contains(&self, handle: &Entry) -> bool {
+        self.sleepers.read().unwrap().contains_key(handle)
+    }
+
     #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         !self.sleepers.read().unwrap().is_empty()

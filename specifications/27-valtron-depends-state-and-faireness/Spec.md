@@ -6,12 +6,14 @@ This specification adds two major capabilities to Valtron, the platform's task e
 
 ### Feature A: `TaskStatus::Depends` — Signal-based Task Waiting
 
-Tasks can yield with a `TaskStatus::Depends(Arc<AtomicBool>)`, allowing them to wait for an external signal rather than a timed duration. This solves the problem where `TaskStatus::Delayed(duration)` may undershoot or overshoot the condition a task needs to wait for, since timing may not be the right communication mechanism.
+Tasks can yield with a `TaskStatus::Depends(Arc<dyn EventReadiness>)`, allowing them to wait for an external readiness signal rather than a timed duration. This solves the problem where `TaskStatus::Delayed(duration)` may undershoot or overshoot the condition a task needs to wait for, since timing may not be the right communication mechanism.
 
 **Problem statement (user):**
 > "A task may not always and evidently correctly perform well if it uses TaskStatus::Delayed when it may undershoot or overshoot the condition it needs to wait for, timing may not be the issue or the best way to communicate this to the execution engine."
 >
 > "Worst if we depend on timing, we may miss important signals that require low latency executions. But we do not want to bring in more heavy burden logic for these even channels or mutex guarded condvars."
+
+The readiness signal is any type implementing `EventReadiness`, which answers "am I ready?" — file descriptors, poll tokens, condition variables, or simple boolean flags. If a task's signal never fires, it sleeps forever; it is not the executor's place to stop a task from being stupid.
 
 ### Feature B: Worker Fairness Tracker
 
@@ -40,18 +42,15 @@ A CAS-based fairness mechanism that controls which workers can take tasks from t
 │  │  ├─ processing           │  │  ├─ processing           │        │
 │  │  ├─ sleepers             │  │  ├─ sleepers             │        │
 │  │  │   ├─ Timable          │  │  │   ├─ Timable          │        │
-│  │  │   └─ Atomic ← EXISTS  │  │  │   └─ Atomic ← EXISTS  │        │
-│  │  ├─ depends_cycle_counts │  │  ├─ depends_cycle_counts │  NEW   │
+│  │  │   └─ Atomic           │  │  │   └─ Atomic           │        │
 │  │  ├─ task_timer           │  │  ├─ task_timer           │  NEW   │
 │  │  ├─ worker_id: ThreadId  │  │  ├─ worker_id: ThreadId  │  NEW   │
 │  │  └─ trackers: Arc<T>     │  │  └─ trackers: Arc<T>     │  NEW   │
 │  │                          │  │                          │        │
 │  │  schedule_and_do_work()  │  │  schedule_and_do_work()  │        │
 │  │    1. wakeup_ready_sleepers()                           │        │
-│  │    2. increment depends_cycle_counts                    │        │
-│  │    3. force-repoll >10k cycles                          │        │
-│  │    4. stats.update()                                    │        │
-│  │    5. request_global_task() → trackers.can_take()       │        │
+│  │    2. stats.update()                                    │        │
+│  │    3. request_global_task() → trackers.can_take()       │        │
 │  └──────────────────────────┘  └──────────────────────────┘        │
 └──────────────────────────────────────────────────────────────────┘
 
@@ -68,25 +67,24 @@ A CAS-based fairness mechanism that controls which workers can take tasks from t
 
 ### Existing Architecture (Key Finding)
 
-**Critical discovery:** `Sleepable::Atomic(Arc<AtomicBool>, Entry)` already exists in `local.rs:50-58` with a proper `Waiter` impl that loads the atomic bool with `SeqCst` ordering. `Sleepers<Sleepable>` already handles it. What is missing is the wire from a `TaskStatus` variant to registration. This spec reuses the existing infrastructure — no new sleeper construct needed.
+**Critical discovery:** `Sleepable::Atomic(Arc<dyn EventReadiness>, Entry)` exists in `local.rs` with a proper `Waiter` impl that calls `signal.is_ready(None)`. `Sleepers<Sleepable>` already handles it. What is missing is the wire from a `TaskStatus` variant to registration. This spec reuses the existing infrastructure — no new sleeper construct needed.
 
 ### Task Flow: `TaskStatus::Depends`
 
 ```
 Task returns TaskStatus::Depends(signal)
   │
-  ├── signal is true?  → PANIC tracking (3 consecutive → PANIC)
-  │                     → Treat as Pending(None), push to BACK of queue
+  ├── signal.is_ready(None) is true?  → PANIC tracking (3 consecutive → PANIC)
+  │                                      → Treat as Pending(None), push to BACK of queue
   │
-  └── signal is false?
+  └── signal.is_ready(None) is false?
         │
         ├── Task already has sleeper record? → PANIC (should be awake)
         │
         └── Register as Sleepable::Atomic(signal, entry)
               → Remove from processing queue
               → Sleepers manages wake timing
-              → Increment cycle counter (Atomic sleepers ONLY)
-              → After 10,000 cycles → forced re-poll
+              → If never ready, sleeps forever — not our problem
 ```
 
 ### Fairness Flow: `Trackers::can_take()`
@@ -119,9 +117,13 @@ Worker calls request_global_task()
 
 ### Reuse of Existing `Sleepable::Atomic`
 
-**Key decision:** No new `SignalWaiters` construct needed inside the executor. The existing `Sleepers<Sleepable>` already supports `Sleepable::Atomic(Arc<AtomicBool>, Entry)` with proper `Waiter` impl. We simply wire `TaskStatus::Depends` to register tasks as `Sleepable::Atomic` sleepers.
+**Key decision:** No new `SignalWaiters` construct needed inside the executor. The existing `Sleepers<Sleepable>` supports `Sleepable::Atomic(Arc<dyn EventReadiness>, Entry)` with a `Waiter` impl that calls `signal.is_ready(None)`. We simply wire `TaskStatus::Depends` to register tasks as `Sleepable::Atomic` sleepers.
 
 User agreed: "Solid i like this, sounds good"
+
+### No Zombie Detection
+
+**Design change:** If a task's `EventReadiness` never returns `true`, the task sleeps indefinitely. The executor does not enforce a zombie cycle threshold or forcibly re-poll. It is not the executor's responsibility to protect tasks from their own bugs.
 
 ### Inverted `update()` API
 
@@ -134,7 +136,7 @@ User agreed: "Ok make sense"
 
 ### Re-poll Invariant
 
-User clarified: "a task would not be polled until its atomic is true, so if it later returns another TaskStatus::Depends then it must be: 1. After its previous one has become true and removed 2. It truly after getting polled indicate it still wants to wait for another signal and provides a new AtomicBool, if it is the same as last then we treat it as pending and just not register it and ensure its previous sleeper record was removed."
+User clarified: "a task would not be polled until its readiness signal returns true, so if it later returns another TaskStatus::Depends then it must be: 1. After its previous one has become true and removed 2. It truly after getting polled indicate it still wants to wait for another signal and provides a new Arc<dyn EventReadiness>, if it is the same as last then we treat it as pending and just not register it and ensure its previous sleeper record was removed."
 
 Decision: PANIC if a task that should be asleep sends another `State::Depends` — loud fail.
 
@@ -168,27 +170,26 @@ User: "Worker and worker thread is used synonymously, you should be able to see 
 
 User: "Dont be stupid, every LocalExecutor has a ThreadId, see line 1624 in threads.rs. Yes, we pass the trackers to each LocalThreadExecutor, ThreadReggistry should own the tracker."
 
-### Cycle Nudging
+### Cycle Nudging (Removed)
 
-I proposed 1000 cycles. User: "I fear 1000 is too short and we are being overly nosy, maybe make it 10k cycles then nudge." Also: "we dont do this for duration sleepers, so we need to ensure its only for signal watchers this ever happens for."
+Originally proposed 10k cycle nudging for signal watchers. This was dropped as part of the "no zombie detection" design — if a task's `EventReadiness` never returns `true`, it sleeps forever. The executor does not force re-polls.
 
 ### Signal Already True = Panic
 
-User: "a task should not be sending us AtomicBool that is now true, and it must be false, else its just considered another TaskStatus::Pending, I think we can track how many times a task is doing this and just panic. I will prefer a loud fail that gets reported and forces people to go fix their stupidity than try to mitigate this."
+User: "a task should not be sending us a signal that is already ready, and it must be false, else its just considered another TaskStatus::Pending, I think we can track how many times a task is doing this and just panic. I will prefer a loud fail that gets reported and forces people to go fix their stupidity than try to mitigate this."
 
 ## Constants
 
 | Constant | Value | Purpose |
 |----------|-------|---------|
-| `DEPENDS_ZOMBIE_CYCLE_THRESHOLD` | 10,000 | Max cycles a signal watcher sleeps before forced re-poll |
 | `DEPENDS_TRUE_PANIC_THRESHOLD` | 3 | Consecutive `Depends(true)` violations before panic |
 
 ## File Changes
 
 | File | Change |
 |------|--------|
-| `backends/foundation_core/src/valtron/task.rs` | Add `TaskStatus::Depends`, update `Stream`, `PartialEq`, `Display`, `Debug` |
-| `backends/foundation_core/src/valtron/executors/local.rs` | Handle `State::Depends` in `do_work`, add `depends_cycle_counts`, integrate fairness gate in `request_global_task` |
+| `backends/foundation_core/src/valtron/task.rs` | Add `EventReadiness` trait, `BoolSignal`, `TaskStatus::Depends`, update `Stream`, `PartialEq`, `Display`, `Debug` |
+| `backends/foundation_core/src/valtron/executors/local.rs` | Handle `State::Depends` in `do_work`, update `Sleepable::Atomic` to use `Arc<dyn EventReadiness>`, integrate fairness gate in `request_global_task` |
 | `backends/foundation_core/src/valtron/executors/threads.rs` | Add `Arc<Trackers>` to registry, pass to workers, unregister on death |
 | `backends/foundation_core/src/synca/mod.rs` | Export `SignalWaiters` |
 | `backends/foundation_core/src/synca/signal_waiters.rs` | New file — `SignalWaiters<K>` utility |

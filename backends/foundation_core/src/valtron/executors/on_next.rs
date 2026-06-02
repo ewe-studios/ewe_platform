@@ -201,6 +201,7 @@ where
                         TaskStatus::Ignore => State::Pending(None),
                         TaskStatus::Wait => State::Wait,
                         TaskStatus::Spread(_) => State::Pending(None),
+                        TaskStatus::Depends(signal) => State::Depends(signal),
                     },
                     None => State::Pending(None),
                 }

@@ -388,6 +388,18 @@ where
                         });
                         Some(TaskStatus::Wait)
                     }
+                    TaskStatus::Depends(signal) => {
+                        self.state = Some(StoreStatePrecomputed::Inner {
+                            inner,
+                            state_store,
+                            resource_id,
+                            resource_kind,
+                            provider,
+                            input,
+                            environment,
+                        });
+                        Some(TaskStatus::Depends(signal))
+                    }
                     TaskStatus::Spread(items) => {
                         self.state = Some(StoreStatePrecomputed::Inner {
                             inner, state_store, resource_id, resource_kind, provider, input, environment,
@@ -677,6 +689,15 @@ where
                             environment,
                         });
                         Some(TaskStatus::Wait)
+                    }
+                    TaskStatus::Depends(signal) => {
+                        self.state = Some(StoreStateIdentifierInner::Inner {
+                            inner,
+                            state_store,
+                            input,
+                            environment,
+                        });
+                        Some(TaskStatus::Depends(signal))
                     }
                     TaskStatus::Spread(items) => {
                         self.state = Some(StoreStateIdentifierInner::Inner {

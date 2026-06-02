@@ -1164,6 +1164,7 @@ where
             TaskStatus::Init => TaskStatus::Init,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
             TaskStatus::Spread(items) => TaskStatus::Spread(
                 items
                     .into_iter()
@@ -1199,6 +1200,7 @@ where
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
             TaskStatus::Spread(items) => TaskStatus::Spread(
                 items
                     .into_iter()
@@ -1302,6 +1304,7 @@ where
                 Some(TaskStatus::Ignore) => return Some(TaskStatus::Ignore),
                 Some(TaskStatus::Spawn(s)) => return Some(TaskStatus::Spawn(s.into())),
                 Some(TaskStatus::Wait) => return Some(TaskStatus::Wait),
+                Some(TaskStatus::Depends(signal)) => return Some(TaskStatus::Depends(signal)),
                 Some(TaskStatus::Spread(items)) => {
                     // Separate Pending items (convert via Into) from Ready items
                     let mut pending_items = Vec::new();
@@ -1417,6 +1420,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 // Flatten Ready items, pass through Pending
                 Some(TaskStatus::Spread(
@@ -1487,6 +1491,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 // Flatten Pending items, pass through Ready
                 Some(TaskStatus::Spread(
@@ -1557,6 +1562,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 // Flat map Ready items, pass through Pending
                 Some(TaskStatus::Spread(
@@ -1628,6 +1634,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 // Flat map Pending items, pass through Ready
                 Some(TaskStatus::Spread(
@@ -1684,6 +1691,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Spread(items)) => {
                 // Extend collected with Ready items, pass through Pending
                 let mut pending = Vec::new();
@@ -2413,6 +2421,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 let start = self.count;
                 let mut idx = start;
@@ -2470,6 +2479,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 if let Some(v) = items.into_iter().find_map(|item| {
                     match item {
@@ -2524,6 +2534,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             TaskStatus::Spread(items) => {
                 if let Some(r) = items.into_iter().find_map(|item| {
                     match item {
@@ -2576,6 +2587,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Spread(items)) => {
                 if let Some(acc) = self.acc.take() {
                     self.acc = Some(
@@ -2644,6 +2656,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Spread(items)) => {
                 // Separate Ready and Pending items
                 let mut pending_inner = Vec::new();
@@ -2725,6 +2738,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Spread(items)) => {
                 // Scan all Ready items first for a match, collect Pending
                 let mut pending_items: Vec<I::Pending> = Vec::new();
@@ -2783,6 +2797,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Spread(items)) => {
                 let mut pending_items: Vec<TaskSpread<usize, I::Pending>> = Vec::new();
                 for item in items {
@@ -2826,6 +2841,7 @@ where
 
         match self.inner.next_status() {
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             Some(TaskStatus::Ready(_))
             | Some(TaskStatus::Pending(_))
             | Some(TaskStatus::Delayed(_))

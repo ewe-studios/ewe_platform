@@ -16,7 +16,7 @@ use std::{
 
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
+    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, EventReadiness, State},
 };
 use crate::{
     synca::{Timeable, Timing},
@@ -121,7 +121,6 @@ pub enum PriorityOrder {
 
 /// `Sleepable` defines specific holders that help
 /// indicate the readiness of a task via it's entry.
-#[derive(Debug)]
 pub enum Sleepable {
     /// Timable are tasks that can sleep via duration and
     /// will communicate their readiness using when a duration
@@ -131,16 +130,30 @@ pub enum Sleepable {
     /// Flag represents a task that connect a task with a `AtomicBool`
     /// signal will communicate when a giving task is ready.
     Atomic(sync::Arc<AtomicBool>, Entry),
+
+    /// Readiness represents a task waiting on an arbitrary `EventReadiness`
+    /// signal. The executor calls `is_ready(None)` to check without blocking.
+    Readiness(sync::Arc<dyn EventReadiness>, Entry),
+}
+
+impl core::fmt::Debug for Sleepable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Timable(inner) => f.debug_tuple("Timable").field(inner).finish(),
+            Self::Atomic(_, entry) => f.debug_tuple("Atomic").field(entry).finish(),
+            Self::Readiness(_, entry) => f.debug_tuple("Readiness").field(entry).finish(),
+        }
+    }
 }
 
 impl Sleepable {
     /// Returns the deadline when this sleeper will be ready.
     /// For Timable sleepers, returns the Instant when duration expires.
-    /// For Atomic sleepers, returns None (no specific deadline).
+    /// For Atomic and Readiness sleepers, returns None (no specific deadline).
     pub fn deadline(&self) -> Option<time::Instant> {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
-            Sleepable::Atomic(_, _) => None,
+            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
         }
     }
 }
@@ -149,7 +162,7 @@ impl Timeable for Sleepable {
     fn remaining_duration(&self) -> Option<time::Duration> {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
-            Sleepable::Atomic(_, _) => None,
+            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
         }
     }
 }
@@ -159,6 +172,7 @@ impl Waiter for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.is_ready(),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
+            Sleepable::Readiness(signal, _) => signal.is_ready(None),
         }
     }
 }
@@ -627,11 +641,18 @@ pub struct ExecutorState {
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
     pub idler: rc::Rc<cell::RefCell<IdleMan>>,
+
+    /// Track consecutive `State::Depends(true)` violations per entry.
+    /// After `DEPENDS_TRUE_PANIC_THRESHOLD` consecutive violations, the task panics.
+    pub depends_true_violations: rc::Rc<cell::RefCell<HashMap<Entry, u32>>>,
 }
 
 // --- constructors
 
 static DEQUEUE_CAPACITY: usize = 10;
+
+/// Maximum consecutive `State::Depends(true)` violations before panic.
+const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 3;
 
 impl ExecutorState {
     pub fn new(
@@ -655,6 +676,7 @@ impl ExecutorState {
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
+            depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -716,6 +738,7 @@ impl Clone for ExecutorState {
             task_graph: self.task_graph.clone(),
             packed_tasks: self.packed_tasks.clone(),
             processing: self.processing.clone(),
+            depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -826,6 +849,7 @@ impl ExecutorState {
             match matured {
                 Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle),
                 Sleepable::Atomic(_, entry) => self.wake_up(entry),
+                Sleepable::Readiness(_, entry) => self.wake_up(entry),
             }
         }
     }
@@ -1629,6 +1653,66 @@ impl ExecutorState {
                 self.processing.borrow_mut().push_front(top_entry);
 
                 ProgressIndicator::Wait
+            }
+            State::Depends(signal) => {
+                // 1. Check if task already has a sleeper record -> PANIC
+                //    A sleeping task should never reach this point.
+                //    It must be woken and its sleeper record removed before
+                //    it can send Depends again.
+                if self.sleepers.contains(&top_entry) {
+                    panic!(
+                        "Task {:?} returned State::Depends while already registered as a sleeper. \
+                         A sleeping task must be woken before it can send Depends again.",
+                        top_entry
+                    );
+                }
+
+                // 2. If signal is already true -> treat as Pending(None)
+                //    Push to BACK of processing queue (not front).
+                //    Track consecutive violations -- after 3 -> PANIC
+                if signal.is_ready(None) {
+                    self.depends_true_violations
+                        .borrow_mut()
+                        .entry(top_entry)
+                        .and_modify(|c| *c += 1)
+                        .or_insert(1);
+
+                    let violations = *self.depends_true_violations.borrow().get(&top_entry).unwrap();
+                    if violations >= DEPENDS_TRUE_PANIC_THRESHOLD {
+                        panic!(
+                            "Task {:?} returned State::Depends with an already-ready signal {} \
+                             consecutive times. This is a task bug, not an executor issue.",
+                            top_entry, violations
+                        );
+                    }
+
+                    tracing::warn!(
+                        "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
+                        top_entry,
+                        violations,
+                        DEPENDS_TRUE_PANIC_THRESHOLD
+                    );
+
+                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                    self.processing.borrow_mut().push_back(top_entry);
+                    return ProgressIndicator::CanProgress(Some(State::Pending(None)));
+                }
+
+                // 3. Signal is false -> register as Sleepable::Readiness(signal, entry)
+                tracing::debug!("[DEPENDS] Task {:?} registered as Readiness sleeper", top_entry);
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                self.sleepers
+                    .insert(top_entry, Sleepable::Readiness(signal, top_entry));
+
+                if self.has_incoming_global_tasks() || self.has_inflight_task() {
+                    return ProgressIndicator::CanProgress(None);
+                }
+
+                // If this task was the only one, spin wait
+                match self.idler.borrow_mut().increment() {
+                    Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
+                    None => ProgressIndicator::NoWork,
+                }
             }
         }
     }
@@ -3002,6 +3086,7 @@ mod test_local_thread_executor {
                                 }
                                 TaskStatus::Ignore => Some(TaskStatus::Ignore),
                                 TaskStatus::Wait => Some(TaskStatus::Wait),
+                                TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
                             },
                             Some(NotificationItem::None) => Some(TaskStatus::Wait),
                             None => None,

@@ -312,6 +312,7 @@ where
                     State::Pending(None)
                 }
             }
+            TaskStatus::Depends(_) => State::Pending(None),
         })
     }
 }
@@ -628,6 +629,7 @@ where
                     State::Pending(None)
                 }
             }
+            TaskStatus::Depends(_) => State::Pending(None),
         })
     }
 }
@@ -868,6 +870,7 @@ where
                     State::Pending(None)
                 }
             }
+            TaskStatus::Depends(_) => State::Pending(None),
         })
     }
 }

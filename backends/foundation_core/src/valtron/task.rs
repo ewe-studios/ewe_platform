@@ -15,11 +15,56 @@ use std::{
 
 use crate::compati::Mutex;
 use rand_chacha::ChaCha8Rng;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::{
     synca::Entry,
     valtron::{AnyResult, GenericResult},
 };
+
+/// A trait for types that can answer "is this task ready to run?"
+///
+/// Implementors must be `Send + Sync` safe, as they will be shared
+/// between the task (which may mutate the signal) and the executor
+/// (which polls `is_ready`).
+pub trait EventReadiness: Send + Sync {
+    /// Check if the task is ready to run.
+    ///
+    /// `dur`: Optional timeout. If `None`, check immediately without blocking.
+    /// If `Some(dur)`, may block up to `dur` waiting for readiness.
+    ///
+    /// Returns `true` if ready, `false` otherwise.
+    fn is_ready(&self, dur: Option<time::Duration>) -> bool;
+}
+
+/// A simple readiness signal backed by an `Arc<AtomicBool>`.
+///
+/// The task considers itself ready when the atomic bool is `true`.
+#[derive(Clone)]
+pub struct BoolSignal(Arc<AtomicBool>);
+
+impl BoolSignal {
+    /// Create a new `BoolSignal` with the given initial value.
+    pub fn new(value: bool) -> Self {
+        Self(Arc::new(AtomicBool::new(value)))
+    }
+
+    /// Create a `BoolSignal` from an existing `Arc<AtomicBool>`.
+    pub fn from_atomic(inner: Arc<AtomicBool>) -> Self {
+        Self(inner)
+    }
+
+    /// Get a clone of the underlying `Arc<AtomicBool>` for external mutation.
+    pub fn clone_inner(&self) -> Arc<AtomicBool> {
+        self.0.clone()
+    }
+}
+
+impl EventReadiness for BoolSignal {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.0.load(Ordering::SeqCst)
+    }
+}
 
 /// The type for a panic handling closure. Note that this same closure
 /// may be invoked multiple times in parallel.
@@ -151,6 +196,12 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Emit multiple ready values at once.
     /// Each element is delivered individually as `TaskStatus::Ready(value)` at the delivery point.
     Spread(Vec<TaskSpread<D, P>>),
+
+    /// Wait for an external readiness signal.
+    ///
+    /// The signal must return `false` on first receipt. If `true`, treated as `Pending`.
+    /// Any type implementing `EventReadiness` can be used.
+    Depends(Arc<dyn EventReadiness>),
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -174,6 +225,7 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
                         .collect(),
                 )
             }
+            TaskStatus::Depends(_) => Stream::Ignore,
         }
     }
 }
@@ -189,7 +241,8 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
             (TaskStatus::Spawn(_), TaskStatus::Spawn(_))
             | (TaskStatus::Init, TaskStatus::Init)
             | (TaskStatus::Ignore, TaskStatus::Ignore)
-            | (TaskStatus::Wait, TaskStatus::Wait) => true,
+            | (TaskStatus::Wait, TaskStatus::Wait)
+            | (TaskStatus::Depends(_), TaskStatus::Depends(_)) => true,
             (TaskStatus::Spread(me), TaskStatus::Spread(them)) => me == them,
             _ => false,
         }
@@ -211,6 +264,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             Ignore,
             Wait,
             Spread(&'a [TaskSpread<D, P>]),
+            Depends,
         }
 
         let debug_item = match self {
@@ -222,6 +276,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
             TaskStatus::Spread(items) => TStatus::Spread(items.as_slice()),
+            TaskStatus::Depends(_) => TStatus::Depends,
         };
 
         write!(f, "{debug_item:?}")
@@ -243,6 +298,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             Ignore,
             Wait,
             Spread(&'a [TaskSpread<D, P>]),
+            Depends,
         }
 
         let debug_item = match self {
@@ -254,6 +310,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             TaskStatus::Ignore => TStatus::Ignore,
             TaskStatus::Wait => TStatus::Wait,
             TaskStatus::Spread(items) => TStatus::Spread(items.as_slice()),
+            TaskStatus::Depends(_) => TStatus::Depends,
         };
 
         write!(f, "{debug_item:?}")
@@ -510,7 +567,7 @@ impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator for TaskAsIt
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone)]
 pub enum State {
     /// Pending indicates the underlying process to be
     /// still waiting progress to it's next state with
@@ -554,7 +611,50 @@ pub enum State {
     /// Queue empty, no item yet. Signals executor to yield
     /// and re-check. On JS, maps to a short setTimeout (~4ms).
     Wait,
+
+    /// Wait for an external readiness signal.
+    ///
+    /// The executor registers this as a `Sleepable::Readiness` sleeper.
+    /// The signal must return `false` on first receipt; if `true`, treated as `Pending(None)`.
+    Depends(Arc<dyn EventReadiness>),
 }
+
+impl core::fmt::Debug for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(d) => f.debug_tuple("Pending").field(d).finish(),
+            Self::Panicked => write!(f, "Panicked"),
+            Self::SpawnFailed(e) => f.debug_tuple("SpawnFailed").field(e).finish(),
+            Self::SpawnFinished(s) => f.debug_tuple("SpawnFinished").field(s).finish(),
+            Self::Reschedule => write!(f, "Reschedule"),
+            Self::Progressed => write!(f, "Progressed"),
+            Self::ReadyValue(e) => f.debug_tuple("ReadyValue").field(e).finish(),
+            Self::Done => write!(f, "Done"),
+            Self::Wait => write!(f, "Wait"),
+            Self::Depends(_) => write!(f, "Depends"),
+        }
+    }
+}
+
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Pending(a), Self::Pending(b)) => a == b,
+            (Self::Panicked, Self::Panicked) => true,
+            (Self::SpawnFailed(a), Self::SpawnFailed(b)) => a == b,
+            (Self::SpawnFinished(_), Self::SpawnFinished(_)) => true,
+            (Self::Reschedule, Self::Reschedule) => true,
+            (Self::Progressed, Self::Progressed) => true,
+            (Self::ReadyValue(a), Self::ReadyValue(b)) => a == b,
+            (Self::Done, Self::Done) => true,
+            (Self::Wait, Self::Wait) => true,
+            (Self::Depends(_), Self::Depends(_)) => true,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for State {}
 
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
@@ -1245,6 +1345,7 @@ where
                     None
                 }
                 TaskStatus::Spread(items) => Some(TaskStatus::Spread(items)),
+                TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             },
             None => None,
         }
@@ -1290,6 +1391,7 @@ where
                         }).collect(),
                     ))
                 }
+                TaskStatus::Depends(_) => Some(Stream::Ignore),
             },
             None => None,
         }
@@ -1340,7 +1442,8 @@ where
                 | TaskStatus::Delayed(_)
                 | TaskStatus::Pending(_)
                 | TaskStatus::Ignore
-                | TaskStatus::Wait => Some(ReadyValue::Skip),
+                | TaskStatus::Wait
+                | TaskStatus::Depends(_) => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
                 TaskStatus::Spread(_) => Some(ReadyValue::Skip),
             },
@@ -1410,6 +1513,7 @@ where
                 }
                 TaskStatus::Wait => Some(TaskStatus::Wait),
                 TaskStatus::Spread(items) => Some(TaskStatus::Spread(items)),
+                TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
             },
             None => None,
         }
@@ -1465,6 +1569,7 @@ where
             }
             TaskStatus::Wait => TaskStatus::Wait,
             TaskStatus::Spread(items) => TaskStatus::Spread(items),
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
         })
     }
 }

@@ -80,6 +80,7 @@ where
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Wait => TaskStatus::Wait,
             TaskStatus::Spread(items) => TaskStatus::Spread(items),
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
         })
     }
 }

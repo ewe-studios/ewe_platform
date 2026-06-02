@@ -1163,6 +1163,7 @@ where
             TaskStatus::Init => TaskStatus::Init,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
             TaskStatus::Spread(items) => TaskStatus::Spread(
                 items
                     .into_iter()
@@ -1198,6 +1199,7 @@ where
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
             TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
             TaskStatus::Spread(items) => TaskStatus::Spread(
                 items
                     .into_iter()
@@ -1339,6 +1341,7 @@ where
                 Some(TaskStatus::Ignore) => return Some(TaskStatus::Ignore),
                 Some(TaskStatus::Spawn(s)) => return Some(TaskStatus::Spawn(s.into())),
                 Some(TaskStatus::Wait) => return Some(TaskStatus::Wait),
+                Some(TaskStatus::Depends(signal)) => return Some(TaskStatus::Depends(signal)),
                 None => return None, // Outer exhausted
             }
         }
@@ -1441,6 +1444,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1517,6 +1521,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1594,6 +1599,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1671,6 +1677,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1729,6 +1736,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             None => {
                 // Inner iterator is done, yield the collected result
                 self.done = true;
@@ -2457,6 +2465,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -2509,6 +2518,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -2563,6 +2573,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
+        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -2615,6 +2626,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             None => {
                 // Inner exhausted, yield final accumulated value
                 self.done = true;
@@ -2703,6 +2715,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             None => {
                 self.done = true;
                 Some(TaskStatus::Ready(true))
@@ -2774,6 +2787,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             None => {
                 self.done = true;
                 Some(TaskStatus::Ready(false))
@@ -2810,6 +2824,7 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
             None => Some(TaskStatus::Ready(self.count)),
         }
     }
@@ -2841,7 +2856,8 @@ where
             | Some(TaskStatus::Init)
             | Some(TaskStatus::Spawn(_))
             | Some(TaskStatus::Wait)
-            | Some(TaskStatus::Spread(_)) => {
+            | Some(TaskStatus::Spread(_))
+            | Some(TaskStatus::Depends(_)) => {
                 self.count += 1;
                 Some(TaskStatus::Ignore)
             }
