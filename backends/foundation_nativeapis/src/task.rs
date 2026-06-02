@@ -53,11 +53,23 @@ impl<T: Clone + Send + 'static> EventBroadcaster<T> {
     /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
     pub fn broadcast(&mut self, event: T) {
         self.subscribers.retain(|tx| {
+            // If the channel is closed (receiver dropped), try_send will fail
             match tx.send(event.clone()) {
                 Ok(()) => true,
-                Err(_) => tx.force_send(event.clone()).is_ok(),
+                Err(_) => {
+                    // Channel is full or closed — try force_send
+                    match tx.force_send(event.clone()) {
+                        Ok(_dropped) => true, // Queue full, dropped oldest but still alive
+                        Err(_) => false,      // Channel closed — remove this subscriber
+                    }
+                }
             }
         });
+    }
+
+    /// Clean up dead subscribers (Receiver dropped).
+    pub fn cleanup(&mut self) {
+        self.subscribers.retain(|tx| !tx.is_closed());
     }
 
     /// Number of active subscribers.

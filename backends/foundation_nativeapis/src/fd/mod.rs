@@ -17,13 +17,13 @@ pub mod error;
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
 
-use crate::poll::{Interest, Registry, Token};
+use crate::poll::{Events, Interest, Registry, Token};
 use crate::poll::sys::RawFd;
 
 use std::io;
 use std::os::unix::io::{AsRawFd, FromRawFd, RawFd as StdRawFd};
-use std::sync::atomic::{AtomicU8, Ordering};
-use std::sync::Arc;
+use std::sync::Mutex;
+use std::time::Duration;
 
 /// Bitmask of readiness and lifecycle states observed on a file descriptor.
 ///
@@ -106,20 +106,19 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 ///
 /// # How readiness tracking works:
 /// 1. The fd is registered with the poll::Selector via FdRegistration::new()
-/// 2. When poll() runs, it queries the selector for readiness events
-/// 3. For each event, the selector updates the corresponding FdRegistration's
-///    readiness bitmask (atomic store with OR)
-/// 4. poll_readable() checks the bitmask: if READABLE bit is set, returns a guard
-/// 5. The guard's try_io() or clear_ready() clears the bitmask (atomic AND NOT)
-/// 6. Next poll() will block until the fd transitions from not-ready to ready again
+/// 2. poll_readable()/poll_writable() call poll() with zero timeout to check
+///    current readiness state from the selector
+/// 3. Events returned are mapped to Ready flags (READABLE, WRITABLE, READ_CLOSED, etc.)
+/// 4. The guard's try_io() or clear_ready() resets readiness by re-polling
 ///
 /// This is the critical loop that prevents busy-wait on edge-triggered systems.
 pub struct FdRegistration {
-    registry: Arc<crate::poll::Registry>,
+    registry: crate::poll::Registry,
     token: Token,
-    /// Bitmask of readiness states. Updated by poll layer when selector events arrive,
-    /// cleared by ReadyGuard when the user processes readiness.
-    readiness: AtomicU8,
+    /// Mutex-protected Poll instance for readiness queries.
+    poll: crate::poll::Poll,
+    /// Last known readiness state — cached between poll calls.
+    readiness: Mutex<Ready>,
 }
 
 impl FdRegistration {
@@ -135,27 +134,51 @@ impl FdRegistration {
     ) -> io::Result<Self> {
         registry.register_fd(fd, token, interest)?;
 
+        // Create a new Poll instance and register the fd with it
+        let poll = crate::poll::Poll::new()?;
+        poll.registry().register_fd(fd, token, interest)?;
+
         Ok(Self {
-            registry: Arc::new(registry.clone()),
+            registry: registry.clone(),
             token,
-            readiness: AtomicU8::new(Ready::EMPTY.0),
+            poll,
+            readiness: Mutex::new(Ready::EMPTY),
         })
     }
 
-    /// Atomically OR the given readiness into the bitmask.
-    /// Called by the poll layer when the selector returns events for this token.
-    pub fn add_readiness(&self, ready: Ready) {
-        self.readiness.fetch_or(ready.0, Ordering::Release);
+    /// Poll the selector and update the readiness cache.
+    /// Returns the updated readiness bitmask.
+    fn query_readiness(&self) -> io::Result<Ready> {
+        let mut events = Events::with_capacity(16);
+        self.poll.poll(&mut events, Some(Duration::ZERO))?;
+
+        let mut ready = Ready::EMPTY;
+        for event in events.iter() {
+            if event.is_readable() {
+                ready = ready.union(Ready::READABLE);
+            }
+            if event.is_writable() {
+                ready = ready.union(Ready::WRITABLE);
+            }
+            if event.is_read_closed() {
+                ready = ready.union(Ready::READ_CLOSED);
+            }
+            if event.is_write_closed() {
+                ready = ready.union(Ready::WRITE_CLOSED);
+            }
+            if event.is_error() {
+                ready = ready.union(Ready::ERROR);
+            }
+        }
+
+        Ok(ready)
     }
 
-    /// Atomically AND NOT the given readiness — clear specific flags.
-    pub fn clear_readiness(&self, ready: Ready) {
-        self.readiness.fetch_and(!ready.0, Ordering::Release);
-    }
-
-    /// Atomically load the current readiness bitmask.
-    pub fn load_readiness(&self) -> Ready {
-        Ready(self.readiness.load(Ordering::Acquire))
+    /// Atomically update readiness and return it.
+    fn refresh_readiness(&self) -> io::Result<Ready> {
+        let ready = self.query_readiness()?;
+        *self.readiness.lock().unwrap() = ready;
+        Ok(ready)
     }
 
     /// Deregister from the poll selector.
@@ -240,11 +263,13 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ///
     /// The guard must be explicitly handled via try_io(), clear_ready(), or retain_ready().
     pub fn poll_readable(&self) -> PollResult<ReadyGuard<'_, T>> {
-        let ready = self.registration.load_readiness();
+        let ready = match self.registration.refresh_readiness() {
+            Ok(r) => r,
+            Err(e) => return PollResult::Error(e),
+        };
 
         // 1. Check for error condition FIRST
         if ready.is_error() {
-            self.registration.clear_readiness(Ready::ERROR);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::Other,
                 "file descriptor has an error condition (EPOLLERR)",
@@ -253,7 +278,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // 2. Check for read-closed — peer shut down, pipe broken, EOF
         if ready.is_read_closed() {
-            self.registration.clear_readiness(Ready::READ_CLOSED);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::ConnectionReset,
                 "read end of file descriptor is closed (EPOLLHUP / broken pipe)",
@@ -262,7 +286,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // 3. Check for readability
         if ready.is_readable() {
-            self.registration.clear_readiness(Ready::READABLE);
             return PollResult::Ready(ReadyGuard::new(self, Ready::READABLE));
         }
 
@@ -272,10 +295,12 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
     /// Poll for write readiness.
     pub fn poll_writable(&self) -> PollResult<ReadyGuard<'_, T>> {
-        let ready = self.registration.load_readiness();
+        let ready = match self.registration.refresh_readiness() {
+            Ok(r) => r,
+            Err(e) => return PollResult::Error(e),
+        };
 
         if ready.is_error() {
-            self.registration.clear_readiness(Ready::ERROR);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::Other,
                 "file descriptor has an error condition",
@@ -283,7 +308,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
         }
 
         if ready.is_write_closed() {
-            self.registration.clear_readiness(Ready::WRITE_CLOSED);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::BrokenPipe,
                 "write end of file descriptor is closed",
@@ -291,7 +315,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
         }
 
         if ready.is_writable() {
-            self.registration.clear_readiness(Ready::WRITABLE);
             return PollResult::Ready(ReadyGuard::new(self, Ready::WRITABLE));
         }
 
@@ -303,11 +326,13 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// Checks the readiness bitmask for any of the requested flags
     /// and returns a guard for the first matching readiness state.
     pub fn poll_ready(&self, interest: Interest) -> PollResult<ReadyGuard<'_, T>> {
-        let ready = self.registration.load_readiness();
+        let ready = match self.registration.refresh_readiness() {
+            Ok(r) => r,
+            Err(e) => return PollResult::Error(e),
+        };
 
         // Check error first
         if ready.is_error() {
-            self.registration.clear_readiness(Ready::ERROR);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::Other,
                 "file descriptor has an error condition",
@@ -316,7 +341,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // Check closed states
         if interest.is_readable() && ready.is_read_closed() {
-            self.registration.clear_readiness(Ready::READ_CLOSED);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::ConnectionReset,
                 "read end of file descriptor is closed",
@@ -324,7 +348,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
         }
 
         if interest.is_writable() && ready.is_write_closed() {
-            self.registration.clear_readiness(Ready::WRITE_CLOSED);
             return PollResult::Error(io::Error::new(
                 io::ErrorKind::BrokenPipe,
                 "write end of file descriptor is closed",
@@ -333,13 +356,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // Check readable
         if interest.is_readable() && ready.is_readable() {
-            self.registration.clear_readiness(Ready::READABLE);
             return PollResult::Ready(ReadyGuard::new(self, Ready::READABLE));
         }
 
         // Check writable
         if interest.is_writable() && ready.is_writable() {
-            self.registration.clear_readiness(Ready::WRITABLE);
             return PollResult::Ready(ReadyGuard::new(self, Ready::WRITABLE));
         }
 

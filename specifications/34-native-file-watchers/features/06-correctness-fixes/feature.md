@@ -93,6 +93,13 @@ Created `src/net/` with poll-layer-integrated networking:
 
 All 14 tasks are complete. 41 tests passing.
 
+- 4 fd_monitor_integration tests (callback, no_callback, terminates_on_error, poll_interval)
+- 5 fd_registration tests (bitmask, not_ready_when_empty, ready_after_poll, read_closed, cleared_after_read)
+- 12 poll_integration tests (register, deregister, waker, multiple tokens, zero timeout, writable, multi-thread wake, concurrent registration, EINTR, TCP loopback, UDP loopback, Unix socket)
+- 6 valtron_integration tests (broadcast multi-subscriber, broadcast cleanup, FileWatcherTask delivers events, handles poll error, no subscribers, unwatch)
+- 12 watcher_integration tests (inotify creation/modification/deletion/rename/unwatch/clear, poll watcher creation/deletion/modification/unwatch/nonexistent, builder fallback)
+- 2 doc tests
+
 ## Trade-offs
 
 | Decision | Choice | Rationale |

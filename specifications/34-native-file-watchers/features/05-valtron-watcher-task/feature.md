@@ -1,7 +1,7 @@
 ---
 feature: "Valtron Watcher Task"
 description: "Thin valtron adapters: FileWatcherTask wraps NativeWatcher::poll() with TaskIterator and mpp-based subscriber queues, FdMonitorTask wraps RegisteredFd for arbitrary FD readiness monitoring"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-native-apis", "02-fd-management"]
 estimated_effort: "small"
