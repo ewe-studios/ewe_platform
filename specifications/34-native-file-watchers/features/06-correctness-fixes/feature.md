@@ -127,10 +127,10 @@ All 14 tasks are complete. 41 tests passing.
 | `src/net/tcp.rs` | Create — TcpStream, TcpListener | ✅ Done |
 | `src/net/udp.rs` | Create — UdpSocket | ✅ Done |
 | `src/net/unix.rs` | Create — UnixStream, UnixListener, UnixDatagram | ✅ Done |
-| `src/watcher/windows.rs` | Create — WinWatcher | ❌ TODO |
+| `src/watcher/windows.rs` | Create — WinWatcher | ✅ Done |
 | `Cargo.toml` | Add task feature flag, watcher-windows feature | ✅ Done |
 | `examples/file_watcher.rs` | Create — demo | ✅ Done |
-| `tests/poll_integration.rs` | Expand — add mio-style tests | ❌ TODO |
+| `tests/poll_integration.rs` | Expand — add mio-style tests | ✅ Done |
 
 ---
 
