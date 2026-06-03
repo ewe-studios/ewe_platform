@@ -83,27 +83,31 @@ foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
 
 # -- workspace wide packages
-# core library dependencies
-toml = { version = "0.9" }
-toml_edit = { version = "0.22" }
-anyhow = { version = "1.0" }
 derive_more = { version = ">=2.0", features = ["full"] }
+
+# core library dependencies
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
+toml = { version = "0.9" }
+toml_edit = { version = "0.22" }
+
 regex = "1.12.2"
 concurrent-queue = { version = "2.5.0"}
+
+# tracing
 tracing = { version = "0.1" }
 tracing-core = { version = "0.1" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = { version = "0.3", features = ["json"] }
 
-thiserror = { version = "2"}
-
 # specific for testing serially
-serial_test = "3.3.1"
-
 # testing with timeouts
+serial_test = "3.3.1"
 ntest = "0.9"
+
+# this should disappear soon, we need to weed it all out and replace with foundation_errstack.
+anyhow = { version = "1.0" }
+thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
