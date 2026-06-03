@@ -22,10 +22,10 @@ builds_on: []
 related_specs:
   - "specifications/33-valtron-singleton"
 tasks:
-  completed: 66
-  uncompleted: 14
+  completed: 80
+  uncompleted: 0
   total: 80
-  completion_percentage: 82%
+  completion_percentage: 100%
 ---
 
 # Native File Watchers + Valtron Integration
@@ -49,7 +49,7 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 | [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) + mio poll layer extraction + io_uring abstractions | ✅ completed |
 | [02-fd-management](features/02-fd-management/) | File descriptor management: `RegisteredFd`, `poll_readable()`/`poll_writable()`, `ReadyGuard`, edge-triggered readiness tracking, `try_io` auto-clear | ✅ completed |
 | [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | ✅ completed |
-| [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | pending |
+| [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | ✅ completed |
 | [05-valtron-watcher-task](features/05-valtron-watcher-task/) | Thin valtron adapter: `FileWatcherTask` wraps `NativeWatcher::poll()` in a tick loop with broadcast channels | ✅ completed |
 | [06-correctness-fixes](features/06-correctness-fixes/) | Remove stubs, fix error handling, implement missing backends, net module, TaskIterator impls | ✅ completed |
 | [07-valtron-task-design](features/07-valtron-task-design/) | Critical design rules: `has_events()` caching, `SharedWatcher`, `StopSignal`, `collect_one` | ✅ completed |

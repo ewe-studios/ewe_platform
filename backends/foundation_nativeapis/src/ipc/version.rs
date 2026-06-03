@@ -7,6 +7,9 @@
 /// - If both major versions are 0 → minor versions must match (pre-1.0 breaking changes)
 /// - If either major version is >= 1 → major versions must match (semver)
 
+use std::fmt;
+
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 /// Version read from crate metadata at compile time.
@@ -27,7 +30,7 @@ pub fn version() -> Version {
 /// A semver-style version triple.
 ///
 /// Wire format: `[magic: u8 = 0xFF][major: u8][minor: u8][patch: u8]` — packed as `u32`.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Encode, Decode, Eq, PartialEq)]
 pub struct Version((u8, u8, u8));
 
 impl Version {
@@ -88,6 +91,12 @@ impl Version {
     }
 }
 
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}.{}.{}", self.major(), self.minor(), self.patch())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,7 +123,6 @@ mod tests {
     fn zero_vs_one() {
         let v1 = Version::from_str_parts(0, 5, 0);
         let v2 = Version::from_str_parts(1, 0, 0);
-        // v1.major == 0, v2.major == 1 → major must match → 0 != 1 → incompatible
         assert!(!v1.compatible(v2));
     }
 

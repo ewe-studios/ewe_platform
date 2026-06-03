@@ -2,6 +2,7 @@
 
 use std::fmt;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 /// 4-byte alignment utility for wire format padding.
@@ -19,21 +20,16 @@ impl Align4 for usize {
 }
 
 /// Unique identifier for each endpoint, assigned by the controller on connection.
-#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
 pub struct EndpointID([u8; 16]);
 
 impl EndpointID {
-    /// Generate a new random endpoint ID (UUID v4 bytes).
+    /// Generate a new random endpoint ID.
     pub fn new() -> Self {
-        // Simple random bytes — not a full UUID implementation, but sufficient
-        // for endpoint identification within a single bus session.
-        let mut bytes = [0u8; 16];
-        // Use a simple counter-based approach for determinism in tests.
-        // In production, use a proper RNG source.
         static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
         let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let mut bytes = [0u8; 16];
         bytes[0..8].copy_from_slice(&n.to_le_bytes());
-        // Fill remaining with fixed pattern for uniqueness
         bytes[8..16].copy_from_slice(&n.wrapping_mul(0x9e3779b97f4a7c15).to_le_bytes());
         Self(bytes)
     }

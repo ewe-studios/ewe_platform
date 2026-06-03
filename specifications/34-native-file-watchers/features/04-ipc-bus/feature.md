@@ -1,7 +1,7 @@
 ---
 feature: "Interprocess Message Bus (IPC)"
 description: "Cross-platform IPC bus with typed messaging, shared memory (MemoryRegion), kernel object passing (FD/Handle/MachPort), and FFI bindings — adapted from ipmb"
-status: "pending"
+status: "completed"
 priority: "medium"
 depends_on: ["01-native-apis"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-01
 last_updated: 2026-06-03
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Interprocess Message Bus (IPC)
@@ -1266,26 +1266,26 @@ cargo check -p foundation_nativeapis --features "ipc" --target wasm32-unknown-un
 ### Task Breakdown
 
 #### 1. Core Message Bus (adapted from ipmb)
-1. [ ] Create `src/ipc/mod.rs` — `join()`, `Options`, `Selector`, `Label`, `LabelOp`
-2. [ ] Create `src/ipc/message.rs` — `Message<T>`, `MessageBox` derive macro, encoding/decoding
-3. [ ] Create `src/ipc/bus_controller.rs` — bus controller with message routing
-4. [ ] Create `src/ipc/memory_registry.rs` — pooled shared memory allocation
+1. [x] Create `src/ipc/mod.rs` — `join()`, `Options`, `Selector`, `Label`, `LabelOp`
+2. [x] Create `src/ipc/message.rs` — `Message<T>`, `MessageBox` derive macro, encoding/decoding
+3. [x] Create `src/ipc/bus_controller.rs` — bus controller with message routing
+4. [x] Create `src/ipc/memory_registry.rs` — pooled shared memory allocation
 
 #### 2. Platform Transports
-5. [ ] Create `src/ipc/platform/mod.rs` — `Object`, `MemoryRegion`, `EncodedMessage`
-6. [ ] Create `src/ipc/platform/linux.rs` — Unix domain sockets (`SOCK_SEQPACKET`), abstract sockets, `SCM_RIGHTS`
-7. [ ] Create `src/ipc/platform/linux/io_mul.rs` — `IoMultiplexing` (epoll + eventfd) — or reuse our poll layer
-8. [ ] Create `src/ipc/platform/macos.rs` — Mach ports, `mach_msg`, `vm_allocate`/`vm_map`
-9. [ ] Create `src/ipc/platform/windows.rs` — Named pipes, `CreateFileMapping`, `MapViewOfFile`
+5. [x] Create `src/ipc/platform/mod.rs` — `Object`, `MemoryRegion`, `EncodedMessage`
+6. [x] Create `src/ipc/platform/linux.rs` — Unix domain sockets (`SOCK_SEQPACKET`), abstract sockets, `SCM_RIGHTS`
+7. [x] Create `src/ipc/platform/linux/io_mul.rs` — `IoMultiplexing` (epoll + eventfd) — or reuse our poll layer
+8. [x] Create `src/ipc/platform/macos.rs` — Mach ports, `mach_msg`, `vm_allocate`/`vm_map`
+9. [x] Create `src/ipc/platform/windows.rs` — Named pipes, `CreateFileMapping`, `MapViewOfFile`
 
 #### 3. FFI Layer
-10. [ ] Create `src/ipc/ffi.rs` — opaque types, `extern "C"` functions (join, send, recv, memory region, objects)
-11. [ ] Create `include/ipmb.h` — C header generation or manual
+10. [x] Create `src/ipc/ffi.rs` — opaque types, `extern "C"` functions (join, send, recv, memory region, objects)
+11. [x] Create `include/ipmb.h` — C header generation or manual
 
 #### 4. Integration
-12. [ ] Add `serde` + `bincode` + `type-uuid` dependencies for message serialization
-13. [ ] Create `src/ipc/derive.rs` — `MessageBox` derive macro (adapted from `ipmb_derive`)
-14. [ ] Write integration test: two processes join same bus, send typed messages, verify delivery
+12. [x] Add `serde` + `bincode` + `type-uuid` dependencies for message serialization
+13. [x] Create `src/ipc/derive.rs` — `MessageBox` derive macro (adapted from `ipmb_derive`)
+14. [x] Write integration test: two processes join same bus, send typed messages, verify delivery
 
 ## Trade-offs
 

@@ -7,6 +7,11 @@ pub mod native;
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
 pub mod valtron;
 
+/// Interprocess message bus (IPC) — adapted from ipmb.
+/// Feature-gated: requires `ipc` feature.
+#[cfg(feature = "ipc")]
+pub mod ipc;
+
 // ---------------------------------------------------------------------------
 // Crate-root re-exports (backward-compatible API)
 // ---------------------------------------------------------------------------

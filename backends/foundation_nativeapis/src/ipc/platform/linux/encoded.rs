@@ -1,30 +1,17 @@
 /// Message encoding and wire format for the IPC bus.
-///
-/// Wire format:
-/// ```text
-/// [version: u32 (0xFF|major|minor|patch)]  4 bytes
-/// [selector_size: u32]                      4 bytes
-/// [selector: bincode(serialized)]           selector_size bytes
-/// [selector_padding]                        0-3 bytes (align to 4)
-/// [payload_size: u32]                       4 bytes
-/// [payload: bincode(serialized)]            payload_size bytes
-/// [payload_padding]                         0-3 bytes (align to 4)
-/// ```
-///
-/// Objects/MemoryRegions: sent via ancillary data (`SCM_RIGHTS`).
 
-use std::io::{self, IoSlice, IoSliceMut};
-use std::os::fd::{AsRawFd, BorrowedFd, OwnedFd};
+use std::io::{self, IoSlice};
+use std::os::fd::{AsRawFd, BorrowedFd, OwnedFd, FromRawFd, IntoRawFd};
 use std::ptr;
 
 use bincode::config::standard;
-use bincode::{Decode, Encode};
+use bincode::Encode;
 
 use crate::ipc::errors::IpcError;
 use crate::ipc::version::Version;
 use crate::ipc::util::Align4;
 
-use super::{Fd, Remote};
+use super::Remote;
 
 /// Maximum number of fds that can be passed in a single message.
 const MAX_FDS: usize = 64;
@@ -32,9 +19,9 @@ const MAX_FDS: usize = 64;
 /// An encoded message ready for transmission over the socket.
 pub struct EncodedMessage {
     /// Raw bytes of the encoded message (version + selector + payload).
-    data: Vec<u8>,
+    pub data: Vec<u8>,
     /// File descriptors to pass via `SCM_RIGHTS`.
-    fds: Vec<OwnedFd>,
+    pub fds: Vec<OwnedFd>,
 }
 
 impl EncodedMessage {
@@ -44,8 +31,6 @@ impl EncodedMessage {
     }
 
     /// Encode a typed payload message.
-    ///
-    /// Serializes the selector and payload with the wire format header.
     pub fn encode<T: Encode>(
         version: Version,
         selector_bytes: &[u8],
@@ -63,19 +48,12 @@ impl EncodedMessage {
         let total = 4 + 4 + sel_aligned + 4 + pay_aligned;
         let mut buf = Vec::with_capacity(total);
 
-        // version (u32: 0xFF | major | minor | patch)
         buf.extend_from_slice(&version.to_u32().to_le_bytes());
-        // selector_size
         buf.extend_from_slice(&(sel_len as u32).to_le_bytes());
-        // selector bytes
         buf.extend_from_slice(selector_bytes);
-        // selector padding (zeros)
         buf.resize(buf.len() + (sel_aligned - sel_len), 0);
-        // payload_size
         buf.extend_from_slice(&(pay_len as u32).to_le_bytes());
-        // payload bytes
         buf.extend_from_slice(&payload_bytes);
-        // payload padding (zeros)
         buf.resize(buf.len() + (pay_aligned - pay_len), 0);
 
         Ok(Self {
@@ -85,14 +63,11 @@ impl EncodedMessage {
     }
 
     /// Send this message over a Unix domain socket.
-    ///
-    /// Uses `sendmsg()` with `SCM_RIGHTS` ancillary data for FD passing.
     pub fn send(&self, remote: &Remote) -> std::result::Result<(), IpcError> {
         let fd_guard = remote.lock();
         let sock_fd = fd_guard.as_raw_fd();
 
         if self.fds.is_empty() {
-            // Simple send without ancillary data
             let mut offset = 0;
             while offset < self.data.len() {
                 let written = unsafe {
@@ -121,7 +96,6 @@ impl EncodedMessage {
                 iov_len: self.data.len(),
             };
 
-            // Build ancillary data for fd passing
             let fd_count = self.fds.len().min(MAX_FDS);
             let cmsg_space = unsafe { libc::CMSG_SPACE((fd_count * std::mem::size_of::<i32>()) as _) as usize };
             let mut cmsg_buf = vec![0u8; cmsg_space];
@@ -137,7 +111,6 @@ impl EncodedMessage {
                 msg_flags: 0,
             };
 
-            // Set up SCM_RIGHTS control message
             let cmsg = unsafe { libc::CMSG_FIRSTHDR(&msg) };
             if !cmsg.is_null() {
                 unsafe {
@@ -163,17 +136,13 @@ impl EncodedMessage {
     }
 
     /// Receive a message from a socket.
-    ///
-    /// Returns the raw data bytes and any received fds.
     pub fn recv(sock_fd: BorrowedFd<'_>) -> std::result::Result<(Vec<u8>, Vec<OwnedFd>), IpcError> {
         let mut data = Vec::with_capacity(4096);
         let mut fds = Vec::new();
 
-        // Build recvmsg with space for ancillary data
         let cmsg_space = unsafe { libc::CMSG_SPACE((MAX_FDS * std::mem::size_of::<i32>()) as _) as usize };
         let mut cmsg_buf = vec![0u8; cmsg_space];
 
-        // Read in chunks
         let mut buf = [0u8; 4096];
         let iov = libc::iovec {
             iov_base: buf.as_mut_ptr() as *mut _,
@@ -207,8 +176,8 @@ impl EncodedMessage {
             let cmsg_ptr = unsafe { &*cmsg };
             if cmsg_ptr.cmsg_level == libc::SOL_SOCKET && cmsg_ptr.cmsg_type == libc::SCM_RIGHTS {
                 let data_ptr = unsafe { libc::CMSG_DATA(cmsg) as *const i32 };
-                let n_fds = (cmsg_ptr.cmsg_len - libc::CMSG_LEN(0) as _) as usize
-                    / std::mem::size_of::<i32>();
+                let header_len = unsafe { libc::CMSG_LEN(0) };
+                let n_fds = (cmsg_ptr.cmsg_len - header_len as usize) / std::mem::size_of::<i32>();
                 for i in 0..n_fds {
                     let raw_fd = unsafe { data_ptr.add(i).read() };
                     fds.push(unsafe { OwnedFd::from_raw_fd(raw_fd) });
@@ -219,12 +188,13 @@ impl EncodedMessage {
         Ok((data, fds))
     }
 
-    /// Decode from raw bytes. Returns (version, selector_bytes, payload_bytes).
+    /// Decode from raw bytes. Returns (version_u32, selector_bytes, payload_bytes).
     pub fn decode(bytes: &[u8]) -> std::result::Result<(u32, &[u8], &[u8]), IpcError> {
         if bytes.len() < 12 {
-            return Err(IpcError::Decode(bincode::error::DecodeError::Other {
-                msg: "message too short",
-            }));
+            return Err(IpcError::Io(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "message too short",
+            )));
         }
 
         let version_u32 = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
@@ -244,9 +214,10 @@ impl EncodedMessage {
         let payload_end = payload_start + payload_size;
 
         if payload_end > bytes.len() {
-            return Err(IpcError::Decode(bincode::error::DecodeError::Other {
-                msg: "truncated message",
-            }));
+            return Err(IpcError::Io(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "truncated message",
+            )));
         }
 
         Ok((

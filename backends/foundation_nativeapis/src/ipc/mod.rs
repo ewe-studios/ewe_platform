@@ -32,3 +32,6 @@ pub use version::Version;
 pub use util::{EndpointID, Align4};
 pub use message::{Message, MessageBox, BytesMessage, ConnectMessage, ConnectMessageAck};
 pub use memory_registry::MemoryRegistry;
+
+// Public API
+pub use bus_controller::{join, EndpointSender, EndpointReceiver};

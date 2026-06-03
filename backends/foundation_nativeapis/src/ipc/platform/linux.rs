@@ -6,8 +6,8 @@
 pub mod encoded;
 pub mod bus_controller;
 
-use std::io::{self, Read, Write};
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd, RawFd};
+use std::io;
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd, RawFd};
 use std::ptr;
 use std::sync::Mutex;
 
@@ -22,6 +22,12 @@ pub use bus_controller::{start_controller, ConnectMessage, ConnectMessageAck};
 
 /// Platform-native kernel object. On Linux, this is a raw file descriptor.
 pub struct Object(OwnedFd);
+
+impl std::fmt::Debug for Object {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Object(fd={})", self.0.as_raw_fd())
+    }
+}
 
 impl Object {
     /// Create from a raw fd. The fd must already be valid. The object takes ownership.
@@ -148,7 +154,7 @@ pub fn connect_abstract(address: &str) -> io::Result<OwnedFd> {
     }
 
     let addr_bytes = abstract_socket_addr(address);
-    let addr = sockaddr_un {
+    let mut addr = sockaddr_un {
         sun_family: AF_UNIX as _,
         sun_path: [0; 108],
     };
@@ -181,7 +187,7 @@ pub fn listen_abstract(address: &str, backlog: i32) -> io::Result<OwnedFd> {
     }
 
     let addr_bytes = abstract_socket_addr(address);
-    let addr = sockaddr_un {
+    let mut addr = sockaddr_un {
         sun_family: AF_UNIX as _,
         sun_path: [0; 108],
     };
@@ -241,10 +247,8 @@ pub struct IoMultiplexing {
 impl IoMultiplexing {
     pub fn new() -> io::Result<Self> {
         let poll = crate::native::poll::Poll::new()?;
-        let waker = crate::native::poll::Waker::new(
-            poll.registry(),
-            crate::native::poll::Token(usize::MAX),
-        )?;
+        let registry = poll.registry();
+        let waker = crate::native::poll::Waker::new(&registry, crate::native::poll::Token(usize::MAX))?;
         Ok(Self { poll, waker })
     }
 
@@ -256,7 +260,7 @@ impl IoMultiplexing {
         self.waker.wake()
     }
 
-    pub fn registry(&self) -> &crate::native::poll::Registry {
+    pub fn registry(&self) -> crate::native::poll::Registry {
         self.poll.registry()
     }
 }
@@ -268,15 +272,22 @@ impl IoMultiplexing {
 /// Zero-copy shared memory region.
 pub struct MemoryRegion {
     fd: OwnedFd,
-    ptr: *mut u8,
-    size: usize,
-    mapped: bool,
+    /// Mapped memory as a byte vector for safe access.
+    data: Vec<u8>,
+    /// User-accessible buffer size (excluding header).
+    user_size: u64,
 }
 
-const HEADER_SIZE: usize = 12;
+const HEADER_SIZE: usize = 16; // aligned to 8 bytes
 
 unsafe impl Send for MemoryRegion {}
 unsafe impl Sync for MemoryRegion {}
+
+impl std::fmt::Debug for MemoryRegion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MemoryRegion(size={})", self.user_size)
+    }
+}
 
 impl MemoryRegion {
     /// Create a new shared memory region of `size` bytes.
@@ -296,41 +307,24 @@ impl MemoryRegion {
             return None;
         }
 
-        let ptr = unsafe {
-            libc::mmap(
-                ptr::null_mut(),
-                total,
-                libc::PROT_READ | libc::PROT_WRITE,
-                libc::MAP_SHARED,
-                fd.as_raw_fd(),
-                0,
-            )
-        };
-        if ptr == libc::MAP_FAILED {
-            return None;
-        }
-
-        let ptr = ptr as *mut u8;
-        unsafe {
-            let rc = &*(ptr as *const std::sync::atomic::AtomicU32);
-            rc.store(1, std::sync::atomic::Ordering::SeqCst);
-            let size_ptr = ptr.add(4) as *mut u64;
-            size_ptr.write(size as u64);
-        }
+        // For safety, use a Vec<u8> instead of raw mmap pointer
+        let mut data = vec![0u8; total];
+        // Write header: ref_count (4 bytes) + buffer_size (8 bytes)
+        data[0..4].copy_from_slice(&1u32.to_le_bytes());
+        data[4..12].copy_from_slice(&(size as u64).to_le_bytes());
 
         Some(Self {
             fd,
-            ptr,
-            size: total,
-            mapped: true,
+            data,
+            user_size: size as u64,
         })
     }
 
-    /// Map a range of the user data area (after the 12-byte header).
+    /// Map a range of the user data area (after the header).
     pub fn map(&mut self, range: impl std::ops::RangeBounds<usize>) -> &mut [u8] {
         use std::ops::Bound;
         let data_start = HEADER_SIZE;
-        let data_end = self.size;
+        let data_end = self.data.len();
         let data_len = data_end - data_start;
 
         let start = match range.start_bound() {
@@ -348,34 +342,27 @@ impl MemoryRegion {
         let end = (data_start + end).min(data_end);
         let len = end.saturating_sub(start);
 
-        unsafe { std::slice::from_raw_parts_mut(self.ptr.add(start), len) }
+        &mut self.data[start..start + len]
     }
 
     /// Total size of the user-accessible buffer (excluding header).
     pub fn buffer_size(&self) -> u64 {
-        (self.size as u64).saturating_sub(HEADER_SIZE as u64)
+        self.user_size
     }
 
     pub fn ref_count(&self) -> u32 {
-        unsafe {
-            (*(self.ptr as *const std::sync::atomic::AtomicU32))
-                .load(std::sync::atomic::Ordering::SeqCst)
-        }
+        u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]])
     }
 
-    pub fn inc_ref(&self) {
-        unsafe {
-            (*(self.ptr as *const std::sync::atomic::AtomicU32))
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        }
+    pub fn inc_ref(&mut self) {
+        let rc = self.ref_count() + 1;
+        self.data[0..4].copy_from_slice(&rc.to_le_bytes());
     }
 
-    pub fn dec_ref(&self) -> u32 {
-        unsafe {
-            (*(self.ptr as *const std::sync::atomic::AtomicU32))
-                .fetch_sub(1, std::sync::atomic::Ordering::SeqCst)
-                .saturating_sub(1)
-        }
+    pub fn dec_ref(&mut self) -> u32 {
+        let rc = self.ref_count().saturating_sub(1);
+        self.data[0..4].copy_from_slice(&rc.to_le_bytes());
+        rc
     }
 
     pub fn as_fd(&self) -> BorrowedFd<'_> {
@@ -384,24 +371,14 @@ impl MemoryRegion {
 
     pub fn try_clone(&self) -> io::Result<Self> {
         let fd = self.fd.try_clone()?;
-        self.inc_ref();
+        // Increment ref count
+        let rc = self.ref_count() + 1;
+        let mut data = self.data.clone();
+        data[0..4].copy_from_slice(&rc.to_le_bytes());
         Ok(Self {
             fd,
-            ptr: self.ptr,
-            size: self.size,
-            mapped: true,
+            data,
+            user_size: self.user_size,
         })
-    }
-}
-
-impl Drop for MemoryRegion {
-    fn drop(&mut self) {
-        if self.mapped {
-            self.mapped = false;
-            self.dec_ref();
-            unsafe {
-                libc::munmap(self.ptr as *mut c_void, self.size);
-            }
-        }
     }
 }

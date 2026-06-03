@@ -14,6 +14,7 @@ io-uring = { version = "0.7", optional = true }
 inotify = { version = "0.11", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
+serde_bytes = { version = "0.11", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 type-uuid = { version = "0.1", optional = true }
 tracing = { workspace = true }
@@ -60,7 +61,7 @@ watcher-windows = ["poll"]
 uring = ["dep:io-uring"]
 
 # Interprocess message bus (adapted from ipmb)
-ipc = ["dep:bincode", "dep:type-uuid"]
+ipc = ["dep:bincode", "dep:type-uuid", "dep:serde_bytes"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

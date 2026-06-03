@@ -1,11 +1,4 @@
 /// Error types for the IPC bus.
-///
-/// Four error types distinguish between internal errors and user-facing errors
-/// at different lifecycle stages:
-/// - `IpcError` — internal error used throughout the IPC layer
-/// - `JoinError` — endpoint couldn't connect to bus
-/// - `SendError` — message couldn't be sent
-/// - `RecvError` — message couldn't be received
 
 use std::io;
 
@@ -31,7 +24,7 @@ pub enum IpcError {
     #[error("disconnected")]
     Disconnect,
 
-    #[error("version mismatch: local={0:?} remote={1:?}")]
+    #[error("version mismatch: local={0} remote={1:?}")]
     VersionMismatch(Version, Option<String>),
 
     #[error("token mismatch")]
