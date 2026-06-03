@@ -151,7 +151,7 @@ fn fd_monitor_task_valtron_execution() {
     });
 
     let stream = execute(task, Some(Duration::from_millis(100))).expect("execute failed");
-    let results: Vec<()> = collect_result(stream);
+    let results: Vec<_> = collect_result(stream);
 
     assert!(
         !results.is_empty(),

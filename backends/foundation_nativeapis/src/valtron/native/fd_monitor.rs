@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus};
 
-use crate::native::fd::{PollResult, RegisteredFd};
+use crate::native::fd::{FdState, PollResult, RegisteredFd};
 use crate::native::poll::Interest;
 use super::super::stop_signal::CompositeReadiness;
 use super::super::StopSignal;
@@ -68,7 +68,7 @@ impl<T: AsRawFd> FdMonitorTask<T> {
 }
 
 impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
-    type Ready = ();
+    type Ready = FdState;
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
@@ -91,7 +91,10 @@ impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
                         tracing::error!("FdMonitorTask callback I/O error: {}", e);
                     }
                 }
-                Some(TaskStatus::Ready(()))
+                Some(TaskStatus::Ready(match self.interest {
+                    Interest::READABLE => FdState::Readable,
+                    _ => FdState::Writable,
+                }))
             }
             // Depends on fd readiness OR stop signal — executor parks until OS signals fd.
             PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(
