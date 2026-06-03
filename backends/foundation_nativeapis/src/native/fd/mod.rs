@@ -80,28 +80,6 @@ impl Ready {
     pub fn contains(self, other: Ready) -> bool { self.0 & other.0 == other.0 }
 }
 
-/// Which readiness state was signaled.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FdState {
-    Readable,
-    Writable,
-    Both,
-}
-
-impl FdState {
-    /// Construct from a `Ready` bitmask, keeping only readable/writable.
-    pub(crate) fn from_ready(r: Ready) -> Option<Self> {
-        let readable = r.is_readable();
-        let writable = r.is_writable();
-        match (readable, writable) {
-            (true, true) => Some(FdState::Both),
-            (true, false) => Some(FdState::Readable),
-            (false, true) => Some(FdState::Writable),
-            (false, false) => None,
-        }
-    }
-}
-
 /// Result of a readiness poll.
 pub enum PollResult<T> {
     /// The fd is ready for I/O — use the guard to perform operations.

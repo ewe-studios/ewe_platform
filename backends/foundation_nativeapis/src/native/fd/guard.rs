@@ -49,7 +49,9 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
     /// ## EOF handling (Ok(0) for reads)
     ///
     /// When read() returns 0 (EOF on a pipe/socket whose peer closed),
-    /// readiness is cleared to prevent a busy loop.
+    /// readiness is cleared to prevent a busy loop. The caller should
+    /// use `try_io_read()` for read operations to get this behavior,
+    /// or call `clear_ready()` manually after detecting EOF.
     pub fn try_io<R>(
         &mut self,
         f: impl FnOnce(&RegisteredFd<T>) -> io::Result<R>,
@@ -68,6 +70,36 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
             Ok(_) => {
                 // I/O succeeded — don't clear readiness, there might be more data.
                 // The caller should try_io again until WouldBlock.
+            }
+        }
+
+        Ok(result)
+    }
+
+    /// Execute a read I/O operation. The closure returns `(value, bytes_read)`
+    /// so we can detect EOF (`bytes_read == 0`) and clear readiness
+    /// to prevent a busy loop on closed connections.
+    pub fn try_io_read<R>(
+        &mut self,
+        f: impl FnOnce(&RegisteredFd<T>) -> io::Result<(R, usize)>,
+    ) -> Result<io::Result<(R, usize)>, TryIoError> {
+        let result = f(self.fd);
+
+        match &result {
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                self.clear_ready();
+            }
+            Err(_) => {
+                self.clear_ready();
+            }
+            Ok((_, 0)) => {
+                // EOF — peer closed, no more data. Clear readiness
+                // so the next poll will see READ_CLOSED or block.
+                self.clear_ready();
+            }
+            Ok(_) => {
+                // Read returned data — don't clear readiness, there
+                // might be more. Caller should retry until WouldBlock/EOF.
             }
         }
 

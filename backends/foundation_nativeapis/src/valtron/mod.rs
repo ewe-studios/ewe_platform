@@ -1,7 +1,7 @@
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
 ///
-/// Requires the `task` feature flag. These types don't depend on OS-specific APIs
-/// — they work with any `EventReadiness` impl and the valtron executor model.
+/// These types work with any `EventReadiness` impl and the valtron executor model.
+/// They don't depend on OS-specific APIs.
 ///
 /// The `native` sub-module (behind `#[cfg(feature = "fd")]`) contains tasks
 /// that require native OS APIs (e.g., `FdMonitorTask` uses `RegisteredFd`).
@@ -13,6 +13,9 @@ mod stop_signal;
 pub use broadcaster::EventBroadcaster;
 pub use file_watcher::FileWatcherTask;
 pub use stop_signal::{CompositeReadiness, StopSignal};
+
+// Re-export FdState from shared so native/fd_monitor.rs can access it.
+pub use super::shared::FdState;
 
 #[cfg(feature = "fd")]
 pub mod native;

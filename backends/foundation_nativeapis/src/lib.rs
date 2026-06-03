@@ -5,7 +5,6 @@ pub mod shared;
 pub mod native;
 
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
-#[cfg(feature = "task")]
 pub mod valtron;
 
 // ---------------------------------------------------------------------------
@@ -22,6 +21,12 @@ pub use shared::{
 #[cfg(feature = "poll")]
 pub use native::poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
 
-// Valtron task types when the task feature is enabled.
-#[cfg(feature = "task")]
-pub use valtron::{EventBroadcaster, FdMonitorTask, FileWatcherTask, StopSignal, CompositeReadiness};
+// Valtron types — always available (shareable, no native deps).
+pub use valtron::{EventBroadcaster, FileWatcherTask, StopSignal, CompositeReadiness};
+
+// FdState from shared (always available).
+pub use shared::FdState;
+
+// FdMonitorTask requires native::fd.
+#[cfg(feature = "fd")]
+pub use valtron::FdMonitorTask;
