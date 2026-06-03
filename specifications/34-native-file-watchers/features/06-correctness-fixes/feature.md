@@ -1,7 +1,7 @@
 ---
 feature: "Correctness Fixes — Remove Stubs, Fix Error Handling, Implement Missing Backends, Fix File Structure"
 description: "Fix all places where we silently drop errors, use placeholder fallbacks, leave stub implementations, or have broken file structure. Also implement missing valtron TaskIterator impls and create the net module."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-native-apis", "02-fd-management"]
 estimated_effort: "medium"

@@ -1,7 +1,7 @@
 ---
 feature: "Valtron Task Design — Shared Watcher, Readiness, Stop Signal"
 description: "Critical design rules for watcher tasks: has_events() caches events (never duplicates work), poll() drains cache, SharedWatcher wraps Arc<RwLock<T>>, StopSignal for clean termination, collect_one for finite collection, no Delayed for event-driven watchers"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["05-valtron-watcher-task"]
 estimated_effort: "small"

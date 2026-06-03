@@ -22,10 +22,10 @@ builds_on: []
 related_specs:
   - "specifications/33-valtron-singleton"
 tasks:
-  completed: 0
-  uncompleted: 70
-  total: 70
-  completion_percentage: 0%
+  completed: 66
+  uncompleted: 14
+  total: 80
+  completion_percentage: 82%
 ---
 
 # Native File Watchers + Valtron Integration
@@ -46,11 +46,14 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) + mio poll layer extraction + io_uring abstractions | pending |
-| [02-fd-management](features/02-fd-management/) | File descriptor management: `RegisteredFd`, `poll_readable()`/`poll_writable()`, `ReadyGuard`, edge-triggered readiness tracking, `try_io` auto-clear | pending |
-| [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | pending |
+| [01-native-apis](features/01-native-apis/) | `foundation_nativeapis` crate: `NativeWatcher` trait + platform backends (inotify, kqueue, ReadDirectoryChangesW) + mio poll layer extraction + io_uring abstractions | ✅ completed |
+| [02-fd-management](features/02-fd-management/) | File descriptor management: `RegisteredFd`, `poll_readable()`/`poll_writable()`, `ReadyGuard`, edge-triggered readiness tracking, `try_io` auto-clear | ✅ completed |
+| [03-integration](features/03-integration/) | Tests, examples, and documentation; verify cross-platform compilation | ✅ completed |
 | [04-ipc-bus](features/04-ipc-bus/) | Interprocess message bus (from ipmb) — typed messaging, shared memory, object (FD/Handle) passing, FFI | pending |
-| [05-valtron-watcher-task](features/05-valtron-watcher-task/) | Thin valtron adapter: `FileWatcherTask` wraps `NativeWatcher::poll()` in a tick loop with broadcast channels | pending |
+| [05-valtron-watcher-task](features/05-valtron-watcher-task/) | Thin valtron adapter: `FileWatcherTask` wraps `NativeWatcher::poll()` in a tick loop with broadcast channels | ✅ completed |
+| [06-correctness-fixes](features/06-correctness-fixes/) | Remove stubs, fix error handling, implement missing backends, net module, TaskIterator impls | ✅ completed |
+| [07-valtron-task-design](features/07-valtron-task-design/) | Critical design rules: `has_events()` caching, `SharedWatcher`, `StopSignal`, `collect_one` | ✅ completed |
+| [08-shared-native-valtron-restructure](features/08-shared-native-valtron-restructure/) | `shared/` / `native/` / `valtron/` split, `FdMonitorTask` uses `Depends`, feature flags | ✅ completed |
 
 ## Architecture
 
@@ -90,12 +93,12 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 
 ## Success Criteria
 
-- [ ] `foundation_nativeapis` compiles on Linux (inotify), macOS (kqueue), and has stubs for Windows (ReadDirectoryChangesW)
-- [ ] `NativeWatcher` trait is clean, minimal, pluggable — new providers implement one trait
-- [ ] `FileWatcherTask` works as a valtron task: spawn, add watches, poll events, deliver to queues
-- [ ] Other tasks can subscribe and receive events through broadcast channels
-- [ ] `cargo check -p foundation_nativeapis` passes on native target
-- [ ] `cargo check -p foundation_nativeapis --target wasm32-unknown-unknown` passes (stub/no-op)
+- [x] `foundation_nativeapis` compiles on Linux (inotify), macOS (kqueue), and has stubs for Windows (ReadDirectoryChangesW)
+- [x] `NativeWatcher` trait is clean, minimal, pluggable — new providers implement one trait
+- [x] `FileWatcherTask` works as a valtron task: spawn, add watches, poll events, deliver to queues
+- [x] Other tasks can subscribe and receive events through broadcast channels
+- [x] `cargo check -p foundation_nativeapis` passes on native target
+- [x] `cargo check -p foundation_nativeapis --target wasm32-unknown-unknown` passes (stub/no-op)
 - [ ] Valtron integration tests: spawn watcher, touch file, receive event
 
 ## Module References

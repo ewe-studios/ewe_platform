@@ -1,18 +1,18 @@
 ---
 feature: "Native File Watching APIs"
 description: "foundation_nativeapis crate with NativeWatcher trait and platform-specific backends (inotify, kqueue, ReadDirectoryChangesW, poll fallback) + extracted poll/mio layer"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: 2026-06-03
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 27
+  completed: 27
+  uncompleted: 0
   total: 27
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Native File Watching APIs
@@ -689,46 +689,46 @@ cargo check -p foundation_nativeapis --features "uring"
 ### Task Breakdown
 
 #### 1. Extract I/O Readiness Layer (from mio)
-1. [ ] Create `src/poll/mod.rs` — `Poll`, `Registry`, `Token`, `Interest`, `Events`, `Waker`
-2. [ ] Create `src/poll/event/` — `Event` type alias per platform, `event::Source` trait
-3. [ ] Create `src/poll/sys/unix/selector/epoll.rs` — Linux epoll selector
-4. [ ] Create `src/poll/sys/unix/selector/kqueue.rs` — macOS/BSD kqueue selector
-5. [ ] Create `src/poll/sys/unix/sourcefd.rs` — `SourceFd` for registering any raw fd
-6. [ ] Create `src/poll/sys/unix/waker/` — eventfd (Linux), kqueue EVFILT_USER (macOS), pipe fallback
-7. [ ] Create `src/poll/sys/windows/selector.rs` — Windows IOCP selector
-8. [ ] Create `src/poll/sys/shell/` — fallback stubs when os-poll disabled
-9. [ ] Create `src/net/` — re-export networking from sys layer (TcpStream, TcpListener, UdpSocket, Unix sockets)
-10. [ ] Replicate mio's tests for selector, poll, networking
+1. [x] Create `src/poll/mod.rs` — `Poll`, `Registry`, `Token`, `Interest`, `Events`, `Waker`
+2. [x] Create `src/poll/event/` — `Event` type alias per platform, `event::Source` trait
+3. [x] Create `src/poll/sys/unix/selector/epoll.rs` — Linux epoll selector
+4. [x] Create `src/poll/sys/unix/selector/kqueue.rs` — macOS/BSD kqueue selector
+5. [x] Create `src/poll/sys/unix/sourcefd.rs` — `SourceFd` for registering any raw fd
+6. [x] Create `src/poll/sys/unix/waker/` — eventfd (Linux), kqueue EVFILT_USER (macOS), pipe fallback
+7. [x] Create `src/poll/sys/windows/selector.rs` — Windows IOCP selector
+8. [x] Create `src/poll/sys/shell/` — fallback stubs when os-poll disabled
+9. [x] Create `src/net/` — re-export networking from sys layer (TcpStream, TcpListener, UdpSocket, Unix sockets)
+10. [x] Replicate mio's tests for selector, poll, networking
 
 #### 2. Crate Scaffolding
-11. [ ] Create `backends/foundation_nativeapis/` directory
-12. [ ] Write `Cargo.toml` with platform-gated dependencies
-13. [ ] Write `src/lib.rs` with module declarations, feature flags, re-exports
-14. [ ] Write `src/error.rs` with `WatchError` enum
-15. [ ] Write `src/event.rs` with `WatchEvent` and `WatchEventKind`
-16. [ ] Write `src/api.rs` with `NativeAPI` enum and platform mapping
-17. [ ] Write `src/builder.rs` with `WatcherBuilder` — preferred/fallback chain, `build()` tries each in order
-18. [ ] Write `native_watcher()` factory — defaults to `WatcherBuilder::default().build()`
+11. [x] Create `backends/foundation_nativeapis/` directory
+12. [x] Write `Cargo.toml` with platform-gated dependencies
+13. [x] Write `src/lib.rs` with module declarations, feature flags, re-exports
+14. [x] Write `src/error.rs` with `WatchError` enum
+15. [x] Write `src/event.rs` with `WatchEvent` and `WatchEventKind`
+16. [x] Write `src/api.rs` with `NativeAPI` enum and platform mapping
+17. [x] Write `src/builder.rs` with `WatcherBuilder` — preferred/fallback chain, `build()` tries each in order
+18. [x] Write `native_watcher()` factory — defaults to `WatcherBuilder::default().build()`
 
 #### 3. Linux Backend (inotify + our epoll selector)
-19. [ ] Write `src/watcher/linux/mod.rs` with `InotifyWatcher`
-20. [ ] Integrate inotify fd registration with our `SourceFd` + `Interest::READABLE`
-21. [ ] Decode `inotify_event` → `WatchEvent` (handle rename cookies)
+19. [x] Write `src/watcher/linux/mod.rs` with `InotifyWatcher`
+20. [x] Integrate inotify fd registration with our `SourceFd` + `Interest::READABLE`
+21. [x] Decode `inotify_event` → `WatchEvent` (handle rename cookies)
 
 #### 4. macOS/BSD Backend (kqueue + EVFILT_VNODE)
-22. [ ] Write `src/watcher/unix/mod.rs` with `KqueueWatcher`
-23. [ ] Register `EVFILT_VNODE` into the same kqueue fd our selector owns
-24. [ ] Decode `EVFILT_VNODE` fflags → `WatchEventKind`
+22. [x] Write `src/watcher/unix/mod.rs` with `KqueueWatcher`
+23. [x] Register `EVFILT_VNODE` into the same kqueue fd our selector owns
+24. [x] Decode `EVFILT_VNODE` fflags → `WatchEventKind`
 
 #### 5. Windows Backend (ReadDirectoryChangesW + our IOCP selector)
-25. [ ] Write `src/watcher/windows/mod.rs` with `WinWatcher`
-26. [ ] Register file notification handles with our IOCP selector
-27. [ ] Decode `FILE_NOTIFY_INFORMATION` → `WatchEventKind`
+25. [x] Write `src/watcher/windows/mod.rs` with `WinWatcher`
+26. [x] Register file notification handles with our IOCP selector
+27. [x] Decode `FILE_NOTIFY_INFORMATION` → `WatchEventKind`
 
 #### 6. Poll Fallback
-28. [ ] Write `src/watcher/poll/mod.rs` with `PollWatcher`
-29. [ ] Track `HashMap<PathBuf, PathSnapshot>` — diff on each poll
-30. [ ] Export as fallback in `native_watcher()` factory
+28. [x] Write `src/watcher/poll/mod.rs` with `PollWatcher`
+29. [x] Track `HashMap<PathBuf, PathSnapshot>` — diff on each poll
+30. [x] Export as fallback in `native_watcher()` factory
 
 ## Trade-offs
 

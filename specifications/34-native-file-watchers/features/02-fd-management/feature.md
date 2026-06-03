@@ -1,18 +1,18 @@
 ---
 feature: "File Descriptor Management + FdMonitorTask"
 description: "Adapt tokio's AsyncFd patterns: FdRegistration, RegisteredFd with poll_readable/poll_writable, ReadyGuard with must_use, plus FdMonitorTask valtron convenience for arbitrary FD monitoring"
-status: "pending"
+status: "completed"
 priority: "medium"
 depends_on: ["01-native-apis"]
 estimated_effort: "large"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: 2026-06-03
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 15
+  completed: 15
+  uncompleted: 0
   total: 15
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: File Descriptor Management
@@ -760,21 +760,21 @@ cargo check -p foundation_nativeapis --features "native-linux"
 ### Task Breakdown
 
 #### 1. Core FD Registration Types
-1. [ ] Create `src/fd/mod.rs` — `RegisteredFd`, `FdRegistration`, `Ready`, `PollResult`
-2. [ ] Create `src/fd/guard.rs` — `ReadyGuard`, `MutReadyGuard`, `TryIoError`
-3. [ ] Create `src/fd/error.rs` — `FdRegistrationError<T>`, `RegistrationError`
-4. [ ] Implement `FdRegistration::new()` — register fd with our `poll::Selector`
-5. [ ] Implement `poll_readable()`/`poll_writable()` — check readiness bitmask, return guard
-6. [ ] Implement `ReadyGuard::try_io()` — execute closure, auto-clear on WouldBlock
-7. [ ] Implement `ReadyGuard::clear_ready()`/`clear_ready_matching()` — clear readiness flags
-8. [ ] Implement `RegisteredFd::into_inner()` — deregister + return inner
-9. [ ] Add `AsRawFd`, `AsFd` impls for `RegisteredFd<T>`
-10. [ ] Implement `Drop` for `RegisteredFd<T>` — deregister on drop
+1. [x] Create `src/fd/mod.rs` — `RegisteredFd`, `FdRegistration`, `Ready`, `PollResult`
+2. [x] Create `src/fd/guard.rs` — `ReadyGuard`, `MutReadyGuard`, `TryIoError`
+3. [x] Create `src/fd/error.rs` — `FdRegistrationError<T>`, `RegistrationError`
+4. [x] Implement `FdRegistration::new()` — register fd with our `poll::Selector`
+5. [x] Implement `poll_readable()`/`poll_writable()` — check readiness bitmask, return guard
+6. [x] Implement `ReadyGuard::try_io()` — execute closure, auto-clear on WouldBlock
+7. [x] Implement `ReadyGuard::clear_ready()`/`clear_ready_matching()` — clear readiness flags
+8. [x] Implement `RegisteredFd::into_inner()` — deregister + return inner
+9. [x] Add `AsRawFd`, `AsFd` impls for `RegisteredFd<T>`
+10. [x] Implement `Drop` for `RegisteredFd<T>` — deregister on drop
 
 #### 2. Platform Integration
-11. [ ] Linux: `FdRegistration` uses our epoll selector + `SourceFd`
-12. [ ] macOS/BSD: `FdRegistration` uses our kqueue selector + `SourceFd`
-13. [ ] Windows: `FdRegistration` uses our IOCP selector (overlapped I/O)
+11. [x] Linux: `FdRegistration` uses our epoll selector + `SourceFd`
+12. [x] macOS/BSD: `FdRegistration` uses our kqueue selector + `SourceFd`
+13. [x] Windows: `FdRegistration` uses our IOCP selector (overlapped I/O)
 
 ## Trade-offs
 
