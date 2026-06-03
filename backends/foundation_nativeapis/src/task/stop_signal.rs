@@ -2,11 +2,14 @@
 ///
 /// Shared between the task's `next_status()` and external code
 /// (e.g., tests) that wants to terminate the watcher cleanly.
-/// When `stop()` is called, the next `next_status()` call returns `None`,
-/// removing the task from the executor.
+/// When `stop()` is called, `is_ready()` returns `true` so the executor
+/// wakes the task, and the next `next_status()` call returns `None`.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
+
+use foundation_core::valtron::EventReadiness;
 
 #[derive(Clone)]
 pub struct StopSignal(Arc<AtomicBool>);
@@ -34,3 +37,36 @@ impl Default for StopSignal {
         Self::new()
     }
 }
+
+/// Implements `EventReadiness` so the executor wakes the task when stopped.
+/// When `stop()` is called, `is_ready()` returns `true` immediately, causing
+/// the executor to reschedule the task. `next_status()` then checks
+/// `is_stopped()` and returns `None`.
+impl EventReadiness for StopSignal {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.is_stopped()
+    }
+}
+
+/// Combines two `EventReadiness` signals. Returns `true` if EITHER signal
+/// is ready. Used to wake a parked task when the watcher has events OR
+/// when `StopSignal.stop()` has been called.
+pub struct CompositeReadiness {
+    a: Arc<dyn EventReadiness>,
+    b: Arc<dyn EventReadiness>,
+}
+
+impl CompositeReadiness {
+    pub fn new(a: Arc<dyn EventReadiness>, b: Arc<dyn EventReadiness>) -> Self {
+        Self { a, b }
+    }
+}
+
+impl EventReadiness for CompositeReadiness {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        // Check both — if either is ready, return true.
+        // Short-circuit: if `a` is ready, don't need to check `b`.
+        self.a.is_ready(dur) || self.b.is_ready(dur)
+    }
+}
+

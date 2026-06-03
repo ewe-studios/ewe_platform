@@ -152,15 +152,13 @@ impl NativeWatcher for PollWatcher {
         if !self.cached_events.is_empty() {
             return true;
         }
-        // PollWatcher: after the timeout, always return true so the executor
-        // wakes the task periodically to check StopSignal and scan for changes.
-        // The sleep prevents busy-looping — minimum interval = timeout.
-        // Event-driven watchers (inotify, kqueue) return true only when the OS
-        // signals readiness — they don't need periodic wakeups.
+        // Scan for changes. Use the provided timeout to wait (if any).
         if let Some(dur) = timeout {
             thread::sleep(dur);
         }
         self.cached_events = self.scan_watches();
-        true
+        // Return true ONLY when events were found. Returning false is correct —
+        // it avoids busy-looping. The executor parks the task and re-checks later.
+        !self.cached_events.is_empty()
     }
 }

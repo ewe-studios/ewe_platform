@@ -25,6 +25,8 @@ use std::os::unix::io::{AsRawFd, FromRawFd, RawFd as StdRawFd};
 use std::sync::Mutex;
 use std::time::Duration;
 
+use foundation_core::valtron::EventReadiness;
+
 /// Bitmask of readiness and lifecycle states observed on a file descriptor.
 ///
 /// ## Why CLOSED and ERROR flags are needed
@@ -187,6 +189,15 @@ impl FdRegistration {
     }
 }
 
+impl EventReadiness for FdRegistration {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        match self.query_readiness() {
+            Ok(r) => !r.is_empty(),
+            Err(_) => false,
+        }
+    }
+}
+
 /// Wraps any type that produces a raw fd, registering it with our poll::Selector
 /// and providing readiness polling + guarded I/O operations.
 ///
@@ -194,6 +205,12 @@ impl FdRegistration {
 pub struct RegisteredFd<T: AsRawFd> {
     registration: FdRegistration,
     inner: Option<T>,
+}
+
+impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.registration.is_ready(dur)
+    }
 }
 
 impl<T: AsRawFd> RegisteredFd<T> {

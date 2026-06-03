@@ -3,6 +3,7 @@
 /// Requires the `task` feature flag (which depends on foundation_core for valtron types).
 
 use std::path::Path;
+use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::mpp::{self, Receiver, Sender};
@@ -17,7 +18,7 @@ use crate::watcher::{NativeWatcher, SharedWatcher};
 mod fd_monitor;
 mod stop_signal;
 pub use fd_monitor::FdMonitorTask;
-pub use stop_signal::StopSignal;
+pub use stop_signal::{CompositeReadiness, StopSignal};
 
 /// Multi-subscriber broadcaster built on top of mpp channels.
 ///
@@ -164,6 +165,7 @@ impl TaskIterator for FileWatcherTask {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
+    #[tracing::instrument(skip(self), fields(stop = self.stop.is_stopped()))]
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // Check stop signal first — if set, return None to terminate the task.
         if self.stop.is_stopped() {
@@ -179,10 +181,12 @@ impl TaskIterator for FileWatcherTask {
                 }
                 Some(TaskStatus::Ready(first.clone()))
             }
-            Ok(_) => Some(TaskStatus::Delayed(self.poll_timeout)),
-            Err(e) => {
-                tracing::error!("Watcher poll error: {}", e);
-                Some(TaskStatus::Delayed(self.poll_timeout))
+            // Depends on watcher OR stop signal — wakes when either has events or stop() called.
+            Ok(_) | Err(_) => {
+                Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
+                    Arc::new(self.watcher.clone_handle()),
+                    Arc::new(self.stop.clone()),
+                ))))
             }
         }
     }

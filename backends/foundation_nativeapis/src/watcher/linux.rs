@@ -360,6 +360,10 @@ impl NativeWatcher for InotifyWatcher {
 
     fn has_events(&mut self, timeout: Option<Duration>) -> bool {
         let mut events = crate::poll::Events::with_capacity(1);
-        self.poll.poll(&mut events, timeout).is_ok() && !events.is_empty()
+        // Use zero timeout when None — this is a readiness check, not a blocking poll.
+        // The epoll fd tells the kernel "is the inotify fd readable right now?"
+        // We don't want to block waiting for new events.
+        let effective = timeout.unwrap_or(Duration::ZERO);
+        self.poll.poll(&mut events, Some(effective)).is_ok() && !events.is_empty()
     }
 }
