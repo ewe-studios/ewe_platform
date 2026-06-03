@@ -38,7 +38,10 @@ serial_test = "3.3"
 ntest = "0.9"
 
 [features]
-default = []
+# Default: valtron task integration + base native poll/fd layer.
+# For the full platform-specific stack, use native-linux, native-macos,
+# or native-windows (which also pulls in the OS file watcher backend).
+default = ["task", "native"]
 
 # I/O readiness layer — extracted from mio
 poll = []
@@ -46,23 +49,23 @@ poll = []
 # File descriptor readiness tracking (like tokio's AsyncFd)
 fd = ["poll"]
 
-# File watching layer
-watcher = ["poll"]
-watcher-linux = ["watcher", "dep:inotify"]
-watcher-macos = ["watcher"]
-watcher-windows = ["watcher"]
+# File watching layer (PollWatcher always available via shared)
+# Platform-specific watchers:
+watcher-linux = ["poll", "dep:inotify"]
+watcher-macos = ["poll"]
+watcher-windows = ["poll"]
 
 # io_uring layer (Linux only)
 uring = ["dep:io-uring"]
 
-# Valtron task integration (FileWatcherTask, FdMonitorTask)
-task = ["watcher", "fd"]
+# Valtron task integration (shareable, not native)
+task = ["fd"]
 
 # Interprocess message bus (adapted from ipmb)
 ipc = ["dep:bincode", "dep:type-uuid"]
 
 # Full feature set for current platform
-native = ["poll", "watcher", "fd"]
+native = ["poll", "fd"]
 native-linux = ["native", "watcher-linux", "uring"]
 native-macos = ["native", "watcher-macos"]
 native-windows = ["native", "watcher-windows"]

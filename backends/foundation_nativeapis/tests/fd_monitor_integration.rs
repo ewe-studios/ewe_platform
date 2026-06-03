@@ -12,9 +12,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_core::valtron::TaskIterator;
-use foundation_nativeapis::fd::RegisteredFd;
-use foundation_nativeapis::poll::{Interest, Poll, Token};
-use foundation_nativeapis::task::FdMonitorTask;
+use foundation_nativeapis::native::fd::RegisteredFd;
+use foundation_nativeapis::{Interest, Poll, Token};
+use foundation_nativeapis::FdMonitorTask;
 
 /// Create a pipe (reader, writer), both nonblocking.
 fn make_pipe() -> (OwnedFd, OwnedFd) {

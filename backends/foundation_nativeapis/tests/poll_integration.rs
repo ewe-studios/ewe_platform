@@ -6,7 +6,7 @@
 /// - Waker wakes from another thread
 /// - Multiple tokens return correct tokens
 
-use foundation_nativeapis::poll::{Events, Interest, Poll, SourceFd, Token, Waker};
+use foundation_nativeapis::{Events, Interest, Poll, SourceFd, Token, Waker};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::sync::Arc;
 use std::thread;

@@ -13,8 +13,8 @@ use std::time::Duration;
 
 use foundation_core::synca::mpp::Receiver;
 use foundation_core::valtron::TaskIterator;
-use foundation_nativeapis::task::{EventBroadcaster, FileWatcherTask};
-use foundation_nativeapis::watcher::{poll_watcher::PollWatcher, NativeWatcher};
+use foundation_nativeapis::{EventBroadcaster, FileWatcherTask};
+use foundation_nativeapis::{NativeWatcher, PollWatcher};
 
 /// Create a temp directory that cleans up on drop.
 struct TempDir(PathBuf);
@@ -81,7 +81,7 @@ fn event_broadcast_cleans_up_dead_subscribers() {
 /// Test: FileWatcherTask with PollWatcher delivers events
 #[test]
 fn file_watcher_task_delivers_events() {
-    use foundation_nativeapis::event::WatchEvent;
+    use foundation_nativeapis::WatchEvent;
 
     let dir = TempDir::new();
 

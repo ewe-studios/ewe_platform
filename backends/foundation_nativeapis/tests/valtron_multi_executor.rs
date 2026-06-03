@@ -6,8 +6,8 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_core::valtron::{collect_one, execute, initialize_pool, PoolGuard};
-use foundation_nativeapis::task::FileWatcherTask;
-use foundation_nativeapis::watcher::{poll_watcher::PollWatcher, NativeWatcher};
+use foundation_nativeapis::FileWatcherTask;
+use foundation_nativeapis::{NativeWatcher, PollWatcher};
 
 struct TempDir(PathBuf);
 

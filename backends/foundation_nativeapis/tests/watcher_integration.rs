@@ -2,7 +2,7 @@
 ///
 /// Tests that actual filesystem events are detected on the current platform.
 
-use foundation_nativeapis::watcher::NativeWatcher;
+use foundation_nativeapis::NativeWatcher;
 use serial_test::serial;
 use std::fs::{self, File};
 use std::io::Write;
@@ -60,7 +60,7 @@ fn poll_until_events(
 #[serial]
 #[test]
 fn inotify_detects_file_creation() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -83,7 +83,7 @@ fn inotify_detects_file_creation() {
 #[serial]
 #[test]
 fn inotify_detects_file_modification() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -107,7 +107,7 @@ fn inotify_detects_file_modification() {
 #[serial]
 #[test]
 fn inotify_detects_file_deletion() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -134,7 +134,7 @@ fn inotify_detects_file_deletion() {
 #[serial]
 #[test]
 fn inotify_detects_file_rename() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -165,7 +165,7 @@ fn inotify_detects_file_rename() {
 #[serial]
 #[test]
 fn inotify_unwatch_stops_events() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -187,7 +187,7 @@ fn inotify_unwatch_stops_events() {
 #[serial]
 #[test]
 fn inotify_clear_removes_all_watches() {
-    let mut watcher = foundation_nativeapis::watcher::linux::InotifyWatcher::new()
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
@@ -208,7 +208,7 @@ fn inotify_clear_removes_all_watches() {
 #[serial]
 #[test]
 fn poll_watcher_detects_file_creation() {
-    let mut watcher = foundation_nativeapis::watcher::poll_watcher::PollWatcher::new();
+    let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
     watcher.watch(dir.path(), false).expect("failed to watch dir");
@@ -229,7 +229,7 @@ fn poll_watcher_detects_file_creation() {
 #[serial]
 #[test]
 fn poll_watcher_detects_file_deletion() {
-    let mut watcher = foundation_nativeapis::watcher::poll_watcher::PollWatcher::new();
+    let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
     // Watch the directory directly (not the file, since the file will be deleted)
@@ -257,7 +257,7 @@ fn poll_watcher_detects_file_deletion() {
 #[serial]
 #[test]
 fn poll_watcher_detects_file_modification() {
-    let mut watcher = foundation_nativeapis::watcher::poll_watcher::PollWatcher::new();
+    let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
     // Watch the file directly (not the directory)
@@ -286,7 +286,7 @@ fn poll_watcher_detects_file_modification() {
 #[serial]
 #[test]
 fn poll_watcher_unwatch() {
-    let mut watcher = foundation_nativeapis::watcher::poll_watcher::PollWatcher::new();
+    let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
     watcher.watch(dir.path(), false).expect("failed to watch dir");
@@ -306,7 +306,7 @@ fn poll_watcher_unwatch() {
 #[serial]
 #[test]
 fn poll_watcher_nonexistent_path() {
-    let mut watcher = foundation_nativeapis::watcher::poll_watcher::PollWatcher::new();
+    let mut watcher = foundation_nativeapis::PollWatcher::new();
     // Watching a file that doesn't exist should fail because
     // PathSnapshot::from_path returns Err for paths that can't be stat'd
     // (non-NotFound errors like permission denied) or the path doesn't exist
@@ -325,7 +325,7 @@ fn poll_watcher_nonexistent_path() {
 #[serial]
 #[test]
 fn watcher_builder_fallback_poll() {
-    use foundation_nativeapis::api::{NativeAPI, WatcherBuilder};
+    use foundation_nativeapis::shared::api::{NativeAPI, WatcherBuilder};
 
     // Explicitly request Poll — should always work
     let watcher = WatcherBuilder::new()

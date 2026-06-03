@@ -8,8 +8,8 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_core::valtron::{collect_one, collect_result, execute, initialize_pool, PoolGuard};
-use foundation_nativeapis::task::{EventBroadcaster, FdMonitorTask, FileWatcherTask};
-use foundation_nativeapis::watcher::{poll_watcher::PollWatcher, NativeWatcher};
+use foundation_nativeapis::{EventBroadcaster, FdMonitorTask, FileWatcherTask};
+use foundation_nativeapis::{NativeWatcher, PollWatcher};
 
 /// Create a temp directory that cleans up on drop.
 struct TempDir(PathBuf);
@@ -109,13 +109,13 @@ fn fd_monitor_task_valtron_execution() {
     let _guard = init_pool();
 
     let (reader, writer) = make_pipe();
-    let poll = foundation_nativeapis::poll::Poll::new().expect("failed to create poll");
+    let poll = foundation_nativeapis::Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = foundation_nativeapis::fd::RegisteredFd::new(
+    let registered = foundation_nativeapis::native::fd::RegisteredFd::new(
         reader,
         &registry,
-        foundation_nativeapis::poll::Token(0),
+        foundation_nativeapis::Token(0),
     )
     .expect("failed to register fd");
 
@@ -392,7 +392,7 @@ fn file_watcher_task_unwatch() {
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_execution() {
-    use foundation_nativeapis::watcher::linux::InotifyWatcher;
+    use foundation_nativeapis::native::watcher::linux::InotifyWatcher;
 
     let _guard = init_pool();
 
@@ -431,7 +431,7 @@ fn file_watcher_task_inotify_execution() {
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_multi_subscriber() {
-    use foundation_nativeapis::watcher::linux::InotifyWatcher;
+    use foundation_nativeapis::native::watcher::linux::InotifyWatcher;
 
     let _guard = init_pool();
 
@@ -472,7 +472,7 @@ fn file_watcher_task_inotify_multi_subscriber() {
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_unwatch() {
-    use foundation_nativeapis::watcher::linux::InotifyWatcher;
+    use foundation_nativeapis::native::watcher::linux::InotifyWatcher;
 
     let _guard = init_pool();
 

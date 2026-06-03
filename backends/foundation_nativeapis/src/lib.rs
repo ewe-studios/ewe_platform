@@ -1,34 +1,27 @@
-pub mod api;
-pub mod error;
-pub mod event;
+/// Cross-platform shared module — always compiled, no platform-specific dependencies.
+pub mod shared;
 
-#[cfg(feature = "poll")]
-pub mod poll;
+/// Platform-specific native module — feature-gated, requires OS-specific APIs.
+pub mod native;
 
-#[cfg(feature = "poll")]
-pub mod net;
-
-#[cfg(feature = "fd")]
-pub mod fd;
-
-#[cfg(feature = "watcher")]
-pub mod watcher;
-
+/// Valtron executor integration — shareable, platform-agnostic task adapters.
 #[cfg(feature = "task")]
-pub mod task;
+pub mod valtron;
 
-// Re-export shared watcher types
-pub use watcher::{SharedNativeWatcher, SharedWatcher};
+// ---------------------------------------------------------------------------
+// Crate-root re-exports (backward-compatible API)
+// ---------------------------------------------------------------------------
 
-// Re-export common types at the crate root
-pub use api::{native_watcher, NativeAPI, WatcherBuilder};
-pub use error::{Result, WatchError};
-pub use event::{WatchEvent, WatchEventKind};
+// Shared types are always available at the crate root.
+pub use shared::{
+    native_watcher, NativeAPI, NativeWatcher, PollWatcher, SharedNativeWatcher, SharedWatcher,
+    WatchError, WatchEvent, WatchEventKind, WatcherBuilder, Result,
+};
 
-// Re-export poll types when the poll feature is enabled
+// Poll types when the poll feature is enabled.
 #[cfg(feature = "poll")]
-pub use poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
+pub use native::poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
 
-// Re-export task types when the task feature is enabled
+// Valtron task types when the task feature is enabled.
 #[cfg(feature = "task")]
-pub use task::{EventBroadcaster, FdMonitorTask, FileWatcherTask};
+pub use valtron::{EventBroadcaster, FdMonitorTask, FileWatcherTask, StopSignal, CompositeReadiness};

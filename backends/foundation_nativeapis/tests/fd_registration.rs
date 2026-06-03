@@ -5,8 +5,8 @@
 /// - Readiness is cleared after read
 /// - Broken pipe / closed fd returns Error, not perpetual Ready
 
-use foundation_nativeapis::fd::{PollResult, Ready, RegisteredFd};
-use foundation_nativeapis::poll::{Events, Interest, Poll, SourceFd, Token};
+use foundation_nativeapis::native::fd::{PollResult, Ready, RegisteredFd};
+use foundation_nativeapis::{Events, Interest, Poll, SourceFd, Token};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::time::Duration;
 
@@ -152,7 +152,7 @@ fn poll_read_closed_detects_pipe_close() {
     let registry = poll.registry();
 
     registry
-        .register(&mut foundation_nativeapis::poll::SourceFd(reader.as_raw_fd()), Token(0), Interest::READABLE)
+        .register(&mut foundation_nativeapis::SourceFd(reader.as_raw_fd()), Token(0), Interest::READABLE)
         .expect("register failed");
 
     // Close the write end — read end will get EPOLLHUP on next poll
