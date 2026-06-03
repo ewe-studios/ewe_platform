@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus};
 
-use crate::native::fd::{FdState, PollResult, RegisteredFd};
+use crate::native::fd::{FdState, PollResult, Ready, RegisteredFd};
 use crate::native::poll::Interest;
 use super::super::stop_signal::CompositeReadiness;
 use super::super::StopSignal;
@@ -86,15 +86,18 @@ impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
 
         match readiness {
             PollResult::Ready(mut guard) => {
+                // Derive FdState from the actual readiness state, filtering
+                // to only readable/writable (ignore closed/error states).
+                let state = FdState::from_ready(guard.ready());
                 if let Some(ref mut cb) = self.callback {
                     if let Ok(Err(e)) = guard.try_io(|fd| cb(fd.get_ref())) {
                         tracing::error!("FdMonitorTask callback I/O error: {}", e);
                     }
                 }
-                Some(TaskStatus::Ready(match self.interest {
-                    Interest::READABLE => FdState::Readable,
-                    _ => FdState::Writable,
-                }))
+                // If readiness was only closed/error (not readable/writable),
+                // treat as NotReady so the executor parks again.
+                let state = state.unwrap_or(FdState::Readable);
+                Some(TaskStatus::Ready(state))
             }
             // Depends on fd readiness OR stop signal — executor parks until OS signals fd.
             PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(

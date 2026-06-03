@@ -85,6 +85,21 @@ impl Ready {
 pub enum FdState {
     Readable,
     Writable,
+    Both,
+}
+
+impl FdState {
+    /// Construct from a `Ready` bitmask, keeping only readable/writable.
+    pub(crate) fn from_ready(r: Ready) -> Option<Self> {
+        let readable = r.is_readable();
+        let writable = r.is_writable();
+        match (readable, writable) {
+            (true, true) => Some(FdState::Both),
+            (true, false) => Some(FdState::Readable),
+            (false, true) => Some(FdState::Writable),
+            (false, false) => None,
+        }
+    }
 }
 
 /// Result of a readiness poll.
