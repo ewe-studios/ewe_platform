@@ -21,3 +21,11 @@
 9. **`task` feature flag removed** — valtron types (`FileWatcherTask`, `EventBroadcaster`, `StopSignal`, `CompositeReadiness`, `FdState`) are always available. Only `FdMonitorTask` needs `#[cfg(feature = "fd")]` since it depends on `native::fd::RegisteredFd`.
 
 10. **`foundation_core` multi feature gated by target** — `foundation_core = { features = ["multi"] }` is only enabled on Linux/macOS/iOS via `[target.'cfg(...)'.dependencies]`. On unsupported platforms (WASM, etc.), the base crate still compiles without the multi-threaded executor.
+
+11. **IPC feature complete (spec-34/04)**: All 8 features now done (100%). Key IPC learnings:
+    - `bincode` 2's `Decode` trait requires a context generic (`Decode<()>`), can't use bare `Decode` in trait bounds
+    - `bincode` 2 `with_serde` can cause SIGSEGV when combining `#[serde(with = "serde_bytes")]` + `#[bincode(with_serde)]` — use native `Vec<u8>` encoding instead
+    - `libc::CMSG_LEN` and `CMSG_DATA` are unsafe — must be called inside `unsafe {}` blocks
+    - `OwnedFd` methods (`as_raw_fd`, `as_fd`, `into_raw_fd`, `from_raw_fd`) require explicit trait imports
+    - `HashMap::new()` is not const — use `OnceLock<Mutex<...>>` pattern for lazy static initialization
+    - mmap-backed `MemoryRegion` with raw `*mut u8` + `AtomicU32` casting caused SIGSEGV in tests — safer to use `Vec<u8>` backing
