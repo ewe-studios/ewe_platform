@@ -220,7 +220,7 @@ impl NativeWatcher for KqueueWatcher {
         Ok(())
     }
 
-    fn has_events(&self, timeout: Option<Duration>) -> bool {
+    fn has_events(&mut self, timeout: Option<Duration>) -> bool {
         let mut events = crate::poll::Events::with_capacity(1);
         self.poll.poll(&mut events, timeout).is_ok() && !events.is_empty()
     }

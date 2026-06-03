@@ -285,7 +285,7 @@ impl NativeWatcher for WinWatcher {
         Ok(())
     }
 
-    fn has_events(&self, timeout: Option<Duration>) -> bool {
+    fn has_events(&mut self, timeout: Option<Duration>) -> bool {
         // IOCP is dequeue-based — peek the cache first.
         if !self.event_cache.is_empty() {
             return true;

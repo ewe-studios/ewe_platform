@@ -11,6 +11,7 @@ use foundation_core::valtron::{
 
 use crate::fd::{PollResult, RegisteredFd};
 use crate::poll::Interest;
+use crate::task::StopSignal;
 
 /// A valtron task that monitors a RegisteredFd for readiness.
 ///
@@ -21,6 +22,7 @@ pub struct FdMonitorTask<T: AsRawFd> {
     callback: Option<Box<dyn FnMut(&T) -> io::Result<()> + Send>>,
     poll_interval: Duration,
     interest: Interest,
+    stop: StopSignal,
 }
 
 impl<T: AsRawFd> FdMonitorTask<T> {
@@ -31,6 +33,7 @@ impl<T: AsRawFd> FdMonitorTask<T> {
             callback: None,
             poll_interval: Duration::from_millis(50),
             interest: Interest::READABLE,
+            stop: StopSignal::new(),
         }
     }
 
@@ -55,6 +58,11 @@ impl<T: AsRawFd> FdMonitorTask<T> {
         self
     }
 
+    /// Get a `StopSignal` that can terminate this task when signaled.
+    pub fn stop_signal(&self) -> StopSignal {
+        self.stop.clone()
+    }
+
     /// Get a reference to the inner RegisteredFd.
     pub fn fd(&self) -> &RegisteredFd<T> {
         &self.fd
@@ -72,6 +80,11 @@ impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        // Check stop signal first — if set, return None to terminate the task.
+        if self.stop.is_stopped() {
+            return None;
+        }
+
         let readiness = match self.interest {
             Interest::READABLE => self.fd.poll_readable(),
             Interest::WRITABLE => self.fd.poll_writable(),

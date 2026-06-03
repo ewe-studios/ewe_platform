@@ -43,14 +43,16 @@ impl<T: NativeWatcher> SharedNativeWatcher<T> {
         }
     }
 
-    /// Acquire a read lock for non-mutating access (e.g., `has_events()`).
-    pub fn read(&self) -> std::sync::RwLockReadGuard<'_, T> {
-        self.inner.read().unwrap()
-    }
-
-    /// Acquire a write lock for mutating access (e.g., `poll()`, `watch()`).
+    /// Acquire a write lock for mutating access (e.g., `poll()`, `has_events()`, `watch()`).
     pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, T> {
         self.inner.write().unwrap()
+    }
+
+    /// Check if events are ready WITHOUT consuming them.
+    ///
+    /// Uses a write lock since scanning and caching is inherently mutating.
+    pub fn has_events(&self, timeout: Option<Duration>) -> bool {
+        self.write().has_events(timeout)
     }
 
     /// Poll for events, consuming them.
@@ -84,7 +86,7 @@ impl<T: NativeWatcher> Clone for SharedNativeWatcher<T> {
 
 impl<T: NativeWatcher + 'static> EventReadiness for SharedNativeWatcher<T> {
     fn is_ready(&self, timeout: Option<Duration>) -> bool {
-        self.read().has_events(timeout)
+        self.has_events(timeout)
     }
 }
 
@@ -119,11 +121,6 @@ impl SharedWatcher {
         }
     }
 
-    /// Acquire a read lock.
-    pub fn read(&self) -> RwLockReadGuard<'_, Box<dyn NativeWatcher>> {
-        self.inner.read().unwrap()
-    }
-
     /// Acquire a write lock.
     pub fn write(&self) -> RwLockWriteGuard<'_, Box<dyn NativeWatcher>> {
         self.inner.write().unwrap()
@@ -131,9 +128,9 @@ impl SharedWatcher {
 
     /// Check if events are ready WITHOUT consuming them.
     ///
-    /// Uses a shared read lock so multiple threads can call this concurrently.
+    /// Uses a write lock since scanning and caching is inherently mutating.
     pub fn has_events(&self, timeout: Option<Duration>) -> bool {
-        self.read().has_events(timeout)
+        self.write().has_events(timeout)
     }
 
     /// Poll for events, consuming them.
@@ -188,7 +185,7 @@ impl NativeWatcher for SharedWatcher {
         self.inner.write().unwrap().clear()
     }
 
-    fn has_events(&self, timeout: Option<Duration>) -> bool {
-        self.inner.read().unwrap().has_events(timeout)
+    fn has_events(&mut self, timeout: Option<Duration>) -> bool {
+        self.inner.write().unwrap().has_events(timeout)
     }
 }

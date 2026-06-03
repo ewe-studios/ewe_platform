@@ -19,7 +19,7 @@ type-uuid = { version = "0.1", optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
 libc = "0.2"
-foundation_core = { workspace = true, optional = true }
+foundation_core = { workspace = true, features = ["multi"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -35,13 +35,10 @@ tracing-test.workspace = true
 tracing-subscriber.workspace = true
 nix = { version = "0.29", features = ["fs", "poll"] }
 serial_test = "3.3"
-foundation_core = { workspace = true, features = ["multi"] }
+ntest = "0.9"
 
 [features]
-default = ["multi"]
-
-# multi feature to enable multi feature for foundation_core
-multi = ["foundation_core/multi"]
+default = []
 
 # I/O readiness layer — extracted from mio
 poll = []
@@ -50,7 +47,7 @@ poll = []
 fd = ["poll"]
 
 # File watching layer
-watcher = ["poll", "dep:foundation_core"]
+watcher = ["poll"]
 watcher-linux = ["watcher", "dep:inotify"]
 watcher-macos = ["watcher"]
 watcher-windows = ["watcher"]

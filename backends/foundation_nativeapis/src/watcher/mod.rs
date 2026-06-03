@@ -38,8 +38,8 @@ pub trait NativeWatcher: Send + Sync {
     /// first event. If `None` (or `Some(Duration::ZERO)`), returns immediately.
     ///
     /// This is a **peek** — calling this method does not drain events.
-    /// Subsequent calls will return the same result until `poll()` is called
-    /// to actually read/consume them.
+    /// Implementations cache detected events so that a subsequent `poll()`
+    /// call will return them without re-scanning.
     ///
     /// On level-triggered platforms (Linux epoll, macOS/BSD kqueue), this
     /// checks OS readiness. On dequeuing platforms (Windows IOCP), events
@@ -47,7 +47,7 @@ pub trait NativeWatcher: Send + Sync {
     ///
     /// The default implementation returns `false` (conservative fallback
     /// for platforms that can't peek).
-    fn has_events(&self, timeout: Option<Duration>) -> bool {
+    fn has_events(&mut self, timeout: Option<Duration>) -> bool {
         let _ = timeout;
         false
     }

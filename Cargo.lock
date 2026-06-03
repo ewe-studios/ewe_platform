@@ -2788,6 +2788,7 @@ dependencies = [
  "io-uring",
  "libc",
  "nix 0.29.0",
+ "ntest",
  "serde",
  "serial_test",
  "thiserror 2.0.17",

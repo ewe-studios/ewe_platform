@@ -2,6 +2,10 @@
 ///
 /// Walks watched paths, records metadata (mtime, size, exists),
 /// and diffs on each poll call. Slow but reliable.
+///
+/// `has_events()` and `poll()` share a cache so that readiness checks
+/// don't duplicate scan work: `has_events()` scans and caches, `poll()`
+/// drains the cache.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -23,20 +27,16 @@ struct PathSnapshot {
 impl PathSnapshot {
     fn from_path(path: &Path) -> Result<Self> {
         match fs::metadata(path) {
-            Ok(meta) => {
-                Ok(PathSnapshot {
-                    exists: true,
-                    mtime: meta.modified().map_err(WatchError::Io)?,
-                    size: meta.len(),
-                })
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                Ok(PathSnapshot {
-                    exists: false,
-                    mtime: std::time::UNIX_EPOCH,
-                    size: 0,
-                })
-            }
+            Ok(meta) => Ok(PathSnapshot {
+                exists: true,
+                mtime: meta.modified().map_err(WatchError::Io)?,
+                size: meta.len(),
+            }),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(PathSnapshot {
+                exists: false,
+                mtime: std::time::UNIX_EPOCH,
+                size: 0,
+            }),
             Err(e) => Err(WatchError::Io(e)),
         }
     }
@@ -48,27 +48,70 @@ impl PathSnapshot {
         if self.exists && !other.exists {
             return Some(WatchEventKind::Created);
         }
-        if self.exists && other.exists {
-            if self.mtime != other.mtime || self.size != other.size {
-                return Some(WatchEventKind::Modified);
-            }
+        if self.exists && other.exists
+            && (self.mtime != other.mtime || self.size != other.size)
+        {
+            return Some(WatchEventKind::Modified);
         }
         None
     }
 }
 
-/// Poll-based file watcher — uses filesystem metadata polling.
+/// Poll-based file watcher.
 pub struct PollWatcher {
-    /// Map of watched paths to their last known snapshot.
     watches: HashMap<PathBuf, PathSnapshot>,
+    /// Events cached by `has_events()` so `poll()` can drain them.
+    cached_events: Vec<WatchEvent>,
 }
 
 impl PollWatcher {
-    /// Create a new empty PollWatcher.
     pub fn new() -> Self {
         Self {
             watches: HashMap::new(),
+            cached_events: Vec::new(),
         }
+    }
+
+    /// Shared scan: check all watches, update snapshots, return events.
+    fn scan_watches(&mut self) -> Vec<WatchEvent> {
+        let mut events = Vec::new();
+        let mut stale = Vec::new();
+        let mut updates = Vec::new();
+
+        for (path, old) in &self.watches {
+            match PathSnapshot::from_path(path) {
+                Ok(new) => {
+                    if let Some(kind) = new.changes_since(old) {
+                        events.push(WatchEvent {
+                            kind,
+                            path: path.clone(),
+                        });
+                    }
+                    updates.push((path.clone(), new));
+                }
+                Err(WatchError::Io(e))
+                    if e.kind() == std::io::ErrorKind::NotFound =>
+                {
+                    if old.exists {
+                        events.push(WatchEvent {
+                            kind: WatchEventKind::Removed,
+                            path: path.clone(),
+                        });
+                        stale.push(path.clone());
+                    }
+                }
+                Err(_) => {}
+            }
+        }
+
+        for (path, new) in updates {
+            self.watches.insert(path, new);
+        }
+        for path in stale {
+            self.watches.remove(&path);
+        }
+
+        events
     }
 }
 
@@ -88,57 +131,36 @@ impl NativeWatcher for PollWatcher {
     }
 
     fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>> {
-        // Sleep for the requested timeout before checking for changes
+        // Drain cached events first (populated by has_events).
+        if !self.cached_events.is_empty() {
+            return Ok(std::mem::take(&mut self.cached_events));
+        }
+        // No cached events — sleep then scan.
         thread::sleep(timeout);
-
-        let mut events = Vec::new();
-        let mut stale = Vec::new();
-        // Buffer updates to apply after the immutable borrow ends
-        let mut updates = Vec::new();
-
-        // Check each watched path for changes
-        for (path, old) in &self.watches {
-            match PathSnapshot::from_path(path) {
-                Ok(new) => {
-                    // Emit an event if the path changed since last poll
-                    if let Some(kind) = new.changes_since(old) {
-                        events.push(WatchEvent {
-                            kind,
-                            path: path.clone(),
-                        });
-                    }
-                    // Queue the snapshot update (can't mutate self.watches while borrowed above)
-                    updates.push((path.clone(), new));
-                }
-                Err(WatchError::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => {
-                    // Path no longer exists — emit Removed if it previously existed
-                    if old.exists {
-                        events.push(WatchEvent {
-                            kind: WatchEventKind::Removed,
-                            path: path.clone(),
-                        });
-                        stale.push(path.clone());
-                    }
-                }
-                Err(e) => return Err(e),
-            }
-        }
-
-        // Apply snapshot updates after the immutable borrow ends
-        for (path, new) in updates {
-            self.watches.insert(path, new);
-        }
-
-        // Clean up removed paths from the watch list
-        for path in stale {
-            self.watches.remove(&path);
-        }
-
-        Ok(events)
+        self.cached_events = self.scan_watches();
+        Ok(std::mem::take(&mut self.cached_events))
     }
 
     fn clear(&mut self) -> Result<()> {
         self.watches.clear();
+        self.cached_events.clear();
         Ok(())
+    }
+
+    fn has_events(&mut self, timeout: Option<Duration>) -> bool {
+        // If we already have cached events from a prior scan, return immediately.
+        if !self.cached_events.is_empty() {
+            return true;
+        }
+        // PollWatcher: after the timeout, always return true so the executor
+        // wakes the task periodically to check StopSignal and scan for changes.
+        // The sleep prevents busy-looping — minimum interval = timeout.
+        // Event-driven watchers (inotify, kqueue) return true only when the OS
+        // signals readiness — they don't need periodic wakeups.
+        if let Some(dur) = timeout {
+            thread::sleep(dur);
+        }
+        self.cached_events = self.scan_watches();
+        true
     }
 }

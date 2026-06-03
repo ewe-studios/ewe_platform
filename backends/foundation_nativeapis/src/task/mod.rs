@@ -3,7 +3,6 @@
 /// Requires the `task` feature flag (which depends on foundation_core for valtron types).
 
 use std::path::Path;
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::mpp::{self, Receiver, Sender};
@@ -16,7 +15,9 @@ use crate::event::WatchEvent;
 use crate::watcher::{NativeWatcher, SharedWatcher};
 
 mod fd_monitor;
+mod stop_signal;
 pub use fd_monitor::FdMonitorTask;
+pub use stop_signal::StopSignal;
 
 /// Multi-subscriber broadcaster built on top of mpp channels.
 ///
@@ -89,67 +90,70 @@ impl<T: Clone + Send + 'static> Default for EventBroadcaster<T> {
 ///
 /// Other valtron tasks can subscribe to receive file change events through
 /// their own mpp receiver channels.
-///
-/// **Scheduling:** `next_status()` returns `TaskStatus::Depends(shared_watcher)`
-/// when no events are available. The executor uses the watcher's `EventReadiness`
-/// impl to decide when to reschedule — no busy-polling with timeouts.
 pub struct FileWatcherTask {
     watcher: SharedWatcher,
     broadcaster: EventBroadcaster<WatchEvent>,
+    poll_timeout: Duration,
+    stop: StopSignal,
 }
 
 impl FileWatcherTask {
-    /// Create a new FileWatcherTask with a platform-default native watcher.
     pub fn new() -> Result<Self> {
         use crate::api::native_watcher;
 
         Ok(Self {
             watcher: SharedWatcher::from_boxed(native_watcher()?),
             broadcaster: EventBroadcaster::new(64),
+            poll_timeout: Duration::from_millis(50),
+            stop: StopSignal::new(),
         })
     }
 
-    /// Create with a specific NativeWatcher implementation.
     pub fn with_watcher(watcher: Box<dyn NativeWatcher>) -> Self {
         Self {
             watcher: SharedWatcher::from_boxed(watcher),
             broadcaster: EventBroadcaster::new(64),
+            poll_timeout: Duration::from_millis(50),
+            stop: StopSignal::new(),
         }
     }
 
-    /// Create with a pre-built shared watcher.
     pub fn with_shared_watcher(watcher: SharedWatcher) -> Self {
         Self {
             watcher,
             broadcaster: EventBroadcaster::new(64),
+            poll_timeout: Duration::from_millis(50),
+            stop: StopSignal::new(),
         }
     }
 
     /// Get a clone of the shared watcher handle.
-    /// Use this to get an `Arc<dyn EventReadiness>` for `TaskStatus::Depends`.
     pub fn watcher(&self) -> SharedWatcher {
         self.watcher.clone_handle()
     }
 
-    /// Add a path to watch. Returns self for chaining.
+    /// Get a `StopSignal` that can terminate this task when signaled.
+    pub fn stop_signal(&self) -> StopSignal {
+        self.stop.clone()
+    }
+
     pub fn watch(&mut self, path: &Path, recursive: bool) -> Result<()> {
         self.watcher.watch(path, recursive)
     }
 
-    /// Remove a previously watched path.
     pub fn unwatch(&mut self, path: &Path) -> Result<()> {
         self.watcher.unwatch(path)
     }
 
-    /// Subscribe to file events.
-    ///
-    /// Returns a (Sender, Receiver) pair — the Sender can be used to close
-    /// the subscriber's channel explicitly.
     pub fn subscribe(&mut self) -> (Sender<WatchEvent>, Receiver<WatchEvent>) {
         self.broadcaster.subscribe()
     }
 
-    /// Get the number of active subscribers.
+    pub fn with_poll_timeout(mut self, timeout: Duration) -> Self {
+        self.poll_timeout = timeout;
+        self
+    }
+
     pub fn subscriber_count(&self) -> usize {
         self.broadcaster.subscriber_count()
     }
@@ -161,11 +165,13 @@ impl TaskIterator for FileWatcherTask {
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        // Poll with zero timeout — the executor drives scheduling via Depends.
-        // We only poll when the watcher says there are events to read.
-        match self.watcher.poll(Duration::ZERO) {
+        // Check stop signal first — if set, return None to terminate the task.
+        if self.stop.is_stopped() {
+            return None;
+        }
+
+        match self.watcher.poll(self.poll_timeout) {
             Ok(events) if !events.is_empty() => {
-                // Broadcast all events to subscribers, return first as Ready
                 let (first, rest) = events.split_first().unwrap();
                 self.broadcaster.broadcast(first.clone());
                 for event in rest {
@@ -173,10 +179,10 @@ impl TaskIterator for FileWatcherTask {
                 }
                 Some(TaskStatus::Ready(first.clone()))
             }
-            // No events — return Depends so the executor parks this task
-            // and uses EventReadiness::is_ready() to know when to reschedule.
-            Ok(_) | Err(_) => {
-                Some(TaskStatus::Depends(Arc::new(self.watcher.clone_handle())))
+            Ok(_) => Some(TaskStatus::Delayed(self.poll_timeout)),
+            Err(e) => {
+                tracing::error!("Watcher poll error: {}", e);
+                Some(TaskStatus::Delayed(self.poll_timeout))
             }
         }
     }
