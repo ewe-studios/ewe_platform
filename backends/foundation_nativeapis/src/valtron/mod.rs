@@ -8,9 +8,10 @@
 
 mod broadcaster;
 mod file_watcher;
+pub use file_watcher::{FileWatcherBuilder, WatchEventStream};
 mod stop_signal;
 
-pub use broadcaster::EventBroadcaster;
+pub use broadcaster::Broadcaster;
 pub use file_watcher::FileWatcherTask;
 pub use stop_signal::{CompositeReadiness, StopSignal};
 

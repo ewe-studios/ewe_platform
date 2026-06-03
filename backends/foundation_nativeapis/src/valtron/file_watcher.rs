@@ -14,7 +14,7 @@ use crate::shared::error::Result;
 use crate::shared::event::WatchEvent;
 use crate::shared::watcher::{NativeWatcher, SharedWatcher};
 
-use super::broadcaster::EventBroadcaster;
+use super::broadcaster::Broadcaster as EventBroadcaster;
 use super::StopSignal;
 use super::stop_signal::CompositeReadiness;
 
@@ -78,7 +78,7 @@ impl FileWatcherTask {
         self.watcher.unwatch(path)
     }
 
-    pub fn subscribe(&mut self) -> (Sender<WatchEvent>, Receiver<WatchEvent>) {
+    pub fn subscribe(&mut self) -> Receiver<WatchEvent> {
         self.broadcaster.subscribe()
     }
 
@@ -119,6 +119,100 @@ impl TaskIterator for FileWatcherTask {
                     Arc::new(self.watcher.clone_handle()),
                     Arc::new(self.stop.clone()),
                 ))))
+            }
+        }
+    }
+}
+
+use foundation_core::valtron::{Stream, execute, GenericResult};
+use foundation_core::valtron::DrivenStreamIterator;
+
+/// Builder for creating a `FileWatcherTask` with automatic valtron execution.
+///
+/// Instead of manually creating a task, subscribing, and calling `execute()`,
+/// the builder handles all of that and returns a stream of `WatchEvent`.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_nativeapis::valtron::FileWatcherBuilder;
+///
+/// let stream = FileWatcherBuilder::new()
+///     .watch("/path/to/dir", true)?
+///     .build()?;
+///
+/// for event in stream {
+///     println!("File changed: {:?}", event.path);
+/// }
+/// ```
+pub struct FileWatcherBuilder {
+    task: FileWatcherTask,
+}
+
+impl FileWatcherBuilder {
+    /// Create a new builder with the default native watcher.
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            task: FileWatcherTask::new()?,
+        })
+    }
+
+    /// Create a builder with a specific watcher.
+    pub fn with_watcher(watcher: Box<dyn NativeWatcher>) -> Self {
+        Self {
+            task: FileWatcherTask::with_watcher(watcher),
+        }
+    }
+
+    /// Create a builder with a shared watcher.
+    pub fn with_shared_watcher(watcher: SharedWatcher) -> Self {
+        Self {
+            task: FileWatcherTask::with_shared_watcher(watcher),
+        }
+    }
+
+    /// Add a path to watch.
+    pub fn watch(mut self, path: impl AsRef<Path>, recursive: bool) -> Result<Self> {
+        self.task.watch(path.as_ref(), recursive)?;
+        Ok(self)
+    }
+
+    /// Set the poll timeout.
+    pub fn poll_timeout(mut self, timeout: Duration) -> Self {
+        self.task = self.task.with_poll_timeout(timeout);
+        self
+    }
+
+    /// Spawn the task into the valtron executor and return a stream of events.
+    ///
+    /// The stream yields `WatchEvent` values as files change. When the task
+    /// terminates (e.g., via stop signal), the stream ends.
+    pub fn build(self) -> GenericResult<WatchEventStream> {
+        let stream = execute(self.task, None)?;
+        Ok(WatchEventStream(stream))
+    }
+}
+
+impl Default for FileWatcherBuilder {
+    fn default() -> Self {
+        Self::new().expect("native_watcher() failed")
+    }
+}
+
+/// A stream of `WatchEvent` from a running `FileWatcherTask`.
+///
+/// Wraps valtron's `DrivenStreamIterator` and filters to yield only
+/// `WatchEvent` values, skipping `Pending` and `Delayed` states.
+pub struct WatchEventStream(DrivenStreamIterator<FileWatcherTask>);
+
+impl Iterator for WatchEventStream {
+    type Item = WatchEvent;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.0.next()? {
+                Stream::Next(event) => return Some(event),
+                _ => continue,
             }
         }
     }

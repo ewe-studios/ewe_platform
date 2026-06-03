@@ -59,7 +59,7 @@ fn file_watcher_task_multi_executor() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -100,8 +100,8 @@ fn multiple_watchers_concurrent_multi_executor() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx1) = task1.subscribe();
-    let (_, rx2) = task2.subscribe();
+    let rx1 = task1.subscribe();
+    let rx2 = task2.subscribe();
 
     let dir1_path = dir1.path().to_path_buf();
     let dir2_path = dir2.path().to_path_buf();

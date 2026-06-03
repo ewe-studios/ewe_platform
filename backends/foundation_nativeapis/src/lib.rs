@@ -22,7 +22,7 @@ pub use shared::{
 pub use native::poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
 
 // Valtron types — always available (shareable, no native deps).
-pub use valtron::{EventBroadcaster, FileWatcherTask, StopSignal, CompositeReadiness};
+pub use valtron::{Broadcaster as EventBroadcaster, FileWatcherTask, StopSignal, CompositeReadiness};
 
 // FdState from shared (always available).
 pub use shared::FdState;

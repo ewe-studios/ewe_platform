@@ -49,9 +49,9 @@ impl Drop for TempDir {
 #[test]
 fn event_broadcast_to_multiple_subscribers() {
     let mut broadcaster = EventBroadcaster::new(64);
-    let (_, rx1) = broadcaster.subscribe();
-    let (_, rx2) = broadcaster.subscribe();
-    let (_, rx3) = broadcaster.subscribe();
+    let rx1 = broadcaster.subscribe();
+    let rx2 = broadcaster.subscribe();
+    let rx3 = broadcaster.subscribe();
 
     broadcaster.broadcast("test_event".to_string());
 
@@ -64,10 +64,10 @@ fn event_broadcast_to_multiple_subscribers() {
 #[test]
 fn event_broadcast_cleans_up_dead_subscribers() {
     let mut broadcaster = EventBroadcaster::new(64);
-    let (_, rx1) = broadcaster.subscribe();
+    let rx1 = broadcaster.subscribe();
 
     // Subscribe and drop immediately — creates a dead channel
-    let (_tx2, rx2) = broadcaster.subscribe();
+    let rx2 = broadcaster.subscribe();
     drop(rx2);
 
     // Initial count includes the dead channel
@@ -92,7 +92,7 @@ fn file_watcher_task_delivers_events() {
         w
     }));
 
-    let (_, mut rx) = task.subscribe();
+    let rx = task.subscribe();
 
     // Create a file
     let file_path = dir.path().join("test_valtron.txt");

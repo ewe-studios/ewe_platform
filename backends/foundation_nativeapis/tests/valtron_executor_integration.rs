@@ -79,7 +79,7 @@ fn file_watcher_task_valtron_execution() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -179,8 +179,8 @@ fn file_watcher_task_multi_subscriber_valtron() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx1) = task.subscribe();
-    let (_, rx2) = task.subscribe();
+    let rx1 = task.subscribe();
+    let rx2 = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -210,9 +210,9 @@ fn event_broadcast_to_multiple_subscribers() {
     let _guard = init_pool();
 
     let mut broadcaster = EventBroadcaster::new(64);
-    let (_, rx1) = broadcaster.subscribe();
-    let (_, rx2) = broadcaster.subscribe();
-    let (_, rx3) = broadcaster.subscribe();
+    let rx1 = broadcaster.subscribe();
+    let rx2 = broadcaster.subscribe();
+    let rx3 = broadcaster.subscribe();
 
     broadcaster.broadcast("test_event".to_string());
 
@@ -230,10 +230,10 @@ fn event_broadcast_cleans_up_dead_subscribers() {
     let _guard = init_pool();
 
     let mut broadcaster = EventBroadcaster::new(64);
-    let (_, rx1) = broadcaster.subscribe();
+    let rx1 = broadcaster.subscribe();
 
     // Subscribe and drop immediately — creates a dead channel
-    let (_tx2, rx2) = broadcaster.subscribe();
+    let rx2 = broadcaster.subscribe();
     drop(rx2);
 
     broadcaster.broadcast("event".to_string());
@@ -257,7 +257,7 @@ fn file_watcher_task_delivers_events() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -356,7 +356,7 @@ fn file_watcher_task_unwatch() {
     }))
     .with_poll_timeout(Duration::from_millis(50));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     task.unwatch(dir.path()).expect("unwatch failed");
 
@@ -403,7 +403,7 @@ fn file_watcher_task_inotify_execution() {
         w
     }));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -442,8 +442,8 @@ fn file_watcher_task_inotify_multi_subscriber() {
         w
     }));
 
-    let (_, rx1) = task.subscribe();
-    let (_, rx2) = task.subscribe();
+    let rx1 = task.subscribe();
+    let rx2 = task.subscribe();
 
     let dir_path = dir.path().to_path_buf();
     thread::spawn(move || {
@@ -483,7 +483,7 @@ fn file_watcher_task_inotify_unwatch() {
         w
     }));
 
-    let (_, rx) = task.subscribe();
+    let rx = task.subscribe();
 
     task.unwatch(dir.path()).expect("unwatch failed");
 
