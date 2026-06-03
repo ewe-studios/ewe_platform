@@ -83,15 +83,15 @@ foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
 
 # -- workspace wide packages
+# core library dependencies
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
 anyhow = { version = "1.0" }
 derive_more = { version = ">=2.0", features = ["full"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
-
 regex = "1.12.2"
-# core library dependencies
+concurrent-queue = { version = "2.5.0"}
 tracing = { version = "0.1" }
 tracing-core = { version = "0.1" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
