@@ -141,8 +141,7 @@ fn fd_monitor_task_valtron_execution() {
             } else {
                 Err(std::io::Error::new(std::io::ErrorKind::Other, "read returned 0"))
             }
-        })
-        .with_poll_interval(Duration::from_millis(10));
+        });
 
     // Signal stop after a short delay so the task runs a few ticks then terminates
     let stop = task.stop_signal();

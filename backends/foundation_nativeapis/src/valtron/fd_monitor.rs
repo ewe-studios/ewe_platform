@@ -3,24 +3,24 @@
 
 use std::io;
 use std::os::unix::io::AsRawFd;
-use std::time::Duration;
+use std::sync::Arc;
 
-use foundation_core::valtron::{
-    BoxedSendExecutionAction, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::native::fd::{PollResult, RegisteredFd};
 use crate::native::poll::Interest;
+use super::stop_signal::CompositeReadiness;
 use super::StopSignal;
 
 /// A valtron task that monitors a RegisteredFd for readiness.
 ///
-/// Each tick, polls the fd for readability. When ready, invokes the
-/// user-provided callback with a reference to the inner IO object.
+/// When the fd is ready, invokes the user-provided callback with a reference
+/// to the inner IO object. Uses `TaskStatus::Depends` so the executor parks
+/// the task and only wakes it when the OS signals fd readiness (epoll/kqueue),
+/// avoiding wasteful periodic polling.
 pub struct FdMonitorTask<T: AsRawFd> {
-    fd: RegisteredFd<T>,
+    fd: Arc<RegisteredFd<T>>,
     callback: Option<Box<dyn FnMut(&T) -> io::Result<()> + Send>>,
-    poll_interval: Duration,
     interest: Interest,
     stop: StopSignal,
 }
@@ -29,9 +29,8 @@ impl<T: AsRawFd> FdMonitorTask<T> {
     /// Create a new FdMonitorTask wrapping the given RegisteredFd.
     pub fn new(fd: RegisteredFd<T>) -> Self {
         Self {
-            fd,
+            fd: Arc::new(fd),
             callback: None,
-            poll_interval: Duration::from_millis(50),
             interest: Interest::READABLE,
             stop: StopSignal::new(),
         }
@@ -43,12 +42,6 @@ impl<T: AsRawFd> FdMonitorTask<T> {
         callback: impl FnMut(&T) -> io::Result<()> + Send + 'static,
     ) -> Self {
         self.callback = Some(Box::new(callback));
-        self
-    }
-
-    /// Set the poll interval for each tick. Default: 50ms.
-    pub fn with_poll_interval(mut self, interval: Duration) -> Self {
-        self.poll_interval = interval;
         self
     }
 
@@ -70,11 +63,11 @@ impl<T: AsRawFd> FdMonitorTask<T> {
 
     /// Get a mutable reference to the inner RegisteredFd.
     pub fn fd_mut(&mut self) -> &mut RegisteredFd<T> {
-        &mut self.fd
+        Arc::get_mut(&mut self.fd).expect("FdMonitorTask: fd_mut called while shared handle exists")
     }
 }
 
-impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
+impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
     type Ready = ();
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
@@ -100,7 +93,10 @@ impl<T: AsRawFd> TaskIterator for FdMonitorTask<T> {
                 }
                 Some(TaskStatus::Ready(()))
             }
-            PollResult::NotReady => Some(TaskStatus::Delayed(self.poll_interval)),
+            // Depends on fd readiness OR stop signal — executor parks until OS signals fd.
+            PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(
+                CompositeReadiness::new(Arc::clone(&self.fd) as Arc<dyn EventReadiness>, Arc::new(self.stop.clone())),
+            ))),
             PollResult::Error(e) => {
                 tracing::error!("FdMonitorTask poll error: {}", e);
                 // Terminate on error — the fd is broken

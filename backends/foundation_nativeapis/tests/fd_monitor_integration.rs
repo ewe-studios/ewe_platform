@@ -57,8 +57,7 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
             } else {
                 Err(std::io::Error::new(std::io::ErrorKind::Other, "read returned 0"))
             }
-        })
-        .with_poll_interval(Duration::from_millis(10));
+        });
 
     // Write data before first tick
     unsafe {
@@ -89,8 +88,7 @@ fn fd_monitor_task_no_callback() {
         .expect("failed to register fd");
 
     // Create task WITHOUT a callback
-    let mut task = FdMonitorTask::new(registered)
-        .with_poll_interval(Duration::from_millis(10));
+    let mut task = FdMonitorTask::new(registered);
 
     // Tick — should not panic, just return NotReady
     let status = task.next_status();
@@ -132,8 +130,7 @@ fn fd_monitor_task_poll_interval() {
         .expect("failed to register fd");
 
     let interval = Duration::from_millis(100);
-    let mut task = FdMonitorTask::new(registered)
-        .with_poll_interval(interval);
+    let mut task = FdMonitorTask::new(registered);
 
     // Tick when no data available
     let start = std::time::Instant::now();
