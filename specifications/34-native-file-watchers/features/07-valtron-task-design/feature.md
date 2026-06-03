@@ -57,12 +57,11 @@ fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>> {
 
 **Event-driven watchers** (inotify, kqueue, IOCP): `has_events()` returns `true` ONLY when the OS signals readiness (events available). The OS handles parking/waking — no periodic checks needed.
 
-**Poll-based watchers** (PollWatcher): `has_events()` returns `true` after the timeout regardless of whether events were found. The sleep prevents busy-looping (minimum interval = timeout). This allows the task to:
+**Poll-based watchers** (PollWatcher): `has_events()` returns `true` after the timeout only when events are acquired this avoids causing CPU trashing and busy looping. The sleep prevents busy-looping (minimum interval = timeout). This allows the task to:
 1. Wake up periodically to check `StopSignal`.
 2. Scan for changes and cache any events found.
 3. Let `poll()` drain the cache.
 
-Returning `false` for PollWatcher when no events found causes the executor to park the task indefinitely — `StopSignal` is never checked, test hangs forever.
 
 ### Rule 3: Use `TaskStatus::Depends(shared)` instead of `TaskStatus::Delayed(timeout)`
 
