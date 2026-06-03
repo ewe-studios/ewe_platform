@@ -1,6 +1,6 @@
 ---
 feature: "Shared / Native / Valtron Module Restructure"
-description: "Restructure foundation_nativeapis into shared/ (always compiled, WASM-compatible), native/ (platform-specific, feature-gated), and valtron/ (executor integration, feature-gated but platform-agnostic). Valtron tasks are shareable — they don't need native OS APIs, only the valtron executor model."
+description: "Restructure foundation_nativeapis into shared/ (always compiled), native/ (platform-specific, feature-gated), and valtron/ (executor integration, split into shared + native sub-modules). FdMonitorTask uses TaskStatus::Depends instead of Delayed."
 status: "completed"
 priority: "high"
 depends_on: ["07-valtron-task-design"]
@@ -9,9 +9,9 @@ created: 2026-06-03
 last_updated: 2026-06-03
 author: "Main Agent"
 tasks:
-  completed: 6
+  completed: 7
   uncompleted: 0
-  total: 6
+  total: 7
   completion_percentage: 100%
 ---
 
@@ -19,184 +19,167 @@ tasks:
 
 ## Problem
 
-The current `foundation_nativeapis` layout mixes cross-platform types with platform-specific syscalls at the same level. Everything shares a flat `src/` namespace and `watcher`/`task` features gate entire modules — but these modules contain a mix of code that *could* and *should* compile everywhere versus code that *must* be platform-specific.
+The `foundation_nativeapis` layout mixed cross-platform types with platform-specific syscalls at the same level. A flat `src/` namespace with `watcher`/`task` feature gates hid purely-stdlib types behind unnecessary feature flags.
 
 Consequences:
-- `SharedWatcher`, `NativeWatcher` trait, `PollWatcher` are pure stdlib but hidden behind `feature = "watcher"`
-- `WatchError`, `WatchEvent`, `NativeAPI`, `WatcherBuilder` are always relevant but co-located with gated code
-- Valtron tasks (`StopSignal`, `CompositeReadiness`, `EventBroadcaster`) are **shareable** — they don't need inotify/epoll/kqueue. Yet they live inside `task/` which implies "native"
-- `fd/` and `net/` are Unix-only but share the crate root namespace with `error.rs` and `event.rs`
-- WASM consumers can't use the generic types without pulling in platform-specific feature gates
+- `SharedWatcher`, `NativeWatcher` trait, `PollWatcher` were pure stdlib but hidden behind `feature = "watcher"`
+- `WatchError`, `WatchEvent`, `NativeAPI`, `WatcherBuilder` were always relevant but co-located with gated code
+- Valtron tasks (`StopSignal`, `EventBroadcaster`) are **shareable** — they don't need inotify/epoll/kqueue, yet lived inside `task/`
+- `fd_monitor.rs` was the only valtron type needing `native::fd` — blocking the rest from being shared
+- `FdMonitorTask` used `TaskStatus::Delayed` — polling every N ms even when the fd was idle
 
 ## Solution
 
-Restructure into three top-level submodules, each with a clear contract:
+Three top-level submodules, with `valtron/` further split into shared vs native.
 
 ### 1. `shared/` — Always compiled, no platform dependencies
 
-Types that work everywhere (native, WASM, any `#[cfg]`). Pure stdlib + `thiserror`/`serde`/`foundation_core::valtron::EventReadiness`.
+| Module | Contents |
+|--------|----------|
+| `shared::error` | `WatchError`, `Result<T>` |
+| `shared::event` | `WatchEvent`, `WatchEventKind` |
+| `shared::watcher` | `NativeWatcher` trait, `PollWatcher`, `SharedNativeWatcher<T>`, `SharedWatcher` |
+| `shared::api` | `NativeAPI`, `WatcherBuilder`, `native_watcher()` |
 
-| Module | Contents | Why shared |
-|--------|----------|------------|
-| `shared::error` | `WatchError`, `Result<T>` | Pure error enum, no syscalls |
-| `shared::event` | `WatchEvent`, `WatchEventKind` | Pure data types |
-| `shared::watcher` | `NativeWatcher` trait, `PollWatcher` (stdlib-only), `SharedNativeWatcher<T>`, `SharedWatcher` | Trait is an interface; PollWatcher uses only `std::fs::metadata`; shared wrappers are generic |
-| `shared::api` | `NativeAPI` enum, `WatcherBuilder`, `native_watcher()` | `WatcherBuilder` dispatches to native watchers behind cfg, but the *builder itself* is cross-platform — it just returns `UnsupportedPlatform` when the native backend isn't available |
-
-### 2. `native/` — Feature-gated, platform-specific APIs
-
-Code that requires OS-specific syscalls (epoll, kqueue, IOCP, inotify, `RawFd`, etc.).
+### 2. `native/` — Feature-gated, platform-specific
 
 | Module | Feature Gate | Platform |
 |--------|-------------|----------|
-| `native::poll` | `poll` | epoll (Linux), kqueue (macOS/BSD), IOCP/WSAPoll (Windows), shell stub (unsupported) |
-| `native::fd` | `fd` (implies `poll`) | Unix only (`RawFd`, `OwnedFd`) |
-| `native::net` | `poll` | Unix only (`TcpStream`, `UdpSocket`, `UnixStream` via `AsRawFd`) |
-| `native::watcher` | `watcher-linux`, `watcher-macos`, `watcher-windows` | `linux.rs` (inotify), `unix.rs` (kqueue EVFILT_VNODE), `windows.rs` (ReadDirectoryChangesW) |
+| `native::poll` | `poll` | epoll, kqueue, IOCP |
+| `native::fd` | `fd` (implies `poll`) | Unix only |
+| `native::net` | `poll` | Unix only |
+| `native::watcher` | `watcher-linux/macos/windows` | inotify, kqueue EVFILT_VNODE, ReadDirectoryChangesW |
 
-**Critical rule:** Nothing in `native/` is imported by `shared/`. The dependency direction is one-way: `native/` imports from `shared/`.
+### 3. `valtron/` — Feature-gated, split shared vs native
 
-### 3. `valtron/` — Feature-gated, but platform-agnostic
+| Module | Contents | Depends on |
+|--------|----------|------------|
+| `valtron/broadcaster` | `EventBroadcaster<T>` | `foundation_core::synca::mpp` |
+| `valtron/file_watcher` | `FileWatcherTask` | `shared::watcher`, `shared::api` |
+| `valtron/stop_signal` | `StopSignal`, `CompositeReadiness` | `foundation_core::valtron::EventReadiness` |
+| `valtron/native/fd_monitor` | `FdMonitorTask<T>` | `native::fd`, `native::poll` (behind `#[cfg(feature = "fd")]`) |
 
-Valtron executor integration. These types are **shareable** — they work with *any* `EventReadiness` impl and don't call OS syscalls directly. They depend on `foundation_core::valtron` (the executor model) but not on `native/`.
+**Key fix:** `FdMonitorTask` now uses `TaskStatus::Depends(fd, stop_signal)` instead of `TaskStatus::Delayed(poll_interval)`. The executor parks the task and only wakes it when the OS signals fd readiness (epoll/kqueue). Zero wasted wakeups.
 
-| Module | Feature Gate | Contents |
-|--------|-------------|----------|
-| `valtron::stop_signal` | `task` | `StopSignal`, `CompositeReadiness` — generic readiness combinators |
-| `valtron::broadcaster` | `task` | `EventBroadcaster<T>` — multi-subscriber mpp channel broadcaster |
-| `valtron::file_watcher` | `task` | `FileWatcherTask` — wraps `SharedWatcher` + broadcaster into a `TaskIterator` |
-| `valtron::fd_monitor` | `task` | `FdMonitorTask<T>` — wraps `RegisteredFd` (this one *does* need `native::fd` for the fd type, but the task logic itself is generic) |
-
-**Key insight:** `StopSignal` and `CompositeReadiness` are so generic they could be in `foundation_core` itself. But they live here because they're primarily used by watcher tasks. `EventBroadcaster` is even more generic — it's just `Vec<Sender<T>>` with a `broadcast` method.
-
-## Feature Gates (new Cargo.toml layout)
+## Cargo.toml
 
 ```toml
 [features]
-default = []
+default = ["task", "native"]
 
-# I/O readiness layer — extracted from mio
 poll = []
-
-# File descriptor readiness tracking
 fd = ["poll"]
-
-# File watching layer (PollWatcher always available via shared)
-# Platform-specific watchers:
 watcher-linux = ["poll", "dep:inotify"]
 watcher-macos = ["poll"]
 watcher-windows = ["poll"]
-
-# io_uring layer (Linux only)
 uring = ["dep:io-uring"]
-
-# Valtron task integration (shareable, not native)
 task = ["fd"]
-
-# Interprocess message bus
 ipc = ["dep:bincode", "dep:type-uuid"]
 
-# Full feature set for current platform
 native = ["poll", "fd"]
 native-linux = ["native", "watcher-linux", "uring"]
 native-macos = ["native", "watcher-macos"]
 native-windows = ["native", "watcher-windows"]
 ```
 
-Note: `watcher` feature is **removed**. `PollWatcher` is always available via `shared::watcher`. Platform-specific watchers are individually feature-gated. `task` no longer implies `watcher` — it implies `fd` (for FdMonitorTask).
+Note: `watcher` feature is **removed**. `PollWatcher` is always available. `task` no longer implies `watcher` — it implies `fd`.
 
-## New Directory Layout
+## Directory Layout
 
 ```
 src/
 ├── lib.rs                          # Declares shared, native, valtron; re-exports
 ├── shared/                         # Always compiled
 │   ├── mod.rs
-│   ├── error.rs                    # (moved from src/error.rs)
-│   ├── event.rs                    # (moved from src/event.rs)
-│   ├── watcher/                    # (moved from src/watcher/)
-│   │   ├── mod.rs                  # NativeWatcher trait
-│   │   ├── poll_watcher.rs         # stdlib-only polling
-│   │   └── shared.rs               # SharedNativeWatcher, SharedWatcher
-│   └── api.rs                      # WatcherBuilder, NativeAPI
+│   ├── error.rs
+│   ├── event.rs
+│   ├── api.rs
+│   └── watcher/
+│       ├── mod.rs                  # NativeWatcher trait + re-exports
+│       ├── poll_watcher.rs         # stdlib-only polling
+│       └── shared.rs               # SharedNativeWatcher, SharedWatcher
 ├── native/                         # Feature-gated, platform-specific
 │   ├── mod.rs
-│   ├── poll/                       # (moved from src/poll/)
-│   ├── fd/                         # (moved from src/fd/)
-│   ├── net/                        # (moved from src/net/)
-│   └── watcher/                    # Platform-specific watcher impls
+│   ├── poll/                       # epoll/kqueue/IOCP
+│   ├── fd/                         # Unix RegisteredFd
+│   ├── net/                        # Unix TCP/UDP/UnixStream
+│   └── watcher/
 │       ├── mod.rs
-│       ├── linux.rs                # (moved from src/watcher/linux.rs)
-│       ├── unix.rs                 # (moved from src/watcher/unix.rs)
-│       └── windows.rs              # (moved from src/watcher/windows.rs)
-└── valtron/                        # Feature-gated, shareable
-    ├── mod.rs
-    ├── stop_signal.rs              # (moved from src/task/stop_signal.rs)
-    ├── broadcaster.rs              # (moved from src/task/mod.rs)
-    ├── file_watcher.rs             # (moved from src/task/mod.rs)
-    └── fd_monitor.rs               # (moved from src/task/fd_monitor.rs)
+│       ├── linux.rs                # inotify (watcher-linux)
+│       ├── unix.rs                 # kqueue EVFILT_VNODE (watcher-macos)
+│       └── windows.rs              # ReadDirectoryChangesW (watcher-windows)
+└── valtron/                        # Feature-gated (task)
+    ├── mod.rs                      # Re-exports shared + gates native
+    ├── broadcaster.rs              # shared — EventBroadcaster
+    ├── file_watcher.rs             # shared — FileWatcherTask
+    ├── stop_signal.rs              # shared — StopSignal, CompositeReadiness
+    └── native/
+        ├── mod.rs                  # #[cfg(feature = "fd")]
+        └── fd_monitor.rs           # native — FdMonitorTask
 ```
 
-## Crate-Root Re-exports (Backward Compatibility)
-
-The `lib.rs` re-exports everything at the crate root so existing imports don't break:
+## Crate-Root Re-exports
 
 ```rust
 // Always available
-pub use shared::{NativeWatcher, SharedWatcher, SharedNativeWatcher,
-                 WatchError, WatchEvent, WatchEventKind,
-                 NativeAPI, WatcherBuilder, native_watcher, Result};
+pub use shared::{
+    native_watcher, NativeAPI, NativeWatcher, PollWatcher,
+    SharedNativeWatcher, SharedWatcher, WatchError,
+    WatchEvent, WatchEventKind, WatcherBuilder, Result,
+};
 
 // Feature-gated
 #[cfg(feature = "poll")]
 pub use native::poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
 
 #[cfg(feature = "task")]
-pub use valtron::{EventBroadcaster, FdMonitorTask, FileWatcherTask, StopSignal, CompositeReadiness};
+pub use valtron::{EventBroadcaster, FdMonitorTask, FileWatcherTask,
+                  StopSignal, CompositeReadiness};
 ```
 
 ## Tasks
 
 ### Task 1: Move shared types to `shared/`
-
-- [ ] Create `src/shared/mod.rs`, move `error.rs`, `event.rs` into it
-- [ ] Create `src/shared/watcher/` with `mod.rs` (trait), `poll_watcher.rs`, `shared.rs`
-- [ ] Move `api.rs` → `shared/api.rs`, update imports
-- [ ] Update all `crate::error::`, `crate::event::`, `crate::watcher::`, `crate::api::` → `crate::shared::`
+- [x] Create `src/shared/mod.rs`, move `error.rs`, `event.rs` into it
+- [x] Create `src/shared/watcher/` with `mod.rs` (trait), `poll_watcher.rs`, `shared.rs`
+- [x] Move `api.rs` → `shared/api.rs`, update imports
+- [x] Update all `crate::error::`, `crate::event::`, `crate::watcher::`, `crate::api::` → `crate::shared::`
 
 ### Task 2: Move platform-specific code to `native/`
+- [x] Create `src/native/mod.rs`
+- [x] Move `poll/` → `native/poll/`, `fd/` → `native/fd/`, `net/` → `native/net/`
+- [x] Move `watcher/linux.rs`, `unix.rs`, `windows.rs` → `native/watcher/`
+- [x] Create `native/watcher/mod.rs` with platform cfg gates
+- [x] Update all internal imports within native
 
-- [ ] Create `src/native/mod.rs`
-- [ ] Move `poll/` → `native/poll/`, `fd/` → `native/fd/`, `net/` → `native/net/`
-- [ ] Move `watcher/linux.rs`, `unix.rs`, `windows.rs` → `native/watcher/`
-- [ ] Create `native/watcher/mod.rs` with platform cfg gates
-- [ ] Update all internal `crate::` → correct `super::` paths within native
-
-### Task 3: Create `valtron/` module from `task/`
-
-- [ ] Create `src/valtron/mod.rs`
-- [ ] Split `task/mod.rs` into: `valtron/stop_signal.rs`, `valtron/broadcaster.rs`, `valtron/file_watcher.rs`
-- [ ] Move `task/fd_monitor.rs` → `valtron/fd_monitor.rs`
-- [ ] Update imports: `native::fd` for FdMonitorTask, `shared::watcher` for FileWatcherTask
+### Task 3: Create `valtron/` module from `task/`, split shared vs native
+- [x] Create `src/valtron/mod.rs` with shared types
+- [x] Split into: `broadcaster.rs`, `file_watcher.rs`, `stop_signal.rs` (shared)
+- [x] Move `fd_monitor.rs` → `valtron/native/fd_monitor.rs` (native, behind `#[cfg(feature = "fd")]`)
+- [x] Update imports: `native::fd` for FdMonitorTask, `shared::watcher` for FileWatcherTask
 
 ### Task 4: Update `lib.rs` with new module declarations and re-exports
-
-- [ ] Declare `pub mod shared; pub mod native; pub mod valtron;`
-- [ ] Add cfg-gated re-exports at crate root for backward compatibility
-- [ ] Remove old flat module declarations
+- [x] Declare `pub mod shared; pub mod native; pub mod valtron;`
+- [x] Add cfg-gated re-exports at crate root for backward compatibility
+- [x] Remove old flat module declarations
 
 ### Task 5: Update `Cargo.toml` feature gates
+- [x] Remove `watcher` feature (PollWatcher always available)
+- [x] Make `watcher-linux/macos/windows` imply `poll`
+- [x] Change `task` from `["watcher", "fd"]` → `["fd"]`
+- [x] Set `default = ["task", "native"]` for sensible out-of-the-box behavior
+- [x] Update `native*` composite features
 
-- [ ] Remove `watcher` feature (PollWatcher is always available)
-- [ ] Make `watcher-linux/macos/windows` imply `poll` (for the poll selector)
-- [ ] Change `task` from `["watcher", "fd"]` → `["fd"]` (no longer needs watcher feature)
-- [ ] Update `native*` composite features
+### Task 6: FdMonitorTask use Depends instead of Delayed
+- [x] Replace `TaskStatus::Delayed(poll_interval)` with `TaskStatus::Depends(CompositeReadiness(fd, stop_signal))`
+- [x] Store fd behind `Arc<RegisteredFd<T>>` for `Arc<dyn EventReadiness>` cast
+- [x] Remove unused `poll_interval` field and `with_poll_interval()` method
+- [x] Add `Send + Sync + 'static` bounds for trait object casting
 
-### Task 6: Verify all tests pass
-
-- [ ] `cargo check -p foundation_nativeapis` (no features)
-- [ ] `cargo test -p foundation_nativeapis --features task,watcher-linux`
-- [ ] Fix any broken imports or paths
+### Task 7: Verify all tests pass
+- [x] `cargo check -p foundation_nativeapis` (no features) — clean
+- [x] `cargo test -p foundation_nativeapis --features task,watcher-linux` — 53 tests pass
+- [x] Fix all broken imports and paths across 7 test files
 
 ## Import Path Migration
 
@@ -212,6 +195,7 @@ pub use valtron::{EventBroadcaster, FdMonitorTask, FileWatcherTask, StopSignal, 
 | `crate::fd::RegisteredFd` | `crate::native::fd::RegisteredFd` |
 | `crate::task::FileWatcherTask` | `crate::valtron::FileWatcherTask` |
 | `crate::task::StopSignal` | `crate::valtron::StopSignal` |
+| `crate::task::FdMonitorTask` | `crate::valtron::native::FdMonitorTask` |
 
 ---
 

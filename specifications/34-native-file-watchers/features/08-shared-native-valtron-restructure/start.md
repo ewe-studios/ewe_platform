@@ -19,11 +19,13 @@ created: 2026-06-03
 
 **Critical Rules Summary:**
 
-1. **One-way dependency**: `native/` → `shared/`, `valtron/` → `shared/`, `valtron/` → `native::fd` (for FdMonitorTask). Never the reverse.
-2. **`shared/` is always compiled** — no `#[cfg(feature)]` gates on the module itself, only on platform-specific sub-items within `native/`
+1. **One-way dependency**: `native/` → `shared/`, `valtron/` → `shared/`, `valtron/native/` → `native::fd`. Never the reverse.
+2. **`shared/` is always compiled** — no `#[cfg(feature)]` gates on the module itself
 3. **Crate-root re-exports** — all types available at `foundation_nativeapis::X` for backward compatibility
-4. **Valtron tasks are shareable** — they don't belong in `native/`. `StopSignal`, `EventBroadcaster` are generic over `EventReadiness`, not tied to any OS API
-5. **`watcher` feature removed** — `PollWatcher` is always available; platform-specific watchers are individually gated (`watcher-linux`, `watcher-macos`, `watcher-windows`)
+4. **`valtron/` split into shared + native** — only `FdMonitorTask` needs `native::fd`; the rest (`broadcaster`, `file_watcher`, `stop_signal`) are purely shared
+5. **`FdMonitorTask` uses `TaskStatus::Depends`** — executor parks task until OS signals fd readiness; no wasted periodic polling
+6. **`watcher` feature removed** — `PollWatcher` always available; platform watchers individually gated
+7. **`default = ["task", "native"]`** — sensible out-of-the-box behavior; platform-specific watchers opt-in via `native-linux`, etc.
 
 ---
 
