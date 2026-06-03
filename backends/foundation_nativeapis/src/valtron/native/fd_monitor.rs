@@ -9,8 +9,8 @@ use foundation_core::valtron::{BoxedSendExecutionAction, EventReadiness, TaskIte
 
 use crate::native::fd::{PollResult, RegisteredFd};
 use crate::native::poll::Interest;
-use super::stop_signal::CompositeReadiness;
-use super::StopSignal;
+use super::super::stop_signal::CompositeReadiness;
+use super::super::StopSignal;
 
 /// A valtron task that monitors a RegisteredFd for readiness.
 ///
