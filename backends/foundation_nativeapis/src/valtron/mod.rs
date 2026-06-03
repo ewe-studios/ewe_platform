@@ -5,13 +5,12 @@
 ///
 /// The `native` sub-module (behind `#[cfg(feature = "fd")]`) contains tasks
 /// that require native OS APIs (e.g., `FdMonitorTask` uses `RegisteredFd`).
-
 mod broadcaster;
 mod file_watcher;
-pub use file_watcher::{FileWatcherBuilder, WatchEventStream};
 mod stop_signal;
 
 pub use broadcaster::Broadcaster;
+pub use file_watcher::FileWatcherBuilder;
 pub use file_watcher::FileWatcherTask;
 pub use stop_signal::{CompositeReadiness, StopSignal};
 
