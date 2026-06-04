@@ -1,6 +1,6 @@
 ---
 description: "Build minimal cross-platform file watching using native OS APIs (inotify, kqueue, ReadDirectoryChangesW) in foundation_nativeapis, plus a valtron watcher task that other tasks can start, subscribe to, and receive file events via queues."
-status: "pending"
+status: "completed"
 priority: "high"
 created: 2026-06-01
 updated: 2026-06-01
@@ -103,7 +103,7 @@ Then wire it into valtron as a first-class task type so other valtron tasks can 
 - [x] IPC cross-platform: macOS (mach_msg/kqueue), Windows (named pipes/IOCP) implemented
 - [x] IPC shared memory: `MemoryRegion` uses mmap on all platforms, zero-copy
 - [x] IPC typed messages: `MessageBox` blanket impl with `TypeUuid` type identification
-- [ ] Valtron integration tests: spawn watcher, touch file, receive event
+- [x] Valtron integration tests: spawn watcher, touch file, receive event
 
 ## Module References
 
