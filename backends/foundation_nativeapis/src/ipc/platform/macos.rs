@@ -19,11 +19,12 @@ use crate::ipc::{
 const MACH_PORT_TYPE_DEAD_NAME: mach_sys::mach_port_type_t = 1 << (4 + 16);
 
 mod mach_sys {
-    // Stub mach port bindings — full implementation requires mach_sys crate or manual bindings
+    #![allow(non_camel_case_types, non_upper_case_globals, dead_code)]
+
     pub type mach_port_t = u32;
     pub type mach_port_type_t = u32;
     pub type kern_return_t = i32;
-    pub type vm_prot_t = u32;
+    pub type vm_prot_t = i32;
     pub type vm_inherit_t = u32;
     pub type vm_address_t = usize;
     pub type vm_size_t = usize;
@@ -32,30 +33,42 @@ mod mach_sys {
     pub type mach_msg_bits_t = u32;
     pub type mach_msg_size_t = u32;
     pub type mach_msg_id_t = i32;
+    pub type mach_msg_timeout_t = u32;
+    pub type mach_msg_option_t = i32;
 
     pub const KERN_SUCCESS: kern_return_t = 0;
     pub const MACH_PORT_RIGHT_RECEIVE: u32 = 1;
     pub const MACH_PORT_RIGHT_SEND: u32 = 0;
     pub const MACH_PORT_QLIMIT_MAX: u32 = 1024;
     pub const MACH_PORT_LIMITS_INFO: u32 = 1;
-    pub const MACH_MSG_TYPE_COPY_SEND: mach_msg_type_name_t = 19;
+    pub const MACH_MSG_TYPE_COPY_SEND: u8 = 19;
+    pub const MACH_MSG_TYPE_MAKE_SEND: u8 = 20;
     pub const MACH_MSGH_BITS_COMPLEX: u32 = 0x80000000;
     pub const MACH_PORT_NULL: mach_port_t = 0;
-    pub const MACH_MSG_PORT_DESCRIPTOR: u32 = 0;
-    pub const MACH_RCV_MSG: u32 = 2;
-    pub const MACH_RCV_LARGE: u32 = 16;
-    pub const MACH_RCV_TIMEOUT: u32 = 256;
-    pub const MACH_RCV_TOO_LARGE: kern_return_t = 0x10000004;
+    pub const MACH_MSG_PORT_DESCRIPTOR: u8 = 0;
+    pub const MACH_SEND_MSG: i32 = 1;
+    pub const MACH_RCV_MSG: i32 = 2;
+    pub const MACH_RCV_LARGE: i32 = 4;
+    pub const MACH_RCV_TIMEOUT: i32 = 0x100;
+    pub const MACH_RCV_TOO_LARGE: kern_return_t = 0x10004004;
     pub const MACH_MSG_SUCCESS: kern_return_t = 0;
-    pub const MACH_RCV_TIMED_OUT: kern_return_t = 0x10000003;
-    pub const MACH_RCV_PORT_DIED: kern_return_t = 0x10000010;
-    pub const MACH_SEND_NO_BUFFER: kern_return_t = 0x10000009;
+    pub const MACH_RCV_TIMED_OUT: kern_return_t = 0x10004003;
+    pub const MACH_RCV_PORT_DIED: kern_return_t = 0x10004009;
+    pub const MACH_SEND_NO_BUFFER: kern_return_t = 0x1000000d;
     pub const BOOTSTRAP_SUCCESS: kern_return_t = 0;
-    pub const BOOTSTRAP_UNKNOWN_SERVICE: kern_return_t = 1;
-    pub const BOOTSTRAP_NOT_PRIVILEGED: kern_return_t = 2;
-    pub const BOOTSTRAP_NAME_IN_USE: kern_return_t = 3;
+    pub const BOOTSTRAP_UNKNOWN_SERVICE: kern_return_t = 1102;
+    pub const BOOTSTRAP_NOT_PRIVILEGED: kern_return_t = 1100;
+    pub const BOOTSTRAP_NAME_IN_USE: kern_return_t = 1101;
+    pub const TASK_BOOTSTRAP_PORT: u32 = 4;
+    pub const VM_FLAGS_ANYWHERE: i32 = 0x0001;
+    pub const VM_PROT_READ: vm_prot_t = 0x01;
+    pub const VM_PROT_WRITE: vm_prot_t = 0x02;
+    pub const VM_PROT_DEFAULT: vm_prot_t = VM_PROT_READ | VM_PROT_WRITE;
+    pub const MAP_MEM_NAMED_CREATE: vm_prot_t = 0x020000;
+    pub const VM_INHERIT_NONE: vm_inherit_t = 2;
 
     #[repr(C)]
+    #[derive(Default)]
     pub struct mach_msg_header_t {
         pub msgh_bits: mach_msg_bits_t,
         pub msgh_size: mach_msg_size_t,
@@ -66,6 +79,7 @@ mod mach_sys {
     }
 
     #[repr(C)]
+    #[derive(Default)]
     pub struct mach_msg_body_t {
         pub msgh_descriptor_count: mach_msg_size_t,
     }
@@ -73,35 +87,16 @@ mod mach_sys {
     #[repr(C)]
     pub struct mach_msg_port_descriptor_t {
         pub name: mach_port_t,
-        pub pad1: u32,
+        pub pad1: mach_msg_size_t,
         pub pad2: u16,
-        pub disposition: mach_msg_type_name_t,
-        pub type_: u32,
+        pub disposition: u8,
+        pub type_: u8,
     }
 
     #[repr(C)]
     pub struct mach_msg_trailer_t {
-        pub message_type: u32,
-        pub pad: [u8; 12],
-    }
-
-    // Stub functions — full implementation requires linking against libSystem
-    extern "C" {
-        pub fn mach_task_self() -> mach_port_t;
-        pub fn mach_port_allocate(task: mach_port_t, right: u32, name: *mut mach_port_t) -> kern_return_t;
-        pub fn mach_port_insert_right(task: mach_port_t, port: mach_port_t, name: mach_port_t, disposition: mach_msg_type_name_t) -> kern_return_t;
-        pub fn mach_port_set_attributes(task: mach_port_t, port: mach_port_t, flavor: u32, info: *mut mach_port_limits_t, count: u32) -> kern_return_t;
-        pub fn mach_port_mod_refs(task: mach_port_t, name: mach_port_t, right: u32, delta: i32) -> kern_return_t;
-        pub fn mach_port_deallocate(task: mach_port_t, name: mach_port_t) -> kern_return_t;
-        pub fn mach_port_type(task: mach_port_t, name: mach_port_t, type_: *mut mach_port_type_t) -> kern_return_t;
-        pub fn mach_msg(msg: *mut mach_msg_header_t, option: u32, send_size: mach_msg_size_t, rcv_size: mach_msg_size_t, rcv_name: mach_port_t, timeout: u32, notify: mach_port_t) -> kern_return_t;
-        pub fn mach_make_memory_entry_64(task: mach_port_t, size: *mut u64, offset: u64, protection: vm_prot_t, object_handle: *mut mach_port_t, parent_handle: mach_port_t) -> kern_return_t;
-        pub fn vm_map(task: mach_port_t, address: *mut vm_address_t, size: vm_size_t, mask: vm_address_t, flags: u32, object: mach_port_t, offset: vm_offset_t, copy: u32, cur_protection: vm_prot_t, max_protection: vm_prot_t, inheritance: vm_inherit_t) -> kern_return_t;
-        pub fn vm_deallocate(task: mach_port_t, address: vm_address_t, size: vm_size_t) -> kern_return_t;
-        pub fn bootstrap_look_up(bs: mach_port_t, service_name: *const i8, service_port: *mut mach_port_t) -> kern_return_t;
-        pub fn bootstrap_register(bs: mach_port_t, service_name: *const i8, service_port: mach_port_t) -> kern_return_t;
-        pub fn task_get_special_port(task: mach_port_t, which: u32, port: *mut mach_port_t) -> kern_return_t;
-        pub fn vm_page_mask: usize;
+        pub msgh_trailer_type: u32,
+        pub msgh_trailer_size: u32,
     }
 
     #[repr(C)]
@@ -109,16 +104,31 @@ mod mach_sys {
         pub mpl_qlimit: u32,
     }
 
-    pub const TASK_BOOTSTRAP_PORT: u32 = 4;
-    pub const MACH_MSGH_BITS_COMPLEX: u32 = 0x80000000;
-    pub const VM_FLAGS_ANYWHERE: u32 = 0x0001;
-    pub const VM_PROT_READ: vm_prot_t = 0x01;
-    pub const VM_PROT_WRITE: vm_prot_t = 0x02;
-    pub const VM_PROT_DEFAULT: vm_prot_t = VM_PROT_READ | VM_PROT_WRITE;
-    pub const MAP_MEM_NAMED_CREATE: vm_prot_t = 0x020000;
-    pub const VM_INHERIT_NONE: vm_inherit_t = 2;
+    extern "C" {
+        pub static mut mach_task_self_: mach_port_t;
+        pub static vm_page_mask: vm_size_t;
 
-    pub static mut vm_page_mask: usize = 0;
+        pub fn mach_port_allocate(task: mach_port_t, right: u32, name: *mut mach_port_t) -> kern_return_t;
+        pub fn mach_port_insert_right(task: mach_port_t, port: mach_port_t, name: mach_port_t, disposition: mach_msg_type_name_t) -> kern_return_t;
+        pub fn mach_port_set_attributes(task: mach_port_t, port: mach_port_t, flavor: u32, info: *mut mach_port_limits_t, count: u32) -> kern_return_t;
+        pub fn mach_port_mod_refs(task: mach_port_t, name: mach_port_t, right: u32, delta: i32) -> kern_return_t;
+        pub fn mach_port_deallocate(task: mach_port_t, name: mach_port_t) -> kern_return_t;
+        pub fn mach_port_type(task: mach_port_t, name: mach_port_t, type_: *mut mach_port_type_t) -> kern_return_t;
+        pub fn mach_msg(msg: *mut mach_msg_header_t, option: mach_msg_option_t, send_size: mach_msg_size_t, rcv_size: mach_msg_size_t, rcv_name: mach_port_t, timeout: mach_msg_timeout_t, notify: mach_port_t) -> kern_return_t;
+        pub fn mach_msg_send(msg: *mut mach_msg_header_t) -> kern_return_t;
+        pub fn mach_make_memory_entry_64(task: mach_port_t, size: *mut u64, offset: u64, protection: vm_prot_t, object_handle: *mut mach_port_t, parent_handle: mach_port_t) -> kern_return_t;
+        pub fn vm_map(task: mach_port_t, address: *mut vm_address_t, size: vm_size_t, mask: vm_address_t, flags: i32, object: mach_port_t, offset: vm_offset_t, copy: u32, cur_protection: vm_prot_t, max_protection: vm_prot_t, inheritance: vm_inherit_t) -> kern_return_t;
+        pub fn vm_deallocate(task: mach_port_t, address: vm_address_t, size: vm_size_t) -> kern_return_t;
+        pub fn bootstrap_look_up(bs: mach_port_t, service_name: *const i8, service_port: *mut mach_port_t) -> kern_return_t;
+        pub fn bootstrap_register(bs: mach_port_t, service_name: *const i8, service_port: mach_port_t) -> kern_return_t;
+        pub fn bootstrap_parent(bs: mach_port_t, parent: *mut mach_port_t) -> kern_return_t;
+        pub fn task_get_special_port(task: mach_port_t, which: i32, port: *mut mach_port_t) -> kern_return_t;
+    }
+
+    #[inline]
+    pub unsafe fn mach_task_self() -> mach_port_t {
+        mach_task_self_
+    }
 }
 
 /// Mach port wrapper.
@@ -456,20 +466,19 @@ impl EncodedMessage {
 
     pub fn send(&mut self, remote: &Remote) -> Result<(), Error> {
         unsafe {
-            let header_ptr = self.mach_msg.as_mut_ptr() as *mut BaseMessage;
-            (*header_ptr).header.msgh_remote_port = remote.port.as_raw();
+            let header_ptr = self.mach_msg.as_mut_ptr() as *mut mach_sys::mach_msg_header_t;
+            (*header_ptr).msgh_remote_port = remote.port.as_raw();
 
             for r in self.memory_regions.iter() {
                 r.ref_count_inner(1);
             }
 
             loop {
-                let r = mach_sys::mach_msg(header_ptr as *mut _, mach_sys::MACH_SEND_MSG | mach_sys::MACH_RCV_MSG,
-                    (*header_ptr).header.msgh_size, 0, remote.port.as_raw(), 0, mach_sys::MACH_PORT_NULL);
+                let r = mach_sys::mach_msg_send(header_ptr);
                 if r == mach_sys::MACH_MSG_SUCCESS {
                     break Ok(());
                 } else if r == mach_sys::MACH_SEND_NO_BUFFER {
-                    thread::sleep(Duration::from_millis(200));
+                    std::thread::sleep(Duration::from_millis(200));
                 } else {
                     for r in self.memory_regions.iter() {
                         r.ref_count_inner(-1);
@@ -484,8 +493,8 @@ impl EncodedMessage {
         }
     }
 
-    pub fn from_local(local: &mut Local) -> Result<Self, Error> {
-        match local.0.read() {
+    pub fn from_local(pipe: &mut Pipe) -> Result<Self, Error> {
+        match pipe.read() {
             Some(mach_msg) => Self::new(mach_msg),
             None => Err(Error::Disconnect),
         }
@@ -526,6 +535,99 @@ impl EncodedMessage {
                 selector, payload_data: slice::from_raw_parts(payload_size_ptr.offset(1) as *const u8, *payload_size_ptr as _),
                 mach_msg, objects, memory_regions,
             })
+        }
+    }
+}
+
+#[inline]
+fn mach_msgh_bits_set(remote: u8, local: u8, _voucher: u8, other: u32) -> u32 {
+    ((remote as u32) & 0x1f) | (((local as u32) & 0x1f) << 8) | other
+}
+
+impl<T: MessageBox> Message<T> {
+    fn encode_inner(&self) -> (&'static [u8], Vec<u8>) {
+        let selector_data = bincode::serde::encode_to_vec(&self.selector, bincode::config::standard())
+            .expect("selector encode");
+        let payload_data = self.payload.encode().expect("payload encode");
+
+        let object_count = self.objects.len() + self.memory_regions.len();
+        let descriptors_size = object_count * mem::size_of::<mach_sys::mach_msg_port_descriptor_t>();
+        let data_size =
+            4 /* version */ + 4 /* selector_size */ + selector_data.len().align4()
+            + 4 /* payload_size */ + payload_data.len().align4();
+        let total = mem::size_of::<BaseMessage>() + descriptors_size + data_size;
+
+        let mut buf: Vec<u8> = Vec::with_capacity(total);
+        buf.resize(total, 0);
+
+        unsafe {
+            let base_ptr = buf.as_mut_ptr() as *mut BaseMessage;
+
+            let bits = if object_count > 0 {
+                mach_msgh_bits_set(
+                    mach_sys::MACH_MSG_TYPE_COPY_SEND, 0, 0,
+                    mach_sys::MACH_MSGH_BITS_COMPLEX,
+                )
+            } else {
+                mach_msgh_bits_set(mach_sys::MACH_MSG_TYPE_COPY_SEND, 0, 0, 0)
+            };
+            (*base_ptr).header.msgh_bits = bits;
+            (*base_ptr).header.msgh_size = total as u32;
+            (*base_ptr).body.msgh_descriptor_count = object_count as u32;
+
+            let mut desc_ptr = base_ptr.offset(1) as *mut mach_sys::mach_msg_port_descriptor_t;
+            for obj in &self.objects {
+                (*desc_ptr).name = obj.as_raw();
+                (*desc_ptr).disposition = mach_sys::MACH_MSG_TYPE_COPY_SEND;
+                (*desc_ptr).type_ = mach_sys::MACH_MSG_PORT_DESCRIPTOR;
+                desc_ptr = desc_ptr.offset(1);
+            }
+            for mr in &self.memory_regions {
+                (*desc_ptr).name = mr.object().as_raw();
+                (*desc_ptr).disposition = mach_sys::MACH_MSG_TYPE_COPY_SEND;
+                (*desc_ptr).type_ = mach_sys::MACH_MSG_PORT_DESCRIPTOR;
+                desc_ptr = desc_ptr.offset(1);
+            }
+
+            let data_ptr = desc_ptr as *mut u8;
+            let version_ptr = data_ptr as *mut u32;
+            let v = crate::ipc::version::version();
+            *version_ptr = u32::from_ne_bytes([0xFF, v.major(), v.minor(), v.patch()]);
+
+            let selector_size_ptr = version_ptr.offset(1);
+            *selector_size_ptr = selector_data.len() as u32;
+            let selector_dst = selector_size_ptr.offset(1) as *mut u8;
+            ptr::copy_nonoverlapping(selector_data.as_ptr(), selector_dst, selector_data.len());
+
+            let payload_size_ptr = selector_dst.offset(selector_data.len().align4() as _) as *mut u32;
+            *payload_size_ptr = payload_data.len() as u32;
+            let payload_dst = payload_size_ptr.offset(1) as *mut u8;
+            ptr::copy_nonoverlapping(payload_data.as_ptr(), payload_dst, payload_data.len());
+        }
+
+        let payload_ref: &'static [u8] = unsafe {
+            let base_ptr = buf.as_ptr() as *const BaseMessage;
+            let desc_end = (base_ptr.offset(1) as *const mach_sys::mach_msg_port_descriptor_t)
+                .offset(object_count as _) as *const u8;
+            let version_ptr = desc_end as *const u32;
+            let selector_size_ptr = version_ptr.offset(1);
+            let selector_ptr = selector_size_ptr.offset(1) as *const u8;
+            let payload_size_ptr = selector_ptr.offset((*selector_size_ptr).align4() as _) as *const u32;
+            slice::from_raw_parts(payload_size_ptr.offset(1) as *const u8, *payload_size_ptr as usize)
+        };
+
+        (payload_ref, buf)
+    }
+
+    pub(crate) fn into_encoded(mut self) -> EncodedMessage {
+        self.selector.memory_region_count = self.memory_regions.len() as u16;
+        let (payload_data, mach_msg) = self.encode_inner();
+        EncodedMessage {
+            selector: self.selector,
+            payload_data,
+            mach_msg,
+            objects: self.objects,
+            memory_regions: self.memory_regions,
         }
     }
 }

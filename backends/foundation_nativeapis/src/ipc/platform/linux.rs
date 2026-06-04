@@ -9,7 +9,6 @@ pub(crate) use fd::{Fd, Local, Remote};
 pub(crate) use encoded_message::EncodedMessage;
 pub(crate) use encoded_message::alloc_buffer;
 pub(crate) use io_mul::IoMultiplexing;
-pub(crate) use bus_controller_impl::BusController;
 
 use crate::ipc::{
     version::version, version::Version, util::EndpointID, Error, Label, LabelOp, MemoryRegion, MessageBox, Message,
@@ -19,7 +18,6 @@ use crate::ipc::{
 pub mod fd;
 pub mod encoded_message;
 pub mod io_mul;
-mod bus_controller_impl;
 
 static MAXIMUM_BUF_SIZE: i32 = 64 << 10;
 

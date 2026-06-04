@@ -1,4 +1,7 @@
-/// Linux IPC bus controller — routes messages between endpoints based on label selectors.
+/// IPC bus controller — routes messages between endpoints based on label selectors.
+///
+/// Platform-agnostic: uses `EncodedMessage`, `IoHub`, and `Remote` which are
+/// re-exported per-platform from the parent module.
 
 use std::{mem, sync::mpsc::Sender, thread, time::{Duration, Instant}};
 
@@ -7,11 +10,8 @@ use crate::ipc::{
     ConnectMessage, ConnectMessageAck, Message,
     EndpointID, Error, Label, LabelOp, Selector, SelectorMode,
 };
-use super::fd::Remote;
-use super::encoded_message::EncodedMessage;
+use super::{Remote, EncodedMessage, IoHub};
 use foundation_core::type_uuid::TypeUuid;
-
-use super::IoHub;
 
 struct Endpoint {
     id: EndpointID,

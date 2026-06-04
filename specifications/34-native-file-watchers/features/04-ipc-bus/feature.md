@@ -1,7 +1,7 @@
 ---
 feature: "Interprocess Message Bus (IPC)"
 description: "Cross-platform IPC bus with typed messaging, shared memory (MemoryRegion), kernel object passing (FD/Handle/MachPort), and FFI bindings — adapted from ipmb"
-status: "in_progress"
+status: "completed"
 priority: "medium"
 depends_on: ["01-native-apis"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-01
 last_updated: 2026-06-04
 author: "Main Agent"
 tasks:
-  completed: 11
-  uncompleted: 5
+  completed: 16
+  uncompleted: 0
   total: 16
-  completion_percentage: 69%
+  completion_percentage: 100%
 ---
 
 # Feature: Interprocess Message Bus (IPC)
@@ -1275,19 +1275,19 @@ cargo check -p foundation_nativeapis --features "ipc" --target wasm32-unknown-un
 5. [x] Create `src/ipc/platform/mod.rs` — `Object`, `MemoryRegion` with `MappedRegion`, ref counting, `from_object`
 6. [x] Create `src/ipc/platform/linux.rs` — `look_up`/`register`, `IoHub` (epoll), `SOCK_SEQPACKET`, abstract sockets, `SCM_RIGHTS`, `memfd_create`/`mmap`
 7. [x] Create `src/ipc/platform/linux/io_mul.rs` — `IoMultiplexing` (epoll + eventfd waker)
-8. [ ] Fix `src/ipc/platform/macos.rs` — Mach ports, kqueue, `mach_msg` (code ~90% written but won't compile)
-9. [ ] Implement `src/ipc/platform/windows.rs` — Named pipes, `CreateFileMapping` (currently all stubs)
+8. [x] Fix `src/ipc/platform/macos.rs` — Mach ports, kqueue, `mach_msg`, `Message::into_encoded`, fixed FFI bindings
+9. [x] Implement `src/ipc/platform/windows.rs` — Named pipes, IOCP, `CreateFileMapping`, `DuplicateHandle`
 
 #### 3. FFI Layer
-10. [ ] Implement `src/ipc/ffi.rs` — `extern "C"` functions (currently all return -1)
-11. [ ] Create `include/ipmb.h` — C header (does not exist yet)
+10. [x] Implement `src/ipc/ffi.rs` — `extern "C"` functions with Box-managed opaque types
+11. [x] Create `include/ipmb.h` — C header with opaque types and function prototypes
 
 #### 4. Integration & Build
 12. [x] Add `serde` + `bincode` + `type-uuid` + `uuid` + `once_cell` dependencies
 13. [x] `MessageBox` via `type-uuid` blanket impl (no custom derive crate needed)
 14. [x] Fix workspace build — removed empty `foundation_ipc_derive` directory
 15. [x] Write integration tests — 9 tests (loopback, two-thread, custom types, multicast, unicast, shared memory, token mismatch, sequence, multithreaded sender)
-16. [ ] Verify `Label` type design — our `Label(String)` vs ipmb's `Label(SmallVec<[SmolStr; 8]>)` set semantics
+16. [x] Label type: `Label(String)` — single-label by design. ipmb uses multi-label `SmallVec<[SmolStr; 8]>` but our valtron endpoints have distinct roles, so single-label is sufficient. Can upgrade later if needed.
 
 ## Trade-offs
 
