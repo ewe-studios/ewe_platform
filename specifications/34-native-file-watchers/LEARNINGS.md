@@ -29,3 +29,13 @@
     - `OwnedFd` methods (`as_raw_fd`, `as_fd`, `into_raw_fd`, `from_raw_fd`) require explicit trait imports
     - `HashMap::new()` is not const — use `OnceLock<Mutex<...>>` pattern for lazy static initialization
     - mmap-backed `MemoryRegion` with raw `*mut u8` + `AtomicU32` casting caused SIGSEGV in tests — safer to use `Vec<u8>` backing
+
+12. **IPC feature 04 complete — ipmb-compatible implementation**: 
+    - `join()` uses `Rule::join()` which calls `look_up()` (connect to bus via abstract socket, create socketpair for reply channel, send ConnectMessage with socketpair write fd as object, wait for ack). If bus doesn't exist and `controller_affinity` is true, calls `register()` to become controller. Retries with 2s backoff.
+    - `MessageBox` is a blanket impl for `TypeUuid + Serialize + Deserialize + Send + 'static` — NOT a custom derive trait
+    - `Selector` needs `uuid: [u8; 16]` (type ID from `TypeUuid::UUID`) and `memory_region_count: u16`
+    - `EncodedMessage` uses `MSG_PEEK | MSG_TRUNC` to discover message size before receiving
+    - `MemoryRegion` uses `MappedRegion` abstraction — maps with page alignment, stores `&'static mut [u8]`
+    - `IoHub` is the per-connection event loop — polls listener (accept), local sockets (recv), mpsc channel (controller mode)
+    - Linux: `memfd_create` + `mmap`, `SCM_RIGHTS` for FD passing, epoll + eventfd
+    - macOS: `mach_make_memory_entry_64` + `vm_map`, `mach_msg` for send/recv, `bootstrap_register/look_up`
