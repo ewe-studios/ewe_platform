@@ -9,7 +9,7 @@ use crate::ipc::{
 };
 use super::fd::Remote;
 use super::encoded_message::EncodedMessage;
-use type_uuid::TypeUuid;
+use foundation_core::type_uuid::TypeUuid;
 
 use super::IoHub;
 

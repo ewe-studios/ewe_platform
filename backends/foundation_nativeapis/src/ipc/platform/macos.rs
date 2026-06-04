@@ -7,7 +7,7 @@ use std::{
     ptr, slice, sync::{mpsc, Arc, Mutex, Once, mpsc::{Receiver, Sender, TryRecvError}},
     time::{Duration, Instant},
 };
-use type_uuid::TypeUuid;
+use foundation_core::type_uuid::TypeUuid;
 
 use crate::ipc::{
     decode, version::version, version::Version,

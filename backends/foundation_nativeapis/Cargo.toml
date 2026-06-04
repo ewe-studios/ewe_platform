@@ -16,7 +16,7 @@ concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
-type-uuid = { version = "0.1", optional = true }
+foundation_macros = { workspace = true, optional = true }
 once_cell = { version = "1", optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
@@ -38,6 +38,7 @@ windows-sys = { version = "0.59", features = [
 ]}
 
 [dev-dependencies]
+foundation_macros = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 nix = { version = "0.29", features = ["fs", "poll"] }
@@ -64,7 +65,7 @@ watcher-windows = ["poll"]
 uring = ["dep:io-uring"]
 
 # Interprocess message bus (adapted from ipmb)
-ipc = ["dep:bincode", "dep:type-uuid", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
+ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

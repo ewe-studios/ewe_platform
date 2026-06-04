@@ -3,7 +3,7 @@
 /// Selectors determine which endpoints receive a message based on
 /// label expressions, delivery mode (unicast/multicast), and the payload's type UUID.
 
-use type_uuid::Bytes;
+use foundation_core::type_uuid::Bytes;
 
 use super::label::LabelOp;
 use super::selector;

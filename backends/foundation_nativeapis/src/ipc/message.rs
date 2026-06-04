@@ -4,7 +4,8 @@
 /// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
 
 use serde::{Deserialize, Serialize};
-use type_uuid::{Bytes, TypeUuid};
+use foundation_core::type_uuid::{Bytes, TypeUuid};
+use foundation_macros::TypeUuid;
 
 use super::{EndpointID, Error, Label, MemoryRegion, Object, Selector, Version};
 

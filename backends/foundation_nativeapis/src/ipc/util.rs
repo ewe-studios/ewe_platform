@@ -3,7 +3,7 @@
 use std::ops::{Bound, RangeBounds};
 
 use serde::{Deserialize, Serialize};
-use type_uuid::Bytes;
+use foundation_core::type_uuid::Bytes;
 
 /// 4-byte alignment utility for wire format padding.
 pub trait Align4 {

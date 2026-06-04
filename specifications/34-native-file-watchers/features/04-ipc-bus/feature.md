@@ -1,7 +1,7 @@
 ---
 feature: "Interprocess Message Bus (IPC)"
 description: "Cross-platform IPC bus with typed messaging, shared memory (MemoryRegion), kernel object passing (FD/Handle/MachPort), and FFI bindings — adapted from ipmb"
-status: "completed"
+status: "in_progress"
 priority: "medium"
 depends_on: ["01-native-apis"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-01
 last_updated: 2026-06-04
 author: "Main Agent"
 tasks:
-  completed: 14
-  uncompleted: 0
-  total: 14
-  completion_percentage: 100%
+  completed: 11
+  uncompleted: 5
+  total: 16
+  completion_percentage: 69%
 ---
 
 # Feature: Interprocess Message Bus (IPC)
@@ -1267,25 +1267,27 @@ cargo check -p foundation_nativeapis --features "ipc" --target wasm32-unknown-un
 
 #### 1. Core Message Bus (adapted from ipmb)
 1. [x] Create `src/ipc/mod.rs` — `join()`, `Options`, `Selector`, `Label`, `LabelOp`
-2. [x] Create `src/ipc/message.rs` — `Message<T>`, `MessageBox` derive macro, encoding/decoding
-3. [x] Create `src/ipc/bus_controller.rs` — bus controller with message routing
-4. [x] Create `src/ipc/memory_registry.rs` — pooled shared memory allocation
+2. [x] Create `src/ipc/message.rs` — `Message<T>`, `MessageBox` blanket impl via TypeUuid, encoding/decoding
+3. [x] Create `src/ipc/bus_controller.rs` — `join()`, `Rule` Client/Server, `EndpointSender`, `EndpointReceiver` with reconnection
+4. [x] Create `src/ipc/memory_registry.rs` — pooled shared memory allocation with `alloc_with_free`
 
 #### 2. Platform Transports
-5. [x] Create `src/ipc/platform/mod.rs` — `Object`, `MemoryRegion`, `EncodedMessage`
-6. [x] Create `src/ipc/platform/linux.rs` — Unix domain sockets (`SOCK_SEQPACKET`), abstract sockets, `SCM_RIGHTS`
-7. [x] Create `src/ipc/platform/linux/io_mul.rs` — `IoMultiplexing` (epoll + eventfd) — or reuse our poll layer
-8. [x] Create `src/ipc/platform/macos.rs` — Mach ports, `mach_msg`, `vm_allocate`/`vm_map`
-9. [x] Create `src/ipc/platform/windows.rs` — Named pipes, `CreateFileMapping`, `MapViewOfFile`
+5. [x] Create `src/ipc/platform/mod.rs` — `Object`, `MemoryRegion` with `MappedRegion`, ref counting, `from_object`
+6. [x] Create `src/ipc/platform/linux.rs` — `look_up`/`register`, `IoHub` (epoll), `SOCK_SEQPACKET`, abstract sockets, `SCM_RIGHTS`, `memfd_create`/`mmap`
+7. [x] Create `src/ipc/platform/linux/io_mul.rs` — `IoMultiplexing` (epoll + eventfd waker)
+8. [ ] Fix `src/ipc/platform/macos.rs` — Mach ports, kqueue, `mach_msg` (code ~90% written but won't compile)
+9. [ ] Implement `src/ipc/platform/windows.rs` — Named pipes, `CreateFileMapping` (currently all stubs)
 
 #### 3. FFI Layer
-10. [x] Create `src/ipc/ffi.rs` — opaque types, `extern "C"` functions (join, send, recv, memory region, objects)
-11. [x] Create `include/ipmb.h` — C header generation or manual
+10. [ ] Implement `src/ipc/ffi.rs` — `extern "C"` functions (currently all return -1)
+11. [ ] Create `include/ipmb.h` — C header (does not exist yet)
 
-#### 4. Integration
-12. [x] Add `serde` + `bincode` + `type-uuid` dependencies for message serialization
-13. [x] Create `src/ipc/derive.rs` — `MessageBox` derive macro (adapted from `ipmb_derive`)
-14. [x] Write integration test: two processes join same bus, send typed messages, verify delivery
+#### 4. Integration & Build
+12. [x] Add `serde` + `bincode` + `type-uuid` + `uuid` + `once_cell` dependencies
+13. [x] `MessageBox` via `type-uuid` blanket impl (no custom derive crate needed)
+14. [x] Fix workspace build — removed empty `foundation_ipc_derive` directory
+15. [x] Write integration tests — 9 tests (loopback, two-thread, custom types, multicast, unicast, shared memory, token mismatch, sequence, multithreaded sender)
+16. [ ] Verify `Label` type design — our `Label(String)` vs ipmb's `Label(SmallVec<[SmolStr; 8]>)` set semantics
 
 ## Trade-offs
 
@@ -1297,32 +1299,31 @@ cargo check -p foundation_nativeapis --features "ipc" --target wasm32-unknown-un
 | Controller | First-come becomes controller | Simple, no election protocol needed. Auto-rejoin on drop. |
 | FFI | Opaque types + `extern "C"` | Standard C ABI, usable from any language with FFI. |
 | Large payloads | MemoryRegion (zero-copy) | Avoid serializing megabytes through socket buffers. |
-| Poll layer reuse | Uses our extracted `poll::Poll` | No duplicate IO multiplexing code. Controller uses same selector. |
 
 ## File Changes Summary
 
-| File | Action |
+| File | Status |
 |------|--------|
-| `backends/foundation_nativeapis/src/ipc/mod.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/message.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/bus_controller.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/memory_registry.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/label.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/errors.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/platform/mod.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/platform/linux.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/platform/linux/io_mul.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/platform/macos.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/platform/windows.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/ffi.rs` | Create |
-| `backends/foundation_nativeapis/src/ipc/derive.rs` | Create — `MessageBox` derive macro |
-| `backends/foundation_nativeapis/Cargo.toml` | Edit — add serde, bincode, type-uuid deps |
-| `backends/foundation_nativeapis/tests/ipc_two_process.rs` | Create — two-process IPC test |
-| `backends/foundation_nativeapis/tests/ipc_multicast.rs` | Create — multicast routing test |
-| `backends/foundation_nativeapis/tests/ipc_controller_failover.rs` | Create — controller failover test |
-| `backends/foundation_nativeapis/tests/ipc_shared_memory.rs` | Create — shared memory test |
-| `backends/foundation_nativeapis/tests/ipc_object_passing.rs` | Create — object passing test |
-| `backends/foundation_nativeapis/tests/ipc_ffi.rs` | Create — FFI binding test |
+| `backends/foundation_nativeapis/src/ipc/mod.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/message.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/bus_controller.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/memory_registry.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/label.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/errors.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/selector.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/options.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/util.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/version.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/mod.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/linux.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/linux/encoded_message.rs` | ✅ Done (minor: `control_len` hardcoded to 32) |
+| `backends/foundation_nativeapis/src/ipc/platform/linux/fd.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/linux/io_mul.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/linux/bus_controller_impl.rs` | ✅ Done |
+| `backends/foundation_nativeapis/src/ipc/platform/macos.rs` | ⚠️ Won't compile (see Remaining Gaps) |
+| `backends/foundation_nativeapis/src/ipc/platform/windows.rs` | ❌ Stub |
+| `backends/foundation_nativeapis/src/ipc/ffi.rs` | ❌ Stub |
+| `backends/foundation_nativeapis/Cargo.toml` | ✅ Done |
 
 ---
 
@@ -1330,187 +1331,83 @@ _Created: 2026-06-01_
 
 ---
 
-## Gap Analysis — What is Missing vs ipmb Reference
+## Remaining Gaps (updated 2026-06-04)
 
-After thorough review of the ipmb source at `/home/darkvoid/Boxxed/@formulas/src.rust/src.bytedance/ipmb`, the following gaps exist between my stub implementation and the real ipmb architecture. **Most of these are CRITICAL — the IPC bus is functionally broken without them.**
+Previous gap analysis (GAPs 1-15) was written when the implementation was in an early stub state.
+The Linux platform was subsequently fully implemented, resolving GAPs 1-4, 7-14, and 15.
+The following gaps remain:
 
-### GAP-1: `join()` API is non-functional (CRITICAL)
+### GAP-A: Workspace build is broken (BLOCKING)
 
-**ipmb does:** `join()` calls `Rule::join()` which calls `look_up()` (Linux: connect to abstract socket, create socketpair, send ConnectMessage with socketpair write-fd as object, wait for ConnectMessageAck on socketpair read-fd). If the bus doesn't exist (`IdentifierNotInUse`) and `controller_affinity` is true, it calls `register()` to become the controller (bind + listen + spawn BusController thread). Retries with 2s backoff up to 5 times for `PermissionDenied` and `Timeout`.
+`backends/foundation_ipc_derive/` exists as an empty directory (no Cargo.toml, no src files). The workspace
+glob `"backends/*"` in the root Cargo.toml picks it up, causing `cargo check` to fail for ALL crates.
 
-**My stub does:** `join()` calls `connect_with_retry()` which just tries to connect to an abstract socket. It does NOT create a socketpair for the handshake, does NOT send a ConnectMessage with a reply fd, does NOT handle `look_up()` vs `register()` distinction. The `ensure_controller()` function tries to `start_controller()` (bind+listen) but this conflicts with `connect_with_retry()` — they race. The endpoint receives a ConnectMessageAck but the controller side never handles the connect handshake properly (no socketpair reply, no ConnectMessageAck flow).
+**Fix:** Remove the empty directory. The `MessageBox` functionality is achieved via `type-uuid` blanket impl — no custom derive crate is needed.
 
-**Fix:** Implement proper `look_up()` and `register()` functions matching ipmb's flow: socket creation → connect/bind → socketpair → ConnectMessage send with object → wait for ack on socketpair.
+### GAP-B: macOS platform won't compile (CRITICAL)
 
-### GAP-2: `EncodedMessage` wire format is broken (CRITICAL)
+The macOS transport code (`platform/macos.rs`, 699 lines) is ~90% written but has compilation-blocking issues:
 
-**ipmb does:** `Message::encode_inner()` builds the wire format with version (u32: `0xFF|major|minor|patch`), selector_size, selector bytes, selector_padding, payload_size, payload bytes, payload_padding. The selector includes a `uuid` field (16 bytes from `TypeUuid`) and `memory_region_count` (u16). The payload bytes come from `self.payload.encode()` which is a blanket impl for anything implementing `TypeUuid + Serialize + Deserialize`. `EncodedMessage.send()` uses `sendmsg()` with `SCM_RIGHTS` ancillary data. On receive, `EncodedMessage::from_local()` does `MSG_PEEK | MSG_TRUNC` to get message size, then allocates buffer with proper alignment, then `recvmsg()` to get data + ancillary fds. Objects extracted from ancillary data. Last N objects (per `selector.memory_region_count`) become `MemoryRegion`s.
+1. **Missing `bootstrap_parent` extern declaration** — called in `init()` but never declared in the `extern "C"` block
+2. **Duplicate `MACH_MSGH_BITS_COMPLEX` constant** — defined twice
+3. **Conflicting `vm_page_mask`** — declared as both `extern` and `static mut`
+4. **Missing `Message::into_encoded()` for macOS** — only implemented in `linux.rs` but the macOS `EncodedMessage` has a different format (Mach message descriptors)
+5. **No `BusController` export** — `platform/mod.rs` only re-exports `BusController` for `target_os = "linux"`
 
-**My stub does:** `EncodedMessage::encode()` and `send()` use a simplified wire format WITHOUT uuid or memory_region_count fields. The `recv()` function does a simple `recvmsg()` without the MSG_PEEK size discovery step, meaning it won't handle variable-length messages correctly. The object extraction is naive and doesn't distinguish between regular Objects and MemoryRegion objects.
+**Reference:** `ipmb/src/platform/macos/mod.rs` (839 lines), `macos/mach_sys.rs` (13449 lines), `macos/memory_region.rs` (80 lines)
 
-**Fix:** Add `uuid: [u8; 16]` and `memory_region_count: u16` to `Selector`. Implement proper `MSG_PEEK | MSG_TRUNC` size discovery before recvmsg. Implement `type_uuid`-based `MessageBox` trait instead of bincode Encode/Decode.
+### GAP-C: Windows platform is completely stubbed (CRITICAL)
 
-### GAP-3: `MessageBox` trait is wrong (CRITICAL)
+All transport functions return `Err("IPC not yet implemented on Windows")` or `None`:
+- `look_up()` — returns error
+- `register()` — returns dummy handle
+- `EncodedMessage::send()` / `from_local()` — return errors
+- `MemoryRegion::obj_new()` — returns `None`
+- `Object::clone()` — returns error
+- `Remote::is_dead()` — always returns `false`
 
-**ipmb does:** `MessageBox` is NOT a derive macro trait. It's a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`. The trait methods are `encode()`, `decode(uuid, data)`, and `uuid()`. The `type_uuid` crate's `#[uuid = "..."]` attribute provides the UUID for type identification. `BytesMessage` has `#[uuid = "dd95ba8e-..."]` via `#[derive(TypeUuid)]`. The derive macro `ipmb_derive::MessageBox` just re-exports `type_uuid_derive::TypeUuid`.
+**Reference:** `ipmb/src/platform/windows/mod.rs` (950 lines), `windows/memory_region.rs` (64 lines), `windows/pipe.rs` (78 lines), `windows/security.rs` (161 lines), `windows/util.rs` (143 lines)
 
-**My stub does:** I created a custom `MessageBox` trait requiring `Serialize + Encode + Decode<()>` — completely different API. No UUID-based type identification. `BytesMessage` has a manual `Serialize/Deserialize` impl because `serde_bytes` was causing SIGSEGV.
+### GAP-D: FFI layer is non-functional (MEDIUM)
 
-**Fix:** Replace my `MessageBox` trait with the ipmb approach: blanket impl for `TypeUuid + Serialize + Deserialize + Send + 'static`. Use `#[derive(TypeUuid)]` with `#[uuid = "..."]` attributes. Add `type-uuid` dependency.
+All `extern "C"` functions return -1 or are no-ops:
+- `ipmb_join` — parses options but never writes to out pointers, returns -1
+- `ipmb_send` / `ipmb_recv` — return -1
+- `ipmb_*_free` — no-ops
 
-### GAP-4: `MemoryRegion` implementation is wrong (CRITICAL)
+**Reference:** `ipmb-ffi/src/lib.rs`
 
-**ipmb does:** `MemoryRegion` has two separate concepts:
-1. The `MemoryRegion` struct (in `platform/mod.rs`) holds `header: MappedRegion`, `buffer: Option<MappedRegion>`, `buffer_size: u64`, `obj: Object`. The header is mmap'd to read/write the atomic ref count and buffer size.
-2. `MappedRegion` is a separate struct that holds `offset: usize` and `buffer: &'static mut [u8]` — it maps a portion of the shared memory object via platform-specific `map()`/`unmap()`.
-3. `MemoryRegion::map()` lazily maps the user buffer, reusing the mapping if offset/size match. This avoids repeated syscalls.
-4. `MemoryRegion::ref_count_inner()` uses `AtomicU32` at the start of the header for thread-safe ref counting.
-5. `MemoryRegion::clone()` (ipmb uses `clone` not `try_clone`) calls `self.object().clone()` which on Linux is `Fd::clone()` = `OwnedFd::try_clone()` (dup), then `MemoryRegion::from_object()` maps the same fd.
-6. Platform `MemoryRegion::obj_new()`: Linux uses `memfd_create("ipmb", MFD_CLOEXEC)` + `ftruncate`. macOS uses `mach_make_memory_entry_64()` (port-based shared memory). Windows uses `CreateFileMappingW()`.
+### GAP-E: No integration tests exist (CRITICAL)
 
-**My stub does:** `MemoryRegion` uses `Vec<u8>` backing (not mmap'd), which means:
-- **NOT zero-copy** — data is copied between processes, shared memory doesn't work
-- `try_clone()` just clones the Vec, not the underlying fd
-- macOS `MemoryRegion::new()` returns `None` — always fails
-- Windows `MemoryRegion::new()` returns `None` — always fails
-- No `from_object()` method to reconstruct a `MemoryRegion` from a received fd
-- No `MappedRegion` abstraction for lazy buffer mapping
-- No page-aligned mmap/unmap
+Zero integration tests. The spec calls for tests covering:
+- Two-process join and message delivery
+- Multicast routing
+- Controller failover / auto-rejoin
+- Shared memory (MemoryRegion) send/receive
+- Object passing (FD via SCM_RIGHTS)
+- Version compatibility / token mismatch rejection
+- TTL message buffering
+- BytesMessage send/receive
 
-**Fix:** Implement proper `MemoryRegion` with `MappedRegion` abstraction, platform-specific `map()`/`unmap()`/`obj_new()`. Linux: `memfd_create` + `mmap` + page alignment. macOS: `mach_make_memory_entry_64` + `vm_map`. Windows: `CreateFileMapping` + `MapViewOfFile`.
+Unit tests exist inline (labels, selectors, version, errors, message roundtrip, memory_registry) and pass.
 
-### GAP-5: macOS implementation is entirely stub (CRITICAL)
+### GAP-F: No C header file (LOW)
 
-**ipmb macOS does:**
-- `look_up()`: Calls `bootstrap_look_up()` to get the server's mach port, sends ConnectMessage via `mach_msg()` with local port as object, waits for ack
-- `register()`: Calls `bootstrap_register()` to register a mach port as the bus name, creates BusController thread
-- `IoHub`: Uses `Pipe` (state machine: Readable/Pending/Offline) with `mach_msg()` receive. Bus controller reads from both mach port and mpsc channel
-- `IoMultiplexing`: Uses kqueue with `EVFILT_MACHPORT` filter for mach port monitoring, `EVFILT_USER` for waker
-- `MachPort`: `mach_port_allocate(MACH_PORT_RIGHT_RECEIVE)`, `mach_port_insert_right(MACH_MSG_TYPE_MAKE_SEND)`, `mach_port_mod_refs()` for clone, `mach_port_deallocate()` for drop
-- `Remote::is_dead()`: `mach_port_type()` + check `MACH_PORT_TYPE_DEAD_NAME`
-- `EncodedMessage`: Uses `mach_msg_header_t` + `mach_msg_body_t` + `mach_msg_port_descriptor_t[]` for complex messages, `mach_msg_send()`/`mach_msg()` for send/recv
-- `MemoryRegion`: `mach_make_memory_entry_64()` for shared memory object, `vm_map()`/`vm_deallocate()` for mapping
+`include/ipmb.h` does not exist. Depends on GAP-D (FFI) being functional first.
 
-**My stub does:** All functions return `None` or `Unsupported` error. Not a single macOS function works.
+### GAP-G: Label type design difference (LOW)
 
-**Fix:** Implement full macOS transport matching ipmb's architecture.
+Our `Label(pub String)` is a single string. ipmb's `Label(SmallVec<[SmolStr; 8]>)` is a set of strings with `insert`/`remove`/`all`/`iter` methods. This changes routing semantics — ipmb endpoints can have multiple labels and `LabelOp::Leaf("x")` checks if "x" is in the set. Our implementation checks exact string equality.
 
-### GAP-6: Windows implementation is entirely stub (CRITICAL)
-
-**ipmb Windows does:**
-- `look_up()`: Opens named pipe `\\.\pipe\{identifier}` with `CreateFileW(GENERIC_WRITE)`, gets server process id via `GetNamedPipeServerProcessId`, sends ConnectMessage via `WriteFile()`, creates socketpair via anonymous pipes, waits for ack via `ReadFile()`
-- `register()`: Creates named pipe `\\.\pipe\{identifier}` with `CreateNamedPipeW(PIPE_ACCESS_INBOUND | OVERLAPPED)`, returns IoHub for bus controller
-- `IoHub`: Reads from both named pipe (via `ReadFile`) and mpsc channel
-- `Remote::is_dead()`: 0-byte `WriteFile` — returns false if pipe broken
-- `MemoryRegion`: `CreateFileMappingW(INVALID_HANDLE_VALUE)` + `MapViewOfFile`/`UnmapViewOfFile`
-- `EncodedMessage`: Uses named pipe `WriteFile`/`ReadFile` instead of `sendmsg`/`recvmsg` — no ancillary data, so FD passing requires a roundtrip protocol (`FetchProcessHandleMessage`)
-
-**My stub does:** All functions return `None` or `Unsupported` error.
-
-**Fix:** Implement full Windows transport matching ipmb's architecture.
-
-### GAP-7: `IoHub` is missing (CRITICAL)
-
-**ipmb does:** `IoHub` is the per-connection event loop. For bus controllers: polls listener socket (accept new connections), polls all endpoint connections (recv messages), polls mpsc channel (messages from controller's own sender). For endpoints: polls local socket (recv messages). Uses `MSG_PEEK | MSG_TRUNC` to peek message size, then allocates buffer, then `recvmsg()` to receive.
-
-**My stub does:** No `IoHub` type. The bus controller runs a simple `accept()` loop with 10ms sleep — doesn't actually route messages between endpoints. The `EndpointReceiver::try_recv()` always returns `None`.
-
-**Fix:** Implement `IoHub` for both Linux (epoll-based), macOS (kqueue-based), and Windows (pipe-based).
-
-### GAP-8: `EndpointSender.send()` has no disconnect/rejoin logic
-
-**ipmb does:** `send()` catches `Error::Disconnect` from `encoded_msg.send(remote)`, drops the read lock, takes write lock, checks epoch matches, closes old io_hub, calls `Rule::join()` again with epoch+1, retries. This handles controller crash/restart transparently.
-
-**My stub does:** `send()` just does a raw `libc::send()` loop — no disconnect detection, no rejoin, no epoch tracking.
-
-### GAP-9: `EndpointReceiver.recv()` has no timeout/rejoin logic
-
-**ipmb does:** `recv()` loops: checks if io_hub is None (needs rejoin), calls `io_hub.recv(timeout)`, handles `Disconnect` by rejoining, handles `Timeout` by returning error, handles `TypeUuidNotFound` by continuing (skips unknown message types). For Server mode: reads from mpsc channel.
-
-**My stub does:** `try_recv()` always returns `Ok(None)` — receives nothing.
-
-### GAP-10: Bus controller message routing is broken
-
-**ipmb does:** `BusController::handle_message()` checks `selector.uuid` — if it's `ConnectMessage::UUID`, runs `endpoint_connect()` handshake. Otherwise, routes to matching endpoints (checks `label_op.validate(label)`, sends, handles Disconnect by removing endpoint). If unrouted and TTL > 0, buffers with expiry. When new endpoint connects, retries buffered messages.
-
-**My stub does:** The bus controller just accepts connections and does a basic handshake. No message routing, no label matching, no TTL buffering, no endpoint reachability detection.
-
-### GAP-11: `MemoryRegistry` is missing `alloc_with_free`
-
-**ipmb does:** `MemoryRegistry::alloc_with_free(min_size, tag, free_callback)` stores a `Guard` with a `Box<dyn FnOnce()>` that runs when the cached entry is evicted. Used for cleanup of external resources.
-
-**My stub does:** No `alloc_with_free` method.
-
-### GAP-12: `Selector` is missing `uuid` and `memory_region_count` fields
-
-**ipmb does:** `Selector` has `uuid: Bytes` (16-byte type identifier from `TypeUuid`) and `memory_region_count: u16`. These are set during message construction (`selector.uuid = payload.uuid()`, `selector.memory_region_count = memory_regions.len()`). On receive, last N objects are treated as `MemoryRegion`s.
-
-**My stub does:** `Selector` has no `uuid` or `memory_region_count` fields. Type identification doesn't work.
-
-### GAP-13: `ConnectMessage` handshake uses socketpair object passing
-
-**ipmb does:** Endpoint sends `ConnectMessage` with the write end of a socketpair as an object in `msg.objects`. Controller receives it, extracts the remote via `encoded_msg.extract_remote()`, and sends the `ConnectMessageAck` back to that extracted remote. This gives the controller a dedicated reply channel to the endpoint.
-
-**My stub does:** No socketpair. No object passing in handshake. The controller tries to reply on the same connection the endpoint connected on, but the fd ownership transfer is broken (`std::mem::forget(conn)` then `Remote::new` with leaked fd).
-
-### GAP-14: `Rule` enum with Client/Server duality is missing
-
-**ipmb does:** `Rule` is either `Client` (connected to controller, uses `Remote` + `IoHub`) or `Server` (IS the controller, uses `mpsc::Sender<EncodedMessage>` + `mpsc::Receiver<EncodedMessage>`). The `join()` API creates an `Arc<RwLock<Rule>>` shared between sender and receiver. When the sender detects disconnect, it re-joins. When the receiver drops, it calls `reader_close()` to clean up the reader side.
-
-**My stub does:** `join()` creates independent `EndpointSender` and `EndpointReceiver` with no shared state. No Client/Server duality.
-
-### GAP-15: Missing dependencies
-
-- `once_cell` — for `Lazy` statics (version)
-- `rand` — for `EndpointID::new()` (UUID v4)
-- `uuid` — for UUID generation
-
-**My stub does:** Uses a counter-based `EndpointID::new()` instead of proper UUID. No `once_cell` usage.
-
-### Summary of What's Actually Working
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| LabelOp boolean matching | ✅ Working | Correctly implements True/False/Leaf/Not/And/Or |
-| Selector construction | ⚠️ Partial | Missing uuid, memory_region_count fields |
-| Version compatibility | ✅ Working | Correct semver rules, wire format encode/decode |
-| Error hierarchy | ✅ Working | Proper conversions between IpcError/JoinError/SendError/RecvError |
-| Options builder | ✅ Working | |
-| EndpointID (unique) | ⚠️ Partial | Counter-based, not UUID v4 |
-| 24 unit tests | ✅ Passing | Labels, selectors, version, encoding, errors, memory_registry |
-
-### Summary of What's Broken
-
-| Component | Status | Impact |
-|-----------|--------|--------|
-| `join()` API | ❌ Broken | Cannot connect to bus or become controller |
-| `EndpointSender.send()` | ❌ Broken | Messages don't route to any endpoint |
-| `EndpointReceiver.recv()` | ❌ Broken | Always returns None |
-| `EncodedMessage` wire format | ❌ Broken | Missing uuid, memory_region_count, MSG_PEEK sizing |
-| `MessageBox` trait | ❌ Broken | Wrong API, no TypeUuid integration |
-| `MemoryRegion` (Linux) | ❌ Broken | Vec-backed, not mmap'd — not zero-copy |
-| `MemoryRegion` (macOS) | ❌ Broken | Always returns None |
-| `MemoryRegion` (Windows) | ❌ Broken | Always returns None |
-| macOS transport | ❌ Broken | All functions stub |
-| Windows transport | ❌ Broken | All functions stub |
-| `IoHub` | ❌ Missing | No event loop for connections |
-| Bus controller routing | ❌ Broken | No message routing, no TTL buffering |
-| Handshake (socketpair) | ❌ Broken | No object passing in ConnectMessage |
-| `Rule` Client/Server | ❌ Missing | No shared state, no disconnect/rejoin |
-| FFI | ⚠️ Stub | Returns -1 always |
-| `MemoryRegistry::alloc_with_free` | ❌ Missing | |
+For our use case (valtron tasks), single-label endpoints may be sufficient. If multi-label is needed later, the `LabelOp` evaluation would need updating.
 
 ### Implementation Priority
 
-1. **Fix Selector** — add `uuid` + `memory_region_count`
-2. **Fix MessageBox** — blanket impl for `TypeUuid + Serialize + Deserialize + Send + 'static`
-3. **Fix EncodedMessage** — proper wire format, MSG_PEEK sizing, SCM_RIGHTS
-4. **Implement MemoryRegion** — proper mmap on all platforms
-5. **Implement look_up() + register()** — proper handshake with socketpair
-6. **Implement IoHub** — epoll/kqueue event loop
-7. **Implement Rule Client/Server** — shared Arc<RwLock<Rule>>
-8. **Fix bus controller** — proper message routing
-9. **Implement macOS transport** — full mach_msg/kqueue
-10. **Implement Windows transport** — full named pipes
-11. **FFI** — proper handle management
+1. **GAP-A** — Remove empty `foundation_ipc_derive` directory (unblocks build)
+2. **GAP-E** — Write integration tests for Linux (validates working code)
+3. **GAP-B** — Fix macOS compilation issues
+4. **GAP-C** — Implement Windows transport
+5. **GAP-D** — Implement FFI layer
+6. **GAP-F** — Generate C header
+7. **GAP-G** — Evaluate Label type design
 

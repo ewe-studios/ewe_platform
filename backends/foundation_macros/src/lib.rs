@@ -2,6 +2,7 @@ use proc_macro::TokenStream;
 
 mod embedders;
 mod json_hash;
+mod type_uuid;
 mod wasm_entrypoint;
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
@@ -180,4 +181,40 @@ pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_derive(JsonHash)]
 pub fn json_hash_derive(item: TokenStream) -> TokenStream {
     json_hash::json_hash_derive(item)
+}
+
+/// Derive macro that implements [`foundation_core::type_uuid::TypeUuid`] for a type.
+///
+/// Assigns a stable, unique 128-bit UUID to a Rust type at compile time.
+/// The UUID is specified as a string attribute and converted to a `[u8; 16]` byte array.
+///
+/// # Example
+///
+/// ```rust
+/// use foundation_macros::TypeUuid;
+///
+/// #[derive(TypeUuid)]
+/// #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
+/// struct MyMessage {
+///     data: Vec<u8>,
+/// }
+/// ```
+///
+/// Generate UUIDs at https://www.uuidgenerator.net
+#[proc_macro_derive(TypeUuid, attributes(uuid))]
+pub fn type_uuid_derive(item: TokenStream) -> TokenStream {
+    type_uuid::type_uuid_derive(item)
+}
+
+/// Implement [`foundation_core::type_uuid::TypeUuid`] for a foreign type
+/// that you cannot add a derive attribute to.
+///
+/// # Example
+///
+/// ```rust
+/// foundation_macros::external_type_uuid!(std::time::Duration, "449a4224-4665-47ce-88a2-8d0310d20572");
+/// ```
+#[proc_macro]
+pub fn external_type_uuid(tokens: TokenStream) -> TokenStream {
+    type_uuid::external_type_uuid_impl(tokens)
 }

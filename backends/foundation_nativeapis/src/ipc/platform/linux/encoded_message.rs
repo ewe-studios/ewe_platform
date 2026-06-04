@@ -13,7 +13,7 @@
 
 use std::{io, mem, os::fd::RawFd, ptr, slice};
 
-use type_uuid::TypeUuid;
+use foundation_core::type_uuid::TypeUuid;
 
 use super::fd::{Local, Remote};
 use crate::ipc::{

@@ -1157,7 +1157,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tracing",
- "uuid 1.20.0",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2539,7 +2539,7 @@ dependencies = [
  "tempfile",
  "time",
  "urlencoding",
- "uuid 1.20.0",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2582,6 +2582,7 @@ dependencies = [
  "concurrent-queue",
  "derive_more",
  "fastrand",
+ "foundation_macros",
  "foundation_nostd",
  "foundation_testing",
  "foundation_wasm",
@@ -2635,7 +2636,7 @@ dependencies = [
  "tracing",
  "tracing-test",
  "turso",
- "uuid 1.20.0",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "worker",
@@ -2726,7 +2727,7 @@ dependencies = [
  "sha1",
  "tracing",
  "tracing-test",
- "uuid 1.20.0",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2775,6 +2776,7 @@ dependencies = [
  "sha2",
  "syn 2.0.114",
  "trybuild",
+ "uuid",
 ]
 
 [[package]]
@@ -2784,6 +2786,7 @@ dependencies = [
  "bincode 2.0.1",
  "concurrent-queue",
  "foundation_core",
+ "foundation_macros",
  "inotify",
  "io-uring",
  "libc",
@@ -2797,8 +2800,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-test",
- "type-uuid",
- "uuid 1.20.0",
+ "uuid",
  "windows-sys 0.59.0",
 ]
 
@@ -2924,7 +2926,7 @@ dependencies = [
  "sha1",
  "tracing",
  "tracing-test",
- "uuid 1.20.0",
+ "uuid",
 ]
 
 [[package]]
@@ -4548,7 +4550,7 @@ dependencies = [
  "tower 0.4.13",
  "tower-http 0.4.4",
  "tracing",
- "uuid 1.20.0",
+ "uuid",
  "zerocopy 0.7.35",
 ]
 
@@ -4642,7 +4644,7 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tracing",
- "uuid 1.20.0",
+ "uuid",
  "zerocopy 0.7.35",
 ]
 
@@ -8138,7 +8140,7 @@ dependencies = [
  "turso_parser",
  "twox-hash",
  "uncased",
- "uuid 1.20.0",
+ "uuid",
  "windows-sys 0.61.2",
 ]
 
@@ -8225,7 +8227,7 @@ dependencies = [
  "tracing",
  "turso_core",
  "turso_parser",
- "uuid 1.20.0",
+ "uuid",
 ]
 
 [[package]]
@@ -8254,26 +8256,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea3136b675547379c4bd395ca6b938e5ad3c3d20fad76e7fe85f9e0d011419c"
 dependencies = [
  "rand 0.9.2",
-]
-
-[[package]]
-name = "type-uuid"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15043bca41f43205c9b0055d365a405d81b8e4a8ff99c36b263cf79ad1f4c051"
-dependencies = [
- "type-uuid-derive",
-]
-
-[[package]]
-name = "type-uuid-derive"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e090ee857961c746ecf7fb596022493ffaad54d189061df49f7a0cf17796dc1"
-dependencies = [
- "quote",
- "syn 1.0.109",
- "uuid 0.8.2",
 ]
 
 [[package]]
@@ -8465,12 +8447,6 @@ name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
-
-[[package]]
-name = "uuid"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
