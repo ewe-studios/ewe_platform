@@ -95,6 +95,19 @@ pub enum ConnectMessageAck {
     ErrToken,
 }
 
+/// Windows-only: request for a remote process handle via the reply pipe protocol.
+///
+/// When `OpenProcess(PROCESS_DUP_HANDLE)` fails with `ERROR_ACCESS_DENIED`,
+/// the client sends this message to the controller, which opens the client's
+/// process and duplicates its own handle back through the named reply pipe.
+#[cfg(target_os = "windows")]
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "fbf88372-d2cd-425a-a183-133f8f119df2"]
+pub struct FetchProcessHandleMessage {
+    pub pid: u32,
+    pub reply_pipe: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

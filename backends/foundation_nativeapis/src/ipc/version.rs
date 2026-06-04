@@ -59,8 +59,14 @@ static VERSION: Lazy<Version> = Lazy::new(|| {
     ))
 });
 
+static VERSION_PRE: Lazy<&'static str> = Lazy::new(|| env!("CARGO_PKG_VERSION_PRE"));
+
 pub fn version() -> Version {
     *VERSION
+}
+
+pub fn version_pre() -> String {
+    VERSION_PRE.to_owned()
 }
 
 #[cfg(test)]

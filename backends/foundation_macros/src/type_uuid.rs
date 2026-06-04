@@ -23,7 +23,14 @@ fn foundation_core_path() -> proc_macro2::TokenStream {
 }
 
 fn foundation_nativeapis_path() -> proc_macro2::TokenStream {
-    resolve_crate("foundation_nativeapis")
+    match crate_name("foundation_nativeapis") {
+        Ok(FoundCrate::Itself) => quote! { foundation_nativeapis },
+        Ok(FoundCrate::Name(n)) => {
+            let ident = syn::Ident::new(&n, proc_macro2::Span::call_site());
+            quote! { #ident }
+        }
+        Err(_) => quote! { foundation_nativeapis },
+    }
 }
 
 pub fn type_uuid_derive(input: TokenStream) -> TokenStream {

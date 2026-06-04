@@ -50,9 +50,11 @@ pub use errors::{Error, JoinError, RecvError, SendError};
 pub use label::{Label, LabelOp};
 pub use options::Options;
 pub use selector::{Selector, SelectorMode};
-pub use version::Version;
+pub use version::{Version, version_pre};
 pub use util::{EndpointID, Align4};
 pub use message::{BytesMessage, Message, MessageBox, ConnectMessage, ConnectMessageAck};
+#[cfg(target_os = "windows")]
+pub use message::FetchProcessHandleMessage;
 pub use memory_registry::MemoryRegistry;
 
 // Re-export platform types
