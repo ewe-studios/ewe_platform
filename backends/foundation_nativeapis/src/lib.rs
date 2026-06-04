@@ -8,8 +8,8 @@ pub mod native;
 pub mod valtron;
 
 /// Interprocess message bus (IPC) — adapted from ipmb.
-/// Feature-gated: requires `ipc` feature.
-#[cfg(feature = "ipc")]
+/// Feature-gated: requires `ipc` feature. Only available on Linux, macOS, and Windows.
+#[cfg(all(feature = "ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc;
 
 // ---------------------------------------------------------------------------

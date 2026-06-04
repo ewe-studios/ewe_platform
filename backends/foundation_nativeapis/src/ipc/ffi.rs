@@ -7,12 +7,10 @@ use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use std::time::Duration;
 
-use crate::ipc::message::{BytesMessage, Message, MessageBox};
-use crate::ipc::options::Options;
-use crate::ipc::label::Label;
-use crate::ipc::selector::Selector;
-use crate::ipc::label::LabelOp;
-use crate::ipc::bus_controller::{EndpointSender, EndpointReceiver};
+use crate::ipc::{
+    BytesMessage, Message, MessageBox, Options, Label, LabelOp, Selector,
+    EndpointSender, EndpointReceiver,
+};
 
 #[repr(C)]
 pub struct ipmb_Sender {

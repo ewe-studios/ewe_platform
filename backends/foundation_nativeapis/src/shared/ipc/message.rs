@@ -1,4 +1,4 @@
-/// Message types for the IPC bus.
+/// Shareable IPC message types and the MessageBox trait.
 ///
 /// `MessageBox` is a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 /// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
@@ -7,28 +7,7 @@ use serde::{Deserialize, Serialize};
 use foundation_core::type_uuid::{Bytes, TypeUuid};
 use foundation_macros::TypeUuid;
 
-use super::{EndpointID, Error, Label, MemoryRegion, Object, Selector, Version};
-
-/// A message with typed payload, kernel objects, and shared memory regions.
-pub struct Message<T> {
-    pub(crate) selector: Selector,
-    pub payload: T,
-    pub objects: Vec<Object>,
-    pub memory_regions: Vec<MemoryRegion>,
-}
-
-impl<T: MessageBox> Message<T> {
-    pub fn new(mut selector: Selector, payload: T) -> Self {
-        selector.uuid = payload.uuid();
-
-        Self {
-            selector,
-            payload,
-            objects: vec![],
-            memory_regions: vec![],
-        }
-    }
-}
+use super::{EndpointID, Error, Label, Version};
 
 /// Trait for types that can be sent over the IPC bus.
 ///
@@ -96,10 +75,6 @@ pub enum ConnectMessageAck {
 }
 
 /// Windows-only: request for a remote process handle via the reply pipe protocol.
-///
-/// When `OpenProcess(PROCESS_DUP_HANDLE)` fails with `ERROR_ACCESS_DENIED`,
-/// the client sends this message to the controller, which opens the client's
-/// process and duplicates its own handle back through the named reply pipe.
 #[cfg(target_os = "windows")]
 #[derive(Debug, Serialize, Deserialize, TypeUuid)]
 #[uuid = "fbf88372-d2cd-425a-a183-133f8f119df2"]

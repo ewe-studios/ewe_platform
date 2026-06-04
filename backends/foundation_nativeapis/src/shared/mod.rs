@@ -12,6 +12,10 @@ pub mod watcher;
 pub mod api;
 pub mod fd_state;
 
+/// Shareable IPC types — message traits, errors, labels, selectors, versioning.
+#[cfg(feature = "ipc")]
+pub mod ipc;
+
 // Re-export common types at module level
 pub use api::{native_watcher, NativeAPI, WatcherBuilder};
 pub use error::{Result, WatchError};
