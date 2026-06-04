@@ -1,305 +1,399 @@
 /// Top-level bus controller — manages the controller thread and endpoint lifecycle.
+///
+/// Implements the `join()` API with the `Rule` enum (Client/Server duality).
 
-use std::collections::HashMap;
-use std::os::fd::{AsFd, AsRawFd, FromRawFd, IntoRawFd, OwnedFd};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::{
+    marker::PhantomData,
+    sync::{Arc, RwLock},
+    thread,
+    time::{Duration, Instant},
+};
 
-use bincode::config::standard;
-
-use crate::ipc::errors::{IpcError, JoinError, RecvError, Result, SendError};
-use crate::ipc::label::Label;
-use crate::ipc::message::{BytesMessage, MessageBox, Message, ConnectMessage, ConnectMessageAck};
-use crate::ipc::options::Options;
-use crate::ipc::platform::linux::{connect_abstract, EncodedMessage, Remote};
-use crate::ipc::platform::linux::bus_controller::start_controller;
-use crate::ipc::selector::{Selector, SelectorMode};
-use crate::ipc::util::EndpointID;
-use crate::ipc::version::Version;
-
-/// Global registry of active bus controllers.
-struct ControllerRegistry {
-    controllers: HashMap<String, ControllerHandle>,
-}
-
-impl ControllerRegistry {
-    fn new() -> Self {
-        Self {
-            controllers: HashMap::new(),
-        }
-    }
-}
-
-fn global_controllers() -> &'static Mutex<ControllerRegistry> {
-    use std::sync::OnceLock;
-    static REGISTRY: OnceLock<Mutex<ControllerRegistry>> = OnceLock::new();
-    REGISTRY.get_or_init(|| Mutex::new(ControllerRegistry::new()))
-}
-
-struct ControllerHandle {
-    running: Arc<AtomicBool>,
-    thread: thread::JoinHandle<()>,
-}
-
-impl Drop for ControllerHandle {
-    fn drop(&mut self) {
-        self.running.store(false, Ordering::SeqCst);
-    }
-}
-
-/// Try to start or get an existing controller for a bus.
-fn ensure_controller(
-    bus_identifier: &str,
-    label: Label,
-) -> std::result::Result<bool, IpcError> {
-    let mut registry = global_controllers().lock().unwrap();
-
-    if registry.controllers.contains_key(bus_identifier) {
-        return Ok(false);
-    }
-
-    match start_controller(bus_identifier, label) {
-        Ok((running, handle)) => {
-            registry.controllers.insert(
-                bus_identifier.to_string(),
-                ControllerHandle { running, thread: handle },
-            );
-            Ok(true)
-        }
-        Err(IpcError::Io(ref e)) if e.kind() == std::io::ErrorKind::AddrInUse => {
-            Ok(false)
-        }
-        Err(e) => Err(e),
-    }
-}
+use crate::ipc::{
+    platform::{look_up, register, IoMultiplexing, EncodedMessage, IoHub, Remote},
+    version::Version,
+    util::EndpointID,
+    Error, JoinError, Message, MessageBox, Options, RecvError, SendError,
+};
 
 /// Join a message bus.
 pub fn join<T: MessageBox, R: MessageBox>(
     options: Options,
-    _timeout: Option<Duration>,
-) -> std::result::Result<(EndpointSender<T>, EndpointReceiver<R>), JoinError> {
-    let bus_id = options.identifier.clone();
-
-    if options.controller_affinity {
-        match ensure_controller(&bus_id, options.label.clone()) {
-            Ok(owned) => {
-                if owned {
-                    tracing::info!("IPC: became bus controller for '{bus_id}'");
-                }
-            }
-            Err(e) => {
-                tracing::warn!("IPC: failed to start controller: {e}");
-            }
-        }
-    }
-
-    let local_version = Version::from_str_parts(
-        env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
-        env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
-        env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
-    );
-
-    let conn = connect_with_retry(&bus_id, Duration::from_secs(2))?;
-
-    let connect_msg = ConnectMessage {
-        version: local_version,
-        token: options.token.clone(),
-        label: options.label.clone(),
-    };
-
-    let selector_bytes = bincode::encode_to_vec(&Selector::broadcast(), standard())
-        .map_err(|e| JoinError::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            format!("failed to encode selector: {e:?}"),
-        )))?;
-
-    let encoded = EncodedMessage::encode(local_version, &selector_bytes, &connect_msg, Vec::new())?;
-
-    // Send connect message
-    let data = encoded.data;
-    let mut offset = 0;
-    while offset < data.len() {
-        let written = unsafe {
-            libc::send(
-                conn.as_raw_fd(),
-                data.as_ptr().add(offset) as *const _,
-                data.len() - offset,
-                libc::MSG_NOSIGNAL,
-            )
-        };
-        if written < 0 {
-            let err = std::io::Error::last_os_error();
-            if err.kind() == std::io::ErrorKind::WouldBlock
-                || err.kind() == std::io::ErrorKind::Interrupted
-            {
-                continue;
-            }
-            return Err(JoinError::Io(err));
-        }
-        offset += written as usize;
-    }
-
-    // Receive ack
-    let (ack_data, _fds) = EncodedMessage::recv(conn.as_fd())?;
-    let (_ver_u32, _sel, payload_bytes) = EncodedMessage::decode(&ack_data)?;
-    let ack: ConnectMessageAck = bincode::decode_from_slice(payload_bytes, standard())
-        .map_err(|e| JoinError::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            format!("failed to decode ack: {e:?}"),
-        )))?
-        .0;
-
-    let endpoint_id = match ack {
-        ConnectMessageAck::Ok(id) => id,
-        ConnectMessageAck::ErrVersion(v) => return Err(JoinError::VersionMismatch(v)),
-        ConnectMessageAck::ErrToken => return Err(JoinError::TokenMismatch),
-    };
-
-    // Leak the OwnedFd into a Remote so it lives independently
-    let raw_fd = conn.as_raw_fd();
-    std::mem::forget(conn);
-    let remote = Remote::new(unsafe {
-        crate::ipc::platform::linux::Fd::from_raw(raw_fd)
-    });
+    timeout: Option<Duration>,
+) -> Result<(EndpointSender<T>, EndpointReceiver<R>), JoinError> {
+    let rule = Arc::new(RwLock::new(Rule::join(
+        options,
+        0,
+        Arc::new(IoMultiplexing::new()),
+        timeout,
+    )?));
 
     Ok((
         EndpointSender {
-            remote: Arc::new(remote),
-            endpoint_id,
-            version: local_version,
-            label: options.label.clone(),
-            _phantom: std::marker::PhantomData,
+            rule: rule.clone(),
+            _marker: PhantomData,
         },
         EndpointReceiver {
-            endpoint_id,
-            version: local_version,
-            label: options.label.clone(),
-            _phantom: std::marker::PhantomData,
+            rule,
+            _marker: PhantomData,
         },
     ))
 }
 
-fn connect_with_retry(address: &str, timeout: Duration) -> std::result::Result<OwnedFd, JoinError> {
-    let deadline = std::time::Instant::now() + timeout;
-    let mut last_err = None;
-
-    while std::time::Instant::now() < deadline {
-        match connect_abstract(address) {
-            Ok(fd) => return Ok(fd),
-            Err(e) => {
-                if e.kind() == std::io::ErrorKind::ConnectionRefused {
-                    last_err = Some(e);
-                    thread::sleep(Duration::from_millis(100));
-                    continue;
-                }
-                return Err(JoinError::Io(e));
-            }
-        }
-    }
-
-    if let Some(e) = last_err {
-        Err(JoinError::Io(e))
-    } else {
-        Err(JoinError::Timeout)
-    }
+/// The sending half of an endpoint. Cloneable.
+pub struct EndpointSender<T> {
+    rule: Arc<RwLock<Rule>>,
+    _marker: PhantomData<T>,
 }
 
-/// Sender side of an IPC bus endpoint. Cloneable.
-pub struct EndpointSender<T: MessageBox> {
-    remote: Arc<Remote>,
-    endpoint_id: EndpointID,
-    version: Version,
-    label: Label,
-    _phantom: std::marker::PhantomData<T>,
-}
-
-impl<T: MessageBox> Clone for EndpointSender<T> {
+impl<T> Clone for EndpointSender<T> {
     fn clone(&self) -> Self {
         Self {
-            remote: self.remote.clone(),
-            endpoint_id: self.endpoint_id,
-            version: self.version,
-            label: self.label.clone(),
-            _phantom: std::marker::PhantomData,
+            rule: self.rule.clone(),
+            _marker: PhantomData,
         }
     }
 }
 
 impl<T: MessageBox> EndpointSender<T> {
-    /// Send a message to the bus.
-    pub fn send(&self, message: Message<T>) -> std::result::Result<(), SendError> {
-        use crate::ipc::util::Align4;
+    pub fn send(&self, mut msg: Message<T>) -> Result<(), SendError> {
+        msg.selector.memory_region_count = msg.memory_regions.len() as u16;
+        let mut msg = msg.into_encoded();
 
-        let selector_bytes = bincode::encode_to_vec(&message.selector, standard())
-            .map_err(|e| SendError::Io(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("failed to encode selector: {e:?}"),
-            )))?;
+        loop {
+            let rule = self.rule.read().unwrap();
+            match &*rule {
+                Rule::Client { remote, epoch, .. } => {
+                    match msg.send(remote) {
+                        Err(Error::Disconnect) => {
+                            let epoch = *epoch;
+                            drop(rule);
 
-        let payload_bytes = bincode::encode_to_vec(&message.payload, standard())
-            .map_err(|e| SendError::Io(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("failed to encode payload: {e:?}"),
-            )))?;
+                            let mut rule = self.rule.write().unwrap();
+                            match &mut *rule {
+                                Rule::Client {
+                                    options,
+                                    io_hub,
+                                    reader_closed,
+                                    im,
+                                    epoch: epoch1,
+                                    ..
+                                } => {
+                                    if epoch == *epoch1 {
+                                        let reader_closed_val = *reader_closed;
+                                        drop(io_hub.take());
 
-        let sel_len = selector_bytes.len();
-        let sel_aligned = sel_len.align4();
-        let pay_len = payload_bytes.len();
-        let pay_aligned = pay_len.align4();
-        let total = 4 + 4 + sel_aligned + 4 + pay_aligned;
-        let mut buf = Vec::with_capacity(total);
-        buf.extend_from_slice(&self.version.to_u32().to_le_bytes());
-        buf.extend_from_slice(&(sel_len as u32).to_le_bytes());
-        buf.extend_from_slice(&selector_bytes);
-        buf.resize(buf.len() + (sel_aligned - sel_len), 0);
-        buf.extend_from_slice(&(pay_len as u32).to_le_bytes());
-        buf.extend_from_slice(&payload_bytes);
-        buf.resize(buf.len() + (pay_aligned - pay_len), 0);
+                                        *rule = Rule::join(
+                                            options.clone(),
+                                            epoch.overflowing_add(1).0,
+                                            im.clone(),
+                                            None,
+                                        )?;
 
-        let fd_guard = self.remote.lock();
-        let sock_fd = fd_guard.as_raw_fd();
-        let mut offset = 0;
-        while offset < buf.len() {
-            let written = unsafe {
-                libc::send(sock_fd, buf.as_ptr().add(offset) as *const _, buf.len() - offset, libc::MSG_NOSIGNAL)
-            };
-            if written < 0 {
-                let err = std::io::Error::last_os_error();
-                if err.kind() == std::io::ErrorKind::WouldBlock || err.kind() == std::io::ErrorKind::Interrupted {
-                    continue;
+                                        if reader_closed_val {
+                                            rule.reader_close();
+                                        }
+                                    }
+                                }
+                                Rule::Server { .. } => {}
+                            }
+                        }
+                        Err(_) => unreachable!(),
+                        Ok(_) => break Ok(()),
+                    }
                 }
-                if err.kind() == std::io::ErrorKind::ConnectionReset || err.kind() == std::io::ErrorKind::BrokenPipe {
-                    return Err(SendError::Disconnect);
+                Rule::Server {
+                    bus_sender, im, ..
+                } => {
+                    bus_sender.lock().unwrap().send(msg).unwrap();
+                    im.wake();
+                    break Ok(());
                 }
-                return Err(SendError::Io(err));
             }
-            offset += written as usize;
         }
-
-        Ok(())
-    }
-
-    pub fn endpoint_id(&self) -> EndpointID {
-        self.endpoint_id
     }
 }
 
-/// Receiver side of an IPC bus endpoint. Not cloneable.
-pub struct EndpointReceiver<R: MessageBox> {
-    endpoint_id: EndpointID,
-    version: Version,
-    label: Label,
-    _phantom: std::marker::PhantomData<R>,
+/// The receiving half of an endpoint. Not cloneable.
+pub struct EndpointReceiver<R> {
+    rule: Arc<RwLock<Rule>>,
+    _marker: PhantomData<R>,
+}
+
+impl<R> Drop for EndpointReceiver<R> {
+    fn drop(&mut self) {
+        let mut rule = self.rule.write().unwrap();
+        rule.reader_close();
+    }
 }
 
 impl<R: MessageBox> EndpointReceiver<R> {
-    pub fn try_recv(&self) -> std::result::Result<Option<R>, RecvError> {
-        Ok(None)
-    }
+    pub fn recv(&mut self, timeout: Option<Duration>) -> Result<Message<R>, RecvError> {
+        loop {
+            let rule = self.rule.read().unwrap();
+            match &*rule {
+                Rule::Client {
+                    options,
+                    remote,
+                    io_hub,
+                    reader_closed,
+                    epoch,
+                    ..
+                } => {
+                    if !*reader_closed && io_hub.is_none() {
+                        let epoch_val = *epoch;
+                        drop(rule);
 
-    pub fn endpoint_id(&self) -> EndpointID {
-        self.endpoint_id
+                        let mut rule = self.rule.write().unwrap();
+                        match &mut *rule {
+                            Rule::Client {
+                                options,
+                                io_hub,
+                                reader_closed,
+                                im,
+                                epoch: epoch1,
+                                ..
+                            } => {
+                                if epoch_val == *epoch1 {
+                                    let rc = *reader_closed;
+                                    drop(io_hub.take());
+                                    *rule = Rule::join(
+                                        options.clone(),
+                                        epoch_val.overflowing_add(1).0,
+                                        im.clone(),
+                                        timeout,
+                                    )?;
+                                    if rc { rule.reader_close(); }
+                                }
+                                continue;
+                            }
+                            Rule::Server { .. } => continue,
+                        }
+                    }
+
+                    let mut io_hub_guard = io_hub.as_ref().expect("reader closed").lock().unwrap();
+
+                    match io_hub_guard.recv(timeout, Some(remote)) {
+                        Ok(encoded_msg) => {
+                            if encoded_msg.selector.label_op.validate(&options.label) {
+                                match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data)
+                                {
+                                    Ok(payload) => {
+                                        let mut msg = Message::new(encoded_msg.selector, payload);
+                                        msg.objects = encoded_msg.objects;
+                                        msg.memory_regions = encoded_msg.memory_regions;
+                                        break Ok(msg);
+                                    }
+                                    Err(Error::TypeUuidNotFound) => { continue; }
+                                    Err(Error::Decode(err)) => { break Err(RecvError::Decode(err)); }
+                                    Err(_) => unreachable!(),
+                                }
+                            } else { continue; }
+                        }
+                        Err(Error::Disconnect) => {
+                            let epoch_val = *epoch;
+                            drop(io_hub_guard);
+                            drop(rule);
+
+                            let mut rule = self.rule.write().unwrap();
+                            match &mut *rule {
+                                Rule::Client {
+                                    options,
+                                    io_hub,
+                                    reader_closed,
+                                    im,
+                                    epoch: epoch1,
+                                    ..
+                                } => {
+                                    if epoch_val == *epoch1 {
+                                        let rc = *reader_closed;
+                                        drop(io_hub.take());
+                                        *rule = Rule::join(
+                                            options.clone(),
+                                            epoch_val.overflowing_add(1).0,
+                                            im.clone(),
+                                            timeout,
+                                        )?;
+                                        if rc { rule.reader_close(); }
+                                    }
+                                    continue;
+                                }
+                                Rule::Server { .. } => continue,
+                            }
+                        }
+                        Err(Error::Timeout) => { break Err(RecvError::Timeout); }
+                        Err(_) => unreachable!(),
+                    }
+                }
+                Rule::Server { receiver, .. } => {
+                    let receiver = receiver.as_ref().expect("reader closed").lock().unwrap();
+                    break match timeout {
+                        Some(timeout) => match receiver.recv_timeout(timeout) {
+                            Ok(encoded_msg) => {
+                                match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data) {
+                                    Ok(payload) => {
+                                        let mut msg = Message::new(encoded_msg.selector, payload);
+                                        msg.objects = encoded_msg.objects;
+                                        msg.memory_regions = encoded_msg.memory_regions;
+                                        Ok(msg)
+                                    }
+                                    Err(Error::TypeUuidNotFound) => { continue; }
+                                    Err(Error::Decode(err)) => Err(RecvError::Decode(err)),
+                                    Err(_) => unreachable!(),
+                                }
+                            }
+                            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err(RecvError::Timeout),
+                            Err(_) => unreachable!(),
+                        },
+                        None => {
+                            let encoded_msg = receiver.recv().unwrap();
+                            match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data) {
+                                Ok(payload) => {
+                                    let mut msg = Message::new(encoded_msg.selector, payload);
+                                    msg.objects = encoded_msg.objects;
+                                    msg.memory_regions = encoded_msg.memory_regions;
+                                    Ok(msg)
+                                }
+                                Err(Error::TypeUuidNotFound) => { continue; }
+                                Err(Error::Decode(err)) => Err(RecvError::Decode(err)),
+                                Err(_) => unreachable!(),
+                            }
+                        }
+                    };
+                }
+            }
+        }
+    }
+}
+
+enum Rule {
+    Client {
+        endpoint_id: EndpointID,
+        options: Options,
+        remote: Remote,
+        io_hub: Option<std::sync::Mutex<IoHub>>,
+        reader_closed: bool,
+        im: Arc<IoMultiplexing>,
+        epoch: u32,
+    },
+    Server {
+        endpoint_id: EndpointID,
+        bus_sender: std::sync::Mutex<std::sync::mpsc::Sender<EncodedMessage>>,
+        receiver: Option<std::sync::Mutex<std::sync::mpsc::Receiver<EncodedMessage>>>,
+        im: Arc<IoMultiplexing>,
+    },
+}
+
+impl Rule {
+    fn join(
+        options: Options,
+        epoch: u32,
+        im: Arc<IoMultiplexing>,
+        timeout: Option<Duration>,
+    ) -> Result<Self, JoinError> {
+        let end = timeout.map(|t| Instant::now() + t);
+
+        macro_rules! wait {
+            () => {
+                let mut w = Duration::from_secs(2);
+                if let Some(end) = end {
+                    let remain = end.saturating_duration_since(Instant::now());
+                    if remain.is_zero() { return Err(JoinError::Timeout); }
+                    w = w.min(remain);
+                }
+                thread::sleep(w);
+            };
+        }
+
+        let mut timeout_count = 0;
+        let mut perm_denied = 0;
+
+        let rule = loop {
+            let r = look_up(
+                &options.identifier,
+                options.label.clone(),
+                options.token.clone(),
+                im.clone(),
+            );
+
+            match r {
+                Ok((io_hub, remote, eid)) => {
+                    break Rule::Client {
+                        endpoint_id: eid,
+                        options,
+                        remote,
+                        io_hub: Some(std::sync::Mutex::new(io_hub)),
+                        reader_closed: false,
+                        im,
+                        epoch,
+                    };
+                }
+                Err(Error::IdentifierNotInUse) => {
+                    if !options.controller_affinity { wait!(); continue; }
+
+                    let r = register(&options.identifier, im.clone());
+                    match r {
+                        Ok((io_hub, bus_sender, eid)) => {
+                            let (tx, rx) = std::sync::mpsc::channel();
+                            let im2 = io_hub.io_multiplexing();
+
+                            let ctrl = super::platform::BusController::new(
+                                eid, options.label, options.token, tx, io_hub,
+                            );
+                            ctrl.run();
+
+                            break Rule::Server {
+                                endpoint_id: eid,
+                                bus_sender: std::sync::Mutex::new(bus_sender),
+                                receiver: Some(std::sync::Mutex::new(rx)),
+                                im: im2,
+                            };
+                        }
+                        Err(Error::IdentifierInUse) => {}
+                        Err(Error::PermissionDenied) => {
+                            perm_denied += 1;
+                            if perm_denied > 5 { return Err(JoinError::PermissionDenied); }
+                            wait!();
+                        }
+                        Err(e) => { tracing::error!("register: {:?}", e); wait!(); }
+                    }
+                }
+                Err(Error::VersionMismatch(v, _)) => {
+                    return Err(JoinError::VersionMismatch(v));
+                }
+                Err(Error::TokenMismatch) => {
+                    return Err(JoinError::TokenMismatch);
+                }
+                Err(Error::PermissionDenied) => {
+                    perm_denied += 1;
+                    if perm_denied > 5 { return Err(JoinError::PermissionDenied); }
+                    wait!();
+                }
+                Err(Error::Timeout) => {
+                    timeout_count += 1;
+                    if timeout_count > 5 {
+                        return Err(JoinError::VersionMismatch(Version::new()));
+                    }
+                    wait!();
+                }
+                Err(e) => { tracing::error!("look_up: {:?}", e); wait!(); }
+            }
+        };
+
+        Ok(rule)
+    }
+}
+
+impl Rule {
+    fn reader_close(&mut self) {
+        match self {
+            Rule::Client { io_hub, reader_closed, .. } => {
+                let _ = io_hub.take();
+                *reader_closed = true;
+            }
+            Rule::Server { receiver, .. } => {
+                let _ = receiver.take();
+            }
+        }
     }
 }

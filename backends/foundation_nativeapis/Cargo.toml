@@ -17,6 +17,8 @@ serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 type-uuid = { version = "0.1", optional = true }
+once_cell = { version = "1", optional = true }
+uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
 libc = "0.2"
@@ -41,6 +43,7 @@ tracing-subscriber.workspace = true
 nix = { version = "0.29", features = ["fs", "poll"] }
 serial_test = "3.3"
 ntest = "0.9"
+uuid = { version = "1", features = ["v4"] }
 
 [features]
 # Default: full platform-native stack.
@@ -61,7 +64,7 @@ watcher-windows = ["poll"]
 uring = ["dep:io-uring"]
 
 # Interprocess message bus (adapted from ipmb)
-ipc = ["dep:bincode", "dep:type-uuid", "dep:serde_bytes"]
+ipc = ["dep:bincode", "dep:type-uuid", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

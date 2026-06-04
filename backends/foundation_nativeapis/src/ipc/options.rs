@@ -1,26 +1,21 @@
 /// Options for joining an IPC bus.
 
-use super::label::Label;
+use super::Label;
 
 /// Configuration for joining a message bus.
 #[derive(Clone, Debug)]
 pub struct Options {
     /// Bus identifier — unique name all endpoints on the same bus share.
-    /// e.g., "com.ewe.watchers", "com.ewe.build-system"
     pub identifier: String,
-
-    /// Endpoint label — used for routing. Messages delivered only to matching labels.
+    /// Endpoint label — used for routing.
     pub label: Label,
-
     /// Authentication token — optional. If set, endpoints must share the same token.
     pub token: String,
-
     /// Whether to become the bus controller if none exists.
     pub controller_affinity: bool,
 }
 
 impl Options {
-    /// Create options with a bus identifier and label.
     pub fn new(identifier: impl Into<String>, label: Label) -> Self {
         Self {
             identifier: identifier.into(),
@@ -30,14 +25,11 @@ impl Options {
         }
     }
 
-    /// Set the authentication token.
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.token = token.into();
         self
     }
 
-    /// Set controller affinity — if true, this endpoint becomes the controller
-    /// if no controller exists on the bus.
     pub fn controller_affinity(mut self, affinity: bool) -> Self {
         self.controller_affinity = affinity;
         self

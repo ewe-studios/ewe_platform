@@ -70,6 +70,11 @@ impl LabelOp {
     pub fn evaluate(&self, label: &Label) -> bool {
         self.matches(&label.0)
     }
+
+    /// Alias for `matches` — used by the bus controller for routing.
+    pub fn validate(&self, label: &Label) -> bool {
+        self.matches(&label.0)
+    }
 }
 
 /// Create a `LabelOp` from a label string (convenience constructor for `Leaf`).

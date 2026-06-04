@@ -1,7 +1,7 @@
 ---
 feature: "Interprocess Message Bus (IPC)"
 description: "Cross-platform IPC bus with typed messaging, shared memory (MemoryRegion), kernel object passing (FD/Handle/MachPort), and FFI bindings — adapted from ipmb"
-status: "pending"
+status: "completed"
 priority: "medium"
 depends_on: ["01-native-apis"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-01
 last_updated: 2026-06-04
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature: Interprocess Message Bus (IPC)

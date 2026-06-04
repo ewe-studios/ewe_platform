@@ -3,382 +3,454 @@
 /// Uses `SCM_RIGHTS` ancillary data for kernel object (FD) passing.
 /// Shared memory via `memfd_create()` + `mmap()`.
 
-pub mod encoded;
-pub mod bus_controller;
+use std::{ffi, io, mem, os::fd::RawFd, ptr, sync::Arc, sync::mpsc, time::Duration};
 
-use std::io;
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd, RawFd};
-use std::ptr;
-use std::sync::Mutex;
+pub(crate) use fd::{Fd, Local, Remote};
+pub(crate) use encoded_message::EncodedMessage;
+pub(crate) use encoded_message::alloc_buffer;
+pub(crate) use io_mul::IoMultiplexing;
+pub(crate) use bus_controller_impl::BusController;
 
-use libc::{c_void, socklen_t, sockaddr_un, AF_UNIX};
+use crate::ipc::{
+    version::version, version::Version, util::EndpointID, Error, Label, LabelOp, MemoryRegion, MessageBox, Message,
+    Selector, decode, util::Align4,
+};
 
-pub use encoded::EncodedMessage;
-pub use bus_controller::{start_controller, ConnectMessage, ConnectMessageAck};
+pub mod fd;
+pub mod encoded_message;
+pub mod io_mul;
+mod bus_controller_impl;
 
-// ---------------------------------------------------------------------------
-// Object type — kernel object for passing across process boundaries.
-// ---------------------------------------------------------------------------
+static MAXIMUM_BUF_SIZE: i32 = 64 << 10;
 
-/// Platform-native kernel object. On Linux, this is a raw file descriptor.
-pub struct Object(OwnedFd);
+// Page mask for mmap alignment.
+static mut PAGE_MASK: usize = 0;
+static PAGE_MASK_ONCE: std::sync::Once = std::sync::Once::new();
 
-impl std::fmt::Debug for Object {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Object(fd={})", self.0.as_raw_fd())
+pub(crate) fn page_mask() -> usize {
+    unsafe {
+        PAGE_MASK_ONCE.call_once(|| {
+            PAGE_MASK = libc::sysconf(libc::_SC_PAGESIZE) as usize - 1;
+        });
+        PAGE_MASK
     }
 }
 
-impl Object {
-    /// Create from a raw fd. The fd must already be valid. The object takes ownership.
-    ///
-    /// # Safety
-    /// `raw` must be a valid, open file descriptor.
-    pub unsafe fn from_raw(raw: RawFd) -> Self {
-        Self(OwnedFd::from_raw_fd(raw))
+/// Convert a bus identifier to an abstract Unix socket address.
+fn identifier_to_socket_addr(identifier: &str) -> libc::sockaddr_un {
+    let identifier = ffi::CString::new(identifier).unwrap();
+    let mut addr = libc::sockaddr_un {
+        sun_family: libc::AF_UNIX as _,
+        sun_path: [0; 108],
+    };
+    unsafe {
+        libc::strncpy(
+            addr.sun_path[1..].as_mut_ptr(),
+            identifier.as_ptr() as _,
+            addr.sun_path.len() - 2,
+        );
     }
-
-    /// Consume and return the raw fd. Ownership is transferred to the caller.
-    pub fn into_raw(self) -> RawFd {
-        self.0.into_raw_fd()
-    }
-
-    /// Get the raw fd without transferring ownership.
-    pub fn as_raw(&self) -> RawFd {
-        self.0.as_raw_fd()
-    }
-
-    /// Try to clone the underlying fd (dup).
-    pub fn try_clone(&self) -> io::Result<Self> {
-        self.0.try_clone().map(Self)
-    }
+    addr
 }
 
-// ---------------------------------------------------------------------------
-// Fd — owned file descriptor wrapper for IPC sockets.
-// ---------------------------------------------------------------------------
+/// Connect to an existing bus controller.
+///
+/// Creates a socket, connects to the abstract socket address, creates a socketpair
+/// for the reply channel, sends a ConnectMessage with the socketpair write fd as an object,
+/// and waits for the ConnectMessageAck on the socketpair read fd.
+pub(crate) fn look_up(
+    identifier: &str,
+    label: Label,
+    token: String,
+    im: Arc<IoMultiplexing>,
+) -> Result<(IoHub, Remote, EndpointID), Error> {
+    unsafe {
+        // Create socket
+        let fd = libc::socket(libc::AF_UNIX, libc::SOCK_SEQPACKET | libc::SOCK_CLOEXEC, 0);
+        if fd == -1 {
+            return Err(Error::IoError(io::Error::last_os_error()));
+        }
+        let fd = Fd::from_raw(fd);
 
-/// Owned file descriptor for IPC socket connections.
-pub struct Fd(OwnedFd);
+        let addr = identifier_to_socket_addr(identifier);
 
-impl Fd {
-    pub fn try_clone(&self) -> io::Result<Self> {
-        self.0.try_clone().map(Self)
-    }
+        let mut r = libc::connect(
+            fd.as_raw(),
+            &addr as *const _ as _,
+            mem::size_of_val(&addr) as _,
+        );
+        if r == -1 {
+            let err = io::Error::last_os_error();
 
-    /// Create from a raw fd. Takes ownership.
-    ///
-    /// # Safety
-    /// `raw` must be a valid, open file descriptor.
-    pub unsafe fn from_raw(raw: RawFd) -> Self {
-        Self(OwnedFd::from_raw_fd(raw))
-    }
+            return Err(match err.kind() {
+                io::ErrorKind::ConnectionRefused | io::ErrorKind::NotFound => {
+                    Error::IdentifierNotInUse
+                }
+                io::ErrorKind::PermissionDenied => Error::PermissionDenied,
+                _ => Error::IoError(err),
+            });
+        }
 
-    pub fn into_raw(self) -> RawFd {
-        self.0.into_raw_fd()
-    }
+        let _ = libc::setsockopt(
+            fd.as_raw(),
+            libc::SOL_SOCKET,
+            libc::SO_SNDBUF,
+            &MAXIMUM_BUF_SIZE as *const _ as _,
+            mem::size_of_val(&MAXIMUM_BUF_SIZE) as _,
+        );
+        let remote = Remote::new(fd);
 
-    pub fn as_raw(&self) -> RawFd {
-        self.0.as_raw_fd()
-    }
-}
+        // Create socketpair for reply channel
+        let mut pair = [0, 0];
+        r = libc::socketpair(
+            libc::AF_UNIX,
+            libc::SOCK_SEQPACKET | libc::SOCK_CLOEXEC,
+            0,
+            pair.as_mut_ptr(),
+        );
+        if r == -1 {
+            return Err(Error::IoError(io::Error::last_os_error()));
+        }
 
-impl AsRawFd for Fd {
-    fn as_raw_fd(&self) -> RawFd {
-        self.0.as_raw_fd()
-    }
-}
+        let read_fd = Fd::from_raw(pair[0]);
+        let write_fd = Fd::from_raw(pair[1]);
 
-impl AsFd for Fd {
-    fn as_fd(&self) -> BorrowedFd<'_> {
-        self.0.as_fd()
-    }
-}
+        let _ = libc::shutdown(read_fd.as_raw(), libc::SHUT_WR);
+        let _ = libc::shutdown(write_fd.as_raw(), libc::SHUT_RD);
 
-// ---------------------------------------------------------------------------
-// Remote — thread-safe write end of socket connection.
-// ---------------------------------------------------------------------------
+        let _ = libc::setsockopt(
+            read_fd.as_raw(),
+            libc::SOL_SOCKET,
+            libc::SO_RCVBUF,
+            &MAXIMUM_BUF_SIZE as *const _ as _,
+            mem::size_of_val(&MAXIMUM_BUF_SIZE) as _,
+        );
+        let _ = libc::setsockopt(
+            write_fd.as_raw(),
+            libc::SOL_SOCKET,
+            libc::SO_SNDBUF,
+            &MAXIMUM_BUF_SIZE as *const _ as _,
+            mem::size_of_val(&MAXIMUM_BUF_SIZE) as _,
+        );
 
-/// The remote (write) end of a socket connection. Thread-safe via Mutex.
-pub struct Remote {
-    fd_cache: RawFd,
-    fd: Mutex<Fd>,
-}
+        // Build and send ConnectMessage with socketpair write fd as object
+        let mut msg = Message::new(
+            Selector::unicast(LabelOp::True),
+            crate::ipc::ConnectMessage {
+                version: version(),
+                token,
+                label,
+            },
+        );
+        msg.objects.push(write_fd);
 
-impl Remote {
-    pub fn new(fd: Fd) -> Self {
-        let fd_cache = fd.as_raw();
-        Self {
-            fd: Mutex::new(fd),
-            fd_cache,
+        let mut encoded_msg = msg.into_encoded();
+        encoded_msg.send(&remote)?;
+
+        // Wait for ack on socketpair read fd
+        let mut io_hub: IoHub = IoHub::for_endpoint(Local(read_fd), im);
+        let encoded_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote))?;
+        let ack = crate::ipc::ConnectMessageAck::decode(
+            encoded_msg.selector.uuid,
+            encoded_msg.payload_data,
+        )?;
+
+        match ack {
+            crate::ipc::ConnectMessageAck::Ok(endpoint_id) => Ok((io_hub, remote, endpoint_id)),
+            crate::ipc::ConnectMessageAck::ErrVersion(v) => Err(Error::VersionMismatch(v, None)),
+            crate::ipc::ConnectMessageAck::ErrToken => Err(Error::TokenMismatch),
         }
     }
+}
 
-    pub fn lock(&self) -> std::sync::MutexGuard<'_, Fd> {
-        self.fd.lock().unwrap()
+/// Register as a bus controller.
+///
+/// Creates a listening socket bound to the abstract socket address.
+pub(crate) fn register(
+    identifier: &str,
+    im: Arc<IoMultiplexing>,
+) -> Result<(IoHub, mpsc::Sender<EncodedMessage>, EndpointID), Error> {
+    unsafe {
+        let fd = libc::socket(libc::AF_UNIX, libc::SOCK_SEQPACKET | libc::SOCK_CLOEXEC, 0);
+        if fd == -1 {
+            return Err(Error::IoError(io::Error::last_os_error()));
+        }
+        let fd = Fd::from_raw(fd);
+
+        let addr = identifier_to_socket_addr(identifier);
+
+        let mut r = libc::bind(
+            fd.as_raw(),
+            &addr as *const _ as _,
+            mem::size_of_val(&addr) as _,
+        );
+        if r == -1 {
+            let err = io::Error::last_os_error();
+
+            return Err(match err.kind() {
+                io::ErrorKind::AddrInUse => Error::IdentifierInUse,
+                io::ErrorKind::PermissionDenied => Error::PermissionDenied,
+                _ => Error::IoError(err),
+            });
+        }
+
+        r = libc::listen(fd.as_raw(), 32);
+        if r == -1 {
+            return Err(Error::IoError(io::Error::last_os_error()));
+        }
+
+        let (bus_tx, bus_rx) = mpsc::channel();
+        Ok((
+            IoHub::for_bus_controller(fd, bus_rx, im),
+            bus_tx,
+            EndpointID::new(),
+        ))
     }
+}
 
-    /// Check if the remote socket is dead via `getsockopt(SO_ERROR)`.
-    pub fn is_dead(&self) -> bool {
-        let mut err: i32 = 0;
-        let mut len: socklen_t = std::mem::size_of_val(&err) as _;
-        let r = unsafe {
-            libc::getsockopt(
-                self.fd_cache,
-                libc::SOL_SOCKET,
-                libc::SO_ERROR,
-                &mut err as *mut _ as *mut c_void,
-                &mut len,
+/// MemoryRegion: create shared memory object via memfd_create.
+impl MemoryRegion {
+    pub(crate) fn obj_new(size: usize) -> Option<Fd> {
+        unsafe {
+            let fd = libc::memfd_create(c"ipmb".as_ptr(), libc::MFD_CLOEXEC);
+            if fd == -1 {
+                return None;
+            }
+
+            let r = libc::ftruncate(fd, size as _);
+            if r == -1 {
+                return None;
+            }
+            Some(Fd::from_raw(fd))
+        }
+    }
+}
+
+/// MappedRegion: mmap-based memory mapping.
+impl crate::ipc::platform::MappedRegion {
+    pub(crate) fn map(
+        obj: &Fd,
+        aligned_offset: usize,
+        aligned_size: usize,
+    ) -> Result<*mut u8, Error> {
+        let addr = unsafe {
+            libc::mmap(
+                ptr::null_mut(),
+                aligned_size,
+                libc::PROT_READ | libc::PROT_WRITE,
+                libc::MAP_SHARED,
+                obj.as_raw(),
+                aligned_offset as _,
             )
         };
-        r == -1 || err != 0
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Local — the read end of a socket connection.
-// ---------------------------------------------------------------------------
-
-/// The local (read) end of a socket connection.
-pub struct Local(pub(crate) Fd);
-
-// ---------------------------------------------------------------------------
-// Socket creation helpers.
-// ---------------------------------------------------------------------------
-
-/// Create a `SOCK_SEQPACKET` Unix domain socket connected to an abstract address.
-pub fn connect_abstract(address: &str) -> io::Result<OwnedFd> {
-    let fd = unsafe { libc::socket(AF_UNIX, libc::SOCK_SEQPACKET | libc::SOCK_CLOEXEC, 0) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    let addr_bytes = abstract_socket_addr(address);
-    let mut addr = sockaddr_un {
-        sun_family: AF_UNIX as _,
-        sun_path: [0; 108],
-    };
-
-    unsafe {
-        ptr::copy_nonoverlapping(
-            addr_bytes.as_ptr(),
-            addr.sun_path.as_mut_ptr() as *mut u8,
-            addr_bytes.len().min(108),
-        );
-    }
-
-    let sun_len = std::mem::size_of::<sockaddr_un>() as socklen_t;
-
-    let ret = unsafe { libc::connect(fd, &addr as *const _ as *const _, sun_len) };
-    if ret < 0 {
-        let err = io::Error::last_os_error();
-        unsafe { libc::close(fd) };
-        return Err(err);
-    }
-
-    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
-}
-
-/// Create a listening `SOCK_SEQPACKET` Unix domain socket bound to an abstract address.
-pub fn listen_abstract(address: &str, backlog: i32) -> io::Result<OwnedFd> {
-    let fd = unsafe { libc::socket(AF_UNIX, libc::SOCK_SEQPACKET | libc::SOCK_CLOEXEC, 0) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    let addr_bytes = abstract_socket_addr(address);
-    let mut addr = sockaddr_un {
-        sun_family: AF_UNIX as _,
-        sun_path: [0; 108],
-    };
-
-    unsafe {
-        ptr::copy_nonoverlapping(
-            addr_bytes.as_ptr(),
-            addr.sun_path.as_mut_ptr() as *mut u8,
-            addr_bytes.len().min(108),
-        );
-    }
-
-    let sun_len = std::mem::size_of::<sockaddr_un>() as socklen_t;
-
-    let ret = unsafe { libc::bind(fd, &addr as *const _ as *const _, sun_len) };
-    if ret < 0 {
-        let err = io::Error::last_os_error();
-        unsafe { libc::close(fd) };
-        return Err(err);
-    }
-
-    let ret = unsafe { libc::listen(fd, backlog) };
-    if ret < 0 {
-        let err = io::Error::last_os_error();
-        unsafe { libc::close(fd) };
-        return Err(err);
-    }
-
-    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
-}
-
-fn abstract_socket_addr(name: &str) -> Vec<u8> {
-    let mut bytes = vec![0u8];
-    bytes.extend_from_slice(name.as_bytes());
-    bytes
-}
-
-/// Accept a single connection from a listening socket.
-pub fn accept(listen: &OwnedFd) -> io::Result<OwnedFd> {
-    let fd = unsafe { libc::accept(listen.as_raw_fd(), ptr::null_mut(), ptr::null_mut()) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
-}
-
-// ---------------------------------------------------------------------------
-// IoMultiplexing — IO multiplexing using our poll layer.
-// ---------------------------------------------------------------------------
-
-/// IO multiplexing for the bus controller and endpoints.
-pub struct IoMultiplexing {
-    poll: crate::native::poll::Poll,
-    waker: crate::native::poll::Waker,
-}
-
-impl IoMultiplexing {
-    pub fn new() -> io::Result<Self> {
-        let poll = crate::native::poll::Poll::new()?;
-        let registry = poll.registry();
-        let waker = crate::native::poll::Waker::new(&registry, crate::native::poll::Token(usize::MAX))?;
-        Ok(Self { poll, waker })
-    }
-
-    pub fn poll(&self) -> &crate::native::poll::Poll {
-        &self.poll
-    }
-
-    pub fn wake(&self) -> io::Result<()> {
-        self.waker.wake()
-    }
-
-    pub fn registry(&self) -> crate::native::poll::Registry {
-        self.poll.registry()
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Shared Memory — MemoryRegion via memfd_create + mmap.
-// ---------------------------------------------------------------------------
-
-/// Zero-copy shared memory region.
-pub struct MemoryRegion {
-    fd: OwnedFd,
-    /// Mapped memory as a byte vector for safe access.
-    data: Vec<u8>,
-    /// User-accessible buffer size (excluding header).
-    user_size: u64,
-}
-
-const HEADER_SIZE: usize = 16; // aligned to 8 bytes
-
-unsafe impl Send for MemoryRegion {}
-unsafe impl Sync for MemoryRegion {}
-
-impl std::fmt::Debug for MemoryRegion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "MemoryRegion(size={})", self.user_size)
-    }
-}
-
-impl MemoryRegion {
-    /// Create a new shared memory region of `size` bytes.
-    pub fn new(size: usize) -> Option<Self> {
-        let total = size.checked_add(HEADER_SIZE)?;
-
-        let name = format!("ipc-shm-{}", std::process::id());
-        let c_name = std::ffi::CString::new(name).ok()?;
-        let memfd = unsafe { libc::memfd_create(c_name.as_ptr(), 0) };
-        if memfd < 0 {
-            return None;
+        if addr == libc::MAP_FAILED {
+            Err(Error::MemoryRegionMapping)
+        } else {
+            Ok(addr as *mut u8)
         }
-
-        let fd = unsafe { OwnedFd::from_raw_fd(memfd) };
-
-        if unsafe { libc::ftruncate(fd.as_raw_fd(), total as libc::off_t) } < 0 {
-            return None;
-        }
-
-        // For safety, use a Vec<u8> instead of raw mmap pointer
-        let mut data = vec![0u8; total];
-        // Write header: ref_count (4 bytes) + buffer_size (8 bytes)
-        data[0..4].copy_from_slice(&1u32.to_le_bytes());
-        data[4..12].copy_from_slice(&(size as u64).to_le_bytes());
-
-        Some(Self {
-            fd,
-            data,
-            user_size: size as u64,
-        })
     }
 
-    /// Map a range of the user data area (after the header).
-    pub fn map(&mut self, range: impl std::ops::RangeBounds<usize>) -> &mut [u8] {
-        use std::ops::Bound;
-        let data_start = HEADER_SIZE;
-        let data_end = self.data.len();
-        let data_len = data_end - data_start;
+    pub(crate) fn unmap(addr: *mut u8, len: usize) {
+        let r = unsafe { libc::munmap(addr as _, len) };
+        assert_ne!(r, -1);
+    }
+}
 
-        let start = match range.start_bound() {
-            Bound::Included(&n) => n,
-            Bound::Excluded(&n) => n + 1,
-            Bound::Unbounded => 0,
-        };
-        let end = match range.end_bound() {
-            Bound::Included(&n) => n + 1,
-            Bound::Excluded(&n) => n,
-            Bound::Unbounded => data_len,
+/// IO event loop hub for the bus controller and endpoints.
+pub(crate) struct IoHub {
+    bus_rx: Option<mpsc::Receiver<EncodedMessage>>,
+    local_list: Vec<Local>,
+    listener: Option<Fd>,
+    in_buffer: Vec<libc::epoll_event>,
+    im: Arc<IoMultiplexing>,
+}
+
+impl IoHub {
+    fn for_bus_controller(
+        listener: Fd,
+        bus_rx: mpsc::Receiver<EncodedMessage>,
+        im: Arc<IoMultiplexing>,
+    ) -> Self {
+        im.register(&listener);
+
+        Self {
+            bus_rx: Some(bus_rx),
+            local_list: vec![],
+            listener: Some(listener),
+            in_buffer: Vec::with_capacity(2),
+            im,
+        }
+    }
+
+    fn for_endpoint(local: Local, im: Arc<IoMultiplexing>) -> Self {
+        im.register(&local.0);
+
+        Self {
+            bus_rx: None,
+            local_list: vec![local],
+            listener: None,
+            in_buffer: Vec::with_capacity(2),
+            im,
+        }
+    }
+
+    pub fn recv(
+        &mut self,
+        timeout: Option<Duration>,
+        remote: Option<&Remote>,
+    ) -> Result<EncodedMessage, Error> {
+        let _ = remote;
+
+        'ret: loop {
+            // Check bus receiver first (for controller mode)
+            if let Some(ref rx) = self.bus_rx {
+                match rx.try_recv() {
+                    Ok(message) => {
+                        break Ok(message);
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        self.bus_rx = None;
+                    }
+                }
+            }
+
+            self.im.wait(&mut self.in_buffer, timeout);
+
+            if self.in_buffer.is_empty() {
+                break Err(Error::Timeout);
+            }
+
+            for ev in self.in_buffer.drain(..) {
+                // Skip waker events
+                if ev.u64 == self.im.waker_fd.as_raw() as u64 {
+                    self.im.clear_waker();
+                    continue;
+                }
+
+                // Check if this is a new connection on the listener
+                if let Some(ref listener) = self.listener {
+                    if ev.u64 == listener.as_raw() as u64 {
+                        unsafe {
+                            let fd =
+                                libc::accept(listener.as_raw(), ptr::null_mut(), ptr::null_mut());
+                            if fd != -1 {
+                                let local = Local(Fd::from_raw(fd));
+                                let _ = libc::setsockopt(
+                                    local.0.as_raw(),
+                                    libc::SOL_SOCKET,
+                                    libc::SO_RCVBUF,
+                                    &MAXIMUM_BUF_SIZE as *const _ as _,
+                                    mem::size_of_val(&MAXIMUM_BUF_SIZE) as _,
+                                );
+                                self.im.register(&local.0);
+                                self.local_list.push(local);
+                            }
+                        }
+                        continue;
+                    }
+                }
+
+                // Check if this is a message from an endpoint
+                if let Some((i, local)) = self
+                    .local_list
+                    .iter_mut()
+                    .enumerate()
+                    .find(|(_, p)| ev.u64 == p.0.as_raw() as u64)
+                {
+                    let r = EncodedMessage::from_local(local);
+                    if r.is_err() {
+                        self.local_list.swap_remove(i);
+                    }
+                    break 'ret r;
+                }
+            }
+        }
+    }
+
+    pub fn io_multiplexing(&self) -> Arc<IoMultiplexing> {
+        self.im.clone()
+    }
+}
+
+/// Encoding messages for the Linux transport.
+impl<T: MessageBox> Message<T> {
+    fn encode_inner(&self) -> (&'static [u8], Vec<u8>, Vec<u8>) {
+        // Calculate iov data size
+        let mut size = 4 // version
+            + 4 // selector size
+            + 4 // payload size
+            ;
+        let selector_data =
+            bincode::serde::encode_to_vec(&self.selector, bincode::config::standard()).unwrap();
+        size += selector_data.len().align4();
+
+        let payload_bytes = self.payload.encode().unwrap();
+        size += payload_bytes.len().align4();
+
+        let mut iov_data: Vec<u8> = alloc_buffer::<u32>(size);
+        let payload_data = unsafe {
+            let version_ptr = iov_data.as_mut_ptr() as *mut u32;
+            let v = version();
+            ptr::write(
+                version_ptr,
+                u32::from_ne_bytes([0xFF, v.major(), v.minor(), v.patch()]),
+            );
+
+            let selector_size_ptr = version_ptr.offset(1);
+            ptr::write(selector_size_ptr, selector_data.len() as u32);
+
+            let selector_ptr = selector_size_ptr.offset(1) as *mut u8;
+            ptr::copy_nonoverlapping(selector_data.as_ptr(), selector_ptr, selector_data.len());
+
+            let payload_len_ptr =
+                selector_ptr.offset(selector_data.len().align4() as _) as *mut u32;
+            ptr::write(payload_len_ptr, payload_bytes.len() as u32);
+
+            let payload_ptr = payload_len_ptr.offset(1) as *mut u8;
+            ptr::copy_nonoverlapping(payload_bytes.as_ptr(), payload_ptr, payload_bytes.len());
+
+            slice::from_raw_parts(payload_ptr, payload_bytes.len())
         };
 
-        let start = data_start + start.min(data_len);
-        let end = (data_start + end).min(data_end);
-        let len = end.saturating_sub(start);
+        // Build control data (SCM_RIGHTS)
+        let control_len: u32 =
+            ((self.objects.len() + self.memory_regions.len()) * mem::size_of::<RawFd>()) as u32;
+        size = unsafe { libc::CMSG_SPACE(control_len) } as usize;
+        let mut control_data: Vec<u8> = alloc_buffer::<usize>(size);
+        unsafe {
+            let control_ptr = control_data.as_mut_ptr() as *mut libc::cmsghdr;
+            let control_ref = &mut *control_ptr;
+            control_ref.cmsg_len = libc::CMSG_LEN(control_len) as _;
+            control_ref.cmsg_level = libc::SOL_SOCKET;
+            control_ref.cmsg_type = libc::SCM_RIGHTS;
 
-        &mut self.data[start..start + len]
+            let mut control_data_ptr = libc::CMSG_DATA(control_ptr) as *mut RawFd;
+            for object in self
+                .objects
+                .iter()
+                .chain(self.memory_regions.iter().map(|region| region.object()))
+            {
+                ptr::write(control_data_ptr, object.as_raw());
+                control_data_ptr = control_data_ptr.offset(1);
+            }
+        }
+
+        (payload_data, iov_data, control_data)
     }
 
-    /// Total size of the user-accessible buffer (excluding header).
-    pub fn buffer_size(&self) -> u64 {
-        self.user_size
-    }
+    pub(crate) fn into_encoded(self) -> EncodedMessage {
+        let (payload_data, iov_data, control_data) = self.encode_inner();
 
-    pub fn ref_count(&self) -> u32 {
-        u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]])
-    }
-
-    pub fn inc_ref(&mut self) {
-        let rc = self.ref_count() + 1;
-        self.data[0..4].copy_from_slice(&rc.to_le_bytes());
-    }
-
-    pub fn dec_ref(&mut self) -> u32 {
-        let rc = self.ref_count().saturating_sub(1);
-        self.data[0..4].copy_from_slice(&rc.to_le_bytes());
-        rc
-    }
-
-    pub fn as_fd(&self) -> BorrowedFd<'_> {
-        self.fd.as_fd()
-    }
-
-    pub fn try_clone(&self) -> io::Result<Self> {
-        let fd = self.fd.try_clone()?;
-        // Increment ref count
-        let rc = self.ref_count() + 1;
-        let mut data = self.data.clone();
-        data[0..4].copy_from_slice(&rc.to_le_bytes());
-        Ok(Self {
-            fd,
-            data,
-            user_size: self.user_size,
-        })
+        EncodedMessage {
+            selector: self.selector,
+            payload_data,
+            iov_data,
+            control_data,
+            objects: self.objects,
+            memory_regions: self.memory_regions,
+        }
     }
 }
+
+use std::slice;

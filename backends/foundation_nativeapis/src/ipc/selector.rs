@@ -1,35 +1,34 @@
 /// Routing selectors for the IPC bus.
 ///
 /// Selectors determine which endpoints receive a message based on
-/// label expressions, delivery mode (unicast/multicast), and TTL.
+/// label expressions, delivery mode (unicast/multicast), and the payload's type UUID.
 
-use std::time::Duration;
-
-use bincode::{Decode, Encode};
-use serde::{Deserialize, Serialize};
+use type_uuid::Bytes;
 
 use super::label::LabelOp;
+use super::selector;
 
 /// Delivery mode for a selector.
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Copy, Clone, serde::Serialize, serde::Deserialize, Eq, PartialEq)]
 pub enum SelectorMode {
-    /// Delivers to the first matching endpoint.
+    /// The message can only be consumed by one endpoint.
     Unicast,
-    /// Delivers to all matching endpoints.
+    /// The message can be consumed by multiple endpoints.
     Multicast,
 }
 
-/// A routing selector that determines which endpoints receive a message.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Encode, Decode)]
+/// Describes how a message is routed.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Selector {
-    /// Label expression for routing.
     pub label_op: LabelOp,
-    /// Delivery mode.
     pub mode: SelectorMode,
+    /// Type UUID of the payload — set automatically from `TypeUuid::UUID`.
+    pub uuid: Bytes,
+    /// Number of trailing objects that are `MemoryRegion`s (vs regular `Object`s).
+    pub memory_region_count: u16,
     /// Time-to-live if unroutable. Zero means don't buffer.
     #[serde(with = "duration_serde")]
-    #[bincode(with_serde)]
-    pub ttl: Duration,
+    pub ttl: std::time::Duration,
 }
 
 // serde helper for Duration
@@ -48,61 +47,65 @@ mod duration_serde {
 }
 
 impl Selector {
-    /// Create a broadcast selector — sends to all endpoints.
-    pub fn broadcast() -> Self {
+    pub fn unicast(label_op: impl Into<LabelOp>) -> Self {
         Self {
-            label_op: LabelOp::True,
-            mode: SelectorMode::Multicast,
-            ttl: Duration::ZERO,
-        }
-    }
-
-    /// Create a unicast selector — sends to a specific endpoint.
-    pub fn unicast(label: impl Into<String>) -> Self {
-        Self {
-            label_op: LabelOp::Leaf(label.into()),
+            label_op: label_op.into(),
             mode: SelectorMode::Unicast,
-            ttl: Duration::ZERO,
+            uuid: [0; 16],
+            memory_region_count: 0,
+            ttl: std::time::Duration::ZERO,
         }
     }
 
-    /// Create a multicast selector — sends to all endpoints matching the label expression.
-    pub fn multicast(label_op: LabelOp) -> Self {
+    pub fn multicast(label_op: impl Into<LabelOp>) -> Self {
         Self {
-            label_op,
+            label_op: label_op.into(),
             mode: SelectorMode::Multicast,
-            ttl: Duration::ZERO,
+            uuid: [0; 16],
+            memory_region_count: 0,
+            ttl: std::time::Duration::ZERO,
         }
     }
 
     /// Set a TTL for this message.
-    pub fn ttl(mut self, ttl: Duration) -> Self {
+    pub fn ttl(mut self, ttl: std::time::Duration) -> Self {
         self.ttl = ttl;
         self
     }
 
     /// Check if this selector matches a given endpoint label.
-    pub fn matches_label(&self, label: &str) -> bool {
-        self.label_op.matches(label)
+    pub fn validate(&self, label: &super::Label) -> bool {
+        self.label_op.matches(&label.0)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ipc::Label;
 
     #[test]
-    fn broadcast_matches_all() {
-        let sel = Selector::broadcast();
-        assert!(sel.mode == SelectorMode::Multicast);
-        assert!(sel.matches_label("anything"));
+    fn unicast_validates() {
+        let sel = Selector::unicast(LabelOp::Leaf("target".into()));
+        assert!(sel.validate(&Label::new("target")));
+        assert!(!sel.validate(&Label::new("other")));
     }
 
     #[test]
-    fn unicast_matches_only_target() {
-        let sel = Selector::unicast("target");
-        assert!(sel.mode == SelectorMode::Unicast);
-        assert!(sel.matches_label("target"));
-        assert!(!sel.matches_label("other"));
+    fn broadcast_validates() {
+        let sel = Selector::multicast(LabelOp::True);
+        assert!(sel.validate(&Label::new("anything")));
+        assert!(sel.validate(&Label::new("foo")));
+    }
+
+    #[test]
+    fn multicast_or() {
+        let sel = Selector::multicast(LabelOp::Or(
+            Box::new(LabelOp::Leaf("a".into())),
+            Box::new(LabelOp::Leaf("b".into())),
+        ));
+        assert!(sel.validate(&Label::new("a")));
+        assert!(sel.validate(&Label::new("b")));
+        assert!(!sel.validate(&Label::new("c")));
     }
 }

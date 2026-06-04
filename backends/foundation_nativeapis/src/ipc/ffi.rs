@@ -1,4 +1,6 @@
 /// FFI layer — `extern "C"` bindings for the IPC bus.
+///
+/// Provides opaque types and functions for C/C++ consumers.
 
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
@@ -6,7 +8,6 @@ use std::os::raw::{c_char, c_int};
 use crate::ipc::message::BytesMessage;
 use crate::ipc::options::Options;
 use crate::ipc::label::Label;
-use crate::ipc::errors::IpcError;
 
 /// Opaque sender handle.
 pub struct ipmb_Sender {
@@ -66,7 +67,7 @@ pub unsafe extern "C" fn ipmb_join(
         opts = opts.controller_affinity(true);
     }
 
-    match crate::ipc::bus_controller::join::<BytesMessage, BytesMessage>(opts, None) {
+    match crate::ipc::join::<BytesMessage, BytesMessage>(opts, None) {
         Ok((_sender, _receiver)) => {
             // TODO: Box the sender and receiver into raw pointers
             -1

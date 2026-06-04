@@ -1,69 +1,84 @@
 /// Message types for the IPC bus.
+///
+/// `MessageBox` is a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
+/// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
 
-use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
+use type_uuid::{Bytes, TypeUuid};
 
-use super::version::Version;
-use super::label::Label;
-use super::util::EndpointID;
-use super::selector::Selector;
+use super::{EndpointID, Error, Label, MemoryRegion, Object, Selector, Version};
+
+/// A message with typed payload, kernel objects, and shared memory regions.
+pub struct Message<T> {
+    pub(crate) selector: Selector,
+    pub payload: T,
+    pub objects: Vec<Object>,
+    pub memory_regions: Vec<MemoryRegion>,
+}
+
+impl<T: MessageBox> Message<T> {
+    pub fn new(mut selector: Selector, payload: T) -> Self {
+        selector.uuid = payload.uuid();
+
+        Self {
+            selector,
+            payload,
+            objects: vec![],
+            memory_regions: vec![],
+        }
+    }
+}
 
 /// Trait for types that can be sent over the IPC bus.
 ///
-/// Requires `Serialize + Encode + Decode<()> + Send + Sync + 'static`.
-/// The `Decode<()>` bound is bincode 2's default context.
-pub trait MessageBox: Serialize + bincode::Encode + bincode::Decode<()> + Send + Sync + 'static {
-    fn type_uuid() -> u128;
+/// Implemented as a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
+pub trait MessageBox: Send + 'static {
+    fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
+    where
+        Self: Sized;
+
+    fn encode(&self) -> Result<Vec<u8>, Error>;
+
+    fn uuid(&self) -> Bytes;
 }
 
-/// A built-in raw bytes message type.
-#[derive(Debug, Clone, Encode, Decode)]
+/// Blanket impl: any TypeUuid + Serialize + Deserialize type is a MessageBox.
+impl<T: TypeUuid + Serialize + for<'de> Deserialize<'de> + Send + 'static> MessageBox for T {
+    fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        if uuid == T::UUID {
+            let (decoded, _): (T, _) =
+                bincode::serde::borrow_decode_from_slice(data, bincode::config::standard())
+                    .map_err(Error::Decode)?;
+            Ok(decoded)
+        } else {
+            Err(Error::TypeUuidNotFound)
+        }
+    }
+
+    fn encode(&self) -> Result<Vec<u8>, Error> {
+        bincode::serde::encode_to_vec(self, bincode::config::standard()).map_err(Error::Encode)
+    }
+
+    fn uuid(&self) -> Bytes {
+        T::UUID
+    }
+}
+
+/// A predefined raw bytes message type.
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "dd95ba8e-1279-47cf-925e-83e614e79588"]
 pub struct BytesMessage {
     pub format: u16,
+    #[serde(with = "serde_bytes")]
     pub data: Vec<u8>,
 }
 
-// Manual Serialize/Deserialize for MessageBox compatibility
-impl serde::Serialize for BytesMessage {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> {
-        use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("BytesMessage", 2)?;
-        state.serialize_field("format", &self.format)?;
-        state.serialize_field("data", &self.data)?;
-        state.end()
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for BytesMessage {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
-        #[derive(serde::Deserialize)]
-        struct Inner {
-            format: u16,
-            data: Vec<u8>,
-        }
-        let inner = Inner::deserialize(deserializer)?;
-        Ok(BytesMessage { format: inner.format, data: inner.data })
-    }
-}
-
-impl BytesMessage {
-    pub fn new(data: Vec<u8>) -> Self {
-        Self { format: 0, data }
-    }
-
-    pub fn with_format(format: u16, data: Vec<u8>) -> Self {
-        Self { format, data }
-    }
-}
-
-impl MessageBox for BytesMessage {
-    fn type_uuid() -> u128 {
-        0xdd95ba8e_1279_47cf_925e_83e614e79588
-    }
-}
-
 /// Connect message sent by endpoint during handshake.
-#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "b2c1deb3-3091-4a74-a99c-c8e8d710d4b2"]
 pub struct ConnectMessage {
     pub version: Version,
     pub token: String,
@@ -71,50 +86,12 @@ pub struct ConnectMessage {
 }
 
 /// Acknowledgement sent by controller during handshake.
-#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "c3de9eb4-c310-4c14-9747-093d62c09998"]
 pub enum ConnectMessageAck {
     Ok(EndpointID),
     ErrVersion(Version),
     ErrToken,
-}
-
-/// A generic IPC message with typed payload.
-#[derive(Debug)]
-pub struct Message<T> {
-    pub selector: Selector,
-    pub payload: T,
-    pub objects: Vec<crate::ipc::platform::Object>,
-    pub memory_regions: Vec<crate::ipc::platform::MemoryRegion>,
-}
-
-impl<T> Message<T> {
-    pub fn broadcast(payload: T) -> Self {
-        Self {
-            selector: Selector::broadcast(),
-            payload,
-            objects: Vec::new(),
-            memory_regions: Vec::new(),
-        }
-    }
-
-    pub fn unicast(label: impl Into<String>, payload: T) -> Self {
-        Self {
-            selector: Selector::unicast(label),
-            payload,
-            objects: Vec::new(),
-            memory_regions: Vec::new(),
-        }
-    }
-
-    pub fn with_object(mut self, obj: crate::ipc::platform::Object) -> Self {
-        self.objects.push(obj);
-        self
-    }
-
-    pub fn with_memory_region(mut self, region: crate::ipc::platform::MemoryRegion) -> Self {
-        self.memory_regions.push(region);
-        self
-    }
 }
 
 #[cfg(test)]
@@ -122,11 +99,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn bytes_message_uuid() {
+        let msg = BytesMessage {
+            format: 0,
+            data: b"hello".to_vec(),
+        };
+        assert_eq!(msg.uuid(), BytesMessage::UUID);
+    }
+
+    #[test]
     fn bytes_message_roundtrip() {
-        let msg = BytesMessage::new(b"hello world".to_vec());
-        let encoded = bincode::encode_to_vec(&msg, bincode::config::standard()).unwrap();
-        let (decoded, _): (BytesMessage, _) =
-            bincode::decode_from_slice(&encoded, bincode::config::standard()).unwrap();
-        assert_eq!(decoded.data, b"hello world");
+        let original = BytesMessage {
+            format: 1,
+            data: b"test data".to_vec(),
+        };
+        let encoded = original.encode().unwrap();
+        let decoded = BytesMessage::decode(BytesMessage::UUID, &encoded).unwrap();
+        assert_eq!(decoded.data, original.data);
+        assert_eq!(decoded.format, original.format);
+    }
+
+    #[test]
+    fn decode_wrong_uuid() {
+        let msg = BytesMessage {
+            format: 0,
+            data: vec![],
+        };
+        let encoded = msg.encode().unwrap();
+        let wrong_uuid = [0u8; 16];
+        let result = BytesMessage::decode(wrong_uuid, &encoded);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(Error::TypeUuidNotFound)));
     }
 }

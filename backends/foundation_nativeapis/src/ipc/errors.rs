@@ -1,14 +1,12 @@
 /// Error types for the IPC bus.
 
-use std::io;
-
 use thiserror::Error;
 
 use super::version::Version;
 
 /// Internal error — used throughout the IPC layer.
-#[derive(Error, Debug)]
-pub enum IpcError {
+#[derive(Debug, Error)]
+pub enum Error {
     #[error("encode error: {0}")]
     Encode(#[from] bincode::error::EncodeError),
 
@@ -24,22 +22,22 @@ pub enum IpcError {
     #[error("disconnected")]
     Disconnect,
 
-    #[error("version mismatch: local={0} remote={1:?}")]
+    #[error("version mismatch: {0}")]
     VersionMismatch(Version, Option<String>),
 
     #[error("token mismatch")]
     TokenMismatch,
 
-    #[error("bus identifier already in use")]
+    #[error("identifier in use")]
     IdentifierInUse,
 
-    #[error("bus identifier not in use")]
+    #[error("identifier not in use")]
     IdentifierNotInUse,
 
     #[error("I/O error: {0}")]
-    Io(#[from] io::Error),
+    IoError(#[from] std::io::Error),
 
-    #[error("memory region mapping failed")]
+    #[error("memory region mapping error")]
     MemoryRegionMapping,
 
     #[error("permission denied")]
@@ -49,19 +47,10 @@ pub enum IpcError {
     Unknown,
 }
 
-/// Public alias for backward compatibility.
-pub type Error = IpcError;
-
-/// Result type for internal IPC operations.
-pub type IpcResult<T> = std::result::Result<T, IpcError>;
-
-/// Public result alias.
-pub type Result<T> = IpcResult<T>;
-
 /// Error from `join()` — endpoint couldn't connect to bus.
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum JoinError {
-    #[error("version mismatch: expected {0}")]
+    #[error("version mismatch: {0}")]
     VersionMismatch(Version),
 
     #[error("token mismatch")]
@@ -72,13 +61,10 @@ pub enum JoinError {
 
     #[error("permission denied")]
     PermissionDenied,
-
-    #[error("I/O error: {0}")]
-    Io(#[from] io::Error),
 }
 
 /// Error from `send()` — message couldn't be sent.
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum SendError {
     #[error("timeout")]
     Timeout,
@@ -91,16 +77,21 @@ pub enum SendError {
 
     #[error("permission denied")]
     PermissionDenied,
+}
 
-    #[error("disconnected")]
-    Disconnect,
-
-    #[error("I/O error: {0}")]
-    Io(#[from] io::Error),
+impl From<JoinError> for SendError {
+    fn from(value: JoinError) -> Self {
+        match value {
+            JoinError::VersionMismatch(v) => Self::VersionMismatch(v),
+            JoinError::TokenMismatch => Self::TokenMismatch,
+            JoinError::Timeout => Self::Timeout,
+            JoinError::PermissionDenied => Self::PermissionDenied,
+        }
+    }
 }
 
 /// Error from `recv()` — message couldn't be received.
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum RecvError {
     #[error("decode error: {0}")]
     Decode(#[from] bincode::error::DecodeError),
@@ -116,51 +107,15 @@ pub enum RecvError {
 
     #[error("permission denied")]
     PermissionDenied,
-
-    #[error("disconnected")]
-    Disconnect,
-
-    #[error("I/O error: {0}")]
-    Io(#[from] io::Error),
-}
-
-impl From<JoinError> for SendError {
-    fn from(err: JoinError) -> Self {
-        match err {
-            JoinError::VersionMismatch(v) => SendError::VersionMismatch(v),
-            JoinError::TokenMismatch => SendError::TokenMismatch,
-            JoinError::Timeout => SendError::Timeout,
-            JoinError::PermissionDenied => SendError::PermissionDenied,
-            JoinError::Io(e) => SendError::Io(e),
-        }
-    }
 }
 
 impl From<JoinError> for RecvError {
-    fn from(err: JoinError) -> Self {
-        match err {
-            JoinError::VersionMismatch(v) => RecvError::VersionMismatch(v),
-            JoinError::TokenMismatch => RecvError::TokenMismatch,
-            JoinError::Timeout => RecvError::Timeout,
-            JoinError::PermissionDenied => RecvError::PermissionDenied,
-            JoinError::Io(e) => RecvError::Io(e),
-        }
-    }
-}
-
-impl From<IpcError> for JoinError {
-    fn from(err: IpcError) -> Self {
-        match err {
-            IpcError::VersionMismatch(v, _) => JoinError::VersionMismatch(v),
-            IpcError::TokenMismatch => JoinError::TokenMismatch,
-            IpcError::Timeout => JoinError::Timeout,
-            IpcError::PermissionDenied => JoinError::PermissionDenied,
-            IpcError::Io(e) => JoinError::Io(e),
-            IpcError::Disconnect => JoinError::Io(io::Error::new(
-                io::ErrorKind::ConnectionAborted,
-                "disconnected",
-            )),
-            _ => JoinError::Io(io::Error::new(io::ErrorKind::Other, format!("{err}"))),
+    fn from(value: JoinError) -> Self {
+        match value {
+            JoinError::VersionMismatch(v) => Self::VersionMismatch(v),
+            JoinError::TokenMismatch => Self::TokenMismatch,
+            JoinError::Timeout => Self::Timeout,
+            JoinError::PermissionDenied => Self::PermissionDenied,
         }
     }
 }
@@ -171,9 +126,9 @@ mod tests {
 
     #[test]
     fn error_from_io() {
-        let io_err = io::Error::new(io::ErrorKind::Other, "test");
-        let ipc: IpcError = io_err.into();
-        assert!(matches!(ipc, IpcError::Io(_)));
+        let io_err = std::io::Error::new(std::io::ErrorKind::Other, "test");
+        let err: Error = io_err.into();
+        assert!(matches!(err, Error::IoError(_)));
     }
 
     #[test]
