@@ -218,3 +218,33 @@ pub fn type_uuid_derive(item: TokenStream) -> TokenStream {
 pub fn external_type_uuid(tokens: TokenStream) -> TokenStream {
     type_uuid::external_type_uuid_impl(tokens)
 }
+
+/// Derive `MessageBox` for an enum of heterogeneous message types.
+///
+/// Each variant must wrap exactly one type that implements `TypeUuid + Serialize + Deserialize`.
+/// The generated impl dispatches encode/decode by UUID, enabling multiple message types on a single bus.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{TypeUuid, MessageBox};
+/// use serde::{Serialize, Deserialize};
+///
+/// #[derive(TypeUuid, Serialize, Deserialize)]
+/// #[uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"]
+/// struct FileEvent { path: String }
+///
+/// #[derive(TypeUuid, Serialize, Deserialize)]
+/// #[uuid = "11111111-2222-3333-4444-555555555555"]
+/// struct LogEntry { message: String }
+///
+/// #[derive(MessageBox)]
+/// enum AppMessage {
+///     File(FileEvent),
+///     Log(LogEntry),
+/// }
+/// ```
+#[proc_macro_derive(MessageBox)]
+pub fn message_box_derive(item: TokenStream) -> TokenStream {
+    type_uuid::message_box_derive(item)
+}

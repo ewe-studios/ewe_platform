@@ -10,7 +10,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use std::thread;
     use std::time::Duration;
-    use foundation_macros::TypeUuid;
+    use foundation_macros::{TypeUuid, MessageBox};
 
     fn unique_bus(name: &str) -> String {
         format!(
@@ -346,5 +346,108 @@ mod tests {
         }
         received_formats.sort();
         assert_eq!(received_formats, vec![0, 1, 2, 3]);
+    }
+
+    // -- Test 10: Heterogeneous messaging via #[derive(MessageBox)] --------
+
+    #[derive(Debug, Serialize, Deserialize, TypeUuid, PartialEq)]
+    #[uuid = "a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5"]
+    struct FileEvent {
+        path: String,
+        kind: u32,
+    }
+
+    #[derive(Debug, Serialize, Deserialize, TypeUuid, PartialEq)]
+    #[uuid = "f6f6f6f6-a7a7-b8b8-c9c9-d0d0d0d0d0d0"]
+    struct LogEntry {
+        level: u8,
+        message: String,
+    }
+
+    #[derive(MessageBox)]
+    enum AppMessage {
+        File(FileEvent),
+        Log(LogEntry),
+    }
+
+    #[test]
+    fn heterogeneous_message_types() {
+        let bus = unique_bus("hetero");
+        let opts = Options::new(&bus, Label::new("app")).controller_affinity(true);
+        let (sender, mut receiver) =
+            join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5)))
+                .expect("join");
+
+        // Send a FileEvent
+        sender
+            .send(Message::new(
+                Selector::multicast(LabelOp::True),
+                AppMessage::File(FileEvent {
+                    path: "/src/main.rs".into(),
+                    kind: 1,
+                }),
+            ))
+            .expect("send FileEvent");
+
+        // Send a LogEntry
+        sender
+            .send(Message::new(
+                Selector::multicast(LabelOp::True),
+                AppMessage::Log(LogEntry {
+                    level: 3,
+                    message: "build complete".into(),
+                }),
+            ))
+            .expect("send LogEntry");
+
+        // Receive and match
+        let msg1 = receiver.recv(Some(Duration::from_secs(2))).expect("recv 1");
+        match msg1.payload {
+            AppMessage::File(ref e) => {
+                assert_eq!(e.path, "/src/main.rs");
+                assert_eq!(e.kind, 1);
+            }
+            _ => panic!("expected FileEvent, got {:?}", std::mem::discriminant(&msg1.payload)),
+        }
+
+        let msg2 = receiver.recv(Some(Duration::from_secs(2))).expect("recv 2");
+        match msg2.payload {
+            AppMessage::Log(ref e) => {
+                assert_eq!(e.level, 3);
+                assert_eq!(e.message, "build complete");
+            }
+            _ => panic!("expected LogEntry"),
+        }
+    }
+
+    // -- Test 11: LabelOp builder ergonomics -------------------------------
+
+    #[test]
+    fn label_op_builder_api() {
+        let op = LabelOp::from("target");
+        assert!(op.validate(&Label::new("target")));
+
+        let op = LabelOp::from("a").or("b");
+        let sel = Selector::multicast(op);
+        assert!(sel.validate(&Label::new("a")));
+        assert!(sel.validate(&Label::new("b")));
+        assert!(!sel.validate(&Label::new("c")));
+
+        let op = !LabelOp::from("excluded");
+        assert!(!op.validate(&Label::new("excluded")));
+        assert!(op.validate(&Label::new("anything-else")));
+    }
+
+    // -- Test 12: Selector::unicast with string directly -------------------
+
+    #[test]
+    fn selector_string_shorthand() {
+        let sel = Selector::unicast("target");
+        assert!(sel.validate(&Label::new("target")));
+        assert!(!sel.validate(&Label::new("other")));
+
+        let sel = Selector::multicast(LabelOp::from("a").or("b"));
+        assert!(sel.validate(&Label::new("a")));
+        assert!(sel.validate(&Label::new("b")));
     }
 }

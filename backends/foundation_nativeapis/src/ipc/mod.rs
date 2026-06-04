@@ -61,10 +61,15 @@ pub use platform::{MemoryRegion, Object};
 // Public API
 pub use bus_controller::{join, EndpointSender, EndpointReceiver};
 
-/// Decode helper function used by platform modules.
-pub(crate) fn decode<'de, T: serde::Deserialize<'de>>(data: &'de [u8]) -> Result<T, Error> {
+/// Decode a value from bincode bytes.
+pub fn decode<'de, T: serde::Deserialize<'de>>(data: &'de [u8]) -> Result<T, Error> {
     let (d, _): (T, _) =
         bincode::serde::borrow_decode_from_slice(data, bincode::config::standard())
             .map_err(Error::Decode)?;
     Ok(d)
+}
+
+/// Encode a value to bincode bytes.
+pub fn encode<T: serde::Serialize>(t: &T) -> Result<Vec<u8>, Error> {
+    bincode::serde::encode_to_vec(t, bincode::config::standard()).map_err(Error::Encode)
 }

@@ -66,23 +66,32 @@ impl LabelOp {
         }
     }
 
-    /// Check if this expression matches a given label (alias for `matches`).
-    pub fn evaluate(&self, label: &Label) -> bool {
-        self.matches(&label.0)
-    }
-
-    /// Alias for `matches` — used by the bus controller for routing.
+    /// Check if this expression matches a given label.
     pub fn validate(&self, label: &Label) -> bool {
         self.matches(&label.0)
     }
+
+    pub fn and(self, v: impl Into<Self>) -> Self {
+        Self::And(Box::new(self), Box::new(v.into()))
+    }
+
+    pub fn or(self, v: impl Into<Self>) -> Self {
+        Self::Or(Box::new(self), Box::new(v.into()))
+    }
 }
 
-/// Create a `LabelOp` from a label string (convenience constructor for `Leaf`).
-#[macro_export]
-macro_rules! label {
-    ($s:expr) => {
-        $crate::ipc::LabelOp::Leaf($s.into())
-    };
+impl std::ops::Not for LabelOp {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        Self::Not(Box::new(self))
+    }
+}
+
+impl<T: Into<String>> From<T> for LabelOp {
+    fn from(value: T) -> Self {
+        LabelOp::Leaf(value.into())
+    }
 }
 
 #[cfg(test)]
@@ -135,5 +144,35 @@ mod tests {
     fn label_display() {
         let label = Label::new("test-label");
         assert_eq!(format!("{label}"), "test-label");
+    }
+
+    #[test]
+    fn builder_and() {
+        let op = LabelOp::from("a").and("b");
+        assert!(!op.matches("a"));
+        assert!(!op.matches("b"));
+    }
+
+    #[test]
+    fn builder_or() {
+        let op = LabelOp::from("a").or("b");
+        assert!(op.matches("a"));
+        assert!(op.matches("b"));
+        assert!(!op.matches("c"));
+    }
+
+    #[test]
+    fn builder_not() {
+        let op = !LabelOp::from("a");
+        assert!(!op.matches("a"));
+        assert!(op.matches("b"));
+    }
+
+    #[test]
+    fn builder_chain() {
+        let op = LabelOp::from("x").or("y").and(!LabelOp::from("z"));
+        assert!(op.matches("x"));
+        assert!(op.matches("y"));
+        assert!(!op.matches("z"));
     }
 }

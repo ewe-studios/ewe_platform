@@ -1,18 +1,29 @@
 use proc_macro::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
-use syn::{parse::Parse, parse::ParseStream, DeriveInput, LitStr, Meta, Token};
+use syn::{parse::Parse, parse::ParseStream, Data, DeriveInput, Fields, LitStr, Meta, Token};
 use uuid::Uuid;
 
-fn foundation_core_path() -> proc_macro2::TokenStream {
-    match crate_name("foundation_core") {
+fn resolve_crate(name: &str) -> proc_macro2::TokenStream {
+    match crate_name(name) {
         Ok(FoundCrate::Itself) => quote! { crate },
-        Ok(FoundCrate::Name(name)) => {
-            let ident = syn::Ident::new(&name, proc_macro2::Span::call_site());
+        Ok(FoundCrate::Name(n)) => {
+            let ident = syn::Ident::new(&n, proc_macro2::Span::call_site());
             quote! { #ident }
         }
-        Err(_) => quote! { foundation_core },
+        Err(_) => {
+            let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
+            quote! { #ident }
+        }
     }
+}
+
+fn foundation_core_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_core")
+}
+
+fn foundation_nativeapis_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_nativeapis")
 }
 
 pub fn type_uuid_derive(input: TokenStream) -> TokenStream {
@@ -104,6 +115,82 @@ pub fn external_type_uuid_impl(tokens: TokenStream) -> TokenStream {
             const UUID: #krate::type_uuid::Bytes = [
                 #( #bytes ),*
             ];
+        }
+    };
+    gen.into()
+}
+
+/// Derive `MessageBox` for an enum where each variant wraps a single `TypeUuid` type.
+///
+/// Enables heterogeneous messaging — multiple message types dispatched by UUID on one bus.
+///
+/// ```ignore
+/// #[derive(MessageBox)]
+/// enum AppMessage {
+///     FileEvent(FileEvent),  // FileEvent must impl TypeUuid + Serialize + Deserialize
+///     Log(LogEntry),
+///     Raw(String),           // standard types with TypeUuid work too
+/// }
+/// ```
+pub fn message_box_derive(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).expect("MessageBox: failed to parse input");
+    let name = &ast.ident;
+
+    let data_enum = match &ast.data {
+        Data::Enum(e) => e,
+        _ => panic!("#[derive(MessageBox)] only supports enums"),
+    };
+
+    let variants_ident: Vec<_> = data_enum.variants.iter().map(|v| &v.ident).collect();
+
+    let variants_ty: Vec<_> = data_enum
+        .variants
+        .iter()
+        .map(|v| match &v.fields {
+            Fields::Unnamed(f) if f.unnamed.len() == 1 => &f.unnamed[0].ty,
+            _ => panic!(
+                "#[derive(MessageBox)] requires each variant to have exactly one unnamed field, \
+                 e.g. `Variant(MyType)`"
+            ),
+        })
+        .collect();
+
+    let core_path = foundation_core_path();
+    let ipc_path = foundation_nativeapis_path();
+
+    let gen = quote! {
+        impl #ipc_path::ipc::MessageBox for #name {
+            fn decode(
+                uuid: #core_path::type_uuid::Bytes,
+                data: &[u8],
+            ) -> std::result::Result<Self, #ipc_path::ipc::Error> {
+                use #core_path::type_uuid::TypeUuid;
+                match uuid {
+                    #( <#variants_ty as TypeUuid>::UUID => {
+                        let (v, _): (#variants_ty, _) = bincode::serde::borrow_decode_from_slice(
+                            data, bincode::config::standard(),
+                        ).map_err(#ipc_path::ipc::Error::Decode)?;
+                        Ok(Self::#variants_ident(v))
+                    } )*
+                    _ => Err(#ipc_path::ipc::Error::TypeUuidNotFound),
+                }
+            }
+
+            fn encode(&self) -> std::result::Result<Vec<u8>, #ipc_path::ipc::Error> {
+                match self {
+                    #( Self::#variants_ident(v) => {
+                        bincode::serde::encode_to_vec(v, bincode::config::standard())
+                            .map_err(#ipc_path::ipc::Error::Encode)
+                    } )*
+                }
+            }
+
+            fn uuid(&self) -> #core_path::type_uuid::Bytes {
+                use #core_path::type_uuid::TypeUuid;
+                match self {
+                    #( Self::#variants_ident(_) => <#variants_ty as TypeUuid>::UUID, )*
+                }
+            }
         }
     };
     gen.into()
