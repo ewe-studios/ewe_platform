@@ -17,3 +17,7 @@ pub mod fd;
 
 /// Platform-specific native watchers.
 pub mod watcher;
+
+/// Native filesystem VFS implementations (NativeFs, DirectoryDelta).
+#[cfg(feature = "vfs-native")]
+pub mod vfs;

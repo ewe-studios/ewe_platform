@@ -2785,7 +2785,9 @@ version = "0.0.1"
 dependencies = [
  "bincode 2.0.1",
  "concurrent-queue",
+ "derive_more",
  "foundation_core",
+ "foundation_errstacks",
  "foundation_macros",
  "inotify",
  "io-uring",

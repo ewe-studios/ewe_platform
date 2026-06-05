@@ -63,11 +63,12 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
-| [01-core-traits](features/01-core-traits/) | VfsFile, SeekableVfsFile, VfsDirectory, VfsFileSystem, DeltaStore traits + types + errors | 1 | pending |
-| [02-memory-impls](features/02-memory-impls/) | MemoryFs (VfsFileSystem) + MemoryDelta (DeltaStore) — in-memory, all platforms | 1 | pending |
-| [03-foundation-fs](features/03-foundation-fs/) | OverlayFileSystem\<B, D\> overlay — CoW, whiteouts, directory merging | 1 | pending |
-| [04-native-fs](features/04-native-fs/) | NativeFs passthrough — std::fs, path containment, openat2 | 2 | pending |
-| [05-directory-delta](features/05-directory-delta/) | DirectoryDelta — shadow directory with sentinel whiteout files | 2 | pending |
+| [01-core-traits](features/01-core-traits/) | VfsFile, SeekableVfsFile, VfsDirectory, VfsFileSystem, DeltaStore traits + types + errors | 1 | done |
+| [02-memory-impls](features/02-memory-impls/) | MemoryFs (VfsFileSystem) + MemoryDelta (DeltaStore) — in-memory, all platforms | 1 | done |
+| [03-foundation-fs](features/03-foundation-fs/) | OverlayFileSystem\<B, D\> overlay — CoW, whiteouts, directory merging | 1 | done |
+| [04-native-fs](features/04-native-fs/) | NativeFs passthrough — std::fs, path containment, Arc\<PathBuf\> root | 2 | done |
+| [05-directory-delta](features/05-directory-delta/) | DirectoryDelta — shadow directory with sentinel whiteout files | 2 | done |
+| [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | pending |
 | [06-sqlite-delta](features/06-sqlite-delta/) | SqliteDelta — SQLite-backed delta store, feature-gated | 3 | pending |
 | [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | pending |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |

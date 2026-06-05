@@ -23,6 +23,8 @@ tracing = { workspace = true }
 thiserror = { workspace = true }
 libc = "0.2"
 foundation_core = { workspace = true }
+foundation_errstacks = { workspace = true, optional = true }
+derive_more = { workspace = true, optional = true }
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
@@ -69,6 +71,12 @@ uring = ["dep:io-uring"]
 
 # Interprocess message bus (adapted from ipmb)
 ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
+
+# Virtual filesystem abstraction — core traits + in-memory impls + overlay
+vfs = ["dep:foundation_errstacks", "dep:derive_more"]
+
+# VFS native filesystem passthrough + directory delta
+vfs-native = ["vfs"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]
