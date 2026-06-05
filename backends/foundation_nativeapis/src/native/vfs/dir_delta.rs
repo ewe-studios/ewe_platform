@@ -8,6 +8,9 @@ use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::path_utils::normalize_vfs_path as shared_normalize;
 use crate::shared::vfs::traits::{DeltaStore, VfsDirectory, VfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+#[allow(unused_imports)]
+use foundation_nostd::macros::scaffold;
+use foundation_macros::scaffold_impl;
 
 use super::native_fs::NativeFs;
 
@@ -195,71 +198,33 @@ impl DeltaStore for DirectoryDelta {
     }
 }
 
+#[scaffold_impl(via = "self.fs")]
 impl VfsFileSystem for DirectoryDelta {
     type File = <NativeFs as VfsFileSystem>::File;
     type SeekableFile = <NativeFs as VfsFileSystem>::SeekableFile;
     type Directory = FilteredDirectory;
 
-    fn capabilities(&self) -> VfsCapabilities {
-        self.fs.capabilities()
-    }
-
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.fs.stat(path)
-    }
-
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        self.fs.exists(path)
-    }
-
-    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
-        self.fs.chmod(path, mode)
-    }
-
-    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
-        self.fs.symlink(target, link)
-    }
-
-    fn readlink(&self, path: &str) -> VfsResult<String> {
-        self.fs.readlink(path)
-    }
-
-    fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        self.fs.rename(from, to)
-    }
-
-    fn remove(&self, path: &str) -> VfsResult<()> {
-        self.fs.remove(path)
-    }
-
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        self.fs.open(path, mode)
-    }
-
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        self.fs.open_seekable(path, mode)
-    }
-
+    // Override — wraps inner directory to filter out .wh.* sentinel files
     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
         let inner = self.fs.open_directory(path)?;
         Ok(FilteredDirectory { inner })
     }
 
-    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
-        self.fs.create(path, mode)
-    }
-
-    fn mkdir(&self, path: &str) -> VfsResult<()> {
-        self.fs.mkdir(path)
-    }
-
-    fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
-        self.fs.read_file(path)
-    }
-
-    fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        self.fs.write_file(path, data)
-    }
+    // Delegated to self.fs
+    fn capabilities(&self) -> VfsCapabilities { scaffold!() }
+    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
+    fn exists(&self, path: &str) -> VfsResult<bool> { scaffold!() }
+    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> { scaffold!() }
+    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> { scaffold!() }
+    fn readlink(&self, path: &str) -> VfsResult<String> { scaffold!() }
+    fn rename(&self, from: &str, to: &str) -> VfsResult<()> { scaffold!() }
+    fn remove(&self, path: &str) -> VfsResult<()> { scaffold!() }
+    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> { scaffold!() }
+    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> { scaffold!() }
+    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> { scaffold!() }
+    fn mkdir(&self, path: &str) -> VfsResult<()> { scaffold!() }
+    fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> { scaffold!() }
+    fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> { scaffold!() }
 }
 
 // ── FilteredDirectory — hides .wh.* sentinel files from listings ──
@@ -268,18 +233,12 @@ pub struct FilteredDirectory {
     inner: <NativeFs as VfsFileSystem>::Directory,
 }
 
+#[scaffold_impl(via = "self.inner")]
 impl VfsDirectory for FilteredDirectory {
     type File = <NativeFs as VfsFileSystem>::File;
     type SeekableFile = <NativeFs as VfsFileSystem>::SeekableFile;
 
-    fn path(&self) -> &str {
-        self.inner.path()
-    }
-
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
-        self.inner.metadata()
-    }
-
+    // Override — filter out .wh.* sentinel files from listings
     fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
         let entries = self.inner.list()?;
         Ok(entries
@@ -288,6 +247,7 @@ impl VfsDirectory for FilteredDirectory {
             .collect())
     }
 
+    // Override — block access to whiteout sentinel files
     fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
         if name.starts_with(WHITEOUT_PREFIX) {
             return Ok(None);
@@ -295,49 +255,26 @@ impl VfsDirectory for FilteredDirectory {
         self.inner.get_entry(name)
     }
 
-    fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File> {
-        self.inner.create_file(name, mode)
-    }
-
+    // Delegated to self.inner
+    fn path(&self) -> &str { scaffold!() }
+    fn metadata(&self) -> VfsResult<VfsMetadata> { scaffold!() }
+    fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File> { scaffold!() }
     fn create_dir(
         &self,
         name: &str,
     ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    {
-        self.inner.create_dir(name)
-    }
-
-    fn remove_entry(&self, name: &str) -> VfsResult<()> {
-        self.inner.remove_entry(name)
-    }
-
-    fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> {
-        self.inner.rename_entry(old_name, new_name)
-    }
-
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        self.inner.open(path, mode)
-    }
-
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        self.inner.open_seekable(path, mode)
-    }
-
+    { scaffold!() }
+    fn remove_entry(&self, name: &str) -> VfsResult<()> { scaffold!() }
+    fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> { scaffold!() }
+    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> { scaffold!() }
+    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> { scaffold!() }
     fn open_directory(
         &self,
         path: &str,
     ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    {
-        self.inner.open_directory(path)
-    }
-
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.inner.stat(path)
-    }
-
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        self.inner.exists(path)
-    }
+    { scaffold!() }
+    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
+    fn exists(&self, path: &str) -> VfsResult<bool> { scaffold!() }
 }
 
 unsafe impl Send for FilteredDirectory {}

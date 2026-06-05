@@ -2,8 +2,31 @@ use proc_macro::TokenStream;
 
 mod embedders;
 mod json_hash;
+mod scaffold;
 mod type_uuid;
 mod wasm_entrypoint;
+
+/// Marker for methods that should be delegated by `#[scaffold_impl]`.
+///
+/// Used inside `impl` blocks annotated with `#[scaffold_impl]` to mark
+/// methods that should have their body replaced with delegation code.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_nostd::macros::scaffold;
+///
+/// #[scaffold_impl(via = "self.inner")]
+/// impl MyTrait for Wrapper {
+///     fn method(&self, x: u32) -> String { scaffold!() }
+/// }
+/// ```
+///
+/// If the proc macro hasn't processed the impl block, this compiles to
+/// `unreachable!()`, ensuring a clear panic instead of silent misbehavior.
+///
+/// Note: defined in `foundation_nostd` (since `macro_rules!` can't be
+/// exported from proc-macro crates). Import from `foundation_nostd::macros`.
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
 /// your binary as a series of UTF8 array and UTF16 array with
@@ -247,4 +270,74 @@ pub fn external_type_uuid(tokens: TokenStream) -> TokenStream {
 #[proc_macro_derive(MessageBox)]
 pub fn message_box_derive(item: TokenStream) -> TokenStream {
     type_uuid::message_box_derive(item)
+}
+
+// ── Scaffold macros ──
+
+/// Attribute applied to an impl block to enable automatic method forwarding
+/// via `#[derive(Scaffold)]`. Generates a hidden `macro_rules!` macro encoding
+/// all pub method signatures.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::scaffoldable;
+///
+/// #[scaffoldable]
+/// impl MyService {
+///     pub fn process(&self, input: &[u8]) -> Vec<u8> { /* ... */ }
+///     pub fn status(&self) -> Status { /* ... */ }
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn scaffoldable(attr: TokenStream, item: TokenStream) -> TokenStream {
+    scaffold::scaffoldable(attr.into(), item.into()).into()
+}
+
+/// Derive macro that generates forwarding methods from `#[scaffoldable]`-marked
+/// inner types. Use `#[scaffold(field)]` on struct fields to enable forwarding.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{scaffoldable, Scaffold};
+///
+/// #[scaffoldable]
+/// impl InMemoryStore {
+///     pub fn get(&self, key: &str) -> Option<Vec<u8>> { /* ... */ }
+///     pub fn set(&self, key: &str, value: Vec<u8>) { /* ... */ }
+/// }
+///
+/// #[derive(Scaffold)]
+/// pub struct ThreadSafeStore {
+///     #[scaffold(field)]
+///     inner: Arc<Mutex<InMemoryStore>>,
+/// }
+/// ```
+#[proc_macro_derive(Scaffold, attributes(scaffold, scaffold_call))]
+pub fn scaffold_derive(item: TokenStream) -> TokenStream {
+    scaffold::scaffold_derive(item.into()).into()
+}
+
+/// Attribute for manual impl block delegation. Methods with `scaffold!()`
+/// bodies get delegation generated; methods with real bodies are kept as overrides.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{scaffold_impl, scaffold};
+///
+/// #[scaffold_impl(via = "self.fs")]
+/// impl VfsFileSystem for DirectoryDelta {
+///     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
+///
+///     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
+///         let inner = self.fs.open_directory(path)?;
+///         Ok(FilteredDirectory { inner })
+///     }
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn scaffold_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+    scaffold::scaffold_impl(attr.into(), item.into()).into()
 }

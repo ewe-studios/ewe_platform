@@ -1,2 +1,3 @@
 mod foundation_macros_json_hash_tests;
+mod foundation_macros_scaffold_tests;
 mod foundation_macros_wasm_entrypoint_tests;

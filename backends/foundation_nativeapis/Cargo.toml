@@ -21,6 +21,7 @@ uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
 foundation_core = { workspace = true }
+foundation_nostd = { workspace = true, optional = true }
 foundation_errstacks = { workspace = true }
 derive_more = { workspace = true }
 
@@ -80,7 +81,7 @@ ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "d
 vfs = []
 
 # VFS native filesystem passthrough + directory delta
-vfs-native = ["vfs"]
+vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

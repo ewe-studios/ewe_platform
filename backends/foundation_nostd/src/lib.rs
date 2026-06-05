@@ -5,6 +5,7 @@ extern crate alloc;
 
 pub mod comp;
 pub mod embeddable;
+pub mod macros;
 pub mod primitives;
 pub mod raw_parts;
 pub mod spin_mutex;

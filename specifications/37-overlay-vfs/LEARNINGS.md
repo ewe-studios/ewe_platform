@@ -40,6 +40,23 @@ Whiteouts stored as `.wh.<basename>` sentinel files on disk with version number 
 `vfs-native = ["vfs"]` — the native features depend on the core VFS traits. The native VFS module lives in `src/native/vfs/` and is feature-gated with `#[cfg(feature = "vfs-native")]`.
 
 ### Path traversal — `..` rejection at normalize layer (post-Phase 2 fix)
-Originally, all `normalize_path` functions only collapsed slashes and stripped trailing slashes — they did NOT reject `..` components. This was a security vulnerability: DirectoryDelta's whiteout operations (`add_whiteout`, `remove_whiteout`) went directly to `std::fs` via `whiteout_sentinel_path`, bypassing NativeFs's canonicalize-based containment. A path like `/../../../etc/passwd` would write a sentinel file outside the shadow directory.
+Originally, all `normalize_vfs_path` functions only collapsed slashes and stripped trailing slashes — they did NOT reject `..` components. This was a security vulnerability: DirectoryDelta's whiteout operations (`add_whiteout`, `remove_whiteout`) went directly to `std::fs` via `whiteout_sentinel_path`, bypassing NativeFs's canonicalize-based containment. A path like `/../../../etc/passwd` would write a sentinel file outside the shadow directory.
 
 **Fix:** Extracted a shared `path_utils::normalize_vfs_path` that returns `VfsResult` and rejects `..` with `InvalidPath` error. All four modules (memory_fs, overlay_fs, native_fs, dir_delta) now use this shared function. Additionally, `whiteout_sentinel_path` in dir_delta validates the resolved path starts with the shadow root. This is defense-in-depth: `..` is rejected at the normalize layer (first line of defense), and the sentinel path is validated against the root (second line).
+
+## Phase 3 (2026-06-05) — Scaffold Macro
+
+### proc-macro crate can't export macro_rules!
+`macro_rules!` macros cannot be `#[macro_export]`ed from a proc-macro crate. `pub use` of a macro from a proc-macro crate is also forbidden. **Solution:** Define `scaffold!()` in `foundation_nostd::macros` (a regular library crate) and have consumers import from there.
+
+### macro_rules! and `self` keyword
+`self` is a reserved keyword that can't appear literally in `macro_rules!` templates when used as a receiver. **Solution:** The generated macro accepts `$self:ident` as the first parameter and the receiver is rewritten to use `$self`. When `#[derive(Scaffold)]` invokes the macro, it passes `self` as the first argument: `__scaffold_methods_Type!(self, self.field)`.
+
+### Receiver must be included in generated method signature
+The original scaffoldable macro filtered out `self` from parameters when generating forwarding templates. This caused the generated methods to lack the `self` receiver, making them associated functions instead of methods. **Fix:** Extract the `Receiver` from the original signature and include it in the generated template (with `self` → `$self` substitution).
+
+### #[scaffold_impl] reconstructs impl header
+`quote! { impl #impl_block }` produces `impl impl ...` because `ItemImpl` already contains the `impl` keyword. **Solution:** Clone items before iterating, then reconstruct the impl header manually using `impl #generics #trait_path for #self_ty`.
+
+### #[scaffoldable] generates crate-level macros
+The generated `__scaffold_methods_{TypeName}!` macro is `#[macro_export]`ed, making it available at the crate root. This means users of `#[derive(Scaffold)]` must have access to the crate where `#[scaffoldable]` was applied. For cross-crate usage, the macro must be re-exported or both types must be in the same crate.
