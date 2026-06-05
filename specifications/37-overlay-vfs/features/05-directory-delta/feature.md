@@ -1,7 +1,7 @@
 ---
 feature_name: "DirectoryDelta"
-description: "DirectoryDelta — shadow directory-based DeltaStore. Writes go to a shadow directory as real files. Whiteouts stored as .wh.<name> sentinel files with version content. In-memory cache for fast lookups."
-status: "done"
+description: "DirectoryDelta — shadow directory-based DeltaStore. Writes go to a shadow directory as real files. Whiteouts stored as sentinel files (.wh.<name>). Simple, inspectable, no extra dependencies."
+status: "pending"
 priority: "high"
 phase: 2
 created: 2026-06-04
@@ -10,60 +10,109 @@ dependencies:
   - "01-core-traits"
   - "04-native-fs"
 tasks:
-  completed: 8
-  uncompleted: 0
-  total: 8
-  completion_percentage: 100%
+  completed: 0
+  uncompleted: 11
+  total: 11
+  completion_percentage: 0%
 ---
 
 # Feature 05: DirectoryDelta
 
 ## Overview
 
-The simplest persistent DeltaStore — mirrors the filesystem structure under a shadow directory. Modified and new files are stored as real files. Whiteouts are `.wh.<basename>` sentinel files containing the version number. Uses NativeFs internally. Directory listing filters out sentinel files via FilteredDirectory wrapper.
+The simplest persistent DeltaStore — mirrors the filesystem structure under a shadow directory. Modified and new files are stored as real files. Whiteouts are sentinel files named `.wh.<basename>`. The directory is fully inspectable with standard tools (`ls`, `cat`).
 
-## Implemented Files
+Uses NativeFs internally for all filesystem operations on the shadow directory.
 
-| File | Contents |
-|------|----------|
-| `src/native/vfs/dir_delta.rs` | DirectoryDelta, FilteredDirectory, whiteout scanning/creation, sentinel path validation |
-| `tests/vfs_dir_delta_tests.rs` | 9 tests covering shadow writes, whiteout sentinels, inheritance, scanning, reset, filtering, end-to-end overlay |
+## Architecture
 
-## Key Design Decisions
+### Struct definition
 
-**In-memory whiteout cache:** `RwLock<HashMap<String, u64>>` built at construction by scanning for `.wh.*` files. Updated on add/remove. Avoids filesystem round-trips for every `is_whiteout` check.
+```rust
+pub struct DirectoryDelta {
+    fs: NativeFs,                              // pointed at shadow directory
+    whiteouts: RwLock<HashMap<String, u64>>,   // in-memory whiteout cache
+}
+```
 
-**Sentinel path security:** `whiteout_sentinel_path` validates the resolved sentinel path `starts_with(shadow_root)` — defense-in-depth beyond normalize_vfs_path's `..` rejection.
+### Shadow directory layout
 
-**FilteredDirectory:** Wraps NativeDirectory, hides `.wh.*` sentinels from `list()` and `get_entry()`. Delegates all other methods unchanged.
+```
+shadow_dir/                    ← root of DirectoryDelta
+├── src/
+│   ├── main.rs                ← modified file (CoW'd from base)
+│   ├── new.rs                 ← new file (created through overlay)
+│   └── .wh.deleted.rs         ← whiteout sentinel for /src/deleted.rs
+├── .wh.old_readme.md          ← whiteout sentinel for /old_readme.md
+└── build/
+    └── output.bin             ← new file
+```
 
-**Whiteout format:** `.wh.<basename>` file containing version number as UTF-8 text. Recoverable after restart via scanning.
+### Whiteout sentinel files
+
+Format: `.wh.<basename>` in the same directory as the whiteout'd path.
+
+Content: version number as UTF-8 text (e.g., `"7"`). This allows version recovery after restart.
+
+Examples:
+- Whiteout `/src/main.rs` → create `shadow/src/.wh.main.rs` containing version
+- Whiteout `/readme.md` → create `shadow/.wh.readme.md` containing version
+
+### Whiteout inheritance
+
+For directory whiteouts (whiteout on `/src`), create `.wh.src` in the parent dir. `is_whiteout("/src/anything")` checks:
+1. Exact: `shadow/src/.wh.anything` exists?
+2. Parent whiteout: `shadow/.wh.src` exists?
+3. Grandparent whiteout: (continue up)
+
+In-memory cache (`HashMap<String, u64>`) is built at construction by scanning for `.wh.*` files. Updated on add/remove. This avoids filesystem round-trips for every `is_whiteout` check.
+
+### VfsFileSystem delegation
+
+DirectoryDelta delegates all VfsFileSystem methods to its inner NativeFs. The `.wh.*` sentinel files are hidden from directory listings (filtered out).
+
+### Lifecycle
+
+- `flush()`: Sync shadow directory to disk
+- `reset()`: Remove all files in shadow directory (rm -rf contents, recreate root)
 
 ## Tasks
 
-- [x] DirectoryDelta struct with inner NativeFs + RwLock<HashMap> whiteout cache
-- [x] Construction: create shadow dir, scan existing `.wh.*` sentinels recursively
-- [x] DeltaStore: add_whiteout (create sentinel + update cache), is_whiteout (cache with ancestor inheritance), remove_whiteout, list_whiteouts, reset
-- [x] VfsFileSystem delegation to inner NativeFs
-- [x] FilteredDirectory wrapper hiding `.wh.*` from listings
-- [x] Sentinel path validation against shadow root
-- [x] End-to-end test with OverlayFileSystem<NativeFs, DirectoryDelta>
-- [x] 9 tests: shadow write, sentinel creation, cache check, inheritance, scan on construction, reset, listing filter, path traversal rejection, full overlay workflow
+### Core (`src/native/vfs/dir_delta.rs`)
 
-## Test Coverage (9 tests)
+- [ ] Define `DirectoryDelta` struct with inner NativeFs + whiteout cache
+- [ ] Implement `DirectoryDelta::new(shadow_path: impl Into<PathBuf>)` — create shadow dir, scan for existing whiteouts
+- [ ] Implement `fn scan_whiteouts(root: &Path) -> HashMap<String, u64>` — recursive scan for `.wh.*` files
+- [ ] Implement `DeltaStore` for `DirectoryDelta`:
+  - `add_whiteout(path, version)` → create `.wh.<basename>` sentinel with version content + update cache
+  - `is_whiteout(path)` → check cache (exact + ancestors)
+  - `remove_whiteout(path)` → delete sentinel file + remove from cache
+  - `list_whiteouts(dir)` → filter cache by directory prefix
+  - `flush()` → fsync shadow directory
+  - `reset()` → rm all contents of shadow dir + clear cache
+- [ ] Implement `VfsFileSystem` delegation to inner NativeFs with `.wh.*` filtering on `list()`
+- [ ] Implement directory listing that filters out `.wh.*` sentinel files
 
-**Shadow storage (1):** write creates file in shadow directory
+### Tests (`tests/vfs_dir_delta_tests.rs`)
 
-**Whiteout ops (4):** sentinel creation with version content, cache check, ancestor inheritance, scan existing sentinels on construction
+Uses `tempfile::TempDir` for isolation.
 
-**Lifecycle (1):** reset clears files and whiteouts
+- [ ] `test_write_creates_file_in_shadow` — write through delta, verify file exists on disk
+- [ ] `test_whiteout_creates_sentinel` — add_whiteout, verify `.wh.` file exists on disk
+- [ ] `test_whiteout_check_from_cache` — is_whiteout returns Some after add_whiteout
+- [ ] `test_whiteout_inheritance` — parent whiteout hides children
+- [ ] `test_whiteout_scan_on_construction` — create sentinel files manually, new DirectoryDelta finds them
+- [ ] `test_reset_clears_shadow` — reset removes all files and whiteouts
+- [ ] `test_listing_excludes_sentinels` — directory listing doesn't show `.wh.*` files
+- [ ] `test_end_to_end_overlay` — OverlayFileSystem<NativeFs, DirectoryDelta> full workflow
 
-**Listing (1):** directory listing excludes `.wh.*` sentinels
+## Verification
 
-**Security (1):** path traversal in whiteout rejected
-
-**End-to-end (1):** OverlayFileSystem<NativeFs, DirectoryDelta> — read base, create new, CoW modify, delete with whiteout, reset restores base
+- `cargo check -p foundation_nativeapis --features vfs-native` passes
+- `cargo test -p foundation_nativeapis --features vfs-native --test vfs_dir_delta_tests` passes
+- Shadow directory inspectable with `ls -la`
+- Sentinel files contain version numbers
 
 ---
 
-_Created: 2026-06-04 | Completed: 2026-06-05_
+_Created: 2026-06-04 | Updated: 2026-06-05_

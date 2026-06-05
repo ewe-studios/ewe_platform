@@ -48,14 +48,6 @@ The implementation owns how it stores data — could use AgentFS-style 4KB chunk
 - [ ] Test: reset clears all data
 - [ ] Test: end-to-end with OverlayFileSystem<MemoryFs, SqliteDelta>
 
-## SQLite Library
-
-Uses **libsql** (Turso's fork) instead of rusqlite. libsql provides:
-- Drop-in SQLite compatibility
-- Edge replication (Turso cloud sync)
-- WASM support
-- Same SQL interface, broader deployment options
-
 ## Verification
 
 - Tests pass
