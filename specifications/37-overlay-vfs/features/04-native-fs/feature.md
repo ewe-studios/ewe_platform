@@ -1,7 +1,7 @@
 ---
 feature_name: "NativeFs Passthrough"
-description: "NativeFs — host filesystem passthrough via std::fs with path containment (prevent directory escape), platform-specific optimizations."
-status: "pending"
+description: "NativeFs — host filesystem passthrough via std::fs with path containment (canonicalize + starts_with), Arc<PathBuf> root for cheap cloning."
+status: "done"
 priority: "high"
 phase: 2
 created: 2026-06-04
@@ -9,142 +9,67 @@ updated: 2026-06-05
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 14
-  total: 14
-  completion_percentage: 0%
+  completed: 8
+  uncompleted: 0
+  total: 8
+  completion_percentage: 100%
 ---
 
 # Feature 04: NativeFs Passthrough
 
 ## Overview
 
-Wraps `std::fs` operations behind VfsFileSystem. All paths are confined within a configurable root directory. Uses manual canonicalization + prefix check for path containment on all platforms. Inspired by iii-filesystem's path containment model.
+Wraps `std::fs` operations behind VfsFileSystem. All paths are confined within a configurable root directory via canonicalize + starts_with check. Uses `pread`/`pwrite` (via `FileExt`) on Unix for offset-based I/O.
 
-## Architecture
+## Implemented Files
 
-### Struct definition
+| File | Contents |
+|------|----------|
+| `src/native/vfs/native_fs.rs` | NativeFs (Arc<PathBuf> root), NativeFile, SeekableNativeFile, NativeDirectory |
+| `tests/vfs_native_tests.rs` | 16 tests covering read/write, path containment, symlink escape, seekable, metadata |
 
-```rust
-pub struct NativeFs {
-    root: PathBuf,       // canonical root path
-}
-```
+## Key Design Decisions
 
-### Path containment model
+**Arc<PathBuf> root:** Cheap cloning for NativeFs and NativeDirectory instances — sharing the same root allocation.
 
-All incoming VFS paths (`/foo/bar.txt`) are joined with the root and canonicalized:
+**Path containment (defense in depth):**
+1. `normalize_vfs_path` rejects `..` components (shared layer)
+2. `resolve_path` canonicalizes and checks `starts_with(root)` (NativeFs layer)
+3. `exists()` returns `Ok(false)` on resolve failure instead of erroring
 
-```
-VFS path:    "/src/main.rs"
-Root:        "/home/user/project"
-Resolved:    "/home/user/project/src/main.rs"  ← must start with root
-```
+**NativeFile:** Uses `FileExt::read_at`/`write_at` on Unix (pread/pwrite) for offset-based I/O without changing file offset. Non-Unix returns `Unsupported`.
 
-Security checks:
-1. Join VFS path with root: `root.join(vfs_path.trim_start_matches('/'))`
-2. Canonicalize (resolves symlinks, `..`, `.`)
-3. Verify result starts with canonicalized root
-4. If not → `VfsError::PermissionDenied` (path escape attempt)
-
-This catches:
-- `../../../etc/passwd` → after canonicalization, doesn't start with root
-- Symlinks pointing outside root → canonicalized target doesn't start with root
-- Unicode tricks, double encoding → canonicalization normalizes
-
-### File handle types
-
-```rust
-pub struct NativeFile {
-    file: std::fs::File,
-    path: PathBuf,
-    mode: OpenMode,
-}
-```
-
-Uses `FileExt::read_at` / `FileExt::write_at` on Unix (`pread`/`pwrite` underneath) for offset-based I/O without changing the file offset.
-
-```rust
-pub struct SeekableNativeFile {
-    file: std::fs::File,
-    path: PathBuf,
-    mode: OpenMode,
-}
-```
-
-Uses `std::io::Seek` + `std::io::Read` + `std::io::Write`.
-
-```rust
-pub struct NativeDirectory {
-    root: PathBuf,          // NativeFs root
-    dir_path: String,       // VFS path of this directory
-}
-```
-
-### Metadata mapping
-
-```
-std::fs::Metadata  →  VfsMetadata
-  .len()           →  size
-  .is_file()       →  VfsFileType::Regular
-  .is_dir()        →  VfsFileType::Directory
-  .is_symlink()    →  VfsFileType::Symlink
-  .permissions()   →  permissions (mode bits on Unix)
-  .modified()      →  modified
-  .created()       →  created (may be None on some platforms)
-  .accessed()      →  accessed
-```
-
-Owner (uid/gid): On Unix, read from `std::os::unix::fs::MetadataExt`. On Windows, set to `(0, 0)`.
-
-Checksum: `Checksum::None` for Phase 2. Computing blake3 on every stat would be expensive — deferred to explicit request or lazy computation.
-
-Version: Based on modification time converted to a monotonic counter relative to the NativeFs instance creation time. Or simply set to 0 for NativeFs (versioning is the overlay's concern, not the base filesystem's).
-
-### Symlink handling
-
-NativeFs follows symlinks transparently (via canonicalize). `readlink` returns the raw target. `symlink` creates a symlink.
-
-Path containment applies AFTER symlink resolution — a symlink pointing outside the root is rejected at access time, not at creation time.
+**SeekableNativeFile:** Wraps `std::fs::File` in `RwLock` for thread-safe seek + read/write. Position tracked via `AtomicU64`.
 
 ## Tasks
 
-### Core (`src/native/vfs/native_fs.rs`)
+- [x] NativeFs struct with Arc<PathBuf> root, resolve_path containment, Clone derive
+- [x] NativeFile (VfsFile) with pread/pwrite on Unix
+- [x] SeekableNativeFile (SeekableVfsFile) with RwLock<File> + AtomicU64 position
+- [x] NativeDirectory (VfsDirectory) with Arc<PathBuf> fs_root
+- [x] VfsFileSystem for NativeFs — all path operations, metadata mapping
+- [x] Path containment: canonicalize + starts_with, exists() catches resolve errors
+- [x] capabilities(): seekable=true, symlinks=true, permissions_enforced=cfg(unix), persistent=true
+- [x] 16 tests: read/write, path traversal rejection, symlink escape, stat, mkdir, rename, remove, seekable, capabilities
 
-- [ ] Define `NativeFs` struct with root PathBuf
-- [ ] Implement `NativeFs::new(root: impl Into<PathBuf>)` — canonicalize root, verify exists
-- [ ] Implement `fn resolve_path(&self, vfs_path: &str) -> VfsResult<PathBuf>` — path containment
-- [ ] Implement `fn to_vfs_path(&self, fs_path: &Path) -> String` — convert OS path back to VFS path
-- [ ] Implement `NativeFile` struct + VfsFile trait (using pread/pwrite on Unix)
-- [ ] Implement `SeekableNativeFile` struct + SeekableVfsFile trait
-- [ ] Implement `NativeDirectory` struct + VfsDirectory trait
-- [ ] Implement `VfsFileSystem` for `NativeFs`
-- [ ] Implement metadata mapping (`std::fs::Metadata` → `VfsMetadata`)
-- [ ] Implement `capabilities()`: seekable=true, symlinks=true, permissions_enforced=cfg(unix), persistent=true
+## Test Coverage (16 tests)
 
-### Tests (`tests/vfs_native_tests.rs`)
+**Basic I/O (3):** read existing file, write+read back, create+read via handle
 
-Uses `tempfile::TempDir` for isolation.
+**Path containment (2):** traversal rejected, symlink escape rejected (Unix)
 
-- [ ] `test_read_existing_file` — write file with std::fs, read through NativeFs
-- [ ] `test_write_and_read_back` — create+write through NativeFs, verify with std::fs
-- [ ] `test_path_containment_rejects_traversal` — `../../etc/passwd` → PermissionDenied
-- [ ] `test_path_containment_rejects_symlink_escape` — symlink pointing outside root → rejected
-- [ ] `test_stat_returns_correct_metadata` — size, type, permissions
-- [ ] `test_mkdir_and_list` — create directory, list contents
-- [ ] `test_rename_file` — rename, verify old gone, new exists
-- [ ] `test_remove_file` — remove, verify gone
-- [ ] `test_seekable_read_write` — seek, read, write with position tracking
-- [ ] `test_symlink_within_root` — symlink inside root works normally
-- [ ] `test_capabilities` — persistent=true, seekable=true
-- [ ] `test_root_directory_exists` — `/` resolves to the root dir, always exists
+**Metadata (1):** stat returns correct size/type/modified
 
-## Verification
+**Directory ops (2):** mkdir+list, mkdir_all
 
-- `cargo check -p foundation_nativeapis --features vfs-native` passes
-- `cargo test -p foundation_nativeapis --features vfs-native --test vfs_native_tests` passes
-- Path containment prevents directory escape in all tests
+**File ops (4):** rename, remove, read_at offset, remove_all
+
+**Seekable (1):** seek+read with position tracking
+
+**Symlinks (1):** symlink within root works normally
+
+**Other (2):** capabilities, root directory exists
 
 ---
 
-_Created: 2026-06-04 | Updated: 2026-06-05_
+_Created: 2026-06-04 | Completed: 2026-06-05_
