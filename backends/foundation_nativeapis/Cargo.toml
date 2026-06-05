@@ -11,7 +11,6 @@ keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
 
 [dependencies]
 io-uring = { version = "0.7", optional = true }
-inotify = { version = "0.11", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
@@ -21,14 +20,13 @@ once_cell = { version = "1", optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
-libc = "0.2"
 foundation_core = { workspace = true }
-foundation_errstacks = { workspace = true, optional = true }
-derive_more = { workspace = true, optional = true }
+foundation_errstacks = { workspace = true }
+derive_more = { workspace = true }
 
-# Enable multi-threaded executor only on supported platforms.
-[target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { workspace = true, features = ["multi"] }
+# Unix-only: libc for epoll/kqueue/eventfd syscalls
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -42,14 +40,20 @@ windows-sys = { version = "0.59", features = [
     "Win32_Security",
 ]}
 
+# Enable multi-threaded executor only on supported platforms.
+[target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
+foundation_core = { workspace = true, features = ["multi"] }
+
 [dev-dependencies]
 foundation_macros = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
-nix = { version = "0.29", features = ["fs", "poll"] }
 serial_test = "3.3"
 ntest = "0.9"
 uuid = { version = "1", features = ["v4"] }
+
+[target.'cfg(unix)'.dev-dependencies]
+nix = { version = "0.29", features = ["fs", "poll"] }
 
 [features]
 # Default: full platform-native stack.
@@ -62,7 +66,7 @@ poll = []
 fd = ["poll"]
 
 # File watching layer (PollWatcher always available via shared)
-watcher-linux = ["poll", "dep:inotify"]
+watcher-linux = ["poll"]
 watcher-macos = ["poll"]
 watcher-windows = ["poll"]
 
@@ -73,7 +77,7 @@ uring = ["dep:io-uring"]
 ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
 
 # Virtual filesystem abstraction — core traits + in-memory impls + overlay
-vfs = ["dep:foundation_errstacks", "dep:derive_more"]
+vfs = []
 
 # VFS native filesystem passthrough + directory delta
 vfs-native = ["vfs"]
