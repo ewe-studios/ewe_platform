@@ -10,8 +10,8 @@ dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 28
-  total: 28
+  uncompleted: 48
+  total: 48
   completion_percentage: 0%
 ---
 
@@ -316,6 +316,124 @@ pub trait D1Connection: Send + Sync {
 
 Both the worker-rs impl and HTTP impl implement this trait. The shared `D1Delta` struct is generic over it.
 
+## SCRU128 Version Tracking
+
+Replace plain `version INTEGER` with SCRU128 IDs stored as `BLOB(16)`. This is especially valuable for D1 at the edge — multiple Cloudflare Workers modifying the same D1 database get globally unique, time-ordered versions with node entropy, eliminating version collisions without coordination.
+
+### Schema Changes
+
+```sql
+-- d1_dentry: version column changes type
+-- D1 doesn't support ALTER COLUMN, so this is a schema v2 migration:
+-- 1. Create new table with BLOB(16) version column
+-- 2. Migrate data with pack(timestamp=now, counter=old_version, node=0)
+-- 3. Drop old table, rename new
+
+-- d1_whiteouts: same migration pattern
+```
+
+### Why SCRU128 Matters More for D1 Than SQLite
+
+- **Edge conflict resolution**: Two Workers in different regions create files simultaneously. With `INTEGER` versions, both might assign version 42. With SCRU128, each Worker's generator produces globally unique, monotonic IDs — no coordination needed.
+- **Sync cursors**: "Give me everything that changed since my last sync" = range query on SCRU128 bytes. The 48-bit timestamp + 24-bit counters ensure no gaps even under high concurrency.
+- **Merge-friendly**: When merging changes from multiple edge locations, SCRU128's chronological ordering provides a natural total order.
+
+### Dependency
+
+```toml
+scru128 = "0.10"  # works in WASM (no std clock dependency — uses js_sys for wasm32)
+```
+
+The `scru128` crate supports WASM targets via `js_sys::Date::now()` for timestamps, making it usable inside Cloudflare Workers.
+
+## Hierarchical Whiteout Prefix Index
+
+Replace `LIKE` pattern queries in `list_whiteouts` with exact prefix matches. D1 has limited query optimization — `LIKE` patterns with wildcards force full table scans. Exact prefix matches hit the index directly.
+
+### New Table
+
+```sql
+CREATE TABLE IF NOT EXISTS d1_whiteout_prefixes (
+    prefix      TEXT NOT NULL,
+    path        TEXT NOT NULL,
+    version_id  BLOB(16) NOT NULL,
+    PRIMARY KEY (prefix, path)
+);
+```
+
+### Write Path
+
+Same as SQLite feature — O(d) prefix entries per whiteout:
+
+```
+add_whiteout("/src/lib/utils.rs", version) →
+  INSERT INTO d1_whiteout_prefixes (prefix, path, version_id) VALUES
+    ("/src/lib/utils.rs", "/src/lib/utils.rs", ?),  -- exact
+    ("/src/lib/",          "/src/lib/utils.rs", ?),  -- depth-2
+    ("/src/",              "/src/lib/utils.rs", ?),  -- depth-1
+    ("/",                  "/src/lib/utils.rs", ?);  -- root
+```
+
+Batch INSERT in a single D1 statement — one round-trip for all prefix entries.
+
+### Query Replacement
+
+```sql
+-- OLD: LIKE pattern, forces scan on D1
+SELECT path, version FROM d1_whiteouts WHERE path LIKE '/src/lib/' || '%';
+
+-- NEW: exact equality, index hit
+SELECT path, version_id FROM d1_whiteout_prefixes WHERE prefix = '/src/lib/';
+```
+
+## VFS Changelog Table
+
+SCRU128-keyed journal of VFS mutations. Critical for D1 edge sync — enables "what changed since last sync?" queries that power Turso-style replication and multi-region conflict resolution.
+
+### Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS d1_vfs_changelog (
+    id          BLOB(16) PRIMARY KEY,  -- SCRU128 ID (time-ordered, globally unique)
+    operation   TEXT NOT NULL,          -- 'create', 'write', 'remove', 'rename', 'mkdir',
+                                       -- 'rmdir', 'chmod', 'symlink', 'whiteout_add',
+                                       -- 'whiteout_remove', 'reset'
+    path        TEXT NOT NULL,
+    old_path    TEXT,                   -- for renames
+    version_id  BLOB(16) NOT NULL,     -- dentry version after this operation
+    node_id     TEXT,                   -- Worker region/colo identifier (e.g., "SFO", "LHR")
+    size        INTEGER,               -- file size after operation
+    created_at  INTEGER NOT NULL       -- unix epoch ms
+);
+
+CREATE INDEX IF NOT EXISTS idx_d1_changelog_path ON d1_vfs_changelog(path);
+CREATE INDEX IF NOT EXISTS idx_d1_changelog_created ON d1_vfs_changelog(created_at);
+```
+
+### Edge Sync Usage
+
+```sql
+-- Edge worker syncs: "what changed since my last cursor?"
+SELECT * FROM d1_vfs_changelog WHERE id > ? ORDER BY id LIMIT 100;
+
+-- Multi-region merge: "what did the SFO worker change?"
+SELECT * FROM d1_vfs_changelog WHERE node_id = 'SFO' AND id > ? ORDER BY id;
+```
+
+The `node_id` column is D1-specific (not in the SQLite version) — it identifies which Worker region produced the change, enabling per-region change feeds for conflict resolution.
+
+### Configuration
+
+Changelog is opt-in via `D1Fs`/`D1Delta` constructor options:
+
+```rust
+pub struct D1FsOptions {
+    pub chunk_size: usize,        // default: 512 KB
+    pub enable_changelog: bool,   // default: false
+    pub node_id: Option<String>,  // Worker region identifier
+}
+```
+
 ## Tasks
 
 ### Shared (`src/shared/vfs/d1_delta/`)
@@ -366,6 +484,42 @@ Both the worker-rs impl and HTTP impl implement this trait. The shared `D1Delta`
 - [ ] Test: batch write performance -- N chunks in single round-trip
 - [ ] Test: worker-rs impl (requires mock/simulated D1)
 - [ ] Test: HTTP impl (requires mock/simulated D1 API)
+
+### SCRU128 Version Tracking
+
+- [ ] Add `scru128` dependency (WASM-compatible) gated behind D1 feature flags
+- [ ] Implement `next_version()` returning `Scru128Id` as 16-byte BLOB
+- [ ] Schema v2 migration: `d1_dentry.version` from `INTEGER` to `BLOB(16)`
+- [ ] Schema v2 migration: `d1_whiteouts.version` from `INTEGER` to `BLOB(16)`
+- [ ] Update all version comparisons to use byte ordering
+- [ ] Update D1Fs metadata construction to extract timestamp from SCRU128 version bytes
+
+### Hierarchical Whiteout Prefix Index
+
+- [ ] Create `d1_whiteout_prefixes` table in schema migrations
+- [ ] Implement `whiteout_prefixes(path) -> Vec<String>` — path split + prefix generation
+- [ ] Update `add_whiteout` to batch INSERT O(d) prefix entries in single D1 round-trip
+- [ ] Update `remove_whiteout` to batch DELETE all prefix entries for the path
+- [ ] Update `list_whiteouts` to query by exact prefix match instead of `LIKE`
+- [ ] Update `reset` to clear prefix table alongside whiteouts table
+
+### VFS Changelog
+
+- [ ] Create `d1_vfs_changelog` table (conditional on `enable_changelog` config)
+- [ ] Implement changelog entry writer with `node_id` for edge Worker identification
+- [ ] Implement `changelog_since(id: Scru128Id, limit: usize) -> Vec<ChangelogEntry>` query
+- [ ] Implement `changelog_for_path(path: &str) -> Vec<ChangelogEntry>` query
+- [ ] Implement `changelog_for_node(node_id: &str, since: Scru128Id) -> Vec<ChangelogEntry>`
+
+### Tests (SCRU128 + Prefix Index + Changelog)
+
+- [ ] Test: SCRU128 version is generated on file create, globally unique across simulated Workers
+- [ ] Test: whiteout prefix entries created for all path components via batch INSERT
+- [ ] Test: `list_whiteouts` returns correct results via prefix match (no LIKE)
+- [ ] Test: `remove_whiteout` cleans up all prefix entries
+- [ ] Test: changelog records mutations with node_id when enabled
+- [ ] Test: `changelog_since` returns entries after given SCRU128 cursor
+- [ ] Test: `changelog_for_node` filters by Worker region
 
 ## Feature Flags
 

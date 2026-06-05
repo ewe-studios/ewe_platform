@@ -10,8 +10,8 @@ dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 34
-  total: 34
+  uncompleted: 56
+  total: 56
   completion_percentage: 0%
 ---
 
@@ -609,6 +609,149 @@ ORDER BY path;
 
 The `LIKE` pattern uses the directory prefix + `/%` to find all whiteouts under that directory. The index on `sqlite_whiteouts.path` makes this efficient.
 
+## SCRU128 Version Tracking
+
+Replace plain `version INTEGER` with SCRU128 IDs stored as `BLOB(16)`. This gives versions time-ordering (ms-precision timestamp embedded), monotonicity (counter fields), and node entropy (32-bit random) — useful for future replication scenarios with Turso embedded replicas.
+
+### Schema Changes
+
+```sql
+-- sqlite_dentry: version column changes type
+ALTER TABLE sqlite_dentry ADD COLUMN version_id BLOB(16);
+-- Migration: populate from old INTEGER version using pack(timestamp=now, counter=old_version, node=0)
+
+-- sqlite_whiteouts: version column changes type
+ALTER TABLE sqlite_whiteouts ADD COLUMN version_id BLOB(16);
+```
+
+The `version_id BLOB(16)` stores raw SCRU128 bytes in big-endian order. Byte-level comparison = chronological ordering, so `ORDER BY version_id` and range queries work directly.
+
+### Version Generation
+
+```rust
+use scru128::Scru128Id;
+
+fn next_version(&self) -> Scru128Id {
+    scru128::new() // thread-local generator, guaranteed monotonic
+}
+```
+
+Every file create, write, rename, chmod, or symlink operation generates a new SCRU128 version. The version is stored in the dentry row and can be compared chronologically via byte ordering.
+
+### Query Patterns
+
+```sql
+-- "What changed since version X?" (range scan on SCRU128 bytes)
+SELECT * FROM sqlite_dentry WHERE version_id > ? ORDER BY version_id;
+
+-- "When was this file last modified?" (timestamp extracted from SCRU128)
+-- Done in Rust by unpacking the version_id bytes
+```
+
+### Dependency
+
+```toml
+scru128 = "0.10"  # or latest — added to vfs-sqlite feature deps
+```
+
+## Hierarchical Whiteout Prefix Index
+
+Replace `LIKE '/foo/%'` queries in `list_whiteouts` with exact prefix matches using hierarchical prefix entries — the xs indexing pattern adapted for SQL.
+
+### New Table
+
+```sql
+CREATE TABLE IF NOT EXISTS sqlite_whiteout_prefixes (
+    prefix      TEXT NOT NULL,     -- hierarchical prefix (e.g., "/foo/bar/", "/foo/", "/")
+    path        TEXT NOT NULL,     -- the actual whiteout path
+    version_id  BLOB(16) NOT NULL, -- SCRU128 version when whiteout was created
+    PRIMARY KEY (prefix, path)
+);
+
+CREATE INDEX IF NOT EXISTS idx_whiteout_prefix ON sqlite_whiteout_prefixes(prefix);
+```
+
+### Write Path (O(d) entries per whiteout)
+
+For `add_whiteout("/src/lib/utils.rs", version)`, insert d+1 entries:
+
+```
+prefix = "/src/lib/utils.rs"  path = "/src/lib/utils.rs"  (exact match)
+prefix = "/src/lib/"           path = "/src/lib/utils.rs"  (depth-2)
+prefix = "/src/"               path = "/src/lib/utils.rs"  (depth-1)
+prefix = "/"                   path = "/src/lib/utils.rs"  (root)
+```
+
+### Query Replacement
+
+```sql
+-- OLD (feature 06 base): uses LIKE, index partially effective
+SELECT path, version FROM sqlite_whiteouts WHERE path LIKE '/src/lib/' || '%';
+
+-- NEW: exact equality match, fully indexed
+SELECT path, version_id FROM sqlite_whiteout_prefixes WHERE prefix = '/src/lib/';
+```
+
+`is_whiteout(path)` remains a direct lookup on the `sqlite_whiteouts` table (exact match by path). The prefix table is only used by `list_whiteouts`.
+
+### Cleanup on `remove_whiteout`
+
+Removing a whiteout deletes all its prefix entries:
+
+```sql
+DELETE FROM sqlite_whiteout_prefixes WHERE path = ?;
+DELETE FROM sqlite_whiteouts WHERE path = ?;
+```
+
+## VFS Changelog Table
+
+Optional SCRU128-keyed journal of all VFS mutations. Provides a time-ordered audit trail and enables "what changed since X?" queries — foundation for future sync/replication with Turso embedded replicas.
+
+### Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS sqlite_vfs_changelog (
+    id          BLOB(16) PRIMARY KEY,  -- SCRU128 ID (time-ordered)
+    operation   TEXT NOT NULL,          -- 'create', 'write', 'remove', 'rename', 'mkdir',
+                                       -- 'rmdir', 'chmod', 'symlink', 'whiteout_add',
+                                       -- 'whiteout_remove', 'reset'
+    path        TEXT NOT NULL,
+    old_path    TEXT,                   -- populated for 'rename' operations
+    version_id  BLOB(16) NOT NULL,     -- the dentry version after this operation
+    size        INTEGER,               -- file size after operation (NULL for dirs/removes)
+    created_at  INTEGER NOT NULL       -- unix epoch ms (denormalized from SCRU128 for SQL convenience)
+);
+
+CREATE INDEX IF NOT EXISTS idx_changelog_path ON sqlite_vfs_changelog(path);
+CREATE INDEX IF NOT EXISTS idx_changelog_created ON sqlite_vfs_changelog(created_at);
+```
+
+### Usage
+
+```sql
+-- Changes since a known point (cursor-based pagination)
+SELECT * FROM sqlite_vfs_changelog WHERE id > ? ORDER BY id;
+
+-- Changes to a specific file
+SELECT * FROM sqlite_vfs_changelog WHERE path = ? ORDER BY id;
+
+-- Changes in the last hour
+SELECT * FROM sqlite_vfs_changelog WHERE created_at > ? ORDER BY id;
+```
+
+### Configuration
+
+Changelog is opt-in via `SqliteDelta` constructor:
+
+```rust
+pub struct SqliteDeltaConfig {
+    pub chunk_config: ChunkConfig,
+    pub enable_changelog: bool,  // default: false
+}
+```
+
+When disabled, no changelog table is created and no journal entries are written — zero overhead for callers that don't need change tracking.
+
 ## Tasks
 
 ### Schema Design (`src/shared/vfs/sqlite_delta/schema.rs`)
@@ -687,6 +830,40 @@ The `LIKE` pattern uses the directory prefix + `/%` to find all whiteouts under 
 - [ ] Test: flush triggers WAL checkpoint (verify via PRAGMA wal_checkpoint return)
 - [ ] Test: end-to-end with `OverlayFileSystem<MemoryFs, SqliteDelta>`
 - [ ] Test: database file is readable by `sqlite3` CLI (schema introspection)
+
+### SCRU128 Version Tracking
+
+- [ ] Add `scru128` dependency gated behind `vfs-sqlite` feature
+- [ ] Implement `next_version()` returning `Scru128Id` as 16-byte BLOB
+- [ ] Migrate `sqlite_dentry.version` column from `INTEGER` to `BLOB(16)` (schema v2)
+- [ ] Migrate `sqlite_whiteouts.version` column from `INTEGER` to `BLOB(16)` (schema v2)
+- [ ] Update all version comparisons to use byte ordering
+- [ ] Update `VfsMetadata` construction to extract timestamp from SCRU128 version bytes
+
+### Hierarchical Whiteout Prefix Index
+
+- [ ] Create `sqlite_whiteout_prefixes` table in schema migrations
+- [ ] Implement `whiteout_prefixes(path) -> Vec<String>` — split path on `/`, generate prefix entries
+- [ ] Update `add_whiteout` to insert O(d) prefix entries in same transaction
+- [ ] Update `remove_whiteout` to delete all prefix entries for the path
+- [ ] Update `list_whiteouts` to query by exact prefix match instead of `LIKE`
+- [ ] Update `reset` to clear the prefix table alongside whiteouts table
+
+### VFS Changelog
+
+- [ ] Create `sqlite_vfs_changelog` table (conditional on `enable_changelog` config)
+- [ ] Implement changelog entry writer — called from each mutation method
+- [ ] Implement `changelog_since(id: Scru128Id) -> Vec<ChangelogEntry>` query
+- [ ] Implement `changelog_for_path(path: &str) -> Vec<ChangelogEntry>` query
+
+### Tests (SCRU128 + Prefix Index + Changelog)
+
+- [ ] Test: SCRU128 version is generated on file create, monotonically increasing
+- [ ] Test: whiteout prefix entries created for all path components
+- [ ] Test: `list_whiteouts` returns correct results via prefix match (no LIKE)
+- [ ] Test: `remove_whiteout` cleans up all prefix entries
+- [ ] Test: changelog records all mutation operations when enabled
+- [ ] Test: `changelog_since` returns entries after given SCRU128 cursor
 
 ## Feature Flags
 
