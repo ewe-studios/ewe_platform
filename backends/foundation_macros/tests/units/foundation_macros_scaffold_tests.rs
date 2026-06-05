@@ -198,7 +198,9 @@ impl SimpleService for ServiceWrapper {
 
 #[test]
 fn test_scaffold_impl_basic() {
-    let mut svc = ServiceWrapper { inner: ServiceInner { value: 0 } };
+    let mut svc = ServiceWrapper {
+        inner: ServiceInner { value: 0 },
+    };
     assert_eq!(svc.get(), 0);
     svc.set(42);
     assert_eq!(svc.get(), 42);
@@ -206,7 +208,9 @@ fn test_scaffold_impl_basic() {
 
 #[test]
 fn test_scaffold_impl_override() {
-    let svc = ServiceWrapper { inner: ServiceInner { value: 99 } };
+    let svc = ServiceWrapper {
+        inner: ServiceInner { value: 99 },
+    };
     assert_eq!(svc.status(), "value=99");
 }
 

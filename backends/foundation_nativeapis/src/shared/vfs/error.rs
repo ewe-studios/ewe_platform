@@ -38,6 +38,21 @@ pub enum VfsError {
 
     #[display("too many symlink hops: {path}")]
     SymlinkLoop { path: String },
+
+    #[display("directory not empty: {path}")]
+    DirectoryNotEmpty { path: String },
+
+    #[display("not a symlink: {path}")]
+    NotASymlink { path: String },
+
+    #[display("backend error: {message}")]
+    Backend { message: String },
 }
 
 pub type VfsResult<T> = Result<T, ErrorTrace<VfsError>>;
+
+impl From<VfsError> for ErrorTrace<VfsError> {
+    fn from(e: VfsError) -> Self {
+        ErrorTrace::new(e)
+    }
+}
