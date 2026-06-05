@@ -2789,6 +2789,7 @@ dependencies = [
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",
+ "foundation_nostd",
  "io-uring",
  "libc",
  "nix 0.29.0",
