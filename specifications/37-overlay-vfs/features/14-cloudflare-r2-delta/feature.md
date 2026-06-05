@@ -10,8 +10,8 @@ dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 14
-  total: 14
+  uncompleted: 30
+  total: 30
   completion_percentage: 0%
 ---
 
@@ -19,7 +19,25 @@ tasks:
 
 ## Overview
 
-Use Cloudflare R2 (S3-compatible object storage) as a DeltaStore implementation. The key design is a **pluggable layout adapter** — the same R2 backend supports multiple storage strategies, letting users choose what fits their use case.
+This feature provides **two layers** of R2-backed filesystem:
+
+1. **R2Fs** -- a standalone `VfsFileSystem` implementation backed by R2 object storage. Can be used as a base layer, a standalone cloud filesystem, or as a layer in `OverlayFileSystem`. All VfsFileSystem methods work through the pluggable layout adapter.
+2. **R2Delta** -- extends R2Fs with `DeltaStore` trait (adds whiteout tracking + lifecycle). Used as the upper/delta layer in `OverlayFileSystem`.
+
+R2Fs can be used standalone as a `VfsFileSystem` -- it is a complete filesystem, not just a delta store. R2Delta extends it with whiteout support for overlay use.
+
+```rust
+// R2Fs is a complete VfsFileSystem -- usable standalone
+let r2fs = R2Fs::new(bucket, PathKeyLayout::new(), NoMeta);
+r2fs.mkdir("/uploads")?;
+r2fs.write_file("/uploads/photo.jpg", &image_bytes)?;
+let data = r2fs.read_file("/uploads/photo.jpg")?;
+
+// Also usable as a base layer in overlay
+let overlay = OverlayFileSystem::new(r2fs, MemoryDelta::new());
+```
+
+The key design is a **pluggable layout adapter** -- the same R2 backend supports multiple storage strategies, letting users choose what fits their use case.
 
 ### Two Implementations (Shared Layout Adapters)
 
@@ -84,21 +102,104 @@ VFS file: /src/main.rs
 - **Cons:** every mutation in a directory requires updating the manifest (read-modify-write)
 - **Best for:** directories with many files where listing performance matters
 
-### R2Delta Structure
+### VfsFileSystem Method to Layout Mapping (R2Fs)
+
+R2Fs implements the full `VfsFileSystem` trait. Each method's behavior depends on the active layout:
+
+#### PathKeyLayout
+
+| VfsFileSystem Method | R2 Operation | Details |
+|---------------------|-------------|---------|
+| `stat(path)` | `HEAD src/main.rs` | Object metadata (Content-Length, ETag, custom headers `x-vfs-type`, `x-vfs-permissions`). Directories: check if any key starts with `path/` prefix (prefix scan). |
+| `exists(path)` | `HEAD src/main.rs` | Returns true if HEAD succeeds, false on 404. |
+| `open(path, mode)` | (no R2 call yet) | Returns `R2File` handle. Reads/writes happen on `read_at`/`write_at`. |
+| `read_at(buf, offset)` | `GET src/main.rs` with `Range: bytes=offset-offset+len` | R2 supports range requests. Full file fetch if range not supported. |
+| `write_at(data, offset)` | `GET` + modify + `PUT src/main.rs` | R2 does not support partial writes. Must fetch, modify in-memory, PUT entire object. For append-only, just PUT with full content. |
+| `create(path, mode)` | `PUT src/main.rs` (empty body) | Custom headers for metadata. |
+| `mkdir(path)` | `PUT src/.dir-marker` (empty) | R2 has no directories -- use a marker object or rely on prefix convention. |
+| `remove(path)` | `DELETE src/main.rs` | For directories: delete marker + all objects with prefix. |
+| `rename(from, to)` | `COPY src/old.rs -> src/new.rs` + `DELETE src/old.rs` | R2/S3 rename = copy + delete (2 API calls). |
+| `list(dir)` | `LIST prefix=src/&delimiter=/` | S3 list-objects-v2 with prefix and delimiter. Returns CommonPrefixes (subdirs) + Contents (files). |
+| `chmod(path, mode)` | `COPY src/main.rs -> src/main.rs` with updated metadata | S3 metadata update = copy-to-self with new headers. |
+| `symlink(target, link)` | `PUT link` with `x-vfs-type: symlink`, body = target path | Symlink stored as object with target in body. |
+| `readlink(path)` | `GET path` if `x-vfs-type: symlink` | Read object body as symlink target. |
+
+#### CASKeyLayout
+
+| VfsFileSystem Method | R2 Operation | Details |
+|---------------------|-------------|---------|
+| `stat(path)` | `meta.get_entry(path)` -> `HEAD cas/ab/c1/abc123...` | Look up path in metadata store to get hash, then HEAD the blob for size verification. |
+| `open(path, mode)` | `meta.get_entry(path)` | Resolve path to CAS hash via metadata store. |
+| `read_at(buf, offset)` | `GET cas/ab/c1/abc123...` with Range header | Fetch blob by hash. Range supported. |
+| `write_at(data, offset)` | Fetch blob, modify, compute new hash, `PUT cas/xx/yy/newhash...`, `meta.upsert_entry(path, new_hash)` | New content = new hash = new blob. Old blob may still be referenced by other paths (dedup). |
+| `create(path, mode)` | `PUT cas/e3/b0/e3b0c44...` (empty file hash) + `meta.upsert_entry(path, empty_hash)` | Empty file always has the same hash (dedup). |
+| `remove(path)` | `meta.delete_entry(path)` | Only remove metadata. Blob remains if referenced by other paths. GC is separate. |
+| `rename(from, to)` | `meta.delete_entry(from)` + `meta.upsert_entry(to, same_hash)` | Metadata-only operation -- no blob copy needed (major advantage over PathKey). |
+| `list(dir)` | `meta.list_children(dir)` | Directory listing from metadata store (D1 query or manifest read). |
+
+#### DirManifestLayout
+
+| VfsFileSystem Method | R2 Operation | Details |
+|---------------------|-------------|---------|
+| `stat(path)` | `GET .delta/src/manifest.json` -> find entry for `main.rs` | Read parent directory manifest, find child entry. Entry includes size, checksum, blob key. |
+| `open(path, mode)` | Read manifest for parent dir, get blob key for file | Resolve to blob key via manifest. |
+| `read_at(buf, offset)` | `GET blobs/x/y/main_v2.rs` with Range header | Fetch blob at the key specified in manifest. |
+| `write_at(data, offset)` | Fetch blob, modify, `PUT blobs/x/y/main_v3.rs`, update manifest entry | Write new blob, read-modify-write the parent manifest. |
+| `create(path, mode)` | `PUT blobs/...` + read-modify-write `.delta/src/manifest.json` | Add entry to parent manifest. |
+| `remove(path)` | `DELETE blobs/...` + read-modify-write manifest | Remove entry from parent manifest, delete blob. |
+| `rename(from, to)` | Read-modify-write both source and target manifests | If same directory: single manifest update. Cross-directory: update two manifests. |
+| `list(dir)` | `GET .delta/src/manifest.json` | Single R2 GET returns all children with metadata. Fast -- no prefix scan. |
+| `mkdir(path)` | `PUT .delta/src/newdir/manifest.json` (empty manifest `[]`) + update parent manifest | Create empty manifest for new dir, add dir entry to parent. |
+
+#### R2Fs Struct
 
 ```rust
-pub struct R2Delta<Layout, Meta> {
-    bucket: R2Bucket,        // worker-rs R2Bucket or HTTP S3 client
-    layout: Layout,          // PathKeyLayout, CASKeyLayout, or DirManifestLayout
-    meta: Meta,              // metadata store (None for PathKeyLayout, D1Conn for CAS, etc.)
+pub struct R2Fs<Layout: R2Layout, Meta: R2MetaStore> {
+    bucket: R2Bucket,
+    layout: Layout,
+    meta: Meta,
+}
+
+impl<Layout: R2Layout, Meta: R2MetaStore> VfsFileSystem for R2Fs<Layout, Meta> {
+    type File = R2File<Layout, Meta>;
+    type SeekableFile = R2SeekableFile<Layout, Meta>;
+    type Directory = R2Directory<Layout, Meta>;
+    // All methods delegate to layout + meta
+}
+```
+
+### R2Delta Structure (extends R2Fs)
+
+R2Delta wraps R2Fs and adds whiteout tracking. It delegates all VfsFileSystem methods to the inner R2Fs.
+
+```rust
+pub struct R2Delta<Layout: R2Layout, Meta: R2MetaStore> {
+    inner: R2Fs<Layout, Meta>,  // full VfsFileSystem implementation
     version_counter: Arc<AtomicU64>,
 }
 
-impl<Layout, Meta> DeltaStore for R2Delta<Layout, Meta>
-where
-    Layout: R2Layout,
-    Meta: R2MetaStore,
-{ ... }
+// R2Delta is a VfsFileSystem (delegates to inner R2Fs)
+impl<Layout: R2Layout, Meta: R2MetaStore> VfsFileSystem for R2Delta<Layout, Meta> {
+    type File = R2File<Layout, Meta>;
+    type SeekableFile = R2SeekableFile<Layout, Meta>;
+    type Directory = R2Directory<Layout, Meta>;
+    // All methods delegate to self.inner
+}
+
+// R2Delta extends VfsFileSystem with DeltaStore
+impl<Layout: R2Layout, Meta: R2MetaStore> DeltaStore for R2Delta<Layout, Meta> {
+    fn add_whiteout(&self, path: &str, version: u64) -> Result<()> {
+        // PathKey: PUT path.whiteout marker object
+        // CAS/DirManifest: meta.upsert_entry(path, EntryMeta::Whiteout { version })
+    }
+    fn is_whiteout(&self, path: &str) -> Result<Option<u64>> { ... }
+    fn remove_whiteout(&self, path: &str) -> Result<()> { ... }
+    fn list_whiteouts(&self, dir: &str) -> Result<Vec<(String, u64)>> { ... }
+    fn flush(&self) -> Result<()> { /* no-op -- writes are immediate */ }
+    fn reset(&self) -> Result<()> {
+        // Delete all objects in the delta namespace, clear whiteouts
+    }
+}
 ```
 
 ### R2Layout Trait
@@ -169,7 +270,17 @@ wasm/wasm-bindgen/
 - [ ] Implement `PathKeyLayout` (simplest, no metadata store needed)
 - [ ] Implement `CASKeyLayout` (content hashing, dedup logic)
 - [ ] Implement `DirManifestLayout` (manifest read/write, directory listing)
-- [ ] Implement `R2Delta<Layout, Meta>` struct + `DeltaStore` trait
+- [ ] Implement `R2Fs<Layout, Meta>` struct with full `VfsFileSystem` trait:
+  - `stat()` -- layout-dependent: HEAD object (PathKey), meta lookup (CAS), manifest read (DirManifest)
+  - `open()` / `open_seekable()` -- resolve to blob key, return R2File/R2SeekableFile
+  - `create()` -- PUT empty object + metadata
+  - `mkdir()` -- PUT dir marker (PathKey), create manifest (DirManifest), metadata entry (CAS)
+  - `remove()` -- DELETE object + metadata
+  - `rename()` -- COPY+DELETE (PathKey), metadata-only (CAS), manifest update (DirManifest)
+  - `list()` -- LIST with prefix (PathKey), meta query (CAS), GET manifest (DirManifest)
+  - `chmod()` / `symlink()` / `readlink()` -- via custom metadata headers
+- [ ] Implement `R2File` / `R2SeekableFile` / `R2Directory` handle types
+- [ ] Implement `R2Delta<Layout, Meta>` struct wrapping R2Fs + `DeltaStore` trait
 - [ ] Whiteout support (R2 objects with `.whiteout` suffix, or metadata table entries)
 
 ### Metadata Stores (`src/shared/vfs/r2_delta/meta/`)
@@ -193,11 +304,15 @@ wasm/wasm-bindgen/
 
 ### Tests
 
-- [ ] PathKeyLayout: write → read → content matches
-- [ ] PathKeyLayout: rename, delete, directory listing
-- [ ] CASKeyLayout: duplicate content → single R2 object stored
-- [ ] CASKeyLayout: read back different paths with same content → same bytes
+- [ ] R2Fs standalone: mkdir, create, write, read, stat, remove (full VfsFileSystem surface) with PathKeyLayout
+- [ ] R2Fs as base layer in OverlayFileSystem
+- [ ] PathKeyLayout: write -> read -> content matches
+- [ ] PathKeyLayout: rename (copy+delete), delete, directory listing (prefix scan)
+- [ ] CASKeyLayout: duplicate content -> single R2 object stored
+- [ ] CASKeyLayout: read back different paths with same content -> same bytes
+- [ ] CASKeyLayout: rename is metadata-only (no blob copy)
 - [ ] DirManifestLayout: directory listing = single R2 GET
+- [ ] DirManifestLayout: create file updates parent manifest atomically
 - [ ] worker-rs impl compiles for wasm32 target
 - [ ] HTTP impl works against real R2 or S3-compatible mock (MinIO, LocalStack)
 
@@ -212,6 +327,8 @@ vfs-r2-manifest = ["vfs"]   # DirManifestLayout
 
 ## Verification
 
+- R2Fs is usable as a standalone VfsFileSystem (not just as a DeltaStore)
+- R2Fs is usable as a base layer in OverlayFileSystem
 - PathKeyLayout: file written to R2 is readable with identical content
 - PathKeyLayout: R2 console shows human-readable keys matching VFS paths
 - CASKeyLayout: two files with same content → one R2 blob stored

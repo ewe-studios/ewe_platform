@@ -1,17 +1,17 @@
 ---
 feature_name: "SqliteDelta"
-description: "SqliteDelta — SQLite-backed DeltaStore. ACID transactions, single-file storage, queryable. Feature-gated behind vfs-sqlite. Implementations may use CAS or chunk storage internally."
+description: "SqliteDelta — libsql-backed DeltaStore providing a complete VfsFileSystem (file CRUD, directory hierarchy, metadata, chunked content) plus DeltaStore whiteout/lifecycle extensions, all in a single .db file. Feature-gated behind vfs-sqlite."
 status: "pending"
 priority: "medium"
 phase: 3
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-05
 dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 12
-  total: 12
+  uncompleted: 34
+  total: 34
   completion_percentage: 0%
 ---
 
@@ -19,41 +19,701 @@ tasks:
 
 ## Overview
 
-SQLite-backed DeltaStore for durable, queryable, single-file delta storage. Inspired by AgentFS schema (4KB chunks, inode/dentry/data tables). Feature-gated behind `vfs-sqlite` to avoid adding SQLite as a mandatory dependency.
+A complete VfsFileSystem and DeltaStore backed by a single SQLite database file (via **libsql**). This is not just a delta store — it is a full filesystem implementation where every file, directory, symlink, and metadata record lives in SQL tables. The DeltaStore trait adds whiteout tracking and lifecycle operations on top.
 
-The implementation owns how it stores data — could use AgentFS-style 4KB chunks, content-addressable blocks, or any other strategy. The trait contract is: present complete files at paths.
+Inspired by AgentFS schema (inode/dentry/data tables), adapted for local SQLite specifics: WAL mode for concurrent readers, larger default chunk size (64 KB), no HTTP round-trip concerns.
+
+Feature-gated behind `vfs-sqlite` to avoid adding libsql as a mandatory dependency.
+
+### Dual Identity
+
+The `SqliteDelta` struct provides **both** roles:
+
+1. **SqliteFs** (VfsFileSystem) — full file CRUD, directory hierarchy, metadata, chunked content storage, symlinks. Every `VfsFileSystem` method maps to SQL queries against the dentry/chunks tables.
+2. **SqliteDelta** (DeltaStore extending VfsFileSystem) — adds whiteout table, `flush()` maps to WAL checkpoint, `reset()` maps to DELETE all rows.
+
+A single struct implements both traits. Callers that only need `VfsFileSystem` use it as such; `OverlayFileSystem` uses it as `DeltaStore`.
+
+### Module Structure
+
+```
+src/shared/vfs/
+    sqlite_delta/
+        mod.rs              # SqliteDelta struct, constructors, VfsFileSystem + DeltaStore impls
+        schema.rs           # SQL table definitions, migrations, schema version
+        chunking.rs         # Chunk sizing, read/write assembly, partial reads
+        file_handle.rs      # SqliteFile, SeekableSqliteFile implementations
+        types.rs            # SqliteDentry, SqliteChunkRef, internal types
+        path_resolve.rs     # Path → ino resolution via dentry lookups
+```
+
+## libsql Library Choice
+
+Uses **libsql** (`libsql` crate — Turso's fork of SQLite) instead of `rusqlite`.
+
+**Why libsql:**
+
+- **Drop-in SQLite compatibility** — same SQL dialect, same file format, readable by `sqlite3` CLI
+- **Edge replication** — Turso cloud sync for future remote replication scenarios (spec 36 agentic API)
+- **Embedded replicas** — local SQLite file that can sync to/from a Turso remote, enabling hybrid local+cloud delta stores
+- **WASM support** — libsql compiles to WASM, aligning with the platform's cross-target strategy
+- **Active maintenance** — Turso actively develops libsql with upstream SQLite merges
+- **API similarity to rusqlite** — migration path is straightforward; `Connection`, `Statement`, `Row` patterns are nearly identical
+
+```toml
+[dependencies]
+libsql = { version = "0.6", optional = true, default-features = false, features = ["core"] }
+```
+
+## SQL Schema
+
+Three tables mirror the D1 feature's schema (feature 13), adapted for local SQLite.
+
+```sql
+-- Schema version tracking
+CREATE TABLE IF NOT EXISTS sqlite_vfs_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+INSERT OR IGNORE INTO sqlite_vfs_meta (key, value) VALUES ('schema_version', '1');
+
+-- Directory entries (hierarchy + metadata)
+CREATE TABLE IF NOT EXISTS sqlite_dentry (
+    ino           INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,
+    parent_ino    INTEGER NOT NULL,
+    file_type     TEXT NOT NULL CHECK (file_type IN ('file', 'dir', 'symlink')),
+    size          INTEGER NOT NULL DEFAULT 0,
+    permissions   INTEGER NOT NULL DEFAULT 493,  -- 0o755
+    owner_uid     INTEGER NOT NULL DEFAULT 0,
+    owner_gid     INTEGER NOT NULL DEFAULT 0,
+    checksum      BLOB,                          -- blake3 32 bytes, NULL for dirs
+    version       INTEGER NOT NULL DEFAULT 0,
+    created_at    INTEGER NOT NULL,              -- unix epoch milliseconds
+    updated_at    INTEGER NOT NULL,              -- unix epoch milliseconds
+    symlink_target TEXT,                         -- target path if file_type = 'symlink'
+    chunk_size    INTEGER NOT NULL DEFAULT 65536, -- chunk size used for this file
+    UNIQUE(parent_ino, name)
+);
+
+-- Root directory bootstrap (ino = 1, self-referencing parent)
+INSERT OR IGNORE INTO sqlite_dentry (ino, name, parent_ino, file_type, size, permissions,
+    owner_uid, owner_gid, version, created_at, updated_at, chunk_size)
+VALUES (1, '', 1, 'dir', 0, 493, 0, 0, 0,
+    CAST(strftime('%s', 'now') * 1000 AS INTEGER),
+    CAST(strftime('%s', 'now') * 1000 AS INTEGER),
+    65536);
+
+-- File content chunks (only for file_type = 'file')
+CREATE TABLE IF NOT EXISTS sqlite_chunks (
+    ino         INTEGER NOT NULL,
+    chunk_idx   INTEGER NOT NULL,
+    data        BLOB NOT NULL,
+    PRIMARY KEY (ino, chunk_idx),
+    FOREIGN KEY (ino) REFERENCES sqlite_dentry(ino) ON DELETE CASCADE
+);
+
+-- Whiteouts (DeltaStore extension)
+CREATE TABLE IF NOT EXISTS sqlite_whiteouts (
+    path        TEXT PRIMARY KEY,
+    version     INTEGER NOT NULL
+);
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_dentry_parent ON sqlite_dentry(parent_ino);
+CREATE INDEX IF NOT EXISTS idx_chunks_ino ON sqlite_chunks(ino);
+CREATE INDEX IF NOT EXISTS idx_whiteouts_path ON sqlite_whiteouts(path);
+```
+
+### Schema Notes
+
+- **`ino` is AUTOINCREMENT** — unlike D1 which may use UUIDs, local SQLite benefits from monotonic integer keys for B-tree locality
+- **`UNIQUE(parent_ino, name)`** — enforces no duplicate filenames within a directory, atomically prevents races
+- **`ON DELETE CASCADE`** on chunks — removing a dentry automatically removes all its content chunks
+- **`chunk_size` per file** — stored in dentry so readers know how to reassemble even if the default changes
+- **Root directory** is `ino = 1` with `parent_ino = 1` (self-referencing). The empty name `''` is the root sentinel.
+- **`checksum` is BLOB** not TEXT — stores raw blake3 bytes (32 bytes), avoids hex encoding overhead
+
+## Path Resolution
+
+Path resolution walks the `sqlite_dentry` table from root to target, one component at a time.
+
+### Single-step lookup (primary path)
+
+The overlay resolves paths layer-by-layer, so `SqliteDelta` typically receives already-normalized absolute paths. Resolution splits the path into components and walks:
+
+```sql
+-- For each component in the path: "/foo/bar/baz.txt" → ["foo", "bar", "baz.txt"]
+-- Start from root ino = 1, walk each component:
+SELECT ino, file_type, size FROM sqlite_dentry WHERE parent_ino = ? AND name = ?;
+```
+
+This is a single-row indexed lookup per path component — fast even for deep hierarchies.
+
+### Recursive CTE (batch operations)
+
+For operations that need to resolve multiple paths or list subtrees:
+
+```sql
+WITH RECURSIVE subtree(ino, name, parent_ino, file_type, depth, full_path) AS (
+    SELECT ino, name, parent_ino, file_type, 0, ''
+    FROM sqlite_dentry WHERE ino = ?  -- starting directory ino
+
+    UNION ALL
+
+    SELECT d.ino, d.name, d.parent_ino, d.file_type, s.depth + 1,
+           s.full_path || '/' || d.name
+    FROM sqlite_dentry d
+    JOIN subtree s ON d.parent_ino = s.ino
+    WHERE s.file_type = 'dir'
+)
+SELECT * FROM subtree ORDER BY depth, name;
+```
+
+Used by `remove_all()` to find all descendants for cascading delete, and by future tree-diff operations.
+
+## VfsFileSystem Method Mapping
+
+Every `VfsFileSystem` trait method has a concrete SQL implementation:
+
+### `capabilities() -> VfsCapabilities`
+
+Returns static capabilities:
+```rust
+VfsCapabilities {
+    seekable: true,
+    symlinks: true,
+    permissions_enforced: false,  // stored but not enforced
+    event_emission: false,
+    persistent: true,
+}
+```
+
+### `stat(path) -> VfsMetadata`
+
+```sql
+-- Resolve path to ino (walk components), then:
+SELECT ino, file_type, size, permissions, owner_uid, owner_gid,
+       checksum, version, created_at, updated_at
+FROM sqlite_dentry WHERE ino = ?;
+```
+
+Maps columns to `VfsMetadata` fields. `created_at`/`updated_at` are milliseconds since epoch, converted to `SystemTime`. `checksum` BLOB is mapped to `Checksum::Blake3([u8; 32])` or `Checksum::None` if NULL.
+
+### `exists(path) -> bool`
+
+Path resolution; returns `true` if resolution succeeds (all components found), `false` on `NotFound`.
+
+### `open(path, mode) -> SqliteFile`
+
+1. Resolve path to ino
+2. Verify `file_type = 'file'` (else `NotAFile`)
+3. If mode is `Write` or `ReadWrite`, verify path exists (else `NotFound`)
+4. Return `SqliteFile { db, ino, mode }`
+
+### `open_seekable(path, mode) -> SeekableSqliteFile`
+
+Same as `open` but returns `SeekableSqliteFile { inner: SqliteFile, cursor: 0 }`.
+
+### `open_directory(path) -> SqliteDirectory`
+
+1. Resolve path to ino
+2. Verify `file_type = 'dir'` (else `NotADirectory`)
+3. Return `SqliteDirectory { db, ino, path }`
+
+### `create(path, mode) -> SqliteFile`
+
+```sql
+BEGIN;
+-- Ensure parent directory exists (resolve parent path to parent_ino)
+-- Insert new file entry:
+INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions,
+    owner_uid, owner_gid, version, created_at, updated_at, chunk_size)
+VALUES (?, ?, 'file', 0, 0o644, 0, 0, 0, ?, ?, ?);
+-- No chunks inserted yet (empty file)
+COMMIT;
+```
+
+Returns `SqliteFile` for the newly created entry. If the path already exists, returns `AlreadyExists`.
+
+### `mkdir(path)`
+
+```sql
+INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions,
+    owner_uid, owner_gid, version, created_at, updated_at, chunk_size)
+VALUES (?, ?, 'dir', 0, 0o755, 0, 0, 0, ?, ?, 0);
+```
+
+Parent must exist and be a directory. Returns `AlreadyExists` if directory already exists.
+
+### `remove(path)`
+
+```sql
+BEGIN;
+-- Resolve path to ino
+-- If directory, verify it's empty:
+SELECT COUNT(*) FROM sqlite_dentry WHERE parent_ino = ?;
+-- Delete the entry (CASCADE removes chunks):
+DELETE FROM sqlite_dentry WHERE ino = ?;
+COMMIT;
+```
+
+Non-empty directories return an error; use `remove_all` for recursive deletion.
+
+### `rename(from, to)`
+
+```sql
+BEGIN;
+-- Resolve 'from' path to ino
+-- Resolve 'to' parent path to new_parent_ino
+-- If 'to' exists, remove it first (overwrite semantics)
+UPDATE sqlite_dentry SET name = ?, parent_ino = ?, updated_at = ? WHERE ino = ?;
+COMMIT;
+```
+
+The `UNIQUE(parent_ino, name)` constraint ensures atomicity.
+
+### `chmod(path, mode)`
+
+```sql
+UPDATE sqlite_dentry SET permissions = ?, updated_at = ? WHERE ino = ?;
+```
+
+### `symlink(target, link_path)`
+
+```sql
+INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions,
+    owner_uid, owner_gid, version, created_at, updated_at, symlink_target, chunk_size)
+VALUES (?, ?, 'symlink', 0, 0o777, 0, 0, 0, ?, ?, ?, 0);
+```
+
+### `readlink(path) -> String`
+
+```sql
+SELECT symlink_target FROM sqlite_dentry WHERE ino = ? AND file_type = 'symlink';
+```
+
+Returns `NotFound` if not a symlink.
+
+### `list` (via VfsDirectory)
+
+```sql
+SELECT name, file_type FROM sqlite_dentry WHERE parent_ino = ? ORDER BY name;
+```
+
+Maps to `Vec<VfsDirEntry>`.
+
+### Default implementations
+
+`read_file`, `write_file`, `copy`, `remove_all`, `mkdir_all` use the default trait implementations which compose the primitive operations above.
+
+## Chunking Strategy
+
+File content is stored as ordered chunks in `sqlite_chunks`. This enables partial reads/writes without loading entire files into memory.
+
+### Configuration
+
+```rust
+pub struct ChunkConfig {
+    /// Default chunk size in bytes. Default: 64 KB.
+    pub default_chunk_size: usize,
+}
+
+impl Default for ChunkConfig {
+    fn default() -> Self {
+        Self {
+            default_chunk_size: 64 * 1024, // 64 KB
+        }
+    }
+}
+```
+
+**Why 64 KB default (not 4 KB like AgentFS or 512 KB like D1):**
+
+- Local SQLite has no row-size limit like D1's 2 MB cap — no need to stay small
+- 4 KB (AgentFS) creates too many rows for multi-MB files, hurting INSERT performance
+- 512 KB (D1) is tuned for minimizing HTTP round-trips — irrelevant for local access
+- 64 KB balances row count vs. memory overhead: a 10 MB file = ~160 chunks, a 100 MB file = ~1600 chunks
+- SQLite's page size is 4 KB by default; a 64 KB chunk spans 16 pages, which SQLite handles efficiently
+- The chunk size is stored per-file in `sqlite_dentry.chunk_size`, so changing the default doesn't break existing files
+
+### Write Path
+
+```
+1. Split input data into N chunks of chunk_size bytes (last chunk may be smaller)
+2. Compute blake3 checksum over the entire content
+3. In a single transaction:
+   a. DELETE FROM sqlite_chunks WHERE ino = ?  (clear old chunks)
+   b. For each chunk:
+      INSERT INTO sqlite_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)
+   c. UPDATE sqlite_dentry SET size = ?, checksum = ?, updated_at = ?, chunk_size = ? WHERE ino = ?
+4. COMMIT
+```
+
+All chunk inserts happen in one transaction — no partial writes visible to readers.
+
+### Read Path
+
+```
+1. Full read:
+   SELECT data FROM sqlite_chunks WHERE ino = ? ORDER BY chunk_idx;
+   → Concatenate all chunk blobs into Vec<u8>
+
+2. Partial read (offset + length):
+   -- Calculate chunk range:
+   --   start_chunk = offset / chunk_size
+   --   end_chunk   = (offset + length - 1) / chunk_size
+   SELECT chunk_idx, data FROM sqlite_chunks
+   WHERE ino = ? AND chunk_idx BETWEEN ? AND ?
+   ORDER BY chunk_idx;
+   → Concatenate, then slice [offset_within_first_chunk .. offset_within_first_chunk + length]
+```
+
+### Offset-based read_at / write_at
+
+`VfsFile::read_at(buf, offset)` and `write_at(buf, offset)` map to chunk-range queries:
+
+- **read_at**: Compute affected chunk range, fetch those chunks, copy the relevant byte range into `buf`
+- **write_at**: Fetch affected chunks, splice new data into the byte stream, re-chunk and write back the affected chunks only. Unchanged chunks are not touched.
+
+For `write_at` that extends the file, new chunks are appended and `size` is updated.
+
+### Truncate
+
+```sql
+BEGIN;
+-- Calculate the last chunk index to keep:
+--   last_chunk = (new_size - 1) / chunk_size  (or -1 if new_size = 0)
+-- Delete chunks beyond that:
+DELETE FROM sqlite_chunks WHERE ino = ? AND chunk_idx > ?;
+-- If new_size doesn't align to chunk boundary, fetch+truncate the last chunk:
+UPDATE sqlite_chunks SET data = SUBSTR(data, 1, ?) WHERE ino = ? AND chunk_idx = ?;
+-- Update dentry size:
+UPDATE sqlite_dentry SET size = ?, updated_at = ? WHERE ino = ?;
+COMMIT;
+```
+
+## File Handle Types
+
+### SqliteFile (implements VfsFile)
+
+```rust
+pub struct SqliteFile {
+    db: Arc<Mutex<libsql::Connection>>,
+    ino: i64,
+    mode: OpenMode,
+    chunk_size: usize,
+}
+
+impl VfsFile for SqliteFile {
+    fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> { ... }
+    fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> { ... }
+    fn sync_data(&self) -> VfsResult<()> { ... }  // no-op, writes are immediately durable
+    fn size(&self) -> VfsResult<u64> { ... }
+    fn truncate(&self, size: u64) -> VfsResult<()> { ... }
+    fn metadata(&self) -> VfsResult<VfsMetadata> { ... }
+}
+```
+
+- Each `read_at`/`write_at` acquires the mutex, executes SQL, releases
+- `sync_data()` is a no-op because SQLite transactions are durable on commit
+- `metadata()` reads from `sqlite_dentry` for the file's ino
+
+### SeekableSqliteFile (implements SeekableVfsFile)
+
+```rust
+pub struct SeekableSqliteFile {
+    inner: SqliteFile,
+    cursor: u64,
+}
+
+impl VfsFile for SeekableSqliteFile {
+    // Delegates to inner, using self.cursor as offset
+    fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
+        self.inner.read_at(buf, offset)
+    }
+    // ... other VfsFile methods delegate to inner
+}
+
+impl SeekableVfsFile for SeekableSqliteFile {
+    fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
+        let n = self.inner.read_at(buf, self.cursor)?;
+        self.cursor += n as u64;
+        Ok(n)
+    }
+
+    fn write(&mut self, buf: &[u8]) -> VfsResult<usize> {
+        let n = self.inner.write_at(buf, self.cursor)?;
+        self.cursor += n as u64;
+        Ok(n)
+    }
+
+    fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
+        self.cursor = match pos {
+            SeekFrom::Start(n) => n,
+            SeekFrom::End(n) => (self.inner.size()? as i64 + n) as u64,
+            SeekFrom::Current(n) => (self.cursor as i64 + n) as u64,
+        };
+        Ok(self.cursor)
+    }
+
+    fn position(&self) -> u64 {
+        self.cursor
+    }
+}
+```
+
+### SqliteDirectory (implements VfsDirectory)
+
+```rust
+pub struct SqliteDirectory {
+    db: Arc<Mutex<libsql::Connection>>,
+    ino: i64,
+    path: String,
+}
+```
+
+Implements `VfsDirectory` by delegating to SQL queries scoped to `parent_ino = self.ino`.
+
+## Concurrency Model
+
+### WAL Mode
+
+The database is opened in WAL (Write-Ahead Log) mode:
+
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;    -- safe with WAL, faster than FULL
+PRAGMA foreign_keys = ON;       -- enforce CASCADE deletes
+PRAGMA busy_timeout = 5000;     -- 5s retry on lock contention
+```
+
+WAL mode allows concurrent readers while a single writer holds the lock. This is ideal for the overlay VFS pattern: the overlay reads from the delta while occasionally writing.
+
+### Connection Strategy
+
+```rust
+pub struct SqliteDelta {
+    conn: Arc<Mutex<libsql::Connection>>,
+    chunk_config: ChunkConfig,
+}
+```
+
+Single connection wrapped in `Arc<Mutex<...>>`:
+
+- **Why not connection pool**: SQLite is an embedded database with a single-writer model. Multiple connections add complexity (lock contention, WAL checkpoint coordination) without throughput benefit for the overlay use case.
+- **Why `Arc<Mutex<>>`**: The `VfsFileSystem` trait requires `Send + Sync`. The mutex serializes writes while allowing the struct to be shared across threads. File handles hold a clone of the `Arc` and acquire the mutex per operation.
+- **Future**: If profiling shows mutex contention, can switch to `tokio::sync::RwLock` or a read-connection pool with a dedicated write connection.
+
+## Constructors
+
+```rust
+impl SqliteDelta {
+    /// Open or create a database at the given path.
+    /// Runs migrations on first open. Enables WAL mode.
+    pub fn new(db_path: impl AsRef<Path>) -> VfsResult<Self> {
+        let db = libsql::Database::open(db_path.as_ref().to_str().unwrap())
+            .map_err(|e| /* wrap in VfsError::Io */)?;
+        let conn = db.connect()
+            .map_err(|e| /* wrap in VfsError::Io */)?;
+        let delta = Self {
+            conn: Arc::new(Mutex::new(conn)),
+            chunk_config: ChunkConfig::default(),
+        };
+        delta.run_migrations()?;
+        delta.enable_wal()?;
+        Ok(delta)
+    }
+
+    /// Create an in-memory database. Useful for testing.
+    /// Data is lost when the struct is dropped.
+    pub fn in_memory() -> VfsResult<Self> {
+        let db = libsql::Database::open(":memory:")
+            .map_err(|e| /* wrap in VfsError::Io */)?;
+        let conn = db.connect()
+            .map_err(|e| /* wrap in VfsError::Io */)?;
+        let delta = Self {
+            conn: Arc::new(Mutex::new(conn)),
+            chunk_config: ChunkConfig::default(),
+        };
+        delta.run_migrations()?;
+        // WAL mode not applicable to :memory:
+        Ok(delta)
+    }
+
+    /// Open with custom chunk configuration.
+    pub fn with_config(db_path: impl AsRef<Path>, config: ChunkConfig) -> VfsResult<Self> {
+        let mut delta = Self::new(db_path)?;
+        delta.chunk_config = config;
+        Ok(delta)
+    }
+
+    /// Run schema migrations. Idempotent (CREATE IF NOT EXISTS).
+    fn run_migrations(&self) -> VfsResult<()> { ... }
+
+    /// Enable WAL mode and set pragmas.
+    fn enable_wal(&self) -> VfsResult<()> { ... }
+}
+```
+
+## DeltaStore Trait Implementation
+
+```rust
+impl DeltaStore for SqliteDelta {
+    // --- Inherited from VfsFileSystem (all methods above) ---
+
+    fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
+        // INSERT OR REPLACE INTO sqlite_whiteouts (path, version) VALUES (?, ?)
+    }
+
+    fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
+        // SELECT version FROM sqlite_whiteouts WHERE path = ?
+        // Returns Some(version) if exists, None otherwise
+    }
+
+    fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
+        // DELETE FROM sqlite_whiteouts WHERE path = ?
+    }
+
+    fn list_whiteouts(&self, dir: &str) -> VfsResult<Vec<(String, u64)>> {
+        // SELECT path, version FROM sqlite_whiteouts WHERE path LIKE ? || '/%'
+        // Returns all whiteouts under the given directory prefix
+    }
+
+    fn flush(&self) -> VfsResult<()> {
+        // PRAGMA wal_checkpoint(TRUNCATE);
+        // Forces WAL to be written back to the main database file.
+        // For in-memory databases, this is a no-op.
+    }
+
+    fn reset(&self) -> VfsResult<()> {
+        // BEGIN;
+        // DELETE FROM sqlite_chunks;
+        // DELETE FROM sqlite_whiteouts;
+        // DELETE FROM sqlite_dentry WHERE ino != 1;  -- keep root
+        // UPDATE sqlite_dentry SET version = 0, updated_at = ? WHERE ino = 1;
+        // COMMIT;
+        // Clears all data, leaving only the root directory.
+    }
+}
+```
+
+### Whiteout path matching for `list_whiteouts`
+
+```sql
+-- For dir = "/foo":
+SELECT path, version FROM sqlite_whiteouts
+WHERE path LIKE '/foo/%'
+ORDER BY path;
+```
+
+The `LIKE` pattern uses the directory prefix + `/%` to find all whiteouts under that directory. The index on `sqlite_whiteouts.path` makes this efficient.
 
 ## Tasks
 
-### Schema Design
+### Schema Design (`src/shared/vfs/sqlite_delta/schema.rs`)
 
-- [ ] Design SQLite schema: files table (path, metadata), data table (path + chunk or blob), whiteout table, directory tracking
-- [ ] Consider CAS-friendly schema: content-addressed blocks with path → block references
+- [ ] Define SQL schema strings as constants (dentry, chunks, whiteouts, meta tables)
+- [ ] Implement `run_migrations()` — CREATE IF NOT EXISTS all tables, insert root dentry
+- [ ] Implement schema version check and upgrade path via `sqlite_vfs_meta` table
+- [ ] Define indexes (parent_ino, chunks ino, whiteouts path)
 
-### Core (`src/native/vfs/sqlite_delta.rs` or `src/shared/vfs/sqlite_delta.rs`)
+### Types (`src/shared/vfs/sqlite_delta/types.rs`)
 
-- [ ] Define `SqliteDelta` struct: wraps SQLite connection
-- [ ] Implement `SqliteDelta::new(db_path)` — open/create database, run migrations
-- [ ] Implement `SqliteDelta::in_memory()` — for testing
-- [ ] Implement `VfsFile` for `SqliteFile`: reads chunks from db, writes chunks to db
-- [ ] Implement `VfsFileSystem` for `SqliteDelta`: SQL-backed path operations
-- [ ] Implement `DeltaStore` for `SqliteDelta`: whiteout table, flush = WAL checkpoint, reset = drop all rows
-- [ ] Implement checksum storage in metadata
+- [ ] Define `SqliteDentry` struct (Rust-side representation of a dentry row)
+- [ ] Define `SqliteChunkRef` struct (ino + chunk_idx + data reference)
+- [ ] Define `ChunkConfig` struct with default 64 KB chunk size
+- [ ] Implement row-to-struct mapping helpers for libsql `Row` → `SqliteDentry`
 
-### Tests
+### Path Resolution (`src/shared/vfs/sqlite_delta/path_resolve.rs`)
 
-- [ ] Test: store/load file roundtrip
-- [ ] Test: large file chunked storage
-- [ ] Test: whiteout add/check/remove via SQL
-- [ ] Test: reset clears all data
-- [ ] Test: end-to-end with OverlayFileSystem<MemoryFs, SqliteDelta>
+- [ ] Implement `resolve_path(conn, path) -> VfsResult<i64>` — walk components, return ino
+- [ ] Implement `resolve_parent(conn, path) -> VfsResult<(i64, String)>` — return parent ino + leaf name
+- [ ] Implement recursive CTE subtree query for `remove_all`
 
-## SQLite Library
+### Chunking (`src/shared/vfs/sqlite_delta/chunking.rs`)
 
-Uses **libsql** (Turso's fork) instead of rusqlite. libsql provides drop-in SQLite compatibility with edge replication (Turso cloud sync) and WASM support.
+- [ ] Implement `split_into_chunks(data, chunk_size) -> Vec<&[u8]>`
+- [ ] Implement `reassemble_chunks(chunks) -> Vec<u8>` — concatenate ordered chunks
+- [ ] Implement `read_chunk_range(conn, ino, offset, len) -> Vec<u8>` — partial read
+- [ ] Implement `write_chunks(conn, ino, data, chunk_size)` — transactional chunk write
+- [ ] Implement `truncate_chunks(conn, ino, new_size, chunk_size)` — partial chunk truncation
+
+### File Handles (`src/shared/vfs/sqlite_delta/file_handle.rs`)
+
+- [ ] Implement `SqliteFile` struct with `read_at`, `write_at`, `sync_data`, `size`, `truncate`, `metadata`
+- [ ] Implement `SeekableSqliteFile` struct wrapping `SqliteFile` with cursor tracking
+- [ ] Implement `SqliteDirectory` struct with `list`, `get_entry`, `create_file`, `create_dir`, etc.
+
+### Core (`src/shared/vfs/sqlite_delta/mod.rs`)
+
+- [ ] Define `SqliteDelta` struct: `conn: Arc<Mutex<libsql::Connection>>`, `chunk_config: ChunkConfig`
+- [ ] Implement `SqliteDelta::new(db_path)` — open database, run migrations, enable WAL
+- [ ] Implement `SqliteDelta::in_memory()` — open `:memory:` database, run migrations
+- [ ] Implement `SqliteDelta::with_config(db_path, ChunkConfig)` — custom chunk size
+- [ ] Implement `VfsFileSystem` for `SqliteDelta`: all trait methods mapped to SQL
+- [ ] Implement `DeltaStore` for `SqliteDelta`: whiteout CRUD, flush (WAL checkpoint), reset (DELETE all)
+- [ ] Implement `capabilities()` returning persistent + seekable + symlinks
+- [ ] Implement checksum computation (blake3) on file write, stored in dentry
+
+### Feature Gating
+
+- [ ] Add `vfs-sqlite = ["vfs", "dep:libsql"]` feature flag to `Cargo.toml`
+- [ ] Gate module with `#[cfg(feature = "vfs-sqlite")]`
+- [ ] Wire into `src/shared/vfs/mod.rs` with conditional re-export
+
+### Tests (`tests/vfs_sqlite_delta.rs`)
+
+- [ ] Test: `SqliteDelta::new()` creates database file with correct schema
+- [ ] Test: `SqliteDelta::in_memory()` works without a file
+- [ ] Test: create file → stat returns correct metadata (size=0, type=file)
+- [ ] Test: write file → read back, content matches exactly
+- [ ] Test: large file (1 MB+) chunked storage and reassembly
+- [ ] Test: configurable chunk size (small chunks = more rows, verify reassembly)
+- [ ] Test: `read_at` partial read returns correct byte range
+- [ ] Test: `write_at` mid-file update modifies only affected chunks
+- [ ] Test: seekable file handle — sequential read/write with cursor tracking
+- [ ] Test: mkdir → list → directory appears with correct type
+- [ ] Test: nested directory creation via `mkdir_all`
+- [ ] Test: remove empty directory succeeds, remove non-empty fails
+- [ ] Test: remove_all recursively deletes directory and all contents
+- [ ] Test: rename file within same directory
+- [ ] Test: rename file across directories
+- [ ] Test: symlink creation and readlink
+- [ ] Test: whiteout add → is_whiteout returns version
+- [ ] Test: whiteout remove → is_whiteout returns None
+- [ ] Test: list_whiteouts returns all whiteouts under directory
+- [ ] Test: reset clears all data, only root remains
+- [ ] Test: flush triggers WAL checkpoint (verify via PRAGMA wal_checkpoint return)
+- [ ] Test: end-to-end with `OverlayFileSystem<MemoryFs, SqliteDelta>`
+- [ ] Test: database file is readable by `sqlite3` CLI (schema introspection)
+
+## Feature Flags
+
+```toml
+[features]
+vfs-sqlite = ["vfs", "dep:libsql"]
+```
 
 ## Verification
 
-- Tests pass
-- `cargo check -p foundation_nativeapis --features vfs-sqlite` passes
-- Database file is inspectable with `sqlite3` CLI
+- All tests pass
+- `cargo check -p foundation_nativeapis --features vfs-sqlite` compiles cleanly
+- Database file created by `SqliteDelta::new()` is inspectable with `sqlite3` CLI
+- Schema matches the specification (dentry, chunks, whiteouts tables exist with correct columns)
+- WAL mode is active (verified via `PRAGMA journal_mode`)
+- File written via VfsFileSystem is readable with identical content
+- Multi-chunk file reassembled correctly
+- Whiteout hides file from overlay, reset restores visibility
+- `OverlayFileSystem<MemoryFs, SqliteDelta>` integration test passes
+
+## References
+
+- Feature 01 (core-traits) — VfsFileSystem and DeltaStore trait definitions
+- Feature 13 (cloudflare-d1-delta) — sister feature with analogous schema for edge SQLite
+- [libsql crate](https://crates.io/crates/libsql) — Turso's SQLite fork
+- [SQLite WAL mode](https://www.sqlite.org/wal.html) — write-ahead logging documentation
+
+---
+
+_Created: 2026-06-04 | Updated: 2026-06-05_
