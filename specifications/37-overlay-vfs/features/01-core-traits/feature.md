@@ -1,17 +1,17 @@
 ---
 feature_name: "Core VFS Traits + Types"
 description: "Define VfsFile, SeekableVfsFile, VfsDirectory, VfsFileSystem, DeltaStore traits plus supporting types (VfsMetadata, VfsDirEntry, OpenMode, VfsCapabilities, Checksum) and error types via foundation_errstacks."
-status: "pending"
+status: "done"
 priority: "critical"
 phase: 1
 created: 2026-06-04
 updated: 2026-06-05
 dependencies: []
 tasks:
-  completed: 0
-  uncompleted: 22
+  completed: 22
+  uncompleted: 0
   total: 22
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 01: Core VFS Traits + Types
@@ -258,37 +258,37 @@ Key decisions:
 
 ### Types (`src/shared/vfs/types.rs`)
 
-- [ ] Define `OpenMode` enum: `Read`, `Write`, `ReadWrite` — derive Debug, Clone, Copy, PartialEq, Eq
-- [ ] Define `VfsFileType` enum: `Regular`, `Directory`, `Symlink` — derive Debug, Clone, Copy, PartialEq, Eq
-- [ ] Define `Checksum` enum: `Blake3([u8; 32])`, `None` — derive Debug, Clone, PartialEq, Eq
-- [ ] Define `VfsEntryState` enum: `Ready`, `Pending` — derive Debug, Clone, Copy, PartialEq, Eq
-- [ ] Define `VfsMetadata` struct with all fields — derive Debug, Clone
-- [ ] Implement `VfsMetadata::new_file(size, permissions)` and `VfsMetadata::new_directory(permissions)` constructors
-- [ ] Define `VfsDirEntry` struct: name (String), file_type — derive Debug, Clone
-- [ ] Define `VfsCapabilities` struct with bool fields — derive Debug, Clone, Copy, Default
-- [ ] Re-export `std::io::SeekFrom` in the module
+- [x] Define `OpenMode` enum: `Read`, `Write`, `ReadWrite` — derive Debug, Clone, Copy, PartialEq, Eq
+- [x] Define `VfsFileType` enum: `Regular`, `Directory`, `Symlink` — derive Debug, Clone, Copy, PartialEq, Eq
+- [x] Define `Checksum` enum: `Blake3([u8; 32])`, `None` — derive Debug, Clone, PartialEq, Eq
+- [x] Define `VfsEntryState` enum: `Ready`, `Pending` — derive Debug, Clone, Copy, PartialEq, Eq
+- [x] Define `VfsMetadata` struct with all fields — derive Debug, Clone
+- [x] Implement `VfsMetadata::new_file(size, permissions)` and `VfsMetadata::new_directory(permissions)` constructors
+- [x] Define `VfsDirEntry` struct: name (String), file_type — derive Debug, Clone
+- [x] Define `VfsCapabilities` struct with bool fields — derive Debug, Clone, Copy, Default
+- [x] Re-export `std::io::SeekFrom` in the module
 
 ### Error Types (`src/shared/vfs/error.rs`)
 
-- [ ] Define `VfsError` enum with all variants using `derive_more::{Display, Error}`
-- [ ] Define `VfsResult<T>` as `Result<T, ErrorTrace<VfsError>>`
-- [ ] Implement `From<std::io::Error>` for convenience conversions
+- [x] Define `VfsError` enum with all variants using `derive_more::{Display, Error}`
+- [x] Define `VfsResult<T>` as `Result<T, ErrorTrace<VfsError>>`
+- [x] Implement `From<std::io::Error>` for convenience conversions
 
 ### Sync Traits (`src/shared/vfs/traits.rs`)
 
-- [ ] Define `VfsFile: Send + Sync` trait with methods: `read_at`, `write_at`, `sync_data`, `size`, `truncate`, `metadata`
-- [ ] Define `SeekableVfsFile: VfsFile` trait with methods: `read`, `write`, `seek`, `position`
-- [ ] Define `VfsDirectory: Send + Sync` trait with associated types `type File: VfsFile` and path-resolution methods
-- [ ] Define `VfsFileSystem: Send + Sync` trait with associated types, all path operations, and default impls for convenience methods
-- [ ] Define `DeltaStore: VfsFileSystem` trait with whiteout methods and lifecycle
-- [ ] Provide default implementations for `read_file`, `write_file`, `copy`, `remove_all`, `mkdir_all` on VfsFileSystem
+- [x] Define `VfsFile: Send + Sync` trait with methods: `read_at`, `write_at`, `sync_data`, `size`, `truncate`, `metadata`
+- [x] Define `SeekableVfsFile: VfsFile` trait with methods: `read`, `write`, `seek`, `position`
+- [x] Define `VfsDirectory: Send + Sync` trait with associated types `type File: VfsFile` and path-resolution methods
+- [x] Define `VfsFileSystem: Send + Sync` trait with associated types, all path operations, and default impls for convenience methods
+- [x] Define `DeltaStore: VfsFileSystem` trait with whiteout methods and lifecycle
+- [x] Provide default implementations for `read_file`, `write_file`, `copy`, `remove_all`, `mkdir_all` on VfsFileSystem
 
 ### Module Setup (`src/shared/vfs/mod.rs`)
 
-- [ ] Create `src/shared/vfs/mod.rs` with re-exports of all public types and traits
-- [ ] Wire into `src/shared/mod.rs` under `#[cfg(feature = "vfs")]`
-- [ ] Add `vfs` feature flag to `Cargo.toml` with dependencies: `foundation_errstacks`, `derive_more`
-- [ ] Ensure `vfs` feature is NOT in `default` — opt-in only
+- [x] Create `src/shared/vfs/mod.rs` with re-exports of all public types and traits
+- [x] Wire into `src/shared/mod.rs` under `#[cfg(feature = "vfs")]`
+- [x] Add `vfs` feature flag to `Cargo.toml` with dependencies: `foundation_errstacks`, `derive_more`
+- [x] Ensure `vfs` feature is NOT in `default` — opt-in only
 
 ## File Layout
 

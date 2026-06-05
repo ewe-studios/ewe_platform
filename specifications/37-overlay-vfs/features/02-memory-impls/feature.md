@@ -1,7 +1,7 @@
 ---
 feature_name: "Memory Implementations"
 description: "MemoryFs (VfsFileSystem) and MemoryDelta (DeltaStore) — in-memory implementations for WASM, testing, and ephemeral sessions. Zero external dependencies beyond core traits."
-status: "pending"
+status: "done"
 priority: "critical"
 phase: 1
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-05
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 16
+  completed: 16
+  uncompleted: 0
   total: 16
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 02: Memory Implementations
@@ -207,87 +207,87 @@ MemoryDelta delegates all VfsFileSystem methods to its inner MemoryFs. It does N
 
 ### MemoryFs (`src/shared/vfs/memory_fs.rs`)
 
-- [ ] Define `MemoryNode` enum: `File`, `Directory`, `Symlink` variants with content/metadata
-- [ ] Define `MemoryFsInner` struct: `HashMap<String, MemoryNode>` + version counter
-- [ ] Define `MemoryFs` struct: `Arc<RwLock<MemoryFsInner>>`
-- [ ] Implement `MemoryFs::new()` constructor (creates root `/` directory)
-- [ ] Implement `fn normalize_path(path: &str) -> String`
-- [ ] Implement `MemoryFile` struct + VfsFile trait
-- [ ] Implement `SeekableMemoryFile` struct + SeekableVfsFile trait
-- [ ] Implement `MemoryDirectory` struct + VfsDirectory trait
-- [ ] Implement `VfsFileSystem` for `MemoryFs`
-- [ ] Implement symlink resolution with cycle detection (max 40 hops)
+- [x] Define `MemoryNode` enum: `File`, `Directory`, `Symlink` variants with content/metadata
+- [x] Define `MemoryFsInner` struct: `HashMap<String, MemoryNode>` + version counter
+- [x] Define `MemoryFs` struct: `Arc<RwLock<MemoryFsInner>>`
+- [x] Implement `MemoryFs::new()` constructor (creates root `/` directory)
+- [x] Implement `fn normalize_path(path: &str) -> String`
+- [x] Implement `MemoryFile` struct + VfsFile trait
+- [x] Implement `SeekableMemoryFile` struct + SeekableVfsFile trait
+- [x] Implement `MemoryDirectory` struct + VfsDirectory trait
+- [x] Implement `VfsFileSystem` for `MemoryFs`
+- [x] Implement symlink resolution with cycle detection (max 40 hops)
 
 ### MemoryDelta (`src/shared/vfs/memory_delta.rs`)
 
-- [ ] Define `MemoryDelta` struct: inner MemoryFs + whiteouts HashMap
-- [ ] Implement `DeltaStore` for `MemoryDelta`
-- [ ] Implement whiteout inheritance (ancestor path checking)
-- [ ] Delegate VfsFileSystem methods to inner MemoryFs
+- [x] Define `MemoryDelta` struct: inner MemoryFs + whiteouts HashMap
+- [x] Implement `DeltaStore` for `MemoryDelta`
+- [x] Implement whiteout inheritance (ancestor path checking)
+- [x] Delegate VfsFileSystem methods to inner MemoryFs
 
 ### Tests (`tests/vfs_memory_tests.rs`)
 
 All tests use `#[traced_test]` and follow the three-validation pattern (valid, invalid, edge case).
 
 **MemoryFs — File Operations:**
-- [ ] `test_create_and_read_file` — create file, write data, read back, verify contents match
-- [ ] `test_create_file_in_nonexistent_dir` — create file when parent dir doesn't exist → NotFound
-- [ ] `test_create_file_already_exists` — create file at existing path → AlreadyExists
-- [ ] `test_open_nonexistent_file` — open path that doesn't exist → NotFound
-- [ ] `test_open_directory_as_file` — open a directory path with open() → NotAFile
-- [ ] `test_write_to_read_only_file` — open with Read mode, attempt write → ReadOnly
-- [ ] `test_file_read_at_offset` — write known data, read_at various offsets, verify
-- [ ] `test_file_write_at_offset` — write at offset beyond current size, verify gap is zero-filled
-- [ ] `test_file_truncate` — truncate to smaller size, verify size, read past old end fails
-- [ ] `test_file_size` — create file, write data, verify size matches written bytes
+- [x] `test_create_and_read_file` — create file, write data, read back, verify contents match
+- [x] `test_create_file_in_nonexistent_dir` — create file when parent dir doesn't exist → NotFound
+- [x] `test_create_file_already_exists` — create file at existing path → AlreadyExists
+- [x] `test_open_nonexistent_file` — open path that doesn't exist → NotFound
+- [x] `test_open_directory_as_file` — open a directory path with open() → NotAFile
+- [x] `test_write_to_read_only_file` — open with Read mode, attempt write → ReadOnly
+- [x] `test_file_read_at_offset` — write known data, read_at various offsets, verify
+- [x] `test_file_write_at_offset` — write at offset beyond current size, verify gap is zero-filled
+- [x] `test_file_truncate` — truncate to smaller size, verify size, read past old end fails
+- [x] `test_file_size` — create file, write data, verify size matches written bytes
 
 **MemoryFs — Seekable File Operations:**
-- [ ] `test_seekable_sequential_read` — write data, read sequentially, position advances
-- [ ] `test_seekable_seek_and_read` — seek to middle, read, verify correct bytes
-- [ ] `test_seekable_seek_from_end` — SeekFrom::End, verify position
-- [ ] `test_seekable_seek_from_current` — SeekFrom::Current positive and negative offsets
+- [x] `test_seekable_sequential_read` — write data, read sequentially, position advances
+- [x] `test_seekable_seek_and_read` — seek to middle, read, verify correct bytes
+- [x] `test_seekable_seek_from_end` — SeekFrom::End, verify position
+- [x] `test_seekable_seek_from_current` — SeekFrom::Current positive and negative offsets
 
 **MemoryFs — Directory Operations:**
-- [ ] `test_mkdir_and_list` — create dirs, list root, verify entries
-- [ ] `test_mkdir_nested` — mkdir requires parent to exist
-- [ ] `test_remove_empty_dir` — remove empty directory succeeds
-- [ ] `test_remove_nonempty_dir` — remove non-empty directory fails
-- [ ] `test_readdir_mixed` — directory with files, subdirs, symlinks — list returns all with correct types
+- [x] `test_mkdir_and_list` — create dirs, list root, verify entries
+- [x] `test_mkdir_nested` — mkdir requires parent to exist
+- [x] `test_remove_empty_dir` — remove empty directory succeeds
+- [x] `test_remove_nonempty_dir` — remove non-empty directory fails
+- [x] `test_readdir_mixed` — directory with files, subdirs, symlinks — list returns all with correct types
 
 **MemoryFs — Metadata:**
-- [ ] `test_stat_returns_correct_metadata` — create file with permissions, stat, verify all fields
-- [ ] `test_metadata_version_increments` — mutations increment version monotonically
-- [ ] `test_chmod_updates_permissions` — chmod, verify stat reflects new mode
+- [x] `test_stat_returns_correct_metadata` — create file with permissions, stat, verify all fields
+- [x] `test_metadata_version_increments` — mutations increment version monotonically
+- [x] `test_chmod_updates_permissions` — chmod, verify stat reflects new mode
 
 **MemoryFs — Symlinks:**
-- [ ] `test_symlink_create_and_readlink` — create symlink, readlink returns target
-- [ ] `test_symlink_transparent_open` — open symlink opens target file
-- [ ] `test_symlink_chain` — symlink → symlink → file, transparent resolution
-- [ ] `test_symlink_cycle_detection` — A → B → A, error after max hops
+- [x] `test_symlink_create_and_readlink` — create symlink, readlink returns target
+- [x] `test_symlink_transparent_open` — open symlink opens target file
+- [x] `test_symlink_chain` — symlink → symlink → file, transparent resolution
+- [x] `test_symlink_cycle_detection` — A → B → A, error after max hops
 
 **MemoryFs — Convenience Methods:**
-- [ ] `test_read_file_convenience` — read_file returns full contents
-- [ ] `test_write_file_convenience` — write_file creates or updates file
-- [ ] `test_mkdir_all` — mkdir_all creates intermediate directories
-- [ ] `test_remove_all` — remove_all recursively deletes directory tree
-- [ ] `test_copy` — copy duplicates file content at new path
+- [x] `test_read_file_convenience` — read_file returns full contents
+- [x] `test_write_file_convenience` — write_file creates or updates file
+- [x] `test_mkdir_all` — mkdir_all creates intermediate directories
+- [x] `test_remove_all` — remove_all recursively deletes directory tree
+- [x] `test_copy` — copy duplicates file content at new path
 
 **MemoryFs — Rename:**
-- [ ] `test_rename_file` — rename file, old path gone, new path has same content
-- [ ] `test_rename_directory` — rename dir, all children accessible under new prefix
-- [ ] `test_rename_to_existing` — rename to path that exists → AlreadyExists
+- [x] `test_rename_file` — rename file, old path gone, new path has same content
+- [x] `test_rename_directory` — rename dir, all children accessible under new prefix
+- [x] `test_rename_to_existing` — rename to path that exists → AlreadyExists
 
 **MemoryDelta — Whiteout Operations:**
-- [ ] `test_whiteout_add_and_check` — add whiteout, is_whiteout returns Some(version)
-- [ ] `test_whiteout_remove` — add then remove whiteout, is_whiteout returns None
-- [ ] `test_whiteout_inheritance` — whiteout on `/a/b`, is_whiteout on `/a/b/c.txt` returns Some
-- [ ] `test_whiteout_no_false_inheritance` — whiteout on `/a/bc`, is_whiteout on `/a/b` returns None (prefix matching must be path-aware)
-- [ ] `test_whiteout_list` — list_whiteouts returns all whiteouts under a directory
-- [ ] `test_whiteout_reset_clears_all` — reset clears files AND whiteouts
+- [x] `test_whiteout_add_and_check` — add whiteout, is_whiteout returns Some(version)
+- [x] `test_whiteout_remove` — add then remove whiteout, is_whiteout returns None
+- [x] `test_whiteout_inheritance` — whiteout on `/a/b`, is_whiteout on `/a/b/c.txt` returns Some
+- [x] `test_whiteout_no_false_inheritance` — whiteout on `/a/bc`, is_whiteout on `/a/b` returns None (prefix matching must be path-aware)
+- [x] `test_whiteout_list` — list_whiteouts returns all whiteouts under a directory
+- [x] `test_whiteout_reset_clears_all` — reset clears files AND whiteouts
 
 **MemoryDelta — VfsFileSystem Delegation:**
-- [ ] `test_delta_create_and_read` — create file in delta, read back
-- [ ] `test_delta_does_not_check_whiteouts` — delta VfsFileSystem methods ignore whiteouts (overlay's job)
+- [x] `test_delta_create_and_read` — create file in delta, read back
+- [x] `test_delta_does_not_check_whiteouts` — delta VfsFileSystem methods ignore whiteouts (overlay's job)
 
 ## Verification
 

@@ -1,7 +1,7 @@
 ---
 feature_name: "DirectoryDelta"
 description: "DirectoryDelta — shadow directory-based DeltaStore. Writes go to a shadow directory as real files. Whiteouts stored as sentinel files (.wh.<name>). Simple, inspectable, no extra dependencies."
-status: "pending"
+status: "done"
 priority: "high"
 phase: 2
 created: 2026-06-04
@@ -10,10 +10,10 @@ dependencies:
   - "01-core-traits"
   - "04-native-fs"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 05: DirectoryDelta
@@ -80,31 +80,31 @@ DirectoryDelta delegates all VfsFileSystem methods to its inner NativeFs. The `.
 
 ### Core (`src/native/vfs/dir_delta.rs`)
 
-- [ ] Define `DirectoryDelta` struct with inner NativeFs + whiteout cache
-- [ ] Implement `DirectoryDelta::new(shadow_path: impl Into<PathBuf>)` — create shadow dir, scan for existing whiteouts
-- [ ] Implement `fn scan_whiteouts(root: &Path) -> HashMap<String, u64>` — recursive scan for `.wh.*` files
-- [ ] Implement `DeltaStore` for `DirectoryDelta`:
+- [x] Define `DirectoryDelta` struct with inner NativeFs + whiteout cache
+- [x] Implement `DirectoryDelta::new(shadow_path: impl Into<PathBuf>)` — create shadow dir, scan for existing whiteouts
+- [x] Implement `fn scan_whiteouts(root: &Path) -> HashMap<String, u64>` — recursive scan for `.wh.*` files
+- [x] Implement `DeltaStore` for `DirectoryDelta`:
   - `add_whiteout(path, version)` → create `.wh.<basename>` sentinel with version content + update cache
   - `is_whiteout(path)` → check cache (exact + ancestors)
   - `remove_whiteout(path)` → delete sentinel file + remove from cache
   - `list_whiteouts(dir)` → filter cache by directory prefix
   - `flush()` → fsync shadow directory
   - `reset()` → rm all contents of shadow dir + clear cache
-- [ ] Implement `VfsFileSystem` delegation to inner NativeFs with `.wh.*` filtering on `list()`
-- [ ] Implement directory listing that filters out `.wh.*` sentinel files
+- [x] Implement `VfsFileSystem` delegation to inner NativeFs with `.wh.*` filtering on `list()`
+- [x] Implement directory listing that filters out `.wh.*` sentinel files
 
 ### Tests (`tests/vfs_dir_delta_tests.rs`)
 
 Uses `tempfile::TempDir` for isolation.
 
-- [ ] `test_write_creates_file_in_shadow` — write through delta, verify file exists on disk
-- [ ] `test_whiteout_creates_sentinel` — add_whiteout, verify `.wh.` file exists on disk
-- [ ] `test_whiteout_check_from_cache` — is_whiteout returns Some after add_whiteout
-- [ ] `test_whiteout_inheritance` — parent whiteout hides children
-- [ ] `test_whiteout_scan_on_construction` — create sentinel files manually, new DirectoryDelta finds them
-- [ ] `test_reset_clears_shadow` — reset removes all files and whiteouts
-- [ ] `test_listing_excludes_sentinels` — directory listing doesn't show `.wh.*` files
-- [ ] `test_end_to_end_overlay` — OverlayFileSystem<NativeFs, DirectoryDelta> full workflow
+- [x] `test_write_creates_file_in_shadow` — write through delta, verify file exists on disk
+- [x] `test_whiteout_creates_sentinel` — add_whiteout, verify `.wh.` file exists on disk
+- [x] `test_whiteout_check_from_cache` — is_whiteout returns Some after add_whiteout
+- [x] `test_whiteout_inheritance` — parent whiteout hides children
+- [x] `test_whiteout_scan_on_construction` — create sentinel files manually, new DirectoryDelta finds them
+- [x] `test_reset_clears_shadow` — reset removes all files and whiteouts
+- [x] `test_listing_excludes_sentinels` — directory listing doesn't show `.wh.*` files
+- [x] `test_end_to_end_overlay` — OverlayFileSystem<NativeFs, DirectoryDelta> full workflow
 
 ## Verification
 

@@ -1,7 +1,7 @@
 ---
 feature_name: "NativeFs Passthrough"
 description: "NativeFs — host filesystem passthrough via std::fs with path containment (prevent directory escape), platform-specific optimizations."
-status: "pending"
+status: "done"
 priority: "high"
 phase: 2
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-05
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 04: NativeFs Passthrough
@@ -111,33 +111,33 @@ Path containment applies AFTER symlink resolution — a symlink pointing outside
 
 ### Core (`src/native/vfs/native_fs.rs`)
 
-- [ ] Define `NativeFs` struct with root PathBuf
-- [ ] Implement `NativeFs::new(root: impl Into<PathBuf>)` — canonicalize root, verify exists
-- [ ] Implement `fn resolve_path(&self, vfs_path: &str) -> VfsResult<PathBuf>` — path containment
-- [ ] Implement `fn to_vfs_path(&self, fs_path: &Path) -> String` — convert OS path back to VFS path
-- [ ] Implement `NativeFile` struct + VfsFile trait (using pread/pwrite on Unix)
-- [ ] Implement `SeekableNativeFile` struct + SeekableVfsFile trait
-- [ ] Implement `NativeDirectory` struct + VfsDirectory trait
-- [ ] Implement `VfsFileSystem` for `NativeFs`
-- [ ] Implement metadata mapping (`std::fs::Metadata` → `VfsMetadata`)
-- [ ] Implement `capabilities()`: seekable=true, symlinks=true, permissions_enforced=cfg(unix), persistent=true
+- [x] Define `NativeFs` struct with root PathBuf
+- [x] Implement `NativeFs::new(root: impl Into<PathBuf>)` — canonicalize root, verify exists
+- [x] Implement `fn resolve_path(&self, vfs_path: &str) -> VfsResult<PathBuf>` — path containment
+- [x] Implement `fn to_vfs_path(&self, fs_path: &Path) -> String` — convert OS path back to VFS path
+- [x] Implement `NativeFile` struct + VfsFile trait (using pread/pwrite on Unix)
+- [x] Implement `SeekableNativeFile` struct + SeekableVfsFile trait
+- [x] Implement `NativeDirectory` struct + VfsDirectory trait
+- [x] Implement `VfsFileSystem` for `NativeFs`
+- [x] Implement metadata mapping (`std::fs::Metadata` → `VfsMetadata`)
+- [x] Implement `capabilities()`: seekable=true, symlinks=true, permissions_enforced=cfg(unix), persistent=true
 
 ### Tests (`tests/vfs_native_tests.rs`)
 
 Uses `tempfile::TempDir` for isolation.
 
-- [ ] `test_read_existing_file` — write file with std::fs, read through NativeFs
-- [ ] `test_write_and_read_back` — create+write through NativeFs, verify with std::fs
-- [ ] `test_path_containment_rejects_traversal` — `../../etc/passwd` → PermissionDenied
-- [ ] `test_path_containment_rejects_symlink_escape` — symlink pointing outside root → rejected
-- [ ] `test_stat_returns_correct_metadata` — size, type, permissions
-- [ ] `test_mkdir_and_list` — create directory, list contents
-- [ ] `test_rename_file` — rename, verify old gone, new exists
-- [ ] `test_remove_file` — remove, verify gone
-- [ ] `test_seekable_read_write` — seek, read, write with position tracking
-- [ ] `test_symlink_within_root` — symlink inside root works normally
-- [ ] `test_capabilities` — persistent=true, seekable=true
-- [ ] `test_root_directory_exists` — `/` resolves to the root dir, always exists
+- [x] `test_read_existing_file` — write file with std::fs, read through NativeFs
+- [x] `test_write_and_read_back` — create+write through NativeFs, verify with std::fs
+- [x] `test_path_containment_rejects_traversal` — `../../etc/passwd` → PermissionDenied
+- [x] `test_path_containment_rejects_symlink_escape` — symlink pointing outside root → rejected
+- [x] `test_stat_returns_correct_metadata` — size, type, permissions
+- [x] `test_mkdir_and_list` — create directory, list contents
+- [x] `test_rename_file` — rename, verify old gone, new exists
+- [x] `test_remove_file` — remove, verify gone
+- [x] `test_seekable_read_write` — seek, read, write with position tracking
+- [x] `test_symlink_within_root` — symlink inside root works normally
+- [x] `test_capabilities` — persistent=true, seekable=true
+- [x] `test_root_directory_exists` — `/` resolves to the root dir, always exists
 
 ## Verification
 

@@ -1,7 +1,7 @@
 ---
 feature_name: "OverlayFileSystem Overlay"
 description: "OverlayFileSystem<B, D> — the overlay composition primitive. Combines read-only base (VfsFileSystem) with writable delta (DeltaStore). Implements copy-on-write, whiteout semantics, and directory entry merging."
-status: "pending"
+status: "done"
 priority: "critical"
 phase: 1
 created: 2026-06-04
@@ -10,10 +10,10 @@ dependencies:
   - "01-core-traits"
   - "02-memory-impls"
 tasks:
-  completed: 0
-  uncompleted: 18
+  completed: 18
+  uncompleted: 0
   total: 18
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 03: OverlayFileSystem Overlay
@@ -257,100 +257,100 @@ This means OverlayFileSystem needs interior mutability for the version counter (
 
 ### Core Implementation (`src/shared/vfs/overlay_fs.rs`)
 
-- [ ] Define `OverlayFileSystem<B, D>` struct with base, delta, version counter
-- [ ] Implement `OverlayFileSystem::new(base, delta)` constructor
-- [ ] Implement `next_version(&self) -> u64` — atomic increment
-- [ ] Implement `fn resolve_path(&self, path: &str) -> PathResolution` — the lookup state machine
-- [ ] Implement `VfsFileSystem` for `OverlayFileSystem<B, D>`
-- [ ] Implement `stat()`: whiteout → delta → base
-- [ ] Implement `exists()`: whiteout → delta → base
-- [ ] Implement `open(path, Read)`: delta file if in delta, else base file (wrapped as read-only)
-- [ ] Implement `open(path, Write|ReadWrite)`: CoW if needed, return delta file
-- [ ] Implement `open_seekable()`: same logic with seekable handles
-- [ ] Implement `create()`: create in delta with next version
-- [ ] Implement `mkdir()`: create directory in delta
-- [ ] Implement `remove()`: handle delta-only, base-only, and both-exist cases
-- [ ] Implement `rename()`: atomic rename across layers
-- [ ] Implement `chmod()`, `symlink()`, `readlink()` with overlay semantics
-- [ ] Implement `open_directory()`: return OverlayDirectory
+- [x] Define `OverlayFileSystem<B, D>` struct with base, delta, version counter
+- [x] Implement `OverlayFileSystem::new(base, delta)` constructor
+- [x] Implement `next_version(&self) -> u64` — atomic increment
+- [x] Implement `fn resolve_path(&self, path: &str) -> PathResolution` — the lookup state machine
+- [x] Implement `VfsFileSystem` for `OverlayFileSystem<B, D>`
+- [x] Implement `stat()`: whiteout → delta → base
+- [x] Implement `exists()`: whiteout → delta → base
+- [x] Implement `open(path, Read)`: delta file if in delta, else base file (wrapped as read-only)
+- [x] Implement `open(path, Write|ReadWrite)`: CoW if needed, return delta file
+- [x] Implement `open_seekable()`: same logic with seekable handles
+- [x] Implement `create()`: create in delta with next version
+- [x] Implement `mkdir()`: create directory in delta
+- [x] Implement `remove()`: handle delta-only, base-only, and both-exist cases
+- [x] Implement `rename()`: atomic rename across layers
+- [x] Implement `chmod()`, `symlink()`, `readlink()` with overlay semantics
+- [x] Implement `open_directory()`: return OverlayDirectory
 
 ### Directory Entry Merging
 
-- [ ] Implement `OverlayDirectory` struct
-- [ ] Implement `list()` with the merge algorithm (delta ∪ base − whiteouts)
-- [ ] Implement path resolution methods delegating to overlay
+- [x] Implement `OverlayDirectory` struct
+- [x] Implement `list()` with the merge algorithm (delta ∪ base − whiteouts)
+- [x] Implement path resolution methods delegating to overlay
 
 ### File Handle Types
 
-- [ ] Define `OverlayFile<BF, DF>` enum + implement VfsFile
-- [ ] Define `OverlaySeekableFile<BF, DF>` enum + implement SeekableVfsFile
-- [ ] Base variant write methods return ReadOnly error
+- [x] Define `OverlayFile<BF, DF>` enum + implement VfsFile
+- [x] Define `OverlaySeekableFile<BF, DF>` enum + implement SeekableVfsFile
+- [x] Base variant write methods return ReadOnly error
 
 ### Public API
 
-- [ ] `OverlayFileSystem::base(&self) -> &B` — access base (read-only inspection)
-- [ ] `OverlayFileSystem::delta(&self) -> &D` — access delta (inspection, flush, reset)
-- [ ] `OverlayFileSystem::version(&self) -> u64` — current version counter
+- [x] `OverlayFileSystem::base(&self) -> &B` — access base (read-only inspection)
+- [x] `OverlayFileSystem::delta(&self) -> &D` — access delta (inspection, flush, reset)
+- [x] `OverlayFileSystem::version(&self) -> u64` — current version counter
 
 ## Tests (`tests/vfs_overlay_tests.rs`)
 
 All tests use `MemoryFs` as base + `MemoryDelta` as delta. `#[traced_test]` on all.
 
 ### Read passthrough
-- [ ] `test_read_base_file` — file in base, read through overlay, contents match
-- [ ] `test_read_base_directory` — list directory from base through overlay
-- [ ] `test_stat_base_file` — stat base file through overlay, metadata correct
-- [ ] `test_exists_base_file` — exists returns true for base file
+- [x] `test_read_base_file` — file in base, read through overlay, contents match
+- [x] `test_read_base_directory` — list directory from base through overlay
+- [x] `test_stat_base_file` — stat base file through overlay, metadata correct
+- [x] `test_exists_base_file` — exists returns true for base file
 
 ### Write to delta
-- [ ] `test_create_new_file` — create file through overlay, exists in delta, not in base
-- [ ] `test_mkdir_through_overlay` — mkdir through overlay, visible in overlay listing
-- [ ] `test_write_file_convenience` — write_file through overlay, read_file returns same data
+- [x] `test_create_new_file` — create file through overlay, exists in delta, not in base
+- [x] `test_mkdir_through_overlay` — mkdir through overlay, visible in overlay listing
+- [x] `test_write_file_convenience` — write_file through overlay, read_file returns same data
 
 ### Copy-on-Write
-- [ ] `test_cow_on_write` — open base file for write, triggers CoW, base unchanged, delta has modified copy
-- [ ] `test_cow_preserves_content` — after CoW, delta file starts with base file's original content
-- [ ] `test_cow_preserves_metadata` — after CoW, delta file metadata matches base (except version)
-- [ ] `test_cow_creates_parent_dirs` — CoW on /a/b/c.txt creates /a/ and /a/b/ in delta if needed
+- [x] `test_cow_on_write` — open base file for write, triggers CoW, base unchanged, delta has modified copy
+- [x] `test_cow_preserves_content` — after CoW, delta file starts with base file's original content
+- [x] `test_cow_preserves_metadata` — after CoW, delta file metadata matches base (except version)
+- [x] `test_cow_creates_parent_dirs` — CoW on /a/b/c.txt creates /a/ and /a/b/ in delta if needed
 
 ### Delete (whiteout)
-- [ ] `test_delete_base_file` — remove base file, whiteout created, exists returns false
-- [ ] `test_delete_delta_file` — remove delta-only file, no whiteout needed
-- [ ] `test_delete_cow_file` — remove file that was CoW'd: delta file removed + whiteout
-- [ ] `test_delete_returns_not_found` — remove non-existent path → NotFound
+- [x] `test_delete_base_file` — remove base file, whiteout created, exists returns false
+- [x] `test_delete_delta_file` — remove delta-only file, no whiteout needed
+- [x] `test_delete_cow_file` — remove file that was CoW'd: delta file removed + whiteout
+- [x] `test_delete_returns_not_found` — remove non-existent path → NotFound
 
 ### Whiteout + recreation
-- [ ] `test_create_at_whiteout_path` — whiteout /foo.txt, create /foo.txt, new version supersedes whiteout
-- [ ] `test_directory_whiteout_hides_children` — whiteout /src, all /src/** from base hidden
-- [ ] `test_recreate_in_whiteout_directory` — whiteout /src, create /src/new.rs, new file visible, old base files still hidden
-- [ ] `test_version_ordering` — verify version comparisons resolve correctly
+- [x] `test_create_at_whiteout_path` — whiteout /foo.txt, create /foo.txt, new version supersedes whiteout
+- [x] `test_directory_whiteout_hides_children` — whiteout /src, all /src/** from base hidden
+- [x] `test_recreate_in_whiteout_directory` — whiteout /src, create /src/new.rs, new file visible, old base files still hidden
+- [x] `test_version_ordering` — verify version comparisons resolve correctly
 
 ### Directory merging
-- [ ] `test_merge_base_and_delta_entries` — files in both base and delta, list returns union minus duplicates
-- [ ] `test_merge_excludes_whiteouts` — whiteout'd base entries excluded from merged listing
-- [ ] `test_merge_delta_shadows_base` — same filename in base and delta, delta version returned
-- [ ] `test_list_empty_overlay_dir` — empty directory returns empty list
-- [ ] `test_list_nonexistent_dir` — listing non-existent directory → NotFound
+- [x] `test_merge_base_and_delta_entries` — files in both base and delta, list returns union minus duplicates
+- [x] `test_merge_excludes_whiteouts` — whiteout'd base entries excluded from merged listing
+- [x] `test_merge_delta_shadows_base` — same filename in base and delta, delta version returned
+- [x] `test_list_empty_overlay_dir` — empty directory returns empty list
+- [x] `test_list_nonexistent_dir` — listing non-existent directory → NotFound
 
 ### Rename
-- [ ] `test_rename_delta_file` — rename delta-only file, old path gone, new path has content
-- [ ] `test_rename_base_file` — rename base file: CoW to new path + whiteout old
-- [ ] `test_rename_to_existing_path` — rename to path that exists → AlreadyExists
-- [ ] `test_rename_nonexistent` — rename non-existent → NotFound
+- [x] `test_rename_delta_file` — rename delta-only file, old path gone, new path has content
+- [x] `test_rename_base_file` — rename base file: CoW to new path + whiteout old
+- [x] `test_rename_to_existing_path` — rename to path that exists → AlreadyExists
+- [x] `test_rename_nonexistent` — rename non-existent → NotFound
 
 ### Reset / lifecycle
-- [ ] `test_reset_restores_base` — after writes+deletes, delta.reset(), all base files visible again
-- [ ] `test_version_after_reset` — version counter not reset (monotonic for the overlay lifetime)
+- [x] `test_reset_restores_base` — after writes+deletes, delta.reset(), all base files visible again
+- [x] `test_version_after_reset` — version counter not reset (monotonic for the overlay lifetime)
 
 ### Stacked overlays
-- [ ] `test_stacked_overlay` — `OverlayFileSystem<OverlayFileSystem<MemoryFs, MemoryDelta>, MemoryDelta>` — write to outer, read falls through to inner base
-- [ ] `test_stacked_whiteouts` — whiteout in inner overlay, outer overlay still sees NotFound
+- [x] `test_stacked_overlay` — `OverlayFileSystem<OverlayFileSystem<MemoryFs, MemoryDelta>, MemoryDelta>` — write to outer, read falls through to inner base
+- [x] `test_stacked_whiteouts` — whiteout in inner overlay, outer overlay still sees NotFound
 
 ### Edge cases
-- [ ] `test_open_read_only_base_file_for_write` — triggers CoW, not ReadOnly error
-- [ ] `test_concurrent_version_increment` — multiple mutations, versions strictly monotonic
-- [ ] `test_root_directory_always_exists` — root `/` exists even in empty overlay
-- [ ] `test_path_normalization` — paths with trailing slashes, double slashes resolved correctly
+- [x] `test_open_read_only_base_file_for_write` — triggers CoW, not ReadOnly error
+- [x] `test_concurrent_version_increment` — multiple mutations, versions strictly monotonic
+- [x] `test_root_directory_always_exists` — root `/` exists even in empty overlay
+- [x] `test_path_normalization` — paths with trailing slashes, double slashes resolved correctly
 
 ## Verification
 
