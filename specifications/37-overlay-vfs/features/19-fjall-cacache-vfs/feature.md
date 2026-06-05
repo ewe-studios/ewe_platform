@@ -10,8 +10,8 @@ dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 52
-  total: 52
+  uncompleted: 57
+  total: 57
   completion_percentage: 0%
 ---
 
@@ -66,6 +66,7 @@ src/shared/vfs/
         gc.rs               # GC worker: orphaned chunk cleanup, cacache blob sweep
         path_index.rs       # Hierarchical prefix entry generation, path resolution
         content.rs          # Inline vs chunked content logic, cacache read/write
+        version.rs          # SCRU128 ↔ u64 bridge (pack_version, unpack_version)
 ```
 
 ## On-Disk Layout
@@ -563,14 +564,14 @@ impl VfsFileSystem for FjallDelta { /* delegate to self.inner */ }
 
 impl DeltaStore for FjallDelta {
     fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
-        // Generate SCRU128 version from u64 (or accept Scru128Id directly)
+        let version_id = pack_version(version); // u64 → Scru128Id
         // Write O(d) hierarchical prefix entries to whiteouts keyspace
         // persist(SyncAll)
     }
 
     fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
         // Prefix scan on exact_path\x00 in whiteouts keyspace
-        // Non-empty → return version from key
+        // Non-empty → extract Scru128Id from key → unpack_version(id) → return u64
     }
 
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
@@ -581,6 +582,7 @@ impl DeltaStore for FjallDelta {
     fn list_whiteouts(&self, dir: &str) -> VfsResult<Vec<(String, u64)>> {
         // Prefix scan on dir_prefix\x00 in whiteouts keyspace
         // Returns all whiteouts under directory (any depth)
+        // Each entry: unpack_version(scru128_id) → u64
     }
 
     fn flush(&self) -> VfsResult<()> {
@@ -622,6 +624,154 @@ impl FjallDelta {
 }
 ```
 
+## SCRU128 ↔ u64 Version Bridge
+
+The `DeltaStore` trait uses `version: u64` for whiteout versions, and `VfsMetadata` exposes `version: u64`. Internally, FjallFs uses `Scru128Id` (16 bytes) for time-ordered IDs. This section defines the bridging strategy.
+
+### Packing: u64 → Scru128Id
+
+When the overlay calls `add_whiteout(path, version: u64)`, FjallDelta packs the u64 into a SCRU128 ID:
+
+```rust
+use scru128::Scru128Id;
+
+/// Pack a u64 version into a Scru128Id.
+/// Uses the current timestamp for the 48-bit time component,
+/// the u64 counter for the 24-bit counter field (lower 24 bits),
+/// and a fixed node ID (0 for single-process).
+/// This guarantees:
+/// - Chronological ordering (timestamp dominates)
+/// - Round-trip compatibility for the counter portion
+pub fn pack_version(overlay_version: u64) -> Scru128Id {
+    let ts = scru128::timestamp(); // current ms since epoch (48-bit)
+    let counter = (overlay_version & 0xFF_FFFF) as u32; // lower 24 bits
+    scru128::new_with_components(ts, counter, 0)
+}
+```
+
+**Why this works:** SCRU128's 48-bit timestamp dominates ordering. Two whiteouts created at different times will always order correctly regardless of the counter. The counter field preserves the overlay's version for round-trip extraction.
+
+### Unpacking: Scru128Id → u64
+
+When returning version information to the overlay (e.g., `is_whiteout`, `list_whiteouts`), extract the counter + timestamp:
+
+```rust
+/// Extract a u64 version from a Scru128Id.
+/// Combines the 48-bit timestamp (ms) with the 24-bit counter
+/// to produce a unique u64 that preserves ordering.
+pub fn unpack_version(id: Scru128Id) -> u64 {
+    let ts = id.timestamp() as u64; // 48-bit ms timestamp
+    let counter = id.counter() as u64; // 24-bit counter
+    // Shift timestamp to upper bits so ordering is preserved in u64:
+    // ts << 24 | counter
+    (ts << 24) | counter
+}
+```
+
+**Ordering guarantee:** If `a < b` as SCRU128 bytes, then `unpack_version(a) < unpack_version(b)` as u64. This is critical — the overlay's version comparison logic must remain correct.
+
+### VfsMetadata.version Mapping
+
+`FjallDentry` stores `version: Scru128Id`. When converting to `VfsMetadata`:
+
+```rust
+impl From<&FjallDentry> for VfsMetadata {
+    fn from(dentry: &FjallDentry) -> Self {
+        VfsMetadata {
+            size: dentry.size,
+            file_type: dentry.file_type,
+            permissions: dentry.permissions,
+            owner: (dentry.owner_uid, dentry.owner_gid),
+            checksum: dentry.checksum.map(Checksum::Blake3).unwrap_or(Checksum::None),
+            version: unpack_version(dentry.version), // SCRU128 → u64
+            state: VfsEntryState::Ready,
+            // timestamps from Scru128Id:
+            created: Some(SystemTime::UNIX_EPOCH + Duration::from_millis(
+                dentry.version.timestamp() as u64
+            )),
+            modified: Some(SystemTime::UNIX_EPOCH + Duration::from_millis(
+                dentry.version.timestamp() as u64
+            )),
+            accessed: None, // not tracked by fjall backend
+        }
+    }
+}
+```
+
+**Important:** The `version` field in `VfsMetadata` uses `unpack_version()`, which embeds both timestamp and counter. This means:
+- Files created at different times have different versions (timestamp dominates)
+- Files created in the same ms have different versions (counter differentiates)
+- Version ordering matches chronological ordering
+
+### Whiteout Round-Trip
+
+```
+Overlay calls: add_whiteout("/src/foo.rs", version: 42)
+  → pack_version(42) → Scru128Id(ts=current_ms, counter=42, node=0)
+  → stored in whiteouts keyspace
+
+Overlay calls: is_whiteout("/src/foo.rs")
+  → prefix scan finds Scru128Id(ts=X, counter=42, node=0)
+  → unpack_version(id) → returns u64 matching version 42's ordering
+```
+
+## Async-First Implementation
+
+Per the spec-37 plan, all VFS implementations are **async-first**. The traits shown in `traits.rs` are sync wrappers. Here's the strategy for FjallFs:
+
+### Async Trait Definition
+
+```rust
+// Internal async trait (not in the public API)
+#[async_trait]
+pub trait AsyncVfsFileSystem: Send + Sync {
+    async fn stat(&self, path: &str) -> VfsResult<VfsMetadata>;
+    async fn exists(&self, path: &str) -> VfsResult<bool>;
+    // ... all other methods as async
+}
+```
+
+### Sync Wrapper via Valtron
+
+```rust
+// The public VfsFileSystem impl wraps async calls through valtron
+impl VfsFileSystem for FjallFs {
+    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
+        // valtron::block(self.async_stat(path))
+        // In practice: the sync trait impl uses a runtime at the edge
+        todo!("valtron-wrapped async_stat")
+    }
+    // ... other sync wrappers
+}
+
+impl AsyncVfsFileSystem for FjallFs {
+    async fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
+        // Actual implementation is async
+        let ino = resolve_path_async(&self.idx_path, path).await?;
+        let dentry = self.inodes.get_async(ino.as_bytes()).await?;
+        // ...
+    }
+}
+```
+
+### Why This Matters for FjallFs
+
+fjall and cacache are **synchronous** crates — they don't provide async APIs. The async wrapper doesn't make I/O async; it makes the VFS interface async-compatible so valtron can schedule it at the edge:
+
+```rust
+async fn async_stat(&self, path: &str) -> VfsResult<VfsMetadata> {
+    // Blocking I/O runs on the valtron-managed thread pool
+    // No tokio::spawn::blocking needed — valtron handles this
+    self.stat(path) // calls synchronous fjall/cacache under the hood
+}
+```
+
+**No `#[async_trait]` macro needed for fjall internals** — the async methods are thin wrappers around synchronous fjall/cacache calls. The async surface exists so valtron can compose VFS operations with other async work (IPC, network, etc).
+
+### Implementation Guidance
+
+Write the core logic synchronously (fjall and cacache are sync). Wrap each `VfsFileSystem` / `DeltaStore` method body in valtron's blocking executor. Do **not** introduce a tokio dependency.
+
 ## Concurrency Model
 
 - **fjall**: Built-in file lock prevents multiple processes from opening the same store. Within a process, fjall handles concurrent reads natively (LSM snapshots). Writes are serialized by fjall's internal write lock.
@@ -631,6 +781,14 @@ impl FjallDelta {
 No `Arc<Mutex<>>` wrapper needed (unlike SqliteDelta) — fjall and cacache handle their own concurrency.
 
 ## Tasks
+
+### Version Bridge (`src/shared/vfs/fjall_fs/version.rs`)
+
+- [ ] Implement `pack_version(u64) -> Scru128Id` — pack overlay version into SCRU128
+- [ ] Implement `unpack_version(Scru128Id) -> u64` — extract u64 preserving ordering
+- [ ] Implement `From<&FjallDentry> for VfsMetadata` with version unpacking
+- [ ] Test: ordering guarantee — `a < b` as bytes → `unpack(a) < unpack(b)` as u64
+- [ ] Test: round-trip — `unpack_version(pack_version(v))` preserves relative ordering with other versions
 
 ### Config (`src/shared/vfs/fjall_fs/config.rs`)
 

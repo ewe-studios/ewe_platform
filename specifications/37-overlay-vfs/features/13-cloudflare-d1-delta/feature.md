@@ -279,21 +279,24 @@ impl<Conn: D1Connection> VfsFileSystem for D1Delta<Conn> {
 // D1Delta extends VfsFileSystem with DeltaStore
 impl<Conn: D1Connection> DeltaStore for D1Delta<Conn> {
     fn add_whiteout(&self, path: &str, version: u64) -> Result<()> {
-        // INSERT INTO d1_whiteouts (ino, path, version) VALUES (?, ?, ?)
+        let version_id = pack_version(version); // u64 → Scru128Id → BLOB(16)
+        // INSERT INTO d1_whiteouts (ino, path, version_id) VALUES (?, ?, ?)
     }
     fn is_whiteout(&self, path: &str) -> Result<Option<u64>> {
-        // SELECT version FROM d1_whiteouts WHERE path = ?
+        // SELECT version_id FROM d1_whiteouts WHERE path = ?
+        // BLOB(16) → Scru128Id::from_bytes() → unpack_version(id) → Some(u64)
     }
     fn remove_whiteout(&self, path: &str) -> Result<()> {
         // DELETE FROM d1_whiteouts WHERE path = ?
     }
     fn list_whiteouts(&self, dir: &str) -> Result<Vec<(String, u64)>> {
-        // SELECT path, version FROM d1_whiteouts WHERE path LIKE ?||'%'
+        // SELECT path, version_id FROM d1_whiteouts WHERE path LIKE ?||'%'
+        // unpack_version(id) → u64 for each result
     }
     fn flush(&self) -> Result<()> { /* no-op for D1 -- writes are immediate */ }
     fn reset(&self) -> Result<()> {
         // DELETE FROM d1_chunks; DELETE FROM d1_dentry WHERE ino != 1;
-        // DELETE FROM d1_whiteouts; -- keep root
+        // DELETE FROM d1_whiteouts; DELETE FROM d1_whiteout_prefixes; -- keep root
     }
 }
 ```
@@ -345,6 +348,28 @@ scru128 = "0.10"  # works in WASM (no std clock dependency — uses js_sys for w
 ```
 
 The `scru128` crate supports WASM targets via `js_sys::Date::now()` for timestamps, making it usable inside Cloudflare Workers.
+
+### SCRU128 ↔ u64 Bridge (DeltaStore Trait Compatibility)
+
+Same bridge as Feature 06 and Feature 19 — the `DeltaStore` trait uses `version: u64`:
+
+```rust
+fn pack_version(overlay_version: u64) -> Scru128Id {
+    let ts = scru128::timestamp(); // js_sys::Date::now() on wasm32
+    let counter = (overlay_version & 0xFF_FFFF) as u32;
+    scru128::new_with_components(ts, counter, 0)
+}
+
+fn unpack_version(id: Scru128Id) -> u64 {
+    let ts = id.timestamp() as u64;
+    let counter = id.counter() as u64;
+    (ts << 24) | counter
+}
+```
+
+**D1-specific note:** In WASM (Cloudflare Workers), `scru128::timestamp()` uses `js_sys::Date::now()`. The bridge functions must be compiled for the `wasm32-unknown-unknown` target — no `std::time::SystemTime` available.
+
+**Whiteout round-trip:** `add_whiteout(path, version: 42)` → `pack_version(42)` → `BLOB(16)`. `is_whiteout(path)` → `BLOB(16)` → `unpack_version(id)` → u64.
 
 ## Hierarchical Whiteout Prefix Index
 

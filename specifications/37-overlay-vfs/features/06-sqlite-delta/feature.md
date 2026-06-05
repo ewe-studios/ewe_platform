@@ -563,12 +563,13 @@ impl DeltaStore for SqliteDelta {
     // --- Inherited from VfsFileSystem (all methods above) ---
 
     fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
-        // INSERT OR REPLACE INTO sqlite_whiteouts (path, version) VALUES (?, ?)
+        let version_id = pack_version(version); // u64 → Scru128Id → BLOB(16)
+        // INSERT OR REPLACE INTO sqlite_whiteouts (path, version_id) VALUES (?, ?)
     }
 
     fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
-        // SELECT version FROM sqlite_whiteouts WHERE path = ?
-        // Returns Some(version) if exists, None otherwise
+        // SELECT version_id FROM sqlite_whiteouts WHERE path = ?
+        // BLOB(16) → Scru128Id::from_bytes() → unpack_version(id) → Some(u64)
     }
 
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
@@ -637,6 +638,32 @@ fn next_version(&self) -> Scru128Id {
 ```
 
 Every file create, write, rename, chmod, or symlink operation generates a new SCRU128 version. The version is stored in the dentry row and can be compared chronologically via byte ordering.
+
+### SCRU128 ↔ u64 Bridge (DeltaStore Trait Compatibility)
+
+The `DeltaStore` trait uses `version: u64` and `VfsMetadata` exposes `version: u64`. Internally we use `Scru128Id`. Bridge functions:
+
+```rust
+/// Pack overlay's u64 version into a Scru128Id for storage.
+fn pack_version(overlay_version: u64) -> Scru128Id {
+    let ts = scru128::timestamp();
+    let counter = (overlay_version & 0xFF_FFFF) as u32;
+    scru128::new_with_components(ts, counter, 0)
+}
+
+/// Extract u64 from Scru128Id, preserving ordering.
+fn unpack_version(id: Scru128Id) -> u64 {
+    let ts = id.timestamp() as u64;
+    let counter = id.counter() as u64;
+    (ts << 24) | counter
+}
+```
+
+**DeltaStore whiteout round-trip:** `add_whiteout(path, version: 42)` → `pack_version(42)` → stored as `BLOB(16)`. `is_whiteout(path)` → read `BLOB(16)` → `unpack_version(id)` → returns u64.
+
+**VfsMetadata mapping:** `SqliteDentry.version_id` (BLOB) → `Scru128Id::from_bytes()` → `unpack_version(id)` → `VfsMetadata.version` (u64).
+
+**Ordering guarantee:** `a < b` as SCRU128 bytes → `unpack(a) < unpack(b)` as u64.
 
 ### Query Patterns
 

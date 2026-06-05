@@ -70,6 +70,7 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [05-directory-delta](features/05-directory-delta/) | DirectoryDelta — shadow directory with sentinel whiteout files | 2 | done |
 | [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | pending |
 | [06-sqlite-delta](features/06-sqlite-delta/) | SqliteDelta — SQLite-backed delta store, feature-gated | 3 | pending |
+| [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS, SCRU128 keys, hierarchical prefix index | 3 | pending |
 | [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | pending |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |
 | [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — Reverie/ptrace syscall interception (Linux) | 4 | pending |

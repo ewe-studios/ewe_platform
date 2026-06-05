@@ -409,6 +409,7 @@ src/valtron/
 vfs = []                     # Core traits + OverlayFileSystem + MemoryFs/MemoryDelta (zero new deps)
 vfs-native = ["vfs"]         # NativeFs + DirectoryDelta
 vfs-sqlite = ["vfs"]         # SqliteDelta (adds sqlite dep)
+vfs-fjall = ["vfs"]          # FjallFs/FjallDelta (adds fjall, cacache, ssri, scru128, bincode deps)
 vfs-fuse = ["vfs-native"]   # Linux FUSE (adds fuser dep)
 vfs-nfs = ["vfs-native"]    # macOS NFS (adds nfsserve dep)
 vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
@@ -430,6 +431,8 @@ vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
 ### Phase 3 — Structured Storage + Serialization
 - Feature 06: SqliteDelta
 - Feature 12: foundation_arrow crate (standalone, general-purpose Arrow serialization)
+- Feature 18: Scaffold derive macro
+- Feature 19: FjallFs / FjallDelta (fjall LSM-tree + cacache CAS backend)
 
 ### Phase 4 — Transparent Mounting
 - Feature 07: FUSE adapter (Linux)
