@@ -75,14 +75,25 @@ pub async fn write_all_chunks_async(
 ) -> VfsResult<()> {
     let chunks = split_into_chunks(data, chunk_size);
 
+    // Batch insert all chunks in a single dynamic multi-row INSERT.
+    // We must NOT use a prepared statement — libsql silently drops rows
+    // when a prepared Statement is reused in a loop.
+    let placeholders = chunks
+        .iter()
+        .map(|_| "(?, ?, ?)")
+        .collect::<Vec<_>>()
+        .join(", ");
+    let sql = format!(
+        "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES {}",
+        placeholders
+    );
+    let mut values: Vec<libsql::Value> = Vec::with_capacity(chunks.len() * 3);
     for (idx, &chunk) in chunks.iter().enumerate() {
-        conn.execute(
-            "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)",
-            (ino, idx as i64, chunk),
-        )
-        .await
-        .map_err(types::libsql_err)?;
+        values.push(ino.into());
+        values.push((idx as i64).into());
+        values.push(chunk.to_vec().into());
     }
+    conn.execute(&sql, values).await.map_err(types::libsql_err)?;
 
     let checksum = blake3::hash(data);
     let updated_at = std::time::SystemTime::now()

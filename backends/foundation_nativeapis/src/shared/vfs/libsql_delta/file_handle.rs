@@ -134,13 +134,25 @@ impl AsyncVfsFile for SqliteFile {
             .await
             .map_err(le)?;
 
-        for (idx, chunk) in chunks.iter().enumerate() {
-            self.db
-                .execute("INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)",
-                    (self.ino, idx as i64, chunk.as_slice()),
-                )
-                .await
-                .map_err(le)?;
+        // Batch insert all chunks in a single dynamic multi-row INSERT.
+        // Prepared-statement reuse silently drops rows in libsql.
+        if !chunks.is_empty() {
+            let placeholders = chunks
+                .iter()
+                .map(|_| "(?, ?, ?)")
+                .collect::<Vec<_>>()
+                .join(", ");
+            let sql = format!(
+                "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES {}",
+                placeholders
+            );
+            let mut values: Vec<libsql::Value> = Vec::with_capacity(chunks.len() * 3);
+            for (idx, chunk) in chunks.iter().enumerate() {
+                values.push(self.ino.into());
+                values.push((idx as i64).into());
+                values.push(chunk.as_slice().to_vec().into());
+            }
+            self.db.execute(&sql, values).await.map_err(le)?;
         }
 
         let checksum = blake3::hash(&file_data[..new_size as usize]);

@@ -924,15 +924,27 @@ impl AsyncDeltaStore for LibsqlDelta {
             .await
             .map_err(err)?;
 
-        // Insert prefix entries individually (prepared-statement reuse silently dropped rows)
-        for prefix in &prefixes {
-            self.conn
-                .execute(
-                    "INSERT OR REPLACE INTO vfs_whiteout_prefixes (prefix, path, version_id) VALUES (?, ?, ?)",
-                    (prefix.clone(), path.clone(), version_id.to_vec()),
-                )
-                .await
-                .map_err(err)?;
+        // Batch insert all prefix entries in a single dynamic multi-row INSERT.
+        // We must NOT use a prepared statement here — libsql silently drops rows
+        // when a prepared Statement is reused in a loop.
+        if !prefixes.is_empty() {
+            let placeholders = prefixes
+                .iter()
+                .map(|_| "(?, ?, ?)")
+                .collect::<Vec<_>>()
+                .join(", ");
+            let sql = format!(
+                "INSERT OR REPLACE INTO vfs_whiteout_prefixes (prefix, path, version_id) VALUES {}",
+                placeholders
+            );
+            let version_bytes = version_id.to_vec();
+            let mut values: Vec<libsql::Value> = Vec::with_capacity(prefixes.len() * 3);
+            for prefix in &prefixes {
+                values.push(prefix.clone().into());
+                values.push(path.clone().into());
+                values.push(version_bytes.clone().into());
+            }
+            self.conn.execute(&sql, values).await.map_err(err)?;
         }
 
         Ok(())
