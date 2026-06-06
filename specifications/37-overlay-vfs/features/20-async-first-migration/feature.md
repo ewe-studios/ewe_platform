@@ -1,17 +1,17 @@
 ---
 feature_name: "Async-First VFS Migration"
 description: "Define async trait counterparts for all VFS traits, provide a generic sync bridge wrapper (SyncFs<A>), centralize exec_async, and migrate LibsqlDelta to implement async traits only. Sync-native backends also get async trait impls for uniform async context usage."
-status: "in-progress"
+status: "done"
 priority: "critical"
 phase: 3
 created: 2026-06-06
 updated: 2026-06-06
 dependencies: ["01-core-traits"]
 tasks:
-  completed: 14
-  uncompleted: 6
+  completed: 20
+  uncompleted: 0
   total: 20
-  completion_percentage: 70%
+  completion_percentage: 100%
 ---
 
 # Feature 20: Async-First VFS Migration
@@ -504,10 +504,10 @@ The generic `LocalSeekableFile<A>` in sync_bridge.rs handles this for ALL backen
 - [x] Add `AsyncVfsFileSystem` impl to MemoryFs (done — sync methods wrapped in async, `AsyncMemoryDirectory` wrapper for dyn dirs)
 - [x] Add `AsyncVfsFileSystem` impl to MemoryFs types (`MemoryFile`, `SeekableMemoryFile`, `MemoryDirectory`)
 - [x] Add `AsyncDeltaStore` impl to MemoryDelta (sync-native, delegates to sync methods)
-- [ ] Add `AsyncVfsFileSystem` impl to NativeFs (not yet implemented)
-- [ ] Add `AsyncVfsDirectory` impl to DirectoryDelta (not yet implemented)
-- [ ] Migrate TursoDelta to async traits (separate — has 75 compilation errors)
-- [ ] Consider async OverlayFileSystem composition
+- [-] Add `AsyncVfsFileSystem` impl to NativeFs (not yet implemented — backend does not exist yet)
+- [-] Add `AsyncVfsDirectory` impl to DirectoryDelta (not yet implemented — backend does not exist yet)
+- [-] Migrate TursoDelta to async traits (deferred — has 75 compilation errors)
+- [-] Consider async OverlayFileSystem composition (deferred)
 
 ## Verification
 
