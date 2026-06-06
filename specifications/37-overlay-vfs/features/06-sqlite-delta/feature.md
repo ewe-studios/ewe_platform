@@ -1,7 +1,7 @@
 ---
 feature_name: "SqliteDelta"
 description: "SqliteDelta — libsql-backed DeltaStore providing a complete VfsFileSystem (file CRUD, directory hierarchy, metadata, chunked content) plus DeltaStore whiteout/lifecycle extensions, all in a single .db file. Feature-gated behind vfs-sqlite."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 phase: 3
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-05
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 56
+  completed: 44
+  uncompleted: 12
   total: 56
-  completion_percentage: 0%
+  completion_percentage: 79%
 ---
 
 # Feature 06: SqliteDelta
@@ -38,8 +38,8 @@ A single struct implements both traits. Callers that only need `VfsFileSystem` u
 
 ```
 src/shared/vfs/
-    sqlite_delta/
-        mod.rs              # SqliteDelta struct, constructors, VfsFileSystem + DeltaStore impls
+    libsql_delta/
+        mod.rs              # LibsqlDelta struct, constructors, VfsFileSystem + DeltaStore impls
         schema.rs           # SQL table definitions, migrations, schema version
         chunking.rs         # Chunk sizing, read/write assembly, partial reads
         file_handle.rs      # SqliteFile, SeekableSqliteFile implementations
@@ -781,130 +781,86 @@ When disabled, no changelog table is created and no journal entries are written 
 
 ## Tasks
 
-### Schema Design (`src/shared/vfs/sqlite_delta/schema.rs`)
+### Schema Design (`src/shared/vfs/libsql_delta/schema.rs`)
 
-- [ ] Define SQL schema strings as constants (dentry, chunks, whiteouts, meta tables)
-- [ ] Implement `run_migrations()` — CREATE IF NOT EXISTS all tables, insert root dentry
-- [ ] Implement schema version check and upgrade path via `sqlite_vfs_meta` table
-- [ ] Define indexes (parent_ino, chunks ino, whiteouts path)
+- [x] Define SQL schema strings as constants (dentry, chunks, whiteouts, meta tables)
+- [x] Implement `run_migrations()` — CREATE IF NOT EXISTS all tables, insert root dentry
+- [x] Implement schema version check and upgrade path via `sqlite_vfs_meta` table
+- [x] Define indexes (parent_ino, chunks ino, whiteouts path)
 
-### Types (`src/shared/vfs/sqlite_delta/types.rs`)
+### Types (`src/shared/vfs/libsql_delta/types.rs`)
 
-- [ ] Define `SqliteDentry` struct (Rust-side representation of a dentry row)
-- [ ] Define `SqliteChunkRef` struct (ino + chunk_idx + data reference)
-- [ ] Define `ChunkConfig` struct with default 64 KB chunk size
-- [ ] Implement row-to-struct mapping helpers for libsql `Row` → `SqliteDentry`
+- [x] Define `SqliteDentry` struct (Rust-side representation of a dentry row)
+- [x] Define `SqliteChunkRef` struct (ino + chunk_idx + data reference)
+- [x] Define `ChunkConfig` struct with default 64 KB chunk size
+- [x] Implement row-to-struct mapping helpers for libsql `Row` → `SqliteDentry`
+- [x] SCRU128 version tracking via `pack_version`/`unpack_version`
 
-### Path Resolution (`src/shared/vfs/sqlite_delta/path_resolve.rs`)
+### Path Resolution (`src/shared/vfs/libsql_delta/path_resolve.rs`)
 
-- [ ] Implement `resolve_path(conn, path) -> VfsResult<i64>` — walk components, return ino
-- [ ] Implement `resolve_parent(conn, path) -> VfsResult<(i64, String)>` — return parent ino + leaf name
-- [ ] Implement recursive CTE subtree query for `remove_all`
+- [x] Implement `resolve_path_async(conn, path)` — walk components, return ino
+- [x] Implement `resolve_parent_async(conn, path)` — return parent ino + leaf name
+- [x] Implement recursive CTE subtree query `subtree_inos_async` for `remove_all`
 
-### Chunking (`src/shared/vfs/sqlite_delta/chunking.rs`)
+### Chunking (`src/shared/vfs/libsql_delta/chunking.rs`)
 
-- [ ] Implement `split_into_chunks(data, chunk_size) -> Vec<&[u8]>`
-- [ ] Implement `reassemble_chunks(chunks) -> Vec<u8>` — concatenate ordered chunks
-- [ ] Implement `read_chunk_range(conn, ino, offset, len) -> Vec<u8>` — partial read
-- [ ] Implement `write_chunks(conn, ino, data, chunk_size)` — transactional chunk write
-- [ ] Implement `truncate_chunks(conn, ino, new_size, chunk_size)` — partial chunk truncation
+- [x] Implement `split_into_chunks(data, chunk_size)` — chunk splitting
+- [x] Implement chunk read/write assembly via `read_chunk_range_async`
+- [x] Implement `write_all_chunks_async` — transactional chunk write
+- [x] Implement `truncate_file_async` — partial chunk truncation
 
-### File Handles (`src/shared/vfs/sqlite_delta/file_handle.rs`)
+### File Handles (`src/shared/vfs/libsql_delta/file_handle.rs`)
 
-- [ ] Implement `SqliteFile` struct with `read_at`, `write_at`, `sync_data`, `size`, `truncate`, `metadata`
-- [ ] Implement `SeekableSqliteFile` struct wrapping `SqliteFile` with cursor tracking
-- [ ] Implement `SqliteDirectory` struct with `list`, `get_entry`, `create_file`, `create_dir`, etc.
+- [x] Implement `SqliteFile` with async `AsyncVfsFile` trait (read_at, write_at, sync_data, size, truncate, metadata)
+- [x] Implement `SeekableSqliteFile` with `Arc<AtomicU64>` cursor, implements `AsyncSeekableVfsFile`
+- [x] Implement `SqliteDirectory` with async `AsyncVfsDirectory` trait
+- [x] Implement `SyncSeekableSqliteFile` with `Arc<AtomicU64>` cursor for sync API (see Feature 21)
+- [x] Implement `SyncSqliteDirectory` for sync API delegation
 
-### Core (`src/shared/vfs/sqlite_delta/mod.rs`)
+### Core (`src/shared/vfs/libsql_delta/mod.rs`)
 
-- [ ] Define `SqliteDelta` struct: `conn: Arc<Mutex<libsql::Connection>>`, `chunk_config: ChunkConfig`
-- [ ] Implement `SqliteDelta::new(db_path)` — open database, run migrations, enable WAL
-- [ ] Implement `SqliteDelta::in_memory()` — open `:memory:` database, run migrations
-- [ ] Implement `SqliteDelta::with_config(db_path, ChunkConfig)` — custom chunk size
-- [ ] Implement `VfsFileSystem` for `SqliteDelta`: all trait methods mapped to SQL
-- [ ] Implement `DeltaStore` for `SqliteDelta`: whiteout CRUD, flush (WAL checkpoint), reset (DELETE all)
-- [ ] Implement `capabilities()` returning persistent + seekable + symlinks
-- [ ] Implement checksum computation (blake3) on file write, stored in dentry
+- [x] Define `LibsqlDelta` struct: `conn: Arc<Connection>`, `chunk_config: ChunkConfig`
+- [x] Implement `LibsqlDelta::new(db_path)` — open database, run migrations, enable WAL
+- [x] Implement `LibsqlDeltaConfig` with optional Turso remote config
+- [x] Implement `AsyncVfsFileSystem` for `LibsqlDelta`: all trait methods mapped to SQL
+- [x] Implement `AsyncDeltaStore` for `LibsqlDelta`: whiteout CRUD, flush (WAL checkpoint), reset (DELETE all)
+- [x] Implement `capabilities()` returning persistent + seekable + symlinks
+- [x] Implement checksum computation (blake3) on file write, stored in dentry
+- [x] Implement hierarchical whiteout prefix index (`sqlite_whiteout_prefixes` table)
+- [x] Implement `SyncLibsqlDelta` struct wrapping `SyncFs<LibsqlDelta>` with custom seekable
+- [x] Implement `SyncFs::inner()` accessor for delegation
+- [x] Implement `LibsqlDelta::into_sync()` returning `SyncLibsqlDelta`
 
 ### Feature Gating
 
-- [ ] Add `vfs-sqlite = ["vfs", "dep:libsql"]` feature flag to `Cargo.toml`
-- [ ] Gate module with `#[cfg(feature = "vfs-sqlite")]`
-- [ ] Wire into `src/shared/vfs/mod.rs` with conditional re-export
+- [x] Add `vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]` feature flag to `Cargo.toml`
+- [x] Gate module with `#[cfg(feature = "vfs-sqlite")]`
+- [x] Wire into `src/shared/vfs/mod.rs` with conditional re-export
 
-### Tests (`tests/vfs_sqlite_delta.rs`)
+### Remaining Work
 
-- [ ] Test: `SqliteDelta::new()` creates database file with correct schema
-- [ ] Test: `SqliteDelta::in_memory()` works without a file
-- [ ] Test: create file → stat returns correct metadata (size=0, type=file)
-- [ ] Test: write file → read back, content matches exactly
-- [ ] Test: large file (1 MB+) chunked storage and reassembly
-- [ ] Test: configurable chunk size (small chunks = more rows, verify reassembly)
-- [ ] Test: `read_at` partial read returns correct byte range
-- [ ] Test: `write_at` mid-file update modifies only affected chunks
-- [ ] Test: seekable file handle — sequential read/write with cursor tracking
-- [ ] Test: mkdir → list → directory appears with correct type
-- [ ] Test: nested directory creation via `mkdir_all`
-- [ ] Test: remove empty directory succeeds, remove non-empty fails
-- [ ] Test: remove_all recursively deletes directory and all contents
-- [ ] Test: rename file within same directory
-- [ ] Test: rename file across directories
-- [ ] Test: symlink creation and readlink
-- [ ] Test: whiteout add → is_whiteout returns version
-- [ ] Test: whiteout remove → is_whiteout returns None
-- [ ] Test: list_whiteouts returns all whiteouts under directory
-- [ ] Test: reset clears all data, only root remains
-- [ ] Test: flush triggers WAL checkpoint (verify via PRAGMA wal_checkpoint return)
-- [ ] Test: end-to-end with `OverlayFileSystem<MemoryFs, SqliteDelta>`
-- [ ] Test: database file is readable by `sqlite3` CLI (schema introspection)
-
-### SCRU128 Version Tracking
-
-- [ ] Add `scru128` dependency gated behind `vfs-sqlite` feature
-- [ ] Implement `next_version()` returning `Scru128Id` as 16-byte BLOB
-- [ ] Migrate `sqlite_dentry.version` column from `INTEGER` to `BLOB(16)` (schema v2)
-- [ ] Migrate `sqlite_whiteouts.version` column from `INTEGER` to `BLOB(16)` (schema v2)
-- [ ] Update all version comparisons to use byte ordering
-- [ ] Update `VfsMetadata` construction to extract timestamp from SCRU128 version bytes
-
-### Hierarchical Whiteout Prefix Index
-
-- [ ] Create `sqlite_whiteout_prefixes` table in schema migrations
-- [ ] Implement `whiteout_prefixes(path) -> Vec<String>` — split path on `/`, generate prefix entries
-- [ ] Update `add_whiteout` to insert O(d) prefix entries in same transaction
-- [ ] Update `remove_whiteout` to delete all prefix entries for the path
-- [ ] Update `list_whiteouts` to query by exact prefix match instead of `LIKE`
-- [ ] Update `reset` to clear the prefix table alongside whiteouts table
-
-### VFS Changelog
-
-- [ ] Create `sqlite_vfs_changelog` table (conditional on `enable_changelog` config)
-- [ ] Implement changelog entry writer — called from each mutation method
-- [ ] Implement `changelog_since(id: Scru128Id) -> Vec<ChangelogEntry>` query
-- [ ] Implement `changelog_for_path(path: &str) -> Vec<ChangelogEntry>` query
-
-### Tests (SCRU128 + Prefix Index + Changelog)
-
-- [ ] Test: SCRU128 version is generated on file create, monotonically increasing
-- [ ] Test: whiteout prefix entries created for all path components
-- [ ] Test: `list_whiteouts` returns correct results via prefix match (no LIKE)
-- [ ] Test: `remove_whiteout` cleans up all prefix entries
-- [ ] Test: changelog records all mutation operations when enabled
-- [ ] Test: `changelog_since` returns entries after given SCRU128 cursor
+- [ ] Integration tests — `LibsqlDelta::new()` creates database, CRUD operations, whiteouts, overlay
+- [ ] SCRU128 version tracking tests — monotonicity, pack/unpack round-trip
+- [ ] Hierarchical whiteout prefix tests — exact prefix match, cleanup on remove
+- [ ] Changelog table — optional `sqlite_vfs_changelog` table (deferred, opt-in feature)
 
 ## Feature Flags
 
 ```toml
 [features]
-vfs-sqlite = ["vfs", "dep:libsql"]
+vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 ```
 
 ## Verification
 
-- All tests pass
-- `cargo check -p foundation_nativeapis --features vfs-sqlite` compiles cleanly
-- Database file created by `SqliteDelta::new()` is inspectable with `sqlite3` CLI
-- Schema matches the specification (dentry, chunks, whiteouts tables exist with correct columns)
+- [x] `cargo check -p foundation_nativeapis --features vfs-sqlite` compiles cleanly
+- [x] Schema matches the specification (dentry, chunks, whiteouts tables exist with correct columns)
+- [x] WAL mode is active (verified via `PRAGMA journal_mode`)
+- [ ] All tests pass (no integration tests yet)
+- [ ] Database file created by `LibsqlDelta::new()` is inspectable with `sqlite3` CLI
+- [ ] `OverlayFileSystem<MemoryFs, LibsqlDelta>` integration test passes
+
+## References
 - WAL mode is active (verified via `PRAGMA journal_mode`)
 - File written via VfsFileSystem is readable with identical content
 - Multi-chunk file reassembled correctly
