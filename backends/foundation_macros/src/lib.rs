@@ -4,10 +4,12 @@ mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
 mod embedders;
+mod from_arrow;
 mod json_hash;
 mod json_schema;
 mod scaffold;
 mod schema_fields;
+mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
 
@@ -413,4 +415,50 @@ pub fn arrow_json_schema_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(JsonSchema)]
 pub fn json_schema_derive(item: TokenStream) -> TokenStream {
     json_schema::json_schema_derive(item.into()).into()
+}
+
+// ── Arrow serialization derives ──
+
+/// Derive macro that generates `impl ToArrow` for a struct.
+///
+/// Generates `to_arrow(&self)` and `to_arrow_batch(&[Self])` methods
+/// that convert struct values into Arrow `RecordBatch`. Requires
+/// `ArrowSchema` to also be derived.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{ArrowSchema, ToArrow};
+///
+/// #[derive(ArrowSchema, ToArrow)]
+/// struct FileEntry {
+///     name: String,
+///     size: u64,
+/// }
+/// ```
+#[proc_macro_derive(ToArrow)]
+pub fn to_arrow_derive(item: TokenStream) -> TokenStream {
+    to_arrow::to_arrow_derive(item.into()).into()
+}
+
+/// Derive macro that generates `impl FromArrow` for a struct.
+///
+/// Generates `from_arrow(batch)` and `from_arrow_batch(batch)` methods
+/// that extract struct values from Arrow `RecordBatch`. Requires
+/// `ArrowSchema` to also be derived.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{ArrowSchema, FromArrow};
+///
+/// #[derive(ArrowSchema, FromArrow)]
+/// struct FileEntry {
+///     name: String,
+///     size: u64,
+/// }
+/// ```
+#[proc_macro_derive(FromArrow)]
+pub fn from_arrow_derive(item: TokenStream) -> TokenStream {
+    from_arrow::from_arrow_derive(item.into()).into()
 }

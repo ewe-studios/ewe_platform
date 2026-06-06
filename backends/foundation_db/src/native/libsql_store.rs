@@ -21,7 +21,8 @@ use std::sync::Arc;
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, ThreadedValue,
+    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, StreamIteratorExt,
+    ThreadedValue,
 };
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
@@ -70,6 +71,7 @@ use crate::core::storage_provider::{
     AsyncQueryStream, AsyncQueryStreamIterator, AsyncQueryStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
+use crate::native::rows_stream::LibsqlRowsIterator;
 
 // ============================================================================
 // State mode helpers
@@ -101,7 +103,7 @@ fn escape_like(s: &str) -> String {
 }
 
 fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
-    let get = |idx: usize| row.get::<String>(idx).map_err(|e| StorageError::SqlConversion(e.to_string()));
+    let get = |idx: usize| row.get::<String>(idx as i32).map_err(|e| StorageError::SqlConversion(e.to_string()));
     let id = get(0)?;
     let kind = get(1)?;
     let provider = get(2)?;
@@ -542,6 +544,7 @@ impl LibsqlStore {
         let conn = Arc::clone(&self.conn);
         conn.execute_batch(&sql)
             .await
+            .map(|_| ())
             .map_err(|e| StorageError::Backend(e.to_string()))
     }
 
@@ -912,7 +915,7 @@ impl StateStore for LibsqlStore {
             let mut stmt = conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query([id]).await.map_err(|e| StorageError::Backend(e.to_string()))?;
             match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
-                Some(row) => Ok(Some(parse_state_row(&row)?)),
+                Some(row) => Ok::<_, StorageError>(Some(parse_state_row(&row)?)),
                 None => Ok(None),
             }
         })?;

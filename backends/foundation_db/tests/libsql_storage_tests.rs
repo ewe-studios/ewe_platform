@@ -2,7 +2,7 @@
 #![cfg(feature = "libsql")]
 
 use foundation_core::valtron::collect_one;
-use foundation_db::{KeyValueStore, LibsqlStorage, QueryStore};
+use foundation_db::{KeyValueStore, LibsqlStore, QueryStore};
 use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests.
@@ -17,8 +17,8 @@ fn test_libsql_storage_basic() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
+    let storage = LibsqlStore::new_kv(url, None).unwrap();
+    storage.init_kv().unwrap();
 
     let _: () = collect_one(
         storage
@@ -60,8 +60,8 @@ fn test_libsql_storage_list_keys() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
+    let storage = LibsqlStore::new_kv(url, None).unwrap();
+    storage.init_kv().unwrap();
 
     let _: () = collect_one(
         storage
@@ -115,7 +115,7 @@ fn test_libsql_storage_migrations() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStorage::new(url).unwrap();
+    let storage = LibsqlStore::new_kv(url, None).unwrap();
 
     let migrations = &[
         (
@@ -128,7 +128,10 @@ fn test_libsql_storage_migrations() {
         ),
     ];
 
-    storage.migrate(migrations).unwrap();
+    // Apply migrations directly via execute_batch
+    for (_name, sql) in migrations {
+        collect_one(storage.execute_batch(sql).unwrap()).unwrap().unwrap();
+    }
 
     let users_exist = !storage
         .query(

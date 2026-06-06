@@ -89,7 +89,7 @@ enum StorageProviderInner {
     #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
     Turso(Box<TursoStorage>),
     #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
-    Libsql(Box<LibsqlStorage>),
+    Libsql(Box<LibsqlStore>),
     #[cfg(not(target_arch = "wasm32"))]
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
@@ -124,8 +124,8 @@ impl StorageProvider {
             }
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
             StorageBackend::Libsql { url } => {
-                let storage = LibsqlStorage::new(&url)?;
-                storage.init_schema()?;
+                let storage = LibsqlStore::new_kv(&url, None)?;
+                storage.init_kv()?;
                 Ok(Self {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })

@@ -84,6 +84,8 @@ pub enum PartValue {
 
 The `html!` macro is a proc macro that parses a quasi-HTML syntax:
 
+**TODO**: the goal here is whatever is generated can interact with the surrounding rust code e.g &self to get the properties and supply them to it without any weird templating, maybe html templates allow easy swapping with `{some_var}` placeholders, but this is why we are splitting those two into parts (ie. html_template! and html! macros).
+
 ```rust
 html! {
     // Static HTML
@@ -123,6 +125,9 @@ html! {
 
 ## Implementation Details
 
+**TODO**: whats the complexity of this ? what is the complexity would it take to get the dynamic expression positioning working, in my mind, i would prefer to transform each of those `{placeholder}` into a function that takes &self or some data they can supply e.g a hashmap of values that they pull from, see idea in primal (see specifications/39-foundation-wasm-ui/learnings/primal-ui.md). So that this becomes more easier to deal with, but tell me if lit approach makes this pretty easy and not compute heavy at all. Discuss with me.
+
+
 ### Template compilation
 1. `html!` macro parses at compile time
 2. Extracts static HTML string and identifies dynamic expression positions
@@ -145,11 +150,18 @@ html! {
 - `DirectivePart` → invoke directive logic
 
 ### Key-based list rendering
+
+**TODO**: Ya, we really should not start doing this crap, let rust code be responsible for this but tell me if this is complex or simple to do.
+
+
 - `@for item in items { <li key={item.id}>` uses idiomorph-style keyed diffing
 - Items with same key are preserved (DOM nodes not recreated)
 - Items added/removed/moved are identified by key
 
 ### Conditional rendering
+
+**TODO**: Ya, we really should not start doing this crap, let rust code be responsible for this but tell me if this is complex or simple to do.
+
 - `@if condition { ... }` — when false, removes the subtree
 - When true, creates the subtree
 - Transitions use DOM morphing (Feature 04's morph module)

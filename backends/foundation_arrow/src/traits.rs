@@ -68,6 +68,31 @@ pub trait ArrowJsonSchema: ArrowSchema {
     fn arrow_json_schema() -> serde_json::Value;
 }
 
+/// Bridge trait for types that can be sent over IPC as Arrow-encoded messages.
+///
+/// Similar in spirit to `MessageBox` but uses Arrow IPC format instead of bincode.
+/// Each type must implement `ToArrow` and `FromArrow` for the roundtrip.
+///
+/// Implemented automatically via `#[derive(ArrowMessageBox)]`.
+pub trait ArrowMessageBox: ToArrow + FromArrow + Sized {
+    /// Encode self to Arrow IPC bytes for transmission.
+    fn encode_arrow(&self) -> crate::ipc::IpcResult<Vec<u8>>;
+
+    /// Decode from Arrow IPC bytes back to self.
+    fn decode_arrow(data: &[u8]) -> crate::ipc::IpcResult<Self>;
+}
+
+impl<T: ToArrow + FromArrow + Sized> ArrowMessageBox for T {
+    fn encode_arrow(&self) -> crate::ipc::IpcResult<Vec<u8>> {
+        crate::ipc::encode_ipc(&self.to_arrow()?)
+    }
+
+    fn decode_arrow(data: &[u8]) -> crate::ipc::IpcResult<Self> {
+        let batch = crate::ipc::decode_ipc(data)?;
+        Self::from_arrow(&batch)
+    }
+}
+
 /// Helper: extract a single value from an array at a given index.
 pub trait ArrowValue<T> {
     fn arrow_value(&self, idx: usize) -> Option<T>;
@@ -187,5 +212,20 @@ impl ArrowValue<Vec<u8>> for ArrayRef {
         self.as_any()
             .downcast_ref::<BinaryArray>()
             .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx).to_vec()) })
+    }
+}
+
+impl ArrowValue<std::time::SystemTime> for ArrayRef {
+    fn arrow_value(&self, idx: usize) -> Option<std::time::SystemTime> {
+        use arrow_array::TimestampMillisecondArray;
+        self.as_any()
+            .downcast_ref::<TimestampMillisecondArray>()
+            .and_then(|arr| {
+                if arr.is_null(idx) {
+                    None
+                } else {
+                    Some(std::time::UNIX_EPOCH + std::time::Duration::from_millis(arr.value(idx) as u64))
+                }
+            })
     }
 }

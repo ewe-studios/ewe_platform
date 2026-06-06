@@ -65,7 +65,7 @@ fn rust_type_to_arrow_datatype(ty: &str, arrow: &TokenStream2) -> TokenStream2 {
         "SystemTime" => quote! {
             #arrow::arrow_schema::DataType::Timestamp(
                 #arrow::arrow_schema::TimeUnit::Millisecond,
-                Some("UTC".into()),
+                None,
             )
         },
         _ => quote! {

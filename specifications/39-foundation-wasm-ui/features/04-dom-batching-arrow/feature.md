@@ -6,6 +6,8 @@ Implement Arrow-format batching for DOM operations, enabling zero-copy transfer 
 
 This eliminates serialization costs entirely — Arrow's columnar format maps directly to typed arrays.
 
+**TODO**: This is why we need to abstract the communication protocol as we indicated in feature 01, so that different communication backend protocols can be clearly articulated to both side and used for communication.
+
 ## Module
 
 `backends/foundation_wasm_ui/src/shared/arrow/`
