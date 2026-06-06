@@ -9,7 +9,11 @@ authors.workspace = true
 repository.workspace = true
 keywords = ["wasm", "codegen", "build-tools"]
 
+[features]
+cli = ["dep:clap"]
+
 [dependencies]
+clap = { version = "4", features = ["derive"], optional = true }
 foundation_codegen = { workspace = true }
 toml = { workspace = true }
 toml_edit = { workspace = true }
