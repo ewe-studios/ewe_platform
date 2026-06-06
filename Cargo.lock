@@ -2921,6 +2921,7 @@ dependencies = [
  "blake3",
  "concurrent-queue",
  "derive_more",
+ "foundation_arrow",
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",

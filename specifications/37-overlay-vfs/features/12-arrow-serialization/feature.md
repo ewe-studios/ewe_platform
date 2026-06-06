@@ -9,10 +9,10 @@ updated: 2026-06-06
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 7
-  uncompleted: 7
+  completed: 10
+  uncompleted: 4
   total: 14
-  completion_percentage: 50%
+  completion_percentage: 71%
 ---
 
 # Feature 12: Arrow Serialization

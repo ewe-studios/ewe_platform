@@ -77,6 +77,7 @@ foundation_packager = { path = "./backends/foundation_packager", version = "0.1.
 foundation_jsonschema = { path = "./backends/foundation_jsonschema", version = "0.0.1" }
 foundation_testbed = { path = "./backends/foundation_testbed", version = "0.0.1" }
 foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
+foundation_arrow = { path = "./backends/foundation_arrow", version = "0.0.1" }
 foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "0.0.1" }
 
 foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.1.0" }

@@ -29,6 +29,7 @@ turso = { version = "0.5.3", optional = true }
 scru128 = { version = "4", optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = "0.1"
+foundation_arrow = { workspace = true, optional = true }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]
@@ -51,6 +52,7 @@ windows-sys = { version = "0.59", features = [
 foundation_core = { workspace = true, features = ["multi"] }
 
 [dev-dependencies]
+foundation_arrow = { workspace = true }
 foundation_macros = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
@@ -93,6 +95,9 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 
 # VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
 vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
+
+# Arrow serialization for VFS types
+vfs-arrow = ["vfs", "dep:foundation_arrow"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

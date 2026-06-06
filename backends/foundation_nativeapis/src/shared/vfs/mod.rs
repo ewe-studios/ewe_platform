@@ -15,6 +15,9 @@ pub mod libsql_delta;
 #[cfg(feature = "vfs-turso")]
 pub mod turso_delta;
 
+#[cfg(feature = "vfs-arrow")]
+pub mod arrow;
+
 pub use error::{VfsError, VfsResult};
 pub use memory_delta::MemoryDelta;
 pub use memory_fs::MemoryFs;
