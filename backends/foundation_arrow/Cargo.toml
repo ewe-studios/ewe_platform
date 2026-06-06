@@ -1,0 +1,16 @@
+[package]
+name = "foundation_arrow"
+version = "0.0.1"
+edition = "2021"
+description = "Arrow-based zero-copy serialization for any Rust type. Works on native, WASI, and WASM."
+
+[dependencies]
+arrow-array = { version = "55", default-features = false, features = ["chrono-tz"] }
+arrow-schema = { version = "55", default-features = false }
+arrow-ipc = { version = "55", default-features = false }
+arrow-data = { version = "55", default-features = false }
+arrow-buffer = { version = "55", default-features = false }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+foundation_errstacks = { path = "../foundation_errstacks" }

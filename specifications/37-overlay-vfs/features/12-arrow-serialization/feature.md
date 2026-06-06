@@ -1,18 +1,18 @@
 ---
 feature_name: "Arrow Serialization (foundation_arrow)"
 description: "foundation_arrow — standalone crate providing Arrow-based zero-copy serialization for any Rust type. Works on native, WASI, and WASM. Derive macro for automatic Arrow schema generation. VFS types are the first consumer but the crate is general-purpose."
-status: "pending"
-priority: "medium"
+status: "in-progress"
+priority: "high"
 phase: 3
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-06
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 7
+  uncompleted: 7
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 50%
 ---
 
 # Feature 12: Arrow Serialization
@@ -45,38 +45,41 @@ Uses `arrow-rs` (official Apache Arrow Rust implementation) with selective featu
 
 ### Core Crate (`backends/foundation_arrow/`)
 
-- [ ] Create `backends/foundation_arrow/` crate with Cargo.toml
-- [ ] Selective arrow-rs features only: `arrow-array`, `arrow-schema`, `arrow-ipc`, `arrow-data` (skip compute, csv, json, parquet etc.)
-- [ ] Verify builds on native, WASI (`wasm32-wasi`), and WASM (`wasm32-unknown-unknown`)
+- [x] Create `backends/foundation_arrow/` crate with Cargo.toml
+- [x] Selective arrow-rs features only: `arrow-array`, `arrow-schema`, `arrow-ipc`, `arrow-data`, `arrow-buffer` (skip compute, csv, json, parquet etc.)
+- [ ] Verify builds on WASI (`wasm32-wasi`) and WASM (`wasm32-unknown-unknown`)
 
-### Traits and Derive (`foundation_arrow/src/`)
+### Traits (`foundation_arrow/src/traits.rs`)
 
-- [ ] Define `ToArrow` trait: convert a type (or Vec of type) to Arrow `RecordBatch`
-- [ ] Define `FromArrow` trait: convert Arrow `RecordBatch` back to a type (or Vec of type)
-- [ ] Define `ArrowSchema` trait: generate Arrow `Schema` for a type (field names, types)
+- [x] Define `ToArrow` trait: convert a type (or Vec of type) to Arrow `RecordBatch`
+- [x] Define `FromArrow` trait: convert Arrow `RecordBatch` back to a type (or Vec of type)
+- [x] Define `ArrowSchema` trait: generate Arrow `Schema` for a type (field names, types)
+- [x] Implement `ArrowValue<T>` helper trait for extracting typed values from `ArrayRef`
 - [ ] Implement derive macro `#[derive(ArrowSerialize)]` (in `foundation_macros` or companion proc-macro crate) — auto-generates `ToArrow`, `FromArrow`, `ArrowSchema` from struct fields
 - [ ] Field type mapping: u8→UInt8, u16→UInt16, u32→UInt32, u64→UInt64, String→Utf8, Vec\<u8\>→Binary, Option\<T\>→Nullable, bool→Boolean, enums→UInt8/dictionary, SystemTime→Timestamp
 
 ### Arrow IPC (`foundation_arrow/src/ipc.rs`)
 
-- [ ] Implement Arrow IPC stream writer: `RecordBatch → Vec<u8>` (IPC streaming format)
-- [ ] Implement Arrow IPC stream reader: `&[u8] → RecordBatch` (zero-copy from buffer)
-- [ ] Shared memory integration helper: write Arrow IPC into a byte buffer (for use with spec-34 `MemoryRegion` or any mmap/shared buffer)
-
-### VFS Type Implementations (in foundation_nativeapis, depends on foundation_arrow)
-
-- [ ] Implement `ArrowSerialize` for `VfsMetadata`
-- [ ] Implement `ArrowSerialize` for `VfsDirEntry` / `Vec<VfsDirEntry>` (columnar)
-- [ ] Implement `ArrowSerialize` for VFS IPC messages (VfsRequest, VfsResponse)
-- [ ] Define `ArrowMessageBox` adapter bridging Arrow-encoded messages with existing IPC MessageBox trait
+- [x] Implement Arrow IPC writer: `RecordBatch → Vec<u8>` (IPC file format)
+- [x] Implement Arrow IPC reader: `&[u8] → RecordBatch` (via FileReader)
+- [x] Implement multi-batch encode/decode: `Vec<RecordBatch> → Vec<u8>`
+- [x] Implement `decode_ipc_schema` — extract schema without reading data
 
 ### Tests
 
-- [ ] Test: arbitrary struct roundtrip through Arrow (not VFS-specific)
-- [ ] Test: Vec\<struct\> columnar roundtrip
-- [ ] Test: Arrow IPC stream encode/decode
+- [x] Test: single batch encode/decode roundtrip with mixed types (UInt64, Utf8, Float64 nullable, Int64, Binary nullable)
+- [x] Test: multi-batch encode/decode
+- [x] Test: error on empty batch encode
+- [x] Test: error when decoding multi-batch as single
 - [ ] Test: VfsMetadata and VfsDirEntry roundtrips
 - [ ] Test: WASM compilation succeeds
+
+### Remaining Work
+
+- [ ] Derive macro `#[derive(ArrowSerialize)]` — proc macro for automatic trait generation
+- [ ] VFS type implementations — `ToArrow`/`FromArrow` for `VfsMetadata`, `VfsDirEntry`, IPC messages
+- [ ] `ArrowMessageBox` adapter — bridge Arrow-encoded messages with existing IPC MessageBox trait
+- [ ] WASM/WASI compilation verification
 
 ## Verification
 
