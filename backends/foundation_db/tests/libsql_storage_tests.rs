@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests.
 fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
+    foundation_core::valtron::multi::initialize_pool(42, None);
 }
 
 #[test]
