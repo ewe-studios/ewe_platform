@@ -1,3 +1,4 @@
+#![cfg(feature = "multi")]
 #![allow(clippy::new_ret_no_self)]
 #![allow(clippy::type_complexity)]
 
@@ -59,8 +60,15 @@ use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 // PoolGuard - Drop-based Lifecycle Handle
 // ============================================================================
 
-/// Cleanup function type for clearing global state on drop.
-type PoolCleanupFn = Option<Box<dyn FnOnce() + Send + 'static>>;
+// NOTE: PoolCleanupFn and the `cleanup_fn` field were removed. They were never
+// wired up by any caller across the entire workspace, yet the presence of
+// `Box<dyn FnOnce() + Send>` made PoolGuard non-Sync — breaking uses like
+// `static POOL_GUARD: OnceLock<PoolGuard>`.
+//
+// Whoever adds cleanup_fn back needs to either:
+//   - Use a Sync-compatible type (e.g. Arc<dyn Fn() + Send + Sync>)
+//   - Or add `unsafe impl Sync for PoolGuard {}` with a safety justification
+//     that cleanup_fn is only consumed during Drop and never accessed concurrently.
 
 /// Returned by `initialize_pool`. Provides deterministic cleanup.
 ///
@@ -70,14 +78,12 @@ type PoolCleanupFn = Option<Box<dyn FnOnce() + Send + 'static>>;
 /// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
 /// 4. `WaitGroup::wait()` — block until all task threads report death
 /// 5. Join all `JoinHandle`s
-/// 6. Clear global registries (if set via `with_cleanup`)
 ///
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
     registry: Arc<ThreadRegistry>,
     bg_registry: Option<Arc<crate::valtron::BackgroundJobRegistry>>,
     shut_down: AtomicBool,
-    cleanup_fn: PoolCleanupFn,
 }
 
 impl PoolGuard {
@@ -88,7 +94,6 @@ impl PoolGuard {
             registry,
             bg_registry: None,
             shut_down: AtomicBool::new(false),
-            cleanup_fn: None,
         }
     }
 
@@ -102,22 +107,6 @@ impl PoolGuard {
             registry,
             bg_registry: Some(bg_registry),
             shut_down: AtomicBool::new(false),
-            cleanup_fn: None,
-        }
-    }
-
-    /// Create a new `PoolGuard` with cleanup function.
-    #[must_use]
-    pub fn with_cleanup(
-        registry: Arc<ThreadRegistry>,
-        bg_registry: Arc<crate::valtron::BackgroundJobRegistry>,
-        cleanup_fn: impl FnOnce() + Send + 'static,
-    ) -> Self {
-        Self {
-            registry,
-            bg_registry: Some(bg_registry),
-            shut_down: AtomicBool::new(false),
-            cleanup_fn: Some(Box::new(cleanup_fn)),
         }
     }
 
@@ -129,7 +118,6 @@ impl PoolGuard {
             registry: Arc::new(ThreadRegistry::with_seed_and_threads(0, 2)),
             bg_registry: None,
             shut_down: AtomicBool::new(true),
-            cleanup_fn: None,
         }
     }
 
@@ -175,11 +163,6 @@ impl PoolGuard {
 impl Drop for PoolGuard {
     fn drop(&mut self) {
         self.shutdown();
-        // Call cleanup function if set (e.g., to clear global registries)
-        if let Some(cleanup_fn) = self.cleanup_fn.take() {
-            tracing::warn!("PoolGuard::drop() - running cleanup function");
-            cleanup_fn();
-        }
     }
 }
 

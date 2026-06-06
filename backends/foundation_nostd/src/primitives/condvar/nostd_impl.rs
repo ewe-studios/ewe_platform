@@ -6,6 +6,7 @@
 use core::cell::UnsafeCell;
 use core::fmt;
 use core::ops::{Deref, DerefMut};
+use core::panic::{RefUnwindSafe, UnwindSafe};
 use core::sync::atomic::{AtomicU32, AtomicU8, AtomicUsize, Ordering};
 use core::time::Duration;
 
@@ -32,6 +33,8 @@ pub struct CondVarMutex<T: ?Sized> {
 
 unsafe impl<T: ?Sized + Send> Send for CondVarMutex<T> {}
 unsafe impl<T: ?Sized + Send> Sync for CondVarMutex<T> {}
+impl<T: ?Sized> RefUnwindSafe for CondVarMutex<T> {}
+impl<T: ?Sized> UnwindSafe for CondVarMutex<T> {}
 
 /// RAII guard for `CondVarMutex`.
 pub struct CondVarMutexGuard<'a, T: ?Sized + 'a> {
