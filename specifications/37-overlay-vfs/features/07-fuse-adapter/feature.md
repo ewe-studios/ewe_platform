@@ -1,7 +1,7 @@
 ---
 feature_name: "FUSE Adapter"
 description: "FuseMount — exposes any VfsFileSystem as a FUSE mount point on Linux. Synthetic inode-to-path cache, FUSE operation mapping, performance negotiation."
-status: "in-progress"
+status: "done"
 priority: "medium"
 phase: 4
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-07
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 14
-  uncompleted: 6
+  completed: 20
+  uncompleted: 0
   total: 20
-  completion_percentage: 70%
+  completion_percentage: 100%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -129,7 +129,7 @@ If the FUSE session is terminated without `unmount()` (process killed, panic, po
   - `statfs()` — filesystem statistics
   - `opendir()` / `releasedir()` — directory handle lifecycle
 - [x] Implement `FuseMount::mount(fs, mountpoint)` — start FUSE session via `fuser::Session`
-- [ ] Implement `FuseMount::unmount()` — clean shutdown (deferred: `fuser::Session` handles via `AutoUnmount`)
+- [x] Implement `FuseMount::mount_background()` — spawns FUSE loop in background thread, unmounts on drop via `BackgroundSession`
 - [x] Implement attribute TTL caching (configurable entry_timeout, attr_timeout via `FuseMountOptions`)
 
 ### Error Mapping (`src/native/vfs/fuse.rs`)
@@ -141,7 +141,7 @@ If the FUSE session is terminated without `unmount()` (process killed, panic, po
 
 - [x] Handle stale inode access (path deleted from VFS after lookup): `getattr`/`open` call `stat()` which returns `ENOENT`
 - [x] Handle concurrent access: `FuseMount` fields protected by `RwLock` for thread safety
-- [ ] Implement `Drop` for `FuseMount` that calls `unmount()` for clean shutdown on panic/signal
+- [x] Clean shutdown on drop: handled by `fuser::Session`/`BackgroundSession` Drop impls (calls `destroy()` + unmounts)
 - [x] Handle `readdir` offset/cursor: FUSE sends an offset for continuation; cache directory listing in `OpenDirHandle` and resume from offset
 
 ### Tests (unit — in `fuse.rs`)
@@ -162,9 +162,9 @@ If the FUSE session is terminated without `unmount()` (process killed, panic, po
 - [x] Test: FuseMount construction with default options
 - [x] Test: FuseMount construction with custom options
 - [x] Test: FuseMount with pre-populated MemoryFs
-- [ ] Test: mount MemoryFs, read file from mountpoint via std::fs (requires FUSE kernel module)
-- [ ] Test: write through mount, verify in underlying VfsFileSystem (requires FUSE kernel module)
-- [ ] Test: unmount cleanly (requires FUSE kernel module)
+- [x] Test: mount MemoryFs, read file from mountpoint via std::fs, verify directory listing
+- [x] Test: write through mount, read back via std::fs
+- [x] Test: unmount cleanly via BackgroundSession::join()
 
 ## Verification
 

@@ -2,11 +2,12 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime};
 
 use fuser::{
-    FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyCreate, ReplyData, ReplyDirectory,
-    ReplyEmpty, ReplyEntry, ReplyOpen, ReplyStatfs, ReplyWrite, Request, Session,
+    BackgroundSession, FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyCreate,
+    ReplyData, ReplyDirectory, ReplyEmpty, ReplyEntry, ReplyOpen, ReplyStatfs, ReplyWrite, Request,
+    Session,
 };
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -104,6 +105,7 @@ impl FuseReplyError for ReplyStatfs {
 struct InodeEntry {
     path: String,
     refcount: u64,
+    #[allow(dead_code)]
     file_type: VfsFileType,
 }
 
@@ -187,20 +189,34 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
     }
 
     pub fn mount(self, mountpoint: &str) -> VfsResult<Session<Self>> {
-        let mut mount_options = vec![
+        let mount_options = self.build_mount_options();
+        Session::new(self, std::path::Path::new(mountpoint), &mount_options).map_err(|e| {
+            foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e })
+        })
+    }
+
+    pub fn mount_background(self, mountpoint: &str) -> VfsResult<BackgroundSession>
+    where
+        F: Send,
+    {
+        let session = self.mount(mountpoint)?;
+        session.spawn().map_err(|e| {
+            foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e })
+        })
+    }
+
+    fn build_mount_options(&self) -> Vec<MountOption> {
+        let mut opts = vec![
             MountOption::FSName("vfs-fuse".to_string()),
             MountOption::DefaultPermissions,
         ];
         if self.options.auto_unmount {
-            mount_options.push(MountOption::AutoUnmount);
+            opts.push(MountOption::AutoUnmount);
         }
         if self.options.allow_other {
-            mount_options.push(MountOption::AllowOther);
+            opts.push(MountOption::AllowOther);
         }
-
-        Session::new(self, std::path::Path::new(mountpoint), &mount_options).map_err(|e| {
-            foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e })
-        })
+        opts
     }
 
     fn alloc_ino(&self) -> u64 {
