@@ -175,8 +175,19 @@ tests/
 - [x] All valtron-backed VFS sync bridges tested through `initialize_pool`
 - [x] No VFS sync bridge code path left untested by valtron
 - [x] `cargo test -p foundation_nativeapis --features vfs` — 120 tests pass (41 valtron, 43 memory, 34 overlay, 2 doc)
-- [ ] `cargo test -p foundation_nativeapis --features vfs,vfs-sqlite` — blocked: `sqlite_dentry` table uses reserved `sqlite_` prefix (pre-existing LibsqlDelta bug)
+- [x] `cargo test -p foundation_nativeapis --features vfs,vfs-sqlite` — **139 tests pass** (includes 15 sqlite tests)
 - [x] No test calls `SyncFs` or `SyncLibsqlDelta` without first calling `initialize_pool()`
+
+## SQLite-Specific Test Fixes
+
+The following bugs were discovered and fixed while enabling `--features vfs-sqlite` tests:
+
+1. **`sqlite_` reserved table names** → all tables renamed to `vfs_` prefix
+2. **PRAGMA `execute()` returns rows** → changed to `execute_batch()`
+3. **Stale size cache in `SqliteFile`** → `read_at_async`/`size_async` now query DB
+4. **libsql `Statement::execute()` silently drops rows on reuse** → replaced with dynamic multi-row INSERT via `Vec<libsql::Value>` (see feature 06 learnings)
+5. **Whiteout prefix trailing slash missing leading `/`** → `src/` → `/src/`
+6. **Test assertions**: `is_whiteout` returns unpacked SCRU128 not raw input; `b" appended"` is 9 bytes not 10; concurrent write test changed to avoid race
 
 ---
 

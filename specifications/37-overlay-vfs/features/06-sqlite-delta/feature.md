@@ -5,7 +5,7 @@ status: "in-progress"
 priority: "medium"
 phase: 3
 created: 2026-06-04
-updated: 2026-06-05
+updated: 2026-06-06
 dependencies:
   - "01-core-traits"
 tasks:
@@ -70,15 +70,8 @@ libsql = { version = "0.6", optional = true, default-features = false, features 
 Three tables mirror the D1 feature's schema (feature 13), adapted for local SQLite.
 
 ```sql
--- Schema version tracking
-CREATE TABLE IF NOT EXISTS sqlite_vfs_meta (
-    key   TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-);
-INSERT OR IGNORE INTO sqlite_vfs_meta (key, value) VALUES ('schema_version', '1');
-
 -- Directory entries (hierarchy + metadata)
-CREATE TABLE IF NOT EXISTS sqlite_dentry (
+CREATE TABLE IF NOT EXISTS vfs_dentry (
     ino           INTEGER PRIMARY KEY AUTOINCREMENT,
     name          TEXT NOT NULL,
     parent_ino    INTEGER NOT NULL,
@@ -88,7 +81,7 @@ CREATE TABLE IF NOT EXISTS sqlite_dentry (
     owner_uid     INTEGER NOT NULL DEFAULT 0,
     owner_gid     INTEGER NOT NULL DEFAULT 0,
     checksum      BLOB,                          -- blake3 32 bytes, NULL for dirs
-    version       INTEGER NOT NULL DEFAULT 0,
+    version_id    BLOB(16) NOT NULL,             -- SCRU128 version
     created_at    INTEGER NOT NULL,              -- unix epoch milliseconds
     updated_at    INTEGER NOT NULL,              -- unix epoch milliseconds
     symlink_target TEXT,                         -- target path if file_type = 'symlink'
@@ -97,36 +90,47 @@ CREATE TABLE IF NOT EXISTS sqlite_dentry (
 );
 
 -- Root directory bootstrap (ino = 1, self-referencing parent)
-INSERT OR IGNORE INTO sqlite_dentry (ino, name, parent_ino, file_type, size, permissions,
-    owner_uid, owner_gid, version, created_at, updated_at, chunk_size)
-VALUES (1, '', 1, 'dir', 0, 493, 0, 0, 0,
+INSERT OR IGNORE INTO vfs_dentry (ino, name, parent_ino, file_type, size, permissions,
+    owner_uid, owner_gid, version_id, created_at, updated_at, chunk_size)
+VALUES (1, '', 1, 'dir', 0, 493, 0, 0,
+     X'00000000000000000000000000000000',
     CAST(strftime('%s', 'now') * 1000 AS INTEGER),
     CAST(strftime('%s', 'now') * 1000 AS INTEGER),
     65536);
 
 -- File content chunks (only for file_type = 'file')
-CREATE TABLE IF NOT EXISTS sqlite_chunks (
+CREATE TABLE IF NOT EXISTS vfs_chunks (
     ino         INTEGER NOT NULL,
     chunk_idx   INTEGER NOT NULL,
     data        BLOB NOT NULL,
     PRIMARY KEY (ino, chunk_idx),
-    FOREIGN KEY (ino) REFERENCES sqlite_dentry(ino) ON DELETE CASCADE
+    FOREIGN KEY (ino) REFERENCES vfs_dentry(ino) ON DELETE CASCADE
 );
 
 -- Whiteouts (DeltaStore extension)
-CREATE TABLE IF NOT EXISTS sqlite_whiteouts (
+CREATE TABLE IF NOT EXISTS vfs_whiteouts (
     path        TEXT PRIMARY KEY,
-    version     INTEGER NOT NULL
+    version_id  BLOB(16) NOT NULL  -- SCRU128 version
+);
+
+-- Hierarchical whiteout prefix index for O(1) list_whiteouts (see below)
+CREATE TABLE IF NOT EXISTS vfs_whiteout_prefixes (
+    prefix      TEXT NOT NULL,
+    path        TEXT NOT NULL,
+    version_id  BLOB(16) NOT NULL,
+    PRIMARY KEY (prefix, path)
 );
 
 -- Indexes for common query patterns
-CREATE INDEX IF NOT EXISTS idx_dentry_parent ON sqlite_dentry(parent_ino);
-CREATE INDEX IF NOT EXISTS idx_chunks_ino ON sqlite_chunks(ino);
-CREATE INDEX IF NOT EXISTS idx_whiteouts_path ON sqlite_whiteouts(path);
+CREATE INDEX IF NOT EXISTS idx_dentry_parent ON vfs_dentry(parent_ino);
+CREATE INDEX IF NOT EXISTS idx_chunks_ino ON vfs_chunks(ino);
+CREATE INDEX IF NOT EXISTS idx_whiteouts_path ON vfs_whiteouts(path);
+CREATE INDEX IF NOT EXISTS idx_whiteout_prefix ON vfs_whiteout_prefixes(prefix);
 ```
 
 ### Schema Notes
 
+- **Table names use `vfs_` prefix** — SQLite reserves `sqlite_` for internal tables. Using `sqlite_dentry`, `sqlite_chunks` etc. causes `LibsqlDelta::new()` to fail with "table name is reserved" error. All tables must use `vfs_` prefix.
 - **`ino` is AUTOINCREMENT** — unlike D1 which may use UUIDs, local SQLite benefits from monotonic integer keys for B-tree locality
 - **`UNIQUE(parent_ino, name)`** — enforces no duplicate filenames within a directory, atomically prevents races
 - **`ON DELETE CASCADE`** on chunks — removing a dentry automatically removes all its content chunks
@@ -901,6 +905,63 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 
 All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
 
+## Implementation Learnings
+
+### libsql `Statement::execute()` Silently Drops Rows on Reuse
+
+**Bug:** When a prepared `Statement` is reused across multiple `execute()` calls in a loop, libsql silently drops all but the first row. `execute()` returns `rows_affected=1` for each call, but only the first INSERT persists. This was discovered in three locations:
+
+1. `write_all_chunks_async` — only first chunk persisted, causing data corruption for files >64KB
+2. `write_at_async` (SqliteFile) — same chunk insert loop, only first chunk saved
+3. `add_whiteout_async` — only first prefix inserted, breaking `list_whiteouts`
+
+**Fix:** Use dynamic multi-row INSERT with `Vec<libsql::Value>` positional params:
+```rust
+// GOOD — single round-trip, all rows persist
+let placeholders = chunks.iter().map(|_| "(?, ?, ?)").collect::<Vec<_>>().join(", ");
+let sql = format!("INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES {}", placeholders);
+let mut values: Vec<libsql::Value> = Vec::with_capacity(chunks.len() * 3);
+for (idx, chunk) in chunks.iter().enumerate() {
+    values.push(ino.into());
+    values.push((idx as i64).into());
+    values.push(chunk.to_vec().into());
+}
+conn.execute(&sql, values).await?;
+```
+
+**Why `Connection::execute()` works but `Statement::execute()` doesn't:** `Connection::execute()` internally prepares, executes, and finalizes the statement per call. `Statement::execute()` reuses the prepared handle — libsql's async implementation has a bug where the statement's internal state isn't properly reset between executions.
+
+### PRAGMA Statements Return Rows
+
+`execute()` fails with "Execute returned rows" for PRAGMAs like `PRAGMA journal_mode = WAL` and `PRAGMA wal_checkpoint(TRUNCATE)` because they return result rows. Use `execute_batch()` instead:
+```rust
+conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)").await?;
+```
+
+### `read_at` and `size` Must Query Current Size from DB
+
+`SqliteFile.size` is a cached field set at open time. After `write_at_async` modifies the file, subsequent `read_at_async` calls using the stale cached size return 0 bytes. Fix: query `SELECT size FROM vfs_dentry WHERE ino = ?` in both `read_at_async` and `size_async`.
+
+### Whiteout Prefix Trailing Slash Must Have Leading Slash
+
+The `whiteout_prefixes()` function generates parent directory prefixes like `/src` and `/src/`. A bug produced `src/` (no leading slash) for trailing-slash variants, so the index lookup for `prefix = '/src'` never found rows with `prefix = 'src/'`. Fix: `format!("/{}/", ...)` not `format!("{}/", ...)`.
+
+### `is_whiteout` Returns Unpacked SCRU128, Not Raw Input
+
+`add_whiteout(path, 1)` stores the version via `pack_version(1)` → SCRU128 BLOB. `is_whiteout(path)` returns `unpack_version(id)` which is `(timestamp << 24) | counter`, not the original `1`. Tests must use `is_some()` or extract the counter component, not compare against the raw input.
+
+### Batch Insert Pattern (All 3 Locations)
+
+```rust
+// chunking.rs::write_all_chunks_async
+// file_handle.rs::write_at_async  
+// mod.rs::add_whiteout_async
+// All follow the same pattern:
+// 1. Build "(?, ?, ?), (?, ?, ?), ..." placeholders
+// 2. Build flat Vec<libsql::Value> with all params
+// 3. conn.execute(&sql, values) — 1 round-trip
+```
+
 ---
 
-_Created: 2026-06-04 | Updated: 2026-06-05_
+_Created: 2026-06-04 | Updated: 2026-06-06_
