@@ -107,10 +107,6 @@ impl VfsFileSystem for SyncLibsqlDelta {
 
 **Rule:** Only for seekable file cursors — a single `u64` where sharing via `Arc` makes sense and atomic ops are cheaper than a lock.
 
-### `Arc<AtomicU64>` for seekable cursors
-
-**Rule:** Only for seekable file cursors — a single `u64` where sharing via `Arc` makes sense and atomic ops are cheaper than a lock.
-
 **Where applied:**
 - `SeekableSqliteFile::cursor: Arc<AtomicU64>` — enables `Clone` without losing state, no `&mut self` needed for async trait
 - `SeekableMemoryFile::position` — same reasoning for sync-native
@@ -172,7 +168,7 @@ impl VfsFileSystem for SyncLibsqlDelta {
 
 - [x] Change `SeekableSqliteFile::cursor` from `u64` to `Arc<AtomicU64>`
 - [x] Update `AsyncSeekableVfsFile` impl — use `load`/`store` on atomic, no `&mut self` needed
-- [x] Implement `Clone` for `SeekableSqliteFile` (cheap: two `Arc::clone`s)
+- [-] Implement `Clone` for `SeekableSqliteFile` — **not needed**: both fields (`SqliteFile` and `Arc<AtomicU64>`) are already `Clone`-capable; derived `Clone` is trivial when needed but no code path requires it
 - [x] Implement `SeekableVfsFile` (sync) — same atomic cursor, I/O via valtron bridge
 
 ### MemoryFs (`memory_fs.rs`)

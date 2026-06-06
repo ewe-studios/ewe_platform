@@ -123,30 +123,32 @@ The current codebase has 3 identical copies of the valtron bridging helper (`exe
 ```rust
 #[async_trait]
 pub trait AsyncVfsFile: Send + Sync {
-    async fn read_at(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>>;
-    async fn write_at(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize>;
-    async fn sync_data(&self) -> VfsResult<()>;
-    async fn size(&self) -> VfsResult<u64>;
-    async fn truncate(&self, size: u64) -> VfsResult<()>;
-    async fn metadata(&self) -> VfsResult<VfsMetadata>;
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>>;
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize>;
+    async fn sync_data_async(&self) -> VfsResult<()>;
+    async fn size_async(&self) -> VfsResult<u64>;
+    async fn truncate_async(&self, size: u64) -> VfsResult<()>;
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata>;
 }
 ```
 
-**Key difference from VfsFile**: `read_at` returns `Vec<u8>` instead of filling `&mut [u8]`. This avoids the need to move a mutable buffer into an async block. The sync bridge copies the result into the caller's `&mut [u8]` after the future completes.
+**Naming:** All methods use `_async` suffix to avoid name collisions with sync `VfsFile` methods. Types implementing both traits use UFCS-free calls: `self.read_at()` is sync, `self.read_at_async()` is async.
 
 ### AsyncSeekableVfsFile
 
 ```rust
 #[async_trait]
 pub trait AsyncSeekableVfsFile: AsyncVfsFile {
-    async fn read(&mut self, len: usize) -> VfsResult<Vec<u8>>;
-    async fn write(&mut self, data: Vec<u8>) -> VfsResult<usize>;
-    async fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64>;
-    async fn position(&self) -> u64;
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>>;
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize>;
+    async fn seek_async(&mut self, pos: SeekFrom) -> VfsResult<u64>;
+    fn position_async(&self) -> u64;
 }
 ```
 
-**Why this exists**: Backends with native cursor support (OS file handles, WASI fds, database cursors) need to manage seek position through their own mechanism. `position()` is not async because it reads cached local state.
+**Naming convention:** All async trait methods use `_async` suffix (e.g. `read_at_async`, `open_async`, `stat_async`). This eliminates UFCS disambiguation noise when a type implements both sync and async traits. The sync methods use the base name (`read_at`, `open`, `stat`); the async ones use `_async`.
+
+**`position_async`**: Still `&self` — reads cached local state (atomic cursor), no I/O needed.
 
 ### AsyncVfsDirectory
 
@@ -440,7 +442,7 @@ The generic `LocalSeekableFile<A>` in sync_bridge.rs handles this for ALL backen
 | `Cargo.toml` | Add `async-trait` optional dep behind `vfs` feature |
 | `shared/vfs/async_traits.rs` | **NEW** — async trait definitions |
 | `shared/vfs/exec_async.rs` | **NEW** — centralized valtron bridge |
-| `shared/vfs/sync_bridge.rs` | **NEW** — SyncFile, SyncSeekableFile, LocalSeekableFile, SyncDirectory, SyncFs |
+| `shared/vfs/sync_bridge.rs` | **NEW** — SyncFile, LocalSeekableFile, SyncDirectory, SyncFs. ~~SyncSeekableFile~~ removed in Feature 21. |
 | `shared/vfs/mod.rs` | Add 3 new module declarations + re-exports |
 | `shared/vfs/libsql_delta/mod.rs` | Implement AsyncVfsFileSystem + AsyncDeltaStore instead of sync traits. Delete exec_future, schedule_future, wrap_async, to_threaded_iter. Add `pub type SyncLibsqlDelta = SyncFs<LibsqlDelta>;` |
 | `shared/vfs/libsql_delta/file_handle.rs` | Implement AsyncVfsFile + AsyncVfsDirectory instead of sync traits. Delete SeekableSqliteFile. Delete local exec_async/exec_future. Delete unsafe Send/Sync impls. |
@@ -481,10 +483,10 @@ The generic `LocalSeekableFile<A>` in sync_bridge.rs handles this for ALL backen
 ### New modules — Sync bridge (`src/shared/vfs/sync_bridge.rs`)
 
 - [x] Implement `SyncFile<A: AsyncVfsFile>` — stores `Arc<A>`, implements `VfsFile`
-- [x] Implement `SyncSeekableFile<A: AsyncSeekableVfsFile>` — uses take/put pattern for Send safety, implements `VfsFile` + `SeekableVfsFile`
 - [x] Implement `LocalSeekableFile<A: AsyncVfsFile>` — stores `SyncFile<A>` + cursor, implements `VfsFile` + `SeekableVfsFile` (for backends without native cursor)
 - [x] Implement `SyncDirectory<A: AsyncVfsDirectory>` + `SyncDynDirectory` — stores `Arc<A>`, implements `VfsDirectory`
 - [x] Implement `SyncFs<A: AsyncVfsFileSystem>` — stores `Arc<A>`, implements `VfsFileSystem`
+- [x] ~~`SyncSeekableFile<A>`~~ — removed in Feature 21 (dangerous `Arc<Mutex<Option<A>>>` pattern)
 - [x] Implement `DeltaStore for SyncFs<A>` where `A: AsyncDeltaStore`
 
 ### Module registration (`src/shared/vfs/mod.rs`)
@@ -495,14 +497,15 @@ The generic `LocalSeekableFile<A>` in sync_bridge.rs handles this for ALL backen
 ### Migrate LibsqlDelta (`src/shared/vfs/libsql_delta/`)
 
 - [x] `file_handle.rs`: SqliteFile implements `AsyncVfsFile`, SqliteDirectory implements `AsyncVfsDirectory`, SeekableSqliteFile implements `AsyncSeekableVfsFile`. All exec_async wrappers removed. All `unsafe impl Send/Sync` removed. Methods are pure async.
-- [x] `mod.rs`: LibsqlDelta implements `AsyncVfsFileSystem + AsyncDeltaStore`. All methods pure async. `exec_future`, `schedule_future`, `wrap_async`, `to_threaded_iter` deleted. `pub type SyncLibsqlDelta = SyncFs<LibsqlDelta>;` added. `into_sync()` convenience method added.
+- [x] `mod.rs`: LibsqlDelta implements `AsyncVfsFileSystem + AsyncDeltaStore`. All methods pure async. `exec_future`, `schedule_future`, `wrap_async`, `to_threaded_iter` deleted. `SyncLibsqlDelta` is a real struct wrapping `SyncFs<LibsqlDelta>` with custom seekable (see Feature 21). `into_sync()` returns `SyncLibsqlDelta`.
 
 ### Remaining (Future Work)
 
-- [ ] Add `AsyncVfsFileSystem` impl to MemoryFs (trivial — sync methods wrapped in async)
-- [ ] Add `AsyncDeltaStore` impl to MemoryDelta
-- [ ] Add `AsyncVfsFileSystem` impl to NativeFs
-- [ ] Add `AsyncVfsDirectory` impl to DirectoryDelta
+- [x] Add `AsyncVfsFileSystem` impl to MemoryFs (done — sync methods wrapped in async, `AsyncMemoryDirectory` wrapper for dyn dirs)
+- [x] Add `AsyncVfsFileSystem` impl to MemoryFs types (`MemoryFile`, `SeekableMemoryFile`, `MemoryDirectory`)
+- [x] Add `AsyncDeltaStore` impl to MemoryDelta (sync-native, delegates to sync methods)
+- [ ] Add `AsyncVfsFileSystem` impl to NativeFs (not yet implemented)
+- [ ] Add `AsyncVfsDirectory` impl to DirectoryDelta (not yet implemented)
 - [ ] Migrate TursoDelta to async traits (separate — has 75 compilation errors)
 - [ ] Consider async OverlayFileSystem composition
 

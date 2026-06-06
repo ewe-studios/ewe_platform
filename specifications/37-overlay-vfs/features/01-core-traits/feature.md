@@ -28,7 +28,7 @@ This feature produces **no implementations** — only trait definitions, type de
 
 This feature defines the **sync traits** which remain the public API consumed by OverlayFileSystem and all composition logic. The async counterparts (`AsyncVfsFile`, `AsyncSeekableVfsFile`, `AsyncVfsDirectory`, `AsyncVfsFileSystem`, `AsyncDeltaStore`) are defined in **Feature 20: Async-First VFS Migration**, along with the `SyncFs<A>` generic bridge that auto-generates sync trait impls from async trait impls.
 
-**Important:** The generic bridge covers `&self` methods only (`SyncFile<A>`). Seekable methods (`&mut self`) are not bridged generically — see **Feature 21: SyncBridge Seekable Cleanup** for the rationale and approach. Async-native backends provide per-backend seekable wrappers for their sync API; all backends get a fallback via `LocalSeekableFile`.
+**Important:** The generic bridge covers `&self` methods only (`SyncFile<A>`). Seekable methods are not bridged generically — see **Feature 21: SyncBridge Seekable Cleanup**. Backends that want optimized seekable implement their own sync struct wrapping `SyncFs` and delegating everything except `open_seekable` (e.g. `SyncLibsqlDelta`).
 
 Async-native backends (LibsqlDelta, TursoDelta) implement async traits only and get sync for free via `SyncFs<Backend>`. Sync-native backends (MemoryFs, NativeFs) implement sync traits directly and also implement async traits for use in async contexts.
 
@@ -41,7 +41,7 @@ Traits use associated types (`type File`, `type Directory`) rather than generics
 `SeekableVfsFile` adds `read`, `write`, `seek`, and `position` methods that mutate cursor state. Unlike the `&self` methods on `VfsFile`, these require `&mut self`. The generic sync bridge (`sync_bridge.rs`) **does not** attempt to bridge these generically — doing so requires a dangerous `Arc<Mutex<Option<A>>>` take/put-back pattern that panics on concurrent access (see Feature 21).
 
 Instead:
-- **Async-native backends** (LibsqlDelta, TursoDelta) provide per-backend seekable wrappers (e.g. `SeekableSqliteFile`) with a local `u64` cursor. The `&self` I/O methods go through the generic valtron bridge (`SyncFile`); cursor management is plain field mutation.
+- **Async-native backends** (LibsqlDelta, TursoDelta) provide per-backend seekable wrappers (e.g. `SeekableSqliteFile`) with an `Arc<AtomicU64>` cursor. The `&self` I/O methods go through the generic valtron bridge (`SyncFile`); cursor is atomic `load`/`store` — no `&mut self` needed. See **Feature 21** for details.
 - **Generic `LocalSeekableFile<A>`** in `sync_bridge.rs` adds local cursor tracking on top of any bridged `AsyncVfsFile` via `read_at`/`write_at`.
 - **Sync-native backends** (MemoryFs) implement both sync and async seekable traits directly — no bridge needed.
 

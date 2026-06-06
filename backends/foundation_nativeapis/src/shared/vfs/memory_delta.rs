@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
+use async_trait::async_trait;
+
+use super::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use super::error::VfsResult;
-use super::memory_fs::MemoryFs;
+use super::memory_fs::{MemoryFile, MemoryFs, SeekableMemoryFile};
+use super::async_traits::AsyncVfsDirectory;
 use super::traits::{DeltaStore, VfsDirectory, VfsFileSystem};
 use super::types::{OpenMode, VfsCapabilities, VfsMetadata};
 
@@ -112,7 +116,7 @@ impl VfsFileSystem for MemoryDelta {
     type Directory = <MemoryFs as VfsFileSystem>::Directory;
 
     fn capabilities(&self) -> VfsCapabilities {
-        self.fs.capabilities()
+        VfsFileSystem::capabilities(&self.fs)
     }
 
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
@@ -169,5 +173,95 @@ impl VfsFileSystem for MemoryDelta {
 
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
         self.fs.write_file(path, data)
+    }
+}
+
+// ──────────────────────────────────────────────
+// Async trait implementations (sync-native: delegate to sync)
+// ──────────────────────────────────────────────
+
+#[async_trait]
+impl AsyncVfsFileSystem for MemoryDelta {
+    type File = MemoryFile;
+    type SeekableFile = SeekableMemoryFile;
+    type Directory = <MemoryFs as AsyncVfsFileSystem>::Directory;
+
+    fn capabilities(&self) -> VfsCapabilities {
+        VfsFileSystem::capabilities(self)
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsFileSystem::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsFileSystem::exists(self, &path)
+    }
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        VfsFileSystem::chmod(self, &path, mode)
+    }
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        VfsFileSystem::symlink(self, &target, &link)
+    }
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        VfsFileSystem::readlink(self, &path)
+    }
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        VfsFileSystem::rename(self, &from, &to)
+    }
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::remove(self, &path)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsFileSystem::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsFileSystem::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        <MemoryFs as AsyncVfsFileSystem>::open_directory_async(&self.fs, path).await
+    }
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        VfsFileSystem::create(self, &path, mode)
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::mkdir(self, &path)
+    }
+}
+
+#[async_trait]
+impl AsyncDeltaStore for MemoryDelta {
+    async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> {
+        DeltaStore::add_whiteout(self, &path, version)
+    }
+
+    async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> {
+        DeltaStore::is_whiteout(self, &path)
+    }
+
+    async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
+        DeltaStore::remove_whiteout(self, &path)
+    }
+
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
+        DeltaStore::list_whiteouts(self, &dir)
+    }
+
+    async fn flush_async(&self) -> VfsResult<()> {
+        DeltaStore::flush(self)
+    }
+
+    async fn reset_async(&self) -> VfsResult<()> {
+        DeltaStore::reset(self)
     }
 }
