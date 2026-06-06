@@ -30,7 +30,7 @@ impl SqliteFile {
     async fn dentry(&self) -> VfsResult<SqliteDentry> {
         let stmt = self
             .db
-            .prepare("SELECT * FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT * FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -52,9 +52,30 @@ impl SqliteFile {
 #[async_trait]
 impl AsyncVfsFile for SqliteFile {
     async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        // Read current size from DB (may have been updated by write_at_async)
+        let current_size = {
+            let stmt = self
+                .db
+                .prepare("SELECT size FROM vfs_dentry WHERE ino = ?")
+                .await
+                .map_err(le)?;
+            let row = stmt
+                .query([self.ino])
+                .await
+                .map_err(le)?
+                .next()
+                .await
+                .map_err(le)?
+                .ok_or_else(|| {
+                    ErrorTrace::new(VfsError::NotFound {
+                        path: format!("ino={}", self.ino),
+                    })
+                })?;
+            row.get::<i64>(0).map_err(le)? as u64
+        };
         let mut buf = vec![0u8; len];
         let n =
-            read_chunk_range_async(&self.db, self.ino, self.size, self.chunk_size, &mut buf, offset)
+            read_chunk_range_async(&self.db, self.ino, current_size, self.chunk_size, &mut buf, offset)
                 .await?;
         buf.truncate(n);
         Ok(buf)
@@ -65,7 +86,7 @@ impl AsyncVfsFile for SqliteFile {
         let current_size = {
             let stmt = self
                 .db
-                .prepare("SELECT size FROM sqlite_dentry WHERE ino = ?")
+                .prepare("SELECT size FROM vfs_dentry WHERE ino = ?")
                 .await
                 .map_err(le)?;
             let row = stmt
@@ -88,7 +109,7 @@ impl AsyncVfsFile for SqliteFile {
 
         let stmt = self
             .db
-            .prepare("SELECT chunk_idx, data FROM sqlite_chunks WHERE ino = ? ORDER BY chunk_idx")
+            .prepare("SELECT chunk_idx, data FROM vfs_chunks WHERE ino = ? ORDER BY chunk_idx")
             .await
             .map_err(le)?;
         let mut rows = stmt.query([self.ino]).await.map_err(le)?;
@@ -109,13 +130,13 @@ impl AsyncVfsFile for SqliteFile {
             .map(|c| c.to_vec())
             .collect();
         self.db
-            .execute("DELETE FROM sqlite_chunks WHERE ino = ?", [self.ino])
+            .execute("DELETE FROM vfs_chunks WHERE ino = ?", [self.ino])
             .await
             .map_err(le)?;
 
         let stmt = self
             .db
-            .prepare("INSERT INTO sqlite_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
+            .prepare("INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
             .await
             .map_err(le)?;
         for (idx, chunk) in chunks.iter().enumerate() {
@@ -132,7 +153,7 @@ impl AsyncVfsFile for SqliteFile {
 
         self.db
             .execute(
-                "UPDATE sqlite_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
+                "UPDATE vfs_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
                 (
                     new_size as i64,
                     checksum.as_bytes().to_vec(),
@@ -151,7 +172,24 @@ impl AsyncVfsFile for SqliteFile {
     }
 
     async fn size_async(&self) -> VfsResult<u64> {
-        Ok(self.size)
+        let stmt = self
+            .db
+            .prepare("SELECT size FROM vfs_dentry WHERE ino = ?")
+            .await
+            .map_err(le)?;
+        let row = stmt
+            .query([self.ino])
+            .await
+            .map_err(le)?
+            .next()
+            .await
+            .map_err(le)?
+            .ok_or_else(|| {
+                ErrorTrace::new(VfsError::NotFound {
+                    path: format!("ino={}", self.ino),
+                })
+            })?;
+        Ok(row.get::<i64>(0).map_err(le)? as u64)
     }
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
@@ -266,7 +304,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
         let stmt = self
             .db
-            .prepare("SELECT * FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT * FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -289,7 +327,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let stmt = self
             .db
             .prepare(
-                "SELECT name, file_type FROM sqlite_dentry WHERE parent_ino = ? ORDER BY name",
+                "SELECT name, file_type FROM vfs_dentry WHERE parent_ino = ? ORDER BY name",
             )
             .await
             .map_err(le)?;
@@ -312,7 +350,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let stmt = self
             .db
             .prepare(
-                "SELECT name, file_type FROM sqlite_dentry WHERE parent_ino = ? AND name = ?",
+                "SELECT name, file_type FROM vfs_dentry WHERE parent_ino = ? AND name = ?",
             )
             .await
             .map_err(le)?;
@@ -345,7 +383,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
 
         self.db
             .execute(
-                "INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions, \
+                "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
                  owner_uid, owner_gid, version_id, created_at, updated_at, chunk_size) \
                  VALUES (?, ?, 'file', 0, ?, 0, 0, ?, ?, ?, 65536)",
                 (
@@ -372,7 +410,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
 
         let stmt = self
             .db
-            .prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
+            .prepare("SELECT ino FROM vfs_dentry WHERE parent_ino = ? AND name = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -418,7 +456,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
 
         self.db
             .execute(
-                "INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions, \
+                "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
                  owner_uid, owner_gid, version_id, created_at, updated_at, chunk_size) \
                  VALUES (?, ?, 'dir', 0, 493, 0, 0, ?, ?, ?, 0)",
                 (
@@ -444,7 +482,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
 
         let stmt = self
             .db
-            .prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
+            .prepare("SELECT ino FROM vfs_dentry WHERE parent_ino = ? AND name = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -477,7 +515,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
 
         let stmt = self
             .db
-            .prepare("SELECT ino, file_type FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
+            .prepare("SELECT ino, file_type FROM vfs_dentry WHERE parent_ino = ? AND name = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -495,7 +533,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         if file_type == "dir" {
             let count_stmt = self
                 .db
-                .prepare("SELECT COUNT(*) FROM sqlite_dentry WHERE parent_ino = ?")
+                .prepare("SELECT COUNT(*) FROM vfs_dentry WHERE parent_ino = ?")
                 .await
                 .map_err(le)?;
             let count = count_stmt
@@ -515,7 +553,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         }
 
         self.db
-            .execute("DELETE FROM sqlite_dentry WHERE ino = ?", [ino])
+            .execute("DELETE FROM vfs_dentry WHERE ino = ?", [ino])
             .await
             .map_err(le)?;
         Ok(())
@@ -528,7 +566,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
         self.db
             .execute(
-                "UPDATE sqlite_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
+                "UPDATE vfs_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
                 (new_name, updated_at, self.ino, old_name),
             )
             .await
@@ -540,7 +578,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let ino = resolve_path_async(self.db.clone(), path.clone()).await?;
         let stmt = self
             .db
-            .prepare("SELECT file_type, size, chunk_size FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT file_type, size, chunk_size FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -583,7 +621,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let ino = resolve_path_async(self.db.clone(), path.clone()).await?;
         let stmt = self
             .db
-            .prepare("SELECT file_type FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT file_type FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(le)?;
         let row = stmt
@@ -619,7 +657,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let ino = resolve_path_async(self.db.clone(), path.clone()).await?;
         let stmt = self
             .db
-            .prepare("SELECT * FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT * FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(le)?;
         let row = stmt

@@ -4,6 +4,9 @@
 
 Central lifecycle manager that coordinates `JwtManager`, `SessionManager`, `AuthStateMachine`, and `CredentialStore` into a single coherent interface. Handles authentication, token refresh, persistence, and logout in one place.
 
+
+CredentalStorage should be built on the capabilities of foundation_db (for db backed stores) and foundation_nativeapis to support potential things that need to store things on disk (this way it can be remote, local, s3, whatever does not matter since its abstracted away).
+
 ## Module
 
 `backends/foundation_auth/src/shared/auth_manager.rs` — shared, cross-platform

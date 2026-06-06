@@ -2,7 +2,7 @@
 
 ## Description
 
-Fetch and parse the OIDC discovery document from `/.well-known/openid-configuration`. Auto-configure `OAuthConfig` from the discovery response instead of manual endpoint setup. Works on both native and wasm.
+Fetch and parse the OIDC discovery document from `/.well-known/openid-configuration` (we should be using a specific KVStore from foundation_db for this, we can read a path on disk and load it into it or use foundation_nativeapi to create a db backed storage for this, this then allows us allow users swap the underlying implementation for a cloud, s3 backed or remote store instead of disk but still support disk if needed). Auto-configure `OAuthConfig` from the discovery response instead of manual endpoint setup. Works on both native and wasm.
 
 ## Module
 

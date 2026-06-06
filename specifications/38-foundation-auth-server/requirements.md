@@ -39,6 +39,7 @@ foundation_auth is an OAuth/OIDC client library with session management, TOTP/MF
 
 1. **Close critical client-side security gaps** — JWT signature verification (currently tokens are decoded but signatures are never verified), JWKS fetching, OIDC discovery, password authentication flows, token introspection, nonce support.
 2. **Add an IdP server module** behind the `server` feature flag — using `foundation_http` for HTTP serving and `foundation_db` for SQL-backed persistence, providing a standards-compliant OpenID Connect provider.
+3. **Async first then sync via valtron calling async** where ever possible, implementation is always in the async functions and then sync call valtron to run async code and return result, unless due to technical issues or unnecessary complexity should we clone and duplicate code for sync but this ok but rare where the complexity of calling the async via valtron is not worth it and reimplementing the logic for sync when the api already support syncs makes the most sense. This will probably mean two traits one for async and one for sync with the async one having methods ending with `*_async` to avoid conflict with the sync ones. 
 
 ## Research Sources
 

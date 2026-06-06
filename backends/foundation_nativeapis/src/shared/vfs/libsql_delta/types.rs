@@ -28,7 +28,7 @@ impl Default for ChunkConfig {
     }
 }
 
-/// Rust-side representation of a sqlite_dentry row.
+/// Rust-side representation of a vfs_dentry row.
 #[derive(Debug, Clone)]
 pub struct SqliteDentry {
     pub ino: i64,

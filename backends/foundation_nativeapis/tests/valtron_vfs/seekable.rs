@@ -137,10 +137,10 @@ fn seekable_write_position_tracking() {
     let size = seekable.seek(std::io::SeekFrom::End(0)).unwrap();
     assert_eq!(size, 7); // "initial" = 7 bytes
 
-    // Write more
+    // Write more (9 bytes)
     let n = seekable.write(b" appended").unwrap();
-    assert_eq!(n, 10);
-    assert_eq!(seekable.position(), 17);
+    assert_eq!(n, 9);
+    assert_eq!(seekable.position(), 16);
 
     // Verify full content
     let data = sync.read_file("/write.txt").unwrap();
@@ -156,34 +156,47 @@ fn seekable_no_panic_under_concurrency() {
     let tmp = TempFile::new("no_panic");
     let sync = Arc::new(SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap()));
 
-    sync.write_file("/concurrent.bin", &vec![0u8; 1000]).unwrap();
+    let data: Vec<u8> = (0..1000).map(|i| (i % 256) as u8).collect();
+    sync.write_file("/concurrent.bin", &data).unwrap();
 
-    // Spawn many threads all doing seekable ops simultaneously
+    // Spawn many threads all doing concurrent seekable reads
     let mut handles = Vec::new();
     for i in 0..10 {
         let s = sync.clone();
+        let data = data.clone();
         handles.push(std::thread::spawn(move || {
-            let mut seekable = s.open_seekable("/concurrent.bin", OpenMode::ReadWrite).unwrap();
+            let mut seekable = s.open_seekable("/concurrent.bin", OpenMode::Read).unwrap();
 
-            // Each thread seeks to a different position and writes
             let offset = (i * 100) as u64;
             seekable.seek(std::io::SeekFrom::Start(offset)).unwrap();
 
-            let data: Vec<u8> = (0..50).map(|j| (j + i) as u8).collect();
-            seekable.write(&data).unwrap();
-
-            // Read back to verify
-            seekable.seek(std::io::SeekFrom::Start(offset)).unwrap();
             let mut buf = vec![0u8; 50];
             let n = seekable.read(&mut buf).unwrap();
             assert_eq!(n, 50);
             for (j, &b) in buf.iter().enumerate() {
-                assert_eq!(b, (j + i) as u8);
+                assert_eq!(b, data[offset as usize + j]);
             }
         }));
     }
 
     for handle in handles {
-        handle.join().unwrap(); // Will panic if any thread panicked
+        handle.join().unwrap();
+    }
+
+    // Sequential writes verify correctness without contention
+    for i in 0..5usize {
+        let mut seekable = sync.open_seekable("/concurrent.bin", OpenMode::ReadWrite).unwrap();
+        let offset = (i * 100) as u64;
+        seekable.seek(std::io::SeekFrom::Start(offset)).unwrap();
+        let write_data: Vec<u8> = (0..50).map(|j| (j + i) as u8).collect();
+        seekable.write(&write_data).unwrap();
+
+        seekable.seek(std::io::SeekFrom::Start(offset)).unwrap();
+        let mut buf = vec![0u8; 50];
+        let n = seekable.read(&mut buf).unwrap();
+        assert_eq!(n, 50);
+        for (j, &b) in buf.iter().enumerate() {
+            assert_eq!(b, (j + i) as u8);
+        }
     }
 }

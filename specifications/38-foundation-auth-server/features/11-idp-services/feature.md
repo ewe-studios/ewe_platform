@@ -4,6 +4,8 @@
 
 Business logic services for the IdP server: token generation/signing, user management with Argon2id password hashing, OAuth client management, and session management. These services use the models (Feature 10) and foundation_db QueryStore for persistence.
 
+Remember two traits: async and sync versions, dont forget
+
 ## Modules
 
 `backends/foundation_auth/src/server/services/` — directory containing service files

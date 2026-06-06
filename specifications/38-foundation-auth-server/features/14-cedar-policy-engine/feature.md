@@ -18,10 +18,12 @@ Cedar is a language for defining permissions as policies. It provides:
 
 ## Reference Sources
 
+**TODO**: Upate with git repo link as well for these sources, so document is migratable without dead links
+
 - **cedar-policy crate** (v4.11.0): `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.CedarPolicy/cedar/cedar-policy/`
 - **cedar-local-agent**: `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.CedarPolicy/cedar-local-agent/` — Amazon's async `SimplePolicySetProvider` / `SimpleEntityProvider` pattern
 - **cedar-examples**: `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.CedarPolicy/cedar-examples/` — Rust hello world, TinyTodo, use cases
-- **connectrpc-cedar**: `/home/darkvoid/Boxxed/@formulas/src.rust/src.gedweb/cf-connectrpc-middleware/crates/connectrpc-cedar/` — real Cedar middleware in this org
+- **connectrpc-cedar**: `/home/darkvoid/Boxxed/@formulas/src.rust/src.gedweb/cf-connectrpc-middleware/crates/connectrpc-cedar/` — real Cedar middleware in this org (learn from this, but ensure we do this the ewe_platform way, interested in how it carries the billing account information as well)
 - **multitenant schema**: `cf-connectrpc-middleware/examples/multitenant-policies/multitenant.cedarschema`
 - **Cedar docs**: https://docs.cedarpolicy.com/
 
@@ -34,6 +36,8 @@ Cedar is a language for defining permissions as policies. It provides:
 `backends/foundation_cedar/` — a standalone crate under `backends/`.
 
 ### Feature Flags
+
+**TODO**: Lets also move the git storage interaction into foundation_nativeapis, build out the integration there and capabilities, then bring it in here with the right feature flags to provide a reusable base that supports re-use and extendability.
 
 ```toml
 [dependencies]
@@ -281,22 +285,24 @@ pub trait PolicyStore: Debug + Send + Sync {
 #[async_trait::async_trait]
 pub trait AsyncPolicyStore: Debug + Send + Sync {
     /// Load all policies from the source.
-    async fn load_policies(&self) -> Result<String, PolicyStoreError>;
+    async fn load_policies_async(&self) -> Result<String, PolicyStoreError>;
 
     /// Load the schema from the source.
-    async fn load_schema(&self) -> Result<String, PolicyStoreError>;
+    async fn load_schema_async(&self) -> Result<String, PolicyStoreError>;
 
     /// Load entities from the source (optional).
-    async fn load_entities(&self) -> Result<Option<String>, PolicyStoreError> {
+    async fn load_entities_async(&self) -> Result<Option<String>, PolicyStoreError> {
         Ok(None)
     }
 
     /// Check if policies have changed since last load.
-    async fn version(&self) -> Result<String, PolicyStoreError>;
+    async fn version_async(&self) -> Result<String, PolicyStoreError>;
 }
 ```
 
 ### Valtron Bridge
+
+**TODO**: Fix this, the goal is always had the logic in async, then use valtron to run async code in sync, this ensures the highest level of contextual support and keeps async flexible. Update this, read valtron skill, we added clear guidance for this. Review all other features in this spec to ensure we are not making the same mistake, also all async trait method should end in a `*_async` so not to conflict with the sync ones.
 
 The sync trait implementations can be wrapped for async contexts using valtron's `from_future` + `collect_one` pattern, or the `stream-to-future` bridge for native async callers:
 
@@ -347,7 +353,7 @@ pub trait EntityProvider: Debug + Send + Sync {
     /// The request contains principal, action, resource, and context — use
     /// these to fetch only the entities needed for evaluation (e.g., the
     /// user's groups, the resource's owner, etc.).
-    async fn get_entities(&self, request: &CedarRequest) -> Result<Entities, EntityProviderError>;
+    async fn get_entities_async(&self, request: &CedarRequest) -> Result<Entities, EntityProviderError>;
 }
 
 /// Sync entity provider (for non-async contexts).
@@ -357,6 +363,9 @@ pub trait SyncEntityProvider: Debug + Send + Sync {
 ```
 
 ### Default Implementations
+
+
+**TODO**: we might need to ensure these all support async query store as well so async context can use those and not just sync ones, so struct for async is important
 
 #### JWT-based EntityProvider
 
@@ -491,6 +500,8 @@ Features:
 - Supports incremental updates via `updated_at` tracking
 
 ### 4. Git Repository Store (native + wasm)
+
+**TODO**: As said, lets move the git capabilities into foundation_nativeapis, then use them here, if really custom then lets see what can be generic and placed in foundation_nativeapis for re-use and as a foundation.
 
 Policies stored in a git repository. Uses `gix` (gitoxide) crates — pure Rust, WASM-compatible.
 

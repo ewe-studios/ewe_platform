@@ -437,7 +437,7 @@ impl LibsqlDelta {
             let c = Arc::clone(&conn_arc);
             async move {
                 for pragma in schema::PRAGMAS {
-                    c.execute(pragma, ()).await.map_err(err)?;
+                    c.execute_batch(pragma).await.map_err(err)?;
                 }
                 Ok::<_, ErrorTrace<VfsError>>(())
             }
@@ -502,7 +502,7 @@ impl LibsqlDelta {
             let c = Arc::clone(&conn_arc);
             async move {
                 for pragma in schema::PRAGMAS {
-                    c.execute(pragma, ()).await.map_err(err)?;
+                    c.execute_batch(pragma).await.map_err(err)?;
                 }
                 Ok::<_, ErrorTrace<VfsError>>(())
             }
@@ -602,7 +602,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let ino = resolve_path_async(self.conn.clone(), path.clone()).await?;
         let stmt = self
             .conn
-            .prepare("SELECT * FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT * FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(err)?;
         let row = stmt
@@ -629,7 +629,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let updated_at = now_ms();
         self.conn
             .execute(
-                "UPDATE sqlite_dentry SET permissions = ?, updated_at = ? WHERE ino = ?",
+                "UPDATE vfs_dentry SET permissions = ?, updated_at = ? WHERE ino = ?",
                 (i64::from(mode), updated_at, ino),
             )
             .await
@@ -644,7 +644,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let version_id = next_version_id();
         self.conn
             .execute(
-                "INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions, \
+                "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
                  owner_uid, owner_gid, version_id, created_at, updated_at, symlink_target, chunk_size) \
                  VALUES (?, ?, 'symlink', 0, 0o777, 0, 0, ?, ?, ?, ?, 0)",
                 (name, parent_ino, version_id.to_vec(), updated_at, updated_at, target),
@@ -659,7 +659,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let stmt = self
             .conn
             .prepare(
-                "SELECT symlink_target FROM sqlite_dentry WHERE ino = ? AND file_type = 'symlink'",
+                "SELECT symlink_target FROM vfs_dentry WHERE ino = ? AND file_type = 'symlink'",
             )
             .await
             .map_err(err)?;
@@ -681,7 +681,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let updated_at = now_ms();
         self.conn
             .execute(
-                "UPDATE sqlite_dentry SET name = ?, parent_ino = ?, updated_at = ? WHERE ino = ?",
+                "UPDATE vfs_dentry SET name = ?, parent_ino = ?, updated_at = ? WHERE ino = ?",
                 (new_name, new_parent_ino, updated_at, ino),
             )
             .await
@@ -693,7 +693,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let ino = resolve_path_async(self.conn.clone(), path.clone()).await?;
         let stmt = self
             .conn
-            .prepare("SELECT file_type FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT file_type FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(err)?;
         let row = stmt
@@ -708,7 +708,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         if file_type == "dir" {
             let cs = self
                 .conn
-                .prepare("SELECT COUNT(*) FROM sqlite_dentry WHERE parent_ino = ?")
+                .prepare("SELECT COUNT(*) FROM vfs_dentry WHERE parent_ino = ?")
                 .await
                 .map_err(err)?;
             let count = cs
@@ -727,7 +727,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             }
         }
         self.conn
-            .execute("DELETE FROM sqlite_dentry WHERE ino = ?", [ino])
+            .execute("DELETE FROM vfs_dentry WHERE ino = ?", [ino])
             .await
             .map_err(err)?;
         Ok(())
@@ -737,7 +737,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let ino = resolve_path_async(self.conn.clone(), path.clone()).await?;
         let stmt = self
             .conn
-            .prepare("SELECT file_type, size, chunk_size FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT file_type, size, chunk_size FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(err)?;
         let row = stmt
@@ -772,7 +772,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let ino = resolve_path_async(self.conn.clone(), path.clone()).await?;
         let stmt = self
             .conn
-            .prepare("SELECT file_type FROM sqlite_dentry WHERE ino = ?")
+            .prepare("SELECT file_type FROM vfs_dentry WHERE ino = ?")
             .await
             .map_err(err)?;
         let row = stmt
@@ -805,7 +805,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             .expect("chunk size overflow");
         self.conn
             .execute(
-                "INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions, \
+                "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
                  owner_uid, owner_gid, version_id, created_at, updated_at, chunk_size) \
                  VALUES (?, ?, 'file', 0, ?, 0, 0, ?, ?, ?, ?)",
                 (
@@ -830,7 +830,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             })?;
         let stmt = self
             .conn
-            .prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
+            .prepare("SELECT ino FROM vfs_dentry WHERE parent_ino = ? AND name = ?")
             .await
             .map_err(err)?;
         let row = stmt
@@ -862,7 +862,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let version_id = next_version_id();
         self.conn
             .execute(
-                "INSERT INTO sqlite_dentry (name, parent_ino, file_type, size, permissions, \
+                "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
                  owner_uid, owner_gid, version_id, created_at, updated_at, chunk_size) \
                  VALUES (?, ?, 'dir', 0, 493, 0, 0, ?, ?, ?, 0)",
                 (
@@ -897,7 +897,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         let ino = resolve_path_async(self.conn.clone(), path).await?;
         let stmt = self
             .conn
-            .prepare("SELECT data FROM sqlite_chunks WHERE ino = ? ORDER BY chunk_idx")
+            .prepare("SELECT data FROM vfs_chunks WHERE ino = ? ORDER BY chunk_idx")
             .await
             .map_err(err)?;
         let mut rows = stmt.query([ino]).await.map_err(err)?;
@@ -914,32 +914,34 @@ impl AsyncDeltaStore for LibsqlDelta {
     async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> {
         let version_id = pack_version(version);
         let prefixes = whiteout_prefixes(&path);
+
+        // Insert whiteout entry
         self.conn
             .execute(
-                "INSERT OR REPLACE INTO sqlite_whiteouts (path, version_id) VALUES (?, ?)",
+                "INSERT OR REPLACE INTO vfs_whiteouts (path, version_id) VALUES (?, ?)",
                 (path.clone(), version_id.to_vec()),
             )
             .await
             .map_err(err)?;
-        let stmt = self
-            .conn
-            .prepare(
-                "INSERT OR REPLACE INTO sqlite_whiteout_prefixes (prefix, path, version_id) VALUES (?, ?, ?)",
-            )
-            .await
-            .map_err(err)?;
+
+        // Insert prefix entries individually (prepared-statement reuse silently dropped rows)
         for prefix in &prefixes {
-            stmt.execute((prefix.clone(), path.clone(), version_id.to_vec()))
+            self.conn
+                .execute(
+                    "INSERT OR REPLACE INTO vfs_whiteout_prefixes (prefix, path, version_id) VALUES (?, ?, ?)",
+                    (prefix.clone(), path.clone(), version_id.to_vec()),
+                )
                 .await
                 .map_err(err)?;
         }
+
         Ok(())
     }
 
     async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> {
         let stmt = self
             .conn
-            .prepare("SELECT version_id FROM sqlite_whiteouts WHERE path = ?")
+            .prepare("SELECT version_id FROM vfs_whiteouts WHERE path = ?")
             .await
             .map_err(err)?;
         if let Some(row) = stmt
@@ -961,14 +963,14 @@ impl AsyncDeltaStore for LibsqlDelta {
     async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
         self.conn
             .execute(
-                "DELETE FROM sqlite_whiteouts WHERE path = ?",
+                "DELETE FROM vfs_whiteouts WHERE path = ?",
                 [path.clone()],
             )
             .await
             .map_err(err)?;
         self.conn
             .execute(
-                "DELETE FROM sqlite_whiteout_prefixes WHERE path = ?",
+                "DELETE FROM vfs_whiteout_prefixes WHERE path = ?",
                 [path],
             )
             .await
@@ -980,13 +982,13 @@ impl AsyncDeltaStore for LibsqlDelta {
         let prefix = if dir == "/" {
             "/".to_string()
         } else {
-            format!("{dir}/")
+            dir
         };
         let stmt = self
             .conn
             .prepare(
-                "SELECT DISTINCT p.path, p.version_id FROM sqlite_whiteout_prefixes p \
-                 JOIN sqlite_whiteouts w ON w.path = p.path WHERE p.prefix = ? ORDER BY p.path",
+                "SELECT DISTINCT w.path, w.version_id FROM vfs_whiteouts w \
+                 JOIN vfs_whiteout_prefixes p ON p.path = w.path WHERE p.prefix = ? ORDER BY w.path",
             )
             .await
             .map_err(err)?;
@@ -1004,7 +1006,7 @@ impl AsyncDeltaStore for LibsqlDelta {
 
     async fn flush_async(&self) -> VfsResult<()> {
         self.conn
-            .execute("PRAGMA wal_checkpoint(TRUNCATE)", ())
+            .execute_batch("PRAGMA wal_checkpoint(TRUNCATE)")
             .await
             .map_err(err)?;
         Ok(())
@@ -1013,24 +1015,24 @@ impl AsyncDeltaStore for LibsqlDelta {
     async fn reset_async(&self) -> VfsResult<()> {
         let updated_at = now_ms();
         self.conn
-            .execute("DELETE FROM sqlite_chunks", ())
+            .execute("DELETE FROM vfs_chunks", ())
             .await
             .map_err(err)?;
         self.conn
-            .execute("DELETE FROM sqlite_whiteout_prefixes", ())
+            .execute("DELETE FROM vfs_whiteout_prefixes", ())
             .await
             .map_err(err)?;
         self.conn
-            .execute("DELETE FROM sqlite_whiteouts", ())
+            .execute("DELETE FROM vfs_whiteouts", ())
             .await
             .map_err(err)?;
         self.conn
-            .execute("DELETE FROM sqlite_dentry WHERE ino != 1", ())
+            .execute("DELETE FROM vfs_dentry WHERE ino != 1", ())
             .await
             .map_err(err)?;
         self.conn
             .execute(
-                "UPDATE sqlite_dentry SET version_id = X'00000000000000000000000000000000', \
+                "UPDATE vfs_dentry SET version_id = X'00000000000000000000000000000000', \
                  updated_at = ? WHERE ino = 1",
                 [updated_at],
             )
@@ -1062,7 +1064,7 @@ fn whiteout_prefixes(path: &str) -> Vec<String> {
     let parts: Vec<&str> = normalized.split('/').collect();
     for i in 1..parts.len() {
         prefixes.push(format!("/{}", parts[..i].join("/")));
-        prefixes.push(format!("{}/", parts[..i].join("/")));
+        prefixes.push(format!("/{}/", parts[..i].join("/")));
     }
     prefixes.push("/".to_string());
     prefixes

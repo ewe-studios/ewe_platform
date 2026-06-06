@@ -286,6 +286,7 @@ fn sync_libsql_list_whiteouts() {
     sync.add_whiteout("/lib/c.rs", 3).unwrap();
 
     let whiteouts = sync.list_whiteouts("/src").unwrap();
+    eprintln!("=== LIST WHITEOUTS === {:?}", whiteouts);
     assert_eq!(whiteouts.len(), 2);
 }
 

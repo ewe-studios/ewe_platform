@@ -1,5 +1,5 @@
 //! Chunking strategy for LibsqlDelta.
-//! File content is stored as ordered chunks in sqlite_chunks.
+//! File content is stored as ordered chunks in vfs_chunks.
 
 use libsql::Connection;
 
@@ -31,7 +31,7 @@ pub async fn read_chunk_range_async(
     let end_chunk = ((end - 1) / chunk_size as u64) as i64;
 
     let stmt = conn
-        .prepare("SELECT chunk_idx, data FROM sqlite_chunks WHERE ino = ? AND chunk_idx BETWEEN ? AND ? ORDER BY chunk_idx")
+        .prepare("SELECT chunk_idx, data FROM vfs_chunks WHERE ino = ? AND chunk_idx BETWEEN ? AND ? ORDER BY chunk_idx")
         .await
         .map_err(types::libsql_err)?;
 
@@ -75,15 +75,13 @@ pub async fn write_all_chunks_async(
 ) -> VfsResult<()> {
     let chunks = split_into_chunks(data, chunk_size);
 
-    let stmt = conn
-        .prepare("INSERT INTO sqlite_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
+    for (idx, &chunk) in chunks.iter().enumerate() {
+        conn.execute(
+            "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)",
+            (ino, idx as i64, chunk),
+        )
         .await
         .map_err(types::libsql_err)?;
-
-    for (idx, &chunk) in chunks.iter().enumerate() {
-        stmt.execute((ino, idx as i64, chunk))
-            .await
-            .map_err(types::libsql_err)?;
     }
 
     let checksum = blake3::hash(data);
@@ -93,7 +91,7 @@ pub async fn write_all_chunks_async(
         .as_millis() as i64;
 
     conn.execute(
-        "UPDATE sqlite_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
+        "UPDATE vfs_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
         (data.len() as i64, checksum.as_bytes().to_vec(), updated_at, ino),
     ).await.map_err(types::libsql_err)?;
 
@@ -108,21 +106,21 @@ pub async fn truncate_file_async(
     chunk_size: usize,
 ) -> VfsResult<()> {
     if new_size == 0 {
-        conn.execute("DELETE FROM sqlite_chunks WHERE ino = ?", [ino])
+        conn.execute("DELETE FROM vfs_chunks WHERE ino = ?", [ino])
             .await
             .map_err(types::libsql_err)?;
     } else {
         let last_chunk_idx = ((new_size - 1) / chunk_size as u64) as i64;
 
         conn.execute(
-            "DELETE FROM sqlite_chunks WHERE ino = ? AND chunk_idx > ?",
+            "DELETE FROM vfs_chunks WHERE ino = ? AND chunk_idx > ?",
             (ino, last_chunk_idx),
         ).await.map_err(types::libsql_err)?;
 
         let remainder = new_size as usize % chunk_size;
         if remainder != 0 {
             conn.execute(
-                "UPDATE sqlite_chunks SET data = SUBSTR(data, 1, ?) WHERE ino = ? AND chunk_idx = ?",
+                "UPDATE vfs_chunks SET data = SUBSTR(data, 1, ?) WHERE ino = ? AND chunk_idx = ?",
                 (remainder as i64, ino, last_chunk_idx),
             ).await.map_err(types::libsql_err)?;
         }
@@ -134,7 +132,7 @@ pub async fn truncate_file_async(
         .as_millis() as i64;
 
     conn.execute(
-        "UPDATE sqlite_dentry SET size = ?, updated_at = ? WHERE ino = ?",
+        "UPDATE vfs_dentry SET size = ?, updated_at = ? WHERE ino = ?",
         (new_size as i64, updated_at, ino),
     ).await.map_err(types::libsql_err)?;
 

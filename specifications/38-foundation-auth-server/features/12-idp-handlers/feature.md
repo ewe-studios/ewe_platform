@@ -66,6 +66,7 @@ Flow:
 1. Look up challenge → 400 if not found or expired
 2. Verify TOTP code against stored secret → 401 if wrong
 3. On success: create session, return `{"status": "authenticated", "session_id": "...", "cookie": {...}}`
+4. Include cookie also in response for clients that prefer to pick it up from there as well.
 
 ### Token Handler (`handlers/token.rs`)
 
