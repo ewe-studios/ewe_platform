@@ -94,6 +94,11 @@ name = "dir_delta_vfs"
 path = "tests/dir_delta_vfs/mod.rs"
 required-features = ["vfs-native"]
 
+[[test]]
+name = "observable_vfs"
+path = "tests/observable_vfs/mod.rs"
+required-features = ["vfs"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]

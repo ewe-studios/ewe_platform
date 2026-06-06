@@ -3,6 +3,7 @@ pub mod error;
 pub mod exec_async;
 pub mod memory_delta;
 pub mod memory_fs;
+pub mod observable_fs;
 pub mod overlay_fs;
 pub mod path_utils;
 pub mod sync_bridge;
@@ -21,6 +22,7 @@ pub mod arrow;
 pub use error::{VfsError, VfsResult};
 pub use memory_delta::MemoryDelta;
 pub use memory_fs::MemoryFs;
+pub use observable_fs::{ObservableFs, ObservableFile, ObservableSeekableFile, VfsEvent};
 pub use overlay_fs::OverlayFileSystem;
 pub use async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,

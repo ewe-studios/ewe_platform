@@ -35,3 +35,10 @@ pub use shared::FdState;
 // FdMonitorTask requires native::fd.
 #[cfg(feature = "fd")]
 pub use valtron::FdMonitorTask;
+
+// VFS types when the vfs feature is enabled.
+#[cfg(feature = "vfs")]
+pub use shared::vfs::{
+    ObservableFs, ObservableFile, ObservableSeekableFile, VfsEvent,
+    VfsError, VfsResult, VfsFileSystem, MemoryFs,
+};
