@@ -20,7 +20,7 @@ pub async fn resolve_path_async(conn: Arc<Connection>, path: String) -> VfsResul
 
     let mut current_ino: i64 = 1;
     for component in &components {
-        let mut stmt = conn.prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?").await.map_err(le)?;
+        let stmt = conn.prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?").await.map_err(le)?;
         let mut rows = stmt.query((current_ino, component.as_str())).await.map_err(le)?;
         if let Some(row) = rows.next().await.map_err(le)? {
             current_ino = row.get::<i64>(0).map_err(le)?;
@@ -47,8 +47,9 @@ pub async fn resolve_parent_async(conn: Arc<Connection>, path: String) -> VfsRes
 }
 
 /// Get all descendant inos of a directory using recursive CTE.
+#[allow(dead_code)]
 pub async fn subtree_inos_async(conn: Arc<Connection>, dir_ino: i64) -> VfsResult<Vec<i64>> {
-    let mut stmt = conn.prepare(
+    let stmt = conn.prepare(
         "WITH RECURSIVE subtree(ino, file_type) AS (
             SELECT ino, file_type FROM sqlite_dentry WHERE ino = ?
             UNION ALL
@@ -63,3 +64,4 @@ pub async fn subtree_inos_async(conn: Arc<Connection>, dir_ino: i64) -> VfsResul
     }
     Ok(inos)
 }
+

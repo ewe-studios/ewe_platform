@@ -24,19 +24,28 @@ This feature produces **no implementations** — only trait definitions, type de
 
 ## Design Decisions
 
-### Sync-first for Phase 1, async layered later
+### Sync traits defined here, async traits in Feature 20
 
-The spec says "async-first, sync wraps." For Phase 1, we define **sync traits only** because:
-- MemoryFs and MemoryDelta are purely in-memory — no I/O, no blocking
-- OverlayFileSystem composition logic is synchronous
-- Async trait definitions are laid out in `async_traits.rs` as a skeleton for Phase 2+
-- NativeFs (Phase 2) is where async becomes meaningful
+This feature defines the **sync traits** which remain the public API consumed by OverlayFileSystem and all composition logic. The async counterparts (`AsyncVfsFile`, `AsyncSeekableVfsFile`, `AsyncVfsDirectory`, `AsyncVfsFileSystem`, `AsyncDeltaStore`) are defined in **Feature 20: Async-First VFS Migration**, along with the `SyncFs<A>` generic bridge that auto-generates sync trait impls from async trait impls.
 
-The sync traits are the testable surface for Phase 1. Async wrapping comes when we have implementations that actually benefit from it.
+**Important:** The generic bridge covers `&self` methods only (`SyncFile<A>`). Seekable methods (`&mut self`) are not bridged generically — see **Feature 21: SyncBridge Seekable Cleanup** for the rationale and approach. Async-native backends provide per-backend seekable wrappers for their sync API; all backends get a fallback via `LocalSeekableFile`.
+
+Async-native backends (LibsqlDelta, TursoDelta) implement async traits only and get sync for free via `SyncFs<Backend>`. Sync-native backends (MemoryFs, NativeFs) implement sync traits directly and also implement async traits for use in async contexts.
 
 ### Object safety considerations
 
 Traits use associated types (`type File`, `type Directory`) rather than generics, making them suitable for both static dispatch (monomorphization) and dynamic dispatch via trait objects when needed. `VfsDirectory` methods that return directories use `Box<dyn VfsDirectory>` to enable recursive directory traversal.
+
+### `SeekableVfsFile` — no generic sync bridge
+
+`SeekableVfsFile` adds `read`, `write`, `seek`, and `position` methods that mutate cursor state. Unlike the `&self` methods on `VfsFile`, these require `&mut self`. The generic sync bridge (`sync_bridge.rs`) **does not** attempt to bridge these generically — doing so requires a dangerous `Arc<Mutex<Option<A>>>` take/put-back pattern that panics on concurrent access (see Feature 21).
+
+Instead:
+- **Async-native backends** (LibsqlDelta, TursoDelta) provide per-backend seekable wrappers (e.g. `SeekableSqliteFile`) with a local `u64` cursor. The `&self` I/O methods go through the generic valtron bridge (`SyncFile`); cursor management is plain field mutation.
+- **Generic `LocalSeekableFile<A>`** in `sync_bridge.rs` adds local cursor tracking on top of any bridged `AsyncVfsFile` via `read_at`/`write_at`.
+- **Sync-native backends** (MemoryFs) implement both sync and async seekable traits directly — no bridge needed.
+
+The `SyncFs<A>::SeekableFile` associated type uses `LocalSeekableFile<SyncFile<A::File>>` — every backend gets seekable support via `read_at`/`write_at` + local cursor. Backends with optimized seekable provide their own type in their concrete impl.
 
 ### Path conventions
 
@@ -55,7 +64,7 @@ Path normalization is centralized in `path_utils::normalize_vfs_path` (`src/shar
 
 ```
 VfsFile (offset-based byte I/O on an open file handle)
-    └── SeekableVfsFile: VfsFile (adds cursor-position state)
+    └── SeekableVfsFile: VfsFile (adds cursor-position state — no generic sync bridge, see Feature 21)
 
 VfsDirectory (directory listing, child creation, path resolution within subtree)
 

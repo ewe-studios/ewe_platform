@@ -88,9 +88,15 @@ pub enum OpenMode {
 
 FileSystem provides: `open()`, `open_seekable()`, `open_directory()`. The enum carries access intent, the method name carries capability type. Implementations that can't provide seekable return `Err`.
 
-### 4. Async-first, sync wraps via valtron
+### 4. Async-first, sync wraps via valtron (Iron Law)
 
-All implementations are written as `async fn`. The async traits are the primary surface. The sync traits are thin wrappers that use valtron to execute the async implementations synchronously. **No tokio** — the async runtime is never a library dependency. Valtron handles execution at the edge.
+All I/O logic lives in async traits (`AsyncVfsFile`, `AsyncSeekableVfsFile`, `AsyncVfsDirectory`, `AsyncVfsFileSystem`, `AsyncDeltaStore`). The sync traits are the public API, provided automatically by generic `SyncFs<A>` bridge wrappers. **No tokio** — the async runtime is never a library dependency. Valtron handles execution at the edge.
+
+**Async-native backends** (LibsqlDelta, TursoDelta, future S3Delta) implement async traits only. They get sync API for free via `SyncFs<Backend>`.
+
+**Sync-native backends** (MemoryFs, NativeFs) implement sync traits directly AND also implement async traits (methods just return immediately) so they work in async contexts too.
+
+See **Feature 20: Async-First VFS Migration** for full details, trait definitions, and sync bridge architecture.
 
 ### 5. Metadata model
 
@@ -428,11 +434,12 @@ vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
 - Feature 04: NativeFs passthrough (path containment)
 - Feature 05: DirectoryDelta
 
-### Phase 3 — Structured Storage + Serialization
+### Phase 3 — Structured Storage + Serialization + Async Migration
 - Feature 06: SqliteDelta
 - Feature 12: foundation_arrow crate (standalone, general-purpose Arrow serialization)
 - Feature 18: Scaffold derive macro
 - Feature 19: FjallFs / FjallDelta (fjall LSM-tree + cacache CAS backend)
+- Feature 20: Async-First VFS Migration (async traits, sync bridge, LibsqlDelta migration)
 
 ### Phase 4 — Transparent Mounting
 - Feature 07: FUSE adapter (Linux)

@@ -2803,6 +2803,7 @@ dependencies = [
 name = "foundation_nativeapis"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "bincode 2.0.1",
  "blake3",
  "concurrent-queue",

@@ -326,7 +326,274 @@ Our WASM-UI supports **both modes**:
 
 ---
 
-## 10. The Refined Vision for WASM-UI
+## 10. `<mount-stream />` — Streaming Server Updates
+
+### The Idea
+
+`<mount-stream />` is like `<mount-data />` but for **streaming responses**. Instead of a one-shot POST/GET that returns a single HTML fragment or JSON patch, it opens a stream (SSE or chunked HTTP) and applies a sequence of changes as they arrive.
+
+```html
+<!-- Stream into self (default) -->
+<mount-stream api="/v2/live-feed" method="GET" />
+
+<!-- Stream into a sibling element -->
+<mount-stream api="/v2/notifications" method="GET" target="next" />
+
+<!-- Stream into a parent container -->
+<mount-stream api="/v2/comments" method="POST" data="{ postId: 42 }" target="parent" />
+
+<!-- Stream into a specific element by selector -->
+<mount-stream api="/v2/dashboard" method="GET" target="#live-panel" />
+```
+
+### Target Modes
+
+| Target | Behavior | Use Case |
+|--------|----------|----------|
+| `self` (default) | Materialize changes into the element itself | Live feed, chat messages |
+| `next` | Append to the next sibling element | Notification badges next to a trigger |
+| `prev` | Prepend to the previous sibling | New items before existing list |
+| `parent` | Apply changes to the parent container | Form submission updating a list |
+| `#selector` | Target any element by CSS selector | Dashboard panels, remote sections |
+
+### Server Response Format
+
+The server streams **SSE events** (like Datastar) with typed payloads:
+
+```
+event: patch-elements
+data: selector #user-count
+data: mode inner
+data: elements <span>42</span>
+
+event: patch-signals
+data: signals {"unreadCount": 42, "lastUpdate": "2026-06-06T08:00:00Z"}
+
+event: patch-elements
+data: selector #notification-list
+data: mode append
+data: elements <div class="notification">New message</div>
+
+```
+
+The server can mix element patches and signal updates in a single stream. Each event is applied immediately as it arrives.
+
+### How It Works
+
+```
+1. Page loads, runtime encounters <mount-stream api="/v2/live-feed" method="GET" />
+2. Runtime opens SSE connection (or chunked HTTP with SSE parser)
+3. Server streams events as they occur
+4. For each event:
+   a. Parse the event type (patch-elements, patch-signals, etc.)
+   b. Resolve the target (self, sibling, parent, selector)
+   c. Apply the change:
+      - patch-elements → morph or direct DOM update
+      - patch-signals → update WASM signal store, trigger effects
+   d. Continue listening for next event
+```
+
+### Comparison with `<mount-data />`
+
+| Feature | `<mount-data />` | `<mount-stream />` |
+|---------|-----------------|-------------------|
+| Method | POST/PUT/DELETE (default POST) | POST/PUT/DELETE/GET |
+| Response | Single HTML fragment or JSON patch | Stream of SSE events |
+| Lifetime | One request → one response | Open connection → many events |
+| Use Case | Form submission, action triggers | Live feeds, notifications, real-time dashboards |
+| Target | Same as stream (self, sibling, parent, selector) | Same as data |
+
+### Why This Is Clean
+
+1. **No WebSocket complexity** — SSE is HTTP, works through proxies/CDNs, auto-reconnects
+2. **No client-side state management** — Server pushes what to change, browser applies it
+3. **Progressive enhancement** — Without JS, the element is just a placeholder. With JS, it becomes a live feed.
+4. **Composable** — Multiple `<mount-stream />` elements on one page, each with its own target and endpoint
+5. **Familiar** — Same pattern as Datastar, but expressed as a simple HTML element instead of JavaScript API
+
+### Real-World Examples
+
+```html
+<!-- Live notification count -->
+<span id="notif-count">0</span>
+<mount-stream api="/v2/notifications/stream" method="GET" target="#notif-count" />
+
+<!-- Chat messages streaming into a container -->
+<div id="chat-messages"></div>
+<mount-stream api="/v2/chat/stream" method="GET" target="#chat-messages" />
+
+<!-- Form submission that streams progress updates -->
+<form>
+    <input name="file" type="file" />
+    <button type="submit">Upload</button>
+    <div id="upload-progress"></div>
+    <mount-stream
+        api="/v2/upload"
+        method="POST"
+        data-form="this"
+        target="#upload-progress"
+    />
+</form>
+
+<!-- Dashboard panel that streams real-time metrics -->
+<div id="dashboard">
+    <mount-stream api="/v2/dashboard/stream" method="GET" target="self" />
+</div>
+```
+
+### Transport-Agnostic Design
+
+The `<mount-stream />` element is an **abstraction** — the transport is an implementation detail. The same HTML element can use different streaming protocols based on a `transport` attribute:
+
+```html
+<!-- SSE (default) — best for server-to-client streams -->
+<mount-stream api="/v2/notifications" transport="sse" />
+
+<!-- WebSocket — best for bidirectional real-time -->
+<mount-stream api="ws://localhost/v2/chat" transport="ws" />
+
+<!-- Chunked HTTP — best for large single-response streams -->
+<mount-stream api="/v2/export" method="POST" transport="chunked" />
+
+<!-- Long-polling — fallback for restrictive proxies -->
+<mount-stream api="/v2/updates" transport="poll" interval="2000" />
+
+<!-- Omit transport attribute — runtime picks best available -->
+<mount-stream api="/v2/live-feed" />
+```
+
+| Transport | Protocol | Bidirectional | Use Case |
+|-----------|----------|---------------|----------|
+| `sse` (default) | HTTP `text/event-stream` | Server → Client | Live feeds, notifications, dashboards |
+| `ws` / `wss` | WebSocket | Both ways | Chat, collaborative editing, games |
+| `chunked` | HTTP `Transfer-Encoding: chunked` | Server → Client | Large data exports, progress streams |
+| `poll` | HTTP repeated GET/POST | Client → Server (via request body) | Fallback for restrictive proxies/CDNs |
+| `auto` | Runtime negotiates | Depends on transport | Let the runtime pick the best option |
+
+### Unified Event Format
+
+Regardless of transport, the **event format is the same**. The transport is just the delivery mechanism:
+
+```
+event: patch-elements
+data: selector #notif-list
+data: mode append
+data: elements <div class="notif">New notification</div>
+
+event: patch-signals
+data: signals {"unreadCount": 5}
+
+```
+
+- **SSE**: Native `event:` and `data:` fields
+- **WebSocket**: JSON envelope `{ "event": "patch-elements", "data": { "selector": "#notif-list", ... } }`
+- **Chunked HTTP**: Same SSE format, parsed line-by-line from the chunk stream
+- **Long-polling**: Same SSE format in each poll response
+
+The runtime normalizes all transports into the same internal event stream. The server can use one format (SSE is simplest) and the runtime handles the protocol conversion.
+
+### Transport Negotiation
+
+When `transport="auto"` (or omitted), the runtime can negotiate:
+
+```
+1. Try SSE first (most servers support it, works through most proxies)
+2. If SSE fails or server indicates WebSocket support → upgrade to WS
+3. If both fail → fall back to long-polling
+```
+
+The server can advertise supported transports via response headers:
+
+```
+HTTP/1.1 200 OK
+X-Supported-Transports: sse, ws, chunked, poll
+```
+
+### How This Differs from Datastar
+
+**In Datastar** — you write JavaScript/attributes:
+
+```html
+<!-- The trigger -->
+<button data-on:click="@get('/v2/notifications/stream')">
+    Subscribe
+</button>
+
+<!-- Or use a watcher plugin -->
+<div data-watch:notifications="@get('/v2/notifications/stream')"></div>
+```
+
+The `@get()` is a **compiled expression** — Datastar's expression compiler transforms it into a `fetchEventSource()` call with an SSE parser. The runtime has to:
+
+1. Parse the attribute value
+2. Compile the expression via `genRx()`
+3. Execute the compiled function
+4. Open the SSE connection
+5. Parse incoming events
+6. Dispatch to the appropriate watcher plugin
+
+All of this requires understanding Datastar's attribute syntax (`@get`, `data-watch:`, etc.) and how the expression compiler works.
+
+**With `<mount-stream />`** — you just write HTML:
+
+```html
+<mount-stream api="/v2/notifications/stream" method="GET" target="#notif-list" />
+```
+
+That's it. No expression compilation, no attribute parsing, no `@get` syntax. The runtime:
+
+1. Scans the DOM for `<mount-stream>` elements (via MutationObserver, like Stimulus scans for `data-controller`)
+2. Reads the attributes — `api`, `method`, `target` — plain HTML attributes, no special syntax
+3. Opens the connection directly
+4. Parses events and applies them to the resolved target
+
+The server sends the **exact same SSE format** in both cases:
+
+```
+event: patch-elements
+data: selector #notif-list
+data: mode append
+data: elements <div class="notif">New notification</div>
+
+event: patch-signals
+data: signals {"unreadCount": 5}
+
+```
+
+The difference is entirely on the **client setup** side:
+
+| Aspect | Datastar Approach | `<mount-stream />` Approach |
+|--------|------------------|----------------------------|
+| Client code | `@get('/api/stream')` expression in attribute | Plain HTML element with attributes |
+| Compilation | Expression compiler (`genRx()`) transforms `$signal` references and `@actions` | None — attributes are read directly |
+| Discovery | MutationObserver finds `data-watch:` attributes | MutationObserver finds `<mount-stream>` elements |
+| Configuration | Embedded in expression syntax | Plain attributes (`api`, `method`, `target`) |
+| Server response | SSE events (`datastar-patch-elements`, `datastar-patch-signals`) | SSE events (`patch-elements`, `patch-signals`) — identical format |
+
+### The Key Insight
+
+**The server doesn't change at all.** It streams the same SSE format regardless of whether the client is Datastar or our `<mount-stream />` element. The only difference is how the client initiates the connection:
+
+- **Datastar**: Compile an expression, execute it, open SSE
+- **`<mount-stream />`**: Read HTML attributes, open SSE
+
+This is the same philosophy as `<mount-data />` and `<mount-ui />` — declarative HTML elements that the runtime discovers and acts on, no expression language needed.
+
+### The `<mount-data />` Connection
+
+`<mount-data />` is just `<mount-stream />` with `transport="single"` — one request, one response, close. They share the same target resolution, event parsing, and DOM application logic:
+
+| Feature | `<mount-data />` | `<mount-stream />` |
+|---------|-----------------|-------------------|
+| Transport | Single HTTP request/response | Persistent stream (SSE/WS/chunked/poll) |
+| Events | One batch | Many batches over time |
+| Lifecycle | Request → Response → Done | Connect → Stream → (Reconnect) → ... |
+| Target | Same resolution | Same resolution |
+| Event format | Same | Same |
+
+---
+
+## 11. The Refined Vision for WASM-UI
 
 Combining the best of the original Primal ideas with everything we've learned:
 
@@ -429,6 +696,8 @@ The original Primal ideas of `{{}}` templates, `<for-data>` elements, and `Prima
 
 What **does** matter from the original vision:
 - `<mount-ui />` as the materialization boundary
+- `<mount-data />` for one-shot POST/PUT/DELETE interactions
+- `<mount-stream />` for streaming SSE updates with target resolution
 - `primal:onclick` as the event binding mechanism
 - Script-level functions as the controller model
 - Island scoping as the lazy loading strategy

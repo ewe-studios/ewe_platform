@@ -1,13 +1,18 @@
 use std::collections::HashMap;
+use std::io::SeekFrom;
 use std::sync::{Arc, RwLock};
 
+use async_trait::async_trait;
 use foundation_errstacks::ErrorTrace;
 
+use super::async_traits::{
+    AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
+};
 use super::error::{VfsError, VfsResult};
 use super::path_utils::{file_name, normalize_vfs_path, parent_path};
 use super::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use super::types::{
-    OpenMode, SeekFrom, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata,
+    OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata,
 };
 
 const MAX_SYMLINK_HOPS: usize = 40;
@@ -233,45 +238,45 @@ pub struct SeekableMemoryFile {
 
 impl VfsFile for SeekableMemoryFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
-        self.inner.read_at(buf, offset)
+        VfsFile::read_at(&self.inner, buf, offset)
     }
 
     fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
-        self.inner.write_at(buf, offset)
+        VfsFile::write_at(&self.inner, buf, offset)
     }
 
     fn sync_data(&self) -> VfsResult<()> {
-        self.inner.sync_data()
+        VfsFile::sync_data(&self.inner)
     }
 
     fn size(&self) -> VfsResult<u64> {
-        self.inner.size()
+        VfsFile::size(&self.inner)
     }
 
     fn truncate(&self, size: u64) -> VfsResult<()> {
-        self.inner.truncate(size)
+        VfsFile::truncate(&self.inner, size)
     }
 
     fn metadata(&self) -> VfsResult<VfsMetadata> {
-        self.inner.metadata()
+        VfsFile::metadata(&self.inner)
     }
 }
 
 impl SeekableVfsFile for SeekableMemoryFile {
     fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
-        let n = self.inner.read_at(buf, self.position)?;
+        let n = VfsFile::read_at(&self.inner, buf, self.position)?;
         self.position += n as u64;
         Ok(n)
     }
 
     fn write(&mut self, buf: &[u8]) -> VfsResult<usize> {
-        let n = self.inner.write_at(buf, self.position)?;
+        let n = VfsFile::write_at(&self.inner, buf, self.position)?;
         self.position += n as u64;
         Ok(n)
     }
 
     fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let size = self.inner.size()? as i64;
+        let size = VfsFile::size(&self.inner)? as i64;
         let new_pos = match pos {
             SeekFrom::Start(n) => n as i64,
             SeekFrom::End(n) => size + n,
@@ -493,7 +498,7 @@ impl VfsDirectory for MemoryDirectory {
     }
 
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let file = self.open(path, mode)?;
+        let file = VfsDirectory::open(self, path, mode)?;
         Ok(SeekableMemoryFile {
             inner: file,
             position: 0,
@@ -715,7 +720,7 @@ impl VfsFileSystem for MemoryFs {
     }
 
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let file = self.open(path, mode)?;
+        let file = VfsFileSystem::open(self, path, mode)?;
         Ok(SeekableMemoryFile {
             inner: file,
             position: 0,
@@ -840,5 +845,302 @@ impl VfsFileSystem for MemoryFs {
                 Ok(())
             }
         }
+    }
+}
+
+// ──────────────────────────────────────────────
+// Async trait implementations (sync-native: no real awaiting)
+// ──────────────────────────────────────────────
+
+#[async_trait]
+impl AsyncVfsFile for MemoryFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = VfsFile::read_at(self, &mut buf, offset)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        VfsFile::write_at(self, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        VfsFile::sync_data(self)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        VfsFile::size(self)
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        VfsFile::truncate(self, size)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsFile::metadata(self)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsFile for SeekableMemoryFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = VfsFile::read_at(self, &mut buf, offset)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        VfsFile::write_at(self, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        VfsFile::sync_data(self)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        VfsFile::size(self)
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        VfsFile::truncate(self, size)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsFile::metadata(self)
+    }
+}
+
+#[async_trait]
+impl AsyncSeekableVfsFile for SeekableMemoryFile {
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = SeekableVfsFile::read(self, &mut buf)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
+        SeekableVfsFile::write(self, &data)
+    }
+
+    async fn seek_async(&mut self, pos: SeekFrom) -> VfsResult<u64> {
+        SeekableVfsFile::seek(self, pos)
+    }
+
+    fn position_async(&self) -> u64 {
+        SeekableVfsFile::position(self)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsDirectory for MemoryDirectory {
+    type File = MemoryFile;
+    type SeekableFile = SeekableMemoryFile;
+
+    fn path(&self) -> String {
+        VfsDirectory::path(self).to_string()
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsDirectory::metadata(self)
+    }
+
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
+        VfsDirectory::list(self)
+    }
+
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
+        VfsDirectory::get_entry(self, &name)
+    }
+
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
+        VfsDirectory::create_file(self, &name, mode)
+    }
+
+    async fn create_dir_async(
+        &self,
+        name: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = VfsDirectory::create_dir(self, &name)?;
+        Ok(Box::new(AsyncMemoryDirectory::from_sync(dir)))
+    }
+
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        VfsDirectory::remove_entry(self, &name)
+    }
+
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        VfsDirectory::rename_entry(self, &old_name, &new_name)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsDirectory::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsDirectory::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(
+        &self,
+        path: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = VfsDirectory::open_directory(self, &path)?;
+        Ok(Box::new(AsyncMemoryDirectory::from_sync(dir)))
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsDirectory::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsDirectory::exists(self, &path)
+    }
+}
+
+/// Thin wrapper that makes a `Box<dyn VfsDirectory>` implement `AsyncVfsDirectory`.
+/// Used when the sync-native `MemoryDirectory` creates child directories — the
+/// returned `Box<dyn VfsDirectory>` must be re-wrapped as an async directory.
+pub struct AsyncMemoryDirectory {
+    inner: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>,
+    cached_path: String,
+}
+
+impl AsyncMemoryDirectory {
+    fn from_sync(dir: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>) -> Self {
+        let cached_path = dir.path().to_string();
+        Self { inner: dir, cached_path }
+    }
+}
+
+#[async_trait]
+impl AsyncVfsDirectory for AsyncMemoryDirectory {
+    type File = MemoryFile;
+    type SeekableFile = SeekableMemoryFile;
+
+    fn path(&self) -> String {
+        self.cached_path.clone()
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        self.inner.metadata()
+    }
+
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
+        self.inner.list()
+    }
+
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
+        self.inner.get_entry(&name)
+    }
+
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
+        self.inner.create_file(&name, mode)
+    }
+
+    async fn create_dir_async(
+        &self,
+        name: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = self.inner.create_dir(&name)?;
+        Ok(Box::new(Self::from_sync(dir)))
+    }
+
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        self.inner.remove_entry(&name)
+    }
+
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        self.inner.rename_entry(&old_name, &new_name)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        self.inner.open(&path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        self.inner.open_seekable(&path, mode)
+    }
+
+    async fn open_directory_async(
+        &self,
+        path: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = self.inner.open_directory(&path)?;
+        Ok(Box::new(Self::from_sync(dir)))
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        self.inner.stat(&path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        self.inner.exists(&path)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for MemoryFs {
+    type File = MemoryFile;
+    type SeekableFile = SeekableMemoryFile;
+    type Directory = AsyncMemoryDirectory;
+
+    fn capabilities(&self) -> VfsCapabilities {
+        VfsFileSystem::capabilities(self)
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsFileSystem::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsFileSystem::exists(self, &path)
+    }
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        VfsFileSystem::chmod(self, &path, mode)
+    }
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        VfsFileSystem::symlink(self, &target, &link)
+    }
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        VfsFileSystem::readlink(self, &path)
+    }
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        VfsFileSystem::rename(self, &from, &to)
+    }
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::remove(self, &path)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsFileSystem::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsFileSystem::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        let dir = VfsFileSystem::open_directory(self, &path)?;
+        Ok(AsyncMemoryDirectory::from_sync(Box::new(dir)))
+    }
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        VfsFileSystem::create(self, &path, mode)
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::mkdir(self, &path)
     }
 }

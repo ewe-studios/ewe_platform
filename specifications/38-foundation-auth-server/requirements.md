@@ -73,6 +73,7 @@ foundation_auth is an OAuth/OIDC client library with session management, TOTP/MF
 | [11-idp-services](features/11-idp-services/) | Token generation (jwt-simple), user management (Argon2id), client management, session service | 2 | pending |
 | [12-idp-handlers](features/12-idp-handlers/) | OIDC endpoints: authorize, token, userinfo, jwks, discovery, introspect, device_authorize | 3 | pending |
 | [13-oidc-migrations](features/13-oidc-migrations/) | foundation_db migrations 016-019: oauth_clients, authorization_codes, refresh_tokens, device_codes | 1 | pending |
+| [14-cedar-policy-engine](features/14-cedar-policy-engine/) | Cedar policy engine with multi-source storage (R2, D1, local file, git), entity providers, HTTP middleware | 3 | pending |
 
 ## Architecture
 
@@ -342,6 +343,7 @@ The server accepts any `QueryStore + KeyValueStore` implementor, so it works wit
 ## Module References
 
 - `backends/foundation_auth/` — target crate
+- `backends/foundation_cedar/` — Cedar policy engine (feature 14 — new crate)
 - `backends/foundation_http/` — HTTP server framework (router, middleware, ServeWriter, HttpApp)
 - `backends/foundation_db/` — persistence (QueryStore, KeyValueStore, MigrationRunner)
 - `backends/foundation_netio/` — HTTP client (SimpleHttpClient for native)
@@ -352,8 +354,12 @@ The server accepts any `QueryStore + KeyValueStore` implementor, so it works wit
 ## Feature Flags
 
 ```toml
-# New feature in foundation_auth Cargo.toml
-server = ["foundation_http"]  # Opt-in IdP server module
+# New features in foundation_auth Cargo.toml
+server = ["foundation_http"]       # Opt-in IdP server module
+cedar = ["foundation_cedar"]       # Opt-in Cedar policy authorization (feature 14)
+
+# New crate: backends/foundation_cedar/
+# Feature flags defined there: native, wasm, full, partial-eval, http-middleware
 ```
 
 Existing features unchanged: `turso`, `wasm`, `wasm-bindgen-oauth`, `wasm-bindgen-session`.
@@ -381,6 +387,11 @@ Existing features unchanged: `turso`, `wasm`, `wasm-bindgen-oauth`, `wasm-bindge
 - [ ] JWT signatures use Ed25519 (default), with RS256/ES256 support
 - [ ] Rate limiting active on /auth/v1/login and /oidc/token endpoints
 - [ ] CORS configured for /.well-known and /oidc/jwks endpoints
+- [ ] CedarEngine evaluates permit/forbid policies correctly with schema validation
+- [ ] PolicyStore loads from R2, D1, local file, and git backends
+- [ ] EntityProvider builds entities from JWT claims, database, or static config
+- [ ] CedarLayer middleware gates IdP server endpoints
+- [ ] foundation_cedar compiles to both native and wasm32 targets
 
 ---
 

@@ -1,11 +1,9 @@
 //! Chunking strategy for LibsqlDelta.
 //! File content is stored as ordered chunks in sqlite_chunks.
 
-use std::sync::Arc;
-
 use libsql::Connection;
 
-use crate::shared::vfs::error::{VfsError, VfsResult};
+use crate::shared::vfs::error::VfsResult;
 use super::types;
 
 /// Split data into chunks of the given size.
@@ -32,7 +30,7 @@ pub async fn read_chunk_range_async(
     let start_chunk = (offset / chunk_size as u64) as i64;
     let end_chunk = ((end - 1) / chunk_size as u64) as i64;
 
-    let mut stmt = conn
+    let stmt = conn
         .prepare("SELECT chunk_idx, data FROM sqlite_chunks WHERE ino = ? AND chunk_idx BETWEEN ? AND ? ORDER BY chunk_idx")
         .await
         .map_err(types::libsql_err)?;
@@ -77,7 +75,7 @@ pub async fn write_all_chunks_async(
 ) -> VfsResult<()> {
     let chunks = split_into_chunks(data, chunk_size);
 
-    let mut stmt = conn
+    let stmt = conn
         .prepare("INSERT INTO sqlite_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
         .await
         .map_err(types::libsql_err)?;
