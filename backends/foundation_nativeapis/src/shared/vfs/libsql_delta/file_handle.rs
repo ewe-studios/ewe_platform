@@ -134,13 +134,11 @@ impl AsyncVfsFile for SqliteFile {
             .await
             .map_err(le)?;
 
-        let stmt = self
-            .db
-            .prepare("INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
-            .await
-            .map_err(le)?;
         for (idx, chunk) in chunks.iter().enumerate() {
-            stmt.execute((self.ino, idx as i64, chunk.as_slice()))
+            self.db
+                .execute("INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)",
+                    (self.ino, idx as i64, chunk.as_slice()),
+                )
                 .await
                 .map_err(le)?;
         }

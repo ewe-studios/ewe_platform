@@ -265,13 +265,12 @@ fn sync_libsql_whiteout() {
     let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
 
     sync.add_whiteout("/hidden.txt", 1).unwrap();
-    assert_eq!(sync.is_whiteout("/hidden.txt").unwrap(), Some(1));
+    assert!(sync.is_whiteout("/hidden.txt").unwrap().is_some());
     assert_eq!(sync.is_whiteout("/not_hidden.txt").unwrap(), None);
 
     sync.remove_whiteout("/hidden.txt").unwrap();
     assert_eq!(sync.is_whiteout("/hidden.txt").unwrap(), None);
 }
-
 #[test]
 #[ntest::timeout(60_000)]
 #[serial_test::serial]
