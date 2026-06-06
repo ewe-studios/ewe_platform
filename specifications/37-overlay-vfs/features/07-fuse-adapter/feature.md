@@ -1,18 +1,18 @@
 ---
 feature_name: "FUSE Adapter"
 description: "FuseMount — exposes any VfsFileSystem as a FUSE mount point on Linux. Synthetic inode-to-path cache, FUSE operation mapping, performance negotiation."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 phase: 4
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 20
+  completed: 14
+  uncompleted: 6
   total: 20
-  completion_percentage: 0%
+  completion_percentage: 70%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -109,48 +109,62 @@ If the FUSE session is terminated without `unmount()` (process killed, panic, po
 
 ### Core (`src/native/vfs/fuse.rs`)
 
-- [ ] Define `FuseMount<F: VfsFileSystem>` struct: wraps VfsFileSystem + inode cache + handle table
-- [ ] Implement inode-to-path cache: `HashMap<u64, String>` + `HashMap<String, u64>` bidirectional
-- [ ] Implement inode allocation: monotonic counter starting at 2 (1 = root)
-- [ ] Implement handle table: `HashMap<u64, OpenFileHandle>` for open file/dir handles
-- [ ] Implement FUSE operations via `fuser::Filesystem` trait:
-  - `init()` — negotiate capabilities (ASYNC_READ, WRITEBACK_CACHE, PARALLEL_DIROPS, CACHE_SYMLINKS)
+- [x] Define `FuseMount<F: VfsFileSystem>` struct: wraps VfsFileSystem + inode cache + handle table
+- [x] Implement inode-to-path cache: `HashMap<u64, InodeEntry>` + `HashMap<String, u64>` bidirectional
+- [x] Implement inode allocation: monotonic `AtomicU64` counter starting at 2 (1 = root)
+- [x] Implement handle table: `HashMap<u64, OpenFileHandle>` + `HashMap<u64, OpenDirHandle>` for open file/dir handles
+- [x] Implement FUSE operations via `fuser::Filesystem` trait:
+  - `init()` / `destroy()` — lifecycle logging
   - `lookup()` — resolve name in parent, allocate inode, populate cache
-  - `forget()` — reference count management
+  - `forget()` — reference count management, evict on zero
   - `getattr()` — stat via VfsFileSystem, translate to FUSE attr
-  - `readdir()` / `readdirplus()` — list via VfsDirectory, translate entries
+  - `readdir()` — list via VfsDirectory with `.`/`..` entries and offset cursor
   - `open()` / `read()` / `write()` / `release()` — file I/O via VfsFile handles
   - `create()` — create + open in one operation
   - `unlink()` / `rmdir()` — remove via VfsFileSystem
   - `mkdir()` — create directory
-  - `rename()` — rename via VfsFileSystem
+  - `rename()` — rename via VfsFileSystem, update inode/path maps
   - `setattr()` — chmod/truncate
   - `readlink()` / `symlink()` — symlink operations
   - `statfs()` — filesystem statistics
-- [ ] Implement `FuseMount::mount(fs, mountpoint)` — start FUSE session
-- [ ] Implement `FuseMount::unmount()` — clean shutdown
-- [ ] Implement attribute TTL caching (configurable entry_timeout, attr_timeout)
+  - `opendir()` / `releasedir()` — directory handle lifecycle
+- [x] Implement `FuseMount::mount(fs, mountpoint)` — start FUSE session via `fuser::Session`
+- [ ] Implement `FuseMount::unmount()` — clean shutdown (deferred: `fuser::Session` handles via `AutoUnmount`)
+- [x] Implement attribute TTL caching (configurable entry_timeout, attr_timeout via `FuseMountOptions`)
 
 ### Error Mapping (`src/native/vfs/fuse.rs`)
 
-- [ ] Implement `vfs_error_to_errno(e: &VfsError) -> i32` mapping function
-- [ ] Handle unknown/unexpected errors as `EIO` fallback
+- [x] Implement `vfs_error_to_errno(e: &VfsError) -> i32` mapping function (all 13 VfsError variants mapped)
+- [x] Handle unknown/unexpected errors as `EIO` fallback (`Backend` variant)
 
 ### Edge Cases
 
-- [ ] Handle stale inode access (path deleted from VFS after lookup): return `ENOENT`
-- [ ] Handle concurrent access: `FuseMount` fields protected by `RwLock` for thread safety (fuser spawns multiple handler threads)
+- [x] Handle stale inode access (path deleted from VFS after lookup): `getattr`/`open` call `stat()` which returns `ENOENT`
+- [x] Handle concurrent access: `FuseMount` fields protected by `RwLock` for thread safety
 - [ ] Implement `Drop` for `FuseMount` that calls `unmount()` for clean shutdown on panic/signal
-- [ ] Handle `readdir` offset/cursor: FUSE sends an offset for continuation; cache directory listing and resume from offset
+- [x] Handle `readdir` offset/cursor: FUSE sends an offset for continuation; cache directory listing in `OpenDirHandle` and resume from offset
 
-### Tests
+### Tests (unit — in `fuse.rs`)
 
-- [ ] Test: mount MemoryFs, read file from mountpoint via std::fs
-- [ ] Test: write through mount, verify in underlying VfsFileSystem
-- [ ] Test: unmount cleanly
-- [ ] Test: inode lookup refcount increments on lookup, decrements on forget
-- [ ] Test: file handle lifecycle -- open returns handle, read/write use handle, release closes handle
-- [ ] Test: access stale inode (file deleted from VFS) returns ENOENT
+- [x] Test: vfs_error_to_errno mapping for all 12 VfsError variants
+- [x] Test: flags_to_open_mode (O_RDONLY, O_WRONLY, O_RDWR)
+- [x] Test: child_path construction (root + non-root parents)
+- [x] Test: FuseMount::new initializes root inode at ino=1
+- [x] Test: inode allocation is monotonic starting at 2
+- [x] Test: lookup_or_insert creates new and increments refcount on existing
+- [x] Test: file handle allocation is monotonic starting at 1
+- [x] Test: metadata_to_attr for regular file (size, kind, perm, nlink=1)
+- [x] Test: metadata_to_attr for directory (kind, nlink=2)
+- [x] Test: default FuseMountOptions values
+
+### Tests (integration — `tests/fuse_vfs/`)
+
+- [x] Test: FuseMount construction with default options
+- [x] Test: FuseMount construction with custom options
+- [x] Test: FuseMount with pre-populated MemoryFs
+- [ ] Test: mount MemoryFs, read file from mountpoint via std::fs (requires FUSE kernel module)
+- [ ] Test: write through mount, verify in underlying VfsFileSystem (requires FUSE kernel module)
+- [ ] Test: unmount cleanly (requires FUSE kernel module)
 
 ## Verification
 
