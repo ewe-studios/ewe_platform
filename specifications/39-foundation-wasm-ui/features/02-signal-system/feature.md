@@ -1,5 +1,9 @@
 # Feature 02: Signal System
 
+**TODO**: Are we taking into considerations the optimizations, fixes and capabilties things like specifications/39-foundation-wasm-ui/learnings/r3-vs-datastar-signals.md is teaching us when we think about all these different signals based systems work (documented in here and in specifications/39-foundation-wasm-ui/learnings/signal.md, specifications/39-foundation-wasm-ui/learnings/datastar-signals-sse.md)
+
+I would like us to talk about it, present to me cleary, ask questions, lets get this right, and adopt the best parts of all these.
+
 ## Description
 
 Implement a fine-grained reactive signal system that works on both the Rust/WASM side and the DOM side, with a bidirectional bridge connecting them. No virtual DOM — signals target specific DOM nodes directly.
@@ -52,7 +56,7 @@ impl<T: Clone> Signal<T> {
 
 /// Computed signal — derived from other signals, lazy evaluation.
 pub struct Computed<T: Clone> {
-    compute: Box<dyn Fn() -> T + Send + Sync>,
+    compute: Box<dyn Fn() -> T + Send + Sync>, /// *TODO*: Question: must this be Send + Sync ?
     cache: Mutex<Option<(u64, T)>>,
     dependencies: Vec<WeakSignalRef>,
 }
@@ -71,6 +75,8 @@ impl<T: Clone + PartialEq> Computed<T> {
 
 ### DOM Signal Bridge
 
+**TODO**: I would like to create a true rust signal crate e.g foundation_signals that has no relation at all to anything DOM, which we then bring in and build on in foundation-wasm-ui
+
 ```rust
 /// Bridge that connects a Rust signal to a DOM element.
 /// When the signal changes, the DOM element is updated.
@@ -82,6 +88,8 @@ pub struct DomSignalBinding {
     subscription: SubscriberId,
 }
 
+*TODO*: how exactly does this binding work ? This is so vague and i cant figure it out.
+    
 impl DomSignalBinding {
     /// Bind a signal to a DOM element's text content.
     pub fn bind_text<T: Clone + ToString>(
@@ -103,6 +111,8 @@ impl DomSignalBinding {
 ```
 
 ### Event Signal Bridge (DOM → Rust)
+
+*TODO*: how exactly does this binding work ? This is so vague and i cant figure it out.  What exactly is the difference between this and `DomSignalBinding`.
 
 ```rust
 /// Bridge that connects a DOM event to a Rust signal.
@@ -158,6 +168,11 @@ impl EventSignalBinding {
 - Multiple signal changes in one frame → single batch apply
 
 ### Event signal bindings
+
+**TODO**: Do we really need this when the host runtime provides methods or should provide methods that are module level and do the needed binding via it's js runtime side without an actual struct for this ?
+
+I mean e.g we could bind to a parent, bind to the body and let events bubble up, capture it and send to the right place to wasm, do we even need a struct here on the rust side, especially two structs ? I can understand DOM signal struct, but we need another for event?
+
 - Registers a JS event listener on the DOM node
 - Event handler extracts data, sends to WASM via `host_invoke_async_function`
 - WASM callback updates the signal

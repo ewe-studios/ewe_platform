@@ -127,7 +127,7 @@ impl<'a> MigrationRunner<'a> {
                 &[DataValue::Text(migration.id.to_string())],
             ).await?;
 
-            let exists = !rows.is_empty();
+            let exists = !rows.collect_all().await?.is_empty();
 
             if !exists {
                 // Apply migration

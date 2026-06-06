@@ -2265,6 +2265,7 @@ dependencies = [
  "ctrlc",
  "derive_more",
  "foundation_ai",
+ "foundation_codegentools",
  "foundation_core",
  "foundation_deployment",
  "foundation_macros",
@@ -2274,7 +2275,6 @@ dependencies = [
  "foundation_packager",
  "foundation_runtimes",
  "foundation_testbed",
- "foundation_wasmtools",
  "http 1.4.0",
  "http-body 1.0.1",
  "http-body-util",
@@ -2590,6 +2590,7 @@ dependencies = [
  "arrow-schema",
  "chrono",
  "foundation_errstacks",
+ "serde_json",
 ]
 
 [[package]]
@@ -2636,6 +2637,19 @@ dependencies = [
  "tempfile",
  "toml 0.9.8",
  "walkdir",
+]
+
+[[package]]
+name = "foundation_codegentools"
+version = "0.1.0"
+dependencies = [
+ "foundation_codegen",
+ "serde",
+ "serde_json",
+ "syn 2.0.114",
+ "tempfile",
+ "toml 0.9.8",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]
@@ -2692,6 +2706,7 @@ dependencies = [
 name = "foundation_db"
 version = "0.0.1"
 dependencies = [
+ "async-stream",
  "async-trait",
  "base64 0.22.1",
  "chacha20poly1305",
@@ -2844,6 +2859,8 @@ dependencies = [
  "brotli 8.0.2",
  "chrono",
  "flate2",
+ "foundation_arrow",
+ "foundation_jsonschema",
  "foundation_nostd",
  "new_mime_guess",
  "proc-macro-crate",
@@ -3096,17 +3113,6 @@ dependencies = [
  "tracing-test",
  "walrus",
  "which 7.0.3",
-]
-
-[[package]]
-name = "foundation_wasmtools"
-version = "0.1.0"
-dependencies = [
- "foundation_codegen",
- "serde",
- "tempfile",
- "toml 0.9.8",
- "toml_edit 0.22.27",
 ]
 
 [[package]]

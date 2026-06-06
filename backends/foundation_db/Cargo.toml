@@ -41,6 +41,7 @@ tracing = "0.1"
 futures-core = "0.3"
 futures-lite = "2"
 async-trait = "0.1"
+async-stream = "0.3"
 
 # Optional wasm-bindgen dependencies
 wasm-bindgen = { version = "0.2", optional = true }

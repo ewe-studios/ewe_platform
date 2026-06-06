@@ -13,6 +13,7 @@ mod generate;
 mod models;
 // mod sandbox;
 // mod sandbox_app;
+mod schema;
 mod tcp_capture;
 mod testbed;
 mod wasm_bins;
@@ -37,6 +38,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
     // commander = sandbox_app::register(commander);
     // commander = sandbox::register(commander);
     commander = gen_api::register(commander);
+    commander = schema::register(commander);
     commander = wasm_bins::register(commander);
     commander = testbed::register(commander);
 
@@ -47,6 +49,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         // Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
         Some(("generate", arguments)) => generate::run(arguments)?,
         Some(("gen_api", arguments)) => gen_api::run(arguments)?,
+        Some(("schema", arguments)) => schema::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         // Some(("watch", arguments)) => watchful::run(arguments)?,
         Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,

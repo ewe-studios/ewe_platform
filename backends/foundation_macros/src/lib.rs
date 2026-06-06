@@ -1,8 +1,13 @@
 use proc_macro::TokenStream;
 
+mod arrow_json_schema;
+mod arrow_schema;
+mod crate_paths;
 mod embedders;
 mod json_hash;
+mod json_schema;
 mod scaffold;
+mod schema_fields;
 mod type_uuid;
 mod wasm_entrypoint;
 
@@ -340,4 +345,72 @@ pub fn scaffold_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn scaffold_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     scaffold::scaffold_impl(attr.into(), item.into()).into()
+}
+
+// ── Schema derive macros ──
+
+/// Derive macro that generates `impl ArrowSchema` for a struct.
+///
+/// Maps struct fields to Arrow `DataType` variants and generates
+/// `fields()` and `schema()` methods. Only named structs are supported.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::ArrowSchema;
+///
+/// #[derive(ArrowSchema)]
+/// struct FileEntry {
+///     name: String,
+///     size: u64,
+///     checksum: Option<Vec<u8>>,
+/// }
+/// ```
+#[proc_macro_derive(ArrowSchema)]
+pub fn arrow_schema_derive(item: TokenStream) -> TokenStream {
+    arrow_schema::arrow_schema_derive(item.into()).into()
+}
+
+/// Derive macro that generates `impl ArrowJsonSchema` for a struct.
+///
+/// Produces a pre-built `serde_json::Value` with Arrow-specific type names
+/// (UInt64, Utf8, Binary, etc.). Requires `ArrowSchema` to also be derived.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::{ArrowSchema, ArrowJsonSchema};
+///
+/// #[derive(ArrowSchema, ArrowJsonSchema)]
+/// struct FileEntry {
+///     name: String,
+///     size: u64,
+/// }
+/// ```
+#[proc_macro_derive(ArrowJsonSchema)]
+pub fn arrow_json_schema_derive(item: TokenStream) -> TokenStream {
+    arrow_json_schema::arrow_json_schema_derive(item.into()).into()
+}
+
+/// Derive macro that generates `impl JsonSchema` for a struct.
+///
+/// Produces a pre-built `serde_json::Value` conforming to the standard
+/// W3C/IETF JSON Schema specification. Non-Option fields are listed
+/// in the `required` array.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_macros::JsonSchema;
+///
+/// #[derive(JsonSchema)]
+/// struct UserProfile {
+///     name: String,
+///     age: u32,
+///     bio: Option<String>,
+/// }
+/// ```
+#[proc_macro_derive(JsonSchema)]
+pub fn json_schema_derive(item: TokenStream) -> TokenStream {
+    json_schema::json_schema_derive(item.into()).into()
 }

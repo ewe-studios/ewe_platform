@@ -48,6 +48,8 @@ Uses `arrow-rs` (official Apache Arrow Rust implementation) with selective featu
 
 ## Tasks
 
+**Note:** Schema derive macros (`#[derive(ArrowSchema)]`, `#[derive(ArrowJsonSchema)]`, `#[derive(JsonSchema)]`) and the codegen binary have been moved to [Feature 00 — Schema Derive & Codegen Tooling](../00-schema-derive-codegen/feature.md). This feature covers the runtime crate, traits, and IPC layer.
+
 ### Core Crate (`backends/foundation_arrow/`)
 
 - [x] Create `backends/foundation_arrow/` crate with Cargo.toml
@@ -60,7 +62,7 @@ Uses `arrow-rs` (official Apache Arrow Rust implementation) with selective featu
 - [x] Define `FromArrow` trait: convert Arrow `RecordBatch` back to a type (or Vec of type)
 - [x] Define `ArrowSchema` trait: generate Arrow `Schema` for a type (field names, types)
 - [x] Implement `ArrowValue<T>` helper trait for extracting typed values from `ArrayRef`
-- [ ] Implement derive macro `#[derive(ArrowSerialize)]` (in `foundation_macros` or companion proc-macro crate) — auto-generates `ToArrow`, `FromArrow`, `ArrowSchema` from struct fields
+- [ ] Implement derive macro `#[derive(ArrowSerialize)]` in `foundation_macros` — auto-generates `ToArrow`, `FromArrow`, `ArrowSchema` from struct fields
 - [ ] Field type mapping: u8→UInt8, u16→UInt16, u32→UInt32, u64→UInt64, String→Utf8, Vec\<u8\>→Binary, Option\<T\>→Nullable, bool→Boolean, enums→UInt8/dictionary, SystemTime→Timestamp
 
 ### Arrow IPC (`foundation_arrow/src/ipc.rs`)
@@ -81,7 +83,7 @@ Uses `arrow-rs` (official Apache Arrow Rust implementation) with selective featu
 
 ### Remaining Work
 
-- [ ] Derive macro `#[derive(ArrowSerialize)]` — proc macro for automatic trait generation
+- [ ] Derive macro `#[derive(ArrowSerialize)]` in `foundation_macros` — proc macro for automatic trait generation
 - [ ] VFS type implementations — `ToArrow`/`FromArrow` for `VfsMetadata`, `VfsDirEntry`, IPC messages
 - [ ] `ArrowMessageBox` adapter — bridge Arrow-encoded messages with existing IPC MessageBox trait
 - [ ] WASM/WASI compilation verification

@@ -8,11 +8,17 @@
 //! - `collect_one(stream)` — extract first `Next` value
 //! - `collect_result(stream)` — drain all `Next` values into `Vec<T>`
 
+use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 pub use crate::core::errors::StorageError;
 use crate::core::errors::StorageResult;
 use foundation_core::valtron::Stream;
+
+// Alias for futures_core::Stream to avoid name collision with valtron::Stream
+type AsyncStream<T> = Pin<Box<dyn futures_core::Stream<Item = T> + Send>>;
 
 /// Type alias for streamed storage items.
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
@@ -178,6 +184,124 @@ impl FromDataValue for bool {
     }
 }
 
+// ===========================================================================
+// Async stream types — returned by AsyncQueryStore and AsyncKeyValueStore
+// ===========================================================================
+
+/// An async stream of SQL rows from a query.
+///
+/// For Turso/Libsql: yields rows one at a time as they're fetched from the DB.
+/// For D1 backends: buffered (the HTTP/JS API returns all rows at once).
+///
+/// Callers can iterate row-by-row via `next().await` or collect all rows
+/// at once with `collect_all().await`.
+pub struct AsyncQueryStream {
+    inner: AsyncStream<StorageResult<SqlRow>>,
+}
+
+impl AsyncQueryStream {
+    /// Wrap any `futures_core::Stream<Item = StorageResult<SqlRow>>` as an AsyncQueryStream.
+    pub fn new<S>(stream: S) -> Self
+    where
+        S: futures_core::Stream<Item = StorageResult<SqlRow>> + Send + 'static,
+    {
+        Self { inner: Box::pin(stream) }
+    }
+
+    /// Collect all remaining rows into a Vec.
+    pub async fn collect_all(self) -> StorageResult<Vec<SqlRow>> {
+        self.inner.collect::<Vec<_>>().await.into_iter().collect()
+    }
+}
+
+impl futures_core::Stream for AsyncQueryStream {
+    type Item = StorageResult<SqlRow>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        Pin::new(&mut this.inner).poll_next(cx)
+    }
+}
+
+/// An async stream of keys from a list operation.
+///
+/// For Turso/Libsql: yields keys one at a time.
+/// For D1 backends: buffered (all keys arrive at once).
+pub struct AsyncListStream {
+    inner: AsyncStream<StorageResult<String>>,
+}
+
+impl AsyncListStream {
+    /// Wrap any `futures_core::Stream<Item = StorageResult<String>>` as an AsyncListStream.
+    pub fn new<S>(stream: S) -> Self
+    where
+        S: futures_core::Stream<Item = StorageResult<String>> + Send + 'static,
+    {
+        Self { inner: Box::pin(stream) }
+    }
+
+    /// Collect all remaining keys into a Vec.
+    pub async fn collect_all(self) -> StorageResult<Vec<String>> {
+        self.inner.collect::<Vec<_>>().await.into_iter().collect()
+    }
+}
+
+impl futures_core::Stream for AsyncListStream {
+    type Item = StorageResult<String>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        Pin::new(&mut this.inner).poll_next(cx)
+    }
+}
+
+// ===========================================================================
+// Sync iterator bridges — used inside `run_future_iter` worker threads
+// to bridge async streams to sync Iterators.
+// ===========================================================================
+
+/// Bridges `AsyncQueryStream` to a sync `Iterator`.
+/// Used inside `run_future_iter` worker threads where `block_on` is available.
+pub struct AsyncQueryStreamIterator {
+    stream: AsyncQueryStream,
+}
+
+impl AsyncQueryStreamIterator {
+    pub fn new(stream: AsyncQueryStream) -> Self {
+        Self { stream }
+    }
+}
+
+impl Iterator for AsyncQueryStreamIterator {
+    type Item = StorageResult<SqlRow>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use futures_lite::future::block_on;
+        block_on(self.stream.next())
+    }
+}
+
+/// Bridges `AsyncListStream` to a sync `Iterator`.
+/// Used inside `run_future_iter` worker threads where `block_on` is available.
+pub struct AsyncListStreamIterator {
+    stream: AsyncListStream,
+}
+
+impl AsyncListStreamIterator {
+    pub fn new(stream: AsyncListStream) -> Self {
+        Self { stream }
+    }
+}
+
+impl Iterator for AsyncListStreamIterator {
+    type Item = StorageResult<String>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use futures_lite::future::block_on;
+        block_on(self.stream.next())
+    }
+}
+
 /// Key-value store operations available on all backends.
 ///
 /// All methods return `StorageItemStream` for composable, non-blocking I/O.
@@ -290,12 +414,18 @@ pub trait QueryStore: Send + Sync {
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait(?Send)]
 pub trait AsyncQueryStore {
-    /// Execute a query that returns rows.
+    /// Execute a query that returns rows as an async stream.
+    ///
+    /// For Turso/Libsql: yields rows one at a time as they're fetched.
+    /// For D1 backends: buffered (API returns all rows at once).
+    ///
+    /// Use `.collect_all().await` to get all rows, or iterate row-by-row
+    /// via `.next().await`.
     async fn query_async(
         &self,
         sql: &str,
         params: &[DataValue],
-    ) -> StorageResult<Vec<SqlRow>>;
+    ) -> StorageResult<AsyncQueryStream>;
 
     /// Execute a statement that returns number of rows affected.
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
@@ -312,7 +442,11 @@ pub trait AsyncKeyValueStore {
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete_async(&self, key: &str) -> StorageResult<()>;
     async fn exists_async(&self, key: &str) -> StorageResult<bool>;
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>>;
+    /// List all keys with optional prefix filter, returning an async stream.
+    ///
+    /// For Turso/Libsql: yields keys one at a time.
+    /// For D1 backends: buffered (API returns all keys at once).
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
 }
 
 /// Rate limiting operations.

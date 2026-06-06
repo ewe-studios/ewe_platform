@@ -8,6 +8,12 @@ Create the `foundation_wasm_ui` crate and perform a clean split from `foundation
 
 **foundation_wasm_ui** is created as a new crate that owns ALL DOM/window/animation bindings. It depends on foundation_wasm and adds: signals, templates, components, Arrow-format DOM batching, web component bridge.
 
+**TODO**:
+
+1. I have been thinking of adding a feature gate called embedded that allows others pull in foundation_wasm and have it include a specific submodule that uses the foundation_macros EmbeddedAs derive macro to include the js runtime in the build so people could get the js runtime content, so e.g a http type trait can bring it in and serve the js runtime from the foundation_wasm crate by enabling that one single feature, we could even split the crate so that one module has one feature flag that only exposes that struct with the embedded runtime and another feature flag that also enables inclusion of all the actual rust code as well incase you dont need all that logic compiled into your binary. And we do this for foundation-wasm-ui as well which lets us keep all this js code in one place and able to pull them in with just one feature flag, we add defaults that enables the rust code part and others can turn off default features and enable the part they care about.
+
+2. Alot of these is still vague, we should be following our specification clarity expectations, read the specification management clarity requirements.
+
 ## Changes to foundation_wasm
 
 ### Files removed/moved:

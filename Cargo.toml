@@ -65,7 +65,7 @@ foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
 foundation_arrow = { path = "./backends/foundation_arrow", version = "0.0.1" }
 foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "0.0.1" }
 
-foundation_wasmtools = { path = "./backends/foundation_wasmtools", version = "0.1.0" }
+foundation_codegentools = { path = "./backends/foundation_codegentools", version = "0.1.0" }
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
 
 # -- workspace wide packages

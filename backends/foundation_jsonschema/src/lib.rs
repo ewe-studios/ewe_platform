@@ -62,6 +62,12 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+// ── Schema Generation ──────────────────────────────────────────────
+
+mod schema_type;
+
+pub use schema_type::JsonSchema;
+
 // ── Core Types (Feature 0) ──────────────────────────────────────────
 
 mod draft;

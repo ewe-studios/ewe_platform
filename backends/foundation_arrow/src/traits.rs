@@ -1,7 +1,8 @@
 //! Core traits for Arrow serialization.
 //!
-//! Three traits form the foundation:
+//! Four traits form the foundation:
 //! - [`ArrowSchema`] — generate an Arrow `Schema` for a type
+//! - [`ArrowJsonSchema`] — generate the Arrow schema as a JSON representation
 //! - [`ToArrow`] — convert to an Arrow `RecordBatch`
 //! - [`FromArrow`] — convert from an Arrow `RecordBatch`
 
@@ -55,6 +56,16 @@ pub trait FromArrow: ArrowSchema + Sized {
     fn from_arrow_batch(batch: &RecordBatch) -> IpcResult<Vec<Self>>
     where
         Self: Sized;
+}
+
+/// Generate a JSON representation of the Arrow schema for a Rust type.
+///
+/// Unlike standard JSON Schema, this preserves Arrow-specific type information
+/// (UInt64 vs Int64, Utf8 vs LargeUtf8, Timestamp with precision/timezone, etc.).
+///
+/// Implemented automatically via `#[derive(ArrowJsonSchema)]`.
+pub trait ArrowJsonSchema: ArrowSchema {
+    fn arrow_json_schema() -> serde_json::Value;
 }
 
 /// Helper: extract a single value from an array at a given index.

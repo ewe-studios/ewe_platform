@@ -45,6 +45,8 @@ new_mime_guess = "4.0"
 trybuild = "1.0"
 serde = { workspace = true }
 serde_json = { workspace = true }
+foundation_arrow = { workspace = true }
+foundation_jsonschema = { workspace = true }
 
 [lints]
 workspace = true

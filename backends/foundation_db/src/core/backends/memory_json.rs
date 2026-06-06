@@ -11,7 +11,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
@@ -267,12 +267,15 @@ impl AsyncKeyValueStore for MemoryJsonStore {
         Ok(data.contains_key(key))
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let data = self.lock()?;
-        Ok(data.keys()
+        let keys: Vec<String> = data.keys()
             .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
             .cloned()
-            .collect())
+            .collect();
+        Ok(AsyncListStream::new(futures_lite::stream::iter(
+            keys.into_iter().map(Ok)
+        )))
     }
 }
 

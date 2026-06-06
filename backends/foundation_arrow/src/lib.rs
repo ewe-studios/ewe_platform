@@ -20,4 +20,4 @@ pub use arrow_ipc;
 pub use arrow_schema;
 
 pub use ipc::{decode_ipc, decode_ipc_batches, decode_ipc_schema, encode_ipc, encode_ipc_batches, IpcResult};
-pub use traits::{ArrowSchema, ArrowValue, FromArrow, ToArrow};
+pub use traits::{ArrowJsonSchema, ArrowSchema, ArrowValue, FromArrow, ToArrow};

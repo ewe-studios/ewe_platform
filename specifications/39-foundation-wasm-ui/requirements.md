@@ -37,6 +37,9 @@ tasks:
 
 ## Overview
 
+**TODO**: Alot of these is still vague in the features, we should be following our specification clarity expectations, read the specification management clarity requirements.
+
+
 Build a WASM-first UI framework with a **clean crate and JS SDK split**:
 
 - **foundation_wasm** stays as the pure runtime/ABI layer — memory management, binary message system, handle/pointer allocation, function calling API. No DOM, no window, no UI concepts and maybe refactor it as well so people can use different communication providers with clarity so both sides (wasm and js can agree), this way, someone may want just plain function calls over the wire without our custom binary message system, we need to review deeply and see how we can do this very well.
@@ -183,6 +186,7 @@ foundation-wasm.js                          foundation-wasm-ui.js
 
 
 ## Crate Structure
+
 
 ```
 backends/

@@ -2,6 +2,17 @@
 
 ## Description
 
+---
+
+**TODO**: We have a foundation_html crate, lets review it if it works here e.g it can compile the html and create a compile time structure that saves cpu completely. But we could also support both, where we have two macros: 
+
+1. html_template! -> TemplateResult
+2. html! -> produces a compile time representation of the html and how the rust fields fit in which this does not even expressively describe.
+
+Lots of things in here that is not clear, lets make it clearer and more detailed.
+
+---
+
 Implement an `html!` macro for declarative template rendering inspired by lit's tagged template literals. Templates are compiled into a tree of Parts that manage dynamic content bindings. Template caching by identity ensures the same template is only parsed once.
 
 ## Module

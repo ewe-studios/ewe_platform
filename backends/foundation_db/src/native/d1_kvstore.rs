@@ -15,6 +15,7 @@ use foundation_core::valtron::{Stream, ThreadedValue};
 use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_string_async};
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use futures_lite::stream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};
@@ -22,8 +23,9 @@ use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{ResourceState, StateStatus};
 use crate::core::crypto::ZeroizingString;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
+    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
+    SqlRow, StorageItemStream,
 };
 
 /// Default Cloudflare API base. Tests override via `D1Store::with_base_url`.
@@ -743,7 +745,7 @@ impl AsyncKeyValueStore for D1Store {
         Ok(!Self::extract_rows(&response).is_empty())
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let (sql, params) = match prefix {
             Some(p) => (
                 format!("SELECT key FROM {} WHERE key LIKE ? ORDER BY key", self.kv_table()),
@@ -755,17 +757,20 @@ impl AsyncKeyValueStore for D1Store {
             ),
         };
         let response = self.execute_sql_async(&sql, &params).await?;
-        Self::extract_rows(&response)
+        let keys: Vec<String> = Self::extract_rows(&response)
             .iter()
             .map(|row| row.get("key").and_then(serde_json::Value::as_str).map(String::from)
                 .ok_or_else(|| StorageError::SqlConversion("missing or invalid key field".to_string())))
-            .collect()
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(AsyncListStream::new(stream::iter(
+            keys.into_iter().map(Ok)
+        )))
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for D1Store {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
             DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
@@ -774,7 +779,7 @@ impl AsyncQueryStore for D1Store {
             DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
         }).collect();
         let response = self.execute_sql_async(sql, &json_params).await?;
-        Self::extract_rows(&response)
+        let rows: Vec<SqlRow> = Self::extract_rows(&response)
             .iter()
             .map(|row| {
                 let obj = row.as_object().ok_or_else(|| StorageError::SqlConversion("row is not an object".to_string()))?;
@@ -790,8 +795,11 @@ impl AsyncQueryStore for D1Store {
                     };
                     (k.clone(), dv)
                 }).collect();
-                Ok(SqlRow::new(columns))
-            }).collect()
+                Ok::<_, StorageError>(SqlRow::new(columns))
+            }).collect::<Result<Vec<_>, _>>()?;
+        Ok(AsyncQueryStream::new(stream::iter(
+            rows.into_iter().map(Ok)
+        )))
     }
 
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {

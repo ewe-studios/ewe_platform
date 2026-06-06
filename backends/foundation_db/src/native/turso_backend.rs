@@ -1,16 +1,19 @@
 //! Turso storage backend implementation.
 //!
-//! Uses the Turso crate with async APIs wrapped via Valtron's
-//! `from_future` + `execute` pattern to provide Valtron-native integration.
-//! Multi-value operations return `StorageItemStream` for lazy iteration.
+//! All business logic lives in async methods. Sync methods wrap async via
+//! Valtron's `run_future_iter` (for !Send streams) or `from_future` (for
+//! single-value operations). Multi-row queries return `AsyncQueryStream`
+//! for true row-by-row async iteration.
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::StorageResult;
+use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, collect_result, execute, from_future, run_future_iter, ShortCircuit, Stream,
-    StreamIteratorExt, ThreadedValue,
+    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, StreamIteratorExt,
+    ThreadedValue,
 };
+use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
@@ -33,9 +36,9 @@ where
         .transpose();
     result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
 }
-use crate::native::rows_stream::RowsIterator;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncListStreamIterator,
+    AsyncQueryStream, AsyncQueryStreamIterator, AsyncQueryStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
@@ -489,35 +492,63 @@ impl TursoStorage {
         Ok(())
     }
 
-    /// Async query.
-    async fn query_async_internal(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<Vec<SqlRow>> {
-        let turso_params = Self::to_turso_params(params);
-        let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
+    /// Creates a lazy async stream that yields SQL rows one at a time.
+    ///
+    /// NOTE: This is a **sync function** returning a stream — it does NOT block.
+    /// The `.await` calls inside `try_stream!` are lazy: they only execute when
+    /// the stream is polled. This function just constructs and returns the
+    /// generator state machine.
+    ///
+    /// Callers use the stream in two ways:
+    /// - **Async** (`query_async`): wraps it in `AsyncQueryStream`, caller polls directly
+    /// - **Sync** (`query`): sends it through `run_future_iter`'s worker thread,
+    ///   where `block_on` polls each row on demand
+    fn query_rows_stream(
+        conn: Arc<turso::Connection>,
+        sql: String,
+        params: Vec<turso::Value>,
+    ) -> impl AsyncStream<Item = StorageResult<SqlRow>> + Send {
+        try_stream! {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt.query(params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let mut stmt = conn
-            .prepare(&sql)
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-        let mut rows = stmt
-            .query(turso_params)
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let mut results = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-        {
-            #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-            results.push(Self::turso_row_to_sql_row(&row, row.column_count() as i32)?);
+            while let Some(row) = rows.next().await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
+                #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+                yield Self::turso_row_to_sql_row(&row, row.column_count() as i32)?;
+            }
         }
-        Ok(results)
+    }
+
+    /// Creates a lazy async stream that yields KV keys one at a time.
+    ///
+    /// Same pattern as `query_rows_stream`: sync function returning a lazy stream.
+    /// The `.await` calls inside are deferred until the stream is polled.
+    ///
+    /// Used by:
+    /// - `list_keys_async` (async) — wraps in `AsyncListStream`
+    /// - `list_keys` (sync) — bridges via `run_future_iter` + `AsyncListStreamIterator`
+    fn list_keys_stream(
+        conn: Arc<turso::Connection>,
+        sql: String,
+        param: turso::Value,
+    ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
+        try_stream! {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt.query([param]).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+            while let Some(row) = rows.next().await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
+                yield row.get::<String>(0)
+                    .map_err(|e| StorageError::SqlConversion(e.to_string()))?;
+            }
+        }
     }
 
     /// Async execute (returns rows affected).
@@ -606,39 +637,15 @@ impl KeyValueStore for TursoStorage {
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let (sql, param): (&str, String) = match prefix {
-            Some(p) => (
-                "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
-                format!("{p}%"),
-            ),
-            None => ("SELECT key FROM kv_store ORDER BY key", String::new()),
-        };
+        let this = self.clone();
+        let prefix = prefix.map(String::from);
 
-        let turso_params = Self::to_turso_params(&[DataValue::Text(param.clone())]);
-        let conn = Arc::clone(&self.conn);
-
-        let iter = run_future_iter(
-            move || async move {
-                let mut stmt = conn
-                    .prepare(sql)
-                    .await
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                let rows = if param.is_empty() {
-                    stmt.query([turso::Value::Null; 0]).await
-                } else {
-                    stmt.query(turso_params).await
-                }
+        let iter = run_future_iter(move || async move {
+            let stream = this.list_keys_async(prefix.as_deref()).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-                Ok::<_, StorageError>(RowsIterator::new(rows, |row| {
-                    row.get::<String>(0)
-                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
-                }))
-            },
-            None,
-            None,
-        )
-        .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(AsyncListStreamIterator::new(stream))
+        }, None, None)
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
@@ -655,29 +662,16 @@ impl QueryStore for TursoStorage {
         sql: &str,
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let turso_params = Self::to_turso_params(params);
+        let this = self.clone();
         let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
+        let params = params.to_vec();
 
-        let iter = run_future_iter(
-            move || async move {
-                let mut stmt = conn
-                    .prepare(&sql)
-                    .await
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                let rows = stmt
-                    .query(turso_params)
-                    .await
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok::<_, StorageError>(RowsIterator::new(rows, |row| {
-                    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-                    Self::turso_row_to_sql_row(row, row.column_count() as i32)
-                }))
-            },
-            None,
-            None,
-        )
-        .map_err(|e| StorageError::Backend(e.to_string()))?;
+        let iter = run_future_iter(move || async move {
+            let stream = this.query_async(&sql, &params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(AsyncQueryStreamIterator::new(stream))
+        }, None, None)
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
@@ -797,16 +791,32 @@ impl AsyncKeyValueStore for TursoStorage {
         self.exists_async_internal(key).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        collect_result(<Self as KeyValueStore>::list_keys(self, prefix)?)
-            .into_iter().collect()
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let (sql, param) = match prefix {
+            Some(p) => (
+                "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
+                Self::to_turso_params(&[DataValue::Text(format!("{p}%"))]),
+            ),
+            None => (
+                "SELECT key FROM kv_store ORDER BY key",
+                Self::to_turso_params(&[DataValue::Null]),
+            ),
+        };
+        let conn = Arc::clone(&self.conn);
+        // param is Vec<turso::Value>, we take the first element
+        let stream = Self::list_keys_stream(conn, sql.to_string(), param.into_iter().next().unwrap_or(turso::Value::Null));
+        Ok(AsyncListStream::new(stream))
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for TursoStorage {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        self.query_async_internal(sql, params).await
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        let conn = Arc::clone(&self.conn);
+        let sql = sql.to_string();
+        let params = Self::to_turso_params(params);
+        let stream = Self::query_rows_stream(conn, sql, params);
+        Ok(AsyncQueryStream::new(stream))
     }
 
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {

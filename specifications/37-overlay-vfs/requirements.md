@@ -1,9 +1,9 @@
 ---
 description: "OverlayFileSystem — cross-platform virtual filesystem with trait-based abstraction, overlay composition (read-only base + pluggable delta store), copy-on-write, whiteout semantics, and transparent mounting adapters (FUSE, NFS, ptrace)."
-status: "pending"
+status: "in-progress"
 priority: "high"
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-06
 author: "Main Agent"
 metadata:
   version: "1.0"
@@ -24,10 +24,10 @@ builds_on:
 related_specs:
   - "specifications/34-native-file-watchers"
 tasks:
-  completed: 0
-  uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  completed: 10
+  uncompleted: 12
+  total: 22
+  completion_percentage: 45%
 ---
 
 # OverlayFileSystem — Cross-Platform Virtual File System
@@ -63,25 +63,29 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
+| [00-schema-derive-codegen](features/00-schema-derive-codegen/) | ArrowSchema, ArrowJsonSchema, JsonSchema derives in foundation_macros + foundation_codegentools codegen binary | 3 | done |
 | [01-core-traits](features/01-core-traits/) | VfsFile, SeekableVfsFile, VfsDirectory, VfsFileSystem, DeltaStore traits + types + errors | 1 | done |
 | [02-memory-impls](features/02-memory-impls/) | MemoryFs (VfsFileSystem) + MemoryDelta (DeltaStore) — in-memory, all platforms | 1 | done |
 | [03-foundation-fs](features/03-foundation-fs/) | OverlayFileSystem\<B, D\> overlay — CoW, whiteouts, directory merging | 1 | done |
 | [04-native-fs](features/04-native-fs/) | NativeFs passthrough — std::fs, path containment, Arc\<PathBuf\> root | 2 | done |
 | [05-directory-delta](features/05-directory-delta/) | DirectoryDelta — shadow directory with sentinel whiteout files | 2 | done |
-| [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | pending |
-| [06-sqlite-delta](features/06-sqlite-delta/) | SqliteDelta — SQLite-backed delta store, feature-gated | 3 | pending |
+| [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | done |
+| [06-sqlite-delta](features/06-sqlite-delta/) | LibsqlDelta — libsql-backed delta store, feature-gated | 3 | done |
+| [20-async-first-migration](features/20-async-first-migration/) | Async trait counterparts for all VFS traits, SyncFs\<A\> bridge, exec_async centralized | 3 | done |
+| [21-seekable-sync-cleanup](features/21-seekable-sync-cleanup/) | Remove Arc\<Mutex\<Option\<A\>\>\> from SyncSeekableFile, per-backend seekable wrappers | 3 | done |
+| [22-vfs-valtron-tests](features/22-vfs-valtron-tests/) | Comprehensive valtron-backed integration tests — 120 tests, all sync bridge paths | 3 | done |
+| [12-arrow-serialization](features/12-arrow-serialization/) | foundation_arrow crate — Arrow zero-copy serialization for any type, derive macro, IPC streaming | 3 | in-progress |
 | [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS, SCRU128 keys, hierarchical prefix index | 3 | pending |
 | [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | pending |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |
 | [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — Reverie/ptrace syscall interception (Linux) | 4 | pending |
-| [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | pending |
 | [11-ipc-daemon](features/11-ipc-daemon/) | VfsDaemon + VfsClient — host VfsFileSystem over IPC bus, client library, binary | 4 | pending |
-| [12-arrow-serialization](features/12-arrow-serialization/) | foundation_arrow crate — Arrow zero-copy serialization for any type, derive macro, IPC streaming | 3 | pending |
+| [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | pending |
 | [15-observable-fs](features/15-observable-fs/) | ObservableFs — decorator wrapping any VfsFileSystem, full audit event emission for ALL operations | 5 | pending |
 | [16-ld-preload-shim](features/16-ld-preload-shim/) | LD_PRELOAD/DYLD_INSERT_LIBRARIES shim — libc interception, redirects to VFS daemon | 5 | pending |
-| [17-projfs-windows](features/17-projfs-windows/) | ProjFS — Windows 10+ native projection, provider callbacks, auto-promote on write | 6 | deferred |
 | [13-cloudflare-d1-delta](features/13-cloudflare-d1-delta/) | D1Delta — Cloudflare D1 (edge SQLite) as DeltaStore | 5 | pending |
 | [14-cloudflare-r2-delta](features/14-cloudflare-r2-delta/) | R2Delta — Cloudflare R2 (S3-compatible) as DeltaStore | 5 | pending |
+| [17-projfs-windows](features/17-projfs-windows/) | ProjFS — Windows 10+ native projection, provider callbacks, auto-promote on write | 6 | deferred |
 
 ## Architecture
 
@@ -161,12 +165,12 @@ vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
 
 ## Success Criteria
 
-- [ ] Core traits compile on all targets (native, wasm32-unknown-unknown, wasm32-wasi)
-- [ ] MemoryFs + MemoryDelta pass full CRUD test suite
-- [ ] OverlayFileSystem overlay passes CoW, whiteout, and directory merging tests
-- [ ] NativeFs passthrough reads real files with path containment
-- [ ] DirectoryDelta persists writes to shadow directory
-- [ ] OverlayFileSystem<NativeFs, DirectoryDelta> end-to-end: mount dir, read existing, write new, delete, rollback
+- [x] Core traits compile on all targets (native, wasm32-unknown-unknown, wasm32-wasi)
+- [x] MemoryFs + MemoryDelta pass full CRUD test suite
+- [x] OverlayFileSystem overlay passes CoW, whiteout, and directory merging tests
+- [x] NativeFs passthrough reads real files with path containment
+- [x] DirectoryDelta persists writes to shadow directory
+- [x] OverlayFileSystem<NativeFs, DirectoryDelta> end-to-end: mount dir, read existing, write new, delete, rollback
 - [ ] FUSE adapter mounts and serves files to external processes (Linux)
 - [ ] Event emission delivers delta change events via Broadcaster
 

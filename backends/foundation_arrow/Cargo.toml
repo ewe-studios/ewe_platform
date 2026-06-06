@@ -11,6 +11,7 @@ arrow-ipc = { version = "55", default-features = false }
 arrow-data = { version = "55", default-features = false }
 arrow-buffer = { version = "55", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks" }

@@ -21,7 +21,7 @@ use crate::native::r2_blobstore::R2Store;
 use crate::native::turso_backend::TursoStorage;
 
 #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
-use crate::native::libsql_backend::LibsqlStorage;
+use crate::native::libsql_store::LibsqlStore;
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::native::json_file::JsonFileStorage;
@@ -34,8 +34,9 @@ use crate::core::errors::StorageResult;
 #[allow(unused_imports)] // used only in R2 match arms
 use crate::core::errors::StorageError;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
+    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
+    SqlRow, StorageItemStream,
 };
 
 /// Storage backend enumeration for runtime selection.
@@ -787,7 +788,7 @@ impl AsyncKeyValueStore for StorageProvider {
         }
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.list_keys_async(prefix).await,
@@ -817,7 +818,7 @@ impl AsyncKeyValueStore for StorageProvider {
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for StorageProvider {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.query_async(sql, params).await,

@@ -10,15 +10,20 @@
 //!   - `LibsqlStore::new_kv()` — KV/query/rate-limit/blob store (kv_store, rate_limits, blobs tables)
 //!   - `LibsqlStore::new_state()` — StateStore (table: `{project}_{stage}_resources`)
 //!   - `LibsqlStore::new_state_remote()` — StateStore with Turso remote sync
+//!
+//! Async is primary. Sync methods wrap async via Valtron:
+//! - `run_future_iter` for !Send streams (query, list_keys)
+//! - `from_future` + `execute` for single-value operations
 
 use std::path::Path;
 use std::sync::Arc;
 
+use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, collect_result, execute, from_future, run_future_iter, ShortCircuit, Stream,
-    StreamIteratorExt, ThreadedValue,
+    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, ThreadedValue,
 };
+use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
@@ -60,9 +65,9 @@ where
 }
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{ResourceState, StateStatus};
-use crate::native::rows_stream::LibsqlRowsIterator;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncListStreamIterator,
+    AsyncQueryStream, AsyncQueryStreamIterator, AsyncQueryStore, AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
@@ -475,30 +480,52 @@ impl LibsqlStore {
         Ok(exists)
     }
 
-    async fn query_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        let libsql_params = Self::to_libsql_params(params);
-        let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
+    /// Creates a lazy async stream that yields SQL rows one at a time.
+    ///
+    /// NOTE: This is a **sync function** returning a stream — it does NOT block.
+    /// The `.await` calls inside `try_stream!` are lazy: they only execute when
+    /// the stream is polled. This function just constructs and returns the
+    /// generator state machine.
+    fn query_rows_stream(
+        conn: Arc<libsql::Connection>,
+        sql: String,
+        params: Vec<libsql::Value>,
+    ) -> impl AsyncStream<Item = StorageResult<SqlRow>> + Send {
+        try_stream! {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt.query(params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let mut stmt = conn
-            .prepare(&sql)
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-        let mut rows = stmt
-            .query(libsql_params)
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let mut results = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-        {
-            #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-            results.push(Self::libsql_row_to_sql_row(&row, row.column_count())?);
+            while let Some(row) = rows.next().await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
+                #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+                yield Self::libsql_row_to_sql_row(&row, row.column_count())?;
+            }
         }
-        Ok(results)
+    }
+
+    /// Creates a lazy async stream that yields KV keys one at a time.
+    /// Same pattern as `query_rows_stream` — sync function returning a lazy stream.
+    fn list_keys_stream(
+        conn: Arc<libsql::Connection>,
+        sql: String,
+        param: libsql::Value,
+    ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
+        try_stream! {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt.query([param]).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+            while let Some(row) = rows.next().await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
+                yield row.get::<String>(0)
+                    .map_err(|e| StorageError::SqlConversion(e.to_string()))?;
+            }
+        }
     }
 
     async fn execute_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
@@ -716,23 +743,15 @@ impl KeyValueStore for LibsqlStore {
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let (sql, param): (&str, String) = match prefix {
-            Some(p) => ("SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key", format!("{p}%")),
-            None => ("SELECT key FROM kv_store ORDER BY key", String::new()),
-        };
-        let conn = Arc::clone(&self.conn);
+        let this = self.clone();
+        let prefix = prefix.map(String::from);
 
         let iter = run_future_iter(move || async move {
-            let mut stmt = conn.prepare(sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = if param.is_empty() {
-                stmt.query([libsql::Value::Null; 0]).await.map_err(|e| StorageError::Backend(e.to_string()))?
-            } else {
-                stmt.query([param]).await.map_err(|e| StorageError::Backend(e.to_string()))?
-            };
-            Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
-                row.get::<String>(0).map_err(|e| StorageError::SqlConversion(e.to_string()))
-            }))
-        }, None, None).map_err(|e| StorageError::Backend(e.to_string()))?;
+            let stream = this.list_keys_async(prefix.as_deref()).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(AsyncListStreamIterator::new(stream))
+        }, None, None)
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let stream = iter.map(|tv| match tv {
             ThreadedValue::Value(result) => Stream::Next(result),
@@ -748,17 +767,16 @@ impl KeyValueStore for LibsqlStore {
 
 impl QueryStore for LibsqlStore {
     fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let libsql_params = Self::to_libsql_params(params);
+        let this = self.clone();
         let sql = sql.to_string();
-        let conn = Arc::clone(&self.conn);
+        let params = params.to_vec();
 
         let iter = run_future_iter(move || async move {
-            let mut stmt = conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = stmt.query(libsql_params).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
-                Self::libsql_row_to_sql_row(row, row.column_count())
-            }))
-        }, None, None).map_err(|e| StorageError::Backend(e.to_string()))?;
+            let stream = this.query_async(&sql, &params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(AsyncQueryStreamIterator::new(stream))
+        }, None, None)
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let stream = iter.map(|tv| match tv {
             ThreadedValue::Value(result) => Stream::Next(result),
@@ -1080,16 +1098,32 @@ impl AsyncKeyValueStore for LibsqlStore {
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
         self.exists_async_internal(key).await
     }
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        collect_result(<Self as KeyValueStore>::list_keys(self, prefix)?)
-            .into_iter().collect()
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let (sql, param) = match prefix {
+            Some(p) => (
+                "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
+                Self::to_libsql_params(&[DataValue::Text(format!("{p}%"))]),
+            ),
+            None => (
+                "SELECT key FROM kv_store ORDER BY key",
+                Self::to_libsql_params(&[DataValue::Null]),
+            ),
+        };
+        let conn = Arc::clone(&self.conn);
+        let param = param.into_iter().next().unwrap_or(libsql::Value::Null);
+        let stream = Self::list_keys_stream(conn, sql.to_string(), param);
+        Ok(AsyncListStream::new(stream))
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl AsyncQueryStore for LibsqlStore {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        self.query_async_internal(sql, params).await
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        let conn = Arc::clone(&self.conn);
+        let sql = sql.to_string();
+        let params = Self::to_libsql_params(params);
+        let stream = Self::query_rows_stream(conn, sql, params);
+        Ok(AsyncQueryStream::new(stream))
     }
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         self.execute_async_internal(sql, params).await
