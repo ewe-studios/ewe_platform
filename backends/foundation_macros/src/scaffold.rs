@@ -188,8 +188,15 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         Err(e) => return e.to_compile_error(),
     };
 
-    // Parse the via attribute
+    // Parse the via attribute from #[scaffold_impl(via = "...")]
     let block_via = parse_scaffold_impl_attr(&attr);
+
+    // Parse block-level #[scaffold_call(call = { ... })] from impl block attrs
+    let block_call = impl_block
+        .attrs
+        .iter()
+        .find(|a| a.path().is_ident("scaffold_call"))
+        .and_then(|a| parse_call_block(a));
 
     // Clone items before we consume them
     let items: Vec<_> = impl_block.items.iter().cloned().collect();
@@ -200,42 +207,33 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         if let ImplItem::Fn(mut method) = item {
             // Check for scaffold!() body
             if is_scaffold_call(&method.block) {
-                // Determine the via expression for this method
-                let via_expr = method
-                    .attrs
-                    .iter()
-                    .find(|a| a.path().is_ident("scaffold_method"))
-                    .and_then(|a| parse_scaffold_method_attr(a))
-                    .or_else(|| {
-                        method
-                            .attrs
-                            .iter()
-                            .find(|a| a.path().is_ident("scaffold_call"))
-                            .and_then(|a| parse_scaffold_call_attr_as_via(a))
-                    })
-                    .or_else(|| block_via.clone());
+                // Per-method #[scaffold_call(call = { ... })] — highest priority
+                let method_call_block = find_scaffold_call_block(&method.attrs);
 
-                let via_expr = match via_expr {
-                    Some(expr) => expr,
-                    None => {
-                        return syn::Error::new(
-                            method.span(),
-                            "scaffold!() requires a delegation target: add #[scaffold_impl(via = \"...\")], #[scaffold_method(via = \"...\"), or #[scaffold_call(call = { ... })]",
-                        )
-                        .to_compile_error();
-                    }
-                };
-
-                // Check for per-method #[scaffold_call(call = { ... })]
-                let call_block = find_scaffold_call_block(&method.attrs);
-
-                // Build delegation body
-                let delegated_body = if let Some(call_block) = call_block {
-                    // Use the call block: { block }.method(args)
+                let delegated_body = if let Some(call_block) = method_call_block {
                     let call_expr = quote! { { #call_block } };
                     build_delegation(&method.sig, call_expr)
                 } else {
-                    // Simple delegation: via.method(args)
+                    // Determine via expression: method scaffold_method > block scaffold_call > block via
+                    let via_expr = method
+                        .attrs
+                        .iter()
+                        .find(|a| a.path().is_ident("scaffold_method"))
+                        .and_then(|a| parse_scaffold_method_attr(a))
+                        .or_else(|| block_call.clone().map(|b| quote! { { #b } }))
+                        .or_else(|| block_via.clone());
+
+                    let via_expr = match via_expr {
+                        Some(expr) => expr,
+                        None => {
+                            return syn::Error::new(
+                                method.span(),
+                                "scaffold!() requires a delegation target: add #[scaffold_impl(via = \"...\")], #[scaffold_method(via = \"...\")], or #[scaffold_call(call = { ... })]",
+                            )
+                            .to_compile_error();
+                        }
+                    };
+
                     build_delegation(&method.sig, via_expr)
                 };
 
@@ -415,8 +413,20 @@ fn detect_preset(wrapper: &str, field: &syn::Ident) -> proc_macro2::TokenStream 
 }
 
 fn parse_call_block(attr: &Attribute) -> Option<proc_macro2::TokenStream> {
-    // Parse call = { ... }
+    // Parse [field = "...",] call = { ... }
     attr.parse_args_with(|input: syn::parse::ParseStream| {
+        // Skip optional `field = "...",` prefix
+        if input.peek(syn::Ident) {
+            let ident: syn::Ident = input.fork().parse()?;
+            if ident == "field" {
+                let _: syn::Ident = input.parse()?;
+                input.parse::<Token![=]>()?;
+                let _: syn::LitStr = input.parse()?;
+                if input.peek(Token![,]) {
+                    input.parse::<Token![,]>()?;
+                }
+            }
+        }
         let ident: syn::Ident = input.parse()?;
         if ident != "call" {
             return Err(syn::Error::new(ident.span(), "expected `call`"));

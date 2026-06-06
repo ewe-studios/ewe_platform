@@ -8,10 +8,10 @@ created: 2026-06-05
 updated: 2026-06-06
 dependencies: []
 tasks:
-  completed: 43
-  uncompleted: 4
+  completed: 47
+  uncompleted: 0
   total: 47
-  completion_percentage: 91%
+  completion_percentage: 100%
 ---
 
 # Feature 18: Scaffold Derive Macro
@@ -625,25 +625,25 @@ The `macro_rules!` macro is the bridge between `#[scaffoldable]` and `#[derive(S
 ### Tests — automatic pathway
 - [x] `test_scaffoldable_generates_macro` — #[scaffoldable] produces __scaffold_methods macro (implicit via derive tests)
 - [x] `test_derive_scaffold_basic` — all pub methods forwarded automatically
-- [ ] `test_derive_scaffold_arc` — Arc<T> field, deref access
+- [x] `test_derive_scaffold_arc` — Arc<T> field, deref access
 - [x] `test_derive_scaffold_mutex` — Mutex<T> field, preset lock access
-- [ ] `test_derive_scaffold_explicit_call` — #[scaffold_call] on field overrides preset
+- [x] `test_derive_scaffold_explicit_call` — #[scaffold_call] on field overrides preset
 - [x] `test_derive_scaffold_multiple_fields` — two scaffolded fields, methods from both
 - [x] `test_scaffoldable_skips_private` — private methods not forwarded
 
 ### Tests — manual pathway
 - [x] `test_scaffold_impl_basic` — all scaffold!() methods delegated
 - [x] `test_scaffold_impl_override` — real body kept, scaffold!() delegated
-- [ ] `test_scaffold_method_selective` — only tagged methods delegated
-- [ ] `test_scaffold_call_block_mutex` — call block with lock().unwrap()
-- [ ] `test_scaffold_call_block_multiline` — multiline call block with setup code
-- [ ] `test_scaffold_call_per_method_override` — block-level via + per-method call override
-- [ ] `test_mixed_via_sources` — different methods via scaffold_method to different fields
+- [x] `test_scaffold_method_selective` — only tagged methods delegated
+- [x] `test_scaffold_call_block_mutex` — call block with lock().unwrap()
+- [x] `test_scaffold_call_block_multiline` — multiline call block with setup code
+- [x] `test_scaffold_call_per_method_override` — block-level via + per-method call override
+- [x] `test_mixed_via_sources` — different methods via scaffold_method to different fields
 
 ### Tests — error cases (trybuild)
 - [x] `test_scaffold_fallback_panics` — scaffold!() without #[scaffold_impl] panics at runtime
-- [ ] `trybuild_fail_no_scaffoldable` — compile error if inner type missing #[scaffoldable]
-- [ ] `trybuild_fail_no_delegation_target` — compile error if scaffold!() method has no via/call
+- [x] `trybuild_fail_no_scaffoldable` — compile error if inner type missing #[scaffoldable]
+- [x] `trybuild_fail_no_delegation_target` — compile error if scaffold!() method has no via/call
 
 ### Apply to VFS
 - [x] Refactor DirectoryDelta VfsFileSystem impl to use #[scaffold_impl]

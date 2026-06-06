@@ -1,0 +1,15 @@
+error: scaffold!() requires a delegation target: add #[scaffold_impl(via = "...")], #[scaffold_method(via = "...")], or #[scaffold_call(call = { ... })]
+  --> tests/trybuild/fail/scaffold_no_delegation_target.rs:15:5
+   |
+15 | /     fn do_thing(&self) -> u32 {
+16 | |         scaffold!()
+17 | |     }
+   | |_____^
+
+warning: unused import: `foundation_nostd::macros::scaffold`
+ --> tests/trybuild/fail/scaffold_no_delegation_target.rs:2:5
+  |
+2 | use foundation_nostd::macros::scaffold;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

@@ -83,6 +83,17 @@ impl VfsTask {
         }
     }
 
+    /// Set the bounded channel capacity for downstream subscribers.
+    ///
+    /// Higher capacity = more memory, fewer drops under load.
+    /// Lower capacity = less memory, more drops under load.
+    /// Default is 64.
+    #[must_use]
+    pub fn with_channel_capacity(mut self, cap: usize) -> Self {
+        self.broadcaster = EventBroadcaster::new(cap);
+        self
+    }
+
     /// Get a `StopSignal` that can terminate this task when signaled.
     #[must_use]
     pub fn stop_signal(&self) -> StopSignal {

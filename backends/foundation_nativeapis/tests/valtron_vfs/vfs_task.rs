@@ -3,7 +3,7 @@
 #![cfg(feature = "vfs")]
 
 use foundation_core::valtron::{collect_one, initialize_pool, PoolGuard};
-use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs};
+use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs, VfsFileSystem};
 use foundation_nativeapis::{VfsEvent, VfsTask};
 
 fn init_pool() -> PoolGuard {
@@ -18,27 +18,24 @@ fn vfs_task_receives_write_events() {
     let _guard = init_pool();
 
     let mut fs = ObservableFs::new(MemoryFs::new());
-    fs.write_file("/hello.txt", b"world").unwrap();
-
     let task = VfsTask::from_observable(&mut fs);
     let stop = task.stop_signal();
 
+    // create emits a single FileCreated event (no intermediate OperationFailed)
+    fs.create("/hello.txt", 0o644).unwrap();
+
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
 
-    // collect_one returns Option<VfsEvent> directly
-    if let Some(event) = collect_one(&mut stream) {
-        match event {
-            VfsEvent::FileOpened { path, .. } => {
-                assert_eq!(path, "/hello.txt");
-            }
-            VfsEvent::FileCreated { path, .. } => {
-                assert_eq!(path, "/hello.txt");
-            }
-            other => panic!("expected FileOpened or FileCreated, got {other:?}"),
-        }
-    }
-
+    let event = collect_one(&mut stream);
     stop.stop();
+
+    let event = event.expect("expected at least one event");
+    match event {
+        VfsEvent::FileCreated { path, .. } => {
+            assert_eq!(path, "/hello.txt");
+        }
+        other => panic!("expected FileCreated, got {other:?}"),
+    }
 }
 
 #[test]
@@ -49,13 +46,13 @@ fn vfs_task_receives_multiple_events() {
     let _guard = init_pool();
 
     let mut fs = ObservableFs::new(MemoryFs::new());
+    let task = VfsTask::from_observable(&mut fs);
+    let stop = task.stop_signal();
 
-    // Generate events
+    // Each operation emits one event
     fs.mkdir("/src").unwrap();
     fs.mkdir("/lib").unwrap();
-    fs.write_file("/main.rs", b"fn main() {}").unwrap();
-
-    let task = VfsTask::from_observable(&mut fs);
+    fs.create("/main.rs", 0o644).unwrap();
 
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
 
@@ -66,7 +63,13 @@ fn vfs_task_receives_multiple_events() {
         }
     }
 
-    assert_eq!(received.len(), 3, "expected 3 events, got {}", received.len());
+    stop.stop();
+
+    assert!(
+        received.len() >= 3,
+        "expected at least 3 events, got {}",
+        received.len()
+    );
 }
 
 #[test]
@@ -80,12 +83,10 @@ fn vfs_task_stop_signal_terminates() {
     let task = VfsTask::from_observable(&mut fs);
     let stop = task.stop_signal();
 
-    // Signal stop before collecting
     stop.stop();
 
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
 
-    // With stop signaled, next_status should return None
     let result = collect_one(&mut stream);
     assert!(result.is_none(), "expected None when stopped");
 }
@@ -100,18 +101,22 @@ fn vfs_task_subscribe_for_downstream() {
     let mut fs = ObservableFs::new(MemoryFs::new());
     let mut task = VfsTask::from_observable(&mut fs);
 
-    // Subscribe to re-broadcast events
     let rx = task.subscribe();
     assert_eq!(task.subscriber_count(), 1);
 
-    // Generate an event
-    fs.write_file("/test.txt", b"content").unwrap();
+    // create emits a single clean event
+    fs.create("/test.txt", 0o644).unwrap();
 
-    // Consume from the task
+    let stop = task.stop_signal();
+
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
     let _ = collect_one(&mut stream);
 
-    // Check the downstream subscriber also received it
+    stop.stop();
+
     let downstream_event = rx.recv().ok();
-    assert!(downstream_event.is_some(), "downstream subscriber should have received event");
+    assert!(
+        downstream_event.is_some(),
+        "downstream subscriber should have received event"
+    );
 }

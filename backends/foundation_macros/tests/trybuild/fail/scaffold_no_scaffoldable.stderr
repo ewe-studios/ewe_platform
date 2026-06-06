@@ -1,0 +1,6 @@
+error: cannot find macro `__scaffold_methods_PlainInner` in this scope
+  --> tests/trybuild/fail/scaffold_no_scaffoldable.rs:16:5
+   |
+16 | /     #[scaffold(field)]
+17 | |     inner: PlainInner,
+   | |_____________________^

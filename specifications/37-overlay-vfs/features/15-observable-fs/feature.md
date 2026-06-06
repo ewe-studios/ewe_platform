@@ -1,18 +1,18 @@
 ---
 feature_name: "ObservableFs"
 description: "ObservableFs<F: VfsFileSystem> — decorator that wraps any VfsFileSystem, intercepts ALL operations (reads, writes, seeks, stat, readdir, etc.), emits typed audit events via Broadcaster. Full audit trail as a separate concern."
-status: "pending"
+status: "done"
 priority: "medium"
 phase: 5
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 

@@ -1,7 +1,7 @@
 ---
 feature_name: "Valtron Integration"
 description: "VfsTask — valtron task that consumes ObservableFs events via Broadcaster, integrating with spec-34 file watcher infrastructure for multi-subscriber event consumption and reactive workflows."
-status: "pending"
+status: "done"
 priority: "medium"
 phase: 5
 created: 2026-06-04
@@ -10,10 +10,10 @@ dependencies:
   - "01-core-traits"
   - "15-observable-fs"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -134,22 +134,22 @@ fn test_vfs_task() {
 
 ### VfsTask (`src/valtron/vfs_task.rs`)
 
-- [ ] Define `VfsTask` struct: holds `Arc<SharedVfsReceiver>`, `StopSignal`, `EventBroadcaster<VfsEvent>`
-- [ ] Define `VfsEventReadiness` struct: implements `EventReadiness` via channel `is_empty()` check
-- [ ] Implement valtron `TaskIterator` for `VfsTask`:
+- [x] Define `VfsTask` struct: holds `Receiver<VfsEvent>`, `StopSignal`, `EventBroadcaster<VfsEvent>`
+- [x] Define `VfsEventReadiness` struct: implements `EventReadiness` via channel `is_empty()` check
+- [x] Implement valtron `TaskIterator` for `VfsTask`:
   - `next_status()` checks `StopSignal` first (return `None` if stopped)
   - `try_recv()` from shared receiver: if event, broadcast to subscribers, return `Ready(event)`
   - No event: return `Depends(Arc::new(readiness.clone()))` to park the task
-- [ ] Implement `VfsTask::from_observable(observable_fs)` -- subscribe to ObservableFs Broadcaster, wrap receiver
-- [ ] Implement `VfsTask::subscribe()` -- returns `(Sender<VfsEvent>, Receiver<VfsEvent>)` for downstream consumers
-- [ ] Implement `VfsTask::stop_signal()` -- returns `StopSignal` for clean termination
-- [ ] Implement `VfsTask::with_channel_capacity(cap: usize)` -- configure bounded channel size (default 64)
+- [x] Implement `VfsTask::from_observable(observable_fs)` -- subscribe to ObservableFs Broadcaster, wrap receiver
+- [x] Implement `VfsTask::subscribe()` -- returns `Receiver<VfsEvent>` for downstream consumers
+- [x] Implement `VfsTask::stop_signal()` -- returns `StopSignal` for clean termination
+- [x] Implement `VfsTask::with_channel_capacity(cap: usize)` -- configure bounded channel size (default 64)
 
 ### Tests
 
-- [ ] Test: write through ObservableFs, VfsTask yields corresponding event via `collect_one()`
-- [ ] Test: VfsTask integrates with valtron executor (spawn, poll, receive)
-- [ ] Test: StopSignal terminates VfsTask cleanly (no hang)
+- [x] Test: write through ObservableFs, VfsTask yields corresponding event via `collect_one()`
+- [x] Test: VfsTask integrates with valtron executor (spawn, poll, receive)
+- [x] Test: StopSignal terminates VfsTask cleanly (no hang)
 
 ## Verification
 
