@@ -8,35 +8,20 @@ members = [
   "infrastructure/*",
   "tests",  # Workspace integration tests
   "benches",  # Workspace benchmarks
-
-  # examples
-  # "examples/web/*",
-  # "examples/intro",
-  # "examples/template/*",
-  "examples/cf-login-app",
-  "examples/cf-valtron-counter",
-  "backends/foundation_wasm_testbed",
-
 ]
 
 exclude = [
   "artefacts/*",
-  "crates/html-macro",
   "templates/*",
-  "examples/todo",
-  "examples/testbed/*",
+  # examples are self-contained crates — build individually as needed
+  "examples/*",
   # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
-  # llama-cpp examples (depend on hf-hub which pulls in aws-lc-sys with broken build)
-  "examples/llama-cpp/*",
   # tests members
   "integrations/nodejs/integrations/*",
   # devserver
   "crates/*",
-  "examples/web/*",
-  "examples/intro",
-  "examples/template/*",
 ]
 
 [workspace.package]

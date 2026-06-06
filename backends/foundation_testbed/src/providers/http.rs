@@ -14,7 +14,7 @@
 use std::path::Path;
 use std::time::Duration;
 
-use foundation_netio::simple_http::client::body_reader::{collect_bytes_into, collect_strings_from_send_safe};
+use foundation_netio::simple_http::client::shared::body_reader::{collect_bytes_into, collect_strings_from_send_safe};
 use foundation_netio::simple_http::client::SimpleHttpClient;
 
 use crate::config::{Result, TestbedError};

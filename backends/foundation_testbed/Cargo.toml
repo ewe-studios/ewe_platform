@@ -23,7 +23,7 @@ all-providers = ["qemu", "utm"]
 [dependencies]
 foundation_errstacks = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
-foundation_netio = { workspace = true }
+foundation_netio = { workspace = true, features = ["multi"] }
 
 # CLI
 clap = { version = "4", features = ["derive"], optional = true }
