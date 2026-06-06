@@ -14,6 +14,11 @@ tasks:
   uncompleted: 10
   total: 10
   completion_percentage: 0%
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 # Feature 10: Valtron Integration

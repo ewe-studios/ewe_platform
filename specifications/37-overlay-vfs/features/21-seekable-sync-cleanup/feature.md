@@ -151,7 +151,7 @@ impl VfsFileSystem for SyncLibsqlDelta {
 
 **This feature uses valtron (`SyncSeekableFile` removed, `SyncLibsqlDelta` delegates to `SyncFs`, `SyncFs::inner()` exposed). All sync-bridge seekable paths MUST be tested through valtron.**
 
-`SyncLibsqlDelta` wraps `SyncFs<LibsqlDelta>` which bridges async ops through valtron. Tests must initialize the pool — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs`. Seekable file concurrency tests (cloned handles sharing `Arc<AtomicU64>` cursor) must run through valtron threads to verify no panic.
+`SyncLibsqlDelta` wraps `SyncFs<LibsqlDelta>` which bridges async ops through valtron. Tests must initialize the pool — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs. Tests go in `tests/valtron_vfs/` directory.. Seekable file concurrency tests (cloned handles sharing `Arc<AtomicU64>` cursor) must run through valtron threads to verify no panic.
 
 **Blocked by Feature 22:** No further seekable cleanup work until Feature 22 (VFS Valtron Tests) tests the sync bridge + seekable paths through valtron.
 
@@ -205,6 +205,11 @@ impl VfsFileSystem for SyncLibsqlDelta {
 - [x] `SyncLibsqlDelta` overrides `open_seekable` with native `SyncSeekableSqliteFile`
 - [x] `SyncFs::inner()` accessor added for delegation
 - [ ] Existing tests pass
+
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
 
 ---
 

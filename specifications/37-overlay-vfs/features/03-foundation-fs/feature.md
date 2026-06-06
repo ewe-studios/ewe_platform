@@ -358,6 +358,11 @@ All tests use `MemoryFs` as base + `MemoryDelta` as delta. `#[traced_test]` on a
 - `cargo check -p foundation_nativeapis --features vfs` — zero warnings
 - No OS-specific deps — pure in-memory testing
 
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 _Created: 2026-06-04 | Updated: 2026-06-05_

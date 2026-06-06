@@ -33,6 +33,16 @@ tasks:
 
 **Why:** The `SyncFs<A>` bridge wraps async VFS ops through valtron's `execute` + `collect_one`. Calling these without an initialized pool silently fails or panics. Direct sync calls on MemoryFs bypass the bridge entirely, so they don't test the actual code path used in production.
 
+## Error Handling: `foundation_errstacks` Required
+
+**All VFS types MUST implement `Debug` and use `foundation_errstacks` for error handling.**
+
+- All sync bridge wrappers (`SyncFile`, `SyncFs`, `SyncDirectory`, `SyncLibsqlDelta`, etc.) implement `Debug`
+- Tests use `err.current_context()` (not `downcast_ref`) to access the typed `&VfsError`
+- `VfsResult<T>` is `Result<T, ErrorTrace<VfsError>>` — never raw `Result<T, VfsError>`
+
+See **plan.md §4d** for the full rule.
+
 ### Valtron Test Pattern (from `valtron_executor_integration.rs`)
 
 ```rust
@@ -122,27 +132,43 @@ fn test_sync_bridge_through_valtron() {
 
 ## Test File Organization
 
-All tests go in `backends/foundation_nativeapis/tests/`:
+All tests go in `backends/foundation_nativeapis/tests/`, **grouped by directory** (not flat files):
 
 ```
 tests/
-  valtron_vfs_memory.rs      # SyncFs<MemoryFs> + SyncFs<MemoryDelta> via valtron
-  valtron_vfs_sqlite.rs      # SyncLibsqlDelta via valtron
-  valtron_vfs_async.rs       # Async traits called via valtron futures
-  valtron_vfs_overlay.rs     # OverlayFileSystem through valtron
-  valtron_vfs_seekable.rs    # Seekable file concurrency + cursor sharing
-  valtron_vfs_errors.rs      # Error propagation through valtron bridge
+  valtron_vfs/              # VFS sync-bridge through valtron (feature-gated: vfs)
+    mod.rs                  # Sub-module declarations
+    memory.rs               # SyncFs<MemoryFs> + SyncFs<MemoryDelta> via valtron
+    sqlite.rs               # SyncLibsqlDelta via valtron (feature-gated: vfs-sqlite)
+    async_traits.rs         # Async traits called through valtron futures
+    overlay.rs              # OverlayFileSystem through valtron
+    seekable.rs             # Seekable file concurrency + cursor sharing (vfs-sqlite)
+    errors.rs               # Error propagation through valtron bridge
+
+  memory_vfs/               # Direct MemoryFs sync tests (no valtron needed)
+    mod.rs
+
+  overlay_vfs/              # Direct OverlayFileSystem sync tests (no valtron)
+    mod.rs
+
+  arrow_vfs/                # Arrow serialization roundtrip tests
+    mod.rs
+
+  native_vfs/               # NativeFs passthrough tests (feature-gated: vfs-native)
+    mod.rs
+
+  dir_delta_vfs/            # DirectoryDelta tests (feature-gated: vfs-native)
+    mod.rs
 ```
+
+**Rule:** Each test group is a **directory** under `tests/`, not a flat file. The directory name matches the feature it tests. `mod.rs` declares sub-modules when a group has multiple files.
 
 ## Feature-Gate Test Requirements
 
-Tests are gated on the same features as the code they test:
-- `valtron_vfs_memory.rs` → `#[cfg(feature = "vfs")]`
-- `valtron_vfs_sqlite.rs` → `#[cfg(feature = "vfs-sqlite")]`
-- `valtron_vfs_async.rs` → `#[cfg(feature = "vfs")]`
-- `valtron_vfs_overlay.rs` → `#[cfg(feature = "vfs")]`
-- `valtron_vfs_seekable.rs` → `#[cfg(feature = "vfs")]`
-- `valtron_vfs_errors.rs` → `#[cfg(feature = "vfs")]`
+- `valtron_vfs/` → `#[cfg(feature = "vfs")]`
+- `valtron_vfs/sqlite.rs`, `valtron_vfs/seekable.rs` → `#[cfg(feature = "vfs-sqlite")]`
+- `memory_vfs/`, `overlay_vfs/`, `arrow_vfs/`, `errors.rs` → `#[cfg(feature = "vfs")]`
+- `native_vfs/`, `dir_delta_vfs/` → `#[cfg(feature = "vfs-native")]`
 
 ## Verification
 

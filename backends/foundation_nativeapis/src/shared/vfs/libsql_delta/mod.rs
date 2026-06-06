@@ -4,6 +4,7 @@ mod path_resolve;
 mod schema;
 pub mod types;
 
+use std::fmt;
 use std::io::SeekFrom;
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -15,7 +16,7 @@ use libsql::{Connection, Database};
 use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem};
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::exec_async::exec_async;
-use crate::shared::vfs::sync_bridge::{LocalSeekableFile, SyncFile, SyncFs};
+use crate::shared::vfs::sync_bridge::{SyncFile, SyncFs};
 use crate::shared::vfs::traits::{DeltaStore, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
 use foundation_errstacks::ErrorTrace;
@@ -32,6 +33,14 @@ use types::{next_version_id, pack_version, unpack_version, ChunkConfig, SqliteDe
 pub struct SyncSeekableSqliteFile {
     inner: SyncFile<SqliteFile>,
     cursor: Arc<AtomicU64>,
+}
+
+impl fmt::Debug for SyncSeekableSqliteFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncSeekableSqliteFile")
+            .field("cursor", &self.cursor.load(Ordering::Relaxed))
+            .finish_non_exhaustive()
+    }
 }
 
 impl SyncSeekableSqliteFile {
@@ -125,6 +134,12 @@ pub struct SyncLibsqlDelta {
     inner: SyncFs<LibsqlDelta>,
 }
 
+impl fmt::Debug for SyncLibsqlDelta {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncLibsqlDelta").finish_non_exhaustive()
+    }
+}
+
 impl SyncLibsqlDelta {
     /// Creates a new sync wrapper from an async `LibsqlDelta`.
     #[must_use]
@@ -150,6 +165,14 @@ impl SyncLibsqlDelta {
 pub struct SyncSqliteDirectory {
     inner: Arc<Box<dyn AsyncVfsDirectory<File = SqliteFile, SeekableFile = SeekableSqliteFile>>>,
     cached_path: String,
+}
+
+impl fmt::Debug for SyncSqliteDirectory {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncSqliteDirectory")
+            .field("path", &self.cached_path)
+            .finish_non_exhaustive()
+    }
 }
 
 impl SyncSqliteDirectory {

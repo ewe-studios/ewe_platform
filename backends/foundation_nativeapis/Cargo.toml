@@ -63,6 +63,37 @@ uuid = { version = "1", features = ["v4"] }
 [target.'cfg(unix)'.dev-dependencies]
 nix = { version = "0.29", features = ["fs", "poll"] }
 
+# Test targets (directory-based test groups)
+[[test]]
+name = "valtron_vfs"
+path = "tests/valtron_vfs/mod.rs"
+required-features = ["vfs"]
+
+[[test]]
+name = "memory_vfs"
+path = "tests/memory_vfs/mod.rs"
+required-features = ["vfs"]
+
+[[test]]
+name = "overlay_vfs"
+path = "tests/overlay_vfs/mod.rs"
+required-features = ["vfs"]
+
+[[test]]
+name = "arrow_vfs"
+path = "tests/arrow_vfs/mod.rs"
+required-features = ["vfs-arrow"]
+
+[[test]]
+name = "native_vfs"
+path = "tests/native_vfs/mod.rs"
+required-features = ["vfs-native"]
+
+[[test]]
+name = "dir_delta_vfs"
+path = "tests/dir_delta_vfs/mod.rs"
+required-features = ["vfs-native"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]

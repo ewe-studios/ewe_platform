@@ -547,6 +547,11 @@ fn test_sync_bridge() {
 - Migrate TursoDelta to async traits (separate, has 75 compilation errors)
 - Consider async OverlayFileSystem composition
 
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 _Created: 2026-06-06 | Updated: 2026-06-06_

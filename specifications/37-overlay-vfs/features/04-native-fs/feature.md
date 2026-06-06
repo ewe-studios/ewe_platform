@@ -145,6 +145,11 @@ Uses `tempfile::TempDir` for isolation.
 - `cargo test -p foundation_nativeapis --features vfs-native --test vfs_native_tests` passes
 - Path containment prevents directory escape in all tests
 
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 _Created: 2026-06-04 | Updated: 2026-06-05_

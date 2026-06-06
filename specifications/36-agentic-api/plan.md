@@ -118,7 +118,19 @@ I have some overall set of ideas of how I want things to work, so generally here
 
 In my mind, every start of a Agent requires the provision of a SessionId which will forever be its representation, the nice part of this, it returns a struct that has a few things:
 
-1. Messages: A store which is tied to a specific session via a unique session id, the benefit for this is, restarting a session is as simple as providing the session id and you get repeatable and replayable and continuation all in one. We can even use scru128 ids instead to make them time ordered which lets us list sessions in a session store automatically by just normal sorting and see which session started first. We can provide a nice API method that uses can use e.g a function takes a custom user friendly name and uses it to compute a time ordered id similarly to scru128 that is sortable, unique and if it includes the machine details becomes globally unique.
+1. Messages - The message API where all interactions go to for serialization and persistence, messages will have underlying queue hooks (probably say a Broadcaster from foundation_core synca module) so it can pubsub and alert multiple listeners (e.g other valtron tasks) to process incoming messages. It also has a Vector search capability and also integrates /home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.Search/fff as well for fast grep/ripgrep to search files on a local filesystem.
+2. Context - The core context API which will own retrieval of memory, context - it should probably own all the different types of memory we wish to support (see below) and also underlying own the vector search capabilities we want to support checking these memories (WorkingMemory, ObservationMemory, ReflectionMemory). Also integrates fff for ripgrep like search over files and file content. See fff source here: /home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.Search/fff
+3. ToolCallManager - A core API which will own tool call execution and will be given tool call messages (interactions) and will own and handle the execution, returning results to the agent task so it can yield those first to the Messages API instance, then give it to the AI once successfully saved and persisted. this ensures all interactions was successfully persisted for the session before any future processing occurs. The important thing to note is this has internal tool call management capabilities so tool calls can be queued, executed in the background and will only stop if interrupted else will deliver the results once all tool call as finished being processed, it handles parrallel, sequential execution of tool calls, and knows how to split tool calls into groups where if some tool calls must be sequentially executed before others can be executed in parralel and knows how to manage this.
+4. PriorityQueue - A (concurrent-queue backed delivery queue) core api which will own steering where if users wish to stop, interrupt, steer the LLM, then the agent will check if there are messages, will combine that and add these to the front so the AI must first answer this and we also when such a queue has messages, tell the ToolCallManager to cancel any ongoing tool calls not yet completed since users want to interrupt.
+4. FollowUpQueue - A (concurrent-queue backed delivery queue) core api which will own follow up messages where if users wish provide future steering messages to the LLM after all tool calls, and current loop is finished, further giving the llm instructions for the next steps. Unlike the PriorityQueue, any messages in here, never interrupts the ToolCallManager or llm but wait till the next call, so it keeps going.
+
+In my mind each of these is backed by a valtron task which knows how to manage the different concerns they have, since valtron allows both sequential, linked execution, broadcasted tasks for parrallel execution, priority (execute to finish then continue with me semantics, execute me and this child turn by turn), we can architecture these nicely, cleanly and logically, breaking different complex parts into different valtron tasks that each use to achieve what it needs.
+
+Yes, we valtron it all.
+
+### Message API
+
+Messages: A store which is tied to a specific session via a unique session id, the benefit for this is, restarting a session is as simple as providing the session id and you get repeatable and replayable and continuation all in one. We can even use scru128 ids instead to make them time ordered which lets us list sessions in a session store automatically by just normal sorting and see which session started first. We can provide a nice API method that uses can use e.g a function takes a custom user friendly name and uses it to compute a time ordered id similarly to scru128 that is sortable, unique and if it includes the machine details becomes globally unique.
 
 In my mind we do the same thing we've being done, we define Messages as a trait that defines the contract for what the messages API provides e.g
 
@@ -134,9 +146,9 @@ More so, we should be able to do semantic recall (bascially a vector search) on 
 
 Different operations can then get the copy of the Message{inner: Arc<MessageInner>} and use it to perform different operations on the messages, like:
 
-### What types of Memories are built from Messages
+### Context Memory APIs 
 
-It has multiple Memory APIs:
+The Context API provider should own multiple Memory APIs:
 
 1. A WorkingMemory - which is a simple API that the AI generates which we either device when user interacts with the AI or using a smaller model to look at the session messages to generate important facts about the user, this is small, and always just kept to the latest important fact about the user what they like, how they want to work, who they are, facts about them and we keep cleaning it up, removing any outdated information.
 
@@ -163,6 +175,8 @@ Mastra triggers:
 
 ### Embeddings and Caching
 
+The context API should also own the get a shared Embedding API which will own embedding generation and caching (see aobve for context).
+
 When we generate embeddings, we should cache with a data strcuture to perform a LRU cache say with 1000 items with most recent at the top and least used at the bottom allowing us re-use embeddings for texts. We might need to investigate whats the optimal way for this to ensure we are reusing as much token generated either by word or by sentence or something.
 
 We need to ensure our embeddings are generated with the exact same dimensions as different embedding models use different dimensions which will cause issues if we mix them.
@@ -182,3 +196,5 @@ We detect it, remove the duplicates, retry and if it happens again maybe use a d
 We will need to implement sharead modules that implement vector search for both in-memory stores, turso (which has native vector schema types) and see if we can build such on fjall or if there are rust based vector crates that work both in native, wasm and web to make it possible to run this across these environments. e.g pinecone, chroma.
 
 This then allows us build semantic recall capabilities on this, we should definitely add these vector stores in foundation_db so others can use them.
+
+We should learn as much as we can, i have source code for vector databases here: /home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.VectorDB/ (especially: /home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.VectorDB/src.Chroma) - There is alot we can learn from it.

@@ -945,6 +945,11 @@ bincode = { version = "2", optional = true }
 - [scru128 crate](https://crates.io/crates/scru128) — Time-ordered unique IDs
 - [ssri crate](https://crates.io/crates/ssri) — Subresource Integrity hash format
 
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 _Created: 2026-06-05 | Updated: 2026-06-05_

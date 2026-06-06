@@ -127,7 +127,61 @@ fn test_sync_bridge() {
 
 **If a feature is marked "done" but lacks valtron tests for its sync-bridge paths, a new test feature (Feature 22) is created and NO further work proceeds on dependent features until those tests exist.**
 
+### 4c. Test Directory Organization (Global)
+
+**All tests are organized in directories under `{crate}/tests/`, grouped by module/feature — never as flat files at the top level.**
+
+```
+backends/foundation_nativeapis/tests/
+  valtron_vfs/              # VFS sync-bridge through valtron
+    mod.rs
+    memory.rs               # SyncFs<MemoryFs> + SyncFs<MemoryDelta>
+    sqlite.rs               # SyncLibsqlDelta
+    async_traits.rs         # Async traits via valtron futures
+    overlay.rs              # OverlayFileSystem via valtron
+    seekable.rs             # Seekable concurrency
+    errors.rs               # Error propagation
+  memory_vfs/               # Direct MemoryFs sync tests
+    mod.rs
+  overlay_vfs/              # Direct OverlayFileSystem sync tests
+    mod.rs
+  arrow_vfs/                # Arrow serialization roundtrip tests
+    mod.rs
+  native_vfs/               # NativeFs passthrough tests
+    mod.rs
+  dir_delta_vfs/            # DirectoryDelta tests
+    mod.rs
+  fd_monitor_integration.rs # Non-VFS: existing fd monitor tests
+  fd_registration.rs        # Non-VFS: existing fd registration tests
+  ipc_integration.rs        # Non-VFS: existing IPC tests
+  poll_integration.rs       # Non-VFS: existing poll tests
+  valtron_executor_integration.rs  # Non-VFS: valtron executor reference
+  valtron_integration.rs    # Non-VFS: valtron + FileWatcherTask
+  valtron_multi_executor.rs # Non-VFS: multi-threaded executor
+  watcher_integration.rs    # Non-VFS: file watcher tests
+```
+
+**Rule:** If a test group has multiple files or covers a distinct feature, it gets its own directory with `mod.rs`. Single-file groups can stay as flat files only if they're not VFS-related.
+
 See **Feature 22: VFS Valtron Tests** for the comprehensive test plan.
+
+### 4d. Error Handling: `foundation_errstacks` Required (Global)
+
+**All VFS types MUST use `foundation_errstacks` for error handling and implement `Debug`.**
+
+1. **`VfsResult<T>`** is `Result<T, ErrorTrace<VfsError>>` — never use raw `Result<T, VfsError>` or ad-hoc error types
+2. **All public types** (sync bridge wrappers, file handles, directory handles, filesystem impls) **MUST implement `Debug`** — either via `#[derive(Debug)]` or manual `impl fmt::Debug`. This is required so that `Result<T, ErrorTrace<VfsError>>` works with `.unwrap_err()`, `.expect()`, and standard Rust error patterns
+3. **Error assertions in tests** use `err.current_context()` to access the typed `&VfsError` — not `downcast_ref` (which searches all frames). `current_context()` is the idiomatic `foundation_errstacks` API for matching the context type
+4. **Error propagation** uses `ErrorTraceResultExt` methods (`.attach()`, `.change_context()`) — not manual `map_err` with `ErrorTrace::new`
+
+```rust
+// Correct: current_context() returns &VfsError directly
+let err = sync.stat("/missing").unwrap_err();
+assert!(matches!(err.current_context(), VfsError::NotFound { .. }));
+
+// Wrong: downcast_ref searches all frames, not just the context
+let vfs_err = err.downcast_ref::<VfsError>().unwrap();
+```
 
 ### 5. Metadata model
 

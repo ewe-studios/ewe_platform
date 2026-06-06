@@ -5,8 +5,15 @@
 //! Seekable methods (`&mut self`) use `LocalSeekableFile` — plain cursor +
 //! delegated I/O — avoiding the dangerous `Arc<Mutex<Option<A>>>` take/put-back
 //! pattern that panics on concurrent access.
+//!
+//! **Deref/Ref patterns:** All wrapper types implement `Deref` to their inner
+//! type so they compose naturally with `Arc`, `&self` borrowing, and method
+//! delegation. `DerefMut` is only implemented for types with interior mutability
+//! (`LocalSeekableFile`).
 
+use std::fmt;
 use std::io::SeekFrom;
+use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use super::async_traits::{
@@ -29,6 +36,19 @@ impl<A: AsyncVfsFile + 'static> SyncFile<A> {
     #[must_use]
     pub fn new(inner: Arc<A>) -> Self {
         Self { inner }
+    }
+}
+
+impl<A: AsyncVfsFile + 'static> fmt::Debug for SyncFile<A> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncFile").finish_non_exhaustive()
+    }
+}
+
+impl<A: AsyncVfsFile + 'static> Deref for SyncFile<A> {
+    type Target = A;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
@@ -84,6 +104,27 @@ impl<A: AsyncVfsFile + 'static> LocalSeekableFile<A> {
     #[must_use]
     pub fn new(inner: SyncFile<A>) -> Self {
         Self { inner, cursor: 0 }
+    }
+}
+
+impl<A: AsyncVfsFile + 'static> fmt::Debug for LocalSeekableFile<A> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LocalSeekableFile")
+            .field("cursor", &self.cursor)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<A: AsyncVfsFile + 'static> Deref for LocalSeekableFile<A> {
+    type Target = SyncFile<A>;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<A: AsyncVfsFile + 'static> DerefMut for LocalSeekableFile<A> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
     }
 }
 
@@ -167,6 +208,21 @@ impl<A: AsyncVfsDirectory + 'static> SyncDirectory<A> {
     pub fn new(inner: Arc<A>) -> Self {
         let cached_path = inner.path();
         Self { inner, cached_path }
+    }
+}
+
+impl<A: AsyncVfsDirectory + 'static> fmt::Debug for SyncDirectory<A> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncDirectory")
+            .field("path", &self.cached_path)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<A: AsyncVfsDirectory + 'static> Deref for SyncDirectory<A> {
+    type Target = A;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
@@ -279,6 +335,25 @@ impl<AF: AsyncVfsFile + 'static, ASF: AsyncSeekableVfsFile + 'static>
             inner: Arc::new(inner),
             cached_path,
         }
+    }
+}
+
+impl<AF: AsyncVfsFile + 'static, ASF: AsyncSeekableVfsFile + 'static> fmt::Debug
+    for SyncDynDirectory<AF, ASF>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncDynDirectory")
+            .field("path", &self.cached_path)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<AF: AsyncVfsFile + 'static, ASF: AsyncSeekableVfsFile + 'static> Deref
+    for SyncDynDirectory<AF, ASF>
+{
+    type Target = Box<dyn AsyncVfsDirectory<File = AF, SeekableFile = ASF>>;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
@@ -402,6 +477,19 @@ impl<A: AsyncVfsFileSystem + 'static> SyncFs<A> {
     /// overriding specific methods (e.g. `open_seekable`).
     #[must_use]
     pub fn inner(&self) -> &Arc<A> {
+        &self.inner
+    }
+}
+
+impl<A: AsyncVfsFileSystem + 'static> fmt::Debug for SyncFs<A> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SyncFs").finish_non_exhaustive()
+    }
+}
+
+impl<A: AsyncVfsFileSystem + 'static> Deref for SyncFs<A> {
+    type Target = A;
+    fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }

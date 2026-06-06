@@ -896,6 +896,11 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 - [libsql crate](https://crates.io/crates/libsql) — Turso's SQLite fork
 - [SQLite WAL mode](https://www.sqlite.org/wal.html) — write-ahead logging documentation
 
+
+## Global Rule: `foundation_errstacks` Error Handling
+
+All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTrace<VfsError>>`) for errors. Tests use `err.current_context()` for typed error matching. See **plan.md §4d** for the full rule.
+
 ---
 
 _Created: 2026-06-04 | Updated: 2026-06-05_
