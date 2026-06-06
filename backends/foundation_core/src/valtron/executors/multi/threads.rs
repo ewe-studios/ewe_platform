@@ -736,6 +736,10 @@ impl<
 
         match self.tasks.push(boxed_task.into()) {
             Ok(()) => {
+                if let Some(ref yielders) = self.yielders {
+                    yielders.interrupt_all();
+                }
+
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
@@ -810,6 +814,10 @@ impl<
 
         match self.tasks.push(boxed_task.into()) {
             Ok(()) => {
+                if let Some(ref yielders) = self.yielders {
+                    yielders.interrupt_all();
+                }
+
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
@@ -855,6 +863,10 @@ impl<
 
         match self.tasks.push(boxed_task.into()) {
             Ok(()) => {
+                if let Some(ref yielders) = self.yielders {
+                    yielders.interrupt_all();
+                }
+
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),

@@ -414,6 +414,24 @@ impl<
             None => Err(ExecutorError::TaskRequired),
         }
     }
+
+    /// `broadcast_or_lift` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts to the global queue so another worker picks it up
+    /// - `multi=off`: lifts the task to the top of the local queue for priority execution
+    #[cfg(not(feature = "multi"))]
+    #[must_use]
+    pub fn broadcast_or_lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        self.lift()
+    }
+
+    /// `broadcast_or_sequence` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts to the global queue so another worker picks it up
+    /// - `multi=off`: sequences the task with the parent for single-threaded execution
+    #[cfg(not(feature = "multi"))]
+    #[must_use]
+    pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        self.sequenced()
+    }
 }
 
 impl<
@@ -425,6 +443,24 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
+    /// `broadcast_or_lift` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts to the global queue so another worker picks it up
+    /// - `multi=off`: lifts the task to the top of the local queue for priority execution
+    #[cfg(feature = "multi")]
+    #[must_use]
+    pub fn broadcast_or_lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        self.broadcast()
+    }
+
+    /// `broadcast_or_sequence` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts to the global queue so another worker picks it up
+    /// - `multi=off`: sequences the task with the parent for single-threaded execution
+    #[cfg(feature = "multi")]
+    #[must_use]
+    pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        self.broadcast()
+    }
+
     /// `broadcast` delivers a task to the bottom of the global execution queue.
     #[must_use]
     pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {

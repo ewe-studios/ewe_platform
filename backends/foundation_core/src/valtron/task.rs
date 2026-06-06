@@ -923,6 +923,44 @@ pub trait ExecutionEngine {
     /// `Send` safe.
     fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError>;
 
+    /// `broadcast_or_lift` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
+    /// - `multi=off`: lifts the task to the top of the local queue for priority execution
+    fn broadcast_or_lift(
+        &self,
+        task: GlobalTask,
+        parent: Option<Entry>,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        #[cfg(feature = "multi")]
+        {
+            let _ = parent;
+            self.broadcast(task)
+        }
+        #[cfg(not(feature = "multi"))]
+        {
+            self.lift(task, parent)
+        }
+    }
+
+    /// `broadcast_or_sequence` dispatches a task based on the execution mode:
+    /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
+    /// - `multi=off`: sequences the task with the parent for single-threaded execution
+    fn broadcast_or_sequence(
+        &self,
+        task: GlobalTask,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        #[cfg(feature = "multi")]
+        {
+            let _ = parent;
+            self.broadcast(task)
+        }
+        #[cfg(not(feature = "multi"))]
+        {
+            self.sequenced(task, parent)
+        }
+    }
+
     /// `boxed_engine` returns a instance of the engine as a [`BoxedExecutionEngine`].
     fn boxed_engine(&self) -> BoxedExecutionEngine;
 
