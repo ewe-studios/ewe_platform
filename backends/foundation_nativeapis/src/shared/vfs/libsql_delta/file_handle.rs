@@ -9,12 +9,15 @@ use foundation_core::valtron::{execute, from_future, collect_one, Stream};
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::traits::{VfsDirectory, VfsFile, SeekableVfsFile};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+use foundation_errstacks::ErrorTrace;
 
 use super::types::SqliteDentry;
 use super::types;
 use super::path_resolve::{resolve_path_async, resolve_parent_async, subtree_inos_async};
 use super::chunking::{read_chunk_range_async, write_all_chunks_async, truncate_file_async};
 use super::types::file_type_to_str;
+
+fn le(e: libsql::Error) -> ErrorTrace<VfsError> { ErrorTrace::new(types::libsql_err(e)) }
 
 /// Bridge an async operation to sync via valtron.
 fn exec_async<T: Send + 'static, F>(future: F) -> VfsResult<T>
@@ -24,9 +27,13 @@ where
 {
     let task = from_future(future);
     let stream = execute(task, None)
-        .map_err(|e| VfsError::Backend { message: format!("valtron execution failed: {e}") }.into())?;
-    let result: Result<Option<T>, foundation_errstacks::ErrorTrace<VfsError>> = collect_one(stream);
-    result?.ok_or_else(|| VfsError::Backend { message: "no result from future".into() }.into())
+        .map_err(|e| ErrorTrace::new(VfsError::Backend { message: format!("valtron execution failed: {e}") }))?;
+    let result: Option<Result<T, ErrorTrace<VfsError>>> = collect_one(stream);
+    match result {
+        Some(Ok(v)) => Ok(v),
+        Some(Err(e)) => Err(e),
+        None => Err(ErrorTrace::new(VfsError::Backend { message: "no result from future".into() })),
+    }
 }
 
 /// A file handle for a SQLite-backed file.
@@ -44,12 +51,12 @@ impl SqliteFile {
         let ino = self.ino;
         exec_async(async move {
             let mut stmt = conn.prepare("SELECT * FROM sqlite_dentry WHERE ino = ?").await
-                .map_err(types::libsql_err)?;
+                .map_err(le)?;
             let row = stmt.query([ino]).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: format!("ino={ino}") })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("ino={ino}") }))?;
             SqliteDentry::from_row(&row)
         })
     }
@@ -81,13 +88,13 @@ impl VfsFile for SqliteFile {
         exec_async(async move {
             let current_size = {
                 let mut stmt = conn.prepare("SELECT size FROM sqlite_dentry WHERE ino = ?").await
-                    .map_err(types::libsql_err)?;
+                    .map_err(le)?;
                 let row = stmt.query([ino]).await
-                    .map_err(types::libsql_err)?
+                    .map_err(le)?
                     .next().await
-                    .map_err(types::libsql_err)?
-                    .ok_or_else(|| VfsError::NotFound { path: format!("ino={ino}") })?;
-                row.get::<i64>(0).map_err(types::libsql_err)? as u64
+                    .map_err(le)?
+                    .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("ino={ino}") }))?;
+                row.get::<i64>(0).map_err(le)? as u64
             };
 
             let end = offset as usize + len;
@@ -95,12 +102,12 @@ impl VfsFile for SqliteFile {
 
             let mut stmt = conn
                 .prepare("SELECT chunk_idx, data FROM sqlite_chunks WHERE ino = ? ORDER BY chunk_idx")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let mut rows = stmt.query([ino]).await
-                .map_err(types::libsql_err)?;
+                .map_err(le)?;
             let mut file_data = Vec::with_capacity(current_size as usize);
-            while let Some(row) = rows.next().await.map_err(types::libsql_err)? {
-                file_data.extend(row.get::<Vec<u8>>(1).map_err(types::libsql_err)?);
+            while let Some(row) = rows.next().await.map_err(le)? {
+                file_data.extend(row.get::<Vec<u8>>(1).map_err(le)?);
             }
             if file_data.len() < current_size as usize {
                 file_data.resize(current_size as usize, 0);
@@ -112,14 +119,14 @@ impl VfsFile for SqliteFile {
 
             let chunks: Vec<Vec<u8>> = file_data.chunks(chunk_size).map(|c| c.to_vec()).collect();
             conn.execute("DELETE FROM sqlite_chunks WHERE ino = ?", [ino])
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
 
             let mut stmt = conn
                 .prepare("INSERT INTO sqlite_chunks (ino, chunk_idx, data) VALUES (?, ?, ?)")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             for (idx, chunk) in chunks.iter().enumerate() {
-                stmt.execute((ino, idx as i64, chunk))
-                    .await.map_err(types::libsql_err)?;
+                stmt.execute((ino, idx as i64, chunk.as_slice()))
+                    .await.map_err(le)?;
             }
 
             let checksum = blake3::hash(&file_data[..new_size as usize]);
@@ -131,7 +138,7 @@ impl VfsFile for SqliteFile {
             conn.execute(
                 "UPDATE sqlite_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
                 (new_size as i64, checksum.as_bytes().to_vec(), updated_at, ino),
-            ).await.map_err(types::libsql_err)?;
+            ).await.map_err(le)?;
 
             Ok(len)
         })
@@ -250,12 +257,12 @@ impl VfsDirectory for SqliteDirectory {
         let ino = self.ino;
         exec_async(async move {
             let mut stmt = conn.prepare("SELECT * FROM sqlite_dentry WHERE ino = ?").await
-                .map_err(types::libsql_err)?;
+                .map_err(le)?;
             let row = stmt.query([ino]).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: format!("ino={ino}") })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("ino={ino}") }))?;
             let dentry = SqliteDentry::from_row(&row)?;
             Ok(dentry.to_metadata())
         })
@@ -267,14 +274,14 @@ impl VfsDirectory for SqliteDirectory {
         exec_async(async move {
             let mut stmt = conn
                 .prepare("SELECT name, file_type FROM sqlite_dentry WHERE parent_ino = ? ORDER BY name")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let mut rows = stmt.query([ino]).await
-                .map_err(types::libsql_err)?;
+                .map_err(le)?;
 
             let mut entries = Vec::new();
-            while let Some(row) = rows.next().await.map_err(types::libsql_err)? {
-                let name = row.get::<String>(0).map_err(types::libsql_err)?;
-                let file_type_str = row.get::<String>(1).map_err(types::libsql_err)?;
+            while let Some(row) = rows.next().await.map_err(le)? {
+                let name = row.get::<String>(0).map_err(le)?;
+                let file_type_str = row.get::<String>(1).map_err(le)?;
                 if let Some(ft) = super::types::parse_file_type(&file_type_str) {
                     entries.push(VfsDirEntry { name, file_type: ft });
                 }
@@ -290,14 +297,14 @@ impl VfsDirectory for SqliteDirectory {
         exec_async(async move {
             let mut stmt = conn
                 .prepare("SELECT name, file_type FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             if let Some(row) = stmt.query((ino, name.clone())).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
             {
-                let name = row.get::<String>(0).map_err(types::libsql_err)?;
-                let file_type_str = row.get::<String>(1).map_err(types::libsql_err)?;
+                let name = row.get::<String>(0).map_err(le)?;
+                let file_type_str = row.get::<String>(1).map_err(le)?;
                 if let Some(ft) = super::types::parse_file_type(&file_type_str) {
                     return Ok(Some(VfsDirEntry { name, file_type: ft }));
                 }
@@ -331,13 +338,13 @@ impl VfsDirectory for SqliteDirectory {
 
             let mut stmt = conn
                 .prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let row = stmt.query((parent_ino, name)).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::Backend { message: "created file not found".into() })?;
-            let ino = row.get::<i64>(0).map_err(types::libsql_err)?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::Backend { message: "created file not found".into() }))?;
+            let ino = row.get::<i64>(0).map_err(le)?;
 
             Ok(SqliteFile {
                 db: Arc::clone(&conn),
@@ -382,19 +389,19 @@ impl VfsDirectory for SqliteDirectory {
 
             let mut stmt = conn
                 .prepare("SELECT ino FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let row = stmt.query((parent_ino, name)).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::Backend { message: "created dir not found".into() })?;
-            let ino = row.get::<i64>(0).map_err(types::libsql_err)?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::Backend { message: "created dir not found".into() }))?;
+            let ino = row.get::<i64>(0).map_err(le)?;
 
             Ok(Box::new(SqliteDirectory {
                 db: Arc::clone(&conn),
                 ino,
                 path: new_path,
-            }))
+            }) as Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
         })
     }
 
@@ -410,34 +417,34 @@ impl VfsDirectory for SqliteDirectory {
         exec_async(async move {
             let mut stmt = conn
                 .prepare("SELECT ino, file_type FROM sqlite_dentry WHERE parent_ino = ? AND name = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let row = stmt.query((parent_ino, name.clone())).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: path.clone() })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: path.clone() }))?;
 
-            let ino = row.get::<i64>(0).map_err(types::libsql_err)?;
-            let file_type = row.get::<String>(1).map_err(types::libsql_err)?;
+            let ino = row.get::<i64>(0).map_err(le)?;
+            let file_type = row.get::<String>(1).map_err(le)?;
 
             if file_type == "dir" {
                 let mut count_stmt = conn
                     .prepare("SELECT COUNT(*) FROM sqlite_dentry WHERE parent_ino = ?")
-                    .await.map_err(types::libsql_err)?;
+                    .await.map_err(le)?;
                 let count = count_stmt.query([ino]).await
-                    .map_err(types::libsql_err)?
+                    .map_err(le)?
                     .next().await
-                    .map_err(types::libsql_err)?
+                    .map_err(le)?
                     .map(|r| r.get::<i64>(0))
-                    .transpose().map_err(types::libsql_err)?
+                    .transpose().map_err(le)?
                     .unwrap_or(0);
                 if count > 0 {
-                    return Err(VfsError::DirectoryNotEmpty { path });
+                    return Err(ErrorTrace::new(VfsError::DirectoryNotEmpty { path }));
                 }
             }
 
             conn.execute("DELETE FROM sqlite_dentry WHERE ino = ?", [ino])
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             Ok(())
         })
     }
@@ -455,7 +462,7 @@ impl VfsDirectory for SqliteDirectory {
             conn.execute(
                 "UPDATE sqlite_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
                 (new_name, updated_at, parent_ino, old_name),
-            ).await.map_err(types::libsql_err)?;
+            ).await.map_err(le)?;
             Ok(())
         })
     }
@@ -464,23 +471,23 @@ impl VfsDirectory for SqliteDirectory {
         let conn = Arc::clone(&self.db);
         let path = path.to_string();
         exec_async(async move {
-            let ino = resolve_path_async(conn.clone(), &path).await?;
+            let ino = resolve_path_async(conn.clone(), path.clone()).await?;
             let mut stmt = conn
                 .prepare("SELECT file_type, size, chunk_size FROM sqlite_dentry WHERE ino = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let row = stmt.query([ino]).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: path.clone() })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: path.clone() }))?;
 
-            let file_type = row.get::<String>(0).map_err(types::libsql_err)?;
+            let file_type = row.get::<String>(0).map_err(le)?;
             if file_type != "file" {
-                return Err(VfsError::NotAFile { path });
+                return Err(ErrorTrace::new(VfsError::NotAFile { path }));
             }
 
-            let size = row.get::<i64>(1).map_err(types::libsql_err)? as u64;
-            let chunk_size = row.get::<i64>(2).map_err(types::libsql_err)? as usize;
+            let size = row.get::<i64>(1).map_err(le)? as u64;
+            let chunk_size = row.get::<i64>(2).map_err(le)? as usize;
 
             Ok(SqliteFile {
                 db: Arc::clone(&conn),
@@ -502,19 +509,19 @@ impl VfsDirectory for SqliteDirectory {
         let parent_path = self.path.clone();
         let path = path.to_string();
         exec_async(async move {
-            let ino = resolve_path_async(conn.clone(), &path).await?;
+            let ino = resolve_path_async(conn.clone(), path.clone()).await?;
             let mut stmt = conn
                 .prepare("SELECT file_type FROM sqlite_dentry WHERE ino = ?")
-                .await.map_err(types::libsql_err)?;
+                .await.map_err(le)?;
             let row = stmt.query([ino]).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: path.clone() })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: path.clone() }))?;
 
-            let file_type = row.get::<String>(0).map_err(types::libsql_err)?;
+            let file_type = row.get::<String>(0).map_err(le)?;
             if file_type != "dir" {
-                return Err(VfsError::NotADirectory { path });
+                return Err(ErrorTrace::new(VfsError::NotADirectory { path }));
             }
 
             let full_path = if path.starts_with('/') {
@@ -529,7 +536,7 @@ impl VfsDirectory for SqliteDirectory {
                 db: Arc::clone(&conn),
                 ino,
                 path: full_path,
-            }))
+            }) as Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
         })
     }
 
@@ -537,14 +544,14 @@ impl VfsDirectory for SqliteDirectory {
         let conn = Arc::clone(&self.db);
         let path = path.to_string();
         exec_async(async move {
-            let ino = resolve_path_async(conn.clone(), &path).await?;
+            let ino = resolve_path_async(conn.clone(), path.clone()).await?;
             let mut stmt = conn.prepare("SELECT * FROM sqlite_dentry WHERE ino = ?").await
-                .map_err(types::libsql_err)?;
+                .map_err(le)?;
             let row = stmt.query([ino]).await
-                .map_err(types::libsql_err)?
+                .map_err(le)?
                 .next().await
-                .map_err(types::libsql_err)?
-                .ok_or_else(|| VfsError::NotFound { path: path.clone() })?;
+                .map_err(le)?
+                .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: path.clone() }))?;
             let dentry = SqliteDentry::from_row(&row)?;
             Ok(dentry.to_metadata())
         })
@@ -553,9 +560,9 @@ impl VfsDirectory for SqliteDirectory {
     fn exists(&self, path: &str) -> VfsResult<bool> {
         let conn = Arc::clone(&self.db);
         let path = path.to_string();
-        match exec_future(resolve_path_async(conn, &path)) {
+        match exec_future(resolve_path_async(conn, path.clone())) {
             Ok(_) => Ok(true),
-            Err(VfsError::NotFound { .. }) => Ok(false),
+            Err(e) if e.downcast_ref::<VfsError>().map_or(false, |v| matches!(v, VfsError::NotFound { .. })) => Ok(false),
             Err(e) => Err(e),
         }
     }
@@ -569,11 +576,13 @@ where
 {
     let task = from_future(future);
     let stream = execute(task, None)
-        .map_err(|e| VfsError::Backend { message: format!("valtron execution failed: {e}") })?;
-    let result: Result<Option<T>, VfsError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| VfsError::Backend { message: "no result from future".into() })
+        .map_err(|e| ErrorTrace::new(VfsError::Backend { message: format!("valtron execution failed: {e}") }))?;
+    let result: Option<Result<T, ErrorTrace<VfsError>>> = collect_one(stream);
+    match result {
+        Some(Ok(v)) => Ok(v),
+        Some(Err(e)) => Err(e),
+        None => Err(ErrorTrace::new(VfsError::Backend { message: "no result from future".into() })),
+    }
 }
 
 unsafe impl Send for SqliteDirectory {}

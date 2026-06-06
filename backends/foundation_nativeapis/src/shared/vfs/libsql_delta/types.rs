@@ -6,6 +6,7 @@ use libsql::Row;
 
 use crate::shared::vfs::types::{Checksum, VfsEntryState, VfsFileType, VfsMetadata};
 use crate::shared::vfs::error::{VfsError, VfsResult};
+use foundation_errstacks::ErrorTrace;
 
 /// Convert a libsql error to a VfsError.
 pub fn libsql_err(e: libsql::Error) -> VfsError {
@@ -58,7 +59,7 @@ impl SqliteDentry {
             "file" => VfsFileType::Regular,
             "dir" => VfsFileType::Directory,
             "symlink" => VfsFileType::Symlink,
-            other => return Err(VfsError::Backend { message: format!("unknown file_type: {other}") }),
+            other => return Err(ErrorTrace::new(VfsError::Backend { message: format!("unknown file_type: {other}") })),
         };
 
         let size = row.get::<i64>(4).map_err(libsql_err)? as u64;
