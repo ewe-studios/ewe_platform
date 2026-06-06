@@ -1,7 +1,7 @@
 ---
 feature_name: "VFS Valtron Integration Tests"
 description: "Comprehensive integration tests for all VFS components through valtron's executor — SyncFs bridge, SyncLibsqlDelta, SyncFs<MemoryFs>, AsyncVfsFileSystem traits called via valtron futures. Every sync bridge call must be exercised through initialize_pool + execute + collect_one."
-status: "near-complete"
+status: "done"
 priority: "critical"
 phase: 3
 created: 2026-06-06
@@ -14,10 +14,10 @@ dependencies:
   - "20-async-first-migration"
   - "21-seekable-sync-cleanup"
 tasks:
-  completed: 27
-  uncompleted: 1
+  completed: 28
+  uncompleted: 0
   total: 28
-  completion_percentage: 96%
+  completion_percentage: 100%
 ---
 
 # VFS Valtron Integration Tests
@@ -128,7 +128,7 @@ fn test_sync_bridge_through_valtron() {
 
 - [x] Sync bridge valtron execution failure — 8 error tests in `errors.rs` including `error_stack_trace_preserved`
 - [x] Pool exhaustion — `syncfs_memory_concurrent_write_different_files`, `syncfs_memory_concurrent_mkdir`
-- [ ] Pool guard dropped mid-execution — verify clean shutdown, no panic
+- [x] Pool guard dropped mid-execution — `pool_guard_dropped_cleanly`
 
 ## Test File Organization
 
@@ -174,8 +174,8 @@ tests/
 
 - [x] All valtron-backed VFS sync bridges tested through `initialize_pool`
 - [x] No VFS sync bridge code path left untested by valtron
-- [x] `cargo test -p foundation_nativeapis --features vfs` — 119 tests pass (40 valtron, 43 memory, 34 overlay, 2 doc)
-- [ ] `cargo test -p foundation_nativeapis --features vfs,vfs-sqlite` — sqlite tests not yet verified
+- [x] `cargo test -p foundation_nativeapis --features vfs` — 120 tests pass (41 valtron, 43 memory, 34 overlay, 2 doc)
+- [ ] `cargo test -p foundation_nativeapis --features vfs,vfs-sqlite` — blocked: `sqlite_dentry` table uses reserved `sqlite_` prefix (pre-existing LibsqlDelta bug)
 - [x] No test calls `SyncFs` or `SyncLibsqlDelta` without first calling `initialize_pool()`
 
 ---

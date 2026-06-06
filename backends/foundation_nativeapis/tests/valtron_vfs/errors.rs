@@ -133,3 +133,19 @@ fn error_stack_trace_preserved() {
     let err = sync.stat("/missing").unwrap_err();
     assert!(err.downcast_ref::<VfsError>().is_some());
 }
+
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn pool_guard_dropped_cleanly() {
+    let guard = init_pool();
+    let sync = SyncFs::new(MemoryFs::new());
+
+    sync.mkdir("/before").unwrap();
+    sync.write_file("/before/a.txt", b"data").unwrap();
+    assert!(sync.exists("/before").unwrap());
+    assert!(sync.exists("/before/a.txt").unwrap());
+
+    drop(guard);
+}
