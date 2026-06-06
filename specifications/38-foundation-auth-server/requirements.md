@@ -39,7 +39,72 @@ foundation_auth is an OAuth/OIDC client library with session management, TOTP/MF
 
 1. **Close critical client-side security gaps** — JWT signature verification (currently tokens are decoded but signatures are never verified), JWKS fetching, OIDC discovery, password authentication flows, token introspection, nonce support.
 2. **Add an IdP server module** behind the `server` feature flag — using `foundation_http` for HTTP serving and `foundation_db` for SQL-backed persistence, providing a standards-compliant OpenID Connect provider.
-3. **Async first then sync via valtron calling async** where ever possible, implementation is always in the async functions and then sync call valtron to run async code and return result, unless due to technical issues or unnecessary complexity should we clone and duplicate code for sync but this ok but rare where the complexity of calling the async via valtron is not worth it and reimplementing the logic for sync when the api already support syncs makes the most sense. This will probably mean two traits one for async and one for sync with the async one having methods ending with `*_async` to avoid conflict with the sync ones. 
+
+## Sync/Async Pattern — Async First, Sync via Valtron
+
+**Core principle: async is the default implementation target.** All business logic
+lives in async methods (`*_async`). Sync callers use valtron to bridge.
+
+### Naming Convention
+
+- Async trait methods end with `*_async` suffix: `fn find_by_email_async(&self, ...) -> Result<T, E>`
+- Sync trait methods use the plain name: `fn find_by_email(&self, ...) -> Result<T, E>`
+- Traits are separate: `AsyncXxxService` (primary) and `XxxService` (sync wrapper)
+
+### Valtron Bridging (Both Native and WASM)
+
+The sync trait wraps the async implementation using valtron. This works on **both** native
+and wasm — valtron is the execution engine for this project, not tokio:
+
+```rust
+// Sync wrapper — works on both native and wasm via valtron
+pub fn find_by_email(&self, email: &str) -> Result<Option<User>, Error> {
+    let this = self.clone();
+    let email = email.to_string();
+    let task = from_future(async move {
+        this.find_by_email_async(&email).await
+    });
+    let stream = execute(task, None)?;
+    collect_one(stream).ok_or_else(|| Error::NoResult)
+}
+```
+
+### Caveats and When Sync Cannot Wrap Async
+
+Some patterns make valtron bridging impractical:
+- **`&mut self` requirements** — valtron requires `Send + 'static`, mutable borrows complicate this
+- **Heavy state mutation** — if an operation mutates complex internal state synchronously,
+  duplicating for sync may be simpler
+- **When duplication is acceptable** — if the valtron bridge would add more complexity than
+  a separate sync implementation
+
+In these cases, maintain separate sync implementations. This is rare but permitted.
+Feature files should clearly articulate whether valtron bridging is feasible for each design.
+
+### Foundation_db Stream Parity (See Feature 00)
+
+`foundation_db` has a known mismatch: `QueryStore` (sync) returns `StorageItemStream`
+(valtron StreamIterator) while `AsyncQueryStore` (async_trait) returns `Result<Vec<T>>`.
+**Feature 00** (`features/00-query-store-stream-parity/`) resolves this by making
+`AsyncQueryStore::query_async` return `AsyncQueryStream<SqlRow>` — a `futures_core::Stream`
+that wraps valtron's StreamIterator. Both native and wasm backends are updated.
+This parity fix is a prerequisite for the IdP service features (10-12).
+
+### Storage Clarification
+
+- **foundation_db** — Database-backed storage (Turso, libsql, D1, in-memory). Use for
+  credential storage, OAuth tokens, sessions, policy data.
+- **foundation_nativeapis** — Filesystem operations. Use only if we need to store data
+  directly on the filesystem (e.g., local policy files, credential cache on disk).
+  The IdP server primarily uses foundation_db. foundation_nativeapis is relevant for
+  features like local-file policy stores in Cedar.
+
+### CredentialStorage Design
+
+Built on foundation_db capabilities:
+- `KeyValueStore` (sync) + `AsyncKeyValueStore` (async) for credential persistence
+- foundation_nativeapis is ONLY relevant if file-based credential caching is needed
+  (e.g., persisting tokens to disk for CLI tools). The primary path is DB-backed.
 
 ## Research Sources
 
@@ -61,6 +126,7 @@ foundation_auth is an OAuth/OIDC client library with session management, TOTP/MF
 
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
+| [00-query-store-stream-parity](features/00-query-store-stream-parity/) | Fix AsyncQueryStore API parity — return streams not Vec for multi-row queries | 0 | pending |
 | [01-jwt-verifier](features/01-jwt-verifier/) | Cryptographic JWT signature verification (EdDSA, RS256, ES256), claim validation, issuer/audience checking | 1 | pending |
 | [02-jwks-manager](features/02-jwks-manager/) | JWKS fetcher, cache with TTL, key rotation, kid lookup, native + wasm | 1 | pending |
 | [03-oidc-discovery](features/03-oidc-discovery/) | OIDC discovery client, auto-configure OAuthConfig from .well-known | 1 | pending |

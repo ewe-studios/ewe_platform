@@ -147,3 +147,30 @@ server = ["foundation_http"]
 - `http_app()` → router has all expected routes
 - Server starts and responds to health check (when integrated with Feature 12 handlers)
 - `IdpConfig` builder overrides defaults correctly
+
+## Handler Architecture
+
+The IdP server supports two handler types for different deployment targets:
+
+### Native (ServeWriter)
+- `ServeWriter` trait — sync handler: `fn serve_writer(&self, bag, req, conn) -> ConnectionResult`
+- Registered via `app.route_writer(method, path)` using `HttpApp::new_writer()`
+- Handlers implement `ServeWriterFactory`: `fn create(bag: &ContextBag) -> Self`
+- Internally, ServeWriter handlers bridge to async services using valtron
+  (`from_future` + `execute` + `collect_one`) when they need to call `*_async` methods
+- See `backends/foundation_http/src/shared/handlers/health.rs` for the pattern
+
+### WASM/Browser (WebServe)
+- `WebServe` trait — async handler: `async fn serve_web(&self, bag, req, conn) -> WebConnectionResult`
+- Registered via `app.route_web(method, path)` using `HttpApp::new_web()`
+- Handlers call `*_async` methods directly — no valtron bridging needed
+- See `backends/foundation_http/src/shared/serve_web.rs` for the trait
+
+### IdpServer Design
+
+The `http_app()` method returns `HttpApp<Arc<dyn ServeWriter>>` for native TCP serving.
+For WASM deployment, a separate `web_app()` method returns `HttpApp<Arc<dyn WebServe>>`.
+Both register the same logical endpoints but use different handler types.
+
+The `http_app()` builder stores services (UserService, TokenService, etc.) in ContextBag.
+Handlers retrieve them via `ServeWriterFactory::create(bag)` and bridge to async via valtron.

@@ -105,3 +105,8 @@ pub enum IntrospectionError {
 - Parse inactive token response → `active: false`, other fields None
 - Error: 401 → `Unauthorized`
 - Error: invalid JSON → `ParseError`
+
+## Sync/Async Notes
+
+The `async fn` methods shown are the primary implementation. For sync callers,
+use valtron bridging: `from_future` + `execute` + `collect_one`. See the valtron skill.

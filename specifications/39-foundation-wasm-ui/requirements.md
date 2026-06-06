@@ -39,11 +39,11 @@ tasks:
 
 Build a WASM-first UI framework with a **clean crate and JS SDK split**:
 
-- **foundation_wasm** stays as the pure runtime/ABI layer — memory management, binary message system, handle/pointer allocation, function calling API. No DOM, no window, no UI concepts.
+- **foundation_wasm** stays as the pure runtime/ABI layer — memory management, binary message system, handle/pointer allocation, function calling API. No DOM, no window, no UI concepts and maybe refactor it as well so people can use different communication providers with clarity so both sides (wasm and js can agree), this way, someone may want just plain function calls over the wire without our custom binary message system, we need to review deeply and see how we can do this very well.
 - **foundation_wasm_ui** is created as a new crate that owns ALL DOM/window/animation bindings. It depends on foundation_wasm and adds: signals, templates, components, Arrow-format DOM batching, web component bridge.
 - The **JS SDK is split** into two files:
-  - `foundation-wasm.js` — standard communication: memory allocation, batch encoding/decoding, function invoke, callbacks, timers (schedule, interval, animation frames)
-  - `foundation-wasm-ui.js` — DOM-specific: element creation, attribute manipulation, event bridging, animation, web component registration, Arrow batch application
+  - `foundation-wasm.js` — standard communication: memory allocation, batch encoding/decoding, function invoke, callbacks, timers (schedule, interval, animation frames), this becomes refactored to present our binary communication provider for the js side, refactored and well structured unlike the current messy js code to be easy to instantiate and use for communication supporting a multi format communication future.
+  - `foundation-wasm-ui.js` — DOM-specific: element creation, attribute manipulation, event bridging, animation, web component registration, Arrow batch application, this then uses our binary commmunication and the new arrow communication system for where arrow should be used since we've now made it pluggable.
 
 **No virtual DOM.** Reactive signals on both the Rust side and the DOM side target specific DOM nodes directly. Changes are batched in Arrow format for fast transfer, eliminating serialization costs.
 
@@ -61,6 +61,8 @@ Build a WASM-first UI framework with a **clean crate and JS SDK split**:
 ## Architecture
 
 ### Crate Split
+
+**TODO**: should `Animation Frame Hook`, hmmm, unsure node or other js runtime have that API, so should this not be moved to foundation_wasm_ui as well ?
 
 ```
 foundation_wasm/                          foundation_wasm_ui/
@@ -86,6 +88,8 @@ foundation_wasm/                          foundation_wasm_ui/
 ```
 
 ### JS SDK Split
+
+**TODO**: Same, does other runtime provide this: `hook_up_animation_frames()`, if not lets move it to the other side.
 
 ```
 foundation-wasm.js                          foundation-wasm-ui.js
@@ -128,6 +132,9 @@ foundation-wasm.js                          foundation-wasm-ui.js
 
 **From foundation_wasm → foundation_wasm_ui:**
 
+**TODO**: `host_cache_string`  string caching should be standard on the foundation_wasm side and the other side just ensures to support it, so everyone gets this as  this is important regardless of dom or not. So we should ensure to keep it in foundation_wasm and do it well if it needs to be refactored out of DOM specific places.
+
+
 | Currently in foundation_wasm | Moves to |
 |------------------------------|----------|
 | `DOM_SELF`, `DOM_THIS`, `DOM_WINDOW`, `DOM_DOCUMENT`, `DOM_BODY` constants | `foundation_wasm_ui::dom::constants` |
@@ -159,10 +166,12 @@ foundation-wasm.js                          foundation-wasm-ui.js
 
 ## Core Design Principles
 
+*TODO**: This needs revision, I have consolidated my desired UI architecture in the initial design and thought process in ./learnings/primal-ui.md, so we should be reading that and talking about this different points you've listed here 1 by 1 and getting clarity on them, ask me as much questions, create different scenarios and why one way or the other might work better, lets get this right.
+
 1. **WASM-first** — Component logic, state, reactivity all in Rust/WASM. JS is a thin host.
 2. **No virtual DOM** — Signals on both sides target specific DOM nodes directly. Arrow batches apply changes in one shot.
 3. **Arrow format for batching** — Zero-copy batch messages between WASM and DOM. No JSON serialization overhead.
-4. **Web components as the boundary** — Custom elements with shadow DOM. Each component is a WASM-backed unit.
+4. **Web components as the boundary** — Custom elements with shadow DOM. Each component is a WASM-backed unit. 
 5. **Signal-based reactivity** — Fine-grained subscriptions. Only affected nodes update. Inspired by datastar signals + lit's Part system.
 6. **HTML templates via tagged literals** — Rust macro-based template syntax inspired by lit's `html\`` tagged templates. Template caching by identity.
 7. **Compound component pattern** — Inspired by headlessui. Composable, accessible, unstyled components.

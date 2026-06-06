@@ -83,3 +83,8 @@ pub enum UserInfoError {
 - Missing `sub` field → `MissingSubject` error
 - Error: 401 response → `Unauthorized`
 - Error: invalid JSON → `ParseError`
+
+## Sync/Async Notes
+
+The `async fn` methods shown are the primary implementation. For sync callers,
+use valtron bridging: `from_future` + `execute` + `collect_one`. See the valtron skill.

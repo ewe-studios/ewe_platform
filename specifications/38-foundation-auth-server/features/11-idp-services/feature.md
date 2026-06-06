@@ -4,7 +4,53 @@
 
 Business logic services for the IdP server: token generation/signing, user management with Argon2id password hashing, OAuth client management, and session management. These services use the models (Feature 10) and foundation_db QueryStore for persistence.
 
-Remember two traits: async and sync versions, dont forget
+## Sync/Async Design — Dual Traits
+
+Each service has an **async trait** (primary implementation) and a **sync trait** (valtron wrapper).
+
+### Pattern
+
+```rust
+// === ASYNC TRAIT (PRIMARY) ===
+#[async_trait::async_trait]
+pub trait AsyncTokenService: Send + Sync {
+    async fn generate_tokens_async(...) -> Result<TokenPair, TokenServiceError>;
+    async fn generate_client_credentials_tokens_async(...) -> Result<TokenPair, TokenServiceError>;
+    async fn refresh_tokens_async(...) -> Result<TokenPair, TokenServiceError>;
+    async fn store_refresh_token_async(...) -> Result<(), TokenServiceError>;
+    async fn rotate_refresh_token_async(&self, token_id: &str) -> Result<(), TokenServiceError>;
+}
+
+// === SYNC TRAIT (WRAPPER — CALLS ASYNC VIA VALTRON) ===
+pub trait TokenService: Send + Sync {
+    fn generate_tokens(...) -> Result<TokenPair, TokenServiceError>;
+    fn generate_client_credentials_tokens(...) -> Result<TokenPair, TokenServiceError>;
+    fn refresh_tokens(...) -> Result<TokenPair, TokenServiceError>;
+    fn store_refresh_token(...) -> Result<(), TokenServiceError>;
+    fn rotate_refresh_token(&self, token_id: &str) -> Result<(), TokenServiceError>;
+}
+
+// === SYNC BRIDGE ===
+pub struct SyncTokenServiceBridge<S: AsyncTokenService> {
+    inner: Arc<S>,
+}
+
+impl<S: AsyncTokenService + 'static> TokenService for SyncTokenServiceBridge<S> {
+    fn generate_tokens(...) -> Result<TokenPair, TokenServiceError> {
+        // valtron from_future + execute + collect_one
+        // See requirements.md "Valtron Bridging" section for the pattern
+    }
+}
+```
+
+This same pattern applies to: **UserService**, **ClientService**, **SessionService**.
+
+### Caveat: Argon2 Password Hashing
+
+Argon2 password hashing is CPU-intensive. The hash/verify functions from the `argon2` crate
+are sync. For async contexts, the service method should NOT block — the CPU work happens
+naturally within the async flow. The valtron thread pool handles execution scheduling.
+No tokio involvement.
 
 ## Modules
 

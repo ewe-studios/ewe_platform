@@ -130,3 +130,16 @@ impl JwksManager {
 - Wasm: parse JWKS JSON (unit test, no HTTP)
 - Error: malformed JSON → `JwksParseError`
 - Error: kid not found → `KeyNotFound`
+
+## Sync/Async Notes
+
+The `async fn` methods shown are the primary implementation. For sync callers,
+use valtron bridging (no tokio):
+
+```rust
+let task = from_future(async move { manager.get().await });
+let stream = execute(task, None)?;
+collect_one(stream).ok_or_else(|| JwksError::NoResult)?
+```
+
+See the valtron skill and requirements.md "Valtron Bridging" section for full patterns.

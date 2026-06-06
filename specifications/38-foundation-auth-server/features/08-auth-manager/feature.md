@@ -4,8 +4,34 @@
 
 Central lifecycle manager that coordinates `JwtManager`, `SessionManager`, `AuthStateMachine`, and `CredentialStore` into a single coherent interface. Handles authentication, token refresh, persistence, and logout in one place.
 
+CredentialStorage is built on `foundation_db` capabilities (for DB-backed stores).
+`foundation_nativeapis` is ONLY relevant if file-based credential caching is needed
+(e.g., persisting tokens to disk for CLI tools). The primary path is DB-backed.
 
-CredentalStorage should be built on the capabilities of foundation_db (for db backed stores) and foundation_nativeapis to support potential things that need to store things on disk (this way it can be remote, local, s3, whatever does not matter since its abstracted away).
+## Sync/Async Design
+
+AuthManager is a coordinator. Its method design reflects the nature of each operation:
+
+### Sync methods (no I/O, pure state/logic):
+- `new()` — constructor
+- `init_from_store()` — loads from credential store (may use valtron-bridged sync store)
+- `get_valid_token()` — checks state machine, returns token from memory
+- `is_authenticated()` — state check
+- `state()` — state accessor
+- `reset()` — state reset
+
+### Async methods (involve I/O):
+- `authenticate()` — calls async login/password-auth services
+- `refresh()` — calls async token refresh endpoint
+- `logout()` — calls async session revocation
+
+### CredentialStorage
+
+Built on foundation_db capabilities:
+- `KeyValueStore` (sync) + `AsyncKeyValueStore` (async) for credential persistence
+- For callers who want a fully-async interface, an `AsyncAuthManager` variant wraps
+  all operations in async, using the stream-to-future bridge where valtron streams
+  are involved.
 
 ## Module
 

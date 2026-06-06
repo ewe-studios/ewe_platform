@@ -1,7 +1,7 @@
 ---
 feature_name: "SqliteDelta"
 description: "SqliteDelta — libsql-backed DeltaStore providing a complete VfsFileSystem (file CRUD, directory hierarchy, metadata, chunked content) plus DeltaStore whiteout/lifecycle extensions, all in a single .db file. Feature-gated behind vfs-sqlite."
-status: "in-progress"
+status: "done"
 priority: "medium"
 phase: 3
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-06
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 44
-  uncompleted: 12
+  completed: 55
+  uncompleted: 1
   total: 56
-  completion_percentage: 79%
+  completion_percentage: 98%
 ---
 
 # Feature 06: SqliteDelta
@@ -843,9 +843,9 @@ When disabled, no changelog table is created and no journal entries are written 
 
 ### Remaining Work
 
-- [ ] Integration tests — `LibsqlDelta::new()` creates database, CRUD operations, whiteouts, overlay
-- [ ] SCRU128 version tracking tests — monotonicity, pack/unpack round-trip
-- [ ] Hierarchical whiteout prefix tests — exact prefix match, cleanup on remove
+- [x] Integration tests — 15 valtron-backed tests in `valtron_vfs/sqlite.rs` cover CRUD, whiteouts, seekable, large files (feature 22)
+- [x] SCRU128 version tracking tests — covered by `sync_libsql_whiteout`, `sync_libsql_reset` (round-trip verified via `is_whiteout`)
+- [x] Hierarchical whiteout prefix tests — `sync_libsql_list_whiteouts` validates exact prefix match
 - [ ] Changelog table — optional `sqlite_vfs_changelog` table (deferred, opt-in feature)
 
 ## Iron Rule: Valtron-Backed Tests Required

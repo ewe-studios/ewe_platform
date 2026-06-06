@@ -18,7 +18,10 @@ Cedar is a language for defining permissions as policies. It provides:
 
 ## Reference Sources
 
-**TODO**: Upate with git repo link as well for these sources, so document is migratable without dead links
+Reference sources listed above. Git repo links to be added when repos are created.
+The `connectrpc-cedar` example in this org (see path above) shows real Cedar middleware
+usage — study it for billing/account context propagation patterns, but adapt to the
+ewe_platform way.
 
 - **cedar-policy crate** (v4.11.0): `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.CedarPolicy/cedar/cedar-policy/`
 - **cedar-local-agent**: `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.CedarPolicy/cedar-local-agent/` — Amazon's async `SimplePolicySetProvider` / `SimpleEntityProvider` pattern
@@ -37,7 +40,10 @@ Cedar is a language for defining permissions as policies. It provides:
 
 ### Feature Flags
 
-**TODO**: Lets also move the git storage interaction into foundation_nativeapis, build out the integration there and capabilities, then bring it in here with the right feature flags to provide a reusable base that supports re-use and extendability.
+Git storage capability is implemented in `foundation_nativeapis` as a generic
+`PolicyFetcher` trait with `GitPolicyFetcher` (gix-based) and `HttpPolicyFetcher`
+(HTTP raw-file fallback) implementations. This crate consumes it via feature flags
+for reusability and extendability.
 
 ```toml
 [dependencies]
@@ -253,87 +259,90 @@ impl CedarResponse {
 
 ## PolicyStore Traits
 
-Following the `foundation_db` pattern: separate sync and async traits, with valtron wrapping for sync-to-async bridging.
+Following the async-first pattern: the async trait is primary, sync wraps async via valtron.
 
-### Sync Trait
+### Async Trait (PRIMARY IMPLEMENTATION)
+
+All policy store backends implement this trait. The async methods contain the actual
+I/O logic (file reads, HTTP fetches, git operations, DB queries):
 
 ```rust
-/// Synchronous policy store — reads policies from a source.
-pub trait PolicyStore: Debug + Send + Sync {
+/// Asynchronous policy store — reads policies from a source.
+/// This is the PRIMARY trait — implementations live here.
+#[async_trait::async_trait]
+pub trait AsyncPolicyStore: Debug + Send + Sync {
     /// Load all policies from the source. Returns concatenated Cedar policy text.
     /// Multiple .cedar/.json files are concatenated.
-    fn load_policies(&self) -> Result<String, PolicyStoreError>;
+    async fn load_policies_async(&self) -> Result<String, PolicyStoreError>;
 
     /// Load the schema from the source. Returns Cedar schema text.
-    fn load_schema(&self) -> Result<String, PolicyStoreError>;
+    async fn load_schema_async(&self) -> Result<String, PolicyStoreError>;
 
     /// Load entities from the source (optional — many setups use empty entities).
-    fn load_entities(&self) -> Result<Option<String>, PolicyStoreError> {
+    async fn load_entities_async(&self) -> Result<Option<String>, PolicyStoreError> {
         Ok(None)
     }
 
     /// Check if policies have changed since last load (for hot-reload).
     /// Returns a version identifier (hash, timestamp, commit SHA).
-    fn version(&self) -> Result<String, PolicyStoreError>;
-}
-```
-
-### Async Trait
-
-```rust
-/// Asynchronous policy store — reads policies from a source.
-#[async_trait::async_trait]
-pub trait AsyncPolicyStore: Debug + Send + Sync {
-    /// Load all policies from the source.
-    async fn load_policies_async(&self) -> Result<String, PolicyStoreError>;
-
-    /// Load the schema from the source.
-    async fn load_schema_async(&self) -> Result<String, PolicyStoreError>;
-
-    /// Load entities from the source (optional).
-    async fn load_entities_async(&self) -> Result<Option<String>, PolicyStoreError> {
-        Ok(None)
-    }
-
-    /// Check if policies have changed since last load.
     async fn version_async(&self) -> Result<String, PolicyStoreError>;
 }
 ```
 
-### Valtron Bridge
-
-**TODO**: Fix this, the goal is always had the logic in async, then use valtron to run async code in sync, this ensures the highest level of contextual support and keeps async flexible. Update this, read valtron skill, we added clear guidance for this. Review all other features in this spec to ensure we are not making the same mistake, also all async trait method should end in a `*_async` so not to conflict with the sync ones.
-
-The sync trait implementations can be wrapped for async contexts using valtron's `from_future` + `collect_one` pattern, or the `stream-to-future` bridge for native async callers:
+### Sync Trait (WRAPPER — CALLS ASYNC VIA VALTRON)
 
 ```rust
-/// Bridge: wrap a sync PolicyStore to provide async access.
-/// Uses valtron's thread pool for native, direct call for single-value ops.
-pub fn sync_to_async_policy_store(store: impl PolicyStore + 'static) -> impl AsyncPolicyStore {
-    BridgedPolicyStore {
-        inner: Arc::new(store),
-    }
-}
-
-struct BridgedPolicyStore<S: PolicyStore> {
-    inner: Arc<S>,
-}
-
-#[async_trait::async_trait]
-impl<S: PolicyStore + 'static> AsyncPolicyStore for BridgedPolicyStore<S> {
-    async fn load_policies(&self) -> Result<String, PolicyStoreError> {
-        let store = Arc::clone(&self.inner);
-        // Single-value operation — blocking internally is acceptable
-        // (per valtron skill: "single-value operations where result is needed immediately")
-        tokio::task::spawn_blocking(move || store.load_policies())
-            .await
-            .map_err(|e| PolicyStoreError::Io(e.to_string()))?
-    }
-    // ... same pattern for other methods
+/// Synchronous policy store — reads policies from a source.
+/// This is a wrapper trait. Implementations bridge from AsyncPolicyStore via valtron.
+pub trait PolicyStore: Debug + Send + Sync {
+    fn load_policies(&self) -> Result<String, PolicyStoreError>;
+    fn load_schema(&self) -> Result<String, PolicyStoreError>;
+    fn load_entities(&self) -> Result<Option<String>, PolicyStoreError> { Ok(None) }
+    fn version(&self) -> Result<String, PolicyStoreError>;
 }
 ```
 
-For wasm contexts where `spawn_blocking` isn't available, the wasm-specific backends implement `AsyncPolicyStore` natively using JS promises → valtron bridges.
+### Valtron Bridge: Async → Sync
+
+The sync wrapper calls the async implementation via valtron. This works on **both**
+native and wasm — valtron is the execution engine, not tokio:
+
+```rust
+use foundation_core::valtron::{from_future, execute, collect_one};
+
+/// Bridges an AsyncPolicyStore to provide sync access via valtron.
+/// Works on both native and wasm — valtron handles the execution.
+pub struct SyncPolicyStoreBridge<S: AsyncPolicyStore> {
+    inner: Arc<S>,
+}
+
+impl<S: AsyncPolicyStore> SyncPolicyStoreBridge<S> {
+    pub fn new(store: S) -> Self {
+        Self { inner: Arc::new(store) }
+    }
+}
+
+impl<S: AsyncPolicyStore + 'static> PolicyStore for SyncPolicyStoreBridge<S> {
+    fn load_policies(&self) -> Result<String, PolicyStoreError> {
+        let store = Arc::clone(&self.inner);
+        let task = from_future(async move {
+            store.load_policies_async().await
+        });
+        let stream = execute(task, None)
+            .map_err(|e| PolicyStoreError::Scheduling(e.to_string()))?;
+        collect_one(stream)
+            .ok_or_else(|| PolicyStoreError::NoResult)
+            .and_then(|r| r)  // flatten Result<Result<T, E>, _>
+    }
+    // ... same pattern for load_schema, load_entities, version
+}
+```
+
+**Caveat — when sync cannot wrap async:**
+If a PolicyStore implementation requires `&mut self` for internal state mutation,
+valtron bridging becomes difficult (requires interior mutability with `Arc<Mutex<T>>`).
+In that case, implement both traits separately. Most policy stores are read-only
+(`&self`), so the bridge pattern works.
 
 ---
 
@@ -341,13 +350,15 @@ For wasm contexts where `spawn_blocking` isn't available, the wasm-specific back
 
 Entities represent users, resources, groups — the data Cedar evaluates against. The engine doesn't care where entities come from; providers supply them.
 
+### Async Entity Provider (PRIMARY)
+
 ```rust
-/// Entity provider — supplies Cedar entities for authorization evaluation.
+/// Async entity provider — supplies Cedar entities for authorization evaluation.
 ///
-/// Implementations can pull from JWT claims, database queries, local files,
-/// or any other source. The engine is source-agnostic.
+/// Implementations can pull from JWT claims, database queries (via AsyncQueryStore),
+/// local files, or any other source. The engine is source-agnostic.
 #[async_trait::async_trait]
-pub trait EntityProvider: Debug + Send + Sync {
+pub trait AsyncEntityProvider: Debug + Send + Sync {
     /// Get entities relevant to a specific authorization request.
     ///
     /// The request contains principal, action, resource, and context — use
@@ -355,17 +366,42 @@ pub trait EntityProvider: Debug + Send + Sync {
     /// user's groups, the resource's owner, etc.).
     async fn get_entities_async(&self, request: &CedarRequest) -> Result<Entities, EntityProviderError>;
 }
+```
 
+### Sync Entity Provider (WRAPPER)
+
+```rust
 /// Sync entity provider (for non-async contexts).
+/// Wraps AsyncEntityProvider via valtron.
 pub trait SyncEntityProvider: Debug + Send + Sync {
     fn get_entities(&self, request: &CedarRequest) -> Result<Entities, EntityProviderError>;
+}
+
+/// Default bridge implementation.
+pub struct SyncEntityProviderBridge<P: AsyncEntityProvider> {
+    inner: Arc<P>,
+}
+
+impl<P: AsyncEntityProvider + 'static> SyncEntityProvider for SyncEntityProviderBridge<P> {
+    fn get_entities(&self, request: &CedarRequest) -> Result<Entities, EntityProviderError> {
+        let provider = Arc::clone(&self.inner);
+        let request = request.clone(); // or Arc-share if Clone is expensive
+        let task = from_future(async move {
+            provider.get_entities_async(&request).await
+        });
+        let stream = execute(task, None)
+            .map_err(|e| EntityProviderError::Scheduling(e.to_string()))?;
+        collect_one(stream)
+            .ok_or_else(|| EntityProviderError::NoResult)
+            .and_then(|r| r)
+    }
 }
 ```
 
 ### Default Implementations
 
-
-**TODO**: we might need to ensure these all support async query store as well so async context can use those and not just sync ones, so struct for async is important
+Both sync and async versions of each entity provider are provided. The async version
+uses `AsyncQueryStore` for database lookups; the sync version wraps async via valtron.
 
 #### JWT-based EntityProvider
 
@@ -501,12 +537,69 @@ Features:
 
 ### 4. Git Repository Store (native + wasm)
 
-**TODO**: As said, lets move the git capabilities into foundation_nativeapis, then use them here, if really custom then lets see what can be generic and placed in foundation_nativeapis for re-use and as a foundation.
+Policies stored in a git repository. Git operations are provided by
+`foundation_nativeapis` via the `PolicyFetcher` trait, which supports pluggable
+transports (git protocol or HTTP raw-file fetch).
 
-Policies stored in a git repository. Uses `gix` (gitoxide) crates — pure Rust, WASM-compatible.
+#### Pluggable Transport Design
+
+The `PolicyFetcher` trait in `foundation_nativeapis` abstracts over transport:
 
 ```rust
-/// Reads policies from a git repository.
+/// Abstract trait for fetching policy content from a remote source.
+/// Both git-based and HTTP-based fetchers implement this.
+#[async_trait::async_trait]
+pub trait PolicyFetcher: Debug + Send + Sync {
+    /// Fetch a single file's content by path.
+    async fn fetch_file(&self, path: &str) -> Result<Vec<u8>, PolicyStoreError>;
+
+    /// Fetch all files under a directory prefix.
+    async fn fetch_dir(&self, prefix: &str) -> Result<Vec<(String, Vec<u8>)>, PolicyStoreError>;
+
+    /// Get the current version/commit identifier.
+    async fn version(&self) -> Result<String, PolicyStoreError>;
+}
+```
+
+Two implementations exist — the caller instantiates whichever fits the platform:
+
+```rust
+/// Git-based fetcher — uses gix for full git operations.
+/// Available on both native and wasm (with appropriate gix feature flags).
+pub struct GitPolicyFetcher {
+    repo: Arc<Mutex<Repository>>,
+    remote_url: String,
+    branch: String,
+}
+
+/// HTTP-based fetcher — fetches raw files via HTTP.
+/// Used when git protocol is unavailable (e.g., WASM without gix-protocol).
+/// Requires the git hosting provider to support raw file URLs:
+///   GitHub: https://raw.githubusercontent.com/{org}/{repo}/{branch}/{path}
+///   GitLab: https://gitlab.com/{org}/{repo}/-/raw/{branch}/{path}
+pub struct HttpPolicyFetcher {
+    base_url: String,
+    client: HttpClient,  // platform-specific HTTP client
+}
+```
+
+**What goes in `foundation_nativeapis`:**
+- `PolicyFetcher` trait (the abstract interface above)
+- `GitPolicyFetcher` — native implementation using full gix
+- `GitPolicyFetcherWasm` — WASM implementation using gix-protocol + custom HTTP transport
+- `HttpPolicyFetcher` — fallback for both platforms when git protocol is unavailable
+- Feature flags: `git-native` (full gix), `git-wasm` (gix subsets + HTTP fallback)
+
+**What goes in `foundation_cedar`:**
+- `GitPolicyStore` — accepts a `Box<dyn PolicyFetcher>`, doesn't care if git or HTTP underneath
+- Knows about Cedar-specific paths (schema.cedar, policies/, entities/)
+- Parses .cedar files from fetched blobs into PolicySet
+- `version()` returns the git SHA from the fetcher
+
+#### GitPolicyStore
+
+```rust
+/// Reads policies from a git repository via an injected PolicyFetcher.
 ///
 /// Repo structure:
 ///   schema.cedar
@@ -517,22 +610,37 @@ Policies stored in a git repository. Uses `gix` (gitoxide) crates — pure Rust,
 ///   entities/
 ///     static.json
 pub struct GitPolicyStore {
-    repo_path: PathBuf,        // Local checkout path
-    remote_url: String,        // Remote git URL
-    branch: String,            // e.g., "main"
+    fetcher: Box<dyn PolicyFetcher>,
     policy_paths: Vec<PathBuf>, // Paths to scan for policies
+}
+
+#[async_trait::async_trait]
+impl AsyncPolicyStore for GitPolicyStore {
+    async fn load_policies_async(&self) -> Result<String, PolicyStoreError> {
+        let mut policies = String::new();
+        for path in &self.policy_paths {
+            let content = self.fetcher.fetch_file(path.to_str().unwrap()).await?;
+            policies.push_str(&String::from_utf8_lossy(&content));
+            policies.push_str("\n\n");
+        }
+        Ok(policies)
+    }
+
+    async fn version_async(&self) -> Result<String, PolicyStoreError> {
+        self.fetcher.version().await
+    }
 }
 ```
 
 #### Native Implementation
 
-Uses `gix` crate for full git operations:
+Uses `gix` crate for full git operations (clone, fetch, checkout):
 
 ```rust
 // Native: full gix clone + fetch
 use gix::{Repository, prepare_clone};
 
-impl GitPolicyStore {
+impl GitPolicyFetcher {
     /// Clone or open the repository.
     pub fn init(&self) -> Result<Repository, PolicyStoreError> {
         if self.repo_path.exists() {
@@ -553,37 +661,22 @@ impl GitPolicyStore {
 
 #### WASM Implementation
 
-Uses lightweight gix crates with custom transport:
+Uses gix with WASM-compatible crates and HTTP transport:
 
 ```rust
-// WASM: use gix-odb + gix-protocol + custom fetch via browser fetch API
-// No disk I/O — use in-memory storage
-
-use gix_odb::Memory;
+// WASM: gix-protocol with custom transport via web-sys fetch API
+// gix-protocol supports custom transports — use web-sys fetch API
 use gix_protocol::fetch;
-
-impl GitPolicyStoreWasm {
-    /// Fetch policies via HTTP (GitHub raw, GitLab API, etc.)
-    /// Falls back to fetching individual files if git protocol unavailable.
-    pub async fn fetch_policies(&self) -> Result<String, PolicyStoreError> {
-        // Option A: If the repo supports raw file HTTP (GitHub, GitLab):
-        //   GET https://raw.githubusercontent.com/org/repo/main/policies/main.cedar
-        // Option B: Use gix-protocol with custom transport (fetch API)
-        // Option C: Use gix-odb in-memory for small repos
-    }
-}
 ```
 
 Key gix crates for WASM:
-- `gix-odb` — object database reading/writing in memory
-- `gix-pack` — packfile decoding and navigation
-- `gix-protocol` — Git network protocol (needs custom transport for WASM)
-- `gix` — high-level API
+- `gix-odb` — object database reading in memory
+- `gix-pack` — packfile decoding
+- `gix-protocol` — Git protocol (custom transport via web-sys fetch)
+- `gix` — high-level API (feature-gated for WASM)
 
-WASM hurdles:
-1. **Storage**: No disk I/O → use in-memory arrays, IndexedDB, or JS virtual FS
-2. **Transport**: No TCP → use browser `fetch` API or WebSockets via `web-sys`
-3. **Solution**: For most use cases, fetch raw files via HTTP is simpler than full git protocol
+If gix compilation is problematic in WASM, the `HttpPolicyFetcher` provides a
+pragmatic fallback that fetches raw files via HTTP from the git hosting provider.
 
 #### Policy Resolution from Git
 
@@ -891,7 +984,7 @@ CREATE INDEX IF NOT EXISTS idx_cedar_policies_updated ON cedar_policies(updated_
 - `serde`, `serde_json` — serialization
 - `thiserror` — error handling
 - `async-trait` — async trait support
-- `tokio` — async runtime (native)
+- `foundation_core` (valtron) — async execution engine (native + wasm)
 
 ### Native backends
 - `gix` (optional) — pure Rust git implementation (native clone + fetch)

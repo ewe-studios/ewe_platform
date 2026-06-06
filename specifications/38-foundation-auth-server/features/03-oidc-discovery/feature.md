@@ -108,3 +108,8 @@ pub enum DiscoveryError {
 - URL normalization: `https://auth.example.com` → correct well-known URL
 - Error: invalid JSON → `ParseError`
 - Error: missing issuer → `MissingRequiredField`
+
+## Sync/Async Notes
+
+The `async fn` methods shown are the primary implementation. For sync callers,
+use valtron bridging: `from_future` + `execute` + `collect_one`. See the valtron skill.

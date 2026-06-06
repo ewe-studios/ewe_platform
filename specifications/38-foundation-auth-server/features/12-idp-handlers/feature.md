@@ -2,7 +2,16 @@
 
 ## Description
 
-HTTP handler implementations for all OIDC and auth endpoints. Each handler is a `ServeWriter` that reads from `ContextBag`, processes the request, and writes JSON responses.
+HTTP handler implementations for all OIDC and auth endpoints.
+
+Two handler variants are provided:
+- **ServeWriter** (native) — sync trait, bridges to async services via valtron
+  (`from_future` + `execute` + `collect_one`)
+- **WebServe** (wasm/browser) — async trait, calls `*_async` methods directly
+
+Both variants share the same business logic — only the transport layer differs.
+The ServeWriter handlers use valtron to call async service methods from the
+sync handler context. The WebServe handlers are natively async.
 
 ## Modules
 
