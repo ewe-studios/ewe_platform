@@ -60,6 +60,8 @@ libsql = { version = "0.6", optional = true }
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
+serial_test = { workspace = true }
+ntest = { workspace = true }
 
 [features]
 default = ["turso", "d1", "r2"]

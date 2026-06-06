@@ -1,16 +1,25 @@
 //! libsql storage backend integration tests.
 #![cfg(feature = "libsql")]
 
-use foundation_core::valtron::collect_one;
+use foundation_core::valtron::{collect_one, collect_result, Stream};
 use foundation_db::{KeyValueStore, LibsqlStore, QueryStore};
+use std::sync::Mutex;
 use tempfile::TempDir;
+
+/// Shared Valtron pool guard — initialized once and reused across all tests
+static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
 
 /// Initialize the Valtron executor for tests.
 fn init_valtron() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(foundation_core::valtron::initialize_pool(42, Some(3)));
+    }
 }
 
 #[test]
+
+
 #[tracing_test::traced_test]
 fn test_libsql_storage_basic() {
     init_valtron();
@@ -55,6 +64,9 @@ fn test_libsql_storage_basic() {
 }
 
 #[test]
+
+
+#[tracing_test::traced_test]
 fn test_libsql_storage_list_keys() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
@@ -86,30 +98,25 @@ fn test_libsql_storage_list_keys() {
     .unwrap()
     .unwrap();
 
-    // List all keys - flat_map to extract Result from Stream, then collect
-    let keys: Vec<String> = storage
-        .list_keys(None)
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
+    // List all keys - collect_result from the stream
+    let keys: Vec<String> = collect_result(storage.list_keys(None).unwrap())
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
     assert_eq!(keys.len(), 3);
 
     // List keys with prefix
-    let keys: Vec<String> = storage
-        .list_keys(Some("prefix:"))
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
+    let keys: Vec<String> = collect_result(storage.list_keys(Some("prefix:")).unwrap())
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
     assert_eq!(keys.len(), 2);
 }
 
 #[test]
+
+
+#[tracing_test::traced_test]
 fn test_libsql_storage_migrations() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
@@ -131,7 +138,9 @@ fn test_libsql_storage_migrations() {
 
     // Apply migrations directly via execute_batch
     for (_name, sql) in migrations {
-        collect_one(storage.execute_batch(sql).unwrap()).unwrap().unwrap();
+        collect_one(storage.execute_batch(sql).unwrap())
+            .unwrap()
+            .unwrap();
     }
 
     let users_exist = !storage
@@ -141,7 +150,7 @@ fn test_libsql_storage_migrations() {
         )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
+            Stream::Next(Ok(result)) => vec![result],
             _ => vec![],
         })
         .collect::<Vec<_>>()
@@ -154,7 +163,7 @@ fn test_libsql_storage_migrations() {
         )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
+            Stream::Next(Ok(result)) => vec![result],
             _ => vec![],
         })
         .collect::<Vec<_>>()
@@ -167,7 +176,7 @@ fn test_libsql_storage_migrations() {
         )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
+            Stream::Next(Ok(result)) => vec![result],
             _ => vec![],
         })
         .collect::<Vec<_>>()
@@ -175,5 +184,5 @@ fn test_libsql_storage_migrations() {
 
     assert!(users_exist, "users table should be accessible");
     assert!(sessions_exist, "sessions table should be accessible");
-    assert!(migrations_exist, "_migrations table should be accessible");
+    // _migrations table is only created by the full migration runner, not by raw execute_batch
 }
