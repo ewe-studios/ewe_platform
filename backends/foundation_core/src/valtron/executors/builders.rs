@@ -424,6 +424,55 @@ impl<
         self.lift()
     }
 
+    /// `broadcast_or_lift_iter` adds a task into execution queue and returns a
+    /// `NotifyRecvIterator` for synchronously receiving status values.
+    ///
+    /// Delegates to `lift_iter` in single-threaded mode.
+    #[cfg(not(feature = "multi"))]
+    #[must_use]
+    pub fn broadcast_or_lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        self.lift_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_lift_stream_iter` returns a `NotifyQueueStreamIterator`
+    /// for receiving simplified `Stream<Done, Pending>` values without the `Action` type.
+    ///
+    /// Delegates to `stream_lift_iter` in single-threaded mode.
+    ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    #[cfg(not(feature = "multi"))]
+    pub fn broadcast_or_lift_stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_lift_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_lift_stream_iter_with_config` returns a `NotifyQueueStreamIterator`
+    /// with configurable polling behavior.
+    ///
+    /// Delegates to `stream_lift_iter_with_config` in single-threaded mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    #[cfg(not(feature = "multi"))]
+    pub fn broadcast_or_lift_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_lift_iter_with_config(wait_cycle, max_turns)
+    }
+
     /// `broadcast_or_sequence` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
@@ -431,6 +480,55 @@ impl<
     #[must_use]
     pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.sequenced()
+    }
+
+    /// `broadcast_or_sequence_iter` adds a task into execution queue and returns a
+    /// `NotifyRecvIterator` for synchronously receiving status values.
+    ///
+    /// Delegates to `sequenced_iter` in single-threaded mode.
+    #[cfg(not(feature = "multi"))]
+    #[must_use]
+    pub fn broadcast_or_sequence_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        self.sequenced_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_sequence_stream_iter` returns a `NotifyQueueStreamIterator`
+    /// for receiving simplified `Stream<Done, Pending>` values without the `Action` type.
+    ///
+    /// Delegates to `stream_sequenced_iter` in single-threaded mode.
+    ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    #[cfg(not(feature = "multi"))]
+    pub fn broadcast_or_sequence_stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_sequenced_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_sequence_stream_iter_with_config` returns a `NotifyQueueStreamIterator`
+    /// with configurable polling behavior.
+    ///
+    /// Delegates to `stream_sequenced_iter_with_config` in single-threaded mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    #[cfg(not(feature = "multi"))]
+    pub fn broadcast_or_sequence_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_sequenced_iter_with_config(wait_cycle, max_turns)
     }
 }
 
@@ -452,6 +550,55 @@ impl<
         self.broadcast()
     }
 
+    /// `broadcast_or_lift_iter` adds a task into execution queue and returns a
+    /// `NotifyRecvIterator` for synchronously receiving status values.
+    ///
+    /// Delegates to `broadcast_iter` in multi-threaded mode.
+    #[cfg(feature = "multi")]
+    #[must_use]
+    pub fn broadcast_or_lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        self.broadcast_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_lift_stream_iter` returns a `NotifyQueueStreamIterator`
+    /// for receiving simplified `Stream<Done, Pending>` values without the `Action` type.
+    ///
+    /// Delegates to `stream_broadcast_iter` in multi-threaded mode.
+    ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    #[cfg(feature = "multi")]
+    pub fn broadcast_or_lift_stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_broadcast_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_lift_stream_iter_with_config` returns a `NotifyQueueStreamIterator`
+    /// with configurable polling behavior.
+    ///
+    /// Delegates to `stream_broadcast_iter_with_config` in multi-threaded mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    #[cfg(feature = "multi")]
+    pub fn broadcast_or_lift_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_broadcast_iter_with_config(wait_cycle, max_turns)
+    }
+
     /// `broadcast_or_sequence` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
@@ -459,6 +606,55 @@ impl<
     #[must_use]
     pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.broadcast()
+    }
+
+    /// `broadcast_or_sequence_iter` adds a task into execution queue and returns a
+    /// `NotifyRecvIterator` for synchronously receiving status values.
+    ///
+    /// Delegates to `broadcast_iter` in multi-threaded mode.
+    #[cfg(feature = "multi")]
+    #[must_use]
+    pub fn broadcast_or_sequence_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        self.broadcast_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_sequence_stream_iter` returns a `NotifyQueueStreamIterator`
+    /// for receiving simplified `Stream<Done, Pending>` values without the `Action` type.
+    ///
+    /// Delegates to `stream_broadcast_iter` in multi-threaded mode.
+    ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    #[cfg(feature = "multi")]
+    pub fn broadcast_or_sequence_stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_broadcast_iter(wait_cycle)
+    }
+
+    /// `broadcast_or_sequence_stream_iter_with_config` returns a `NotifyQueueStreamIterator`
+    /// with configurable polling behavior.
+    ///
+    /// Delegates to `stream_broadcast_iter_with_config` in multi-threaded mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    #[cfg(feature = "multi")]
+    pub fn broadcast_or_sequence_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_broadcast_iter_with_config(wait_cycle, max_turns)
     }
 
     /// `broadcast` delivers a task to the bottom of the global execution queue.

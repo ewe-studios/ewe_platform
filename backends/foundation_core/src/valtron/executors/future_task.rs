@@ -4,11 +4,19 @@
 //! to be executed through the valtron executor system without requiring a full
 //! async runtime.
 
-use crate::valtron::{NoAction, TaskIterator, TaskStatus};
+#[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
+#[cfg(any(feature = "std", feature = "alloc"))]
 use core::marker::PhantomData;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use core::task::{RawWaker, RawWakerVTable, Waker};
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::{NoAction, TaskIterator, TaskStatus};
+#[cfg(any(feature = "std", feature = "alloc"))]
 use core::pin::Pin;
-use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
+#[cfg(any(feature = "std", feature = "alloc"))]
+use core::task::{Context, Poll};
 
 #[cfg(feature = "std")]
 use std::boxed::Box;
@@ -27,6 +35,7 @@ use crate::synca::mpp::{self, SenderError};
 ///
 /// WHY: Valtron executor drives polling loop, no actual waking needed
 /// WHAT: Returns a Waker that does nothing when `wake()` is called
+#[cfg(any(feature = "std", feature = "alloc"))]
 fn create_noop_waker() -> Waker {
     const VTABLE: RawWakerVTable = RawWakerVTable::new(
         |_| RAW_WAKER, // clone
@@ -52,7 +61,7 @@ fn get_noop_waker() -> Waker {
     NOOP_WAKER.with(std::clone::Clone::clone)
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(feature = "alloc", not(feature = "std")))]
 fn get_noop_waker() -> Waker {
     create_noop_waker()
 }
@@ -109,7 +118,7 @@ where
 
 // WASM: FutureTask TaskIterator impl without Send bounds — for `from_future_non_send`.
 // This impl works with !Send futures (e.g. JsFuture) on the single-threaded wasm32 target.
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 impl<F> TaskIterator for FutureTask<F>
 where
     F: Future + 'static,
@@ -241,7 +250,7 @@ where
 
 // WASM: StreamTask TaskIterator impl without Send bounds — for `from_stream_non_send`.
 // This impl works with !Send streams on the single-threaded wasm32 target.
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 impl<S> TaskIterator for StreamTask<S>
 where
     S: futures_core::Stream + 'static,
@@ -424,7 +433,7 @@ where
 // ============================================================================
 
 /// Iterator that polls a future on each `next()` call.
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 pub struct FutureIterator<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -436,7 +445,7 @@ where
     _phantom: PhantomData<(Fut, T, E)>,
 }
 
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -478,7 +487,7 @@ where
 /// A future executor for single-threaded std environments.
 ///
 /// Polls the future inline on each `next()` call without spawning threads.
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
@@ -489,7 +498,7 @@ where
     _phantom: PhantomData<(Fut, I, T, E)>,
 }
 
-#[cfg(not(feature = "multi"))]
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,

@@ -2,21 +2,29 @@
 
 use super::single;
 
-use crate::valtron::FutureTask;
 use crate::valtron::InlineAction;
 use crate::valtron::InlineActionBehaviour;
-use crate::valtron::ReadyValues;
 use crate::valtron::StreamConfig;
 use crate::valtron::TaskStatusMapper;
-use crate::valtron::ThreadedIterFuture;
-use crate::valtron::ThreadedValue;
 use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, NotificationItem, NotifyQueueStreamIterator,
-    NotifyRecvIterator, ProgressIndicator, State, Stream, StreamSpread, StreamTask, TaskIterator, TaskStatus,
+    NotifyRecvIterator, ProgressIndicator, State, Stream, StreamSpread, TaskIterator, TaskStatus,
 };
 use crate::valtron::{GenericResult, StreamIterator};
+#[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::FutureTask;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::StreamTask;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::ReadyValues;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::ThreadedIterFuture;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::ThreadedValue;
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
 /// thread pool for both the single and multi-threaded instances.
@@ -182,6 +190,7 @@ where
 ///
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
+#[cfg(any(feature = "std", feature = "alloc"))]
 #[must_use]
 #[tracing::instrument(skip(stream))]
 pub fn drive_future_stream<S>(stream: S) -> DrivenTaskIterator<StreamTask<S>>
@@ -201,6 +210,7 @@ where
 ///
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn drive_future<F>(future: F) -> DrivenTaskIterator<FutureTask<F>>
 where
     F: Future + 'static,
@@ -214,6 +224,7 @@ where
 /// WHY: `JsFuture` and other wasm-bindgen types are `!Send`. On wasm32 there is
 /// only one thread so Send is structurally safe but the types don't implement it.
 /// WHAT: Returns `FutureTask` without Send bounds for use with `drive_iterator`.
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn from_future<F>(future: F) -> FutureTask<F>
 where
     F: Future + 'static,
@@ -224,6 +235,7 @@ where
 
 /// Wrap a stream into a TaskIterator (WASM — Send required by unified executor trait,
 /// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn from_stream<S>(stream: S) -> StreamTask<S>
 where
     S: futures_core::Stream + 'static,
@@ -234,6 +246,7 @@ where
 
 /// Execute a future using the unified executor (WASM — Send required for trait bounds,
 /// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
@@ -258,6 +271,7 @@ where
 ///
 /// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
 /// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
@@ -1809,6 +1823,7 @@ where
 
 /// Schedule a future, returning a stream that yields `Stream<Result<T, E>, ()>`.
 /// Errors are preserved as `Stream::Next(Err(e))`.
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn schedule_future<T, E, F>(
     future: F,
 ) -> GenericResult<impl Iterator<Item = Stream<Result<T, E>, ()>> + 'static>
@@ -1838,6 +1853,7 @@ where
 }
 
 /// One-shot blocking bridge: execute a future and return the first `Next` result.
+#[cfg(any(feature = "std", feature = "alloc"))]
 pub fn exec_future<T, E, F>(future: F) -> GenericResult<Result<T, E>>
 where
     F: Future<Output = Result<T, E>> + 'static,
