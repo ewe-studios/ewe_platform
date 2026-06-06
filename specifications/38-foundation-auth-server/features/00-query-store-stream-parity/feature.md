@@ -1,5 +1,8 @@
 # Feature 00: Storage Trait Stream Parity — Async Primary, Sync Wraps
 
+**Status: COMPLETE** — Implemented and committed as `dc1e1ae8`.
+All 102 tests pass across all feature combinations (turso, libsql, d1, r2).
+
 ## Context
 
 `foundation_db` has sync/async duplication in multiple traits. The audit found **3 problem areas**:
@@ -445,4 +448,50 @@ let keys: Vec<String> = store.list_keys_async(prefix).await?;
 
 // NEW:
 let keys = store.list_keys_async(prefix).await?.collect_all().await?;
+```
+
+---
+
+## Implementation Results
+
+**Commit:** `dc1e1ae8` — `feat(spec-38): Feature 00 — QueryStore stream parity, async-first pattern`
+
+### Files Modified
+- `backends/foundation_db/src/core/storage_provider.rs` — Added `AsyncQueryStream`, `AsyncListStream`, `AsyncQueryStreamIterator`, `AsyncListStreamIterator` types. Updated `AsyncQueryStore` and `AsyncKeyValueStore` traits.
+- `backends/foundation_db/src/native/turso_backend.rs` — Added `query_rows_stream`/`list_keys_stream` via `try_stream!`. Sync wraps async via `run_future_iter`.
+- `backends/foundation_db/src/native/libsql_store.rs` — Same pattern as Turso. Fixed pre-existing bugs (`libsql_backend` module name, `execute_batch` return type, `Row::get` type cast, missing `StreamIteratorExt` import).
+- `backends/foundation_db/src/native/d1_kvstore.rs` — Updated to return buffered `AsyncQueryStream`/`AsyncListStream`.
+- `backends/foundation_db/src/wasm/wasm_storage/d1_wasm.rs` — Updated return types.
+- `backends/foundation_db/src/core/backends/memory.rs` — Updated `list_keys_async` to return `AsyncListStream`.
+- `backends/foundation_db/src/core/backends/memory_json.rs` — Same.
+- `backends/foundation_db/src/native/json_file.rs` — Same.
+- `backends/foundation_db/src/storage_provider.rs` — Updated `StorageProvider` trait impls. Fixed `libsql_backend` → `libsql_store` module name.
+- `backends/foundation_db/src/core/schema/migrations.rs` — Fixed `is_empty()` on `AsyncQueryStream` → `collect_all().await?.is_empty()`.
+- `backends/foundation_db/Cargo.toml` — Added `async-stream` dependency.
+
+### Pre-existing Bugs Fixed
+- `storage_provider.rs` imported `crate::native::libsql_backend` but file is `libsql_store.rs`
+- `LibsqlStorage` type renamed to `LibsqlStore` in storage_provider enum and tests
+- `execute_batch` in libsql returns `BatchRows`, not `()` — added `.map(|_| ())`
+- `libsql::Row::get()` takes `i32`, not `usize` — cast in `parse_state_row`
+- Missing `StreamIteratorExt` import for `map_circuit`/`map_done` in libsql_store.rs
+
+### Test Results
+```
+test result: ok. 19 passed (doctests)
+test result: ok. 4 passed  (blobstore)
+test result: ok. 4 passed  (cleanup)
+test result: ok. 7 passed  (d1_kvstore)
+test result: ok. 3 passed  (json_blobstore)
+test result: ok. 5 passed  (json_file_storage)
+test result: ok. 3 passed  (libsql_storage)
+test result: ok. 15 passed (memory)
+test result: ok. 3 passed  (memory_json)
+test result: ok. 5 passed  (turso_storage)
+test result: ok. 18 passed (state)
+test result: ok. 7 passed  (store_state_task)
+test result: ok. 5 passed  (turso)
+test result: ok. 0 passed  (doc-tests)
+─────────────────────────────────────────
+Total: 102 passed; 0 failed
 ```
