@@ -305,8 +305,8 @@ fn ref_evaluates_items_for_unevaluated() {
         .build(&schema)
         .unwrap();
 
-    assert!(validator.is_valid(&json!(["Alice", 3.14])));
-    assert!(!validator.is_valid(&json!(["Alice", 3.14, "extra"])));
+    assert!(validator.is_valid(&json!(["Alice", std::f32::consts::PI])));
+    assert!(!validator.is_valid(&json!(["Alice", std::f32::consts::PI, "extra"])));
 }
 
 // ── Nested combiners with unevaluated ────────────────────────────────

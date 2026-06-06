@@ -348,11 +348,11 @@ fn all_drafts_integer_vs_number() {
         let int_schema = compile_fn(&json!({"type": "integer"})).unwrap();
         assert!(int_schema.is_valid(&json!(42)));
         assert!(int_schema.is_valid(&json!(0)));
-        assert!(!int_schema.is_valid(&json!(3.14)));
+        assert!(!int_schema.is_valid(&json!(std::f32::consts::PI)));
 
         let num_schema = compile_fn(&json!({"type": "number"})).unwrap();
         assert!(num_schema.is_valid(&json!(42)));
-        assert!(num_schema.is_valid(&json!(3.14)));
+        assert!(num_schema.is_valid(&json!(std::f32::consts::PI)));
     }
 }
 

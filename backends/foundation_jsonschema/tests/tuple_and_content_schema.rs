@@ -168,7 +168,7 @@ fn tuple_draft4_with_id_keyword() {
         .build(&schema)
         .unwrap();
 
-    assert!(validator.is_valid(&json!([1.5, "hello", 3.14])));
+    assert!(validator.is_valid(&json!([1.5, "hello", std::f32::consts::PI])));
     assert!(!validator.is_valid(&json!([1.5, "hello", "extra"]))); // extra not number
 }
 
@@ -188,8 +188,8 @@ fn tuple_draft2019_09_basic() {
         .build(&schema)
         .unwrap();
 
-    assert!(validator.is_valid(&json!(["name", 3.14])));
-    assert!(!validator.is_valid(&json!(["name", 3.14, "extra"])));
+    assert!(validator.is_valid(&json!(["name", std::f32::consts::PI])));
+    assert!(!validator.is_valid(&json!(["name", std::f32::consts::PI, "extra"])));
 }
 
 // ── items: false (empty tuple) ─────────────────────────────────────
@@ -231,11 +231,11 @@ fn draft2020_12_prefix_items_with_items() {
         .unwrap();
 
     // First: string, second: number, rest: boolean
-    assert!(validator.is_valid(&json!(["name", 3.14, true, false])));
+    assert!(validator.is_valid(&json!(["name", std::f32::consts::PI, true, false])));
     // Wrong type in prefix
-    assert!(!validator.is_valid(&json!([42, 3.14, true])));
+    assert!(!validator.is_valid(&json!([42, std::f32::consts::PI, true])));
     // Wrong type in items (beyond prefix)
-    assert!(!validator.is_valid(&json!(["name", 3.14, "not boolean"])));
+    assert!(!validator.is_valid(&json!(["name", std::f32::consts::PI, "not boolean"])));
 }
 
 #[test]

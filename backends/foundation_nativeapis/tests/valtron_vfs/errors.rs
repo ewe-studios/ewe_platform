@@ -7,9 +7,7 @@
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
-use foundation_nativeapis::shared::vfs::{
-    MemoryFs, VfsError, VfsFileSystem,
-};
+use foundation_nativeapis::shared::vfs::{MemoryFs, VfsError, VfsFileSystem};
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
@@ -38,7 +36,10 @@ fn error_already_exists_propagated() {
     sync.create("/file.txt", 0o644).unwrap();
 
     let err = sync.create("/file.txt", 0o644).unwrap_err();
-    assert!(matches!(err.current_context(), VfsError::AlreadyExists { .. }));
+    assert!(matches!(
+        err.current_context(),
+        VfsError::AlreadyExists { .. }
+    ));
 }
 
 #[test]
@@ -51,7 +52,9 @@ fn error_not_a_file_propagated() {
 
     sync.mkdir("/dir").unwrap();
 
-    let err = sync.open("/dir", foundation_nativeapis::shared::vfs::OpenMode::Read).unwrap_err();
+    let err = sync
+        .open("/dir", foundation_nativeapis::shared::vfs::OpenMode::Read)
+        .unwrap_err();
     assert!(matches!(err.current_context(), VfsError::NotAFile { .. }));
 }
 
@@ -66,7 +69,10 @@ fn error_not_a_directory_propagated() {
     sync.write_file("/file.txt", b"data").unwrap();
 
     let err = sync.open_directory("/file.txt").unwrap_err();
-    assert!(matches!(err.current_context(), VfsError::NotADirectory { .. }));
+    assert!(matches!(
+        err.current_context(),
+        VfsError::NotADirectory { .. }
+    ));
 }
 
 #[test]
@@ -93,7 +99,10 @@ fn error_cannot_remove_root() {
     let sync = SyncFs::new(MemoryFs::new());
 
     let err = sync.remove("/").unwrap_err();
-    assert!(matches!(err.current_context(), VfsError::PermissionDenied { .. }));
+    assert!(matches!(
+        err.current_context(),
+        VfsError::PermissionDenied { .. }
+    ));
 }
 
 #[test]
@@ -107,7 +116,10 @@ fn error_path_traversal_rejected() {
     sync.mkdir("/safe").unwrap();
 
     let err = sync.stat("/safe/../..").unwrap_err();
-    assert!(matches!(err.current_context(), VfsError::InvalidPath { .. }));
+    assert!(matches!(
+        err.current_context(),
+        VfsError::InvalidPath { .. }
+    ));
 }
 
 #[test]

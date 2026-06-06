@@ -285,7 +285,9 @@ mod tests {
 
     #[test]
     fn test_json_type_of_number() {
-        let n: Value = serde_json::Number::from_f64(3.14).unwrap().into();
+        let n: Value = serde_json::Number::from_f64(std::f32::consts::PI)
+            .unwrap()
+            .into();
         assert_eq!(JsonType::of(&n), JsonType::Number);
     }
 

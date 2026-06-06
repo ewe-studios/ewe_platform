@@ -123,8 +123,11 @@ In my mind, every start of a Agent requires the provision of a SessionId which w
 3. ToolCallManager - A core API which will own tool call execution and will be given tool call messages (interactions) and will own and handle the execution, returning results to the agent task so it can yield those first to the Messages API instance, then give it to the AI once successfully saved and persisted. this ensures all interactions was successfully persisted for the session before any future processing occurs. The important thing to note is this has internal tool call management capabilities so tool calls can be queued, executed in the background and will only stop if interrupted else will deliver the results once all tool call as finished being processed, it handles parrallel, sequential execution of tool calls, and knows how to split tool calls into groups where if some tool calls must be sequentially executed before others can be executed in parralel and knows how to manage this.
 4. PriorityQueue - A (concurrent-queue backed delivery queue) core api which will own steering where if users wish to stop, interrupt, steer the LLM, then the agent will check if there are messages, will combine that and add these to the front so the AI must first answer this and we also when such a queue has messages, tell the ToolCallManager to cancel any ongoing tool calls not yet completed since users want to interrupt.
 4. FollowUpQueue - A (concurrent-queue backed delivery queue) core api which will own follow up messages where if users wish provide future steering messages to the LLM after all tool calls, and current loop is finished, further giving the llm instructions for the next steps. Unlike the PriorityQueue, any messages in here, never interrupts the ToolCallManager or llm but wait till the next call, so it keeps going.
+5. EmbeddingProvider - A APi which owns all embedding generation and probably fronts a concurrentQueue which it wraps to deliver embedding generation requests to some valtron task which will just owns this and owns the cache system that its configured to use (e.g fjall, memory, file etc) or just an in-memory LRU cache that has a max size and will never allow unbounded embeddings be kept in memory for long.
 
 In my mind each of these is backed by a valtron task which knows how to manage the different concerns they have, since valtron allows both sequential, linked execution, broadcasted tasks for parrallel execution, priority (execute to finish then continue with me semantics, execute me and this child turn by turn), we can architecture these nicely, cleanly and logically, breaking different complex parts into different valtron tasks that each use to achieve what it needs.
+
+But something is important in my mind and we should also add this into our valtron skill, where 
 
 Yes, we valtron it all.
 
@@ -173,9 +176,9 @@ Mastra triggers:
 - Generation of observation memory when session recent interactions goes past 30k
 - Generation of reflections when observation memory goes past 40k,
 
-### Embeddings and Caching
+### Embeddings API
 
-The context API should also own the get a shared Embedding API which will own embedding generation and caching (see aobve for context).
+Note: The context API should also own the get a shared Embedding API which will own embedding generation and caching (see aobve for context).
 
 When we generate embeddings, we should cache with a data strcuture to perform a LRU cache say with 1000 items with most recent at the top and least used at the bottom allowing us re-use embeddings for texts. We might need to investigate whats the optimal way for this to ensure we are reusing as much token generated either by word or by sentence or something.
 

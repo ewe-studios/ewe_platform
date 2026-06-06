@@ -340,7 +340,12 @@ mod tests {
     fn test_info_with_args_with_tracing() {
         let _ = tracing_subscriber::fmt().with_test_writer().try_init();
 
-        info!("Test info with args: {} {} {}", 42, "hello", 3.14);
+        info!(
+            "Test info with args: {} {} {}",
+            42,
+            "hello",
+            std::f32::consts::PI
+        );
     }
 
     #[test]
