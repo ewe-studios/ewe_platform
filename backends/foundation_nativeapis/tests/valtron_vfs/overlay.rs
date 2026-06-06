@@ -113,6 +113,7 @@ fn overlay_memory_directory_listing() {
     base.write_file("/dir/base.txt", b"from base").unwrap();
 
     let delta = MemoryDelta::new();
+    delta.mkdir("/dir").unwrap();
     delta.add_whiteout("/dir/base.txt", 1).unwrap();
 
     // Write a new file to delta at same path
