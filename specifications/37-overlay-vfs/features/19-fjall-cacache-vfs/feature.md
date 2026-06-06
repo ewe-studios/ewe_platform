@@ -895,6 +895,14 @@ No `Arc<Mutex<>>` wrapper needed (unlike SqliteDelta) — fjall and cacache hand
 - [ ] Test: end-to-end with `OverlayFileSystem<MemoryFs, FjallDelta>`
 - [ ] Test: concurrent reads don't block (no mutex contention)
 
+## Iron Rule: Valtron-Backed Tests Required
+
+**This feature will use valtron through `SyncFjallFs` → `SyncFs<FjallFs>` → `exec_async`. All sync-bridge code paths MUST be tested through a valtron-initialized pool.**
+
+Tests must initialize the pool before calling any sync-bridge methods — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs` for the pattern.
+
+**Blocked by Feature 22:** No work on this feature until Feature 22 (VFS Valtron Tests) tests sync bridges through valtron.
+
 ## Feature Flags
 
 ```toml

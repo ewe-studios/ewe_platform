@@ -147,6 +147,14 @@ impl VfsFileSystem for SyncLibsqlDelta {
 - `MemoryFsInner::version` stays behind `RwLock` — it's mutated alongside `HashMap` operations, atomic doesn't help
 - Only use `AtomicU64` for cheap, shared, single-field state (cursors, counters) that benefits from atomic ops and sharing
 
+## Iron Rule: Valtron-Backed Tests Required
+
+**This feature uses valtron (`SyncSeekableFile` removed, `SyncLibsqlDelta` delegates to `SyncFs`, `SyncFs::inner()` exposed). All sync-bridge seekable paths MUST be tested through valtron.**
+
+`SyncLibsqlDelta` wraps `SyncFs<LibsqlDelta>` which bridges async ops through valtron. Tests must initialize the pool — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs`. Seekable file concurrency tests (cloned handles sharing `Arc<AtomicU64>` cursor) must run through valtron threads to verify no panic.
+
+**Blocked by Feature 22:** No further seekable cleanup work until Feature 22 (VFS Valtron Tests) tests the sync bridge + seekable paths through valtron.
+
 ## Principle
 
 > Just because we *can* write a generic bridge doesn't mean we *should*.  

@@ -104,6 +104,27 @@ If events arrive faster than the consumer can process them:
 3. **Detection**: VfsTask could optionally emit a `VfsEvent::EventsDropped { count }` synthetic event when channel overflow is detected (requires `concurrent_queue` to report dropped count, or maintain a separate counter).
 4. **Tuning**: Channel capacity is configurable via `VfsTask::with_channel_capacity(cap: usize)`. Higher capacity = more memory, fewer drops. Lower capacity = less memory, more drops under load.
 
+## Iron Rule: Valtron-Backed Tests Required
+
+**This feature IS valtron integration. All VfsTask code paths MUST be tested through a valtron-initialized pool.**
+
+Tests must follow the pattern in `backends/foundation_nativeapis/tests/valtron_executor_integration.rs`:
+
+```rust
+fn init_pool() -> PoolGuard { initialize_pool(42, Some(3)) }
+
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn test_vfs_task() {
+    let _guard = init_pool();
+    // ... test VfsTask through valtron executor
+}
+```
+
+**No exceptions.** VfsTask is a valtron task — it cannot be meaningfully tested without the valtron executor. Direct `next_status()` calls that don't go through `execute()` are incomplete tests.
+
 ## Tasks
 
 ### VfsTask (`src/valtron/vfs_task.rs`)

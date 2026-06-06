@@ -509,6 +509,28 @@ The generic `LocalSeekableFile<A>` in sync_bridge.rs handles this for ALL backen
 - [-] Migrate TursoDelta to async traits (deferred — has 75 compilation errors)
 - [-] Consider async OverlayFileSystem composition (deferred)
 
+## Iron Rule: Valtron-Backed Tests Required
+
+**This feature uses valtron (`exec_async`, `SyncFs`, `execute`, `collect_one`). All sync-bridge code paths MUST be tested through a valtron-initialized pool.**
+
+Direct sync calls (e.g. `MemoryFs::mkdir()` directly) bypass the bridge entirely. Tests must call `SyncFs<Backend>` methods with `initialize_pool()` first — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs` for the pattern:
+
+```rust
+fn init_pool() -> PoolGuard { initialize_pool(42, Some(3)) }
+
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn test_sync_bridge() {
+    let _guard = init_pool();  // ← MUST initialize before any sync bridge call
+    let sync = SyncFs::new(MemoryFs::new());
+    sync.mkdir("/src").unwrap();  // goes through valtron's executor
+}
+```
+
+**Blocked by Feature 22:** No further work on this feature until Feature 22 (VFS Valtron Tests) is complete and all sync-bridge paths are tested through valtron.
+
 ## Verification
 
 1. `cargo check -p foundation_nativeapis --features vfs` — async traits + sync bridge + exec_async compile

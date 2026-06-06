@@ -98,6 +98,37 @@ All I/O logic lives in async traits (`AsyncVfsFile`, `AsyncSeekableVfsFile`, `As
 
 See **Feature 20: Async-First VFS Migration** for full details, trait definitions, and sync bridge architecture.
 
+### 4b. Iron Rule: Valtron-Backed Tests Required (Global)
+
+**Any feature that uses valtron (`exec_async`, `SyncFs`, `execute`, `collect_one`, `from_future`) MUST have integration tests that initialize the valtron pool and exercise the sync bridge through it.**
+
+Direct sync calls bypass the bridge and do not test the production code path. Tests must follow the pattern in `backends/foundation_nativeapis/tests/valtron_executor_integration.rs`:
+
+```rust
+fn init_pool() -> PoolGuard { initialize_pool(42, Some(3)) }
+
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn test_sync_bridge() {
+    let _guard = init_pool();  // ← MUST initialize before any sync bridge call
+    let sync = SyncLibsqlDelta::new(LibsqlDelta::new("/tmp/test.db").unwrap());
+    sync.mkdir("/src").unwrap();  // goes through valtron's executor
+}
+```
+
+**Agents implementing any valtron-dependent feature MUST:**
+1. Read `backends/foundation_nativeapis/tests/valtron_executor_integration.rs` for the test pattern
+2. Read `backends/foundation_nativeapis/tests/valtron_multi_executor.rs` for multi-threaded executor tests
+3. Read `backends/foundation_nativeapis/tests/valtron_integration.rs` for FileWatcherTask + valtron lifecycle tests
+4. Add valtron-backed tests as part of the same feature — no separate "add tests later" feature unless the test scope is large (see Feature 22)
+5. Mark the feature as **blocked** on Feature 22 (VFS Valtron Tests) if the feature is marked complete but has no valtron tests
+
+**If a feature is marked "done" but lacks valtron tests for its sync-bridge paths, a new test feature (Feature 22) is created and NO further work proceeds on dependent features until those tests exist.**
+
+See **Feature 22: VFS Valtron Tests** for the comprehensive test plan.
+
 ### 5. Metadata model
 
 Every file/directory carries metadata regardless of platform. Where the platform doesn't enforce something (uid/gid on WASM), it's still stored, recorded, and retrievable. Permissions are metadata, not enforcement — enforcement is the implementation's business.

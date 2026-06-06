@@ -844,6 +844,28 @@ When disabled, no changelog table is created and no journal entries are written 
 - [ ] Hierarchical whiteout prefix tests — exact prefix match, cleanup on remove
 - [ ] Changelog table — optional `sqlite_vfs_changelog` table (deferred, opt-in feature)
 
+## Iron Rule: Valtron-Backed Tests Required
+
+**This feature uses valtron through `SyncLibsqlDelta` → `SyncFs<LibsqlDelta>` → `exec_async`. All sync-bridge code paths MUST be tested through a valtron-initialized pool.**
+
+Direct `LibsqlDelta` async method calls bypass the bridge entirely. Tests must call `SyncLibsqlDelta` methods with `initialize_pool()` first — see `backends/foundation_nativeapis/tests/valtron_executor_integration.rs`:
+
+```rust
+fn init_pool() -> PoolGuard { initialize_pool(42, Some(3)) }
+
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn test_sync_libsql() {
+    let _guard = init_pool();
+    let sync = SyncLibsqlDelta::new(LibsqlDelta::new("/tmp/test.db").unwrap());
+    sync.mkdir("/src").unwrap();  // goes through valtron's executor
+}
+```
+
+**Blocked by Feature 22:** No further work until Feature 22 (VFS Valtron Tests) tests `SyncLibsqlDelta` through valtron.
+
 ## Feature Flags
 
 ```toml
