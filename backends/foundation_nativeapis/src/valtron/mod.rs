@@ -8,11 +8,13 @@
 mod broadcaster;
 mod file_watcher;
 mod stop_signal;
+mod vfs_task;
 
 pub use broadcaster::Broadcaster;
 pub use file_watcher::FileWatcherBuilder;
 pub use file_watcher::FileWatcherTask;
 pub use stop_signal::{CompositeReadiness, StopSignal};
+pub use vfs_task::{VfsEventReadiness, VfsTask, VfsTaskBuilder};
 
 // Re-export FdState from shared so native/fd_monitor.rs can access it.
 pub use super::shared::FdState;

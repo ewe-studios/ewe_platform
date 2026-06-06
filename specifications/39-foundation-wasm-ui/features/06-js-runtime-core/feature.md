@@ -1,5 +1,11 @@
 # Feature 06: JS Runtime Core — Split SDK
 
+**TODO**: should not this be part of 01 or the actual 02 or 01b feature instead, just after the wasm-ui-core feature? Alot needs to change here especially with regards protocol negotiation and how that should work on both sides. In my mind, the JS side when it instantiates the wasm will also  always include in some way what protocol: our own custom binary, the new arrow format or some other. Maybe adjust all our messages to include a u8 protocol field and another u8 field for version to represent the protocol and version being used. This makes it easy and non-static so that the other side will just already have instantiated the right protocol translator and will use it once it identifies the protocol and version.
+
+Failing if the version is not supported from what it has, so this way its just easy to slot in and the protocol is expected to be the same for stuff coming out and stuff coming in. All messages on both side will include the right protocol and version making it easy to identify what to use.
+
+Might even make things easier and plug all the protocol into a Zerofield struct with all the methods for a protocol, making it cheap to use on the rust side, where there is a struct per protocol version (something to think on).
+
 ## Description
 
 Rewrite the existing foundation_wasm JS runtime into two files with clean separation:

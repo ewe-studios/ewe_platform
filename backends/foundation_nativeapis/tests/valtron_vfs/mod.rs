@@ -17,6 +17,7 @@ mod memory;
 mod async_traits;
 mod overlay;
 mod errors;
+mod vfs_task;
 
 #[cfg(feature = "vfs-sqlite")]
 mod sqlite;

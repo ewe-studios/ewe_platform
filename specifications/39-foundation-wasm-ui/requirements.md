@@ -306,6 +306,22 @@ backends/
 | [07-auth-ui-package](features/07-auth-ui-package/) | foundation_auth_ui — login form, register form, MFA challenge, session status, user profile, auth layout | 3 | pending |
 | [08-headless-ui-components](features/08-headless-ui-components/) | foundation_ui_components — headless accessible components: button, dialog, menu, tabs, popover, combobox, etc. | 4 | pending |
 
+## Big TODOs
+
+1. Lets review all the todos across all features and this requirement file.
+2. I want to lean more into the core ideas of primal-ui in specifications/39-foundation-wasm-ui/learnings/primal-ui.md (but we need to make it clear what exactly we are bring in and what is out)
+3. Its now clear, i would like to expand our codegen tooling (foundation_codegen) with capability javascript and typescript generation capabilities after seeing how web-rs does this (see specifications/39-foundation-wasm-ui/learnings/web-gen-ts-binding-generation.md)
+4. Also its clear i want to refactor and make communication protocol aware, so that interactions always start with protocol and version starters in the messages sent back and forth to support multiple protocol and versions e.g our current custom binary protocol and arrow messages.
+5. Its clear we want to support: direct invocation, web-worker execution, service workers (when possible, which will allow isomorphic http endpoints that get intercepted before they go to the server or remote endpoint) and so need to think more about how this should work.
+  a. I was thinking just like we do with the #[wasm_bin] proc macro, we can mark functions further that specific use #[wasm_bin], new proc macros that indicate how its going to be executed:
+    - `#[wasm_bin]` — regular WASM function, executed in the main thread
+      - #[wasm_bin(js=single-file, encoded=b64|uint8array)] - generates also a js wrapper which will encoded the generate wasm beside it as a single js file and by default add it as a Uint8Array else base64 encoded data with the needed logic to decode and initialize it.
+    - `#[wasm_worker]` — executed in a web worker and also will generate a js wrapper for it and could have a marker js=single-file to indicate when present to not just generate a wasm but then create a js file which will base64 encode the wasm into the js file and setup the necessary logic to have it running which can be served like a regular file and if not then it automatically assumes where ever its (the js) is served, it will just ask the server for the wasm file in the web-worker.
+    - `#[wasm_worker(js=single-file, encoded=b64|uint8array)]` — executed in a web worker and also will generate a js wrapper file will base64 encode the wasm into the js file and setup the necessary logic to have it running which can be served like a regular file and if not then it automatically assumes where ever its (the js) is served, it will just ask the server for the wasm file in the web-worker. When the js property is present then we look for encoded which by default is `uint8array` where we just store the raw bytes in a Uint8Array (see specifications/39-foundation-wasm-ui/learnings/wasm-delivery.md) and letting the server compress it. 
+    - `#[wasm_service]` — executed in a service worker - which will let users present a fetch endpoint (yes we are stealing from cloudflare) which lets us present a http endpoint to fetch content and a route() method that returns the routes the service worker should scope for going to the wasm else passing them along to the server.
+    - `#[wasm_service(js=single-file, encoded=b64|uint8array)]` — executed in a service worker and following the same semantics as #[wasm_worker] to support how its encoded into the single file when we generate it.
+
+
 ## Module References
 
 - `backends/foundation_wasm/` — existing low-level ABI, will be stripped of UI-specific concerns

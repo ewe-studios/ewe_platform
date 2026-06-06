@@ -1,5 +1,7 @@
 # Feature 08: Headless UI Components
 
+**TODO**: I like this, this should be even done before feature 07, so that all these components are more than available and we can then build on them.
+
 ## Description
 
 Create `foundation_ui_components` — a library of unstyled, accessible UI components built on `foundation_wasm_ui`. Inspired by headlessui's compound component pattern: no visual styles, complete accessibility (WAI-ARIA, keyboard navigation), and composable API.

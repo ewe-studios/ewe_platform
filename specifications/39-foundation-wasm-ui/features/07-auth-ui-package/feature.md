@@ -1,5 +1,9 @@
 # Feature 07: Auth UI Package
 
+**TODO**: this should be like the final feature in this spec that is ever worked on so that all other features would have built the right foundation that then drives how this will work and how we even build the components for this.
+
+We should also look that the UI bundled with rauthy which this is supposed to be based on to clealy break down all the UI, components, color, design tokens we need to make this complete.
+
 ## Description
 
 Create `foundation_auth_ui` — a crate of auth-specific UI components built on `foundation_wasm_ui`. These components connect to the foundation_auth server's JSON API (spec 38) and provide the frontend for authentication flows.
