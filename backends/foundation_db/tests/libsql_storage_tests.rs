@@ -7,10 +7,11 @@ use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests.
 fn init_valtron() {
-    foundation_core::valtron::multi::initialize_pool(42, None);
+    foundation_core::valtron::initialize_pool(42, None);
 }
 
 #[test]
+#[tracing_test::traced_test]
 fn test_libsql_storage_basic() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
