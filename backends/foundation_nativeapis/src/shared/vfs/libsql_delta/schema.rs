@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS vfs_whiteout_prefixes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_dentry_parent ON vfs_dentry(parent_ino);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dentry_parent_name ON vfs_dentry(parent_ino, name);
 CREATE INDEX IF NOT EXISTS idx_chunks_ino ON vfs_chunks(ino);
 CREATE INDEX IF NOT EXISTS idx_whiteouts_path ON vfs_whiteouts(path);
 CREATE INDEX IF NOT EXISTS idx_whiteout_prefix ON vfs_whiteout_prefixes(prefix);

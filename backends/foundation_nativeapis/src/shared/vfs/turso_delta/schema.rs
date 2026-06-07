@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS turso_vfs_meta (
 /// Create indexes for common query patterns.
 pub const CREATE_INDEXES: &[&str] = &[
     "CREATE INDEX IF NOT EXISTS idx_dentry_parent ON turso_dentry(parent_ino)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_dentry_parent_name ON turso_dentry(parent_ino, name)",
     "CREATE INDEX IF NOT EXISTS idx_chunks_ino ON turso_chunks(ino)",
     "CREATE INDEX IF NOT EXISTS idx_whiteouts_path ON turso_whiteouts(path)",
     "CREATE INDEX IF NOT EXISTS idx_whiteout_prefix ON turso_whiteout_prefixes(prefix)",
