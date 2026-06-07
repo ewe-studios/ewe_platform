@@ -27,6 +27,8 @@ AuthManager is a coordinator. Its method design reflects the nature of each oper
 
 ### CredentialStorage
 
+**TODO**: why not built the async first and let the sync wrap the async with valtron, you are disobey our pattern again.
+
 Built on foundation_db capabilities:
 - `KeyValueStore` (sync) + `AsyncKeyValueStore` (async) for credential persistence
 - For callers who want a fully-async interface, an `AsyncAuthManager` variant wraps

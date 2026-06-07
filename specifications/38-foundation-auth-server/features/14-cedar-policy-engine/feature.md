@@ -40,6 +40,9 @@ ewe_platform way.
 
 ### Feature Flags
 
+**TODO**: I want to elevate `HttpPolicyFetcher` to more than just a git fallback meaning we can have a GitRepoHttpPolicyFetcher that knows how to interact with github/gitlab/etc over http. 
+But also a standard `HttpPolicyFetcher` that can be used for any HTTP endpoint which will present a set of expected or with a mapping for where to fetch specific policy files from.
+
 Git storage capability is implemented in `foundation_nativeapis` as a generic
 `PolicyFetcher` trait with `GitPolicyFetcher` (gix-based) and `HttpPolicyFetcher`
 (HTTP raw-file fallback) implementations. This crate consumes it via feature flags

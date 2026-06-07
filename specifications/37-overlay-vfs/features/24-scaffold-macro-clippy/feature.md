@@ -1,7 +1,7 @@
 ---
 feature_name: "scaffold!() Clippy Warning Suppression"
 description: "Investigate how todo!() suppresses clippy warnings (via the never type `!`) and apply the same technique to scaffold!() so that delegated trait methods don't trigger unused-variable or similar warnings."
-status: "pending"
+status: "done"
 priority: "low"
 phase: 5
 created: 2026-06-07
@@ -9,10 +9,10 @@ updated: 2026-06-07
 dependencies:
   - "18-scaffold-macro"
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 ## Context
@@ -23,7 +23,7 @@ tasks:
 
 ## Tasks
 
-- [ ] Audit current clippy warnings produced by scaffold!() expansions across the codebase
-- [ ] Study how todo!() and unimplemented!() suppress warnings (never type vs #[allow] attributes)
-- [ ] Modify scaffold!() macro to emit `#[allow(unused)]` or equivalent on generated bindings
-- [ ] Verify zero clippy warnings on all scaffold!() call sites after the fix
+- [x] Audit current clippy warnings produced by scaffold!() expansions across the codebase
+- [x] Study how todo!() and unimplemented!() suppress warnings (never type vs #[allow] attributes)
+- [x] Modify scaffold!() macro to emit `#[allow(unused)]` or equivalent on generated bindings — not needed: delegation code is already clean, no warnings at expansion sites
+- [x] Verify zero clippy warnings on all scaffold!() call sites after the fix — confirmed: `cargo clippy -p foundation_nativeapis --features vfs-fuse` produces zero scaffold-related warnings. Also fixed 30 general clippy warnings in foundation_macros + foundation_nostd (commit 9e917fb8).

@@ -1,17 +1,17 @@
 ---
 feature_name: "Ptrace/Reverie Interceptor"
-description: "PtraceInterceptor — Reverie-based syscall interception for transparent VFS sandboxing on Linux. Routes filesystem syscalls to VfsFileSystem, non-fs syscalls pass through."
+description: "PtraceInterceptor — dual-backend syscall interception for transparent VFS sandboxing on Linux. Shared SyscallInterceptor trait with nix-based (raw ptrace) and reverie-based backends behind sub-feature flags. Routes filesystem syscalls to VfsFileSystem, non-fs syscalls pass through."
 status: "pending"
 priority: "low"
 phase: 4
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
 tasks:
   completed: 0
-  uncompleted: 21
-  total: 21
+  uncompleted: 28
+  total: 28
   completion_percentage: 0%
 
 ## Global Rule: `foundation_errstacks` Error Handling
@@ -30,6 +30,45 @@ Linux only. Feature-gated behind `vfs-ptrace`. Highest complexity feature.
 
 Inspired by AgentFS's sandbox design: mount table routing, virtual FD table, syscall entry/exit handlers.
 
+### Dual Backend Architecture
+
+Both a raw `nix`-based ptrace backend and a `reverie`-based backend are implemented behind separate sub-feature flags, sharing a common `SyscallInterceptor` trait.
+
+```rust
+/// Shared trait — both backends implement this.
+pub trait SyscallInterceptor: Send + Sync {
+    fn spawn<F: VfsFileSystem>(
+        &self,
+        fs: Arc<F>,
+        mount_table: MountTable,
+        command: &str,
+        args: &[&str],
+    ) -> VfsResult<InterceptorHandle>;
+}
+
+pub struct InterceptorHandle {
+    pub child_pid: u32,
+    join_handle: JoinHandle<VfsResult<i32>>,
+}
+```
+
+**nix backend (`vfs-ptrace-nix`)**: Raw `ptrace(2)` via the `nix` crate (`nix::sys::ptrace`). No external framework dependency. Uses `PTRACE_SYSCALL` to trap syscall entry/exit, reads/writes tracee memory via `process_vm_readv`/`process_vm_writev`. More code but zero framework risk.
+
+**reverie backend (`vfs-ptrace-reverie`)**: Uses the `reverie` + `reverie-ptrace` crates from Meta (facebookexperimental/reverie). Higher-level API with structured syscall dispatch. Experimental but functional. Pin to a specific version.
+
+### Module Structure
+
+```
+src/native/vfs/ptrace/
+    mod.rs              # SyscallInterceptor trait, MountTable, VirtualFdTable, InterceptorHandle
+    mount_table.rs      # Path prefix → VFS backend routing
+    fd_table.rs         # Virtual FD allocation and tracking
+    memory.rs           # Tracee memory read/write helpers (process_vm_readv/writev)
+    syscall_dispatch.rs # Shared syscall → VFS method mapping logic
+    nix_backend.rs      # nix-based raw ptrace implementation
+    reverie_backend.rs  # reverie-based implementation
+```
+
 ### Reverie Crate Status
 
 Reverie is a ptrace-based syscall interception framework originally developed at Meta (facebookexperimental/reverie). Status considerations:
@@ -37,7 +76,6 @@ Reverie is a ptrace-based syscall interception framework originally developed at
 - **Crate**: `reverie` and `reverie-ptrace` on crates.io
 - **Maturity**: Experimental but functional. Used in production at Meta for syscall tracing.
 - **Version**: Pin to a specific version in Cargo.toml (check latest at implementation time). The API has been unstable across versions.
-- **Fallback**: If Reverie is unmaintained or too unstable at implementation time, fall back to raw `ptrace(2)` via the `nix` crate (`nix::sys::ptrace`). This is more work but has no external framework dependency. The adapter architecture remains the same -- only the syscall interception layer changes.
 
 ### Syscall Number to VFS Operation Mapping
 
@@ -134,23 +172,50 @@ Ptrace interception has inherent overhead due to context switches between tracee
 
 ## Tasks
 
-### Core (`src/native/vfs/ptrace.rs`)
+### Shared Core (`src/native/vfs/ptrace/mod.rs`)
 
-- [ ] Define `PtraceInterceptor<F: VfsFileSystem>` struct: wraps VfsFileSystem + mount table + FD table
-- [ ] Define mount table: maps path prefixes to VFS backends (virtual path → VfsFileSystem, real path → passthrough)
-- [ ] Define FD table: tracks virtual FDs (VfsFile handles) vs real kernel FDs
-- [ ] Implement Reverie syscall handlers for filesystem ops:
+- [ ] Define `SyscallInterceptor` trait with `spawn()` method
+- [ ] Define `InterceptorHandle` struct: child_pid + JoinHandle for wait
+- [ ] Define `MountTable`: maps path prefixes to VFS backends (virtual path → VfsFileSystem, real path → passthrough)
+- [ ] Define `VirtualFdTable`: tracks virtual FDs (VfsFile handles) vs real kernel FDs, keyed by (pid, fd)
+- [ ] Define `VirtualFdEntry` enum: File { handle, path, offset, mode } | Directory { handle, path, dir_offset }
+- [ ] Implement virtual FD allocation: monotonic counter starting at FD_VIRTUAL_BASE (10_000)
+
+### Tracee Memory Helpers (`src/native/vfs/ptrace/memory.rs`)
+
+- [ ] Implement `read_tracee_string(pid, addr) -> String` — read NUL-terminated path from tracee via `process_vm_readv`
+- [ ] Implement `read_tracee_buf(pid, addr, len) -> Vec<u8>` — read buffer from tracee
+- [ ] Implement `write_tracee_buf(pid, addr, data)` — write buffer to tracee via `process_vm_writev`
+- [ ] Implement `write_tracee_stat(pid, addr, metadata)` — write stat struct to tracee memory
+
+### Syscall Dispatch (`src/native/vfs/ptrace/syscall_dispatch.rs`)
+
+- [ ] Implement shared syscall → VFS method dispatch logic (used by both backends):
   - `open`/`openat` → mount table lookup → VFS open or passthrough
   - `read`/`pread64` → if virtual FD, read from VfsFile; else passthrough
   - `write`/`pwrite64` → if virtual FD, write to VfsFile; else passthrough
   - `close` → if virtual FD, close VfsFile handle; else passthrough
-  - `stat`/`lstat`/`fstat` → if virtual path/FD, stat from VFS; else passthrough
+  - `stat`/`lstat`/`fstat`/`newfstatat` → if virtual path/FD, stat from VFS; else passthrough
   - `getdents64` → if virtual FD, readdir from VfsDirectory; else passthrough
-  - `access` → if virtual path, check VFS; else passthrough
-  - `unlink`/`rmdir`/`mkdir`/`rename` → if virtual path, VFS operation; else passthrough
-- [ ] Implement `PtraceInterceptor::spawn(fs, command, args)` — launch child process under ptrace
-- [ ] Implement clean shutdown and FD cleanup
-- [ ] Handle `fork`/`clone` — propagate interception to child processes
+  - `access`/`faccessat` → if virtual path, check VFS; else passthrough
+  - `unlink`/`unlinkat`/`rmdir`/`mkdir`/`mkdirat`/`rename`/`renameat`/`renameat2` → if virtual path, VFS op; else passthrough
+  - `readlink`/`readlinkat`/`symlink`/`symlinkat` → if virtual path, VFS op; else passthrough
+  - `lseek`/`truncate`/`ftruncate`/`chmod`/`fchmod` → if virtual, VFS op; else passthrough
+
+### nix Backend (`src/native/vfs/ptrace/nix_backend.rs`)
+
+- [ ] Implement `NixInterceptor` struct implementing `SyscallInterceptor`
+- [ ] Implement raw ptrace loop: `PTRACE_TRACEME` on child, `PTRACE_SYSCALL` for entry/exit trapping
+- [ ] Read syscall number + args from registers (`PTRACE_GETREGS`) on syscall-entry-stop
+- [ ] Dispatch to shared syscall handler, modify registers/memory, set return value on syscall-exit-stop
+- [ ] Handle `fork`/`clone` propagation via `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK`
+
+### reverie Backend (`src/native/vfs/ptrace/reverie_backend.rs`)
+
+- [ ] Implement `ReverieInterceptor` struct implementing `SyscallInterceptor`
+- [ ] Implement Reverie `Tool` trait with syscall entry/exit handlers
+- [ ] Dispatch intercepted syscalls to shared syscall handler
+- [ ] Handle fork/clone via Reverie's built-in child tracing
 
 ### Fork/Clone
 
@@ -178,9 +243,19 @@ Ptrace interception has inherent overhead due to context switches between tracee
 - [ ] Test: non-virtual paths pass through to real filesystem unchanged
 - [ ] Test: virtual FD range does not collide with real FDs
 
+## Feature Flags
+
+```toml
+[features]
+vfs-ptrace-nix = ["vfs-native", "dep:nix"]       # nix must gain "ptrace", "process", "signal" features
+vfs-ptrace-reverie = ["vfs-native", "dep:reverie", "dep:reverie-ptrace"]
+vfs-ptrace = ["vfs-ptrace-nix"]                   # default to nix backend
+```
+
 ## Verification
 
 - Tests pass on Linux
-- `cargo check -p foundation_nativeapis --features vfs-ptrace` passes
-- Real-world command (`ls /virtual/`, `cp /virtual/a /tmp/b`) works correctly
+- `cargo check -p foundation_nativeapis --features vfs-ptrace-nix` passes
+- `cargo check -p foundation_nativeapis --features vfs-ptrace-reverie` passes
+- Real-world command (`ls /virtual/`, `cp /virtual/a /tmp/b`) works correctly under both backends
 - Non-filesystem syscalls (network, memory) are unaffected

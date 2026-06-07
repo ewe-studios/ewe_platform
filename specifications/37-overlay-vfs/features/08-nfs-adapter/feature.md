@@ -5,9 +5,10 @@ status: "pending"
 priority: "medium"
 phase: 4
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
+  - "23-inode-native-vfs"
 tasks:
   completed: 0
   uncompleted: 17
@@ -66,7 +67,7 @@ Two options evaluated:
 
 NFS uses **opaque file handles** (up to 64 bytes in NFSv3) to identify files across requests. The client sends the handle it received from LOOKUP/CREATE/MKDIR. The server must be able to resolve a handle back to a path.
 
-**Handle strategy**: Use the same inode-to-path cache as the FUSE adapter. The NFS file handle encodes the inode number (u64) in the first 8 bytes, with the remaining bytes reserved (zeroed). On each NFS operation, the server decodes the inode from the handle, looks up the path, and dispatches to the VfsFileSystem.
+**Handle strategy**: Leverage the inode-native VFS (Feature 23) — the VfsFileSystem owns inode allocation and provides `path_by_inode()` reverse lookup. The NFS file handle encodes the inode number (u64) in the first 8 bytes, with the remaining bytes reserved. On each NFS operation, the server decodes the inode from the handle, calls `fs.path_by_inode(ino)`, and dispatches to the VfsFileSystem. No separate inode cache needed (unlike the old FuseMount design).
 
 ```rust
 /// NFS file handle: 32 bytes (well within 64-byte NFSv3 limit)
@@ -143,7 +144,7 @@ Options explained:
 
 - [ ] Define `NfsMount<F: VfsFileSystem>` struct: wraps VfsFileSystem + inode-to-path cache + generation counter
 - [ ] Define `NfsFileHandle` struct: ino (u64) + generation (u64) + reserved bytes
-- [ ] Implement inode-to-path cache (shared design with FUSE adapter -- consider extracting to `src/native/vfs/inode_cache.rs`)
+- [ ] Use inode-native VFS (Feature 23) — `fs.path_by_inode(ino)` for handle resolution, `fs.stat_by_inode(ino)` for GETATTR, no separate cache
 - [ ] Implement ONC RPC / XDR request parsing (minimal: only NFS v3 program number 100003)
 - [ ] Implement NFS v3 operations mapped to VfsFileSystem trait calls:
   - `NULL` -- no-op health check

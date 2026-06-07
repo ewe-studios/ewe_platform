@@ -5,10 +5,11 @@ status: "pending"
 priority: "medium"
 phase: 4
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
   - "12-arrow-serialization"
+  - "23-inode-native-vfs"
 tasks:
   completed: 0
   uncompleted: 16
@@ -98,6 +99,30 @@ pub enum VfsResponse {
 ```
 
 When Arrow serialization (feature 12) is available, bulk data transfers (ReadAt response, WriteAt payload, ReadFile response, DirEntries) can use Arrow IPC format for zero-copy.
+
+### IPC Bus Integration
+
+Uses the existing spec-34 IPC bus infrastructure:
+
+- **`join::<T, R>(options, timeout)`** — returns `(EndpointSender<T>, EndpointReceiver<R>)`. Daemon joins as server (controller_affinity=true), client joins as client.
+- **`MessageBox` trait** — blanket impl for `TypeUuid + Serialize + Deserialize + Send + 'static`. Use `#[derive(MessageBox)]` on the VfsRequest/VfsResponse enums (each variant wraps a TypeUuid type), or use the blanket impl directly with `#[derive(TypeUuid)]` on the enums themselves.
+- **Message encoding** — bincode via the blanket impl. VfsRequest/VfsResponse encode/decode automatically.
+- **Options** — `Options { identifier, label, controller_affinity, token }`. Daemon sets `controller_affinity = true` to register the bus. Client sets `controller_affinity = false` to look up and connect.
+
+```rust
+// Daemon side
+let opts = Options { identifier: "foundation-vfs".into(), controller_affinity: true, ..Default::default() };
+let (tx, mut rx) = join::<VfsResponse, VfsRequest>(opts, None)?;
+loop {
+    let msg = rx.recv(None)?;
+    let response = dispatch(msg.payload, &fs);
+    tx.send(Message::new(msg.selector, response))?;
+}
+
+// Client side
+let opts = Options { identifier: "foundation-vfs".into(), controller_affinity: false, ..Default::default() };
+let (tx, mut rx) = join::<VfsRequest, VfsResponse>(opts, Some(Duration::from_secs(5)))?;
+```
 
 ## Tasks
 

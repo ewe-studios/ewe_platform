@@ -82,6 +82,8 @@ impl IdpConfig {
 ### Route registration
 The `http_app()` method registers all routes:
 
+**TODO**: foundation_http predominantly for native provides the Serve trait and ServeWeb and ServeCf each for the different environments we need to support which you should build for, but why are you sto adament to use ServeWriter?
+
 ```rust
 pub fn http_app(&self) -> HttpApp<Arc<dyn ServeWriter>> {
     let mut app = HttpApp::new_writer();

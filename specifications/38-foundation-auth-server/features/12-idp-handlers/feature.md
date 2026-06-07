@@ -1,5 +1,7 @@
 # Feature 12: IdP Handlers
 
+**TODO**: foundation_http predominantly for native provides the Serve trait and ServeWeb and ServeCf each for the different environments we need to support which you should build for, but why are you sto adament to use ServeWriter?
+
 ## Description
 
 HTTP handler implementations for all OIDC and auth endpoints.

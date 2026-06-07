@@ -1,5 +1,15 @@
 # Feature 13: OIDC Migrations
 
+**TODO**: we should restructure the migrations cause not all tables maybe needed to be created, instead, users can define a Migrations().add_migration(OIDC_MIGRATIONS).add_migrations(...).migrate().
+
+This way we can structure different groups of migrations:
+
+1. All migrations
+2. OIDC migrations
+3. Other groups (related) migrations 
+
+Allowing the core API to apply the relevant migrations, but if all of these are connected and interdependent then they apply the All migration 1.
+
 ## Description
 
 Add foundation_db migrations 016-019 for OIDC server tables: OAuth clients, authorization codes, refresh tokens, and device codes. These are added to the centralized migration system in `foundation_db`.

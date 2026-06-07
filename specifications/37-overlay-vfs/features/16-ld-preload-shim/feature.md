@@ -5,10 +5,11 @@ status: "pending"
 priority: "low"
 phase: 5
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-07
 dependencies:
   - "01-core-traits"
   - "11-ipc-daemon"
+  - "23-inode-native-vfs"
 tasks:
   completed: 0
   uncompleted: 14
