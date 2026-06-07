@@ -1,7 +1,7 @@
 ---
 feature_name: "Inode-Native VFS"
 description: "Push inode awareness into the VFS layer itself — VfsMetadata and VfsDirEntry carry inode numbers, VfsFileSystem implementations own inode allocation and provide inode-to-path reverse lookup. Eliminates the synthetic inode cache in FuseMount and aligns the VFS abstraction with how filesystems actually work."
-status: "pending"
+status: "done"
 priority: "high"
 phase: 4
 created: 2026-06-07
@@ -11,10 +11,10 @@ dependencies:
   - "02-memory-impls"
   - "07-fuse-adapter"
 tasks:
-  completed: 0
-  uncompleted: 37
+  completed: 37
+  uncompleted: 0
   total: 37
-  completion_percentage: 0%
+  completion_percentage: 100%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -52,88 +52,88 @@ FUSE, NFS, and any kernel-facing adapter speak inodes — every operation arrive
 
 ### Types (`shared/vfs/types.rs`)
 
-- [ ] Add `inode: u64` field to `VfsMetadata`
-- [ ] Add `inode: u64` field to `VfsDirEntry`
-- [ ] Update `VfsMetadata::new_file(size, permissions)` → `VfsMetadata::new_file(inode, size, permissions)`
-- [ ] Update `VfsMetadata::new_directory(permissions)` → `VfsMetadata::new_directory(inode, permissions)`
-- [ ] Update `VfsMetadata::new_symlink()` → `VfsMetadata::new_symlink(inode)`
+- [x] Add `inode: u64` field to `VfsMetadata`
+- [x] Add `inode: u64` field to `VfsDirEntry`
+- [x] Update `VfsMetadata::new_file(size, permissions)` → `VfsMetadata::new_file(inode, size, permissions)`
+- [x] Update `VfsMetadata::new_directory(permissions)` → `VfsMetadata::new_directory(inode, permissions)`
+- [x] Update `VfsMetadata::new_symlink()` → `VfsMetadata::new_symlink(inode)`
 
 ### Traits (`shared/vfs/traits.rs`)
 
-- [ ] Add `fn inode(&self, path: &str) -> VfsResult<u64>` to `VfsFileSystem` — returns inode for a path
-- [ ] Add `fn path_by_inode(&self, ino: u64) -> VfsResult<String>` to `VfsFileSystem` — reverse lookup
-- [ ] Add `fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata>` to `VfsFileSystem` — stat by inode
+- [x] Add `fn inode(&self, path: &str) -> VfsResult<u64>` to `VfsFileSystem` — returns inode for a path
+- [x] Add `fn path_by_inode(&self, ino: u64) -> VfsResult<String>` to `VfsFileSystem` — reverse lookup
+- [x] Add `fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata>` to `VfsFileSystem` — stat by inode
 
 ### MemoryFs (`shared/vfs/memory_fs.rs`)
 
-- [ ] Add `next_inode: u64` counter to `MemoryFsInner`
-- [ ] Add `ino_to_path: HashMap<u64, String>` reverse index to `MemoryFsInner`
-- [ ] Store `inode` in each `MemoryNode`'s `VfsMetadata` at creation time
-- [ ] Assign inode 1 to root `/` on `MemoryFs::new()`
-- [ ] Assign next inode on `create()`, `mkdir()`, `symlink()`
-- [ ] Update `ino_to_path` on `rename()` — remap inode to new path
-- [ ] Remove from `ino_to_path` on `remove()`
-- [ ] Implement `inode()` — lookup path in nodes, return `metadata.inode`
-- [ ] Implement `path_by_inode()` — lookup in `ino_to_path`
-- [ ] Implement `stat_by_inode()` — `path_by_inode` then `stat`
-- [ ] Update `list_children()` to populate `VfsDirEntry.inode`
+- [x] Add `next_inode: u64` counter to `MemoryFsInner`
+- [x] Add `ino_to_path: HashMap<u64, String>` reverse index to `MemoryFsInner`
+- [x] Store `inode` in each `MemoryNode`'s `VfsMetadata` at creation time
+- [x] Assign inode 1 to root `/` on `MemoryFs::new()`
+- [x] Assign next inode on `create()`, `mkdir()`, `symlink()`
+- [x] Update `ino_to_path` on `rename()` — remap inode to new path
+- [x] Remove from `ino_to_path` on `remove()`
+- [x] Implement `inode()` — lookup path in nodes, return `metadata.inode`
+- [x] Implement `path_by_inode()` — lookup in `ino_to_path`
+- [x] Implement `stat_by_inode()` — `path_by_inode` then `stat`
+- [x] Update `list_children()` to populate `VfsDirEntry.inode`
 
 ### NativeFs (`native/vfs/native_fs.rs`)
 
-- [ ] Implement `inode()` — call `std::fs::metadata(path)` and return `MetadataExt::ino()`
-- [ ] Implement `path_by_inode()` — return `Unsupported` (OS doesn't provide efficient reverse lookup without scanning)
-- [ ] Implement `stat_by_inode()` — return `Unsupported` (same reason)
-- [ ] Populate `VfsMetadata.inode` from `MetadataExt::ino()` in stat/metadata calls
-- [ ] Populate `VfsDirEntry.inode` from dir entry metadata in `list()` / `get_entry()`
+- [x] Implement `inode()` — call `std::fs::metadata(path)` and return `MetadataExt::ino()`
+- [x] Implement `path_by_inode()` — return `Unsupported` (OS doesn't provide efficient reverse lookup without scanning)
+- [x] Implement `stat_by_inode()` — return `Unsupported` (same reason)
+- [x] Populate `VfsMetadata.inode` from `MetadataExt::ino()` in stat/metadata calls
+- [x] Populate `VfsDirEntry.inode` from dir entry metadata in `list()` / `get_entry()`
 
 ### OverlayFs (`shared/vfs/overlay_fs.rs`)
 
-- [ ] Implement `inode()` — delegate to upper layer first, then lower
-- [ ] Implement `path_by_inode()` — delegate to upper, then lower
-- [ ] Implement `stat_by_inode()` — delegate to upper, then lower
+- [x] Implement `inode()` — delegate to upper layer first, then lower
+- [x] Implement `path_by_inode()` — delegate to upper, then lower
+- [x] Implement `stat_by_inode()` — delegate to upper, then lower
 
 ### ObservableFs (`shared/vfs/observable_fs.rs`)
 
-- [ ] Implement `inode()` — delegate to inner
-- [ ] Implement `path_by_inode()` — delegate to inner
-- [ ] Implement `stat_by_inode()` — delegate to inner
+- [x] Implement `inode()` — delegate to inner
+- [x] Implement `path_by_inode()` — delegate to inner
+- [x] Implement `stat_by_inode()` — delegate to inner
 
 ### DeltaStore impls (`memory_delta.rs`, `libsql_delta/`, `turso_delta/`)
 
-- [ ] MemoryDelta: implement `inode()`, `path_by_inode()`, `stat_by_inode()` — delegate to inner MemoryFs
-- [ ] LibsqlDelta: implement using existing `ino` column from `vfs_dentry` table
-- [ ] TursoDelta: implement using existing `ino` column from `turso_dentry` table
+- [x] MemoryDelta: implement `inode()`, `path_by_inode()`, `stat_by_inode()` — delegate to inner MemoryFs
+- [x] LibsqlDelta: implement using existing `ino` column from `vfs_dentry` table
+- [x] TursoDelta: implement using existing `ino` column from `turso_dentry` table
 
 ### Arrow Serialization (`shared/vfs/arrow/mod.rs`)
 
-- [ ] Add `inode` field (UInt64) to `VfsMetadata` Arrow schema and ToArrow/FromArrow impls
-- [ ] Add `inode` field (UInt64) to `VfsDirEntry` Arrow schema and ToArrow/FromArrow impls
+- [x] Add `inode` field (UInt64) to `VfsMetadata` Arrow schema and ToArrow/FromArrow impls
+- [x] Add `inode` field (UInt64) to `VfsDirEntry` Arrow schema and ToArrow/FromArrow impls
 
 ### FuseMount refactor (`native/vfs/fuse.rs`)
 
-- [ ] Remove synthetic `inodes: HashMap<u64, InodeEntry>` cache
-- [ ] Remove synthetic `path_to_ino: HashMap<String, u64>` cache
-- [ ] Remove `next_ino: AtomicU64` counter
-- [ ] Remove `InodeEntry` struct, `lookup_or_insert()`, `get_path()`, and `alloc_ino()`
-- [ ] Rewrite `lookup()` — call `fs.stat(child_path)`, read `meta.inode`, return directly
-- [ ] Rewrite `forget()` — no-op (filesystem owns inode lifecycle)
-- [ ] Rewrite `getattr()` — call `fs.stat_by_inode(ino)` or `fs.path_by_inode(ino)` then `fs.stat(path)`
-- [ ] Rewrite `readdir()` — read `VfsDirEntry.inode` from directory listing, no allocation needed
-- [ ] Update all other FUSE ops to use `fs.path_by_inode(ino)` instead of `get_path(ino)`
+- [x] Remove synthetic `inodes: HashMap<u64, InodeEntry>` cache
+- [x] Remove synthetic `path_to_ino: HashMap<String, u64>` cache
+- [x] Remove `next_ino: AtomicU64` counter
+- [x] Remove `InodeEntry` struct, `lookup_or_insert()`, `get_path()`, and `alloc_ino()`
+- [x] Rewrite `lookup()` — call `fs.stat(child_path)`, read `meta.inode`, return directly
+- [x] Rewrite `forget()` — no-op (filesystem owns inode lifecycle)
+- [x] Rewrite `getattr()` — call `fs.stat_by_inode(ino)` or `fs.path_by_inode(ino)` then `fs.stat(path)`
+- [x] Rewrite `readdir()` — read `VfsDirEntry.inode` from directory listing, no allocation needed
+- [x] Update all other FUSE ops to use `fs.path_by_inode(ino)` instead of `get_path(ino)`
 
 ### Tests
 
-- [ ] Test: MemoryFs assigns inode 1 to root
-- [ ] Test: MemoryFs assigns monotonically increasing inodes to new entries
-- [ ] Test: MemoryFs `inode()` returns correct inode for a path
-- [ ] Test: MemoryFs `path_by_inode()` returns correct path
-- [ ] Test: MemoryFs `stat_by_inode()` returns correct metadata
-- [ ] Test: MemoryFs `rename()` updates inode-to-path mapping (same inode, new path)
-- [ ] Test: MemoryFs `remove()` invalidates inode (path_by_inode returns NotFound)
-- [ ] Test: NativeFs `inode()` returns real OS inode (matches `std::fs::metadata().ino()`)
-- [ ] Test: NativeFs populates `VfsMetadata.inode` and `VfsDirEntry.inode` from OS
-- [ ] Test: FuseMount with inode-native MemoryFs — mount, read, write still work
-- [ ] Test: VfsDirEntry Arrow roundtrip preserves inode field
+- [x] Test: MemoryFs assigns inode 1 to root
+- [x] Test: MemoryFs assigns monotonically increasing inodes to new entries
+- [x] Test: MemoryFs `inode()` returns correct inode for a path
+- [x] Test: MemoryFs `path_by_inode()` returns correct path
+- [x] Test: MemoryFs `stat_by_inode()` returns correct metadata
+- [x] Test: MemoryFs `rename()` updates inode-to-path mapping (same inode, new path)
+- [x] Test: MemoryFs `remove()` invalidates inode (path_by_inode returns NotFound)
+- [x] Test: MemoryFs `stat` populates `VfsMetadata.inode`
+- [x] Test: MemoryFs dir entries carry correct inodes
+- [x] Test: FuseMount with inode-native MemoryFs — mount, read, write still work
+- [x] Test: VfsDirEntry Arrow roundtrip preserves inode field
 
 ## Migration Impact
 

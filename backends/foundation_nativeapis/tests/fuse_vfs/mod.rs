@@ -1,7 +1,7 @@
 use foundation_nativeapis::native::vfs::fuse::{
     flags_to_open_mode, vfs_error_to_errno, FuseMount, FuseMountOptions, ROOT_INO,
 };
-use foundation_nativeapis::shared::vfs::{MemoryFs, OpenMode, VfsError, VfsFileSystem, VfsFileType, VfsMetadata};
+use foundation_nativeapis::shared::vfs::{MemoryFs, OpenMode, VfsDirectory, VfsError, VfsFileSystem, VfsFileType, VfsMetadata};
 
 use std::time::Duration;
 
@@ -49,7 +49,7 @@ fn test_child_path() {
     assert_eq!(FuseMount::<MemoryFs>::child_path("/bar", "baz"), "/bar/baz");
 }
 
-// ── Construction / Inode Cache ──
+// ── Construction ──
 
 #[test]
 fn test_fuse_mount_construction() {
@@ -74,51 +74,6 @@ fn test_fuse_mount_custom_options() {
 }
 
 #[test]
-fn test_fuse_mount_new_initializes_root_inode() {
-    let fs = MemoryFs::new();
-    let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-    let inodes = mount.inodes.read().unwrap();
-    assert!(inodes.contains_key(&ROOT_INO));
-    let root = &inodes[&ROOT_INO];
-    assert_eq!(root.path, "/");
-    assert_eq!(root.file_type, VfsFileType::Directory);
-    assert_eq!(root.refcount, u64::MAX);
-
-    let p2i = mount.path_to_ino.read().unwrap();
-    assert_eq!(p2i.get("/"), Some(&ROOT_INO));
-}
-
-#[test]
-fn test_inode_allocation_is_monotonic() {
-    let fs = MemoryFs::new();
-    let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-    let first = mount.alloc_ino();
-    let second = mount.alloc_ino();
-    let third = mount.alloc_ino();
-
-    assert_eq!(first, 2);
-    assert_eq!(second, 3);
-    assert_eq!(third, 4);
-}
-
-#[test]
-fn test_lookup_or_insert_creates_and_increments() {
-    let fs = MemoryFs::new();
-    let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-    let ino1 = mount.lookup_or_insert("/foo", VfsFileType::Regular);
-    assert_eq!(ino1, 2);
-
-    let ino2 = mount.lookup_or_insert("/foo", VfsFileType::Regular);
-    assert_eq!(ino2, ino1);
-
-    let inodes = mount.inodes.read().unwrap();
-    assert_eq!(inodes[&ino1].refcount, 2);
-}
-
-#[test]
 fn test_file_handle_allocation() {
     let fs = MemoryFs::new();
     let mount = FuseMount::new(fs, FuseMountOptions::default());
@@ -138,7 +93,7 @@ fn test_metadata_to_attr_regular_file() {
     let mount = FuseMount::new(fs, FuseMountOptions::default());
 
     let meta = VfsMetadata::new_file(5, 1024, 0o644);
-    let attr = mount.metadata_to_attr(5, &meta);
+    let attr = mount.metadata_to_attr(&meta);
 
     assert_eq!(attr.ino, 5);
     assert_eq!(attr.size, 1024);
@@ -152,12 +107,116 @@ fn test_metadata_to_attr_directory() {
     let mount = FuseMount::new(fs, FuseMountOptions::default());
 
     let meta = VfsMetadata::new_directory(3, 0o755);
-    let attr = mount.metadata_to_attr(3, &meta);
+    let attr = mount.metadata_to_attr(&meta);
 
     assert_eq!(attr.ino, 3);
     assert_eq!(attr.perm, 0o755);
     assert_eq!(attr.nlink, 2);
 }
+
+// ── VFS-Native Inode Tests ──
+
+#[test]
+fn test_memory_fs_root_has_inode_1() {
+    let fs = MemoryFs::new();
+    let ino = fs.inode("/").unwrap();
+    assert_eq!(ino, ROOT_INO);
+}
+
+#[test]
+fn test_memory_fs_inode_monotonic_allocation() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/a").unwrap();
+    fs.mkdir("/b").unwrap();
+    fs.write_file("/c.txt", b"data").unwrap();
+
+    let ino_a = fs.inode("/a").unwrap();
+    let ino_b = fs.inode("/b").unwrap();
+    let ino_c = fs.inode("/c.txt").unwrap();
+
+    assert!(ino_a >= 2);
+    assert!(ino_b > ino_a);
+    assert!(ino_c > ino_b);
+}
+
+#[test]
+fn test_memory_fs_path_by_inode_roundtrip() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/docs").unwrap();
+    fs.write_file("/docs/readme.txt", b"hello").unwrap();
+
+    let ino = fs.inode("/docs/readme.txt").unwrap();
+    let path = fs.path_by_inode(ino).unwrap();
+    assert_eq!(path, "/docs/readme.txt");
+}
+
+#[test]
+fn test_memory_fs_stat_by_inode() {
+    let fs = MemoryFs::new();
+    fs.write_file("/test.bin", b"content").unwrap();
+
+    let ino = fs.inode("/test.bin").unwrap();
+    let meta = fs.stat_by_inode(ino).unwrap();
+
+    assert_eq!(meta.inode, ino);
+    assert_eq!(meta.file_type, VfsFileType::Regular);
+    assert_eq!(meta.size, 7);
+}
+
+#[test]
+fn test_memory_fs_rename_preserves_inode() {
+    let fs = MemoryFs::new();
+    fs.write_file("/old.txt", b"data").unwrap();
+
+    let ino_before = fs.inode("/old.txt").unwrap();
+    fs.rename("/old.txt", "/new.txt").unwrap();
+
+    let ino_after = fs.inode("/new.txt").unwrap();
+    assert_eq!(ino_before, ino_after);
+
+    let path = fs.path_by_inode(ino_after).unwrap();
+    assert_eq!(path, "/new.txt");
+}
+
+#[test]
+fn test_memory_fs_remove_invalidates_inode() {
+    let fs = MemoryFs::new();
+    fs.write_file("/gone.txt", b"bye").unwrap();
+
+    let ino = fs.inode("/gone.txt").unwrap();
+    fs.remove("/gone.txt").unwrap();
+
+    assert!(fs.path_by_inode(ino).is_err());
+}
+
+#[test]
+fn test_memory_fs_stat_populates_inode() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/subdir").unwrap();
+
+    let meta = fs.stat("/subdir").unwrap();
+    assert!(meta.inode >= 2);
+    assert_eq!(meta.file_type, VfsFileType::Directory);
+}
+
+#[test]
+fn test_memory_fs_dir_entries_have_inodes() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/dir").unwrap();
+    fs.write_file("/dir/a.txt", b"a").unwrap();
+    fs.write_file("/dir/b.txt", b"b").unwrap();
+
+    let dir = fs.open_directory("/dir").unwrap();
+    let entries = dir.list().unwrap();
+
+    for entry in &entries {
+        assert!(entry.inode >= 2, "entry {} has inode 0", entry.name);
+        let resolved = fs.path_by_inode(entry.inode).unwrap();
+        assert!(resolved.ends_with(&entry.name));
+    }
+}
+
+// ── Populated FS ──
 
 #[test]
 fn test_fuse_mount_with_populated_fs() {

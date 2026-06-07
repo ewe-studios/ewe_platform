@@ -12,7 +12,7 @@ use fuser::{
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::traits::{VfsDirectory, VfsFile, VfsFileSystem};
-use crate::shared::vfs::types::{OpenMode, VfsFileType, VfsMetadata};
+use crate::shared::vfs::types::{OpenMode, VfsDirEntry, VfsFileType, VfsMetadata};
 
 pub const ROOT_INO: u64 = 1;
 
@@ -101,20 +101,12 @@ impl FuseReplyError for ReplyStatfs {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct InodeEntry {
-    pub path: String,
-    pub refcount: u64,
-    #[allow(dead_code)]
-    pub file_type: VfsFileType,
-}
-
 struct OpenFileHandle {
     file: Box<dyn VfsFile>,
 }
 
 struct OpenDirHandle {
-    cached_entries: Vec<(String, VfsFileType)>,
+    cached_entries: Vec<VfsDirEntry>,
 }
 
 #[derive(Debug, Clone)]
@@ -139,9 +131,6 @@ impl Default for FuseMountOptions {
 pub struct FuseMount<F: VfsFileSystem> {
     fs: Arc<F>,
     options: FuseMountOptions,
-    pub inodes: RwLock<HashMap<u64, InodeEntry>>,
-    pub path_to_ino: RwLock<HashMap<String, u64>>,
-    next_ino: AtomicU64,
     file_handles: RwLock<HashMap<u64, OpenFileHandle>>,
     dir_handles: RwLock<HashMap<u64, OpenDirHandle>>,
     next_fh: AtomicU64,
@@ -151,7 +140,6 @@ impl<F: VfsFileSystem> std::fmt::Debug for FuseMount<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FuseMount")
             .field("options", &self.options)
-            .field("next_ino", &self.next_ino.load(Ordering::Relaxed))
             .field("next_fh", &self.next_fh.load(Ordering::Relaxed))
             .finish()
     }
@@ -159,29 +147,9 @@ impl<F: VfsFileSystem> std::fmt::Debug for FuseMount<F> {
 
 impl<F: VfsFileSystem + 'static> FuseMount<F> {
     pub fn new(fs: F, options: FuseMountOptions) -> Self {
-        let inodes = {
-            let mut m = HashMap::new();
-            m.insert(
-                ROOT_INO,
-                InodeEntry {
-                    path: "/".to_string(),
-                    refcount: u64::MAX,
-                    file_type: VfsFileType::Directory,
-                },
-            );
-            RwLock::new(m)
-        };
-        let path_to_ino = {
-            let mut m = HashMap::new();
-            m.insert("/".to_string(), ROOT_INO);
-            RwLock::new(m)
-        };
         Self {
             fs: Arc::new(fs),
             options,
-            inodes,
-            path_to_ino,
-            next_ino: AtomicU64::new(2),
             file_handles: RwLock::new(HashMap::new()),
             dir_handles: RwLock::new(HashMap::new()),
             next_fh: AtomicU64::new(1),
@@ -219,51 +187,8 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         opts
     }
 
-    pub fn alloc_ino(&self) -> u64 {
-        self.next_ino.fetch_add(1, Ordering::Relaxed)
-    }
-
     pub fn alloc_fh(&self) -> u64 {
         self.next_fh.fetch_add(1, Ordering::Relaxed)
-    }
-
-    pub fn lookup_or_insert(&self, path: &str, file_type: VfsFileType) -> u64 {
-        {
-            let p2i = self.path_to_ino.read().unwrap();
-            if let Some(&ino) = p2i.get(path) {
-                let mut inodes = self.inodes.write().unwrap();
-                if let Some(entry) = inodes.get_mut(&ino) {
-                    entry.refcount = entry.refcount.saturating_add(1);
-                }
-                return ino;
-            }
-        }
-
-        let ino = self.alloc_ino();
-        let mut inodes = self.inodes.write().unwrap();
-        let mut p2i = self.path_to_ino.write().unwrap();
-
-        if let Some(&existing) = p2i.get(path) {
-            if let Some(entry) = inodes.get_mut(&existing) {
-                entry.refcount = entry.refcount.saturating_add(1);
-            }
-            return existing;
-        }
-
-        inodes.insert(
-            ino,
-            InodeEntry {
-                path: path.to_string(),
-                refcount: 1,
-                file_type,
-            },
-        );
-        p2i.insert(path.to_string(), ino);
-        ino
-    }
-
-    fn get_path(&self, ino: u64) -> Option<String> {
-        self.inodes.read().unwrap().get(&ino).map(|e| e.path.clone())
     }
 
     pub fn child_path(parent: &str, name: &str) -> String {
@@ -274,7 +199,7 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         }
     }
 
-    pub fn metadata_to_attr(&self, ino: u64, meta: &VfsMetadata) -> FileAttr {
+    pub fn metadata_to_attr(&self, meta: &VfsMetadata) -> FileAttr {
         let kind = match meta.file_type {
             VfsFileType::Regular => FileType::RegularFile,
             VfsFileType::Directory => FileType::Directory,
@@ -282,7 +207,7 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         };
         let now = SystemTime::now();
         FileAttr {
-            ino,
+            ino: meta.inode,
             size: meta.size,
             blocks: (meta.size + 511) / 512,
             atime: meta.accessed.unwrap_or(now),
@@ -320,9 +245,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 
     fn lookup(&mut self, _req: &Request<'_>, parent: u64, name: &OsStr, reply: ReplyEntry) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let name_str = match name.to_str() {
@@ -337,38 +265,35 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
 
         match self.fs.stat(&child) {
             Ok(meta) => {
-                let ino = self.lookup_or_insert(&child, meta.file_type);
-                let attr = self.metadata_to_attr(ino, &meta);
+                let attr = self.metadata_to_attr(&meta);
                 reply.entry(&self.options.entry_timeout, &attr, 0);
             }
             Err(e) => reply_err_from_vfs(&e, reply),
         }
     }
 
-    fn forget(&mut self, _req: &Request<'_>, ino: u64, nlookup: u64) {
-        let mut inodes = self.inodes.write().unwrap();
-        if let Some(entry) = inodes.get_mut(&ino) {
-            entry.refcount = entry.refcount.saturating_sub(nlookup);
-            if entry.refcount == 0 && ino != ROOT_INO {
-                let path = entry.path.clone();
-                inodes.remove(&ino);
-                self.path_to_ino.write().unwrap().remove(&path);
-            }
-        }
+    fn forget(&mut self, _req: &Request<'_>, _ino: u64, _nlookup: u64) {
+        // VFS owns inode lifecycle — nothing to do here.
     }
 
     fn getattr(&mut self, _req: &Request<'_>, ino: u64, _fh: Option<u64>, reply: ReplyAttr) {
-        let Some(path) = self.get_path(ino) else {
-            reply.error(libc::ENOENT);
-            return;
-        };
-
-        match self.fs.stat(&path) {
+        match self.fs.stat_by_inode(ino) {
             Ok(meta) => {
-                let attr = self.metadata_to_attr(ino, &meta);
+                let attr = self.metadata_to_attr(&meta);
                 reply.attr(&self.options.attr_timeout, &attr);
             }
-            Err(e) => reply_err_from_vfs(&e, reply),
+            Err(_) => {
+                match self.fs.path_by_inode(ino) {
+                    Ok(path) => match self.fs.stat(&path) {
+                        Ok(meta) => {
+                            let attr = self.metadata_to_attr(&meta);
+                            reply.attr(&self.options.attr_timeout, &attr);
+                        }
+                        Err(e) => reply_err_from_vfs(&e, reply),
+                    },
+                    Err(e) => reply_err_from_vfs(&e, reply),
+                }
+            }
         }
     }
 
@@ -390,9 +315,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         _flags: Option<u32>,
         reply: ReplyAttr,
     ) {
-        let Some(path) = self.get_path(ino) else {
-            reply.error(libc::ENOENT);
-            return;
+        let path = match self.fs.path_by_inode(ino) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         if let Some(mode) = mode {
@@ -419,7 +347,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
 
         match self.fs.stat(&path) {
             Ok(meta) => {
-                let attr = self.metadata_to_attr(ino, &meta);
+                let attr = self.metadata_to_attr(&meta);
                 reply.attr(&self.options.attr_timeout, &attr);
             }
             Err(e) => reply_err_from_vfs(&e, reply),
@@ -427,9 +355,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 
     fn readlink(&mut self, _req: &Request<'_>, ino: u64, reply: ReplyData) {
-        let Some(path) = self.get_path(ino) else {
-            reply.error(libc::ENOENT);
-            return;
+        let path = match self.fs.path_by_inode(ino) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         match self.fs.readlink(&path) {
@@ -446,9 +377,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         target: &std::path::Path,
         reply: ReplyEntry,
     ) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let link_name_str = match link_name.to_str() {
@@ -476,8 +410,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
 
         match self.fs.stat(&link_path) {
             Ok(meta) => {
-                let ino = self.lookup_or_insert(&link_path, VfsFileType::Symlink);
-                let attr = self.metadata_to_attr(ino, &meta);
+                let attr = self.metadata_to_attr(&meta);
                 reply.entry(&self.options.entry_timeout, &attr, 0);
             }
             Err(e) => reply_err_from_vfs(&e, reply),
@@ -493,9 +426,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         _umask: u32,
         reply: ReplyEntry,
     ) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let name_str = match name.to_str() {
@@ -515,8 +451,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
 
         match self.fs.stat(&child) {
             Ok(meta) => {
-                let ino = self.lookup_or_insert(&child, VfsFileType::Directory);
-                let attr = self.metadata_to_attr(ino, &meta);
+                let attr = self.metadata_to_attr(&meta);
                 reply.entry(&self.options.entry_timeout, &attr, 0);
             }
             Err(e) => reply_err_from_vfs(&e, reply),
@@ -524,9 +459,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 
     fn unlink(&mut self, _req: &Request<'_>, parent: u64, name: &OsStr, reply: ReplyEmpty) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let name_str = match name.to_str() {
@@ -546,9 +484,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 
     fn rmdir(&mut self, _req: &Request<'_>, parent: u64, name: &OsStr, reply: ReplyEmpty) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let name_str = match name.to_str() {
@@ -577,11 +518,19 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         _flags: u32,
         reply: ReplyEmpty,
     ) {
-        let (Some(parent_path), Some(new_parent_path)) =
-            (self.get_path(parent), self.get_path(newparent))
-        else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
+        };
+        let new_parent_path = match self.fs.path_by_inode(newparent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let (Some(name_str), Some(newname_str)) = (name.to_str(), newname.to_str()) else {
@@ -593,25 +542,18 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         let new_path = Self::child_path(&new_parent_path, newname_str);
 
         match self.fs.rename(&old_path, &new_path) {
-            Ok(()) => {
-                let mut p2i = self.path_to_ino.write().unwrap();
-                if let Some(ino) = p2i.remove(&old_path) {
-                    p2i.insert(new_path.clone(), ino);
-                    let mut inodes = self.inodes.write().unwrap();
-                    if let Some(entry) = inodes.get_mut(&ino) {
-                        entry.path = new_path;
-                    }
-                }
-                reply.ok();
-            }
+            Ok(()) => reply.ok(),
             Err(e) => reply_err_from_vfs(&e, reply),
         }
     }
 
     fn open(&mut self, _req: &Request<'_>, ino: u64, flags: i32, reply: ReplyOpen) {
-        let Some(path) = self.get_path(ino) else {
-            reply.error(libc::ENOENT);
-            return;
+        let path = match self.fs.path_by_inode(ino) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let mode = flags_to_open_mode(flags);
@@ -698,12 +640,15 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         name: &OsStr,
         mode: u32,
         _umask: u32,
-        flags: i32,
+        _flags: i32,
         reply: ReplyCreate,
     ) {
-        let Some(parent_path) = self.get_path(parent) else {
-            reply.error(libc::ENOENT);
-            return;
+        let parent_path = match self.fs.path_by_inode(parent) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         let name_str = match name.to_str() {
@@ -715,11 +660,9 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         };
 
         let child = Self::child_path(&parent_path, name_str);
-        let _ = flags;
 
         match self.fs.create(&child, mode) {
             Ok(file) => {
-                let ino = self.lookup_or_insert(&child, VfsFileType::Regular);
                 let fh = self.alloc_fh();
                 self.file_handles
                     .write()
@@ -728,7 +671,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
 
                 match self.fs.stat(&child) {
                     Ok(meta) => {
-                        let attr = self.metadata_to_attr(ino, &meta);
+                        let attr = self.metadata_to_attr(&meta);
                         reply.created(&self.options.entry_timeout, &attr, 0, fh, 0);
                     }
                     Err(e) => reply_err_from_vfs(&e, reply),
@@ -739,23 +682,22 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 
     fn opendir(&mut self, _req: &Request<'_>, ino: u64, _flags: i32, reply: ReplyOpen) {
-        let Some(path) = self.get_path(ino) else {
-            reply.error(libc::ENOENT);
-            return;
+        let path = match self.fs.path_by_inode(ino) {
+            Ok(p) => p,
+            Err(e) => {
+                reply_err_from_vfs(&e, reply);
+                return;
+            }
         };
 
         match self.fs.open_directory(&path) {
             Ok(dir) => match dir.list() {
                 Ok(entries) => {
-                    let cached: Vec<(String, VfsFileType)> = entries
-                        .into_iter()
-                        .map(|e| (e.name, e.file_type))
-                        .collect();
                     let fh = self.alloc_fh();
                     self.dir_handles
                         .write()
                         .unwrap()
-                        .insert(fh, OpenDirHandle { cached_entries: cached });
+                        .insert(fh, OpenDirHandle { cached_entries: entries });
                     reply.opened(fh, 0);
                 }
                 Err(e) => reply_err_from_vfs(&e, reply),
@@ -778,16 +720,9 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
             return;
         };
 
-        let parent_path = match self.get_path(ino) {
-            Some(p) => p,
-            None => {
-                reply.error(libc::ENOENT);
-                return;
-            }
-        };
-
         let mut idx = offset as usize;
 
+        // "." entry
         if idx == 0 {
             if reply.add(ino, 1, FileType::Directory, ".") {
                 reply.ok();
@@ -796,21 +731,22 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
             idx = 1;
         }
 
+        // ".." entry
         if idx == 1 {
             let parent_ino = if ino == ROOT_INO {
                 ROOT_INO
             } else {
-                let parent = parent_path
-                    .rfind('/')
-                    .map(|pos| &parent_path[..pos])
-                    .unwrap_or("/");
-                let parent = if parent.is_empty() { "/" } else { parent };
-                self.path_to_ino
-                    .read()
-                    .unwrap()
-                    .get(parent)
-                    .copied()
-                    .unwrap_or(ROOT_INO)
+                match self.fs.path_by_inode(ino) {
+                    Ok(path) => {
+                        let parent = path
+                            .rfind('/')
+                            .map(|pos| &path[..pos])
+                            .unwrap_or("/");
+                        let parent = if parent.is_empty() { "/" } else { parent };
+                        self.fs.inode(parent).unwrap_or(ROOT_INO)
+                    }
+                    Err(_) => ROOT_INO,
+                }
             };
             if reply.add(parent_ino, 2, FileType::Directory, "..") {
                 reply.ok();
@@ -820,16 +756,14 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         }
 
         let entry_offset = idx - 2;
-        for (i, (name, ft)) in handle.cached_entries.iter().enumerate().skip(entry_offset) {
-            let child_path = Self::child_path(&parent_path, name);
-            let child_ino = self.lookup_or_insert(&child_path, *ft);
-            let fuse_ft = match ft {
+        for (i, entry) in handle.cached_entries.iter().enumerate().skip(entry_offset) {
+            let fuse_ft = match entry.file_type {
                 VfsFileType::Regular => FileType::RegularFile,
                 VfsFileType::Directory => FileType::Directory,
                 VfsFileType::Symlink => FileType::Symlink,
             };
             let next_offset = (i + 3) as i64;
-            if reply.add(child_ino, next_offset, fuse_ft, name) {
+            if reply.add(entry.inode, next_offset, fuse_ft, &entry.name) {
                 break;
             }
         }
@@ -856,4 +790,3 @@ pub fn flags_to_open_mode(flags: i32) -> OpenMode {
         _ => OpenMode::Read,
     }
 }
-
