@@ -1,3 +1,20 @@
+---
+feature: "IdP Server"
+description: "IdP HTTP server using foundation_http, router setup, CORS, rate limiting"
+status: "pending"
+priority: "high"
+depends_on: ["00-query-store-stream-parity", "01-jwt-verifier"]
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
+
 # Feature 09: IdP Server
 
 ## Description
@@ -51,8 +68,8 @@ impl IdpServer {
     pub fn new(config: IdpConfig, db: StorageProvider) -> Self;
 
     /// Build the HttpApp with all OIDC routes registered.
-    /// Uses HttpApp::new_writer() from foundation_http.
-    pub fn http_app(&self) -> HttpApp<Arc<dyn ServeWriter>>;
+    /// Uses HttpApp::new() from foundation_http.
+    pub fn http_app(&self) -> HttpApp<Arc<dyn Serve>>;
 
     /// Create an HttpServer with the given address.
     #[cfg(not(target_arch = "wasm32"))]
@@ -79,53 +96,119 @@ impl IdpConfig {
 
 ## Implementation Details
 
-### Route registration
-The `http_app()` method registers all routes:
+### Architecture — Async Core + Native Adapter
 
-**TODO**: foundation_http predominantly for native provides the Serve trait and ServeWeb and ServeCf each for the different environments we need to support which you should build for, but why are you sto adament to use ServeWriter?
+Each handler has an **async core method** that contains the actual business logic.
+The three `foundation_http` traits are served as follows:
+
+- **`Serve`** (native, sync) — needs valtron bridge → separate `ServeAdapter` struct
+- **`ServeCf`** (CF Workers, async) — implemented directly on `IdpHandlerCore`
+- **`ServeWeb`** (browser/WASM, async) — implemented directly on `IdpHandlerCore`
+
+```
+                     ┌─────────────────────────────────┐
+                     │    IdpHandlerCore               │
+                     │                                 │
+                     │ async fn authorize(...)          │  ← implements ServeCf
+                     │ async fn token(...)              │  ← implements ServeWeb
+                     │ async fn userinfo(...)           │
+                     │ ... all endpoints ...            │
+                     └────────────┬────────────────────┘
+                                  │
+                     ┌────────────┘
+                     ▼
+           ┌─────────────────┐
+           │  ServeAdapter    │
+           │  (native sync)   │  ← only adapter struct needed
+           │  wraps Arc<Core> │     valtron: from_future + execute + collect_one
+           │  valtron bridge  │
+           └─────────────────┘
+```
+
+#### The Async Core (implements ServeCf + ServeWeb directly)
 
 ```rust
-pub fn http_app(&self) -> HttpApp<Arc<dyn ServeWriter>> {
-    let mut app = HttpApp::new_writer();
+/// Shared async business logic for all IdP endpoints.
+/// Implements ServeCf (CF Workers) and ServeWeb (WASM) directly — both are async.
+pub struct IdpHandlerCore {
+    config: Arc<IdpConfig>,
+    db: StorageProvider,
+}
 
-    // Store config, services, stores in ContextBag
-    app.ctx.store(Arc::new(self.config.clone()));
-    app.ctx.store(Arc::new(UserService::new(self.db.clone())));
-    app.ctx.store(Arc::new(ClientService::new(self.db.clone())));
-    app.ctx.store(Arc::new(TokenService::new(self.config.clone(), self.db.clone())));
-    app.ctx.store(Arc::new(SessionService::new(self.db.clone())));
+impl IdpHandlerCore {
+    pub async fn authorize(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn token(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn userinfo(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    // ... jwks, introspect, device_authorize, login, mfa ...
+}
 
-    // OIDC endpoints
-    app.route_writer(SimpleMethod::GET, "/.well-known/openid-configuration");
-    app.route_writer(SimpleMethod::GET, "/oidc/authorize");
-    app.route_writer(SimpleMethod::POST, "/oidc/token");
-    app.route_writer(SimpleMethod::GET, "/oidc/userinfo");
-    app.route_writer(SimpleMethod::GET, "/oidc/jwks");
-    app.route_writer(SimpleMethod::POST, "/oidc/introspect");
-    app.route_writer(SimpleMethod::POST, "/oidc/device_authorization");
+// === Cloudflare Workers (ServeCf) — async, direct impl ===
+impl ServeCf for IdpHandlerCore {
+    async fn serve_cf(
+        &self, bag: &ContextBag, req: Request, conn: &mut CfConnection,
+    ) -> CfConnectionResult {
+        self.authorize(bag, &req).await.to_cf_connection_response(conn)
+    }
+}
 
-    // Auth endpoints
-    app.route_writer(SimpleMethod::POST, "/auth/v1/login");
-    app.route_writer(SimpleMethod::POST, "/auth/v1/mfa");
+// === Browser/WASM (ServeWeb) — async, direct impl ===
+impl ServeWeb for IdpHandlerCore {
+    async fn serve_web(
+        &self, bag: &ContextBag, req: Request, conn: &mut WebConnection,
+    ) -> WebConnectionResult {
+        self.authorize(bag, &req).await.to_web_connection_response(conn)
+    }
+}
+```
 
-    // Middleware
-    app.middleware(RateLimiter::new(10, Duration::from_secs(60)));  // login/token endpoints
-    app.middleware(CorsMiddleware::new(CorsConfig::new()
-        .with_allowed_origin("*")
-        .with_allowed_method("GET")
-        .with_allowed_method("POST")
-        .with_allowed_header("Authorization")
-        .with_allowed_header("Content-Type")));
+#### Native Adapter (Serve — sync, valtron bridge)
 
-    app
+The only adapter struct. Wraps `Arc<IdpHandlerCore>` and bridges async core to sync trait.
+
+```rust
+pub struct ServeAdapter {
+    core: Arc<IdpHandlerCore>,
+}
+
+impl Serve for ServeAdapter {
+    fn serve(&self, bag: &ContextBag, req: Request, conn: &mut Connection) -> ConnectionResult {
+        let core = Arc::clone(&self.core);
+        let bag = bag.clone();
+        let req = req.clone();
+        let task = from_future(async move {
+            core.authorize(&bag, &req).await
+        });
+        let stream = execute(task, None)?;
+        collect_one(stream)
+            .ok_or_else(|| IdpError::NoResult)?
+            .to_connection_response(conn)
+    }
+}
+```
+
+### Route Registration
+
+```rust
+impl IdpServer {
+    /// Native TCP server — uses Serve trait, valtron bridges async core.
+    pub fn http_app(&self) -> HttpApp<Arc<dyn Serve>>;
+
+    /// Cloudflare Workers — uses ServeCf trait, valtron bridges async core.
+    pub fn cf_app(&self) -> HttpApp<Arc<dyn ServeCf>>;
+
+    /// Browser/WASM — uses ServeWeb trait, direct async calls.
+    pub fn web_app(&self) -> HttpApp<Arc<dyn ServeWeb>>;
 }
 ```
 
 ### ContextBag services
-All services stored in `ContextBag` and retrieved by handlers via `ServeWriterFactory::create(bag)`.
+All services stored in `ContextBag` and accessed by `IdpHandlerCore`. The three
+adapters are thin — they just bridge the transport layer to the core.
 
 ### Server is native-only
-The `server()` method is gated behind `#[cfg(not(target_arch = "wasm32"))]` because it requires TCP listening. The `http_app()` method is shared — it can be used on wasm (e.g., Cloudflare Workers) via the wasm HTTP dispatch path.
+The `server()` method is gated behind `#[cfg(not(target_arch = "wasm32"))]` because
+it requires TCP listening. The `http_app()`, `cf_app()`, and `web_app()` methods
+are shared — they can be used on any platform via the appropriate HTTP dispatch path.
 
 ## Dependencies
 
@@ -152,27 +235,24 @@ server = ["foundation_http"]
 
 ## Handler Architecture
 
-The IdP server supports two handler types for different deployment targets:
+Each endpoint has one async core method in `IdpHandlerCore` and three thin adapters:
 
-### Native (ServeWriter)
-- `ServeWriter` trait — sync handler: `fn serve_writer(&self, bag, req, conn) -> ConnectionResult`
-- Registered via `app.route_writer(method, path)` using `HttpApp::new_writer()`
-- Handlers implement `ServeWriterFactory`: `fn create(bag: &ContextBag) -> Self`
-- Internally, ServeWriter handlers bridge to async services using valtron
-  (`from_future` + `execute` + `collect_one`) when they need to call `*_async` methods
-- See `backends/foundation_http/src/shared/handlers/health.rs` for the pattern
+### Native (`Serve` trait)
+- `ServeAdapter` wraps `IdpHandlerCore`
+- `fn serve()` calls `from_future(async move { core.authorize(...).await })` + `execute` + `collect_one`
+- Same valtron bridge pattern for every endpoint — no logic duplication
 
-### WASM/Browser (WebServe)
-- `WebServe` trait — async handler: `async fn serve_web(&self, bag, req, conn) -> WebConnectionResult`
-- Registered via `app.route_web(method, path)` using `HttpApp::new_web()`
-- Handlers call `*_async` methods directly — no valtron bridging needed
-- See `backends/foundation_http/src/shared/serve_web.rs` for the trait
+### Cloudflare Workers (`ServeCf` trait)
+- `ServeCfAdapter` wraps `IdpHandlerCore`
+- Same valtron bridge pattern as native — different transport type
 
-### IdpServer Design
+### Browser/WASM (`ServeWeb` trait)
+- `ServeWebAdapter` wraps `IdpHandlerCore`
+- `async fn serve_web()` calls `core.authorize(...).await` directly — no bridging needed
 
-The `http_app()` method returns `HttpApp<Arc<dyn ServeWriter>>` for native TCP serving.
-For WASM deployment, a separate `web_app()` method returns `HttpApp<Arc<dyn WebServe>>`.
-Both register the same logical endpoints but use different handler types.
+### Why This Pattern
 
-The `http_app()` builder stores services (UserService, TokenService, etc.) in ContextBag.
-Handlers retrieve them via `ServeWriterFactory::create(bag)` and bridge to async via valtron.
+- **DRY**: All business logic lives once in `IdpHandlerCore`
+- **Thin adapters**: Each is ~10 lines — just valtron bridge + response conversion
+- **Testable**: Core can be unit-tested without HTTP framework
+- **Extensible**: New `foundation_http` trait → just one more thin adapter

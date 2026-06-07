@@ -1,3 +1,20 @@
+---
+feature: "Cedar Policy Engine"
+description: "Cedar policy engine with multi-source storage (R2, D1, local file, git), entity providers, HTTP middleware"
+status: "pending"
+priority: "medium"
+depends_on: ["09-idp-server"]
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
+
 # Feature 14: Cedar Policy Engine
 
 ## Description
@@ -40,10 +57,20 @@ ewe_platform way.
 
 ### Feature Flags
 
-**TODO**: I want to elevate `HttpPolicyFetcher` to more than just a git fallback meaning we can have a GitRepoHttpPolicyFetcher that knows how to interact with github/gitlab/etc over http. 
-But also a standard `HttpPolicyFetcher` that can be used for any HTTP endpoint which will present a set of expected or with a mapping for where to fetch specific policy files from.
+`HttpPolicyFetcher` is elevated to a first-class policy source — not just a git fallback.
+Two concrete implementations:
 
-Git storage capability is implemented in `foundation_nativeapis` as a generic
+1. **`HttpPolicyFetcher`** — fetches policies from any HTTP endpoint with a configurable
+   path mapping (e.g. `policies/schema.cedar` → `https://policies.example.com/schema.cedar`).
+   Works on both native and wasm.
+
+2. **`GitRepoHttpPolicyFetcher`** — knows how to interact with GitHub/GitLab/etc over HTTP
+   using their raw file URLs:
+   - GitHub: `https://raw.githubusercontent.com/{org}/{repo}/{branch}/{path}`
+   - GitLab: `https://gitlab.com/{org}/{repo}/-/raw/{branch}/{path}`
+   - Any provider supporting raw file fetch over HTTP.
+
+Git storage capability is also implemented in `foundation_nativeapis` as a generic
 `PolicyFetcher` trait with `GitPolicyFetcher` (gix-based) and `HttpPolicyFetcher`
 (HTTP raw-file fallback) implementations. This crate consumes it via feature flags
 for reusability and extendability.

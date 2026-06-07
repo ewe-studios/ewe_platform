@@ -4,6 +4,9 @@ pub mod native_fs;
 #[cfg(all(target_os = "linux", feature = "vfs-fuse"))]
 pub mod fuse;
 
+#[cfg(all(target_os = "linux", feature = "vfs-ptrace-nix"))]
+pub mod ptrace;
+
 #[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc_bus;
 

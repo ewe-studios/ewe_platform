@@ -1,3 +1,20 @@
+---
+feature: "Auth Manager"
+description: "Central lifecycle manager coordinating JWT, sessions, state machine, credential store"
+status: "pending"
+priority: "high"
+depends_on: ["00-query-store-stream-parity", "01-jwt-verifier", "02-jwks-manager", "05-password-auth"]
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
+
 # Feature 08: Auth Manager
 
 ## Description
@@ -27,13 +44,10 @@ AuthManager is a coordinator. Its method design reflects the nature of each oper
 
 ### CredentialStorage
 
-**TODO**: why not built the async first and let the sync wrap the async with valtron, you are disobey our pattern again.
-
-Built on foundation_db capabilities:
-- `KeyValueStore` (sync) + `AsyncKeyValueStore` (async) for credential persistence
-- For callers who want a fully-async interface, an `AsyncAuthManager` variant wraps
-  all operations in async, using the stream-to-future bridge where valtron streams
-  are involved.
+Built on `foundation_db` capabilities — async primary, sync wraps via valtron:
+- `AsyncKeyValueStore` (async primary) for credential persistence
+- `KeyValueStore` (sync) wraps async via valtron — `from_future` + `execute` + `collect_one`
+- No separate sync implementation; all sync methods delegate to async via valtron
 
 ## Module
 

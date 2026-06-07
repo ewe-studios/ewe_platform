@@ -1,27 +1,139 @@
-# Feature 12: IdP Handlers
+---
+feature: "IdP Handlers"
+description: "OIDC endpoints: authorize, token, userinfo, jwks, discovery, introspect, device_authorize"
+status: "pending"
+priority: "high"
+depends_on: ["09-idp-server", "10-idp-models", "11-idp-services"]
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
 
-**TODO**: foundation_http predominantly for native provides the Serve trait and ServeWeb and ServeCf each for the different environments we need to support which you should build for, but why are you sto adament to use ServeWriter?
+# Feature 12: IdP Handlers
 
 ## Description
 
 HTTP handler implementations for all OIDC and auth endpoints.
 
-Two handler variants are provided:
-- **ServeWriter** (native) — sync trait, bridges to async services via valtron
-  (`from_future` + `execute` + `collect_one`)
-- **WebServe** (wasm/browser) — async trait, calls `*_async` methods directly
+Each endpoint has one **async core method** in `IdpHandlerCore`. `IdpHandlerCore`
+implements `ServeCf` and `ServeWeb` directly (both are async). Only `Serve` (native,
+sync) needs a separate adapter struct with valtron bridging.
 
-Both variants share the same business logic — only the transport layer differs.
-The ServeWriter handlers use valtron to call async service methods from the
-sync handler context. The WebServe handlers are natively async.
+```
+                    ┌─────────────────────────────────┐
+                    │     IdpHandlerCore (async)      │
+                    │                                 │
+                    │ async fn authorize(...) -> ...  │  ← implements ServeCf
+                    │ async fn token(...) -> ...      │  ← implements ServeWeb
+                    │ async fn userinfo(...) -> ...   │
+                    │ ... all endpoints ...           │
+                    └────────────┬────────────────────┘
+                                 │
+                    ┌────────────┘
+                    ▼
+          ┌─────────────────┐
+          │  ServeAdapter    │  ← only adapter struct needed
+          │  (native sync)   │     valtron: from_future + execute + collect_one
+          │  wraps Arc<Core> │
+          │  valtron bridge  │
+          └─────────────────┘
+```
+
+- **Serve** (native) — sync trait, bridges to async core via valtron
+  (`from_future` + `execute` + `collect_one`). Only trait that needs an adapter.
+- **ServeCf** (Cloudflare Workers) — async trait, `impl ServeCf for IdpHandlerCore`
+- **ServeWeb** (wasm/browser) — async trait, `impl ServeWeb for IdpHandlerCore`
+
+No separate adapter structs for ServeCf or ServeWeb — they call the async core
+directly. Only `ServeAdapter` exists for the native sync bridge.
 
 ## Modules
 
 `backends/foundation_auth/src/server/handlers/` — directory containing handler files
 
-## Handlers
+### Core (`handlers/core.rs`)
 
-### Discovery Handler (`handlers/discovery.rs`)
+```rust
+/// Shared async business logic for all IdP endpoints.
+pub struct IdpHandlerCore {
+    config: Arc<IdpConfig>,
+    db: StorageProvider,
+    token_service: Arc<TokenService>,
+    user_service: Arc<UserService>,
+    client_service: Arc<ClientService>,
+    session_service: Arc<SessionService>,
+}
+
+impl IdpHandlerCore {
+    pub fn new(config: Arc<IdpConfig>, db: StorageProvider) -> Self;
+
+    // All endpoints are async — one method per endpoint
+    pub async fn discovery(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn authorize(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn login(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn mfa(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn token(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn userinfo(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn jwks(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn introspect(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+    pub async fn device_authorize(&self, bag: &ContextBag, req: &Request) -> Result<Response, IdpError>;
+}
+```
+
+### Native Adapter (`handlers/serve_adapter.rs`)
+
+The only adapter struct. Wraps `Arc<IdpHandlerCore>` and bridges async core to sync trait.
+
+```rust
+pub struct ServeAdapter { core: Arc<IdpHandlerCore> }
+
+impl Serve for ServeAdapter {
+    fn serve(&self, bag: &ContextBag, req: Request, conn: &mut Connection) -> ConnectionResult {
+        let core = Arc::clone(&self.core);
+        let bag = bag.clone();
+        let req = req.clone();
+        let task = from_future(async move {
+            core.dispatch(&bag, &req).await  // dispatch() routes to the right endpoint
+        });
+        let stream = execute(task, None)?;
+        collect_one(stream)
+            .ok_or_else(|| IdpError::NoResult)?
+            .to_connection_response(conn)
+    }
+}
+```
+
+### ServeCf + ServeWeb — Direct Implementation on IdpHandlerCore
+
+Both are async traits — no adapter structs needed. `IdpHandlerCore` implements them directly:
+
+```rust
+impl ServeCf for IdpHandlerCore {
+    async fn serve_cf(
+        &self, bag: &ContextBag, req: Request, conn: &mut CfConnection,
+    ) -> CfConnectionResult {
+        self.dispatch(bag, &req).await.to_cf_connection_response(conn)
+    }
+}
+
+impl ServeWeb for IdpHandlerCore {
+    async fn serve_web(
+        &self, bag: &ContextBag, req: Request, conn: &mut WebConnection,
+    ) -> WebConnectionResult {
+        self.dispatch(bag, &req).await.to_web_connection_response(conn)
+    }
+}
+```
+
+## Endpoint Details
+
+### Discovery (`async fn discovery`)
 
 **GET /.well-known/openid-configuration**
 
@@ -30,7 +142,7 @@ sync handler context. The WebServe handlers are natively async.
 - No authentication required
 - CORS enabled for this endpoint
 
-### Authorize Handler (`handlers/authorize.rs`)
+### Authorize (`async fn authorize`)
 
 **GET /oidc/authorize**
 
@@ -50,7 +162,7 @@ Flow:
    - If not authenticated:
      - Return JSON: `{"status": "login_required", "login_url": "/auth/v1/login", "return_to": "<original_url>"}`
 
-### Login Handler (`handlers/login.rs`)
+### Login (`async fn login`)
 
 **POST /auth/v1/login**
 
@@ -67,7 +179,7 @@ Flow:
    - If MFA: create TOTP challenge, return `{"status": "mfa_required", "challenge_id": "..."}`
    - If no MFA: create session, return `{"status": "authenticated", "session_id": "...", "cookie": {...}}`
 
-### MFA Handler (`handlers/mfa.rs`)
+### MFA (`async fn mfa`)
 
 **POST /auth/v1/mfa**
 
@@ -79,7 +191,7 @@ Flow:
 3. On success: create session, return `{"status": "authenticated", "session_id": "...", "cookie": {...}}`
 4. Include cookie also in response for clients that prefer to pick it up from there as well.
 
-### Token Handler (`handlers/token.rs`)
+### Token (`async fn token`)
 
 **POST /oidc/token**
 
@@ -114,7 +226,7 @@ Body (form-urlencoded): varies by grant type
 3. Generate access token (no ID token, no refresh token for client credentials)
 4. Return: `{"access_token": "...", "token_type": "Bearer", "expires_in": 900, "scope": "..."}`
 
-### UserInfo Handler (`handlers/userinfo.rs`)
+### UserInfo (`async fn userinfo`)
 
 **GET /oidc/userinfo**
 
@@ -124,7 +236,7 @@ Body (form-urlencoded): varies by grant type
 4. Look up user by `sub` claim
 5. Return user claims JSON: `{"sub": "...", "email": "...", "name": "..."}`
 
-### JWKS Handler (`handlers/jwks.rs`)
+### JWKS (`async fn jwks`)
 
 **GET /oidc/jwks**
 
@@ -132,7 +244,7 @@ Body (form-urlencoded): varies by grant type
 2. Return JWKS JSON: `{"keys": [{"kty": "OKP", "crv": "Ed25519", "x": "...", "kid": "...", "use": "sig", "alg": "EdDSA"}]}`
 3. CORS enabled for this endpoint
 
-### Introspect Handler (`handlers/introspect.rs`)
+### Introspect (`async fn introspect`)
 
 **POST /oidc/introspect**
 
@@ -146,7 +258,7 @@ Body: `token=...&client_id=...&client_secret=...`
    - If valid: return `{"active": true, ...}`
 4. Return `{"active": false}`
 
-### Device Authorize Handler (`handlers/device_authorize.rs`)
+### Device Authorize (`async fn device_authorize`)
 
 **POST /oidc/device_authorization**
 
@@ -156,26 +268,24 @@ Body: `token=...&client_id=...&client_secret=...`
 4. Store device code in DB with expires_at (10 min), interval (5s)
 5. Return: `{"device_code": "...", "user_code": "WXYZ-1234", "verification_uri": "/device", "verification_uri_complete": "/device?code=WXYZ-1234", "expires_in": 600, "interval": 5}`
 
-## Common Response Helpers
+## Response Helpers
 
 ```rust
 /// Return a JSON error response.
-fn error_response(conn: &mut impl Write, status: u16, error: &str, description: &str) -> ConnectionResult {
+fn error_response(status: u16, error: &str, description: &str) -> Response {
     let body = serde_json::json!({"error": error, "error_description": description});
-    let _ = respond::json(conn, status, &body);
-    ConnectionResult::Keep
+    Response::json(status, body)
 }
 
 /// Return a JSON success response.
-fn success_response(conn: &mut impl Write, status: u16, body: &impl Serialize) -> ConnectionResult {
-    let _ = respond::json(conn, status, body);
-    ConnectionResult::Keep
+fn success_response(status: u16, body: &impl Serialize) -> Response {
+    Response::json(status, body)
 }
 ```
 
 ## Dependencies
 
-- Existing: `foundation_http` (ServeWriter, respond helpers, ContextBag)
+- Existing: `foundation_http` (Serve, ServeCf, ServeWeb traits, ContextBag)
 - Existing: all server models and services
 
 ## Testing

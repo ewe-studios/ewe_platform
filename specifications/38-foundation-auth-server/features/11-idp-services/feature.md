@@ -1,3 +1,20 @@
+---
+feature: "IdP Services"
+description: "Token generation (jwt-simple), user management (Argon2id), client management, session service"
+status: "pending"
+priority: "high"
+depends_on: ["00-query-store-stream-parity", "10-idp-models"]
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
+
 # Feature 11: IdP Services
 
 ## Description

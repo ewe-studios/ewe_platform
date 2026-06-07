@@ -1,3 +1,20 @@
+---
+feature: "QueryStore Stream Parity"
+description: "Fix AsyncQueryStore API parity — return streams not Vec for multi-row queries"
+status: "completed"
+priority: "high"
+depends_on: []
+estimated_effort: "large"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 00: Storage Trait Stream Parity — Async Primary, Sync Wraps
 
 **Status: COMPLETE** — Implemented and committed as `dc1e1ae8`.

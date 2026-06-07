@@ -38,6 +38,7 @@ libc = "0.2"
 # FUSE adapter (Linux only)
 [target.'cfg(target_os = "linux")'.dependencies]
 fuser = { workspace = true, optional = true }
+nix = { version = "0.29", optional = true, features = ["ptrace", "process", "signal", "fs"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -152,6 +153,10 @@ vfs-arrow = ["vfs", "dep:foundation_arrow"]
 
 # VFS IPC daemon/client over the message bus
 vfs-ipc = ["vfs", "ipc", "dep:foundation_macros"]
+
+# Ptrace syscall interception (Linux only, nix raw ptrace backend)
+vfs-ptrace-nix = ["vfs-native", "dep:nix"]
+vfs-ptrace = ["vfs-ptrace-nix"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]

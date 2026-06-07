@@ -1,7 +1,7 @@
 ---
 feature_name: "Ptrace/Reverie Interceptor"
 description: "PtraceInterceptor — dual-backend syscall interception for transparent VFS sandboxing on Linux. Shared SyscallInterceptor trait with nix-based (raw ptrace) and reverie-based backends behind sub-feature flags. Routes filesystem syscalls to VfsFileSystem, non-fs syscalls pass through."
-status: "pending"
+status: "in-progress"
 priority: "low"
 phase: 4
 created: 2026-06-04
@@ -9,10 +9,10 @@ updated: 2026-06-07
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 28
+  completed: 21
+  uncompleted: 7
   total: 28
-  completion_percentage: 0%
+  completion_percentage: 75%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -174,23 +174,23 @@ Ptrace interception has inherent overhead due to context switches between tracee
 
 ### Shared Core (`src/native/vfs/ptrace/mod.rs`)
 
-- [ ] Define `SyscallInterceptor` trait with `spawn()` method
-- [ ] Define `InterceptorHandle` struct: child_pid + JoinHandle for wait
-- [ ] Define `MountTable`: maps path prefixes to VFS backends (virtual path → VfsFileSystem, real path → passthrough)
-- [ ] Define `VirtualFdTable`: tracks virtual FDs (VfsFile handles) vs real kernel FDs, keyed by (pid, fd)
-- [ ] Define `VirtualFdEntry` enum: File { handle, path, offset, mode } | Directory { handle, path, dir_offset }
-- [ ] Implement virtual FD allocation: monotonic counter starting at FD_VIRTUAL_BASE (10_000)
+- [x] Define `SyscallInterceptor` trait with `spawn()` method
+- [x] Define `InterceptorHandle` struct: child_pid + JoinHandle for wait
+- [x] Define `MountTable`: maps path prefixes to VFS backends (virtual path → DynFs, real path → passthrough)
+- [x] Define `VirtualFdTable`: tracks virtual FDs keyed by (pid, fd) with Arc-based sharing
+- [x] Define `VirtualFdEntry` enum: File { handle: ErasedFile, path, offset, mode } | Directory { handle: ErasedDir, path, dir_offset }
+- [x] Implement virtual FD allocation: monotonic counter starting at FD_VIRTUAL_BASE (10_000)
 
 ### Tracee Memory Helpers (`src/native/vfs/ptrace/memory.rs`)
 
-- [ ] Implement `read_tracee_string(pid, addr) -> String` — read NUL-terminated path from tracee via `process_vm_readv`
-- [ ] Implement `read_tracee_buf(pid, addr, len) -> Vec<u8>` — read buffer from tracee
-- [ ] Implement `write_tracee_buf(pid, addr, data)` — write buffer to tracee via `process_vm_writev`
-- [ ] Implement `write_tracee_stat(pid, addr, metadata)` — write stat struct to tracee memory
+- [x] Implement `read_tracee_string(pid, addr) -> String` — read NUL-terminated path via `process_vm_readv`
+- [x] Implement `read_tracee_buf(pid, addr, len) -> Vec<u8>` — read buffer from tracee
+- [x] Implement `write_tracee_buf(pid, addr, data)` — write buffer via `process_vm_writev`
+- [x] Implement `write_tracee_stat(pid, addr, metadata)` — write x86_64 stat struct to tracee memory
 
 ### Syscall Dispatch (`src/native/vfs/ptrace/syscall_dispatch.rs`)
 
-- [ ] Implement shared syscall → VFS method dispatch logic (used by both backends):
+- [x] Implement shared syscall → VFS method dispatch logic (used by both backends):
   - `open`/`openat` → mount table lookup → VFS open or passthrough
   - `read`/`pread64` → if virtual FD, read from VfsFile; else passthrough
   - `write`/`pwrite64` → if virtual FD, write to VfsFile; else passthrough
@@ -204,11 +204,11 @@ Ptrace interception has inherent overhead due to context switches between tracee
 
 ### nix Backend (`src/native/vfs/ptrace/nix_backend.rs`)
 
-- [ ] Implement `NixInterceptor` struct implementing `SyscallInterceptor`
-- [ ] Implement raw ptrace loop: `PTRACE_TRACEME` on child, `PTRACE_SYSCALL` for entry/exit trapping
-- [ ] Read syscall number + args from registers (`PTRACE_GETREGS`) on syscall-entry-stop
-- [ ] Dispatch to shared syscall handler, modify registers/memory, set return value on syscall-exit-stop
-- [ ] Handle `fork`/`clone` propagation via `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK`
+- [x] Implement `NixInterceptor` struct implementing `SyscallInterceptor`
+- [x] Implement raw ptrace loop: `PTRACE_TRACEME` on child, `PTRACE_SYSCALL` for entry/exit trapping
+- [x] Read syscall number + args from registers (`PTRACE_GETREGS`) on syscall-entry-stop
+- [x] Dispatch to shared syscall handler, modify registers/memory, set return value on syscall-exit-stop
+- [x] Handle `fork`/`clone` propagation via `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK`
 
 ### reverie Backend (`src/native/vfs/ptrace/reverie_backend.rs`)
 
@@ -219,19 +219,19 @@ Ptrace interception has inherent overhead due to context switches between tracee
 
 ### Fork/Clone
 
-- [ ] Set `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK` on traced processes
-- [ ] Clone virtual FD table entries on fork (shared via Arc for clone with CLONE_FILES)
+- [x] Set `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK` on traced processes
+- [x] Clone virtual FD table entries on fork (shared via Arc for clone with CLONE_FILES)
 - [ ] Handle `execve()`: close virtual FDs marked `O_CLOEXEC`
 
 ### Security
 
-- [ ] Path validation: prevent escape from virtual mount points (resolve `..`, symlinks)
-- [ ] FD isolation: virtual FDs cannot leak to non-intercepted processes
-- [ ] Intercept `dup2`/`dup3`: reject if target FD is in virtual range
+- [x] Path validation: prevent escape from virtual mount points (resolve `..`, symlinks)
+- [x] FD isolation: virtual FDs cannot leak to non-intercepted processes
+- [x] Intercept `dup2`/`dup3`: reject if target FD is in virtual range
 
 ### Edge Cases
 
-- [ ] Handle `openat` with `AT_FDCWD`: resolve relative to tracee's cwd (read from `/proc/<pid>/cwd`)
+- [x] Handle `openat` with `AT_FDCWD`: resolve relative to tracee's cwd (read from `/proc/<pid>/cwd`)
 - [ ] Handle `O_CREAT | O_EXCL` atomicity: VfsFileSystem `create()` returns `AlreadyExists` mapped to `-EEXIST`
 - [ ] Handle partial reads/writes: tracee buffer may be smaller than requested
 

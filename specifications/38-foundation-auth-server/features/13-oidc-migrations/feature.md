@@ -1,14 +1,48 @@
+---
+feature: "OIDC Migrations"
+description: "foundation_db migrations 016-019: oauth_clients, authorization_codes, refresh_tokens, device_codes"
+status: "pending"
+priority: "high"
+depends_on: ["10-idp-models"]
+estimated_effort: "medium"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 1
+  total: 1
+  completion_percentage: 0%
+---
+
 # Feature 13: OIDC Migrations
 
-**TODO**: we should restructure the migrations cause not all tables maybe needed to be created, instead, users can define a Migrations().add_migration(OIDC_MIGRATIONS).add_migrations(...).migrate().
+## Migration Grouping Design
 
-This way we can structure different groups of migrations:
+Not all tables may be needed by every consumer. Instead of one monolithic list,
+migrations are organized into **groups** that can be selectively applied:
 
-1. All migrations
-2. OIDC migrations
-3. Other groups (related) migrations 
+```rust
+// Migration groups are composable:
+let migrations = Migrations::new()
+    .add_group("auth", AUTH_MIGRATIONS)        // 001-015: users, sessions, etc.
+    .add_group("oidc", OIDC_MIGRATIONS)         // 016-019: OAuth clients, codes, tokens
+    .add_group("custom", CUSTOM_MIGRATIONS);    // user-defined
 
-Allowing the core API to apply the relevant migrations, but if all of these are connected and interdependent then they apply the All migration 1.
+// Apply all groups:
+migrations.migrate_all(&store)?;
+
+// Apply specific groups:
+migrations.migrate_groups(&["auth", "oidc"], &store)?;
+```
+
+This allows:
+1. **All migrations** — for full self-hosted IdP deployments
+2. **OIDC migrations only** — for client-only deployments that need OAuth tables
+3. **Other groups** — as defined by consumers
+
+If all groups are interconnected (shared FK references), applying `migrate_all()`
+ensures they are applied in the correct order.
 
 ## Description
 
