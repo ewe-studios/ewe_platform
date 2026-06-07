@@ -109,6 +109,11 @@ name = "fuse_vfs"
 path = "tests/fuse_vfs/mod.rs"
 required-features = ["vfs-fuse"]
 
+[[test]]
+name = "ipc_vfs"
+path = "tests/ipc_vfs/mod.rs"
+required-features = ["vfs-ipc", "vfs-native"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
@@ -144,6 +149,9 @@ vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
 
 # Arrow serialization for VFS types
 vfs-arrow = ["vfs", "dep:foundation_arrow"]
+
+# VFS IPC daemon/client over the message bus
+vfs-ipc = ["vfs", "ipc", "dep:foundation_macros"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]

@@ -60,3 +60,29 @@ The original scaffoldable macro filtered out `self` from parameters when generat
 
 ### #[scaffoldable] generates crate-level macros
 The generated `__scaffold_methods_{TypeName}!` macro is `#[macro_export]`ed, making it available at the crate root. This means users of `#[derive(Scaffold)]` must have access to the crate where `#[scaffoldable]` was applied. For cross-crate usage, the macro must be re-exported or both types must be in the same crate.
+
+## Phase 4 (2026-06-07) — IPC VFS Daemon
+
+### VfsTransport trait direction mismatch
+The `VfsTransport::request(&self)` method takes `&self` but the IPC bus receiver (`EndpointReceiver`) requires `&mut` to call `recv()`. **Solution:** Wrap sender and receiver in `Mutex` so `&self` can acquire a lock. This is a common pattern when a sync trait exposes only shared references but the underlying transport is bidirectional.
+
+### Options doesn't implement Default
+`ipc::Options` uses a builder pattern (`Options::new(identifier, label).controller_affinity(true)`) rather than `Default`. Don't use `..Default::default()`.
+
+### ErrorTrace wrapping required
+`VfsResult<T>` is `Result<T, ErrorTrace<VfsError>>` — not `Result<T, VfsError>`. All error conversions in IPC bus code must wrap with `ErrorTrace::new(...)`.
+
+### Client/Daemon have opposite bus directions
+The client calls `join::<VfsRequest, VfsResponse>()` (sends requests, receives responses). The daemon calls `join::<VfsResponse, VfsRequest>()` (sends responses, receives requests). This means two separate transport structs (`ClientTransport` and `DaemonTransport`) with different generic parameters are needed — they can't share the same struct.
+
+### DirectTransport for in-process testing
+`DirectTransport<F>` wraps a `VfsDaemon<F>` and implements `VfsTransport` by calling `daemon.dispatch()` directly. This avoids the IPC bus for testing — no socket setup needed. Both client and daemon logic are validated through this transport.
+
+### NativeFs doesn't support stat_by_inode/path_by_inode
+`NativeFs` implements `stat_by_inode` and `path_by_inode` as "operation not supported" because there's no efficient way to reverse-lookup an inode to a path on the native filesystem. These operations require an inode-tracking backend (e.g., OverlayFileSystem with delta metadata). Tests should expect `Err` when using NativeFs.
+
+### Feature flag gating for IPC VFS
+The `vfs-ipc` feature depends on both `vfs` and `ipc`. The IPC VFS modules (`ipc_messages`, `ipc_daemon`, `ipc_client`) live in `shared::vfs` (always available when `vfs-ipc` is enabled). The bus transport (`ipc_bus.rs`) lives in `native::vfs` because it uses `ipc::Message<T>` which is native-only (platform socket transport). Feature gates:
+- `shared::vfs::ipc_messages` — `#[cfg(feature = "vfs-ipc")]`
+- `shared::vfs::ipc_daemon` / `ipc_client` — `#[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]`
+- `native::vfs::ipc_bus` — same as above

@@ -19,6 +19,15 @@ pub mod turso_delta;
 #[cfg(feature = "vfs-arrow")]
 pub mod arrow;
 
+#[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+pub mod ipc_client;
+
+#[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+pub mod ipc_daemon;
+
+#[cfg(feature = "vfs-ipc")]
+pub mod ipc_messages;
+
 pub use error::{VfsError, VfsResult};
 pub use memory_delta::MemoryDelta;
 pub use memory_fs::MemoryFs;

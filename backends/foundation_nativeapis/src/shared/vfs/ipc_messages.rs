@@ -1,13 +1,15 @@
 use std::io::SeekFrom;
 use std::time::SystemTime;
 
+use foundation_macros::TypeUuid;
 use serde::{Deserialize, Serialize};
 
 use super::types::{
     Checksum, OpenMode, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
+#[uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
 pub enum VfsRequest {
     // File operations
     Open { path: String, mode: IpcOpenMode, seekable: bool },
@@ -55,7 +57,8 @@ pub enum VfsRequest {
     Capabilities,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
+#[uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901"]
 pub enum VfsResponse {
     FileHandle(u64),
     DirHandle(u64),
